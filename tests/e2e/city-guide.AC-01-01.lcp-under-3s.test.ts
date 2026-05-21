@@ -13,6 +13,11 @@ test.describe('City guide — QR code access (AC-01-01, AC-01-02)', () => {
     page,
     context,
   }) => {
+    // Warm-up: force Next.js JIT compilation without throttling so the measured
+    // navigation reflects only network + render time, not one-time compilation cost.
+    await page.goto('/guide/saint-gervais-les-bains')
+    await page.waitForLoadState('networkidle')
+
     // Throttle to Fast 4G: 4 Mbps down, 3 Mbps up, 20ms RTT
     const cdp = await context.newCDPSession(page)
     await cdp.send('Network.emulateNetworkConditions', {
@@ -22,7 +27,7 @@ test.describe('City guide — QR code access (AC-01-01, AC-01-02)', () => {
       latency: 20,
     })
 
-    // Capture LCP via PerformanceObserver injected before navigation
+    // Capture LCP via PerformanceObserver injected before the measured navigation
     await page.addInitScript(() => {
       window.__lcp = 0
       new PerformanceObserver((list) => {

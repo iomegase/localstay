@@ -1,4 +1,4 @@
-import prisma from '@/shared/lib/prisma'
+import { prisma } from '@/shared/lib/prisma'
 import type { CategoryWithCount, SubCategoryWithCount, CategoryDetail, PoiSummary } from '../types'
 
 export async function getCategoriesForCity(citySlug: string): Promise<CategoryWithCount[] | null> {
@@ -21,7 +21,11 @@ export async function getCategoriesForCity(citySlug: string): Promise<CategoryWi
     },
   })
 
-  return categories
+  type RawCategory = {
+    id: string; name: string; slug: string; icon: string; sort_order: number;
+    _count: { pois: number }
+  }
+  return (categories as RawCategory[])
     .filter(c => c._count.pois > 0)
     .map(c => ({
       id: c.id, name: c.name, slug: c.slug, icon: c.icon,
@@ -125,7 +129,8 @@ export async function getPoisForCategory(
     },
   })
 
-  return pois.map(p => ({
+  type RawPoi = { id: string; name: string; slug: string; subcategory: { slug: string } | null }
+  return (pois as RawPoi[]).map(p => ({
     id: p.id,
     name: p.name,
     slug: p.slug,

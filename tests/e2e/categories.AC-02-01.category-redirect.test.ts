@@ -17,8 +17,10 @@ test.describe('Categories — navigation (AC-02-01)', () => {
     const href = await categoryLink.getAttribute('href')
     expect(href).toMatch(/\/guide\/saint-gervais-les-bains\/\w/)
 
-    await categoryLink.click()
-    await page.waitForLoadState('networkidle')
+    await Promise.all([
+      page.waitForURL(`**${href}`),
+      categoryLink.click(),
+    ])
 
     expect(page.url()).toContain(href)
     // The category page title should be visible

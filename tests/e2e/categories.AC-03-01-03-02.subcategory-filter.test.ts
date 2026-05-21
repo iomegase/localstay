@@ -19,8 +19,9 @@ test.describe('Categories — subcategory filter (AC-03-01, AC-03-02)', () => {
     const totalCount = await allPois.count()
     expect(totalCount).toBeGreaterThan(1)
 
-    // Click the Gastronomique subcategory chip
+    // Click the Gastronomique subcategory chip and wait for URL + RSC re-render
     await page.getByTestId('subcategory-gastronomique').click()
+    await page.waitForURL('**/restaurants?sub=gastronomique')
     await page.waitForLoadState('networkidle')
 
     const filteredPois = page.locator('[data-testid="poi-list"] li')
@@ -39,11 +40,12 @@ test.describe('Categories — subcategory filter (AC-03-01, AC-03-02)', () => {
   test('AC-03-02: clicking "Tous" after filtering shows all POIs again', async ({ page }) => {
     // First, apply a filter
     await page.getByTestId('subcategory-gastronomique').click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForURL('**/restaurants?sub=gastronomique')
     const filteredCount = await page.locator('[data-testid="poi-list"] li').count()
 
     // Then deselect by clicking "Tous"
     await page.getByText('Tous').click()
+    await page.waitForURL(/\/restaurants$/)
     await page.waitForLoadState('networkidle')
     const allCount = await page.locator('[data-testid="poi-list"] li').count()
 
