@@ -5,7 +5,7 @@
 ```yaml
 id: 002-categories
 title: "Menu catégories avec masquage dynamique"
-status: review
+status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
