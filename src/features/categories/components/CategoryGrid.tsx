@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import * as LucideIcons from 'lucide-react'
 import type { CategorySummary } from '@/features/city-guide/types'
+import type { FC } from 'react'
 
 function CategoryIcon({ iconSlug }: { iconSlug: string }) {
   const name = iconSlug
     .split('-')
     .map(s => s.charAt(0).toUpperCase() + s.slice(1))
     .join('') as keyof typeof LucideIcons
-  const Icon = (LucideIcons[name] ?? LucideIcons.MapPin) as React.FC<{ className?: string }>
+  const Icon = (LucideIcons[name] ?? LucideIcons.MapPin) as FC<{ className?: string }>
   return <Icon className="w-6 h-6 text-gold" />
 }
 
