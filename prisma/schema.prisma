@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Spec 001 — City Guide ───────────────────────────────────────────────────
+
+model City {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  name        String
+  slug        String    @unique
+  postal_code String
+  department  String?
+  region      String?
+  latitude    Float
+  longitude   Float
+  is_active   Boolean   @default(true)
+
+  pois        PointOfInterest[]
+  qr_codes    QrCode[]
+}
+
+// ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
+
+model Category {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  name        String
+  slug        String    @unique
+  icon        String
+  sort_order  Int       @default(0)
+  is_active   Boolean   @default(true)
+
+  subcategories SubCategory[]
+  pois          PointOfInterest[]
+}
+
+model SubCategory {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  name        String
+  slug        String    @unique
+  sort_order  Int       @default(0)
+  is_active   Boolean   @default(true)
+
+  category_id String
+  category    Category  @relation(fields: [category_id], references: [id])
+
+  pois        PointOfInterest[]
+}
+
+// ─── Spec 003 — POI List (draft, included for poi_count join) ────────────────
+
+model PointOfInterest {
+  id             String       @id @default(uuid())
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  deleted_at     DateTime?
+
+  name           String
+  slug           String
+  description    String?
+  address        String
+  latitude       Float
+  longitude      Float
+  phone          String?
+  website        String?
+  rating         Float?
+  rating_count   Int          @default(0)
+  is_active      Boolean      @default(true)
+  is_open_now    Boolean?
+  hours          Json?
+  photos         String[]
+  tags           String[]
+
+  city_id        String
+  city           City         @relation(fields: [city_id], references: [id])
+  category_id    String
+  category       Category     @relation(fields: [category_id], references: [id])
+  subcategory_id String?
+  subcategory    SubCategory? @relation(fields: [subcategory_id], references: [id])
+
+  @@unique([city_id, slug])
+}
+
+// ─── Spec 006 — QR Code (stub, full model defined in spec 006) ───────────────
+
+model QrCode {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  city_id    String
+  city       City      @relation(fields: [city_id], references: [id])
+  url        String
+  image_url  String?
+}
