@@ -21,15 +21,16 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Scan QR → redirection < 3s | - | - | ⬜ |
-| AC-01-02 | Slug inexistant → 404 | - | - | ⬜ |
-| AC-01-03 | Nom ville + nb catégories affichés | - | - | ⬜ |
-| AC-02-01 | Saisie ville valide → redirection | - | - | ⬜ |
-| AC-02-02 | Saisie sans résultat → message | - | - | ⬜ |
-| AC-02-03 | Autocomplétion dès 3 caractères | - | - | ⬜ |
-| AC-03-01 | Seules catégories avec POI visibles | - | - | ⬜ |
-| AC-03-02 | Icône + nom + count par catégorie | - | - | ⬜ |
-| AC-03-03 | Rendu lisible 375px | - | - | ⬜ |
+| AC-01-01 | Scan QR → LCP < 3s sur 4G (Lighthouse Mobile) | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/e2e/city-guide.AC-01-01.lcp-under-3s.test.ts` | ✅ done |
+| AC-01-02 | Slug inexistant → 404 avec lien retour | `src/app/(public)/guide/[city-slug]/not-found.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-01-02.slug-not-found-404.test.ts`<br>`tests/e2e/city-guide.AC-01-01.lcp-under-3s.test.ts` | ✅ done |
+| AC-01-03 | Nom ville + catégories disponibles affichés | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
+| AC-02-01 | Saisie ville valide → redirection guide | `src/features/city-guide/components/CitySearchInput.tsx` | `tests/integration/city-guide.AC-02-01.city-search-redirect.test.tsx` | ✅ done |
+| AC-02-02 | Saisie sans résultat → message clair | `src/features/city-guide/components/CitySearchInput.tsx` | `tests/unit/city-guide.AC-02-02.no-result-message.test.tsx` | ✅ done |
+| AC-02-03 | Autocomplétion dès 3 chars, max 10, accent-insensitive | `src/app/api/cities/search/route.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/city-guide/components/CitySearchInput.tsx` | `tests/unit/city-guide.AC-02-03.autocomplete-logic.test.ts`<br>`tests/unit/city-guide.AC-02-02.no-result-message.test.tsx` | ✅ done |
+| AC-03-01 | Seules catégories avec POI actif visibles (absentes du DOM) | `src/features/city-guide/components/CategoryRow.tsx`<br>`src/features/city-guide/queries/cities.ts` | `tests/unit/city-guide.AC-03-01.categories-filter.test.tsx` | ✅ done |
+| AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | `src/features/city-guide/components/CategoryRow.tsx` | `tests/unit/city-guide.AC-03-01.categories-filter.test.tsx`<br>`tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts` | ✅ done |
+| AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal | `src/app/(public)/layout.tsx` | `tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts` | ✅ done |
+| AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-03-04.empty-city-200.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
 
 ---
 
