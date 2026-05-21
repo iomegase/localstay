@@ -1,5 +1,5 @@
 import prisma from '@/shared/lib/prisma'
-import type { CategoryWithCount, CategoryDetail, PoiSummary } from '../types'
+import type { CategoryWithCount, SubCategoryWithCount, CategoryDetail, PoiSummary } from '../types'
 
 export async function getCategoriesForCity(citySlug: string): Promise<CategoryWithCount[] | null> {
   const city = await prisma.city.findFirst({
@@ -29,18 +29,106 @@ export async function getCategoriesForCity(citySlug: string): Promise<CategoryWi
     }))
 }
 
-// getCategoryDetail and getPoisForCategory will be added in Task 4
 export async function getCategoryDetail(
-  _citySlug: string,
-  _categorySlug: string,
+  citySlug: string,
+  categorySlug: string,
 ): Promise<CategoryDetail | null> {
-  throw new Error('Not implemented yet — Task 4')
+  const city = await prisma.city.findFirst({
+    where: { slug: citySlug, is_active: true, deleted_at: null },
+    select: { id: true },
+  })
+  if (!city) return null
+
+  const category = await prisma.category.findFirst({
+    where: { slug: categorySlug, is_active: true, deleted_at: null },
+    select: {
+      id: true, name: true, slug: true, icon: true, sort_order: true,
+      _count: {
+        select: {
+          pois: { where: { city_id: city.id, is_active: true, deleted_at: null } },
+        },
+      },
+      subcategories: {
+        where: { is_active: true, deleted_at: null },
+        orderBy: { sort_order: 'asc' },
+        select: {
+          id: true, name: true, slug: true,
+          _count: {
+            select: {
+              pois: { where: { city_id: city.id, is_active: true, deleted_at: null } },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!category || category._count.pois === 0) return null
+
+  type RawSub = { id: string; name: string; slug: string; _count: { pois: number } }
+  const subs: SubCategoryWithCount[] = (category.subcategories as RawSub[])
+    .filter(s => s._count.pois > 0)
+    .map(s => ({ id: s.id, name: s.name, slug: s.slug, poi_count: s._count.pois }))
+
+  return {
+    id: category.id, name: category.name, slug: category.slug,
+    icon: category.icon, sort_order: category.sort_order,
+    poi_count: category._count.pois,
+    subcategories: subs,
+  }
 }
 
 export async function getPoisForCategory(
-  _citySlug: string,
-  _categorySlug: string,
-  _subcategorySlug?: string,
+  citySlug: string,
+  categorySlug: string,
+  subcategorySlug?: string,
 ): Promise<PoiSummary[]> {
-  throw new Error('Not implemented yet — Task 4')
+  const city = await prisma.city.findFirst({
+    where: { slug: citySlug, is_active: true, deleted_at: null },
+    select: { id: true },
+  })
+  if (!city) return []
+
+  const category = await prisma.category.findFirst({
+    where: { slug: categorySlug, is_active: true, deleted_at: null },
+    select: { id: true },
+  })
+  if (!category) return []
+
+  let subcategoryId: string | undefined
+  if (subcategorySlug) {
+    const sub = await prisma.subCategory.findFirst({
+      where: {
+        slug: subcategorySlug,
+        category_id: category.id,
+        is_active: true,
+        deleted_at: null,
+      },
+      select: { id: true },
+    })
+    if (!sub) return []
+    subcategoryId = sub.id
+  }
+
+  const pois = await prisma.pointOfInterest.findMany({
+    where: {
+      city_id: city.id,
+      category_id: category.id,
+      ...(subcategoryId ? { subcategory_id: subcategoryId } : {}),
+      is_active: true,
+      deleted_at: null,
+    },
+    orderBy: { name: 'asc' },
+    select: {
+      id: true, name: true, slug: true,
+      subcategory: { select: { slug: true } },
+    },
+  })
+
+  return pois.map(p => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    subcategory_slug: p.subcategory?.slug ?? null,
+  }))
 }
