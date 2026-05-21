@@ -5,11 +5,11 @@
 ```yaml
 id: 002-categories
 title: "Menu catégories avec masquage dynamique"
-status: draft
+status: review
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-20
+updated_at: 2026-05-21
 depends_on: [001-city-guide]
 ```
 
@@ -268,4 +268,4 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Faut-il une page catégorie dédiée ou un drawer/modal sur mobile ? | owner | - | pending |
+| OQ-01 | Faut-il une page catégorie dédiée ou un drawer/modal sur mobile ? | owner | 2026-05-21 | ✅ **Résolu** — Page dédiée. Chaque catégorie navigue vers `/guide/[city-slug]/[category-slug]`. Le bouton retour revient à `/guide/[city-slug]`. Pas de drawer ni de modal. |
