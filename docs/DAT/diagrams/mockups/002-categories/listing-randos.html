@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StayLocal — Randonnées par ville</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap");
+
+      :root {
+        --ivory: #faf9f6;
+        --charcoal: #121212;
+      }
+
+      body {
+        background-color: var(--ivory);
+        color: var(--charcoal);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        overflow-x: hidden;
+      }
+
+      .serif {
+        font-family: "Playfair Display", serif;
+      }
+
+      .glass {
+        background: rgba(250, 249, 246, 0.85);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .burger-line {
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        background-color: var(--charcoal);
+      }
+
+      .burger-open .line-1 {
+        transform: translateY(3px) rotate(45deg);
+        width: 24px !important;
+      }
+
+      .burger-open .line-2 {
+        transform: translateY(-3px) rotate(-45deg);
+        width: 24px !important;
+      }
+
+      #menuOverlay {
+        clip-path: circle(0% at 90% 5%);
+        transition: clip-path 0.7s cubic-bezier(0.85, 0, 0.15, 1);
+      }
+
+      #menuOverlay.is-open {
+        clip-path: circle(150% at 90% 5%);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .category-item {
+        transition: all 0.3s ease;
+      }
+
+      .category-item:active {
+        transform: scale(0.92);
+      }
+    </style>
+  </head>
+
+  <body
+    class="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-[#FAF9F6]"
+  >
+    <!-- MENU OVERLAY -->
+    <div
+      id="menuOverlay"
+      class="fixed inset-0 z-[60] bg-white flex flex-col justify-between p-8"
+    >
+      <div class="mt-20 space-y-8">
+        <p
+          class="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold"
+        >
+          Navigation
+        </p>
+
+        <nav class="space-y-6">
+          <a href="#" class="block text-4xl">Le Logement</a>
+          <a href="#" class="block text-4xl">Services Privés</a>
+          <a href="#" class="block text-4xl">Mes Favoris</a>
+          <a href="#" class="block text-4xl">Nous Contacter</a>
+        </nav>
+      </div>
+
+      <div class="border-t border-gray-100 pt-8 space-y-4">
+        <div class="flex items-center justify-between text-sm text-gray-800">
+          <span>StayLocal Concierge v1.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <header
+      class="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50"
+    >
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 bg-[#121212] rounded-full flex items-center justify-center"
+        >
+          <span class="text-white text-[10px] font-bold">SL</span>
+        </div>
+
+        <span
+          class="text-[13px] font-semibold tracking-tighter uppercase text-[#121212]"
+        >
+          StayLocal
+        </span>
+      </div>
+
+      <button
+        id="menuBtn"
+        type="button"
+        aria-label="Ouvrir le menu"
+        class="relative z-[80] w-10 h-10 flex flex-col justify-center items-end gap-1.5"
+      >
+        <span class="burger-line line-1 h-[1.5px] w-6"></span>
+        <span class="burger-line line-2 h-[1.5px] w-4"></span>
+      </button>
+    </header>
+
+    <!-- NAVIGATION BAR -->
+    <nav
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]"
+    >
+      <div
+        class="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl"
+      >
+        <button class="group flex flex-col items-center gap-1 text-[#121212]">
+          <i
+            data-lucide="compass"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Explorer
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="map"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Carte
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="heart"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Favoris
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="home"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Séjour
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <main class="pb-32 pt-6">
+      <!-- TITLE SECTION -->
+      <section class="px-4 mb-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <!-- <p
+          class="text-[10px] font-bold text-[#A68E69] uppercase tracking-[0.3em] mb-2"
+        >
+          Randonnées
+        </p> -->
+
+            <h1 id="cityTitle" class="text-4xl font-thin uppercase">
+              Chamonix
+            </h1>
+
+            <!-- <p
+              id="citySubtitle"
+              class="text-gray-600 text-xs font-thin tracking-wider mt-2"
+            >
+              Les plus belles randonnées.
+            </p> -->
+          </div>
+
+          <!-- <div
+            class="w-12 h-12 shrink-0 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm"
+          >
+            <i data-lucide="mountain" class="w-5 h-5 text-[#A68E69]"></i>
+          </div> -->
+        </div>
+      </section>
+
+      <!-- SEARCH -->
+      <section class="px-4 mb-8">
+        <div
+          class="flex items-center gap-4 bg-white border border-gray-100 rounded-full px-6 py-4 shadow-sm"
+        >
+          <i data-lucide="search" class="w-4 h-4 text-gray-300"></i>
+
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Rechercher une randonnée..."
+            class="bg-transparent text-sm outline-none w-full placeholder:text-gray-300"
+          />
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <section class="mb-12">
+        <div class="flex gap-3 overflow-x-auto px-4 no-scrollbar">
+          <button
+            data-filter="all"
+            class="filter-btn shrink-0 rounded-full bg-[#121212] text-white px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Toutes
+          </button>
+
+          <button
+            data-filter="facile"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:drop-shadow-md transition"
+          >
+            Facile
+          </button>
+
+          <button
+            data-filter="moyen"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:drop-shadow-md transition"
+          >
+            Moyen
+          </button>
+
+          <button
+            data-filter="difficile"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:drop-shadow-md transition"
+          >
+            Difficile
+          </button>
+        </div>
+      </section>
+
+      <!-- HIKES LIST -->
+      <!-- HIKES LIST -->
+      <section class="px-1 mt-4">
+        <div class="flex items-center justify-between px-4">
+          <h2
+            class="text-md font-thin uppercase tracking-[0.05em] text-[#121212]"
+          >
+            Les plus belles randonnées.
+          </h2>
+
+          <span
+            id="resultCount"
+            class="text-[10px] font-bold uppercase tracking-widest text-orange-400"
+          >
+            0 résultat
+          </span>
+        </div>
+
+        <div id="hikesList" class="pt-12 space-y-7"></div>
+      </section>
+    </main>
+
+    <script>
+      const city = "Chamonix";
+
+      const hikes = [
+        {
+          title: "Lac Blanc",
+          city: "Chamonix",
+          level: "difficile",
+          duration: "4h30",
+          distance: "9.2 km",
+          elevation: "+920 m",
+          start: "La Flégère",
+          image:
+            "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Une randonnée alpine emblématique avec vue sur le massif du Mont-Blanc.Cras nisi est, egestas ac leo non, iaculis fringilla justo. Nulla facilisi. Nulla laoreet scelerisque fermentum. Proin malesuada nisl est, sit amet convallis lorem rhoncus quis. Nulla maximus, lectus nec scelerisque varius, enim purus pulvinar ipsum, ut malesuada lectus sapien finibus eros. Fusce vel quam sapien. Curabitur mollis leo sed egestas tempus. Quisque luctus aliquet sagittis. Duis sagittis, libero vel hendrerit suscipit, ante odio molestie neque, auctor lacinia massa lacus rhoncus enim. In ut diam quis eros ultricies iaculis quis sit amet felis. Integer a nisi vestibulum, convallis nunc ut, suscipit nunc.",
+        },
+        {
+          title: "Cascade du Dard",
+          city: "Chamonix",
+          level: "facile",
+          duration: "1h30",
+          distance: "3.8 km",
+          elevation: "+180 m",
+          start: "Les Bossons",
+          image:
+            "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Balade courte et accessible vers une cascade fraîche et ombragée.Cras nisi est, egestas ac leo non, iaculis fringilla justo. Nulla facilisi. Nulla laoreet scelerisque fermentum. Proin malesuada nisl est, sit amet convallis lorem rhoncus quis. Nulla maximus, lectus nec scelerisque varius, enim purus pulvinar ipsum, ut malesuada lectus sapien finibus eros. Fusce vel quam sapien. Curabitur mollis leo sed egestas tempus. Quisque luctus aliquet sagittis. Duis sagittis, libero vel hendrerit suscipit, ante odio molestie neque, auctor lacinia massa lacus rhoncus enim. In ut diam quis eros ultricies iaculis quis sit amet felis. Integer a nisi vestibulum, convallis nunc ut, suscipit nunc.",
+        },
+        {
+          title: "Grand Balcon Nord",
+          city: "Chamonix",
+          level: "moyen",
+          duration: "3h45",
+          distance: "7.6 km",
+          elevation: "+520 m",
+          start: "Montenvers",
+          image:
+            "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Itinéraire panoramique entre haute montagne, forêt et vues ouvertes.Cras nisi est, egestas ac leo non, iaculis fringilla justo. Nulla facilisi. Nulla laoreet scelerisque fermentum. Proin malesuada nisl est, sit amet convallis lorem rhoncus quis. Nulla maximus, lectus nec scelerisque varius, enim purus pulvinar ipsum, ut malesuada lectus sapien finibus eros. Fusce vel quam sapien. Curabitur mollis leo sed egestas tempus. Quisque luctus aliquet sagittis. Duis sagittis, libero vel hendrerit suscipit, ante odio molestie neque, auctor lacinia massa lacus rhoncus enim. In ut diam quis eros ultricies iaculis quis sit amet felis. Integer a nisi vestibulum, convallis nunc ut, suscipit nunc.",
+        },
+        {
+          title: "Plan de l’Aiguille",
+          city: "Chamonix",
+          level: "moyen",
+          duration: "3h00",
+          distance: "6.1 km",
+          elevation: "+610 m",
+          start: "Chamonix Centre",
+          image:
+            "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Montée progressive vers un balcon naturel dominant la vallée.Cras nisi est, egestas ac leo non, iaculis fringilla justo. Nulla facilisi. Nulla laoreet scelerisque fermentum. Proin malesuada nisl est, sit amet convallis lorem rhoncus quis. Nulla maximus, lectus nec scelerisque varius, enim purus pulvinar ipsum, ut malesuada lectus sapien finibus eros. Fusce vel quam sapien. Curabitur mollis leo sed egestas tempus. Quisque luctus aliquet sagittis. Duis sagittis, libero vel hendrerit suscipit, ante odio molestie neque, auctor lacinia massa lacus rhoncus enim. In ut diam quis eros ultricies iaculis quis sit amet felis. Integer a nisi vestibulum, convallis nunc ut, suscipit nunc.",
+        },
+        {
+          title: "Petit Balcon Sud",
+          city: "Chamonix",
+          level: "facile",
+          duration: "2h15",
+          distance: "5.4 km",
+          elevation: "+260 m",
+          start: "Les Praz",
+          image:
+            "https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Promenade agréable avec de beaux points de vue sur la vallée.Cras nisi est, egestas ac leo non, iaculis fringilla justo. Nulla facilisi. Nulla laoreet scelerisque fermentum. Proin malesuada nisl est, sit amet convallis lorem rhoncus quis. Nulla maximus, lectus nec scelerisque varius, enim purus pulvinar ipsum, ut malesuada lectus sapien finibus eros. Fusce vel quam sapien. Curabitur mollis leo sed egestas tempus. Quisque luctus aliquet sagittis. Duis sagittis, libero vel hendrerit suscipit, ante odio molestie neque, auctor lacinia massa lacus rhoncus enim. In ut diam quis eros ultricies iaculis quis sit amet felis. Integer a nisi vestibulum, convallis nunc ut, suscipit nunc.",
+        },
+      ];
+
+      let activeFilter = "all";
+
+      const hikesList = document.getElementById("hikesList");
+      const searchInput = document.getElementById("searchInput");
+      const resultCount = document.getElementById("resultCount");
+      const cityTitle = document.getElementById("cityTitle");
+
+      cityTitle.textContent = city;
+
+      function getLevelClass(level) {
+        if (level === "facile") return "bg-emerald-50 text-emerald-600";
+        if (level === "moyen") return "bg-amber-50 text-amber-600";
+        return "bg-red-50 text-red-500";
+      }
+
+      function renderHikes() {
+        const searchValue = searchInput.value.toLowerCase().trim();
+
+        const filteredHikes = hikes.filter((hike) => {
+          const matchCity = hike.city.toLowerCase() === city.toLowerCase();
+          const matchFilter =
+            activeFilter === "all" || hike.level === activeFilter;
+          const matchSearch =
+            hike.title.toLowerCase().includes(searchValue) ||
+            hike.description.toLowerCase().includes(searchValue) ||
+            hike.start.toLowerCase().includes(searchValue);
+
+          return matchCity && matchFilter && matchSearch;
+        });
+
+        resultCount.textContent =
+          filteredHikes.length > 1
+            ? `${filteredHikes.length} résultats`
+            : `${filteredHikes.length} résultat`;
+
+        hikesList.innerHTML = filteredHikes
+          .map(
+            (hike) => `
+             <article class="group bg-white overflow-hidden rounded-md  border border-gray-100 shadow-md">
+                <div class="relative h-52 overflow-hidden">
+                  <img
+                    src="${hike.image}"
+                    alt="${hike.title}"
+                    class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110"
+                  />
+
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+                  <div class="absolute top-4 left-4">
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-widest ${getLevelClass(hike.level)}">
+                      ${hike.level}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Ajouter aux favoris"
+                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#121212] transition hover:scale-105"
+                  >
+                    <i data-lucide="heart" class="w-4 h-4"></i>
+                  </button>
+
+                  <div class="absolute bottom-5 left-5 right-5 text-white">
+                    <h3 class="text-2xl font-light italic serif">
+                      ${hike.title}
+                    </h3>
+
+                    <p class="text-[10px] uppercase tracking-widest opacity-90 mt-1">
+                      Départ : ${hike.start}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="p-5">
+                  <p class="text-xs leading-relaxed text-gray-500 text-justify">
+                    ${hike.description}
+                  </p>
+                          <!-- QUICK STATS -->
+       <div class="px-6 flex gap-3 mt-8 mb-8 fade-up" style="animation-delay: 0.2s;">
+            <div class="flex-1 bg-white rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm">
+                <i data-lucide="trending-up" class="w-5 h-5 text-gray-400 mb-2"></i>
+                <span class="text-sm font-semibold">D+ 650m</span>
+                <span class="text-[9px] uppercase tracking-widest text-gray-400 mt-0.5">Dénivelé</span>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm">
+                <i data-lucide="timer" class="w-5 h-5 text-gray-400 mb-2"></i>
+                <span class="text-sm font-semibold">4h30</span>
+                <span class="text-[9px] uppercase tracking-widest text-gray-400 mt-0.5">Boucle</span>
+            </div>
+            <div class="flex-1 bg-white rounded-2xl p-4 border-2 border-orange-500/50 bg-orange-500/10 flex flex-col items-center justify-center text-center shadow-sm">
+                <i data-lucide="mountain" class="w-5 h-5 text-[#455E4C] mb-2"></i>
+                <span class="text-sm font-semibold  text-charcoal">Modéré</span>
+                <span class="text-[9px] uppercase tracking-widest text-gray-400 mt-0.5">Niveau</span>
+            </div>
+        </div>
+
+
+
+                  <button
+                    type="button"
+                    class="mt-5 w-full space-y-10 border rounded-sm border-[#121212] hover:bg-[#121212] text-[#121212] py-4 text-[10px] font-bold uppercase tracking-[0.25em] transition duration-300 hover:text-white"
+                  >
+                    Voir l’itinéraire
+                  </button>
+                </div>
+              </article>
+            `,
+          )
+          .join("");
+
+        lucide.createIcons();
+      }
+
+      document.querySelectorAll(".filter-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.filter;
+
+          document.querySelectorAll(".filter-btn").forEach((btn) => {
+            btn.className =
+              "filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-400 px-5 py-3 text-[10px] font-bold uppercase tracking-widest";
+          });
+
+          button.className =
+            "filter-btn shrink-0 rounded-full bg-[#121212] text-white px-5 py-3 text-[10px] font-bold uppercase tracking-widest";
+
+          renderHikes();
+        });
+      });
+
+      searchInput.addEventListener("input", renderHikes);
+
+      renderHikes();
+
+      const menuBtn = document.getElementById("menuBtn");
+      const menuOverlay = document.getElementById("menuOverlay");
+
+      let isOpen = false;
+
+      menuBtn.addEventListener("click", () => {
+        isOpen = !isOpen;
+
+        menuBtn.classList.toggle("burger-open", isOpen);
+        menuOverlay.classList.toggle("is-open", isOpen);
+
+        document.body.style.overflow = isOpen ? "hidden" : "auto";
+      });
+    </script>
+  </body>
+</html>

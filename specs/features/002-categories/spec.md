@@ -7,7 +7,7 @@ id: 002-categories
 title: "Menu catégories avec masquage dynamique"
 status: review
 mvp: 1
-owner: ""
+owner: "Product Owner"
 created_at: 2026-05-20
 updated_at: 2026-05-21
 depends_on: [001-city-guide]
@@ -215,14 +215,35 @@ components:
         poi_count:
           type: integer
           minimum: 1
+
+  responses:
+    NotFound:
+      description: "Ressource introuvable"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: object
+                required: [code, message]
+                properties:
+                  code:
+                    type: string
+                    example: "NOT_FOUND"
+                  message:
+                    type: string
 ```
 
 ---
 
 ## Mockup de référence
 
-> Placer les fichiers HTML dans `docs/DAT/diagrams/mockups/002-categories/`
-> Référencer chaque mockup dans la section UI Behaviour ci-dessous.
+**Mockups contractuels :**
+
+- [`docs/DAT/diagrams/mockups/002-categories/listing-cafes.html`](../../../docs/DAT/diagrams/mockups/002-categories/listing-cafes.html) — Page catégorie avec cards POI, filtres sous-catégories, distance
+- [`docs/DAT/diagrams/mockups/002-categories/listing-randos.html`](../../../docs/DAT/diagrams/mockups/002-categories/listing-randos.html) — Page catégorie randonnées avec badges de difficulté
 
 ## UI Behaviour
 
