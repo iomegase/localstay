@@ -38,13 +38,13 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Seules catégories avec POI affichées | - | - | ⬜ |
-| AC-01-02 | Catégorie vide absente du DOM | - | - | ⬜ |
-| AC-01-03 | Icône + nom + count visibles | - | - | ⬜ |
-| AC-02-01 | Clic → redirection category page | - | - | ⬜ |
-| AC-02-02 | Sous-catégories affichées comme filtres | - | - | ⬜ |
-| AC-03-01 | Filtre sous-catégorie fonctionne | - | - | ⬜ |
-| AC-03-02 | Désélection filtre → tous POI | - | - | ⬜ |
+| AC-01-01 | Seules catégories avec POI affichées | `src/features/categories/components/CategoryGrid.tsx`<br>`src/features/categories/queries/categories.ts`<br>`src/app/api/cities/[slug]/categories/route.ts` | `tests/unit/categories.AC-01-01.category-grid.test.tsx`<br>`tests/contract/categories.AC-01-01.category-list-api.test.ts` | ✅ done |
+| AC-01-02 | Catégorie vide absente du DOM | `src/features/categories/components/CategoryGrid.tsx` | `tests/unit/categories.AC-01-01.category-grid.test.tsx` | ✅ done |
+| AC-01-03 | Icône + nom + count visibles | `src/features/categories/components/CategoryGrid.tsx` | `tests/integration/categories.AC-01-03.category-grid-renders.test.tsx` | ✅ done |
+| AC-02-01 | Clic → redirection category page | `src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx`<br>`src/app/api/cities/[slug]/categories/[category-slug]/route.ts` | `tests/e2e/categories.AC-02-01.category-redirect.test.ts`<br>`tests/contract/categories.AC-02-01.category-detail-api.test.ts` | ✅ done |
+| AC-02-02 | Sous-catégories affichées comme filtres | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/integration/categories.AC-02-02.subcategory-filters.test.tsx` | ✅ done |
+| AC-03-01 | Filtre sous-catégorie fonctionne | `src/features/categories/queries/categories.ts`<br>`src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx` | `tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
+| AC-03-02 | Désélection filtre → tous POI | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
 
 ---
 
