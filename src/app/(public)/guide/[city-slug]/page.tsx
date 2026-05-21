@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getCityGuide } from '@/features/city-guide/queries/cities'
-import { CategoryRow } from '@/features/city-guide/components/CategoryRow'
+import { CategoryGrid } from '@/features/categories/components/CategoryGrid'
 import { t } from '@/shared/lib/i18n'
 import Link from 'next/link'
 
@@ -48,9 +48,9 @@ export default async function GuidePage({ params }: Props) {
           </Link>
         </div>
       ) : (
-        // BR-02: CategoryRow returns null when empty — never renders hidden DOM nodes
+        // BR-02: CategoryGrid returns null when empty — never renders hidden DOM nodes
         <section className="mb-10">
-          <CategoryRow categories={categories} citySlug={slug} />
+          <CategoryGrid categories={categories} citySlug={slug} />
         </section>
       )}
     </>
