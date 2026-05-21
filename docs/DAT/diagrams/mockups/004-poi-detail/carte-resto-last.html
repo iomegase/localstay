@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StayLocal — La Table Alpine</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap");
+
+      :root {
+        --ivory: #faf9f6;
+        --charcoal: #121212;
+        --gold-muted: #a68e69;
+        --stone: #f0f0eb;
+      }
+
+      body {
+        background-color: var(--ivory);
+        color: var(--charcoal);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .serif {
+        font-family: "Playfair Display", serif;
+      }
+
+      .glass {
+        background: rgba(250, 249, 246, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      .glass-dark {
+        background: rgba(18, 18, 18, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .fade-up {
+        animation: fadeUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      @keyframes fadeUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Modal Animations */
+      .modal-overlay {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+      }
+      .modal-overlay.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .bottom-sheet {
+        transform: translateY(100%);
+        transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      .bottom-sheet.is-open {
+        transform: translateY(0);
+      }
+
+      /* Tracé Urbain (Restaurant) */
+      .draw-route {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+      }
+      .bottom-sheet.is-open .draw-route {
+        animation: drawRoute 1.5s ease-out forwards 0.3s;
+      }
+
+      @keyframes drawRoute {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-[#FAF9F6]"
+  >
+    <!-- HERO COVER -->
+    <div class="relative h-[450px] w-full" id="mainContent">
+      <img
+        src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1200&auto=format&fit=crop"
+        class="absolute inset-0 w-full h-full object-cover"
+        alt="Restaurant Interior"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"
+      ></div>
+
+      <!-- Floating Navigation -->
+      <div
+        class="absolute top-8 left-6 right-6 flex justify-between items-center z-10"
+      >
+        <button
+          class="w-11 h-11 rounded-full glass flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+          onclick="history.back()"
+        >
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </button>
+        <div class="flex gap-3">
+          <button
+            class="w-11 h-11 rounded-full glass flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+          >
+            <i data-lucide="share" class="w-4 h-4"></i>
+          </button>
+          <button
+            class="w-11 h-11 rounded-full glass flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+          >
+            <i data-lucide="heart" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main
+      class="relative bg-[#FAF9F6] rounded-t-[40px] -mt-8 pt-8 pb-32 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
+    >
+      <!-- Header Info -->
+      <div
+        class="px-6 flex justify-between items-start mb-6 fade-up"
+        style="animation-delay: 0.1s"
+      >
+        <div >
+          <div class="flex items-center gap-2 mb-2">
+            <span
+              class="text-[9px] font-bold uppercase tracking-widest text-gold-muted border border-gold-muted/30 px-2 py-1 rounded-full"
+              >Gastronomie</span
+            >
+          </div>
+          <h1 class="text-4xl serif italic leading-tight">La table alpine</h1>
+        </div>
+        <div class="flex flex-col items-end">
+          <div
+            class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-2xl shadow-sm border border-gray-100"
+          >
+            <i
+              data-lucide="star"
+              class="w-3.5 h-3.5 text-charcoal fill-charcoal"
+            ></i>
+            <span class="text-sm font-bold">4.9</span>
+          </div>
+          <span class="text-[10px] text-gray-400 mt-1">128 avis</span>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="px-6 flex gap-4 mb-8 fade-up" style="animation-delay: 0.2s">
+        <div
+          class="flex-1 bg-white rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm"
+        >
+          <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 mb-2"></i>
+          <span class="text-sm font-semibold">850m</span>
+          <span
+            class="text-[9px] uppercase tracking-widest text-gray-400 mt-0.5"
+            >Distance</span
+          >
+        </div>
+        <div
+          class="flex-1 bg-white rounded-2xl p-4 border border-gray-100 flex flex-col items-center justify-center text-center shadow-sm"
+        >
+          <i data-lucide="clock" class="w-5 h-5 text-green-600 mb-2"></i>
+          <span class="text-sm font-semibold text-green-700">Ouvert</span>
+          <span
+            class="text-[9px] uppercase tracking-widest text-gray-400 mt-0.5"
+            >Jusqu'à 23h</span
+          >
+        </div>
+      </div>
+
+      <!-- Gemini AI Note -->
+      <div class="px-6 mb-8 fade-up" style="animation-delay: 0.3s">
+        <div class="relative bg-stone/40 rounded-[30px] p-6">
+          <div class="flex items-center gap-2 mb-3 relative z-10">
+            <i data-lucide="sparkles" class="w-4 h-4 text-gold-muted"></i>
+            <h3
+              class="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500"
+            >
+              Le mot de votre hôte
+            </h3>
+          </div>
+          <p
+            class="text-sm leading-relaxed text-charcoal/80 font-medium relative z-10"
+          >
+            "Une véritable institution à Chamonix. Le chef revisite les
+            classiques savoyards avec une touche japonaise surprenante. Ne
+            manquez pas leur fondue au miso, une exclusivité. Pensez à demander
+            une table près de la cheminée."
+          </p>
+        </div>
+      </div>
+
+      <!-- PHOTO GALLERY -->
+      <div class="mb-10 fade-up" style="animation-delay: 0.4s">
+        <div class="flex justify-between items-center items-end px-6 mb-4">
+          <h3 class="text-xl serif italic">L'Atmosphère</h3>
+          <span
+            class="text-[9px] uppercase tracking-widest font-bold text-gold-muted"
+            >4 photos</span
+          >
+        </div>
+
+        <div
+          class="flex gap-4 overflow-x-auto px-6 pb-4 no-scrollbar snap-x snap-mandatory"
+        >
+          <div
+            class="shrink-0 w-64 h-44 rounded-3xl overflow-hidden snap-center relative shadow-sm"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1514326640560-7d063ef2aed5?q=80&w=800&auto=format&fit=crop"
+              class="w-full h-full object-cover"
+              alt="Détail salle"
+            />
+          </div>
+          <div
+            class="shrink-0 w-64 h-44 rounded-3xl overflow-hidden snap-center relative shadow-sm"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800&auto=format&fit=crop"
+              class="w-full h-full object-cover"
+              alt="Cave à vin"
+            />
+          </div>
+          <div
+            class="shrink-0 w-64 h-44 rounded-3xl overflow-hidden snap-center relative shadow-sm"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=800&auto=format&fit=crop"
+              class="w-full h-full object-cover"
+              alt="Intérieur cheminée"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Practical Information -->
+      <div class="px-6 space-y-6 fade-up" style="animation-delay: 0.5s">
+        <h3 class="text-xl serif italic mb-4">Informations pratiques</h3>
+
+        <!-- Address & MAP TRIGGER BUTTON -->
+        <div class="flex items-start gap-4">
+          <div
+            class="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center shrink-0 mt-1"
+          >
+            <i data-lucide="map" class="w-4 h-4 text-charcoal"></i>
+          </div>
+          <div class="flex-1 border-b border-gray-100 pb-4">
+            <p class="text-sm font-semibold mb-1">12 Chemin des Cristalliers</p>
+            <p class="text-xs text-gray-400 mb-3">74400 Chamonix-Mont-Blanc</p>
+
+            <!-- BOUTON DÉCLENCHEUR DU POP-UP -->
+            <button
+              id="openMapBtn"
+              class="text-[10px] uppercase tracking-widest font-bold text-gold-muted flex items-center gap-1 active:opacity-70 transition-opacity"
+            >
+              Voir sur la carte
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- carte du restaurant -->
+        <div class="flex items-start gap-4">
+          <div
+            class="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center shrink-0 mt-1"
+          >
+            <i data-lucide="Newspaper" class="w-4 h-4 text-charcoal"></i>
+          </div>
+          <div class="flex-1 border-b border-gray-100 pb-4">
+            <p class="text-sm font-semibold mb-1">Menu du restaurant</p>
+
+            <!-- BOUTON DÉCLENCHEUR DU POP-UP -->
+            <button
+              id="openMapBtn"
+              class="text-[10px] uppercase tracking-widest font-bold text-gold-muted flex items-center gap-1 active:opacity-70 transition-opacity"
+            >
+              Voir le menu <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Horaires -->
+        <div class="flex items-start gap-4">
+          <div
+            class="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center shrink-0 mt-1"
+          >
+            <i data-lucide="calendar" class="w-4 h-4 text-charcoal"></i>
+          </div>
+          <div class="flex-1 border-b border-gray-100 pb-4">
+            <div class="flex justify-between items-center mb-1">
+              <p class="text-sm font-semibold">Aujourd'hui</p>
+              <p class="text-sm font-medium">19:00 - 23:00</p>
+            </div>
+            <button
+              class="text-[10px] uppercase tracking-widest font-bold text-gray-400 flex items-center gap-1 mt-2"
+            >
+              Tous les horaires
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="flex gap-3 pt-2">
+          <button
+            class="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform hover:shadow-md"
+          >
+            <i data-lucide="phone" class="w-4 h-4"></i> Appeler
+          </button>
+          <button
+            id="openMapBtnSecondary"
+            class="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform hover:shadow-md"
+          >
+            <i data-lucide="navigation" class="w-4 h-4"></i> Itinéraire
+          </button>
+          <button
+            class="flex-1 py-3 rounded-2xl border border-orange-600/60 text-orange-600/60 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform hover:shadow-md"
+          >
+            <i
+              data-lucide="calendar-plus"
+              class="w-4 h-4 text-orange-600/60"
+            ></i>
+            Réserver
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- STICKY BOTTOM ACTION BAR -->
+    <nav
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]"
+    >
+      <div
+        class="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl"
+      >
+        <button class="group flex flex-col items-center gap-1 text-[#121212]">
+          <i
+            data-lucide="compass"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Explorer
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="map"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Carte
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="heart"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Favoris
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="home"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Séjour
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- MODAL CARTE (BOTTOM SHEET)                 -->
+    <!-- ========================================== -->
+
+    <!-- Overlay sombre -->
+    <div
+      id="mapOverlay"
+      class="modal-overlay fixed inset-0 bg-charcoal/60 backdrop-blur-sm z-40"
+    ></div>
+
+    <!-- Le Panneau de la carte -->
+    <div
+      id="mapBottomSheet"
+      class="bottom-sheet fixed inset-x-0 bottom-0 z-50 h-[88vh] bg-[#FAF9F6] rounded-t-[36px] flex flex-col overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.3)]"
+    >
+      <!-- Handle (Barre de glissement) -->
+      <div class="absolute top-0 inset-x-0 flex justify-center pt-3 z-50">
+        <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+      </div>
+
+      <!-- MAP CONTAINER -->
+      <div class="relative w-full h-[45%] bg-stone">
+        <!-- Image Plan Ville (Desaturé et clair pour l'élégance) -->
+        <img
+          src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop&sat=-100&bri=30"
+          class="absolute inset-0 w-full h-full object-cover opacity-60"
+          alt="City Map"
+        />
+
+        <button
+          id="closeMapBtn"
+          class="absolute top-6 right-5 w-10 h-10 bg-white/90 backdrop-blur border border-gray-100 rounded-full flex items-center justify-center text-charcoal shadow-sm z-20 active:scale-95"
+        >
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Tracé SVG (Or Muted) -->
+        <svg
+          class="absolute inset-0 w-full h-full z-10"
+          viewBox="0 0 400 300"
+          preserveAspectRatio="none"
+        >
+          <!-- Ombre de la ligne -->
+          <path
+            d="M 120,220 C 180,210 200,150 250,140 C 280,135 320,100 330,60"
+            fill="none"
+            stroke="white"
+            stroke-width="8"
+            stroke-linecap="round"
+          />
+          <!-- Ligne principale Or Muted -->
+          <path
+            d="M 120,220 C 180,210 200,150 250,140 C 280,135 320,100 330,60"
+            fill="none"
+            stroke="#A68E69"
+            stroke-width="4"
+            stroke-linecap="round"
+            class="draw-route"
+          />
+        </svg>
+
+        <!-- Marqueurs -->
+        <div class="absolute inset-0 z-20 pointer-events-none">
+          <!-- Position Logement -->
+          <div
+            class="absolute left-[105px] top-[205px] flex flex-col items-center"
+          >
+            <div
+              class="w-7 h-7 bg-charcoal text-white rounded-full flex items-center justify-center shadow-lg ring-2 ring-white"
+            >
+              <i data-lucide="home" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+
+          <!-- Position Restaurant -->
+          <div
+            class="absolute left-[315px] top-[30px] flex flex-col items-center"
+          >
+            <div
+              class="w-9 h-9 bg-white border-2 border-gold-muted text-gold-muted rounded-full flex items-center justify-center shadow-lg ring-4 ring-white/50"
+            >
+              <i data-lucide="utensils" class="w-4 h-4"></i>
+            </div>
+            <div
+              class="bg-charcoal text-white px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest mt-1.5 shadow-lg"
+            >
+              La table alpine
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETAILS DU TRAJET -->
+      <div
+        class="flex-1 bg-white rounded-t-[36px] -mt-6 relative z-30 p-6 flex flex-col justify-between"
+      >
+        <div>
+          <!-- Titre Modal -->
+          <h2 class="text-3xl serif italic text-charcoal mb-5">S'y rendre</h2>
+
+          <!-- Sélecteur de Transport -->
+          <div class="flex gap-2 mb-6">
+            <button
+              class="flex-1 bg-white border border-gold-muted text-gold-muted py-3 rounded-[20px] flex flex-col items-center justify-center gap-1 shadow-sm transition-colors bg-gold-muted/5"
+            >
+              <i data-lucide="footprints" class="w-5 h-5"></i>
+              <span class="text-[11px] font-bold">12 min</span>
+            </button>
+            <button
+              class="flex-1 bg-white border border-gray-100 text-gray-400 py-3 rounded-[20px] flex flex-col items-center justify-center gap-1 transition-transform active:scale-95"
+            >
+              <i data-lucide="car" class="w-5 h-5"></i>
+              <span class="text-[11px] font-medium">4 min</span>
+            </button>
+            <button
+              class="flex-1 bg-white border border-gray-100 text-gray-400 py-3 rounded-[20px] flex flex-col items-center justify-center gap-1 transition-transform active:scale-95"
+            >
+              <i data-lucide="bus" class="w-5 h-5"></i>
+              <span class="text-[11px] font-medium">8 min</span>
+            </button>
+          </div>
+
+          <!-- Résumé Adresses -->
+          <div
+            class="bg-[#FAF9F6] rounded-[24px] p-5 border border-gray-100 mb-6"
+          >
+            <div class="flex items-start gap-4">
+              <div class="flex flex-col items-center mt-1">
+                <div
+                  class="w-2.5 h-2.5 rounded-full border-2 border-charcoal"
+                ></div>
+                <div class="w-0.5 h-8 bg-gray-200 my-1"></div>
+              </div>
+              <div class="flex-1 pb-3">
+                <p
+                  class="text-[9px] font-bold uppercase tracking-widest text-gray-400"
+                >
+                  Départ
+                </p>
+                <p class="text-sm font-semibold text-charcoal">
+                  Votre logement
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="flex flex-col items-center mt-1">
+                <div class="w-2.5 h-2.5 rounded-full bg-gold-muted"></div>
+              </div>
+              <div class="flex-1">
+                <p
+                  class="text-[9px] font-bold uppercase tracking-widest text-gold-muted"
+                >
+                  Arrivée • 850m
+                </p>
+                <p class="text-sm font-semibold text-charcoal">
+                  12 Chemin des Cristalliers
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions (Google Maps / Apple Plans) -->
+        <div class="space-y-3 pb-6">
+          <button
+            class="w-full bg-charcoal text-white rounded-full py-4 px-6 flex justify-between items-center shadow-lg active:scale-[0.98] transition-transform"
+          >
+            <div class="flex items-center gap-3">
+              <i data-lucide="map" class="w-4 h-4"></i>
+              <span class="text-[12px] font-bold uppercase tracking-[0.1em]"
+                >Ouvrir Apple Plans</span
+              >
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-white/50"></i>
+          </button>
+
+          <button
+            class="w-full bg-white border border-gray-200 text-charcoal rounded-full py-4 px-6 flex justify-between items-center shadow-sm active:scale-[0.98] transition-transform hover:border-gray-300"
+          >
+            <div class="flex items-center gap-3">
+              <i data-lucide="navigation" class="w-4 h-4 text-blue-500"></i>
+              <span class="text-[12px] font-bold uppercase tracking-[0.1em]"
+                >Ouvrir Google Maps</span
+              >
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+
+      // Gestion du Modal Carte
+      const openBtn1 = document.getElementById("openMapBtn");
+      const openBtn2 = document.getElementById("openMapBtnSecondary"); // Le bouton Itinéraire fonctionne aussi
+      const closeBtn = document.getElementById("closeMapBtn");
+      const overlay = document.getElementById("mapOverlay");
+      const bottomSheet = document.getElementById("mapBottomSheet");
+
+      function openMap() {
+        overlay.classList.add("is-open");
+        bottomSheet.classList.add("is-open");
+        document.body.style.overflow = "hidden"; // Empêche le scroll du fond
+      }
+
+      function closeMap() {
+        overlay.classList.remove("is-open");
+        bottomSheet.classList.remove("is-open");
+        document.body.style.overflow = "";
+      }
+
+      openBtn1.addEventListener("click", openMap);
+      openBtn2.addEventListener("click", openMap);
+      closeBtn.addEventListener("click", closeMap);
+      overlay.addEventListener("click", closeMap);
+
+      // Fermeture au swipe (simulation simple via drag vers le bas)
+      let touchStartY = 0;
+      bottomSheet.addEventListener(
+        "touchstart",
+        (e) => (touchStartY = e.changedTouches[0].screenY),
+      );
+      bottomSheet.addEventListener("touchend", (e) => {
+        if (e.changedTouches[0].screenY - touchStartY > 50) closeMap();
+      });
+    </script>
+  </body>
+</html>

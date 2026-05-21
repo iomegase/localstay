@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StayLocal — Cafés par ville</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap");
+
+      :root {
+        --ivory: #faf9f6;
+        --charcoal: #121212;
+      }
+
+      body {
+        background-color: var(--ivory);
+        color: var(--charcoal);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        overflow-x: hidden;
+      }
+
+      .serif {
+        font-family: "Playfair Display", serif;
+      }
+
+      .glass {
+        background: rgba(250, 249, 246, 0.85);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .burger-line {
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        background-color: var(--charcoal);
+      }
+
+      .burger-open .line-1 {
+        transform: translateY(3px) rotate(45deg);
+        width: 24px !important;
+      }
+
+      .burger-open .line-2 {
+        transform: translateY(-3px) rotate(-45deg);
+        width: 24px !important;
+      }
+
+      #menuOverlay {
+        clip-path: circle(0% at 90% 5%);
+        transition: clip-path 0.7s cubic-bezier(0.85, 0, 0.15, 1);
+      }
+
+      #menuOverlay.is-open {
+        clip-path: circle(150% at 90% 5%);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+
+  <body class="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-[#FAF9F6]">
+    <!-- MENU OVERLAY -->
+    <div
+      id="menuOverlay"
+      class="fixed inset-0 z-[60] bg-white flex flex-col justify-between p-8"
+    >
+      <div class="mt-20 space-y-8">
+        <p class="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold">
+          Navigation
+        </p>
+
+        <nav class="space-y-6">
+          <a href="#" class="block text-4xl serif italic">Le Logement</a>
+          <a href="#" class="block text-4xl serif italic">Services Privés</a>
+          <a href="#" class="block text-4xl serif italic">Mes Favoris</a>
+          <a href="#" class="block text-4xl serif italic">Nous Contacter</a>
+        </nav>
+      </div>
+
+      <div class="border-t border-gray-100 pt-8 space-y-4">
+        <div class="flex items-center justify-between text-sm text-gray-400">
+          <span>StayLocal Concierge v1.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-[#121212] rounded-full flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold">SL</span>
+        </div>
+
+        <span class="text-[13px] font-semibold tracking-tighter uppercase text-[#121212]">
+          StayLocal
+        </span>
+      </div>
+
+      <button
+        id="menuBtn"
+        type="button"
+        aria-label="Ouvrir le menu"
+        class="relative z-[80] w-10 h-10 flex flex-col justify-center items-end gap-1.5"
+      >
+        <span class="burger-line line-1 h-[1.5px] w-6"></span>
+        <span class="burger-line line-2 h-[1.5px] w-4"></span>
+      </button>
+    </header>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]">
+      <div class="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl">
+        <button class="group flex flex-col items-center gap-1 text-[#121212]">
+          <i
+            data-lucide="compass"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]">
+            Explorer
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="map"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]">
+            Carte
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="heart"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]">
+            Favoris
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="home"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]">
+            Séjour
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <main class="pb-32 pt-6">
+      <!-- TITLE SECTION -->
+      <section class="px-4 mb-6">
+        <div class="flex items-end justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-[#A68E69] uppercase tracking-[0.3em] mb-2">
+              Cafés
+            </p>
+
+            <h1 id="cityTitle" class="text-4xl font-light italic serif">
+              Chamonix
+            </h1>
+
+            <p class="text-gray-400 text-xs tracking-wide mt-1">
+              Cafés, brunchs et adresses cosy sélectionnés autour de la ville
+            </p>
+          </div>
+
+          <div class="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
+            <i data-lucide="coffee" class="w-5 h-5 text-[#A68E69]"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEARCH -->
+      <section class="mt-4 mb-6 px-4">
+        <div class="flex items-center gap-4 bg-white border border-gray-100 rounded-full px-6 py-4 shadow-sm">
+          <i data-lucide="search" class="w-4 h-4 text-gray-300"></i>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Rechercher un café..."
+            class="bg-transparent text-sm outline-none w-full placeholder:text-gray-300"
+          />
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <section class="mb-8">
+        <div class="flex gap-3 overflow-x-auto px-4 no-scrollbar">
+          <button
+            data-filter="all"
+            class="filter-btn shrink-0 rounded-full bg-[#121212] text-white px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Tous
+          </button>
+
+          <button
+            data-filter="ouvert"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-400 px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Ouvert
+          </button>
+
+          <button
+            data-filter="brunch"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-400 px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Brunch
+          </button>
+
+          <button
+            data-filter="specialty"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-400 px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Coffee
+          </button>
+
+          <button
+            data-filter="terrasse"
+            class="filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-400 px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
+          >
+            Terrasse
+          </button>
+        </div>
+      </section>
+
+      <!-- CAFES LIST -->
+      <section class="px-4">
+        <div class="flex items-end justify-between mb-4">
+          <h2 class="text-xl font-light italic serif">
+            Recommandations cafés
+          </h2>
+
+          <span id="resultCount" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            0 résultat
+          </span>
+        </div>
+
+        <div id="cafesList" class="space-y-5"></div>
+      </section>
+    </main>
+
+    <script>
+      const city = "Chamonix";
+
+      const cafes = [
+        {
+          title: "Moody Coffee Roasters",
+          city: "Chamonix",
+          type: "specialty",
+          status: "ouvert",
+          hours: "Ouvert jusqu’à 18h",
+          price: "€€",
+          address: "Centre-ville",
+          image:
+            "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Adresse contemporaine pour café de spécialité, espresso précis et ambiance calme.",
+          tags: ["Specialty coffee", "Laptop friendly", "Calme"],
+        },
+        {
+          title: "Le Café des Guides",
+          city: "Chamonix",
+          type: "terrasse",
+          status: "ouvert",
+          hours: "Ouvert jusqu’à 19h",
+          price: "€€",
+          address: "Rue du Docteur Paccard",
+          image:
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Café central avec terrasse, idéal pour une pause après une balade en ville.",
+          tags: ["Terrasse", "Central", "Vue montagne"],
+        },
+        {
+          title: "Maison Alpine",
+          city: "Chamonix",
+          type: "brunch",
+          status: "ouvert",
+          hours: "Brunch jusqu’à 14h30",
+          price: "€€€",
+          address: "Les Praz",
+          image:
+            "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Brunch élégant, pâtisseries maison, boissons chaudes et atmosphère douce.",
+          tags: ["Brunch", "Pâtisserie", "Premium"],
+        },
+        {
+          title: "Café du Mont-Blanc",
+          city: "Chamonix",
+          type: "terrasse",
+          status: "fermé",
+          hours: "Ouvre demain à 8h",
+          price: "€€",
+          address: "Place Balmat",
+          image:
+            "https://images.unsplash.com/photo-1442512595331-e89e73853f31?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Institution locale pour un café en terrasse au cœur de Chamonix.",
+          tags: ["Terrasse", "Classique", "Centre"],
+        },
+        {
+          title: "Nomad Coffee",
+          city: "Chamonix",
+          type: "specialty",
+          status: "ouvert",
+          hours: "Ouvert jusqu’à 17h30",
+          price: "€€",
+          address: "Les Bossons",
+          image:
+            "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Petit café chaleureux, torréfaction soignée et sélection de douceurs artisanales.",
+          tags: ["Specialty coffee", "Artisanal", "Cosy"],
+        },
+        {
+          title: "L’Échappée Douce",
+          city: "Chamonix",
+          type: "brunch",
+          status: "fermé",
+          hours: "Ouvre samedi à 9h",
+          price: "€€",
+          address: "Argentière",
+          image:
+            "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=1200&auto=format&fit=crop",
+          description:
+            "Adresse douce pour petit-déjeuner tardif, viennoiseries et jus frais.",
+          tags: ["Brunch", "Petit-déjeuner", "Famille"],
+        },
+      ];
+
+      let activeFilter = "all";
+
+      const cafesList = document.getElementById("cafesList");
+      const searchInput = document.getElementById("searchInput");
+      const resultCount = document.getElementById("resultCount");
+      const cityTitle = document.getElementById("cityTitle");
+
+      cityTitle.textContent = city;
+
+      function getStatusClass(status) {
+        if (status === "ouvert") return "bg-emerald-50 text-emerald-600";
+        return "bg-gray-100 text-gray-400";
+      }
+
+      function getTypeLabel(type) {
+        if (type === "brunch") return "Brunch";
+        if (type === "specialty") return "Specialty coffee";
+        if (type === "terrasse") return "Terrasse";
+        return "Café";
+      }
+
+      function renderCafes() {
+        const searchValue = searchInput.value.toLowerCase().trim();
+
+        const filteredCafes = cafes.filter((cafe) => {
+          const matchCity = cafe.city.toLowerCase() === city.toLowerCase();
+
+          const matchFilter =
+            activeFilter === "all" ||
+            cafe.status === activeFilter ||
+            cafe.type === activeFilter;
+
+          const matchSearch =
+            cafe.title.toLowerCase().includes(searchValue) ||
+            cafe.description.toLowerCase().includes(searchValue) ||
+            cafe.address.toLowerCase().includes(searchValue) ||
+            cafe.tags.join(" ").toLowerCase().includes(searchValue);
+
+          return matchCity && matchFilter && matchSearch;
+        });
+
+        resultCount.textContent =
+          filteredCafes.length > 1
+            ? `${filteredCafes.length} résultats`
+            : `${filteredCafes.length} résultat`;
+
+        cafesList.innerHTML = filteredCafes
+          .map(
+            (cafe) => `
+              <article class="group bg-white border border-gray-100 rounded-[2rem] overflow-hidden shadow-sm">
+                <div class="relative h-52 overflow-hidden">
+                  <img
+                    src="${cafe.image}"
+                    alt="${cafe.title}"
+                    class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110"
+                  />
+
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></div>
+
+                  <div class="absolute top-4 left-4 flex gap-2">
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-widest ${getStatusClass(cafe.status)}">
+                      ${cafe.status}
+                    </span>
+
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-widest bg-white/90 text-[#121212]">
+                      ${cafe.price}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Ajouter aux favoris"
+                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#121212] transition hover:scale-105"
+                  >
+                    <i data-lucide="heart" class="w-4 h-4"></i>
+                  </button>
+
+                  <div class="absolute bottom-5 left-5 right-5 text-white">
+                    <p class="text-[9px] uppercase tracking-[0.3em] opacity-70 mb-1">
+                      ${getTypeLabel(cafe.type)}
+                    </p>
+
+                    <h3 class="text-2xl font-light italic serif">
+                      ${cafe.title}
+                    </h3>
+
+                    <p class="text-[10px] uppercase tracking-[0.25em] opacity-70 mt-1">
+                      ${cafe.address}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="p-5">
+                  <p class="text-sm leading-relaxed text-gray-500">
+                    ${cafe.description}
+                  </p>
+
+                  <div class="flex flex-wrap gap-2 mt-4">
+                    ${cafe.tags
+                      .map(
+                        (tag) => `
+                          <span class="rounded-full bg-[#FAF9F6] px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                            ${tag}
+                          </span>
+                        `
+                      )
+                      .join("")}
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3 mt-5">
+                    <div class="rounded-2xl bg-[#FAF9F6] p-3">
+                      <i data-lucide="clock" class="w-4 h-4 text-[#A68E69] mb-2"></i>
+                      <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold">
+                        Horaires
+                      </p>
+                      <p class="text-xs font-semibold mt-1">
+                        ${cafe.hours}
+                      </p>
+                    </div>
+
+                    <div class="rounded-2xl bg-[#FAF9F6] p-3">
+                      <i data-lucide="map-pin" class="w-4 h-4 text-[#A68E69] mb-2"></i>
+                      <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold">
+                        Quartier
+                      </p>
+                      <p class="text-xs font-semibold mt-1">
+                        ${cafe.address}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="mt-5 w-full rounded-full bg-[#121212] text-white py-4 text-[10px] font-bold uppercase tracking-[0.25em] transition hover:bg-[#A68E69]"
+                  >
+                    Voir la recommandation
+                  </button>
+                </div>
+              </article>
+            `
+          )
+          .join("");
+
+        lucide.createIcons();
+      }
+
+      document.querySelectorAll(".filter-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.filter;
+
+          document.querySelectorAll(".filter-btn").forEach((btn) => {
+            btn.className =
+              "filter-btn shrink-0 rounded-full bg-white border border-gray-100 text-gray-400 px-5 py-3 text-[10px] font-bold uppercase tracking-widest";
+          });
+
+          button.className =
+            "filter-btn shrink-0 rounded-full bg-[#121212] text-white px-5 py-3 text-[10px] font-bold uppercase tracking-widest";
+
+          renderCafes();
+        });
+      });
+
+      searchInput.addEventListener("input", renderCafes);
+
+      renderCafes();
+
+      const menuBtn = document.getElementById("menuBtn");
+      const menuOverlay = document.getElementById("menuOverlay");
+
+      let isOpen = false;
+
+      menuBtn.addEventListener("click", () => {
+        isOpen = !isOpen;
+
+        menuBtn.classList.toggle("burger-open", isOpen);
+        menuOverlay.classList.toggle("is-open", isOpen);
+
+        document.body.style.overflow = isOpen ? "hidden" : "auto";
+      });
+    </script>
+  </body>
+</html>

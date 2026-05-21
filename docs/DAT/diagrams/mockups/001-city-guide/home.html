@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StayLocal — Private Concierge</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap");
+
+      :root {
+        --ivory: #faf9f6;
+        --charcoal: #121212;
+      }
+
+      body {
+        background-color: var(--ivory);
+        color: var(--charcoal);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        overflow-x: hidden;
+      }
+
+      .serif {
+        font-family: "Playfair Display", serif;
+      }
+
+      .glass {
+        background: rgba(250, 249, 246, 0.85);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .burger-line {
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        background-color: var(--charcoal);
+      }
+
+      .burger-open .line-1 {
+        transform: translateY(3px) rotate(45deg);
+        width: 24px !important;
+      }
+
+      .burger-open .line-2 {
+        transform: translateY(-3px) rotate(-45deg);
+        width: 24px !important;
+      }
+
+      #menuOverlay {
+        clip-path: circle(0% at 90% 5%);
+        transition: clip-path 0.7s cubic-bezier(0.85, 0, 0.15, 1);
+      }
+
+      #menuOverlay.is-open {
+        clip-path: circle(150% at 90% 5%);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .category-item {
+        transition: all 0.3s ease;
+      }
+
+      .category-item:active {
+        transform: scale(0.92);
+      }
+    </style>
+  </head>
+
+  <body
+    class="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-[#FAF9F6]"
+  >
+    <!-- MENU OVERLAY -->
+    <div
+      id="menuOverlay"
+      class="fixed inset-0 z-[60] bg-white flex flex-col justify-between p-8"
+    >
+      <div class="mt-20 space-y-8">
+        <p
+          class="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold"
+        >
+          Navigation
+        </p>
+
+        <nav class="space-y-6">
+          <a href="#" class="block text-4xl serif italic">Le Logement</a>
+          <a href="#" class="block text-4xl serif italic">Services Privés</a>
+          <a href="#" class="block text-4xl serif italic">Mes Favoris</a>
+          <a href="#" class="block text-4xl serif italic">Nous Contacter</a>
+        </nav>
+      </div>
+
+      <div class="border-t border-gray-100 pt-8 space-y-4">
+        <div class="flex items-center justify-between text-sm text-gray-400">
+          <span>StayLocal Concierge v1.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <header
+      class="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50"
+    >
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 bg-[#121212] rounded-full flex items-center justify-center"
+        >
+          <span class="text-white text-[10px] font-bold">SL</span>
+        </div>
+
+        <span
+          class="text-[13px] font-semibold tracking-tighter uppercase text-[#121212]"
+        >
+          StayLocal
+        </span>
+      </div>
+
+      <button
+        id="menuBtn"
+        type="button"
+        aria-label="Ouvrir le menu"
+        class="relative z-[80] w-10 h-10 flex flex-col justify-center items-end gap-1.5"
+      >
+        <span class="burger-line line-1 h-[1.5px] w-6"></span>
+        <span class="burger-line line-2 h-[1.5px] w-4"></span>
+      </button>
+    </header>
+
+    <!-- NAVIGATION BAR -->
+    <nav
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]"
+    >
+      <div
+        class="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl"
+      >
+        <button class="group flex flex-col items-center gap-1 text-[#121212]">
+          <i
+            data-lucide="compass"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Explorer
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="map"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Carte
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="heart"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Favoris
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="home"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Séjour
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <main class="pb-32 pt-6">
+      <!-- TITLE SECTION -->
+      <div class="flex justify-between items-end mb-4 p-4">
+        <div>
+          <h2 class="text-3xl font-light italic serif">Chamonix</h2>
+          <p class="text-gray-400 text-xs tracking-wide">
+            Sélection exclusive de votre hôte
+          </p>
+        </div>
+
+        <div class="text-right">
+          <p
+            class="text-[10px] font-bold text-[#A68E69] uppercase tracking-widest"
+          >
+            Météo
+          </p>
+          <p class="text-[10px] text-blue-500 font-medium">-2°C</p>
+        </div>
+      </div>
+
+      <!-- SEARCH -->
+      <section class="mt-4 mb-8 px-4">
+        <div
+          class="flex items-center gap-4 bg-white border border-gray-100 rounded-full px-6 py-4 shadow-sm"
+        >
+          <i data-lucide="search" class="w-4 h-4 text-gray-300"></i>
+          <input
+            type="text"
+            placeholder="Une envie particulière ?"
+            class="bg-transparent text-sm outline-none w-full placeholder:text-gray-300"
+          />
+        </div>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section class="mb-10">
+        <div class="flex gap-5 overflow-x-auto px-6 no-scrollbar">
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="layout-grid"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]/50 "
+              ></i>
+            </div>
+            <span
+              class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Tous</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="utensils"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Dîner</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="coffee"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69] font-bold uppercase tracking-widest"
+              >Cafés</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="mountain"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Rando</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="sparkles"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Soin</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="shopping-bag"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Shopping</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="landmark"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Culture</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="ticket"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Loisirs</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="wine"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Bars</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="car"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Mobilité</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[#A68E69] group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="users"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span class="text-[9px] text-[#A68E69]  font-bold uppercase tracking-widest"
+              >Famille</span
+            >
+          </button>
+
+          <button
+            class="group category-item shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              class="w-14 h-14 rounded-full bg-white border border-red-100 flex items-center justify-center text-red-400 shadow-sm group-hover:shadow-md transition-shadow"
+            >
+              <i
+                data-lucide="shield-alert"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+            <span
+              class="text-[9px] font-bold uppercase tracking-widest text-red-400"
+              >Urgences</span
+            >
+          </button>
+        </div>
+      </section>
+
+      <!-- FEATURED CARD -->
+      <section>
+  <h2 class="text-xl p-4 font-light italic serif">Nos coups de coeur</h2>
+
+  <div class="relative h-[400px] overflow-hidden group shadow-2xl">
+    <img
+      src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1200&auto=format&fit=crop"
+      class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110"
+      alt="Restaurant"
+    />
+
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
+    ></div>
+
+    <button
+      type="button"
+      aria-label="Recommandation précédente"
+      class="absolute left-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center text-[#121212] shadow-lg transition-all duration-300 hover:bg-white hover:scale-105"
+    >
+      <i data-lucide="chevron-left" class="w-5 h-5"></i>
+    </button>
+
+    <button
+      type="button"
+      aria-label="Recommandation suivante"
+      class="absolute right-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center text-[#121212] shadow-lg transition-all duration-300 hover:bg-white hover:scale-105"
+    >
+      <i data-lucide="chevron-right" class="w-5 h-5"></i>
+    </button>
+
+    <div class="absolute bottom-8 left-8 right-8 text-white">
+      <h3 class="text-3xl font-light italic serif">La table alpine</h3>
+
+      <div class="flex items-center gap-4 mt-4">
+        <span
+          class="text-xs border-r border-white/50 pr-4 italic serif tracking-wider"
+        >
+          Ouvert jusqu'à 23h
+        </span>
+
+        <span
+          class="text-xs font-light uppercase tracking-widest text-[#D4AF37]"
+        >
+          Dîner d'exception
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <!-- HOUSE INFO -->
+      <section class="mt-8 px-4">
+        <div
+          class="group bg-white p-6 rounded-full border border-gray-100 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-[#F0F0EB]/50 rounded-full flex items-center justify-center"
+            >
+              <i
+                data-lucide="wifi"
+                class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+              ></i>
+            </div>
+
+            <div>
+              <p
+                class="text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              >
+                Accès Internet
+              </p>
+              <p class="text-sm font-semibold italic serif">
+                Logis_Chamonix_2024
+              </p>
+            </div>
+          </div>
+
+          <i data-lucide="chevron-right" class="w-5 h-5 text-gray-300"></i>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      lucide.createIcons();
+
+      const menuBtn = document.getElementById("menuBtn");
+      const menuOverlay = document.getElementById("menuOverlay");
+
+      let isOpen = false;
+
+      menuBtn.addEventListener("click", () => {
+        isOpen = !isOpen;
+
+        menuBtn.classList.toggle("burger-open", isOpen);
+        menuOverlay.classList.toggle("is-open", isOpen);
+
+        document.body.style.overflow = isOpen ? "hidden" : "auto";
+      });
+    </script>
+  </body>
+</html>

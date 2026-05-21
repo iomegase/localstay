@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>StayLocal — Carte des POI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap");
+
+      :root {
+        --ivory: #faf9f6;
+        --charcoal: #121212;
+        --pine: #455e4c;
+        --gold: #a68e69;
+        --stone: #e8e6df;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--stone);
+        color: var(--charcoal);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      .serif {
+        font-family: "Playfair Display", serif;
+      }
+
+      .glass {
+        background: rgba(250, 249, 246, 0.86);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .map-grid {
+        background:
+          radial-gradient(circle at 20% 18%, rgba(69, 94, 76, 0.16), transparent 28%),
+          radial-gradient(circle at 78% 24%, rgba(166, 142, 105, 0.12), transparent 30%),
+          radial-gradient(circle at 80% 78%, rgba(69, 94, 76, 0.14), transparent 34%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(232, 230, 223, 0.45));
+      }
+
+      .poi-marker {
+        position: absolute;
+        width: 42px;
+        height: 42px;
+        border-radius: 999px 999px 999px 12px;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 14px 28px rgba(18, 18, 18, 0.18);
+        border: 3px solid rgba(255, 255, 255, 0.85);
+        transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+      }
+
+      .poi-marker:hover {
+        transform: translate(-50%, -50%) rotate(-45deg) scale(1.08);
+      }
+
+      .poi-marker svg {
+        transform: rotate(45deg);
+      }
+
+      .poi-marker.is-hidden {
+        opacity: 0.15;
+        filter: grayscale(1);
+      }
+    </style>
+  </head>
+
+  <body
+    class="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-[#FAF9F6]"
+  >
+    <!-- HEADER -->
+    <header
+      class="fixed top-0 inset-x-0 max-w-[430px] mx-auto z-50 px-5 pt-5 pb-3 flex items-center justify-between"
+    >
+      <button
+        type="button"
+        onclick="history.back()"
+        aria-label="Retour"
+        class="w-11 h-11 rounded-full glass border border-white/60 flex items-center justify-center shadow-sm active:scale-95 transition"
+      >
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      </button>
+
+      <div
+        class="glass px-5 py-2 rounded-full border border-white/60 shadow-sm flex items-center gap-2"
+      >
+        <i data-lucide="map" class="w-4 h-4 text-[#455E4C]"></i>
+        <p
+          class="text-[9px] uppercase tracking-[0.3em] font-bold text-[#455E4C]"
+        >
+          Carte
+        </p>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Filtrer"
+        class="w-11 h-11 rounded-full glass border border-white/60 flex items-center justify-center shadow-sm active:scale-95 transition"
+      >
+        <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+      </button>
+    </header>
+
+    <main class="pb-36 pt-24">
+      <!-- TITLE -->
+      <section class="px-5">
+        <p
+          class="text-[10px] uppercase tracking-[0.3em] font-bold text-[#A68E69] mb-3"
+        >
+          Points d’intérêt
+        </p>
+
+        <h1 class="text-5xl leading-none font-light italic serif">
+          Chamonix
+        </h1>
+
+        <p class="text-xs leading-6 text-gray-500 mt-4">
+          Retrouvez toutes les recommandations locales autour de votre séjour :
+          cafés, restaurants, randonnées, soins, shopping, culture et services
+          utiles.
+        </p>
+      </section>
+
+      <!-- MAP -->
+      <section class="px-5 mt-8">
+        <div
+          class="relative h-[520px] rounded-[2.4rem] overflow-hidden bg-[#E8E6DF] border border-gray-100 shadow-sm map-grid"
+        >
+          <!-- Relief / courbes de niveau -->
+          <svg
+            class="absolute inset-0 w-full h-full opacity-60"
+            viewBox="0 0 390 520"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M-40 90 C60 40 120 100 210 60 C300 20 360 50 430 12"
+              fill="none"
+              stroke="#b8b4a8"
+              stroke-width="1"
+            />
+            <path
+              d="M-30 140 C70 90 140 155 230 105 C310 62 370 90 430 50"
+              fill="none"
+              stroke="#b8b4a8"
+              stroke-width="1"
+            />
+            <path
+              d="M-20 200 C80 150 135 230 245 172 C315 135 380 155 430 120"
+              fill="none"
+              stroke="#b8b4a8"
+              stroke-width="1"
+            />
+            <path
+              d="M-40 290 C90 230 170 315 270 250 C335 210 395 230 430 200"
+              fill="none"
+              stroke="#b8b4a8"
+              stroke-width="1"
+            />
+            <path
+              d="M-60 380 C90 305 175 410 285 330 C350 285 395 320 440 270"
+              fill="none"
+              stroke="#b8b4a8"
+              stroke-width="1"
+            />
+            <path
+              d="M-50 470 C95 410 190 500 310 420 C355 390 405 400 450 360"
+              fill="none"
+              stroke="#b8b4a8"
+              stroke-width="1"
+            />
+
+            <!-- Rivière -->
+            <path
+              d="M190 -20 C175 70 210 130 190 200 C170 270 205 340 180 420 C170 455 172 490 162 540"
+              fill="none"
+              stroke="#9ec7d6"
+              stroke-width="10"
+              opacity="0.45"
+            />
+            <path
+              d="M190 -20 C175 70 210 130 190 200 C170 270 205 340 180 420 C170 455 172 490 162 540"
+              fill="none"
+              stroke="#7fb1c5"
+              stroke-width="2"
+              opacity="0.55"
+            />
+
+            <!-- Routes principales -->
+            <path
+              d="M30 440 C110 390 145 330 205 280 C265 230 305 180 365 92"
+              fill="none"
+              stroke="#ffffff"
+              stroke-width="12"
+              opacity="0.75"
+            />
+            <path
+              d="M30 440 C110 390 145 330 205 280 C265 230 305 180 365 92"
+              fill="none"
+              stroke="#d6c8ae"
+              stroke-width="2"
+              opacity="0.8"
+            />
+
+            <path
+              d="M20 250 C90 230 140 255 205 240 C270 225 320 210 390 230"
+              fill="none"
+              stroke="#ffffff"
+              stroke-width="9"
+              opacity="0.7"
+            />
+            <path
+              d="M20 250 C90 230 140 255 205 240 C270 225 320 210 390 230"
+              fill="none"
+              stroke="#d6c8ae"
+              stroke-width="2"
+              opacity="0.75"
+            />
+
+            <!-- Sentiers -->
+            <path
+              d="M40 110 C80 150 95 185 70 235 C45 285 70 340 35 390"
+              fill="none"
+              stroke="#455E4C"
+              stroke-width="2"
+              stroke-dasharray="6 7"
+              opacity="0.45"
+            />
+            <path
+              d="M315 50 C280 110 295 150 260 200 C235 240 255 300 220 355"
+              fill="none"
+              stroke="#455E4C"
+              stroke-width="2"
+              stroke-dasharray="6 7"
+              opacity="0.45"
+            />
+            <path
+              d="M95 485 C130 420 165 385 220 375 C280 365 315 330 355 275"
+              fill="none"
+              stroke="#455E4C"
+              stroke-width="2"
+              stroke-dasharray="6 7"
+              opacity="0.45"
+            />
+          </svg>
+
+          <!-- Zones / quartiers -->
+          <div
+            class="absolute left-[46%] top-[44%] -translate-x-1/2 -translate-y-1/2 text-center"
+          >
+            <p class="text-[15px] leading-tight font-semibold text-[#121212]/75">
+              Centre<br />Chamonix
+            </p>
+          </div>
+
+          <div
+            class="absolute left-[23%] top-[20%] text-[11px] font-bold text-[#121212]/55"
+          >
+            Le Brévent
+          </div>
+
+          <div
+            class="absolute right-[13%] top-[16%] text-[11px] font-bold text-[#121212]/55"
+          >
+            Les Praz
+          </div>
+
+          <div
+            class="absolute right-[8%] bottom-[30%] text-[11px] font-bold text-[#121212]/55"
+          >
+            Les Bossons
+          </div>
+
+          <div
+            class="absolute left-[35%] bottom-[13%] text-[11px] font-bold text-[#121212]/55"
+          >
+            Les Houches
+          </div>
+
+          <!-- POI markers injectés en JS -->
+          <div id="poiLayer" class="absolute inset-0 z-20"></div>
+
+          <!-- Bouton localisation -->
+          <button
+            type="button"
+            class="absolute right-5 bottom-5 z-30 w-14 h-14 rounded-full bg-white/90 backdrop-blur border border-white shadow-lg flex items-center justify-center text-[#455E4C]"
+          >
+            <i data-lucide="locate-fixed" class="w-6 h-6"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- CATEGORY FILTERS -->
+      <section class="mt-6">
+        <div
+          id="categoryFilters"
+          class="flex gap-3 overflow-x-auto px-5 no-scrollbar"
+        ></div>
+      </section>
+
+      <!-- SUMMARY -->
+      <section class="px-5 mt-6">
+        <div class="bg-white border border-gray-100 rounded-[2rem] shadow-sm p-5">
+          <div class="grid grid-cols-3 divide-x divide-gray-100">
+            <div class="text-center px-2">
+              <div
+                class="w-11 h-11 mx-auto rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#455E4C] mb-3"
+              >
+                <i data-lucide="map-pin" class="w-5 h-5"></i>
+              </div>
+              <p id="poiCount" class="text-2xl font-bold">0</p>
+              <p
+                class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1"
+              >
+                lieux
+              </p>
+            </div>
+
+            <div class="text-center px-2">
+              <div
+                class="w-11 h-11 mx-auto rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#455E4C] mb-3"
+              >
+                <i data-lucide="grid-2x2" class="w-5 h-5"></i>
+              </div>
+              <p id="categoryCount" class="text-2xl font-bold">0</p>
+              <p
+                class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1"
+              >
+                catégories
+              </p>
+            </div>
+
+            <div class="text-center px-2">
+              <button
+                type="button"
+                id="exploreBtn"
+                class="w-full h-full min-h-[86px] rounded-[1.5rem] bg-[#455E4C] text-white flex flex-col items-center justify-center gap-2 active:scale-[0.98] transition"
+              >
+                <i data-lucide="compass" class="w-5 h-5"></i>
+                <span class="text-[10px] uppercase tracking-widest font-bold">
+                  Explorer
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- POI LIST -->
+      <section id="poiListSection" class="px-5 mt-6">
+        <h2
+          class="text-[10px] uppercase tracking-[0.3em] font-bold text-[#A68E69] mb-4"
+        >
+          Recommandations visibles
+        </h2>
+
+        <div id="poiList" class="space-y-3"></div>
+
+        <!-- PAGINATION -->
+        <div id="pagination" class="mt-5"></div>
+      </section>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]"
+    >
+      <div
+        class="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl"
+      >
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="compass"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Explorer
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-[#A68E69]">
+          <i
+            data-lucide="map"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Carte
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="heart"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Favoris
+          </span>
+        </button>
+
+        <button class="group flex flex-col items-center gap-1 text-gray-300">
+          <i
+            data-lucide="home"
+            class="w-5 h-5 transition-colors duration-300 group-hover:text-[#A68E69]"
+          ></i>
+          <span
+            class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-300 group-hover:text-[#A68E69]"
+          >
+            Séjour
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <script>
+      const categories = {
+        cafes: {
+          label: "Cafés",
+          color: "#7A5C43",
+          icon: "coffee",
+        },
+        diner: {
+          label: "Dîner",
+          color: "#E58B3C",
+          icon: "utensils",
+        },
+        rando: {
+          label: "Rando",
+          color: "#4F8A54",
+          icon: "person-standing",
+        },
+        soins: {
+          label: "Soins",
+          color: "#D96B86",
+          icon: "sparkles",
+        },
+        shopping: {
+          label: "Shopping",
+          color: "#8062B0",
+          icon: "shopping-bag",
+        },
+        culture: {
+          label: "Culture",
+          color: "#5B8CC0",
+          icon: "landmark",
+        },
+        loisirs: {
+          label: "Loisirs",
+          color: "#4C9AA6",
+          icon: "ticket",
+        },
+        bars: {
+          label: "Bars",
+          color: "#8A3F67",
+          icon: "wine",
+        },
+        mobilite: {
+          label: "Mobilité",
+          color: "#6E7378",
+          icon: "bus",
+        },
+        famille: {
+          label: "Famille",
+          color: "#4F9A9A",
+          icon: "users",
+        },
+        urgences: {
+          label: "Urgences",
+          color: "#B94A48",
+          icon: "cross",
+        },
+      };
+
+      const pois = [
+        { title: "Moody Coffee", category: "cafes", x: 34, y: 38 },
+        { title: "Café des Guides", category: "cafes", x: 42, y: 57 },
+        { title: "Café du Mont-Blanc", category: "cafes", x: 50, y: 46 },
+
+        { title: "La Table Alpine", category: "diner", x: 56, y: 42 },
+        { title: "Bistrot du Centre", category: "diner", x: 66, y: 60 },
+        { title: "Maison Savoyarde", category: "diner", x: 73, y: 45 },
+
+        { title: "Lac Blanc", category: "rando", x: 25, y: 26 },
+        { title: "Grand Balcon Nord", category: "rando", x: 70, y: 20 },
+        { title: "Petit Balcon Sud", category: "rando", x: 22, y: 77 },
+
+        { title: "Spa Alpin", category: "soins", x: 78, y: 36 },
+        { title: "Massage Montagne", category: "soins", x: 77, y: 62 },
+
+        { title: "Boutique Alpine", category: "shopping", x: 61, y: 51 },
+        { title: "Concept Store", category: "shopping", x: 46, y: 74 },
+
+        { title: "Musée Alpin", category: "culture", x: 49, y: 50 },
+        { title: "Galerie Mont-Blanc", category: "culture", x: 21, y: 64 },
+
+        { title: "Patinoire", category: "loisirs", x: 39, y: 68 },
+        { title: "Cinéma Vox", category: "loisirs", x: 58, y: 74 },
+
+        { title: "Bar des Alpes", category: "bars", x: 55, y: 34 },
+        { title: "Wine Lodge", category: "bars", x: 72, y: 69 },
+
+        { title: "Gare Chamonix", category: "mobilite", x: 56, y: 28 },
+        { title: "Arrêt Bus Centre", category: "mobilite", x: 30, y: 82 },
+
+        { title: "Parc Famille", category: "famille", x: 50, y: 68 },
+
+        { title: "Pharmacie Centrale", category: "urgences", x: 29, y: 56 },
+        { title: "Centre médical", category: "urgences", x: 77, y: 72 },
+      ];
+
+      let activeCategory = "all";
+
+      const ITEMS_PER_PAGE = 5;
+      let currentPage = 1;
+
+      const poiLayer = document.getElementById("poiLayer");
+      const categoryFilters = document.getElementById("categoryFilters");
+      const poiList = document.getElementById("poiList");
+      const pagination = document.getElementById("pagination");
+      const poiCount = document.getElementById("poiCount");
+      const categoryCount = document.getElementById("categoryCount");
+      const exploreBtn = document.getElementById("exploreBtn");
+      const poiListSection = document.getElementById("poiListSection");
+
+      function renderFilters() {
+        const allButton = `
+          <button
+            data-category="all"
+            class="filter-btn shrink-0 flex items-center gap-3 rounded-full px-4 py-3 bg-[#121212] text-white shadow-sm"
+          >
+            <span class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
+              <i data-lucide="grid-2x2" class="w-4 h-4"></i>
+            </span>
+            <span class="text-[10px] font-bold uppercase tracking-widest">
+              Tous
+            </span>
+          </button>
+        `;
+
+        const buttons = Object.entries(categories)
+          .map(([key, category]) => {
+            return `
+              <button
+                data-category="${key}"
+                class="filter-btn shrink-0 flex items-center gap-3 rounded-full px-4 py-3 bg-white border border-gray-100 text-gray-400 shadow-sm"
+              >
+                <span
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                  style="background:${category.color}"
+                >
+                  <i data-lucide="${category.icon}" class="w-4 h-4"></i>
+                </span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">
+                  ${category.label}
+                </span>
+              </button>
+            `;
+          })
+          .join("");
+
+        categoryFilters.innerHTML = allButton + buttons;
+
+        document.querySelectorAll(".filter-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeCategory = button.dataset.category;
+            currentPage = 1;
+
+            document.querySelectorAll(".filter-btn").forEach((btn) => {
+              btn.className =
+                "filter-btn shrink-0 flex items-center gap-3 rounded-full px-4 py-3 bg-white border border-gray-100 text-gray-400 shadow-sm";
+            });
+
+            button.className =
+              "filter-btn shrink-0 flex items-center gap-3 rounded-full px-4 py-3 bg-[#121212] text-white shadow-sm";
+
+            renderPois();
+          });
+        });
+      }
+
+      function renderPois() {
+        const visiblePois =
+          activeCategory === "all"
+            ? pois
+            : pois.filter((poi) => poi.category === activeCategory);
+
+        const totalPages = Math.ceil(visiblePois.length / ITEMS_PER_PAGE);
+
+        const displayedPois =
+          activeCategory === "all"
+            ? visiblePois.slice(
+                (currentPage - 1) * ITEMS_PER_PAGE,
+                currentPage * ITEMS_PER_PAGE
+              )
+            : visiblePois;
+
+        poiCount.textContent = visiblePois.length;
+        categoryCount.textContent = Object.keys(categories).length;
+
+        poiLayer.innerHTML = pois
+          .map((poi) => {
+            const category = categories[poi.category];
+            const isHidden =
+              activeCategory !== "all" && activeCategory !== poi.category;
+
+            return `
+              <button
+                type="button"
+                title="${poi.title}"
+                class="poi-marker ${isHidden ? "is-hidden" : ""}"
+                style="left:${poi.x}%; top:${poi.y}%; background:${category.color};"
+              >
+                <i data-lucide="${category.icon}" class="w-5 h-5"></i>
+              </button>
+            `;
+          })
+          .join("");
+
+        poiList.innerHTML = displayedPois
+          .map((poi) => {
+            const category = categories[poi.category];
+
+            return `
+              <article class="bg-white border border-gray-100 rounded-[1.6rem] p-4 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-11 h-11 rounded-full flex items-center justify-center text-white"
+                    style="background:${category.color}"
+                  >
+                    <i data-lucide="${category.icon}" class="w-5 h-5"></i>
+                  </div>
+
+                  <div>
+                    <h3 class="text-sm font-bold">${poi.title}</h3>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">
+                      ${category.label}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="w-10 h-10 rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#455E4C]"
+                >
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </article>
+            `;
+          })
+          .join("");
+
+        renderPagination(totalPages);
+        lucide.createIcons();
+      }
+
+      function renderPagination(totalPages) {
+        if (activeCategory !== "all" || totalPages <= 1) {
+          pagination.innerHTML = "";
+          return;
+        }
+
+        pagination.innerHTML = `
+          <div class="bg-white border border-gray-100 rounded-full p-2 flex items-center justify-between shadow-sm">
+            <button
+              type="button"
+              id="prevPage"
+              class="w-11 h-11 rounded-full flex items-center justify-center ${
+                currentPage === 1
+                  ? "text-gray-300 bg-gray-50"
+                  : "text-[#455E4C] bg-[#FAF9F6]"
+              }"
+              ${currentPage === 1 ? "disabled" : ""}
+            >
+              <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center gap-2">
+              ${Array.from({ length: totalPages })
+                .map((_, index) => {
+                  const page = index + 1;
+
+                  return `
+                    <button
+                      type="button"
+                      data-page="${page}"
+                      class="page-btn w-9 h-9 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                        page === currentPage
+                          ? "bg-[#455E4C] text-white"
+                          : "bg-[#FAF9F6] text-gray-400"
+                      }"
+                    >
+                      ${page}
+                    </button>
+                  `;
+                })
+                .join("")}
+            </div>
+
+            <button
+              type="button"
+              id="nextPage"
+              class="w-11 h-11 rounded-full flex items-center justify-center ${
+                currentPage === totalPages
+                  ? "text-gray-300 bg-gray-50"
+                  : "text-[#455E4C] bg-[#FAF9F6]"
+              }"
+              ${currentPage === totalPages ? "disabled" : ""}
+            >
+              <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+          </div>
+        `;
+
+        const prevPage = document.getElementById("prevPage");
+        const nextPage = document.getElementById("nextPage");
+
+        if (prevPage) {
+          prevPage.addEventListener("click", () => {
+            if (currentPage > 1) {
+              currentPage--;
+              renderPois();
+            }
+          });
+        }
+
+        if (nextPage) {
+          nextPage.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+              currentPage++;
+              renderPois();
+            }
+          });
+        }
+
+        document.querySelectorAll(".page-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            currentPage = Number(button.dataset.page);
+            renderPois();
+          });
+        });
+
+        lucide.createIcons();
+      }
+
+      exploreBtn.addEventListener("click", () => {
+        poiListSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+
+      renderFilters();
+      renderPois();
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
