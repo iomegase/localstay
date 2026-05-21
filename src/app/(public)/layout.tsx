@@ -1,0 +1,63 @@
+import Link from 'next/link'
+import { Compass, Map, Heart, Home } from 'lucide-react'
+
+export default function PublicLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-ivory">
+      {/* Glassmorphism sticky header */}
+      <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-charcoal rounded-full flex items-center justify-center">
+            <span className="text-white text-[10px] font-bold">SL</span>
+          </div>
+          <span className="text-[13px] font-semibold tracking-tighter uppercase text-charcoal">
+            StayLocal
+          </span>
+        </Link>
+      </header>
+
+      {/* Page content — bottom padding clears the fixed nav bar */}
+      <main className="pb-32 pt-6">{children}</main>
+
+      {/* Floating bottom navigation bar */}
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]">
+        <div className="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl">
+          <NavItem icon={<Compass className="w-5 h-5" />} label="Explorer" href="/" active />
+          <NavItem icon={<Map className="w-5 h-5" />} label="Carte" href="#" />
+          <NavItem icon={<Heart className="w-5 h-5" />} label="Favoris" href="#" />
+          <NavItem icon={<Home className="w-5 h-5" />} label="Séjour" href="#" />
+        </div>
+      </nav>
+    </div>
+  )
+}
+
+function NavItem({
+  icon,
+  label,
+  href,
+  active = false,
+}: {
+  icon: React.ReactNode
+  label: string
+  href: string
+  active?: boolean
+}) {
+  return (
+    <Link
+      href={href}
+      className={`group flex flex-col items-center gap-1 transition-colors ${
+        active ? 'text-charcoal' : 'text-gray-300 hover:text-gold'
+      }`}
+    >
+      {icon}
+      <span className="text-[9px] font-bold uppercase tracking-widest">
+        {label}
+      </span>
+    </Link>
+  )
+}
