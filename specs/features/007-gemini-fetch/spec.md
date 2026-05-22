@@ -5,11 +5,11 @@
 ```yaml
 id: 007-gemini-fetch
 title: "Récupération et structuration des données POI via Gemini API"
-status: draft
+status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-20
+updated_at: 2026-05-22
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -287,6 +287,6 @@ Ces données sont gérées par d'autres services.
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Utiliser `gemini-1.5-pro` ou `gemini-1.5-flash` pour les fetches ? (coût vs qualité) | owner | - | pending |
-| OQ-02 | Faut-il un cron job de pré-fetch des catégories populaires ou uniquement du fetch à la demande ? | owner | - | pending |
-| OQ-03 | Radius géographique par défaut : 5km, 10km ou variable selon taille de la ville ? | owner | - | pending |
+| OQ-01 | Utiliser `gemini-1.5-pro` ou `gemini-1.5-flash` pour les fetches ? (coût vs qualité) | owner | - | ✅ `gemini-flash-latest` (env GEMINI_MODEL) |
+| OQ-02 | Faut-il un cron job de pré-fetch des catégories populaires ou uniquement du fetch à la demande ? | owner | - | ✅ Fetch à la demande uniquement (MVP 1) |
+| OQ-03 | Radius géographique par défaut : 5km, 10km ou variable selon taille de la ville ? | owner | - | ✅ 10 km fixe (MVP 1) |
