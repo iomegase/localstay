@@ -18,6 +18,8 @@ export interface SubCategoryWithCount {
 
 export interface CategoryDetail extends CategoryWithCount {
   subcategories: SubCategoryWithCount[]
+  city_latitude: number
+  city_longitude: number
 }
 
 export interface PoiSummary {
@@ -38,6 +40,8 @@ export interface PoiCard {
   is_open_now: boolean | null
   distance_km: number
   photo_url: string | null
+  latitude: number
+  longitude: number
 }
 
 export type DayHours = { open: string; close: string } | null
