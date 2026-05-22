@@ -26,3 +26,16 @@ export interface PoiSummary {
   slug: string
   subcategory_slug: string | null
 }
+
+export interface PoiCard {
+  id: string
+  name: string
+  slug: string
+  address: string
+  subcategory_name: string | null
+  rating: number | null
+  rating_count: number
+  is_open_now: boolean | null
+  distance_km: number
+  photo_url: string | null
+}
