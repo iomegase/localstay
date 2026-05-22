@@ -39,7 +39,7 @@ export async function getCategoryDetail(
 ): Promise<CategoryDetail | null> {
   const city = await prisma.city.findFirst({
     where: { slug: citySlug, is_active: true, deleted_at: null },
-    select: { id: true },
+    select: { id: true, latitude: true, longitude: true },
   })
   if (!city) return null
 
@@ -79,6 +79,8 @@ export async function getCategoryDetail(
     icon: category.icon, sort_order: category.sort_order,
     poi_count: category._count.pois,
     subcategories: subs,
+    city_latitude: city.latitude,
+    city_longitude: city.longitude,
   }
 }
 
