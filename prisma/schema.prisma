@@ -131,16 +131,17 @@ model HikingDetail {
   gpx_url          String?
 }
 
-// ─── Spec 006 — QR Code (stub, full model defined in spec 006) ───────────────
+// ─── Spec 006 — QR Code ──────────────────────────────────────────────────────
 
 model QrCode {
-  id         String    @id @default(uuid())
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
 
-  city_id    String
-  city       City      @relation(fields: [city_id], references: [id])
-  url        String
-  image_url  String?
+  city_id     String    @unique
+  city        City      @relation(fields: [city_id], references: [id])
+  url         String
+  storage_url String
+  is_active   Boolean   @default(true)
 }
