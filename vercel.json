@@ -1,0 +1,19 @@
+{
+  "crons": [
+    {
+      "path": "/api/internal/geocode-pois",
+      "schedule": "0 * * * *",
+      "description": "Géocodage Mapbox des POI en attente — toutes les heures"
+    },
+    {
+      "path": "/api/internal/check-subscriptions",
+      "schedule": "0 9 * * *",
+      "description": "Vérification des trials expirés — tous les jours à 9h"
+    },
+    {
+      "path": "/api/internal/gemini-refresh",
+      "schedule": "0 3 * * *",
+      "description": "Refresh Gemini des caches expirés — tous les jours à 3h"
+    }
+  ]
+}

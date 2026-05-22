@@ -5,11 +5,11 @@
 ```yaml
 id: 003-poi-list
 title: "Liste des POI avec filtres"
-status: approved
+status: draft
 mvp: 1
-owner: "Product Owner"
+owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-22
+updated_at: 2026-05-20
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -70,11 +70,17 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 
 ## Business Rules
 
-- **BR-01**: La distance est calculée depuis le centre géographique de la City (MVP 1) — pas depuis la position GPS du Tourist (opt-in uniquement si autorisé)
+- **BR-01**: La distance est calculée depuis le centre géographique de la City — pas depuis la position GPS du Tourist (opt-in reporté MVP 2)
 - **BR-02**: Un POI avec `is_active = false` n'apparaît jamais dans la liste
 - **BR-03**: Un POI `deleted_at non null` n'apparaît jamais dans la liste
 - **BR-04**: Le tri par défaut est `distance ASC`
-- **BR-05**: Maximum 50 POI affichés au total — pas de pagination (OQ-01 résolu)
+- **BR-05**: Maximum 50 POI affichés par page (pagination ou infinite scroll)
+- **BR-06**: Les POI sont séparés en deux zones géographiques selon leur distance depuis le centre-ville :
+  - **Zone primaire (≤ 15 km)** : affichés dans la liste principale de la catégorie
+  - **Zone alentours (15-30 km)** : affichés dans une section distincte "Autres activités aux alentours" en bas de page
+  - **Hors périmètre (> 30 km)** : exclus de l'affichage (geocode_status = rejected)
+- **BR-07**: La section "Aux alentours" n'est affichée que si elle contient au moins 1 POI
+- **BR-08**: Le tri et les filtres s'appliquent indépendamment dans chaque zone
 
 ---
 
@@ -149,18 +155,42 @@ paths:
             type: string
             enum: [distance, rating]
             default: distance
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
       responses:
         "200":
-          description: Liste de POI (max 50, non paginée)
+          description: Liste paginée de POI avec séparation zones primaire / alentours
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/PoiCard"
+                    type: object
+                    properties:
+                      primary:
+                        type: array
+                        description: "POI dans un rayon de 15 km"
+                        items:
+                          $ref: "#/components/schemas/PoiCard"
+                      nearby:
+                        type: array
+                        description: "POI entre 15 et 30 km — section Aux alentours"
+                        items:
+                          $ref: "#/components/schemas/PoiCard"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -203,6 +233,18 @@ components:
           type: string
           nullable: true
 
+    PaginationMeta:
+      type: object
+      required: [total, page, limit, total_pages]
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
 ```
 
 ---
@@ -218,13 +260,14 @@ components:
 
 ### Page : `/guide/[city-slug]/[category-slug]`
 
-> **Relation spec 002** : cette page existe déjà (catégorie + SubCategoryFilter). Spec 003 remplace la liste `<ul>/<li>` simple par des `PoiCard` riches. Le SubCategoryFilter reste inchangé.
-
 - **Loading state**: 6 skeleton cards empilées
 - **Empty state**: "Aucun résultat pour cette catégorie" + bouton retour
-- **Pas de pagination** — tous les POI chargés en une fois, max 50 (OQ-01 résolu)
+- **Error state**: message erreur + bouton réessayer
+- **Infinite scroll** ou pagination (à décider — voir Open Questions)
 - Sticky header avec nom de catégorie + filtres de tri
-- Bouton flottant "Voir la carte" en bas à droite (hors scope spec 003 — spec 005)
+- Bouton flottant "Voir la carte" en bas à droite
+- **Section principale** : POI ≤ 15 km — liste normale
+- **Section "Aux alentours"** : séparateur visuel + titre "Autres activités aux alentours" + POI entre 15 et 30 km — affichée uniquement si non vide
 
 ### Composant : PoiCard
 
@@ -262,5 +305,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-22 | ✅ **Résolu** — Pas de pagination. Tous les POI chargés en une seule requête, cap à 50 côté serveur. |
-| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-22 | ✅ **Résolu** — Distance depuis le centre géographique de la City (BR-01). GPS optionnel hors scope MVP 1. |
+| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | - | pending |
+| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | - | pending |

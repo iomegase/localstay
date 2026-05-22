@@ -55,7 +55,31 @@ A valid spec contains the following sections — all required:
 
 ---
 
-## 4. Status Rules — When Code Generation Is Allowed
+## 4. Execution Mode
+
+**Default : Option 1 — Subagent-Driven.**
+Auto-accept all technical tasks without waiting for confirmation between steps.
+
+**Exception — stop and ask the Product Owner when:**
+- A business rule is ambiguous or missing from the spec
+- A user story has conflicting interpretations
+- An `open_question` is still `pending` in the spec
+- A decision impacts monetization, legal, or user data
+- The spec says something technically impossible or contradictory
+
+When stopping, output exactly:
+
+```
+BUSINESS DECISION REQUIRED
+Spec: <spec-id>
+Question: <one clear question>
+Options: <option A> / <option B>
+Waiting for Product Owner input.
+```
+
+---
+
+## 5. Status Rules — When Code Generation Is Allowed
 
 | Spec Status | Code Allowed? |
 |---|---|
@@ -204,7 +228,32 @@ Waiting for: owner decision
 
 ---
 
-## 10. Project Context
+## 10. Global Business Rules — Apply Everywhere
+
+These rules apply across all features and must never be violated:
+
+**POI Geographic Zones (BR from spec 008 + 003)**
+- **Primary zone (≤ 15 km)** from city center → displayed in main POI list
+- **Nearby zone (15–30 km)** from city center → displayed in separate "Aux alentours" section
+- **Out of range (> 30 km)** → `geocode_status = rejected`, never displayed
+- The "Aux alentours" section is only shown if it contains at least 1 POI
+- Sorting and filters apply independently in each zone
+
+**Gemini Scope (ADR-006)**
+- Gemini = POI discovery + description generation ONLY
+- Never ask Gemini for GPS coordinates, distances, elevation, GPX tracks
+
+**Vercel Crons (vercel.json)**
+- All cron jobs are centralized in `vercel.json` at project root
+- Never define crons in individual spec infrastructure sections without adding to `vercel.json`
+
+**Soft Delete**
+- Never physically delete any database record
+- Always use `deleted_at` timestamp
+
+---
+
+## 11. Project Context
 
 **Application:** Guide touristique local intelligent
 **Name (TBD):** StayLocal / StayPilot / StayMap (final name pending INPI check)
