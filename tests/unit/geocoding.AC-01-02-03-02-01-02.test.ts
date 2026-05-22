@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { geocodeAddress } from '../../src/features/geocoding/services/mapbox-client'
+import { validateGeocode } from '../../src/features/geocoding/services/geo-validator'
 
 describe('geocodeAddress', () => {
   beforeEach(() => {
@@ -63,5 +64,43 @@ describe('geocodeAddress', () => {
     await expect(
       geocodeAddress('une adresse', { longitude: 6.7085, latitude: 45.8921 })
     ).rejects.toThrow('Mapbox API error: 429')
+  })
+})
+
+const CITY_CENTER = { latitude: 45.8921, longitude: 6.7085 }
+
+describe('validateGeocode — AC-02-01 / AC-02-02', () => {
+  it('AC-02-02: rejects when relevance < 0.5', () => {
+    const result = validateGeocode(
+      { latitude: 45.895, longitude: 6.712, relevance: 0.4, place_name: 'x' },
+      CITY_CENTER,
+    )
+    expect(result.valid).toBe(false)
+    expect(result.reason).toMatch(/confidence/)
+  })
+
+  it('AC-02-01: rejects when distance > 30 km', () => {
+    const result = validateGeocode(
+      { latitude: 45.748, longitude: 4.847, relevance: 0.9, place_name: 'Lyon' },
+      CITY_CENTER,
+    )
+    expect(result.valid).toBe(false)
+    expect(result.reason).toMatch(/distance/)
+  })
+
+  it('accepts a valid nearby result', () => {
+    const result = validateGeocode(
+      { latitude: 45.8213, longitude: 6.7279, relevance: 0.85, place_name: 'Les Contamines' },
+      CITY_CENTER,
+    )
+    expect(result.valid).toBe(true)
+  })
+
+  it('accepts a result at ~30km (Les Gets, ~29km from Saint-Gervais)', () => {
+    const result = validateGeocode(
+      { latitude: 46.157, longitude: 6.668, relevance: 0.8, place_name: 'Les Gets' },
+      CITY_CENTER,
+    )
+    expect(result.valid).toBe(true)
   })
 })
