@@ -3,7 +3,7 @@ export interface GeminiRawPoi {
   address: string
   phone: string | null
   website: string | null
-  description: string | null
+  description: string
   subcategory: string | null
   hours: Record<string, string> | null
   tags: string[]
@@ -12,7 +12,7 @@ export interface GeminiRawPoi {
 export interface GeminiFetchResult {
   status: 'fetched' | 'cached' | 'error'
   poi_count: number
-  expires_at?: string
+  expires_at?: string  // ISO string; absent when status='error' or no cache row
   error?: string | null
 }
 

@@ -27,9 +27,9 @@ describe('buildGeminiPrompt', () => {
       cityName: 'Annecy',
       postalCode: '74000',
       categoryName: 'restaurants',
-      radiusKm: 10,
+      radiusKm: 42,  // distinctive value to avoid substring coincidence
     })
-    expect(prompt).toContain('10')
+    expect(prompt).toContain('42')
   })
 
   it('requests JSON-only response', () => {
@@ -40,5 +40,15 @@ describe('buildGeminiPrompt', () => {
       radiusKm: 10,
     })
     expect(prompt).toContain('JSON')
+  })
+
+  it('includes maximum 20 POI constraint', () => {
+    const prompt = buildGeminiPrompt({
+      cityName: 'Annecy',
+      postalCode: '74000',
+      categoryName: 'restaurants',
+      radiusKm: 10,
+    })
+    expect(prompt).toContain('Maximum 20')
   })
 })

@@ -1,4 +1,4 @@
-interface PromptParams {
+export interface PromptParams {
   cityName: string
   postalCode: string
   categoryName: string
@@ -32,7 +32,7 @@ Format de réponse STRICT (JSON uniquement, aucun texte avant ou après) :
       "website": "string | null",
       "description": "string — 2 à 3 phrases rédigées, ton local et chaleureux",
       "subcategory": "string | null",
-      "hours": { "mon": "09:00-19:00", "tue": "09:00-19:00" } | null,
+      "hours": { "mon": "09:00-19:00", "tue": "09:00-19:00", ... } | null,
       "tags": ["tag1", "tag2"]
     }
   ]
