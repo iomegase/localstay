@@ -64,38 +64,71 @@ model SubCategory {
   pois        PointOfInterest[]
 }
 
-// ─── Spec 003 — POI List (draft, included for poi_count join) ────────────────
+// ─── Spec 003 — POI List ─────────────────────────────────────────────────────
 
 model PointOfInterest {
-  id             String       @id @default(uuid())
-  created_at     DateTime     @default(now())
-  updated_at     DateTime     @updatedAt
-  deleted_at     DateTime?
+  id                String        @id @default(uuid())
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  deleted_at        DateTime?
 
-  name           String
-  slug           String
-  description    String?
-  address        String
-  latitude       Float
-  longitude      Float
-  phone          String?
-  website        String?
-  rating         Float?
-  rating_count   Int          @default(0)
-  is_active      Boolean      @default(true)
-  is_open_now    Boolean?
-  hours          Json?
-  photos         String[]
-  tags           String[]
+  name              String
+  slug              String
+  description       String?
+  address           String
+  latitude          Float
+  longitude         Float
+  phone             String?
+  website           String?
+  rating            Float?
+  rating_count      Int           @default(0)
+  is_active         Boolean       @default(true)
+  is_open_now       Boolean?
+  hours             Json?
+  photos            String[]
+  tags              String[]
 
-  city_id        String
-  city           City         @relation(fields: [city_id], references: [id])
-  category_id    String
-  category       Category     @relation(fields: [category_id], references: [id])
-  subcategory_id String?
-  subcategory    SubCategory? @relation(fields: [subcategory_id], references: [id])
+  // Spec 004 — Google Places scaffold (OQ-01: full integration in MVP 3+)
+  google_place_id   String?
+  review_source     ReviewSource  @default(MANUAL)
+  reviews_synced_at DateTime?
+
+  city_id           String
+  city              City          @relation(fields: [city_id], references: [id])
+  category_id       String
+  category          Category      @relation(fields: [category_id], references: [id])
+  subcategory_id    String?
+  subcategory       SubCategory?  @relation(fields: [subcategory_id], references: [id])
+  hiking_detail     HikingDetail?
 
   @@unique([city_id, slug])
+}
+
+// ─── Spec 004 — POI Detail ───────────────────────────────────────────────────
+
+enum ReviewSource {
+  MANUAL
+  GOOGLE
+}
+
+model HikingDetail {
+  id               String          @id @default(uuid())
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+
+  poi_id           String          @unique
+  poi              PointOfInterest @relation(fields: [poi_id], references: [id])
+
+  difficulty       String          // easy | moderate | hard | expert
+  duration_minutes Int?
+  distance_km      Float?
+  elevation_gain_m Int?
+  starting_point   String?
+  parking_info     String?
+  kids_friendly    Boolean         @default(false)
+  pets_friendly    Boolean         @default(false)
+  best_season      String[]
+  gpx_url          String?
 }
 
 // ─── Spec 006 — QR Code (stub, full model defined in spec 006) ───────────────
