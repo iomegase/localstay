@@ -56,8 +56,8 @@ describe('POST /api/internal/geocode-pois', () => {
     expect(res.status).toBe(200)
   })
 
-  it('returns 400 when limit exceeds max (50)', async () => {
-    const req = makeRequest({ limit: 999 })
+  it('returns 400 when limit exceeds max (10)', async () => {
+    const req = makeRequest({ limit: 11 })
     const res = await POST(req)
     expect(res.status).toBe(400)
   })

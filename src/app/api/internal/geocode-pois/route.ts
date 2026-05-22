@@ -11,7 +11,7 @@ function isAuthorized(req: NextRequest): boolean {
 
 const BodySchema = z.object({
   city_id: z.string().min(1).optional(),
-  limit: z.number().int().min(1).max(50).default(10),
+  limit: z.number().int().min(1).max(10).default(10),
 })
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
