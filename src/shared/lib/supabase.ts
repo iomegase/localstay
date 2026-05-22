@@ -1,8 +1,8 @@
 // src/shared/lib/supabase.ts
 import { createServerClient, createBrowserClient } from '@supabase/ssr'
+import type { CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { NextRequest, NextResponse } from 'next/server'
-import type { CookieOptions } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -15,12 +15,13 @@ export function createSupabaseRouteClient() {
   const cookieStore = cookies()
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) { return cookieStore.get(name)?.value },
-      set(name: string, value: string, options: CookieOptions) {
-        cookieStore.set(name, value, options)
+      getAll() {
+        return cookieStore.getAll()
       },
-      remove(name: string, options: CookieOptions) {
-        cookieStore.set(name, '', options)
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          cookieStore.set(name, value, options)
+        )
       },
     },
   })
@@ -31,7 +32,10 @@ export function createSupabaseServer() {
   return createServerClient(
     supabaseUrl,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { get: () => undefined, set: () => {}, remove: () => {} } }
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+      cookies: { getAll: () => [], setAll: () => {} },
+    }
   )
 }
 
@@ -42,14 +46,14 @@ export function createSupabaseMiddlewareClient(
 ) {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) { return request.cookies.get(name)?.value },
-      set(name: string, value: string, options: CookieOptions) {
-        request.cookies.set(name, value)
-        response.cookies.set(name, value, options)
+      getAll() {
+        return request.cookies.getAll()
       },
-      remove(name: string, options: CookieOptions) {
-        request.cookies.set(name, '')
-        response.cookies.set(name, '', options)
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        )
       },
     },
   })

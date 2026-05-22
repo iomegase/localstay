@@ -12,15 +12,20 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
-  if (!user) {
-    const loginUrl = new URL('/auth/login', request.url)
-    return NextResponse.redirect(loginUrl, { status: 307 })
+  function redirectWithCookies(destination: string) {
+    const redirect = NextResponse.redirect(new URL(destination, request.url), { status: 307 })
+    response.cookies.getAll().forEach(c => redirect.cookies.set(c.name, c.value))
+    return redirect
   }
 
-  const role = (user.user_metadata?.role ?? 'owner') as Role
+  if (!user) {
+    return redirectWithCookies('/auth/login')
+  }
+
+  const role = (user.user_metadata?.role ?? 'tourist') as Role
 
   if (role === 'tourist') {
-    return NextResponse.redirect(new URL('/', request.url), { status: 307 })
+    return redirectWithCookies('/')
   }
 
   const ownDashboard = DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>]
@@ -29,7 +34,7 @@ export async function middleware(request: NextRequest) {
   const otherPrefixes = Object.values(DASHBOARD_ROUTES).filter(p => p !== ownDashboard)
   for (const prefix of otherPrefixes) {
     if (path.startsWith(prefix)) {
-      return NextResponse.redirect(new URL(ownDashboard, request.url), { status: 307 })
+      return redirectWithCookies(ownDashboard)
     }
   }
 

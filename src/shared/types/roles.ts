@@ -6,9 +6,3 @@ export const DASHBOARD_ROUTES: Record<Exclude<Role, 'tourist'>, string> = {
   merchant: '/merchant',
   admin: '/admin',
 }
-
-export const ROLE_ROUTE_PREFIXES: Record<Exclude<Role, 'tourist'>, string> = {
-  owner: '/dashboard',
-  merchant: '/merchant',
-  admin: '/admin',
-}
