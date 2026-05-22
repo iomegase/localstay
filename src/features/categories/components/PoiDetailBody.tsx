@@ -4,6 +4,7 @@ import { PhotoCarousel } from './PhotoCarousel'
 import { ActionButtons } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
+import { MiniMap } from './MiniMap'
 import type { PoiDetail } from '../types'
 
 interface Props {
@@ -97,6 +98,11 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
             <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} />
           </div>
         )}
+
+        {/* Mini map */}
+        <div className="px-6">
+          <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} />
+        </div>
 
         {/* Action buttons */}
         <div className="px-6">
