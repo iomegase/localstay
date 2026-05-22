@@ -52,13 +52,13 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Tri par distance par défaut | - | - | ⬜ |
-| AC-01-02 | Card affiche tous les champs requis | - | - | ⬜ |
-| AC-01-03 | POI fermé visuellement différencié | - | - | ⬜ |
-| AC-02-01 | Tri par note fonctionne | - | - | ⬜ |
-| AC-02-02 | Filtre sous-catégorie fonctionne | - | - | ⬜ |
-| AC-02-03 | Suppression filtre → reset liste | - | - | ⬜ |
-| AC-03-01 | Clic card → redirection fiche POI | - | - | ⬜ |
+| AC-01-01 | Tri par distance par défaut | `src/features/categories/queries/poi-cards.ts`<br>`src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx` | `tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts` | ✅ done |
+| AC-01-02 | Card affiche tous les champs requis | `src/features/categories/components/PoiCard.tsx` | `tests/integration/categories.AC-01-02.poi-card-renders.test.tsx` | ✅ done |
+| AC-01-03 | POI fermé visuellement différencié | `src/features/categories/components/PoiCard.tsx` | `tests/unit/categories.AC-01-03.poi-closed-badge.test.tsx` | ✅ done |
+| AC-02-01 | Tri par note fonctionne | `src/features/categories/queries/poi-cards.ts`<br>`src/features/categories/components/SortControl.tsx` | `tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts` | ✅ done |
+| AC-02-02 | Filtre sous-catégorie fonctionne | `src/features/categories/queries/poi-cards.ts`<br>`src/app/api/cities/[slug]/categories/[category-slug]/pois/route.ts` | `tests/contract/categories.AC-poi-list-api.test.ts`<br>`tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
+| AC-02-03 | Suppression filtre → reset liste | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
+| AC-03-01 | Clic card → redirection fiche POI | `src/features/categories/components/PoiCard.tsx` | `tests/e2e/categories.AC-03-01.poi-navigation.test.ts` | ✅ done |
 
 ---
 
