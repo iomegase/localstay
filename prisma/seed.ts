@@ -71,13 +71,22 @@ async function main() {
   // ── POI for restaurants/gastronomique ─────────────────────────────────────
   await prisma.pointOfInterest.upsert({
     where: { city_id_slug: { city_id: city.id, slug: 'restaurants-gastro-demo' } },
-    update: {},
+    update: {
+      rating: 4.5,
+      rating_count: 120,
+      is_open_now: true,
+      photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400'],
+    },
     create: {
       name: 'Le Bistrot du Mont-Blanc',
       slug: 'restaurants-gastro-demo',
       address: 'Place du Mont-Blanc, 74170 Saint-Gervais-les-Bains',
       latitude: 45.8921,
       longitude: 6.7085,
+      rating: 4.5,
+      rating_count: 120,
+      is_open_now: true,
+      photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400'],
       is_active: true,
       city_id: city.id,
       category_id: restaurants.id,
@@ -88,13 +97,22 @@ async function main() {
   // ── POI for restaurants/snacking ──────────────────────────────────────────
   await prisma.pointOfInterest.upsert({
     where: { city_id_slug: { city_id: city.id, slug: 'restaurants-snacking-demo' } },
-    update: {},
+    update: {
+      rating: 3.8,
+      rating_count: 45,
+      is_open_now: false,
+      photos: ['https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400'],
+    },
     create: {
       name: 'Café de la Vallée',
       slug: 'restaurants-snacking-demo',
       address: 'Rue de la Gare, 74170 Saint-Gervais-les-Bains',
       latitude: 45.8918,
       longitude: 6.7080,
+      rating: 3.8,
+      rating_count: 45,
+      is_open_now: false,
+      photos: ['https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400'],
       is_active: true,
       city_id: city.id,
       category_id: restaurants.id,
@@ -122,7 +140,7 @@ async function main() {
     })
   }
 
-  console.log('✓ Seed complete — Saint-Gervais-les-Bains: 5 categories, 2 subcategories, 6 POIs')
+  console.log('✓ Seed complete — Saint-Gervais-les-Bains: 5 categories, 2 subcategories, 6 POIs (with rating + photos)')
 }
 
 main()
