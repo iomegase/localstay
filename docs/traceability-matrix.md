@@ -66,16 +66,16 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Tous champs visibles si présents | - | - | ⬜ |
-| AC-01-02 | Bouton Appeler masqué si pas de tel | - | - | ⬜ |
-| AC-01-03 | Bouton Site masqué si pas de site | - | - | ⬜ |
-| AC-01-04 | Badge Ouvert avec heure fermeture | - | - | ⬜ |
-| AC-02-01 | Bouton Appeler → `tel:` link | - | - | ⬜ |
-| AC-02-02 | Bouton Itinéraire → Mapbox | - | - | ⬜ |
-| AC-02-03 | Bouton Site → nouvel onglet | - | - | ⬜ |
-| AC-02-04 | Bouton Partager → Web Share API | - | - | ⬜ |
-| AC-03-01 | Bloc randonnée si hiking_detail | - | - | ⬜ |
-| AC-03-02 | Tracé Mapbox si gpx_url | - | - | ⬜ |
+| AC-01-01 | Tous champs visibles si présents | `src/features/categories/components/PoiDetailBody.tsx` | `tests/integration/categories.AC-01-01.poi-detail-renders.test.tsx` | ✅ done |
+| AC-01-02 | Bouton Appeler masqué si pas de tel | `src/features/categories/components/ActionButtons.tsx` | `tests/unit/categories.AC-01-02-03.action-buttons.test.tsx` | ✅ done |
+| AC-01-03 | Bouton Site masqué si pas de site | `src/features/categories/components/ActionButtons.tsx` | `tests/unit/categories.AC-01-02-03.action-buttons.test.tsx` | ✅ done |
+| AC-01-04 | Badge Ouvert avec heure fermeture | `src/features/categories/components/HoursBlock.tsx` | `tests/unit/categories.AC-01-04.hours-block.test.tsx` | ✅ done |
+| AC-02-01 | Bouton Appeler → `tel:` link | `src/features/categories/components/ActionButtons.tsx` | `tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |
+| AC-02-02 | Bouton Itinéraire → Google Maps | `src/features/categories/components/ActionButtons.tsx` | `tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |
+| AC-02-03 | Bouton Site → nouvel onglet | `src/features/categories/components/ActionButtons.tsx` | `tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |
+| AC-02-04 | Bouton Partager → Web Share API | `src/features/categories/components/ActionButtons.tsx` | `tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |
+| AC-03-01 | Bloc randonnée si hiking_detail | `src/features/categories/components/HikingBlock.tsx` | `tests/unit/categories.AC-03-01.hiking-block.test.tsx`<br>`tests/integration/categories.AC-01-01.poi-detail-renders.test.tsx` | ✅ done |
+| AC-03-02 | ~~Tracé Mapbox si gpx_url~~ | — | — | ⬜ → spec 005 |
 
 ---
 
