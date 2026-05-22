@@ -15,7 +15,7 @@ test.describe('Categories — subcategory filter (AC-03-01, AC-03-02)', () => {
   })
 
   test('AC-03-01: selecting a subcategory filters the POI list', async ({ page }) => {
-    const allPois = page.locator('[data-testid="poi-list"] li')
+    const allPois = page.locator('[data-testid^="poi-card-"]')
     const totalCount = await allPois.count()
     expect(totalCount).toBeGreaterThan(1)
 
@@ -24,7 +24,7 @@ test.describe('Categories — subcategory filter (AC-03-01, AC-03-02)', () => {
     await page.waitForURL('**/restaurants?sub=gastronomique')
     await page.waitForLoadState('networkidle')
 
-    const filteredPois = page.locator('[data-testid="poi-list"] li')
+    const filteredPois = page.locator('[data-testid^="poi-card-"]')
     const filteredCount = await filteredPois.count()
 
     // Should show fewer results than unfiltered
@@ -41,13 +41,13 @@ test.describe('Categories — subcategory filter (AC-03-01, AC-03-02)', () => {
     // First, apply a filter
     await page.getByTestId('subcategory-gastronomique').click()
     await page.waitForURL('**/restaurants?sub=gastronomique')
-    const filteredCount = await page.locator('[data-testid="poi-list"] li').count()
+    const filteredCount = await page.locator('[data-testid^="poi-card-"]').count()
 
     // Then deselect by clicking "Tous"
     await page.getByText('Tous').click()
     await page.waitForURL(/\/restaurants$/)
     await page.waitForLoadState('networkidle')
-    const allCount = await page.locator('[data-testid="poi-list"] li').count()
+    const allCount = await page.locator('[data-testid^="poi-card-"]').count()
 
     expect(allCount).toBeGreaterThan(filteredCount)
 
