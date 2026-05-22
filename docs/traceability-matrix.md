@@ -98,12 +98,12 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Scan → `/guide/[city-slug]` | - | - | ⬜ |
-| AC-01-02 | Pas d'étape intermédiaire | - | - | ⬜ |
-| AC-01-03 | Rendu iOS et Android correct | - | - | ⬜ |
-| AC-02-01 | QR code PNG avec bonne URL | - | - | ⬜ |
-| AC-02-02 | PNG 1000×1000px minimum | - | - | ⬜ |
-| AC-02-03 | Lisible imprimé 10×10cm | - | - | ⬜ |
+| AC-01-01 | Scan → `/guide/[city-slug]` | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/e2e/qr-code.AC-01-01-02.scan-redirect.test.ts` | ✅ done |
+| AC-01-02 | Pas d'étape intermédiaire | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/e2e/qr-code.AC-01-01-02.scan-redirect.test.ts` | ✅ done |
+| AC-01-03 | Rendu iOS et Android correct | — | — | ⬜ manual |
+| AC-02-01 | QR code PNG avec bonne URL | `src/features/qr-code/services/generate-qr.ts`<br>`src/app/api/admin/cities/[slug]/qr-code/route.ts` | `tests/contract/qr-code.AC-02-01.api.test.ts` | ✅ done |
+| AC-02-02 | PNG 1000×1000px minimum | `src/features/qr-code/services/generate-qr.ts` | `tests/unit/qr-code.AC-02-02.generate-qr.test.ts` | ✅ done |
+| AC-02-03 | Lisible imprimé 10×10cm | — | — | ⬜ manual |
 
 ---
 
