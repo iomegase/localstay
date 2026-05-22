@@ -5,11 +5,11 @@
 ```yaml
 id: 005-map
 title: "Carte Mapbox interactive"
-status: draft
+status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-20
+updated_at: 2026-05-22
 depends_on: [003-poi-list, 004-poi-detail]
 ```
 
@@ -163,5 +163,5 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Style de carte Mapbox : streets, outdoors, ou custom ? | owner | - | pending |
-| OQ-02 | Faut-il un toggle liste/carte sur la page catégorie ou une page carte dédiée ? | owner | - | pending |
+| OQ-01 | Style de carte Mapbox : streets, outdoors, ou custom ? | owner | - | **Resolved** : `outdoors` (adapté au contexte alpin) |
+| OQ-02 | Faut-il un toggle liste/carte sur la page catégorie ou une page carte dédiée ? | owner | - | **Resolved** : Toggle sur la page catégorie (même URL, état client) |
