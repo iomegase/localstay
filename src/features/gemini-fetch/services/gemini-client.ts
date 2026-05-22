@@ -30,11 +30,19 @@ export async function callGemini(prompt: string): Promise<GeminiRawPoi[]> {
 
   // Strip markdown code fences if Gemini wraps the JSON
   const cleaned = rawText
+    .trimStart()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/```\s*$/i, '')
     .trim()
 
-  const parsed = GeminiResponseSchema.safeParse(JSON.parse(cleaned))
+  let json: unknown
+  try {
+    json = JSON.parse(cleaned)
+  } catch {
+    throw new Error(`Gemini returned non-JSON response: ${cleaned.slice(0, 200)}`)
+  }
+
+  const parsed = GeminiResponseSchema.safeParse(json)
   if (!parsed.success) {
     throw new Error(`Gemini response failed Zod validation: ${parsed.error.message}`)
   }
