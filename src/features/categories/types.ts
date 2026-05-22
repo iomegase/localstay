@@ -39,3 +39,49 @@ export interface PoiCard {
   distance_km: number
   photo_url: string | null
 }
+
+export type DayHours = { open: string; close: string } | null
+
+export type PoiHours = {
+  '0'?: DayHours  // Sunday
+  '1'?: DayHours  // Monday
+  '2'?: DayHours  // Tuesday
+  '3'?: DayHours  // Wednesday
+  '4'?: DayHours  // Thursday
+  '5'?: DayHours  // Friday
+  '6'?: DayHours  // Saturday
+}
+
+export interface HikingDetailData {
+  difficulty: 'easy' | 'moderate' | 'hard' | 'expert'
+  duration_minutes: number | null
+  distance_km: number | null
+  elevation_gain_m: number | null
+  starting_point: string | null
+  parking_info: string | null
+  kids_friendly: boolean
+  pets_friendly: boolean
+  best_season: string[]
+  gpx_url: string | null
+}
+
+export interface PoiDetail {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  address: string
+  latitude: number
+  longitude: number
+  phone: string | null
+  website: string | null
+  rating: number | null
+  rating_count: number
+  is_open_now: boolean | null
+  hours: PoiHours | null
+  photos: string[]
+  distance_km: number | null
+  category: { id: string; name: string; slug: string; icon: string }
+  subcategory: { id: string; name: string; slug: string } | null
+  hiking_detail: HikingDetailData | null
+}
