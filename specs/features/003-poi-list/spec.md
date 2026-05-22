@@ -5,11 +5,11 @@
 ```yaml
 id: 003-poi-list
 title: "Liste des POI avec filtres"
-status: draft
+status: approved
 mvp: 1
-owner: ""
+owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-20
+updated_at: 2026-05-22
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -74,7 +74,7 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 - **BR-02**: Un POI avec `is_active = false` n'apparaît jamais dans la liste
 - **BR-03**: Un POI `deleted_at non null` n'apparaît jamais dans la liste
 - **BR-04**: Le tri par défaut est `distance ASC`
-- **BR-05**: Maximum 50 POI affichés par page (pagination ou infinite scroll)
+- **BR-05**: Maximum 50 POI affichés au total — pas de pagination (OQ-01 résolu)
 
 ---
 
@@ -149,22 +149,9 @@ paths:
             type: string
             enum: [distance, rating]
             default: distance
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 1
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 20
-            maximum: 50
       responses:
         "200":
-          description: Liste paginée de POI
+          description: Liste de POI (max 50, non paginée)
           content:
             application/json:
               schema:
@@ -174,8 +161,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/PoiCard"
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -218,18 +203,6 @@ components:
           type: string
           nullable: true
 
-    PaginationMeta:
-      type: object
-      required: [total, page, limit, total_pages]
-      properties:
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-        total_pages:
-          type: integer
 ```
 
 ---
@@ -245,12 +218,13 @@ components:
 
 ### Page : `/guide/[city-slug]/[category-slug]`
 
+> **Relation spec 002** : cette page existe déjà (catégorie + SubCategoryFilter). Spec 003 remplace la liste `<ul>/<li>` simple par des `PoiCard` riches. Le SubCategoryFilter reste inchangé.
+
 - **Loading state**: 6 skeleton cards empilées
 - **Empty state**: "Aucun résultat pour cette catégorie" + bouton retour
-- **Error state**: message erreur + bouton réessayer
-- **Infinite scroll** ou pagination (à décider — voir Open Questions)
+- **Pas de pagination** — tous les POI chargés en une fois, max 50 (OQ-01 résolu)
 - Sticky header avec nom de catégorie + filtres de tri
-- Bouton flottant "Voir la carte" en bas à droite
+- Bouton flottant "Voir la carte" en bas à droite (hors scope spec 003 — spec 005)
 
 ### Composant : PoiCard
 
@@ -288,5 +262,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | - | pending |
-| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | - | pending |
+| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-22 | ✅ **Résolu** — Pas de pagination. Tous les POI chargés en une seule requête, cap à 50 côté serveur. |
+| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-22 | ✅ **Résolu** — Distance depuis le centre géographique de la City (BR-01). GPS optionnel hors scope MVP 1. |

@@ -5,7 +5,7 @@
 ```yaml
 id: 001-city-guide
 title: "Affichage du guide touristique par ville"
-status: review
+status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
