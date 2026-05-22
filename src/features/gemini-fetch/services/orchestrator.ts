@@ -70,6 +70,9 @@ export async function runGeminiFetch(params: FetchParams): Promise<GeminiFetchRe
     // raw_response stores the unfiltered Gemini output for audit/debug purposes
     await releaseLock(cacheId, expiresAt, { pois: rawPois })
 
+    // Spec 008: fire-and-forget geocoding after successful Gemini Fetch
+    void triggerGeocode(cityId)
+
     return { status: 'fetched', poi_count: poiCount, expires_at: expiresAt.toISOString() }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
@@ -91,4 +94,22 @@ async function countPois(cityId: string, categoryId: string): Promise<number> {
   return prisma.pointOfInterest.count({
     where: { city_id: cityId, category_id: categoryId, is_active: true, deleted_at: null },
   })
+}
+
+async function triggerGeocode(cityId: string): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+  const secret = process.env.INTERNAL_API_SECRET
+  if (!secret) return
+  try {
+    await fetch(`${baseUrl}/api/internal/geocode-pois`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({ city_id: cityId, limit: 10 }),
+    })
+  } catch {
+    // Non-blocking — geocoding failure never breaks Gemini Fetch response
+  }
 }
