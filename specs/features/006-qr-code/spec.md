@@ -5,11 +5,11 @@
 ```yaml
 id: 006-qr-code
 title: "Génération et scan du QR code"
-status: draft
+status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-20
+updated_at: 2026-05-22
 depends_on: [001-city-guide]
 ```
 
@@ -207,5 +207,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Librairie de génération QR : `qrcode`, `sharp` + `qrcode`, ou service externe ? | owner | - | pending |
-| OQ-02 | Faut-il un logo au centre du QR code (style) ? | owner | - | pending |
+| OQ-01 | Librairie de génération QR : `qrcode`, `sharp` + `qrcode`, ou service externe ? | owner | - | **Resolved** : `qrcode` + `sharp` côté serveur |
+| OQ-02 | Faut-il un logo au centre du QR code (style) ? | owner | - | **Resolved** : Non — QR code simple (fond blanc, modules noirs) |
