@@ -27,6 +27,7 @@ model City {
 
   pois        PointOfInterest[]
   qr_codes    QrCode[]
+  gemini_caches GeminiCache[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -45,6 +46,7 @@ model Category {
 
   subcategories SubCategory[]
   pois          PointOfInterest[]
+  gemini_caches GeminiCache[]
 }
 
 model SubCategory {
@@ -144,4 +146,37 @@ model QrCode {
   url         String
   storage_url String
   is_active   Boolean   @default(true)
+}
+
+// ─── Spec 007 — Gemini Fetch ─────────────────────────────────────────────────
+
+model GeminiCache {
+  id              String   @id @default(uuid())
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  city_id         String
+  city            City     @relation(fields: [city_id], references: [id])
+  category_id     String
+  category        Category @relation(fields: [category_id], references: [id])
+
+  fetched_at      DateTime @default(now())
+  expires_at      DateTime
+  is_fetching     Boolean  @default(false)
+  fetch_error     String?
+
+  prompt_version  String
+  raw_response    Json?
+
+  @@unique([city_id, category_id])
+}
+
+model CacheTtlConfig {
+  id             String   @id @default(uuid())
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  category_slug  String   @unique
+  ttl_hours      Int
+  description    String?
 }
