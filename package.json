@@ -18,8 +18,10 @@
     "@supabase/supabase-js": "^2.43.4",
     "lucide-react": "^0.383.0",
     "next": "14.2.4",
+    "qrcode": "^1.5.4",
     "react": "^18",
     "react-dom": "^18",
+    "sharp": "^0.34.5",
     "zod": "^3.23.8"
   },
   "prisma": {
@@ -31,6 +33,7 @@
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/supertest": "^6.0.2",
