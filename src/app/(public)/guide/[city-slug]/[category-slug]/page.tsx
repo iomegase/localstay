@@ -11,6 +11,24 @@ interface Props {
   searchParams: { sub?: string; sort?: string }
 }
 
+async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+  const secret = process.env.INTERNAL_API_SECRET
+  if (!secret) return
+  try {
+    await fetch(`${baseUrl}/api/internal/gemini-fetch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify({ city_id: cityId, category_id: categoryId }),
+    })
+  } catch {
+    // Silently ignore — AC-03-03: serve existing POIs if fetch fails
+  }
+}
+
 export default async function CategoryPage({ params, searchParams }: Props) {
   const citySlug = params['city-slug']
   const categorySlug = params['category-slug']
@@ -23,6 +41,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   ])
 
   if (!detail || pois === null) { notFound(); return null }
+
+  // AC-01-01 / AC-03-01: trigger Gemini fetch if cache absent or expired (fire-and-forget)
+  void triggerGeminiFetchIfNeeded(detail.city_id, detail.id)
 
   return (
     <>

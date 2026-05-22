@@ -79,6 +79,7 @@ export async function getCategoryDetail(
     icon: category.icon, sort_order: category.sort_order,
     poi_count: category._count.pois,
     subcategories: subs,
+    city_id: city.id,
     city_latitude: city.latitude,
     city_longitude: city.longitude,
   }

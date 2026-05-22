@@ -111,13 +111,13 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Fetch si cache absent ou expiré | - | - | ⬜ |
-| AC-01-02 | POI structurés et persistés | - | - | ⬜ |
-| AC-01-03 | Cache valide → pas de fetch | - | - | ⬜ |
-| AC-02-01 | Établissements fermés exclus | - | - | ⬜ |
-| AC-02-02 | Doublons dédupliqués | - | - | ⬜ |
-| AC-02-03 | POI sans nom/adresse exclus | - | - | ⬜ |
-| AC-02-04 | POI hors périmètre exclus | - | - | ⬜ |
-| AC-03-01 | Cache expiré → nouveau fetch | - | - | ⬜ |
-| AC-03-02 | Pas de double fetch simultané | - | - | ⬜ |
-| AC-03-03 | Fetch échoué → cache expiré servi | - | - | ⬜ |
+| AC-01-01 | Fetch déclenché si cache absent ou expiré | `src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx`<br>`src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
+| AC-01-02 | POI structurés et persistés en base | `src/features/gemini-fetch/services/poi-persister.ts`<br>`src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
+| AC-01-03 | Cache valide → pas de fetch | `src/features/gemini-fetch/services/cache-manager.ts`<br>`src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
+| AC-02-01 | Établissements fermés exclus | `src/features/gemini-fetch/services/poi-filter.ts` | `tests/unit/gemini-fetch.AC-02-01-04.poi-filter.test.ts` | ✅ done |
+| AC-02-02 | Doublons dédupliqués | `src/features/gemini-fetch/services/poi-filter.ts` | `tests/unit/gemini-fetch.AC-02-01-04.poi-filter.test.ts` | ✅ done |
+| AC-02-03 | POI sans nom ou adresse exclus | `src/features/gemini-fetch/services/poi-filter.ts` | `tests/unit/gemini-fetch.AC-02-01-04.poi-filter.test.ts` | ✅ done |
+| AC-02-04 | POI hors périmètre exclus (via prompt radius) | `src/features/gemini-fetch/services/prompt-builder.ts` | `tests/unit/gemini-fetch.AC-02-01-04.poi-filter.test.ts` | ✅ done |
+| AC-03-01 | Cache expiré → nouveau fetch déclenché | `src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
+| AC-03-02 | Pas de double fetch simultané | `src/features/gemini-fetch/services/cache-manager.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
+| AC-03-03 | Fetch échoué → cache expiré servi | `src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |

@@ -18,6 +18,7 @@ export interface SubCategoryWithCount {
 
 export interface CategoryDetail extends CategoryWithCount {
   subcategories: SubCategoryWithCount[]
+  city_id: string
   city_latitude: number
   city_longitude: number
 }
