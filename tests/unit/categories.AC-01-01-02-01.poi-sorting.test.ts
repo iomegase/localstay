@@ -65,9 +65,10 @@ describe('getPoiCards', () => {
 
     const result = await getPoiCards('saint-gervais', 'restaurants')
     expect(result).not.toBeNull()
-    expect(result![0].slug).toBe('near')
-    expect(result![1].slug).toBe('far')
-    expect(result![0].distance_km).toBeLessThan(result![1].distance_km)
+    // Both POIs lack geocode_status='success' → both in primary, sorted by distance ASC
+    expect(result!.primary[0].slug).toBe('near')
+    expect(result!.primary[1].slug).toBe('far')
+    expect(result!.primary[0].distance_km).toBeLessThan(result!.primary[1].distance_km)
   })
 
   it('AC-02-01: sorts by rating DESC when sort=rating', async () => {
@@ -78,8 +79,9 @@ describe('getPoiCards', () => {
 
     const result = await getPoiCards('saint-gervais', 'restaurants', { sort: 'rating' })
     expect(result).not.toBeNull()
-    expect(result![0].slug).toBe('high-rated')
-    expect(result![1].slug).toBe('low-rated')
+    // Both POIs at same coords (distance ~0km) → in primary, sorted by rating DESC
+    expect(result!.primary[0].slug).toBe('high-rated')
+    expect(result!.primary[1].slug).toBe('low-rated')
   })
 
   it('maps photo_url to first photo in array', async () => {
@@ -88,7 +90,7 @@ describe('getPoiCards', () => {
     ] as never)
 
     const result = await getPoiCards('saint-gervais', 'restaurants')
-    expect(result![0].photo_url).toBe('https://example.com/photo.jpg')
+    expect(result!.primary[0].photo_url).toBe('https://example.com/photo.jpg')
   })
 
   it('maps photo_url to null when photos array is empty', async () => {
@@ -97,6 +99,6 @@ describe('getPoiCards', () => {
     ] as never)
 
     const result = await getPoiCards('saint-gervais', 'restaurants')
-    expect(result![0].photo_url).toBeNull()
+    expect(result!.primary[0].photo_url).toBeNull()
   })
 })

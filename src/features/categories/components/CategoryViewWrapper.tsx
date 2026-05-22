@@ -44,12 +44,27 @@ export function CategoryViewWrapper({ primary, nearby, citySlug, categorySlug, c
       </div>
 
       {view === 'list' ? (
-        <div className="px-4 pt-2 space-y-2" data-testid="poi-list-view">
-          {pois.map(poi => (
-            <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
-          ))}
-          {pois.length === 0 && (
-            <p className="text-sm text-charcoal/50 py-8 text-center">Aucun résultat</p>
+        <div data-testid="poi-list-view">
+          <div className="px-4 pt-2 space-y-2">
+            {primary.map(poi => (
+              <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+            ))}
+            {primary.length === 0 && (
+              <p className="text-sm text-charcoal/50 py-8 text-center">Aucun résultat</p>
+            )}
+          </div>
+
+          {nearby.length > 0 && (
+            <div className="mt-6 px-4">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal/40 mb-3">
+                Autres activités aux alentours
+              </h2>
+              <div className="space-y-2">
+                {nearby.map(poi => (
+                  <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       ) : (
