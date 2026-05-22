@@ -72,10 +72,25 @@ async function main() {
   await prisma.pointOfInterest.upsert({
     where: { city_id_slug: { city_id: city.id, slug: 'restaurants-gastro-demo' } },
     update: {
+      phone: '+33 4 50 78 24 90',
+      website: 'https://bistrot-mont-blanc.fr',
+      description: 'Cuisine du terroir savoyard avec vue sur le Mont-Blanc. Le chef revisite les classiques avec des produits locaux de saison.',
       rating: 4.5,
       rating_count: 120,
       is_open_now: true,
-      photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400'],
+      photos: [
+        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+        'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
+      ],
+      hours: {
+        '0': null,
+        '1': { open: '12:00', close: '14:30' },
+        '2': { open: '12:00', close: '14:30' },
+        '3': { open: '12:00', close: '14:30' },
+        '4': { open: '12:00', close: '14:30' },
+        '5': { open: '12:00', close: '14:30' },
+        '6': { open: '19:00', close: '22:30' },
+      },
     },
     create: {
       name: 'Le Bistrot du Mont-Blanc',
@@ -83,10 +98,25 @@ async function main() {
       address: 'Place du Mont-Blanc, 74170 Saint-Gervais-les-Bains',
       latitude: 45.8921,
       longitude: 6.7085,
+      phone: '+33 4 50 78 24 90',
+      website: 'https://bistrot-mont-blanc.fr',
+      description: 'Cuisine du terroir savoyard avec vue sur le Mont-Blanc. Le chef revisite les classiques avec des produits locaux de saison.',
       rating: 4.5,
       rating_count: 120,
       is_open_now: true,
-      photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400'],
+      photos: [
+        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+        'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
+      ],
+      hours: {
+        '0': null,
+        '1': { open: '12:00', close: '14:30' },
+        '2': { open: '12:00', close: '14:30' },
+        '3': { open: '12:00', close: '14:30' },
+        '4': { open: '12:00', close: '14:30' },
+        '5': { open: '12:00', close: '14:30' },
+        '6': { open: '19:00', close: '22:30' },
+      },
       is_active: true,
       city_id: city.id,
       category_id: restaurants.id,
@@ -140,7 +170,75 @@ async function main() {
     })
   }
 
-  console.log('✓ Seed complete — Saint-Gervais-les-Bains: 5 categories, 2 subcategories, 6 POIs (with rating + photos)')
+  // ── Enrich randonnées-demo → Lac Blanc (with HikingDetail) ──────────────────
+  const randonnees = await prisma.category.findFirstOrThrow({ where: { slug: 'randonnees' } })
+
+  const subcatHiking = await prisma.subCategory.upsert({
+    where: { slug: 'randonnee-alpine' },
+    update: {},
+    create: {
+      name: 'Randonnée Alpine',
+      slug: 'randonnee-alpine',
+      sort_order: 1,
+      is_active: true,
+      category_id: randonnees.id,
+    },
+  })
+
+  const lacBlanc = await prisma.pointOfInterest.upsert({
+    where: { city_id_slug: { city_id: city.id, slug: 'randonnees-demo' } },
+    update: {
+      name: 'Lac Blanc',
+      description: 'Une randonnée alpine emblématique face au massif du Mont-Blanc, entre balcon naturel, panorama spectaculaire et ambiance haute montagne.',
+      rating: 4.8,
+      rating_count: 312,
+      is_open_now: true,
+      photos: [
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
+        'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=800',
+      ],
+      subcategory_id: subcatHiking.id,
+    },
+    create: {
+      name: 'Lac Blanc',
+      slug: 'randonnees-demo',
+      address: 'Parking de la Flégère, 74400 Chamonix-Mont-Blanc',
+      latitude: 45.9464,
+      longitude: 6.8709,
+      description: 'Une randonnée alpine emblématique face au massif du Mont-Blanc, entre balcon naturel, panorama spectaculaire et ambiance haute montagne.',
+      rating: 4.8,
+      rating_count: 312,
+      is_open_now: true,
+      photos: [
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
+        'https://images.unsplash.com/photo-1434394354979-a235cd36269d?w=800',
+      ],
+      is_active: true,
+      city_id: city.id,
+      category_id: randonnees.id,
+      subcategory_id: subcatHiking.id,
+    },
+  })
+
+  await prisma.hikingDetail.upsert({
+    where: { poi_id: lacBlanc.id },
+    update: {},
+    create: {
+      poi_id: lacBlanc.id,
+      difficulty: 'hard',
+      duration_minutes: 270,
+      distance_km: 11.0,
+      elevation_gain_m: 650,
+      starting_point: 'Parking de la Flégère, 74400 Chamonix-Mont-Blanc',
+      parking_info: 'Parking de la Flégère, payant en saison (env. 8€/jour)',
+      kids_friendly: false,
+      pets_friendly: true,
+      best_season: ['summer'],
+      gpx_url: null,
+    },
+  })
+
+  console.log('✓ Seed complete — Saint-Gervais-les-Bains: 5 categories, 3 subcategories, 6 POIs (bistrot enriched, Lac Blanc with HikingDetail)')
 }
 
 main()
