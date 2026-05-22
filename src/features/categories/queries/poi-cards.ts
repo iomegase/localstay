@@ -89,6 +89,8 @@ export async function getPoiCards(
     is_open_now: p.is_open_now,
     distance_km: haversineKm(city.latitude, city.longitude, p.latitude, p.longitude),
     photo_url: p.photos[0] ?? null,
+    latitude: p.latitude,
+    longitude: p.longitude,
   }))
 
   if (sort === 'rating') {
