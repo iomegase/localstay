@@ -23,3 +23,9 @@ export interface CacheInfo {
   cacheId: string | null
   expiresAt: Date | null
 }
+
+export interface FetchParams {
+  cityId: string
+  categoryId: string
+  forceRefresh?: boolean
+}

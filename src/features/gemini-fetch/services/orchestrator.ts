@@ -5,13 +5,9 @@ import { callGemini } from './gemini-client'
 import { filterPois } from './poi-filter'
 import { persistPois } from './poi-persister'
 import { acquireLock, getCacheInfo, getTtlHours, releaseLock } from './cache-manager'
-import type { GeminiFetchResult } from '../types'
+import type { GeminiFetchResult, FetchParams } from '../types'
 
-interface FetchParams {
-  cityId: string
-  categoryId: string
-  forceRefresh?: boolean
-}
+const RADIUS_KM = 10 // OQ-03: fixed 10km for MVP
 
 export async function runGeminiFetch(params: FetchParams): Promise<GeminiFetchResult> {
   const { cityId, categoryId, forceRefresh = false } = params
@@ -49,15 +45,16 @@ export async function runGeminiFetch(params: FetchParams): Promise<GeminiFetchRe
   // Acquire lock + compute TTL
   const ttlHours = await getTtlHours(category.slug)
   const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000)
-  const cacheId = await acquireLock(cityId, categoryId, expiresAt)
+  let cacheId: string | undefined
 
   try {
+    cacheId = await acquireLock(cityId, categoryId, expiresAt)
     // Build prompt and call Gemini
     const prompt = buildGeminiPrompt({
       cityName: city.name,
       postalCode: city.postal_code,
       categoryName: category.name,
-      radiusKm: 10, // OQ-03: fixed 10km
+      radiusKm: RADIUS_KM,
     })
 
     const rawPois = await callGemini(prompt)
@@ -70,13 +67,16 @@ export async function runGeminiFetch(params: FetchParams): Promise<GeminiFetchRe
       cityLongitude: city.longitude,
     })
 
+    // raw_response stores the unfiltered Gemini output for audit/debug purposes
     await releaseLock(cacheId, expiresAt, { pois: rawPois })
 
     return { status: 'fetched', poi_count: poiCount, expires_at: expiresAt.toISOString() }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error(`[GeminiFetch] Error for city=${cityId} category=${categoryId}:`, message)
-    await releaseLock(cacheId, expiresAt, null, message)
+    if (cacheId) {
+      await releaseLock(cacheId, expiresAt, null, message)
+    }
 
     // AC-03-03: serve stale data (return what's in DB)
     return {
