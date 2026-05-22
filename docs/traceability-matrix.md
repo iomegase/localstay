@@ -83,14 +83,14 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Carte avec markers au clic | - | - | ⬜ |
-| AC-01-02 | Carte centrée sur City | - | - | ⬜ |
-| AC-01-03 | Clustering si markers proches | - | - | ⬜ |
-| AC-02-01 | Clic marker → popup | - | - | ⬜ |
-| AC-02-02 | Clic "Voir la fiche" → fiche POI | - | - | ⬜ |
-| AC-02-03 | Clic hors popup → fermeture | - | - | ⬜ |
-| AC-03-01 | Mini-carte visible dans fiche | - | - | ⬜ |
-| AC-03-02 | Mini-carte non-interactive | - | - | ⬜ |
+| AC-01-01 | Carte avec markers au clic | `src/features/categories/components/FullMap.tsx`<br>`src/features/categories/components/CategoryViewWrapper.tsx` | `tests/e2e/categories.AC-map.test.ts` | ✅ done |
+| AC-01-02 | Carte centrée sur City | `src/features/categories/lib/map-utils.ts` | `tests/unit/categories.map-utils.test.ts` | ✅ done |
+| AC-01-03 | Clustering si markers proches | `src/features/categories/lib/map-utils.ts`<br>`src/features/categories/components/FullMap.tsx` | `tests/unit/categories.map-utils.test.ts` | ✅ done |
+| AC-02-01 | Clic marker → popup | `src/features/categories/components/FullMap.tsx` | `tests/e2e/categories.AC-map.test.ts` | ✅ done |
+| AC-02-02 | Clic "Voir la fiche" → fiche POI | `src/features/categories/components/FullMap.tsx` | `tests/e2e/categories.AC-map.test.ts` | ✅ done |
+| AC-02-03 | Clic hors popup → fermeture | `src/features/categories/components/FullMap.tsx` | `tests/e2e/categories.AC-map.test.ts` | ✅ done |
+| AC-03-01 | Mini-carte visible dans fiche | `src/features/categories/components/MiniMap.tsx`<br>`src/features/categories/components/PoiDetailBody.tsx` | `tests/integration/categories.AC-03-01.mini-map-in-detail.test.tsx` | ✅ done |
+| AC-03-02 | Mini-carte non-interactive | `src/features/categories/components/MiniMap.tsx` | `tests/unit/categories.AC-03-02.mini-map.test.tsx` | ✅ done |
 
 ---
 
