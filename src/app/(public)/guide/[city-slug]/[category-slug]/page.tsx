@@ -4,7 +4,7 @@ import { getCategoryDetail } from '@/features/categories/queries/categories'
 import { getPoiCards } from '@/features/categories/queries/poi-cards'
 import { SubCategoryFilter } from '@/features/categories/components/SubCategoryFilter'
 import { SortControl } from '@/features/categories/components/SortControl'
-import { PoiCard } from '@/features/categories/components/PoiCard'
+import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
 
 interface Props {
   params: { 'city-slug': string; 'category-slug': string }
@@ -41,14 +41,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <SortControl currentSort={sort} />
       </Suspense>
 
-      <div className="px-4 pt-2 space-y-2">
-        {pois.map(poi => (
-          <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
-        ))}
-        {pois.length === 0 && (
-          <p className="text-sm text-charcoal/50 py-8 text-center">Aucun résultat</p>
-        )}
-      </div>
+      <CategoryViewWrapper
+        pois={pois}
+        citySlug={citySlug}
+        categorySlug={categorySlug}
+        cityCenter={{ latitude: detail.city_latitude, longitude: detail.city_longitude }}
+      />
     </>
   )
 }
