@@ -5,12 +5,12 @@
 ```yaml
 id: 004-poi-detail
 title: "Fiche détaillée d'un POI"
-status: draft
+status: approved
 mvp: 1
-owner: ""
+owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-20
-depends_on: [003-poi-list]
+updated_at: 2026-05-22
+depends_on: [001-city-guide, 002-categories, 003-poi-list]
 ```
 
 ---
@@ -66,7 +66,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 #### Acceptance Criteria
 
 - **AC-03-01**: Given un POI de type randonnée (subcategory: hiking), When la fiche s'affiche, Then sont visibles : niveau de difficulté, durée, distance, dénivelé, point de départ, parking, compatibilité enfants/animaux, saison recommandée
-- **AC-03-02**: Given une randonnée, When la fiche s'affiche, Then une carte Mapbox affiche le tracé de l'itinéraire si disponible
+- **AC-03-02**: ~~Tracé Mapbox~~ — déplacé vers spec 005-map (OQ résolu)
 
 ---
 
@@ -82,9 +82,23 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 ## Data Model
 
-> Voir `003-poi-list/spec.md` — le modèle `PointOfInterest` est partagé.
+> Le modèle `PointOfInterest` est partagé (spec 003). Ce spec ajoute :
+> 1. Trois champs Google Places sur `PointOfInterest` (scaffold pour intégration future — OQ-01)
+> 2. Le modèle `HikingDetail` lié par `poi_id`
+> 3. L'enum `ReviewSource`
 
 ```prisma
+enum ReviewSource {
+  MANUAL
+  GOOGLE
+}
+
+// Ajouts sur PointOfInterest (spec 004) :
+// google_place_id   String?
+// review_source     ReviewSource  @default(MANUAL)
+// reviews_synced_at DateTime?
+// hiking_detail     HikingDetail?
+
 model HikingDetail {
   id                String          @id @default(uuid())
   created_at        DateTime        @default(now())
@@ -93,7 +107,7 @@ model HikingDetail {
   poi_id            String          @unique
   poi               PointOfInterest @relation(fields: [poi_id], references: [id])
 
-  difficulty        String          # easy | moderate | hard | expert
+  difficulty        String          // easy | moderate | hard | expert
   duration_minutes  Int?
   distance_km       Float?
   elevation_gain_m  Int?
@@ -101,8 +115,8 @@ model HikingDetail {
   parking_info      String?
   kids_friendly     Boolean         @default(false)
   pets_friendly     Boolean         @default(false)
-  best_season       String[]        # [spring, summer, autumn, winter]
-  gpx_url           String?         # URL du tracé GPX
+  best_season       String[]        // [spring, summer, autumn, winter]
+  gpx_url           String?         // URL du tracé GPX
 }
 ```
 
@@ -304,6 +318,7 @@ components:
 - Avis et notes déposés par les Tourists (MVP 3+)
 - Bouton Réserver fonctionnel (MVP 4)
 - Photos uploadées par le Merchant (MVP 3)
+- Tracé Mapbox sur la fiche randonnée (→ spec 005-map, AC-03-02 déplacé)
 
 ---
 
@@ -311,5 +326,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Afficher les avis Google Places dans la fiche MVP 1 ? | owner | - | pending |
-| OQ-02 | Fallback itinéraire : Google Maps ou Apple Maps selon le device ? | owner | - | pending |
+| OQ-01 | Afficher les avis Google Places dans la fiche MVP 1 ? | Product Owner | 2026-05-22 | **Résolu** : rating/count depuis la DB uniquement. Les champs `google_place_id`, `review_source`, `reviews_synced_at` sont ajoutés à `PointOfInterest` comme scaffold pour l'intégration MVP 3+. |
+| OQ-02 | Fallback itinéraire : Google Maps ou Apple Maps selon le device ? | Product Owner | 2026-05-22 | **Résolu** : Google Maps URL universelle — `https://www.google.com/maps/dir/?api=1&destination={lat},{lng}`. Fonctionne iOS + Android sans détection de device. |
