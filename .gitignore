@@ -27,4 +27,4 @@ playwright-report/
 test-results/
 
 # Prisma
-prisma/migrations/
+# prisma/migrations/ — tracked in git (removed 009)

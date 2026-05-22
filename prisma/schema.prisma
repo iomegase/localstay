@@ -187,3 +187,38 @@ model CacheTtlConfig {
   ttl_hours      Int
   description    String?
 }
+
+// ─── Spec 009 — Auth Owner ────────────────────────────────────────────────────
+
+model User {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  supabase_id String    @unique
+  email       String    @unique
+  role        String    @default("owner")  // owner | merchant | admin
+  first_name  String?
+  last_name   String?
+  phone       String?
+  is_active   Boolean   @default(true)
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id            String    @id @default(uuid())
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  user_id       String
+  user          User      @relation(fields: [user_id], references: [id])
+  plan          String    @default("free")   // free | basic | pro | concierge
+  status        String    @default("trial")  // trial | active | past_due | cancelled
+  trial_ends_at DateTime
+  ends_at       DateTime?
+  stripe_subscription_id String?
+  stripe_customer_id     String?
+}
