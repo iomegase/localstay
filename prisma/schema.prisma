@@ -90,6 +90,13 @@ model PointOfInterest {
   photos            String[]
   tags              String[]
 
+  // Spec 008 — Mapbox Geocoding
+  geocode_status    String    @default("pending") // pending | success | failed | rejected
+  geocoded_at       DateTime?
+  geocode_provider  String?
+  geocode_error     String?
+  geocode_attempts  Int       @default(0)
+
   // Spec 004 — Google Places scaffold (OQ-01: full integration in MVP 3+)
   google_place_id   String?
   review_source     ReviewSource  @default(MANUAL)
