@@ -1,4 +1,5 @@
 // src/features/gemini-fetch/services/poi-persister.ts
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import type { GeminiRawPoi } from '../types'
 
@@ -8,8 +9,8 @@ function toSlug(name: string): string {
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
     .slice(0, 100)
+    .replace(/^-|-$/g, '')
 }
 
 interface PersistContext {
@@ -68,7 +69,7 @@ export async function persistPois(
         address: poi.address,
         phone: poi.phone,
         website: poi.website,
-        hours: poi.hours ?? undefined,
+        hours: poi.hours ?? Prisma.JsonNull,
         tags: poi.tags,
         subcategory_id: subcategoryId,
       },
