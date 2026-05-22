@@ -35,12 +35,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const subcategorySlug = searchParams.sub
   const sort = searchParams.sort === 'rating' ? 'rating' : 'distance'
 
-  const [detail, pois] = await Promise.all([
+  const [detail, poiGroups] = await Promise.all([
     getCategoryDetail(citySlug, categorySlug),
     getPoiCards(citySlug, categorySlug, { subcategorySlug, sort }),
   ])
 
-  if (!detail || pois === null) { notFound(); return null }
+  if (!detail || poiGroups === null) { notFound(); return null }
 
   // AC-01-01 / AC-03-01: trigger Gemini fetch if cache absent or expired (fire-and-forget)
   void triggerGeminiFetchIfNeeded(detail.city_id, detail.id)
@@ -49,7 +49,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     <>
       <div className="px-4 pt-4 pb-2">
         <h1 className="font-serif italic text-2xl text-charcoal">{detail.name}</h1>
-        <p className="text-sm text-charcoal/60 mt-0.5">{detail.poi_count} adresses</p>
+        <p className="text-sm text-charcoal/60 mt-0.5">
+          {poiGroups.primary.length + poiGroups.nearby.length} adresses
+        </p>
       </div>
 
       {detail.subcategories.length > 0 && (
@@ -63,7 +65,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       </Suspense>
 
       <CategoryViewWrapper
-        pois={pois}
+        primary={poiGroups.primary}
+        nearby={poiGroups.nearby}
         citySlug={citySlug}
         categorySlug={categorySlug}
         cityCenter={{ latitude: detail.city_latitude, longitude: detail.city_longitude }}

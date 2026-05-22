@@ -45,6 +45,11 @@ export interface PoiCard {
   longitude: number
 }
 
+export interface PoiCardGroups {
+  primary: PoiCard[]   // POI à ≤ 15 km
+  nearby: PoiCard[]    // POI géocodés entre 15 et 30 km
+}
+
 export type DayHours = { open: string; close: string } | null
 
 export type PoiHours = {

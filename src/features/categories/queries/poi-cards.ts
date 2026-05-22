@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/lib/prisma'
-import type { PoiCard } from '../types'
+import type { PoiCard, PoiCardGroups } from '../types'
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371
@@ -17,7 +17,7 @@ export async function getPoiCards(
   citySlug: string,
   categorySlug: string,
   options: { subcategorySlug?: string; sort?: 'distance' | 'rating' } = {},
-): Promise<PoiCard[] | null> {
+): Promise<PoiCardGroups | null> {
   const { subcategorySlug, sort = 'distance' } = options
 
   const city = await prisma.city.findFirst({
@@ -43,7 +43,7 @@ export async function getPoiCards(
       },
       select: { id: true },
     })
-    if (!sub) return []
+    if (!sub) return { primary: [], nearby: [] }
     subcategoryId = sub.id
   }
 
@@ -67,6 +67,7 @@ export async function getPoiCards(
       rating_count: true,
       is_open_now: true,
       photos: true,
+      geocode_status: true,
       subcategory: { select: { name: true } },
     },
   })
@@ -75,6 +76,7 @@ export async function getPoiCards(
     id: string; name: string; slug: string; address: string
     latitude: number; longitude: number; rating: number | null
     rating_count: number; is_open_now: boolean | null; photos: string[]
+    geocode_status: string
     subcategory: { name: string } | null
   }
 
@@ -93,8 +95,32 @@ export async function getPoiCards(
     longitude: p.longitude,
   }))
 
-  if (sort === 'rating') {
-    return cards.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+  // Split: nearby = géocodés avec succès ET distance > 15km
+  // POI pending/failed gardent les coords placeholder → distance_km ≈ 0 → restent dans primary
+  const PRIMARY_RADIUS_KM = 15
+  const geocodedSlugs = new Set(
+    (rows as RawRow[])
+      .filter(r => r.geocode_status === 'success')
+      .map(r => r.slug)
+  )
+
+  const primary: PoiCard[] = []
+  const nearby: PoiCard[] = []
+
+  for (const card of cards) {
+    if (geocodedSlugs.has(card.slug) && card.distance_km > PRIMARY_RADIUS_KM) {
+      nearby.push(card)
+    } else {
+      primary.push(card)
+    }
   }
-  return cards.sort((a, b) => a.distance_km - b.distance_km)
+
+  const sortFn = sort === 'rating'
+    ? (a: PoiCard, b: PoiCard) => (b.rating ?? 0) - (a.rating ?? 0)
+    : (a: PoiCard, b: PoiCard) => a.distance_km - b.distance_km
+
+  return {
+    primary: primary.sort(sortFn),
+    nearby: nearby.sort((a, b) => a.distance_km - b.distance_km),
+  }
 }

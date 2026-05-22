@@ -16,14 +16,16 @@ const FullMap = dynamic(
 )
 
 interface Props {
-  pois: PoiCardType[]
+  primary: PoiCardType[]
+  nearby: PoiCardType[]
   citySlug: string
   categorySlug: string
   cityCenter: { latitude: number; longitude: number }
 }
 
-export function CategoryViewWrapper({ pois, citySlug, categorySlug, cityCenter }: Props) {
+export function CategoryViewWrapper({ primary, nearby, citySlug, categorySlug, cityCenter }: Props) {
   const [view, setView] = useState<'list' | 'map'>('list')
+  const pois = [...primary, ...nearby]
 
   return (
     <>
