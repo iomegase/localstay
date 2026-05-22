@@ -2,7 +2,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { CacheInfo } from '../types'
 
-const DEFAULT_TTL_HOURS = 24
+const DEFAULT_TTL_HOURS = 168 // 7 days
 const STALE_LOCK_MINUTES = 10
 
 export async function getCacheInfo(cityId: string, categoryId: string): Promise<CacheInfo> {
