@@ -160,3 +160,17 @@
 | BR-04 | Cross-role access → redirect vers dashboard propre | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
 | BR-05 | Mot de passe minimum 8 caractères (Zod) | `src/features/auth/schemas.ts` | `tests/contract/auth.AC-register.test.ts`<br>`tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
 | BR-06 | Subscription trial 12 mois à l'inscription | `src/features/auth/lib/subscription.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+
+## 010 — Dashboard Owner
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Overview affiche métriques correctes | `src/app/api/dashboard/overview/route.ts`<br>`src/features/dashboard-owner/queries/overview.ts` | `tests/contract/dashboard.AC-overview.test.ts` | ✅ done |
+| AC-01-02 | Empty state si aucun logement | `src/app/(dashboard)/dashboard/page.tsx` | `tests/unit/dashboard.AC-01-02.empty-state.test.tsx` | ✅ done |
+| AC-02-01 | Liste logements avec stats | `src/app/api/dashboard/lodgings/route.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| AC-02-02 | Création logement fonctionne | `src/app/api/dashboard/lodgings/route.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| AC-02-03 | Modification logement fonctionne | `src/app/api/dashboard/lodgings/[id]/route.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| AC-03-01 | Stats 30 jours affichées | `src/app/api/dashboard/stats/route.ts`<br>`src/features/dashboard-owner/queries/stats.ts` | `tests/contract/dashboard.AC-stats.test.ts` | ✅ done |
+| AC-03-02 | Graphiques Recharts via Shadcn | `src/features/dashboard-owner/components/OverviewChart.tsx`<br>`src/features/dashboard-owner/components/StatsCharts.tsx` | `tests/unit/dashboard.AC-01-02.empty-state.test.tsx` | ✅ done |
+| BR-01 | Owner ne voit que ses propres données | `src/features/dashboard-owner/lib/get-session-owner.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| BR-04 | Interface utilise Shadcn/ui | `src/shared/components/ui/` | — | ✅ done |
