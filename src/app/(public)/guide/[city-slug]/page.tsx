@@ -3,13 +3,17 @@ import { getCityGuide } from '@/features/city-guide/queries/cities'
 import { CategoryGrid } from '@/features/categories/components/CategoryGrid'
 import { t } from '@/shared/lib/i18n'
 import Link from 'next/link'
+import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
+  searchParams: Promise<{ lodging?: string }>
 }
 
-export default async function GuidePage({ params }: Props) {
+export default async function GuidePage({ params, searchParams }: Props) {
   const { 'city-slug': slug } = await params
+  const { lodging } = await searchParams
+  void recordQrScanIfPresent(lodging ?? null)
   const guide = await getCityGuide(slug)
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.
