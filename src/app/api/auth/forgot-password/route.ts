@@ -22,7 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
-  const supabase = createSupabaseRouteClient()
+  const supabase = await createSupabaseRouteClient()
   // Always return 200 — AC-04-01: même réponse si email inexistant
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${baseUrl}/auth/reset-password`,

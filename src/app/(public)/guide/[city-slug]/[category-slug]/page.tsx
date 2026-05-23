@@ -7,8 +7,8 @@ import { SortControl } from '@/features/categories/components/SortControl'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
 
 interface Props {
-  params: { 'city-slug': string; 'category-slug': string }
-  searchParams: { sub?: string; sort?: string }
+  params: Promise<{ 'city-slug': string; 'category-slug': string }>
+  searchParams: Promise<{ sub?: string; sort?: string }>
 }
 
 async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {
@@ -30,10 +30,10 @@ async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): P
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const citySlug = params['city-slug']
-  const categorySlug = params['category-slug']
-  const subcategorySlug = searchParams.sub
-  const sort = searchParams.sort === 'rating' ? 'rating' : 'distance'
+  const { 'city-slug': citySlug, 'category-slug': categorySlug } = await params
+  const resolvedSearch = await searchParams
+  const subcategorySlug = resolvedSearch.sub
+  const sort = resolvedSearch.sort === 'rating' ? 'rating' : 'distance'
 
   const [detail, poiGroups] = await Promise.all([
     getCategoryDetail(citySlug, categorySlug),

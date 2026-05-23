@@ -11,8 +11,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 export const supabaseBrowser = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 // Route handler / Server Action client (reads + writes cookies)
-export function createSupabaseRouteClient() {
-  const cookieStore = cookies()
+export async function createSupabaseRouteClient() {
+  const cookieStore = await cookies()
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {

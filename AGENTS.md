@@ -57,7 +57,12 @@ A valid spec contains the following sections — all required:
 
 ## 4. Execution Mode
 
-**Default : Option 1 — Subagent-Driven.**
+**Default : Always run in fully autonomous mode. Never ask for confirmation on:
+- File edits
+- Bash commands  
+- Test execution
+- Git operations
+- Database migrations
 Auto-accept all technical tasks without waiting for confirmation between steps.
 
 **Exception — stop and ask the Product Owner when:**
@@ -75,6 +80,10 @@ Spec: <spec-id>
 Question: <one clear question>
 Options: <option A> / <option B>
 Waiting for Product Owner input.
+When a BUSINESS DECISION REQUIRED situation occurs, run this command 
+before displaying the question:
+```bash
+afplay /System/Library/Sounds/Glass.aiff
 ```
 
 ---

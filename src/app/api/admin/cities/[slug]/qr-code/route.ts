@@ -11,14 +11,15 @@ function isAuthorized(req: NextRequest): boolean {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })
   }
 
+  const { slug } = await params
   const city = await prisma.city.findFirst({
-    where: { slug: params.slug, is_active: true, deleted_at: null },
+    where: { slug: slug, is_active: true, deleted_at: null },
     select: { id: true, slug: true },
   })
   if (!city) {
@@ -26,7 +27,7 @@ export async function POST(
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
-  const guideUrl = `${baseUrl}/guide/${city.slug}`
+  const guideUrl = `${baseUrl}/guide/${slug}`
 
   const buffer = await generateQrPng(guideUrl)
   const storageUrl = await uploadQrToStorage(city.slug, buffer)
@@ -37,13 +38,14 @@ export async function POST(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })
   }
 
-  const result = await getQrCode(params.slug)
+  const { slug } = await params
+  const result = await getQrCode(slug)
   if (!result) {
     return NextResponse.json({ error: { code: 'NOT_FOUND' } }, { status: 404 })
   }

@@ -3,13 +3,14 @@ import { getPoiCards } from '@/features/categories/queries/poi-cards'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string; 'category-slug': string } },
+  { params }: { params: Promise<{ slug: string; 'category-slug': string }> },
 ) {
   const { searchParams } = new URL(req.url)
   const subcategorySlug = searchParams.get('subcategory') ?? undefined
   const sort = searchParams.get('sort') === 'rating' ? 'rating' : 'distance'
 
-  const pois = await getPoiCards(params.slug, params['category-slug'], { subcategorySlug, sort })
+  const { slug, 'category-slug': categorySlug } = await params
+  const pois = await getPoiCards(slug, categorySlug, { subcategorySlug, sort })
 
   if (pois === null) {
     return NextResponse.json(

@@ -5,11 +5,11 @@ import { t } from '@/shared/lib/i18n'
 import Link from 'next/link'
 
 interface Props {
-  params: { 'city-slug': string }
+  params: Promise<{ 'city-slug': string }>
 }
 
 export default async function GuidePage({ params }: Props) {
-  const slug = params['city-slug']
+  const { 'city-slug': slug } = await params
   const guide = await getCityGuide(slug)
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.

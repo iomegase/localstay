@@ -3,9 +3,10 @@ import { getCityGuide } from '@/features/city-guide/queries/cities'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const guide = await getCityGuide(params.slug)
+  const { slug } = await params
+  const guide = await getCityGuide(slug)
 
   if (!guide) {
     return NextResponse.json(

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const { token, password } = parsed.data
-  const supabase = createSupabaseRouteClient()
+  const supabase = await createSupabaseRouteClient()
 
   const { error: verifyError } = await supabase.auth.verifyOtp({
     token_hash: token,

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const { email, password } = parsed.data
-  const supabase = createSupabaseRouteClient()
+  const supabase = await createSupabaseRouteClient()
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 

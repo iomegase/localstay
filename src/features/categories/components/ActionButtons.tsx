@@ -29,7 +29,7 @@ export function ActionButtons({ phone, website, latitude, longitude, poiName, po
           className="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
         >
           <Phone className="w-4 h-4" />
-          Appeler
+      
         </a>
       )}
 
@@ -63,7 +63,7 @@ export function ActionButtons({ phone, website, latitude, longitude, poiName, po
         className="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
       >
         <Share2 className="w-4 h-4" />
-        Partager
+       
       </button>
 
       <button

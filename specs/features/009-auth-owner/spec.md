@@ -5,11 +5,11 @@
 ```yaml
 id: 009-auth-owner
 title: "Authentification hébergeur"
-status: draft
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-05-22
+updated_at: 2026-05-23
 depends_on: [001-city-guide]
 ```
 
@@ -92,7 +92,7 @@ Cette spec couvre uniquement l'authentification commune aux trois rôles via Sup
 - **BR-01**: Le middleware Next.js protège `/dashboard/*`, `/merchant/*` et `/admin/*` — jamais dans les composants
 - **BR-02**: Le rôle est stocké dans `user_metadata` Supabase à l'inscription
 - **BR-03**: Redirection post-login selon le rôle : `owner` → `/dashboard`, `merchant` → `/merchant`, `admin` → `/admin`
-- **BR-04**: Un `owner` ne peut pas accéder à `/merchant/*` ou `/admin/*`, et inversement
+- **BR-04**: Un `owner` ne peut pas accéder à `/merchant/*` ou `/admin/*`, et inversement — le middleware redirige vers le dashboard propre au rôle (`/dashboard`, `/merchant` ou `/admin`) si l'utilisateur est authentifié mais accède à un espace interdit
 - **BR-05**: Mot de passe minimum 8 caractères — validé Zod côté client et serveur
 - **BR-06**: À l'inscription, `Subscription` créé automatiquement en `trial` gratuit 12 mois — aucun paiement
 - **BR-07**: Monolingue français en MVP 2 — architecture i18n préparée
@@ -117,14 +117,15 @@ model User {
   phone       String?
   is_active   Boolean  @default(true)
 
-  lodgings      Lodging[]
   subscriptions Subscription[]
+  // lodgings relation ajoutée dans spec 010-dashboard-owner
 }
 
 model Subscription {
   id            String   @id @default(uuid())
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  deleted_at    DateTime?
 
   user_id       String
   user          User     @relation(fields: [user_id], references: [id])
@@ -239,7 +240,7 @@ paths:
 
   /api/auth/forgot-password:
     post:
-      summary: "Réinitialisation mot de passe"
+      summary: "Demande de réinitialisation mot de passe"
       tags: [auth]
       requestBody:
         required: true
@@ -255,6 +256,41 @@ paths:
       responses:
         "200":
           description: Email envoyé (même réponse si email inexistant)
+
+  /api/auth/reset-password:
+    post:
+      summary: "Mise à jour du mot de passe via token de réinitialisation"
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token:
+                  type: string
+                  description: Token extrait de l'URL du lien Supabase
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        "200":
+          description: Mot de passe mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        "400":
+          description: Token invalide ou expiré
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
@@ -331,6 +367,13 @@ components:
 ### Page : `/auth/forgot-password`
 - Formulaire : email + bouton "Envoyer le lien"
 - **Success** : "Si cet email existe, un lien vous a été envoyé" (toujours affiché)
+
+### Page : `/auth/reset-password`
+- Accessible uniquement via le lien Supabase (contient le token en query param)
+- Formulaire : nouveau mot de passe + confirmation + bouton "Définir le mot de passe"
+- Validation : mots de passe identiques, minimum 8 caractères
+- **Success** : redirection vers `/auth/login` avec message "Mot de passe mis à jour"
+- **Error** : message "Lien invalide ou expiré" si le token est invalide ou expiré
 
 ---
 

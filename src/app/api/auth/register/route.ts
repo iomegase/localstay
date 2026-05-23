@@ -28,7 +28,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const { email, password, role, first_name, last_name } = parsed.data
-  const supabase = createSupabaseRouteClient()
+  const supabase = await createSupabaseRouteClient()
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  let user: { id: string; email: string; role: string; first_name: string; last_name: string }
+  let user: { id: string; email: string; role: string; first_name: string | null; last_name: string | null }
   let subscription: { plan: string; status: string; trial_ends_at: Date }
 
   try {

@@ -3,9 +3,10 @@ import { getCategoryDetail } from '@/features/categories/queries/categories'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { slug: string; 'category-slug': string } },
+  { params }: { params: Promise<{ slug: string; 'category-slug': string }> },
 ) {
-  const detail = await getCategoryDetail(params.slug, params['category-slug'])
+  const { slug, 'category-slug': categorySlug } = await params
+  const detail = await getCategoryDetail(slug, categorySlug)
   if (!detail) {
     return NextResponse.json(
       { error: { code: 'NOT_FOUND', message: 'Catégorie introuvable' } },
