@@ -28,6 +28,8 @@ model City {
   pois        PointOfInterest[]
   qr_codes    QrCode[]
   gemini_caches GeminiCache[]
+  lodgings    Lodging[]
+  analytics   Analytics[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -148,8 +150,10 @@ model QrCode {
   updated_at  DateTime  @updatedAt
   deleted_at  DateTime?
 
-  city_id     String    @unique
+  city_id     String
   city        City      @relation(fields: [city_id], references: [id])
+  lodging_id  String?
+  lodging     Lodging?  @relation(fields: [lodging_id], references: [id])
   url         String
   storage_url String
   is_active   Boolean   @default(true)
@@ -205,6 +209,7 @@ model User {
   is_active   Boolean   @default(true)
 
   subscriptions Subscription[]
+  lodgings      Lodging[]
 }
 
 model Subscription {
@@ -221,4 +226,38 @@ model Subscription {
   ends_at       DateTime?
   stripe_subscription_id String?
   stripe_customer_id     String?
+}
+
+// ─── Spec 010 — Dashboard Owner ──────────────────────────────────────────────
+
+model Lodging {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  name        String
+  owner_id    String
+  owner       User      @relation(fields: [owner_id], references: [id])
+  city_id     String
+  city        City      @relation(fields: [city_id], references: [id])
+  is_active   Boolean   @default(true)
+
+  qr_codes    QrCode[]
+  analytics   Analytics[]
+}
+
+// Analytics est append-only — les événements ne sont jamais modifiés.
+// updated_at absent par conception (décision Gap-3 spec 010).
+model Analytics {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+
+  lodging_id  String?
+  lodging     Lodging?  @relation(fields: [lodging_id], references: [id])
+  city_id     String
+  city        City      @relation(fields: [city_id], references: [id])
+  event_type  String    // qr_scan | category_click | poi_click | phone_click | directions_click
+  category_id String?
+  poi_id      String?
 }

@@ -36,21 +36,23 @@ export async function upsertQrCode(
   url: string,
   storageUrl: string,
 ): Promise<QrCodeResult> {
-  const row = await prisma.qrCode.upsert({
-    where: { city_id: cityId },
-    create: {
-      city_id: cityId,
-      url,
-      storage_url: storageUrl,
-      is_active: true,
-    },
-    update: {
-      url,
-      storage_url: storageUrl,
-      is_active: true,
-      deleted_at: null,
-    },
-    select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
+  // city_id is no longer @unique (a city may have multiple QR codes, one per lodging).
+  // For the city-level (lodging_id = null) QR code we find the existing record first.
+  const existing = await prisma.qrCode.findFirst({
+    where: { city_id: cityId, lodging_id: null },
+    select: { id: true },
   })
+
+  const row = existing
+    ? await prisma.qrCode.update({
+        where: { id: existing.id },
+        data: { url, storage_url: storageUrl, is_active: true, deleted_at: null },
+        select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
+      })
+    : await prisma.qrCode.create({
+        data: { city_id: cityId, url, storage_url: storageUrl, is_active: true },
+        select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
+      })
+
   return toResult(row, citySlug)
 }
