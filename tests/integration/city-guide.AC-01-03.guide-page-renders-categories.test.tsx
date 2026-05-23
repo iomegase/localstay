@@ -15,6 +15,9 @@ jest.mock('next/link', () => ({
 jest.mock('@/features/city-guide/queries/cities', () => ({
   getCityGuide: jest.fn(),
 }))
+jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
+  recordQrScanIfPresent: jest.fn().mockResolvedValue(undefined),
+}))
 
 import { getCityGuide } from '@/features/city-guide/queries/cities'
 import GuidePage from '@/app/(public)/guide/[city-slug]/page'

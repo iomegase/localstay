@@ -7,12 +7,12 @@ import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
-  searchParams: Promise<{ lodging?: string }>
+  searchParams?: Promise<{ lodging?: string }>
 }
 
 export default async function GuidePage({ params, searchParams }: Props) {
   const { 'city-slug': slug } = await params
-  const { lodging } = await searchParams
+  const { lodging } = (await searchParams) ?? {}
   void recordQrScanIfPresent(lodging ?? null)
   const guide = await getCityGuide(slug)
 

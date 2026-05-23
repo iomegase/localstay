@@ -174,3 +174,14 @@
 | AC-03-02 | Graphiques Recharts via Shadcn | `src/features/dashboard-owner/components/OverviewChart.tsx`<br>`src/features/dashboard-owner/components/StatsCharts.tsx` | `tests/unit/dashboard.AC-01-02.empty-state.test.tsx` | ✅ done |
 | BR-01 | Owner ne voit que ses propres données | `src/features/dashboard-owner/lib/get-session-owner.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
 | BR-04 | Interface utilise Shadcn/ui | `src/shared/components/ui/` | — | ✅ done |
+
+## 011 — QR Code Owner
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | QR code généré avec URL correcte | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+| AC-01-02 | Téléchargement PNG 1000×1000px | `src/features/qr-code/services/generate-qr.ts` | `tests/unit/qr-code.AC-02-02.generate-qr.test.ts` | ✅ done |
+| AC-01-03 | Régénération archive l'ancien (deleted_at + is_active=false) | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+| AC-02-01 | qr_scan enregistré dans Analytics via page guide | `src/features/analytics/lib/record-qr-scan.ts` | `tests/contract/guide.AC-02-01.analytics-scan.test.ts` | ✅ done |
+| BR-01 | 1 QR actif max par logement | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+| BR-05 | Owner ne génère que ses propres QR codes | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |

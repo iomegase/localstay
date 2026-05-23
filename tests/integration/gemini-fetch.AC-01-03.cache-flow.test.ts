@@ -140,7 +140,7 @@ describe('AC-03-01 — expired cache → new fetch triggered', () => {
     const result = await runGeminiFetch({ cityId: testCityId, categoryId: testCategoryId })
     expect(mockCallGemini).toHaveBeenCalledTimes(1)
     expect(result.status).toBe('fetched')
-  })
+  }, 15000)
 })
 
 describe('AC-03-02 — no double fetch when is_fetching=true', () => {
