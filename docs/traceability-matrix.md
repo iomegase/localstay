@@ -121,3 +121,42 @@
 | AC-03-01 | Cache expiré → nouveau fetch déclenché | `src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
 | AC-03-02 | Pas de double fetch simultané | `src/features/gemini-fetch/services/cache-manager.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
 | AC-03-03 | Fetch échoué → cache expiré servi | `src/features/gemini-fetch/services/orchestrator.ts` | `tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts` | ✅ done |
+
+---
+
+## 008 — Mapbox Geocoding
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | POI ≤ 15 km → zone primary | `src/features/categories/queries/poi-cards.ts` | `tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts` | ✅ done |
+| AC-01-02 | POI 15–30 km → zone nearby | `src/features/categories/queries/poi-cards.ts` | `tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts` | ✅ done |
+| AC-01-03 | POI > 30 km → rejeté, non affiché | `src/features/geocoding/services/geo-validator.ts` | `tests/unit/geocoding.AC-geo-validator.test.ts` | ✅ done |
+| AC-nearby | Section "Aux alentours" visible si nearby.length > 0 | `src/features/categories/components/CategoryViewWrapper.tsx` | `tests/unit/categories.AC-nearby-section.test.tsx` | ✅ done |
+| BR-01 | Geocodage via Mapbox (jamais Gemini) | `src/features/geocoding/services/geocode-runner.ts` | `tests/unit/geocoding.AC-geo-validator.test.ts` | ✅ done |
+| BR-02 | Batch max 10 POI par appel | `src/features/geocoding/services/geocode-runner.ts` | `tests/unit/geocoding.AC-geo-validator.test.ts` | ✅ done |
+| BR-03 | Fire-and-forget après Gemini Fetch | `src/app/api/internal/gemini-fetch/route.ts` | `tests/contract/geocoding.AC-api.test.ts` | ✅ done |
+| BR-04 | Endpoint POST /api/internal/geocode-pois | `src/app/api/internal/geocode-pois/route.ts` | `tests/contract/geocoding.AC-api.test.ts` | ✅ done |
+
+---
+
+## 009 — Auth Owner
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Inscription valide → compte + rôle + redirection | `src/app/api/auth/register/route.ts`<br>`src/features/auth/schemas.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| AC-01-02 | Email déjà utilisé → 409, pas de doublon | `src/app/api/auth/register/route.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| AC-01-03 | Inscription → Subscription trial créée | `src/app/api/auth/register/route.ts`<br>`src/features/auth/lib/subscription.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| AC-01-04 | Inscription → email de bienvenue Resend | `src/app/api/auth/register/route.ts`<br>`src/shared/lib/resend.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| AC-02-01 | Connexion valide → redirection selon rôle | `src/app/api/auth/login/route.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-02-02 | Identifiants incorrects → message générique | `src/app/api/auth/login/route.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-02-03 | Accès dashboard sans auth → `/auth/login` | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
+| AC-03-01 | Déconnexion → session invalidée | `src/app/api/auth/logout/route.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-03-02 | Session expirée → redirect `/auth/login` | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
+| AC-04-01 | Forgot password → même réponse 200 | `src/app/api/auth/forgot-password/route.ts` | `tests/contract/auth.AC-password.test.ts` | ✅ done |
+| AC-04-02 | Reset password → mdp mis à jour + redirect login | `src/app/api/auth/reset-password/route.ts` | `tests/contract/auth.AC-password.test.ts` | ✅ done |
+| BR-01 | Middleware protège `/dashboard/*`, `/merchant/*`, `/admin/*` | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
+| BR-02 | Rôle stocké dans `user_metadata` Supabase | `src/app/api/auth/register/route.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| BR-03 | Redirection post-login selon rôle | `src/app/api/auth/login/route.ts`<br>`src/shared/types/roles.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| BR-04 | Cross-role access → redirect vers dashboard propre | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
+| BR-05 | Mot de passe minimum 8 caractères (Zod) | `src/features/auth/schemas.ts` | `tests/contract/auth.AC-register.test.ts`<br>`tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| BR-06 | Subscription trial 12 mois à l'inscription | `src/features/auth/lib/subscription.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
