@@ -1,11 +1,12 @@
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { RegisterSchema } from '@/features/auth/schemas'
+import type { RegisterRole } from '@/features/auth/schemas'
+import { createTrialSubscription } from '@/features/auth/lib/subscription'
 import { createSupabaseRouteClient } from '@/shared/lib/supabase'
 import { prisma } from '@/shared/lib/prisma'
 import { sendWelcomeEmail } from '@/shared/lib/resend'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
-import type { Role } from '@/shared/types/roles'
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let body: unknown
@@ -48,35 +49,44 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const trialEndsAt = new Date()
-  trialEndsAt.setFullYear(trialEndsAt.getFullYear() + 1)
+  let user: { id: string; email: string; role: string; first_name: string; last_name: string }
+  let subscription: { plan: string; status: string; trial_ends_at: Date }
 
-  const user = await prisma.user.create({
-    data: {
-      supabase_id: data.user.id,
-      email,
-      role,
-      first_name,
-      last_name,
-    },
-  })
+  try {
+    user = await prisma.user.create({
+      data: {
+        supabase_id: data.user.id,
+        email,
+        role,
+        first_name,
+        last_name,
+      },
+    })
 
-  const subscription = await prisma.subscription.create({
-    data: {
-      user_id: user.id,
-      plan: 'free',
-      status: 'trial',
-      trial_ends_at: trialEndsAt,
-    },
-  })
+    subscription = await createTrialSubscription(user.id)
+  } catch {
+    return NextResponse.json(
+      { error: { code: 'DB_ERROR', message: 'Erreur interne' } },
+      { status: 500 },
+    )
+  }
 
-  await sendWelcomeEmail({ to: email, firstName: first_name })
+  // Fire-and-forget: registration must not fail if email delivery fails
+  try {
+    await sendWelcomeEmail({ to: email, firstName: first_name })
+  } catch (err) {
+    console.error('[register] sendWelcomeEmail failed:', err)
+  }
+
+  // RegisterSchema constrains role to 'owner' | 'merchant', both of which are
+  // valid keys of DASHBOARD_ROUTES — this cast is safe by construction.
+  const redirectTo = DASHBOARD_ROUTES[role as keyof typeof DASHBOARD_ROUTES]
 
   return NextResponse.json(
     {
       user: { id: user.id, email: user.email, role: user.role, first_name: user.first_name, last_name: user.last_name },
       subscription: { plan: subscription.plan, status: subscription.status, trial_ends_at: subscription.trial_ends_at },
-      redirect_to: DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>],
+      redirect_to: redirectTo,
     },
     { status: 201 },
   )

@@ -116,4 +116,27 @@ describe('POST /api/auth/register', () => {
     const res = await POST(makeRegisterRequest(validBody))
     expect(res.status).toBe(409)
   })
+
+  it('returns /merchant redirect for merchant role', async () => {
+    jest.mocked(prisma.user.create).mockResolvedValue({
+      id: 'prisma-user-2',
+      email: 'merchant@test.com',
+      role: 'merchant',
+      first_name: 'Marie',
+      last_name: 'Martin',
+    } as never)
+    const merchantBody = { ...validBody, email: 'merchant@test.com', role: 'merchant', first_name: 'Marie', last_name: 'Martin' }
+    const res = await POST(makeRegisterRequest(merchantBody))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.redirect_to).toBe('/merchant')
+  })
+
+  it('returns 500 with DB_ERROR when prisma.user.create throws', async () => {
+    jest.mocked(prisma.user.create).mockRejectedValue(new Error('DB connection failed'))
+    const res = await POST(makeRegisterRequest(validBody))
+    expect(res.status).toBe(500)
+    const json = await res.json()
+    expect(json.error.code).toBe('DB_ERROR')
+  })
 })
