@@ -1,14 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { geocodeAddress } from '../../src/features/geocoding/services/mapbox-client'
 import { validateGeocode } from '../../src/features/geocoding/services/geo-validator'
 
 describe('geocodeAddress', () => {
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'test-token')
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-token'
   })
 
   it('returns null when Mapbox returns no features', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ features: [] }),
     } as unknown as Response)
@@ -22,7 +21,7 @@ describe('geocodeAddress', () => {
   })
 
   it('returns GeocodeResult when Mapbox returns a feature', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         features: [
@@ -49,14 +48,14 @@ describe('geocodeAddress', () => {
   })
 
   it('throws when NEXT_PUBLIC_MAPBOX_TOKEN is not set', async () => {
-    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', '')
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = ''
     await expect(
       geocodeAddress('une adresse', { longitude: 6.7085, latitude: 45.8921 })
     ).rejects.toThrow('NEXT_PUBLIC_MAPBOX_TOKEN not set')
   })
 
   it('throws when Mapbox API returns non-ok status', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValue({
       ok: false,
       status: 429,
     } as unknown as Response)

@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST } from '../../src/app/api/internal/geocode-pois/route'
 import { NextRequest } from 'next/server'
 
-vi.mock('../../src/features/geocoding/services/geocode-runner', () => ({
-  runGeocodeBatch: vi.fn().mockResolvedValue({
+jest.mock('../../src/features/geocoding/services/geocode-runner', () => ({
+  runGeocodeBatch: jest.fn().mockResolvedValue({
     geocoded: 3,
     failed: 1,
     rejected: 0,
@@ -24,7 +23,7 @@ function makeRequest(body: unknown = {}, token = 'test-secret'): NextRequest {
 
 describe('POST /api/internal/geocode-pois', () => {
   beforeEach(() => {
-    vi.stubEnv('INTERNAL_API_SECRET', 'test-secret')
+    process.env.INTERNAL_API_SECRET = 'test-secret'
   })
 
   it('returns 401 when Authorization header is missing', async () => {
