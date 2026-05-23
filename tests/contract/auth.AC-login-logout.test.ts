@@ -81,7 +81,7 @@ describe('POST /api/auth/login', () => {
       data: { user: null, session: null },
       error: { message: 'Invalid login credentials' },
     })
-    const res = await loginPOST(makeRequest('/api/auth/login', { email: 'owner@test.com', password: 'wrong' }))
+    const res = await loginPOST(makeRequest('/api/auth/login', { email: 'owner@test.com', password: 'wrongpassword123' }))
     expect(res.status).toBe(401)
     const json = await res.json()
     expect(json.error.message).toBe('Email ou mot de passe incorrect')
