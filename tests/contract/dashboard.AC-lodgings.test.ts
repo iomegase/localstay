@@ -30,6 +30,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { GET, POST } from '../../src/app/api/dashboard/lodgings/route'
+import { PATCH } from '../../src/app/api/dashboard/lodgings/[id]/route'
 
 const CITY_UUID = '00000000-0000-0000-0000-000000000001'
 const UNKNOWN_CITY_UUID = '00000000-0000-0000-0000-000000000099'
@@ -116,5 +117,54 @@ describe('POST /api/dashboard/lodgings', () => {
     mockFindFirstCity.mockResolvedValue(null)
     const res = await POST(makeRequest('POST', { name: 'Test', city_id: UNKNOWN_CITY_UUID }))
     expect(res.status).toBe(404)
+  })
+})
+
+function makeIdRequest(method: string, id: string, body?: object): NextRequest {
+  return new NextRequest(`http://localhost:3000/api/dashboard/lodgings/${id}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+}
+
+describe('PATCH /api/dashboard/lodgings/[id]', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'supa-1' } } })
+    mockFindUser.mockResolvedValue(mockOwner)
+  })
+
+  it('AC-02-03: returns 200 with updated lodging', async () => {
+    mockFindFirstLodging.mockResolvedValue(mockLodging)
+    mockUpdateLodging.mockResolvedValue({
+      ...mockLodging,
+      name: 'Nouveau Nom',
+      analytics: [{ event_type: 'qr_scan' }],
+    })
+    const res = await PATCH(
+      makeIdRequest('PATCH', 'lodging-1', { name: 'Nouveau Nom' }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.name).toBe('Nouveau Nom')
+  })
+
+  it('returns 404 when lodging not found or belongs to another owner', async () => {
+    mockFindFirstLodging.mockResolvedValue(null)
+    const res = await PATCH(
+      makeIdRequest('PATCH', 'other-lodging', { name: 'Test' }),
+      { params: Promise.resolve({ id: 'other-lodging' }) },
+    )
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 400 when body is empty object', async () => {
+    const res = await PATCH(
+      makeIdRequest('PATCH', 'lodging-1', {}),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+    expect(res.status).toBe(400)
   })
 })
