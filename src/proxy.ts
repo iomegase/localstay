@@ -1,11 +1,10 @@
-// src/middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createSupabaseMiddlewareClient } from '@/shared/lib/supabase'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
 import type { Role } from '@/shared/types/roles'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
   const supabase = createSupabaseMiddlewareClient(request, response)
   const { data: { user } } = await supabase.auth.getUser()
