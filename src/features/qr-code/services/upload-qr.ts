@@ -5,9 +5,12 @@ const BUCKET = 'qr-codes'
 export async function uploadQrToStorage(
   citySlug: string,
   buffer: Buffer,
+  lodgingId?: string,
 ): Promise<string> {
   const supabase = createSupabaseServer()
-  const path = `${citySlug}.png`
+  const path = lodgingId
+    ? `lodgings/${lodgingId}.png`
+    : `cities/${citySlug}.png`
 
   const { error } = await supabase.storage
     .from(BUCKET)

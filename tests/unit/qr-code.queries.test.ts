@@ -13,6 +13,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 
 import { prisma } from '@/shared/lib/prisma'
 import { getQrCode, upsertQrCode } from '@/features/qr-code/queries/qr-code'
+import { uploadQrToStorage } from '@/features/qr-code/services/upload-qr'
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>
 
@@ -94,5 +95,11 @@ describe('upsertQrCode', () => {
       }),
     )
     expect(result.city_slug).toBe('saint-gervais-les-bains')
+  })
+})
+
+describe('uploadQrToStorage is exported', () => {
+  it('is a function', () => {
+    expect(typeof uploadQrToStorage).toBe('function')
   })
 })
