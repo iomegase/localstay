@@ -8,7 +8,7 @@ export default function HomePage() {
           Bienvenue
         </h1>
         <p className="text-xs text-gray-400 tracking-wide mt-1">
-          Sélection exclusive de votre hôte
+          Recommandation exclusive de votre hôte
         </p>
       </div>
       <CitySearchInput />
