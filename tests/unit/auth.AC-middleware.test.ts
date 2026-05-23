@@ -15,7 +15,7 @@ jest.mock('@/shared/lib/supabase', () => ({
   })),
 }))
 
-import { middleware } from '../../src/middleware'
+import { proxy as middleware } from '../../src/proxy'
 
 function makeRequest(path: string): NextRequest {
   return new NextRequest(`http://localhost:3000${path}`)
