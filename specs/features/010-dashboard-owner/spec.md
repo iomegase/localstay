@@ -5,11 +5,11 @@
 ```yaml
 id: 010-dashboard-owner
 title: "Dashboard hébergeur — Shadcn/ui"
-status: draft
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-05-22
+updated_at: 2026-05-23
 depends_on: [009-auth-owner, 001-city-guide, 002-categories]
 ```
 
@@ -64,7 +64,7 @@ Le dashboard Owner est l'espace central de l'hébergeur. Il lui permet de visual
 #### Acceptance Criteria
 
 - **AC-03-01**: Given la page `/dashboard/stats`, When l'Owner la consulte, Then il voit : scans QR par jour (graphique 30 jours), top 5 catégories, top 10 POI cliqués
-- **AC-03-02**: Given les stats, When elles s'affichent, Then les graphiques utilisent les composants Recharts via Shadcn/ui
+- **AC-03-02**: Given les stats, When elles s'affichent, Then les graphiques utilisent les composants Recharts via Shadcn/ui chart
 
 ---
 
@@ -81,6 +81,24 @@ Le dashboard Owner est l'espace central de l'hébergeur. Il lui permet de visual
 ## Data Model
 
 ```prisma
+// Extension du modèle QrCode (spec 006) :
+// - city_id perd son @unique (une ville peut avoir plusieurs QR codes, un par logement)
+// - lodging_id nullable (null = QR code ville niveau spec 006, non null = QR code logement)
+model QrCode {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  city_id     String    // @unique retiré — voir décision Gap-2 spec 010
+  city        City      @relation(fields: [city_id], references: [id])
+  lodging_id  String?
+  lodging     Lodging?  @relation(fields: [lodging_id], references: [id])
+  url         String
+  storage_url String
+  is_active   Boolean   @default(true)
+}
+
 model Lodging {
   id          String   @id @default(uuid())
   created_at  DateTime @default(now())
@@ -98,6 +116,8 @@ model Lodging {
   analytics   Analytics[]
 }
 
+// Analytics est append-only — les événements ne sont jamais modifiés.
+// updated_at est volontairement absent (décision Gap-3 spec 010).
 model Analytics {
   id          String   @id @default(uuid())
   created_at  DateTime @default(now())
@@ -106,9 +126,22 @@ model Analytics {
   lodging     Lodging? @relation(fields: [lodging_id], references: [id])
   city_id     String
   city        City     @relation(fields: [city_id], references: [id])
-  event_type  String   # qr_scan | category_click | poi_click | phone_click | directions_click
+  event_type  String   // qr_scan | category_click | poi_click | phone_click | directions_click
   category_id String?
   poi_id      String?
+}
+
+// Ajout sur User (spec 009) — relation lodgings :
+model User {
+  // ...champs existants spec 009...
+  lodgings      Lodging[]
+}
+
+// Ajout sur City — relations Lodging et Analytics :
+model City {
+  // ...champs existants...
+  lodgings    Lodging[]
+  analytics   Analytics[]
 }
 ```
 
@@ -116,14 +149,15 @@ model Analytics {
 
 ## API Contract
 
+> Authentification : session Supabase par cookie, gérée par `proxy.ts`.
+> Chaque route lit la session via `createSupabaseRouteClient()` et vérifie `role === 'owner'`.
+
 ```yaml
 paths:
   /api/dashboard/overview:
     get:
       summary: "Vue d'ensemble du dashboard Owner"
       tags: [dashboard-owner]
-      security:
-        - bearerAuth: []
       responses:
         "200":
           description: Métriques principales
@@ -131,21 +165,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DashboardOverview"
+        "401":
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Rôle insuffisant (non owner)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/dashboard/lodgings:
     get:
       summary: "Liste des logements de l'Owner"
       tags: [dashboard-owner]
-      security:
-        - bearerAuth: []
       responses:
         "200":
-          description: Liste des logements
+          description: Liste des logements avec stats
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [lodgings]
+                properties:
+                  lodgings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LodgingItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
     post:
       summary: "Créer un logement"
       tags: [dashboard-owner]
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -156,33 +212,115 @@ paths:
               properties:
                 name:
                   type: string
+                  minLength: 1
+                  maxLength: 100
                 city_id:
                   type: string
+                  format: uuid
+      responses:
+        "201":
+          description: Logement créé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LodgingItem"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /api/dashboard/lodgings/{id}:
     patch:
       summary: "Modifier un logement"
       tags: [dashboard-owner]
-      security:
-        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                city_id:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Logement mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LodgingItem"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/dashboard/stats:
     get:
       summary: "Statistiques du guide Owner"
       tags: [dashboard-owner]
-      security:
-        - bearerAuth: []
       parameters:
         - name: days
           in: query
           schema:
             type: integer
             default: 30
+            minimum: 1
+            maximum: 365
+      responses:
+        "200":
+          description: Statistiques sur la période
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
 components:
   schemas:
+    LodgingItem:
+      type: object
+      required: [id, name, city_id, city_name, is_active, qr_scan_count, created_at]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        city_id:
+          type: string
+        city_name:
+          type: string
+        is_active:
+          type: boolean
+        qr_scan_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
     DashboardOverview:
       type: object
+      required: [lodging_count, qr_scans_7d, top_categories, top_pois]
       properties:
         lodging_count:
           type: integer
@@ -192,6 +330,7 @@ components:
           type: array
           items:
             type: object
+            required: [name, clicks]
             properties:
               name: { type: string }
               clicks: { type: integer }
@@ -199,9 +338,76 @@ components:
           type: array
           items:
             type: object
+            required: [name, clicks]
             properties:
               name: { type: string }
               clicks: { type: integer }
+
+    DashboardStats:
+      type: object
+      required: [scans_by_day, top_categories, top_pois]
+      properties:
+        scans_by_day:
+          type: array
+          items:
+            type: object
+            required: [date, count]
+            properties:
+              date: { type: string, format: date }
+              count: { type: integer }
+        top_categories:
+          type: array
+          items:
+            type: object
+            required: [name, clicks]
+            properties:
+              name: { type: string }
+              clicks: { type: integer }
+        top_pois:
+          type: array
+          items:
+            type: object
+            required: [name, clicks]
+            properties:
+              name: { type: string }
+              clicks: { type: integer }
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+
+  responses:
+    Unauthorized:
+      description: Non authentifié
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Rôle insuffisant
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    BadRequest:
+      description: Paramètre manquant ou invalide
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Ressource introuvable ou n'appartient pas à cet Owner
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
 ```
 
 ---
@@ -210,18 +416,24 @@ components:
 
 ### Layout `/dashboard`
 - Sidebar Shadcn/ui (desktop) + bottom nav (mobile)
-- Navigation : Accueil · Logements · Statistiques · QR Codes · Mon abonnement
+- Navigation : Accueil · Logements · Statistiques
 - Header avec nom de l'Owner + bouton déconnexion
+- QR Codes et Mon abonnement : liens désactivés (specs 012 et 013, out of scope MVP 2)
 
 ### Page `/dashboard` — Overview
-- Cards Shadcn : scans 7j, logements, catégorie top, POI top
-- Graphique Recharts : scans par jour (30 jours)
-- Empty state si aucun logement
+- Cards Shadcn `<Card>` : scans 7j, nombre de logements, catégorie top, POI top
+- Graphique Recharts (via Shadcn `<ChartContainer>`) : scans par jour (30 jours)
+- Empty state si `lodging_count === 0` : message + bouton vers `/dashboard/lodgings`
 
 ### Page `/dashboard/lodgings`
-- Table Shadcn/ui avec colonnes : Nom, Ville, QR Code statut, Scans
-- Bouton "Ajouter un logement" → Sheet/Dialog Shadcn
-- Actions : Modifier, Voir QR code, Supprimer (soft delete)
+- `<Table>` Shadcn/ui avec colonnes : Nom, Ville, Scans, Actions
+- Bouton "Ajouter un logement" → `<Dialog>` Shadcn avec formulaire nom + sélecteur ville
+- Actions : Modifier (ouvre `<Dialog>` pré-rempli), Désactiver (soft delete is_active → false)
+
+### Page `/dashboard/stats`
+- `<Card>` pour chaque métrique
+- `<ChartContainer>` Recharts `BarChart` : scans par jour
+- Top 5 catégories et top 10 POI en listes simples
 
 ---
 
@@ -242,7 +454,7 @@ components:
 ## Out of Scope
 
 - Personnalisation du guide (spec 011)
-- QR codes (spec 012)
+- QR codes par logement — génération et téléchargement (spec 012)
 - Abonnement et facturation (spec 013)
 - Ajout manuel de POI (MVP 3)
 
@@ -250,4 +462,4 @@ components:
 
 ## Open Questions
 
-Aucune — spec complète et prête pour review.
+Aucune — spec complète et approuvée.
