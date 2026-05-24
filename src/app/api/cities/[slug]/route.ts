@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCityGuide } from '@/features/city-guide/queries/cities'
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params
-  const guide = await getCityGuide(slug)
+  const lodgingId = req.nextUrl.searchParams.get('lodging') ?? undefined
+  const guide = await getCityGuide(slug, { lodgingId })
 
   if (!guide) {
     return NextResponse.json(

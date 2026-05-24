@@ -1,5 +1,12 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiCardGroups } from '../types'
+import { getPublicCustomization } from '@/features/guide-customization/queries/customization'
+
+const DEFAULT_PAGE = 1
+const DEFAULT_LIMIT = 20
+const MAX_LIMIT = 50
+const PRIMARY_RADIUS_KM = 15
+const NEARBY_RADIUS_KM = 30
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371
@@ -16,9 +23,34 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 export async function getPoiCards(
   citySlug: string,
   categorySlug: string,
-  options: { subcategorySlug?: string; sort?: 'distance' | 'rating' } = {},
+  options: {
+    subcategorySlug?: string
+    sort?: 'distance' | 'rating'
+    page?: number
+    limit?: number
+    lodgingId?: string
+  } = {},
 ): Promise<PoiCardGroups | null> {
   const { subcategorySlug, sort = 'distance' } = options
+  const page = Math.max(1, Math.floor(options.page ?? DEFAULT_PAGE))
+  const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(options.limit ?? DEFAULT_LIMIT)))
+  const start = (page - 1) * limit
+  const end = start + limit
+
+  const emptyGroups = (): PoiCardGroups => ({
+    primary: [],
+    nearby: [],
+    meta: {
+      total: 0,
+      page,
+      limit,
+      total_pages: 0,
+      primary_total: 0,
+      nearby_total: 0,
+      primary_total_pages: 0,
+      nearby_total_pages: 0,
+    },
+  })
 
   const city = await prisma.city.findFirst({
     where: { slug: citySlug, is_active: true, deleted_at: null },
@@ -43,11 +75,12 @@ export async function getPoiCards(
       },
       select: { id: true },
     })
-    if (!sub) return { primary: [], nearby: [] }
+    if (!sub) return emptyGroups()
     subcategoryId = sub.id
   }
 
-  const rows = await prisma.pointOfInterest.findMany({
+  const [rows, customization] = await Promise.all([
+    prisma.pointOfInterest.findMany({
     where: {
       city_id: city.id,
       category_id: category.id,
@@ -55,7 +88,6 @@ export async function getPoiCards(
       is_active: true,
       deleted_at: null,
     },
-    take: 50,
     select: {
       id: true,
       name: true,
@@ -70,7 +102,9 @@ export async function getPoiCards(
       geocode_status: true,
       subcategory: { select: { name: true } },
     },
-  })
+    }),
+    getPublicCustomization(city.id, options.lodgingId),
+  ])
 
   type RawRow = {
     id: string; name: string; slug: string; address: string
@@ -80,7 +114,15 @@ export async function getPoiCards(
     subcategory: { name: string } | null
   }
 
-  const cards: PoiCard[] = (rows as RawRow[]).map(p => ({
+  const featuredByPoiId = new Map(
+    (customization?.featured_pois ?? []).map(featuredPoi => [featuredPoi.poi_id, featuredPoi]),
+  )
+
+  const onlyFeaturedPois = featuredByPoiId.size > 0
+
+  const cards: PoiCard[] = (rows as RawRow[])
+    .filter(p => !onlyFeaturedPois || featuredByPoiId.has(p.id))
+    .map(p => ({
     id: p.id,
     name: p.name,
     slug: p.slug,
@@ -93,13 +135,14 @@ export async function getPoiCards(
     photo_url: p.photos[0] ?? null,
     latitude: p.latitude,
     longitude: p.longitude,
+    owner_note: featuredByPoiId.get(p.id)?.owner_note ?? null,
   }))
 
   // Split: nearby = géocodés avec succès ET distance > 15km
   // POI pending/failed gardent les coords placeholder → distance_km ≈ 0 → restent dans primary
-  const PRIMARY_RADIUS_KM = 15
   const geocodedSlugs = new Set(
     (rows as RawRow[])
+      .filter(r => !onlyFeaturedPois || featuredByPoiId.has(r.id))
       .filter(r => r.geocode_status === 'success')
       .map(r => r.slug)
   )
@@ -108,6 +151,10 @@ export async function getPoiCards(
   const nearby: PoiCard[] = []
 
   for (const card of cards) {
+    if (geocodedSlugs.has(card.slug) && card.distance_km > NEARBY_RADIUS_KM) {
+      continue
+    }
+
     if (geocodedSlugs.has(card.slug) && card.distance_km > PRIMARY_RADIUS_KM) {
       nearby.push(card)
     } else {
@@ -119,8 +166,32 @@ export async function getPoiCards(
     ? (a: PoiCard, b: PoiCard) => (b.rating ?? 0) - (a.rating ?? 0)
     : (a: PoiCard, b: PoiCard) => a.distance_km - b.distance_km
 
+  const sortWithFeatured = (a: PoiCard, b: PoiCard) => {
+    const featuredA = featuredByPoiId.get(a.id)
+    const featuredB = featuredByPoiId.get(b.id)
+    if (featuredA && featuredB) return featuredA.sort_order - featuredB.sort_order
+    if (featuredA) return -1
+    if (featuredB) return 1
+    return sortFn(a, b)
+  }
+
+  const sortedPrimary = primary.sort(sortWithFeatured)
+  const sortedNearby = nearby.sort(sortWithFeatured)
+  const primaryTotalPages = Math.ceil(sortedPrimary.length / limit)
+  const nearbyTotalPages = Math.ceil(sortedNearby.length / limit)
+
   return {
-    primary: primary.sort(sortFn),
-    nearby: nearby.sort((a, b) => a.distance_km - b.distance_km),
+    primary: sortedPrimary.slice(start, end),
+    nearby: sortedNearby.slice(start, end),
+    meta: {
+      total: sortedPrimary.length + sortedNearby.length,
+      page,
+      limit,
+      total_pages: Math.max(primaryTotalPages, nearbyTotalPages),
+      primary_total: sortedPrimary.length,
+      nearby_total: sortedNearby.length,
+      primary_total_pages: primaryTotalPages,
+      nearby_total_pages: nearbyTotalPages,
+    },
   }
 }

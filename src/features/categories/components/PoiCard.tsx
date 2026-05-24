@@ -52,6 +52,11 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
           {poi.name}
         </h3>
         <p className="text-xs text-charcoal/50 truncate mt-0.5">{poi.address}</p>
+        {poi.owner_note && (
+          <p className="mt-1 rounded-xl bg-pine/10 px-2 py-1 text-xs leading-snug text-charcoal/70">
+            {poi.owner_note}
+          </p>
+        )}
         <div className="flex items-center gap-3 mt-1.5">
           {poi.rating !== null && (
             <span

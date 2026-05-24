@@ -24,6 +24,7 @@ const poi: PoiDetail = {
   category: { id: 'c1', name: 'Restaurants', slug: 'restaurants', icon: 'utensils' },
   subcategory: { id: 's1', name: 'Gastronomique', slug: 'gastronomique' },
   hiking_detail: null,
+  merchant_offers: [],
 }
 
 const hikingPoi: PoiDetail = {

@@ -1,10 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +28,7 @@ export default function LoginPage() {
         return
       }
 
-      router.push(json.redirect_to)
+      window.location.assign(json.redirect_to)
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.')
     } finally {

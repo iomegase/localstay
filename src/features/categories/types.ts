@@ -43,11 +43,24 @@ export interface PoiCard {
   photo_url: string | null
   latitude: number
   longitude: number
+  owner_note?: string | null
 }
 
 export interface PoiCardGroups {
   primary: PoiCard[]   // POI à ≤ 15 km
   nearby: PoiCard[]    // POI géocodés entre 15 et 30 km
+  meta: PaginationMeta
+}
+
+export interface PaginationMeta {
+  total: number
+  page: number
+  limit: number
+  total_pages: number
+  primary_total: number
+  nearby_total: number
+  primary_total_pages: number
+  nearby_total_pages: number
 }
 
 export type DayHours = { open: string; close: string } | null
@@ -94,4 +107,11 @@ export interface PoiDetail {
   category: { id: string; name: string; slug: string; icon: string }
   subcategory: { id: string; name: string; slug: string } | null
   hiking_detail: HikingDetailData | null
+  merchant_offers: Array<{
+    id: string
+    title: string
+    description: string
+    ends_at: string
+    status: 'active' | 'expired'
+  }>
 }

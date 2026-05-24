@@ -20,6 +20,7 @@ const poi: PoiDetail = {
   category: { id: 'c1', name: 'Restaurants', slug: 'restaurants', icon: 'utensils' },
   subcategory: null,
   hiking_detail: null,
+  merchant_offers: [],
 }
 
 describe('PoiDetailBody — AC-03-01 (MiniMap visible)', () => {

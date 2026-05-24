@@ -23,20 +23,20 @@ export async function getDashboardStats(ownerId: string, days: number): Promise<
   const lodgingIds = lodgings.map(l => l.id)
   const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
-  const scanEvents = await prisma.analytics.findMany({
-    where: { lodging_id: { in: lodgingIds }, event_type: 'qr_scan', created_at: { gte: startDate } },
-    select: { created_at: true, category_id: true, poi_id: true },
-  })
-
-  const categoryEvents = await prisma.analytics.findMany({
-    where: { lodging_id: { in: lodgingIds }, event_type: 'category_click', category_id: { not: null }, created_at: { gte: startDate } },
-    select: { category_id: true, created_at: true, poi_id: true },
-  })
-
-  const poiEvents = await prisma.analytics.findMany({
-    where: { lodging_id: { in: lodgingIds }, event_type: 'poi_click', poi_id: { not: null }, created_at: { gte: startDate } },
-    select: { poi_id: true, created_at: true, category_id: true },
-  })
+  const [scanEvents, categoryEvents, poiEvents] = await Promise.all([
+    prisma.analytics.findMany({
+      where: { lodging_id: { in: lodgingIds }, event_type: 'qr_scan', created_at: { gte: startDate } },
+      select: { created_at: true, category_id: true, poi_id: true },
+    }),
+    prisma.analytics.findMany({
+      where: { lodging_id: { in: lodgingIds }, event_type: 'category_click', category_id: { not: null }, created_at: { gte: startDate } },
+      select: { category_id: true, created_at: true, poi_id: true },
+    }),
+    prisma.analytics.findMany({
+      where: { lodging_id: { in: lodgingIds }, event_type: 'poi_click', poi_id: { not: null }, created_at: { gte: startDate } },
+      select: { poi_id: true, created_at: true, category_id: true },
+    }),
+  ])
 
   const scansByDate = new Map<string, number>()
   for (const e of scanEvents) {

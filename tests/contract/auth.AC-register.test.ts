@@ -117,7 +117,7 @@ describe('POST /api/auth/register', () => {
     expect(res.status).toBe(409)
   })
 
-  it('returns /merchant redirect for merchant role', async () => {
+  it('014 AC-01-01: returns /merchant/onboarding redirect for merchant role', async () => {
     jest.mocked(prisma.user.create).mockResolvedValue({
       id: 'prisma-user-2',
       email: 'merchant@test.com',
@@ -129,7 +129,7 @@ describe('POST /api/auth/register', () => {
     const res = await POST(makeRegisterRequest(merchantBody))
     expect(res.status).toBe(201)
     const json = await res.json()
-    expect(json.redirect_to).toBe('/merchant')
+    expect(json.redirect_to).toBe('/merchant/onboarding')
   })
 
   it('returns 500 with DB_ERROR when prisma.user.create throws', async () => {

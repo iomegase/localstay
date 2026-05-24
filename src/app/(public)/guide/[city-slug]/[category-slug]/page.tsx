@@ -8,7 +8,7 @@ import { CategoryViewWrapper } from '@/features/categories/components/CategoryVi
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string }>
-  searchParams: Promise<{ sub?: string; sort?: string }>
+  searchParams: Promise<{ sub?: string; sort?: string; page?: string; limit?: string; lodging?: string }>
 }
 
 async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {
@@ -34,10 +34,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const resolvedSearch = await searchParams
   const subcategorySlug = resolvedSearch.sub
   const sort = resolvedSearch.sort === 'rating' ? 'rating' : 'distance'
+  const page = Math.max(1, Number.parseInt(resolvedSearch.page ?? '1', 10) || 1)
+  const limit = Math.min(50, Math.max(1, Number.parseInt(resolvedSearch.limit ?? '20', 10) || 20))
+  const lodgingId = resolvedSearch.lodging
 
   const [detail, poiGroups] = await Promise.all([
     getCategoryDetail(citySlug, categorySlug),
-    getPoiCards(citySlug, categorySlug, { subcategorySlug, sort }),
+    getPoiCards(citySlug, categorySlug, { subcategorySlug, sort, page, limit, lodgingId }),
   ])
 
   if (!detail || poiGroups === null) { notFound(); return null }
@@ -50,7 +53,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className="px-4 pt-4 pb-2">
         <h1 className="font-serif italic text-2xl text-charcoal">{detail.name}</h1>
         <p className="text-sm text-charcoal/60 mt-0.5">
-          {poiGroups.primary.length + poiGroups.nearby.length} adresses
+          {poiGroups.meta.total} adresses
         </p>
       </div>
 
@@ -70,6 +73,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         citySlug={citySlug}
         categorySlug={categorySlug}
         cityCenter={{ latitude: detail.city_latitude, longitude: detail.city_longitude }}
+        subcategorySlug={subcategorySlug}
+        sort={sort}
+        page={poiGroups.meta.page}
+        limit={poiGroups.meta.limit}
+        totalPages={poiGroups.meta.total_pages}
+        lodgingId={lodgingId}
       />
     </>
   )

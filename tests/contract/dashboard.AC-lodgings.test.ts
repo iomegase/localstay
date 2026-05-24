@@ -47,6 +47,7 @@ const mockLodging = {
   deleted_at: null,
   city: { name: 'Saint-Gervais' },
   analytics: [{ event_type: 'qr_scan' }, { event_type: 'qr_scan' }],
+  qr_codes: [{ id: 'qr-1' }],
 }
 
 function makeRequest(method: string, body?: object): NextRequest {
@@ -64,7 +65,7 @@ describe('GET /api/dashboard/lodgings', () => {
     mockFindUser.mockResolvedValue(mockOwner)
   })
 
-  it('AC-02-01: returns 200 with lodgings list and qr_scan_count', async () => {
+  it('AC-02-01: returns 200 with lodgings list, qr status, and qr_scan_count', async () => {
     mockFindManyLodgings.mockResolvedValue([mockLodging])
     const res = await GET(makeRequest('GET'))
     expect(res.status).toBe(200)
@@ -72,6 +73,7 @@ describe('GET /api/dashboard/lodgings', () => {
     expect(json.lodgings).toHaveLength(1)
     expect(json.lodgings[0].name).toBe('Chalet des Alpes')
     expect(json.lodgings[0].city_name).toBe('Saint-Gervais')
+    expect(json.lodgings[0].qr_code_status).toBe('generated')
     expect(json.lodgings[0].qr_scan_count).toBe(2)
   })
 
@@ -105,6 +107,7 @@ describe('POST /api/dashboard/lodgings', () => {
     expect(res.status).toBe(201)
     const json = await res.json()
     expect(json.name).toBe('Chalet des Alpes')
+    expect(json.qr_code_status).toBe('missing')
     expect(json.qr_scan_count).toBe(0)
   })
 
@@ -141,6 +144,7 @@ describe('PATCH /api/dashboard/lodgings/[id]', () => {
       ...mockLodging,
       name: 'Nouveau Nom',
       analytics: [{ event_type: 'qr_scan' }],
+      qr_codes: [{ id: 'qr-1' }],
     })
     const res = await PATCH(
       makeIdRequest('PATCH', 'lodging-1', { name: 'Nouveau Nom' }),
@@ -149,6 +153,61 @@ describe('PATCH /api/dashboard/lodgings/[id]', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json.name).toBe('Nouveau Nom')
+    expect(json.qr_code_status).toBe('generated')
+  })
+
+  it('soft-deactivates a lodging with is_active false', async () => {
+    mockFindFirstLodging.mockResolvedValue(mockLodging)
+    mockUpdateLodging.mockResolvedValue({
+      ...mockLodging,
+      is_active: false,
+      deleted_at: new Date('2026-05-24T10:00:00Z'),
+      analytics: [],
+      qr_codes: [],
+    })
+
+    const res = await PATCH(
+      makeIdRequest('PATCH', 'lodging-1', { is_active: false }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockUpdateLodging).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'lodging-1' },
+        data: expect.objectContaining({
+          is_active: false,
+          deleted_at: expect.any(Date),
+        }),
+      }),
+    )
+    const json = await res.json()
+    expect(json.is_active).toBe(false)
+    expect(json.qr_code_status).toBe('missing')
+  })
+
+  it('returns 404 when updating to an unknown city_id', async () => {
+    mockFindFirstLodging.mockResolvedValue(mockLodging)
+    mockFindFirstCity.mockResolvedValue(null)
+
+    const res = await PATCH(
+      makeIdRequest('PATCH', 'lodging-1', { city_id: UNKNOWN_CITY_UUID }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(404)
+    const json = await res.json()
+    expect(json.error.code).toBe('CITY_NOT_FOUND')
+    expect(mockUpdateLodging).not.toHaveBeenCalled()
+  })
+
+  it('rejects reactivation through PATCH', async () => {
+    const res = await PATCH(
+      makeIdRequest('PATCH', 'lodging-1', { is_active: true }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
   })
 
   it('returns 404 when lodging not found or belongs to another owner', async () => {

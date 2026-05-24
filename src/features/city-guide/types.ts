@@ -21,6 +21,7 @@ export interface CategorySummary {
 export interface CityGuide {
   city: CitySearchResult
   categories: CategorySummary[]
+  welcome_message?: string | null
 }
 
 export interface ApiError {

@@ -1,0 +1,94 @@
+import { NextRequest } from 'next/server'
+
+const mockGetSessionOwner = jest.fn()
+const mockGetCustomization = jest.fn()
+const mockSaveCustomization = jest.fn()
+
+jest.mock('@/features/dashboard-owner/lib/get-session-owner', () => ({
+  getSessionOwner: () => mockGetSessionOwner(),
+}))
+
+jest.mock('@/features/guide-customization/queries/customization', () => ({
+  getLodgingCustomization: (...args: unknown[]) => mockGetCustomization(...args),
+  saveLodgingCustomization: (...args: unknown[]) => mockSaveCustomization(...args),
+}))
+
+import { GET, PUT } from '@/app/api/dashboard/lodgings/[id]/customization/route'
+
+const owner = { id: 'owner-1', role: 'owner' }
+const responseBody = {
+  lodging_id: 'lodging-1',
+  welcome_message: 'Bienvenue au chalet',
+  category_order: ['restaurants'],
+  featured_pois: [],
+  ignored_category_slugs: [],
+}
+
+function makeRequest(method: string, body?: object) {
+  return new NextRequest('http://localhost/api/dashboard/lodgings/lodging-1/customization', {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+}
+
+describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockGetSessionOwner.mockResolvedValue({ owner, error: null })
+  })
+
+  it('AC-01-01: saves and returns lodging customization for the authenticated owner', async () => {
+    mockSaveCustomization.mockResolvedValue(responseBody)
+
+    const res = await PUT(
+      makeRequest('PUT', {
+        welcome_message: 'Bienvenue au chalet',
+        category_order: ['restaurants'],
+        featured_pois: [],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockSaveCustomization).toHaveBeenCalledWith('owner-1', 'lodging-1', {
+      welcome_message: 'Bienvenue au chalet',
+      category_order: ['restaurants'],
+      featured_pois: [],
+    })
+    await expect(res.json()).resolves.toEqual(responseBody)
+  })
+
+  it('BR-07: returns 403 when the lodging belongs to another owner', async () => {
+    mockSaveCustomization.mockRejectedValue(new Error('FORBIDDEN'))
+
+    const res = await PUT(
+      makeRequest('PUT', { welcome_message: 'Hello', category_order: [], featured_pois: [] }),
+      { params: Promise.resolve({ id: 'other-lodging' }) },
+    )
+
+    expect(res.status).toBe(403)
+    const json = await res.json()
+    expect(json.error.code).toBe('FORBIDDEN')
+  })
+
+  it('returns 400 when the welcome message exceeds 300 characters', async () => {
+    const res = await PUT(
+      makeRequest('PUT', { welcome_message: 'x'.repeat(301), category_order: [], featured_pois: [] }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
+    expect(mockSaveCustomization).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 when owner session is missing', async () => {
+    const error = Response.json({ error: { code: 'UNAUTHORIZED', message: 'Non authentifié' } }, { status: 401 })
+    mockGetSessionOwner.mockResolvedValue({ owner: null, error })
+
+    const res = await GET(makeRequest('GET'), { params: Promise.resolve({ id: 'lodging-1' }) })
+
+    expect(res.status).toBe(401)
+    expect(mockGetCustomization).not.toHaveBeenCalled()
+  })
+})

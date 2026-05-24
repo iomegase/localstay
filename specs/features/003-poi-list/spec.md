@@ -5,11 +5,11 @@
 ```yaml
 id: 003-poi-list
 title: "Liste des POI avec filtres"
-status: draft
+status: approved
 mvp: 1
-owner: ""
+owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-20
+updated_at: 2026-05-24
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -70,11 +70,13 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 
 ## Business Rules
 
-- **BR-01**: La distance est calculée depuis le centre géographique de la City — pas depuis la position GPS du Tourist (opt-in reporté MVP 2)
+- **BR-01**: Les zones géographiques (`primary` / `nearby`) et le tri serveur par défaut sont calculés depuis le centre géographique de la City.
+- **BR-01a**: La distance affichée dans les cards est recalculée depuis la position GPS du Tourist uniquement après consentement explicite via le navigateur. Si le Tourist refuse, si le navigateur ne supporte pas la géolocalisation, ou si la récupération échoue, l'interface conserve la distance depuis le centre-ville.
+- **BR-01b**: La position GPS du Tourist n'est jamais persistée en base, jamais envoyée à Gemini, et n'est utilisée que côté client pour l'affichage de distance.
 - **BR-02**: Un POI avec `is_active = false` n'apparaît jamais dans la liste
 - **BR-03**: Un POI `deleted_at non null` n'apparaît jamais dans la liste
 - **BR-04**: Le tri par défaut est `distance ASC`
-- **BR-05**: Maximum 50 POI affichés par page (pagination ou infinite scroll)
+- **BR-05**: Maximum 50 POI affichés par page et par zone. La pagination est progressive via un bouton "Charger plus" ; l'infinite scroll automatique est hors MVP 1.
 - **BR-06**: Les POI sont séparés en deux zones géographiques selon leur distance depuis le centre-ville :
   - **Zone primaire (≤ 15 km)** : affichés dans la liste principale de la catégorie
   - **Zone alentours (15-30 km)** : affichés dans une section distincte "Autres activités aux alentours" en bas de page
@@ -198,7 +200,7 @@ components:
   schemas:
     PoiCard:
       type: object
-      required: [id, name, slug, address, latitude, longitude, category_id]
+      required: [id, name, slug, address, latitude, longitude, rating_count, is_open_now, distance_km, photo_url, subcategory_name]
       properties:
         id:
           type: string
@@ -212,9 +214,6 @@ components:
           type: number
         longitude:
           type: number
-        phone:
-          type: string
-          nullable: true
         rating:
           type: number
           nullable: true
@@ -229,13 +228,13 @@ components:
         photo_url:
           type: string
           nullable: true
-        subcategory:
+        subcategory_name:
           type: string
           nullable: true
 
     PaginationMeta:
       type: object
-      required: [total, page, limit, total_pages]
+      required: [total, page, limit, total_pages, primary_total, nearby_total, primary_total_pages, nearby_total_pages]
       properties:
         total:
           type: integer
@@ -244,6 +243,15 @@ components:
         limit:
           type: integer
         total_pages:
+          type: integer
+          description: "Maximum de primary_total_pages et nearby_total_pages"
+        primary_total:
+          type: integer
+        nearby_total:
+          type: integer
+        primary_total_pages:
+          type: integer
+        nearby_total_pages:
           type: integer
 ```
 
@@ -263,9 +271,10 @@ components:
 - **Loading state**: 6 skeleton cards empilées
 - **Empty state**: "Aucun résultat pour cette catégorie" + bouton retour
 - **Error state**: message erreur + bouton réessayer
-- **Infinite scroll** ou pagination (à décider — voir Open Questions)
+- Pagination progressive via bouton "Charger plus" si `meta.total_pages > meta.page`
 - Sticky header avec nom de catégorie + filtres de tri
 - Bouton flottant "Voir la carte" en bas à droite
+- Bouton "Utiliser ma position" visible dans la vue liste. Au clic, le navigateur demande l'autorisation GPS ; si acceptée, les distances affichées dans les cards utilisent la position du Tourist. Aucun stockage de cette position.
 - **Section principale** : POI ≤ 15 km — liste normale
 - **Section "Aux alentours"** : séparateur visuel + titre "Autres activités aux alentours" + POI entre 15 et 30 km — affichée uniquement si non vide
 
@@ -274,7 +283,7 @@ components:
 - Photo principale en thumbnail (ratio 16:9)
 - Badge "Fermé" si `is_open_now = false`
 - Badge "Sponsorisé" si POI mis en avant (logique métier présente, inactive MVP 1)
-- Distance en km depuis le centre ville
+- Distance en km depuis le centre ville par défaut, ou depuis la position GPS du Tourist après consentement explicite
 - Note avec étoile et nombre d'avis
 
 ---
@@ -290,12 +299,15 @@ components:
 | AC-02-02 | Filtre sous-catégorie fonctionne | integration |
 | AC-02-03 | Suppression filtre → reset liste | unit |
 | AC-03-01 | Clic card → redirection fiche POI | e2e |
+| BR-01a | Distance affichée depuis GPS après opt-in, fallback centre-ville | unit |
+| BR-05 | Pagination progressive "Charger plus" avec limite max 50 | contract + unit |
 
 ---
 
 ## Out of Scope
 
-- Géolocalisation GPS du Tourist (consentement requis, hors MVP 1)
+- Stockage, tracking ou historisation de la position GPS du Tourist
+- Géolocalisation GPS en arrière-plan ou sans interaction explicite
 - Favoris Tourist (nécessite un compte)
 - Filtres avancés (ouvert maintenant, note minimum, etc.) — MVP 2+
 
@@ -305,5 +317,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | - | pending |
-| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | - | pending |
+| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-24 | Pagination progressive via bouton "Charger plus" |
+| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-24 | Zones et tri serveur depuis centre-ville ; distance affichée depuis GPS après opt-in, fallback centre-ville |

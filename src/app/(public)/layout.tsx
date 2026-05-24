@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Compass, Map, Heart, Home } from 'lucide-react'
+import { PublicMenu } from '@/features/city-guide/components/PublicMenu'
 
 export default function PublicLayout({
   children,
@@ -18,6 +19,7 @@ export default function PublicLayout({
             StayLocal
           </span>
         </Link>
+        <PublicMenu />
       </header>
 
       {/* Page content — bottom padding clears the fixed nav bar */}

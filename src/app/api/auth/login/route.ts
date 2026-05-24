@@ -4,6 +4,7 @@ import { createSupabaseRouteClient } from '@/shared/lib/supabase'
 import { prisma } from '@/shared/lib/prisma'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
 import type { Role } from '@/shared/types/roles'
+import { getMerchantRedirect } from '@/features/merchant/lib/redirect'
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let body: unknown
@@ -44,6 +45,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         orderBy: { created_at: 'desc' },
         take: 1,
       },
+      merchant_profile: true,
+      merchant_claims: {
+        where: { deleted_at: null },
+        orderBy: { created_at: 'desc' },
+        take: 1,
+      },
     },
   })
 
@@ -54,14 +61,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
+  // Sync role into Supabase user_metadata so the proxy can read it without a DB call
+  if (data.user.user_metadata?.role !== user.role) {
+    await supabase.auth.updateUser({ data: { role: user.role } })
+  }
+
   const subscription = user.subscriptions[0] ?? null
   const role = user.role as Role
+
+  const redirectTo = role === 'merchant'
+    ? getMerchantRedirect(user)
+    : role !== 'tourist'
+      ? DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>]
+      : '/'
 
   return NextResponse.json({
     user: { id: user.id, email: user.email, role: user.role, first_name: user.first_name, last_name: user.last_name },
     subscription: subscription
       ? { plan: subscription.plan, status: subscription.status, trial_ends_at: subscription.trial_ends_at }
       : null,
-    redirect_to: role !== 'tourist' ? DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>] : '/',
+    redirect_to: redirectTo,
   })
 }

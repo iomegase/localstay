@@ -46,6 +46,15 @@ export async function getPoiDetail(
           kids_friendly: true, pets_friendly: true, best_season: true, gpx_url: true,
         },
       },
+      merchant_offers: {
+        where: {
+          deleted_at: null,
+          is_active: true,
+          ends_at: { gt: new Date() },
+        },
+        select: { id: true, title: true, description: true, ends_at: true, is_active: true },
+        orderBy: { created_at: 'desc' },
+      },
     },
   })
   if (!row) return null
@@ -84,5 +93,12 @@ export async function getPoiDetail(
     category: row.category,
     subcategory: row.subcategory,
     hiking_detail: hiking,
+    merchant_offers: (row.merchant_offers ?? []).map(offer => ({
+      id: offer.id,
+      title: offer.title,
+      description: offer.description,
+      ends_at: offer.ends_at.toISOString(),
+      status: 'active',
+    })),
   }
 }

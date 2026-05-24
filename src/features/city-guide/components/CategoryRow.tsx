@@ -5,6 +5,7 @@ import type { CategorySummary } from '../types'
 interface CategoryRowProps {
   categories: CategorySummary[]
   citySlug: string
+  lodgingId?: string
 }
 
 function CategoryIcon({ iconSlug }: { iconSlug: string }) {
@@ -20,16 +21,35 @@ function CategoryIcon({ iconSlug }: { iconSlug: string }) {
   return <Icon className="w-5 h-5" />
 }
 
-export function CategoryRow({ categories, citySlug }: CategoryRowProps) {
+function categoryHref(citySlug: string, categorySlug?: string, lodgingId?: string): string {
+  const baseHref = categorySlug
+    ? `/guide/${citySlug}/${categorySlug}`
+    : `/guide/${citySlug}`
+  return lodgingId ? `${baseHref}?lodging=${encodeURIComponent(lodgingId)}` : baseHref
+}
+
+export function CategoryRow({ categories, citySlug, lodgingId }: CategoryRowProps) {
   // BR-02: return null so categories are absent from the DOM, not just hidden
   if (categories.length === 0) return null
 
   return (
-    <div className="flex gap-5 overflow-x-auto px-6 no-scrollbar pb-2">
+    <div className="flex gap-5 overflow-x-auto px-6 no-scrollbar pb-2" data-testid="category-row">
+      <Link
+        href={categoryHref(citySlug, undefined, lodgingId)}
+        className="group shrink-0 flex flex-col items-center gap-3"
+      >
+        <div className="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gold group-hover:shadow-md transition-shadow active:scale-95">
+          <LucideIcons.LayoutGrid className="w-5 h-5" />
+        </div>
+        <span className="text-[9px] text-gold font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
+          Tous
+        </span>
+      </Link>
+
       {categories.map((cat) => (
         <Link
           key={cat.id}
-          href={`/guide/${citySlug}/${cat.slug}`}
+          href={categoryHref(citySlug, cat.slug, lodgingId)}
           className="group shrink-0 flex flex-col items-center gap-3"
         >
           <div className="relative w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gold group-hover:shadow-md transition-shadow active:scale-95">

@@ -13,7 +13,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { LodgingDialog } from './LodgingDialog'
 import type { LodgingItem } from '../queries/lodgings'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, QrCode, SlidersHorizontal } from 'lucide-react'
 
 interface City {
   id: string
@@ -68,8 +68,8 @@ export function LodgingsTable({ lodgings, cities }: Props) {
             <TableRow>
               <TableHead>Nom</TableHead>
               <TableHead>Ville</TableHead>
+              <TableHead>QR code</TableHead>
               <TableHead className="text-right">Scans</TableHead>
-              <TableHead>Statut</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -78,13 +78,26 @@ export function LodgingsTable({ lodgings, cities }: Props) {
               <TableRow key={lodging.id}>
                 <TableCell className="font-medium">{lodging.name}</TableCell>
                 <TableCell className="text-muted-foreground">{lodging.city_name}</TableCell>
-                <TableCell className="text-right">{lodging.qr_scan_count}</TableCell>
                 <TableCell>
-                  <Badge variant={lodging.is_active ? 'default' : 'secondary'}>
-                    {lodging.is_active ? 'Actif' : 'Inactif'}
+                  <Badge
+                    variant={lodging.qr_code_status === 'generated' ? 'default' : 'secondary'}
+                    className="gap-1"
+                  >
+                    <QrCode className="w-3 h-3" />
+                    {lodging.qr_code_status === 'generated' ? 'Généré' : 'Manquant'}
                   </Badge>
                 </TableCell>
+                <TableCell className="text-right">{lodging.qr_scan_count}</TableCell>
                 <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push(`/dashboard/lodgings/${lodging.id}/customize`)}
+                    className="gap-1"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    Personnaliser
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -98,6 +111,7 @@ export function LodgingsTable({ lodgings, cities }: Props) {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDeactivate(lodging.id)}
+                    disabled={!lodging.is_active}
                     className="gap-1 text-muted-foreground"
                   >
                     Désactiver

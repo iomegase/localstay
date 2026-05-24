@@ -1,7 +1,7 @@
-import { createSupabaseRouteClient } from '@/shared/lib/supabase'
 import { prisma } from '@/shared/lib/prisma'
 import { redirect } from 'next/navigation'
 import { getActiveLodgingQrCode } from '@/features/dashboard-owner/queries/qr-code'
+import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import { QrCodeCard } from '@/features/dashboard-owner/components/QrCodeCard'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
@@ -12,15 +12,7 @@ interface Props {
 
 export default async function LodgingQrCodePage({ params }: Props) {
   const { id } = await params
-
-  const supabase = await createSupabaseRouteClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const dbUser = await prisma.user.findFirst({
-    where: { supabase_id: user.id, deleted_at: null },
-  })
-  if (!dbUser || dbUser.role !== 'owner') redirect('/auth/login')
+  const dbUser = await getPageOwner()
 
   const lodging = await prisma.lodging.findFirst({
     where: { id, owner_id: dbUser.id, deleted_at: null },

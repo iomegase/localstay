@@ -12,6 +12,7 @@ describe('PoiDetail type shape', () => {
       distance_km: null,
       category: { id: 'c1', name: 'Restaurants', slug: 'restaurants', icon: 'utensils' },
       subcategory: null, hiking_detail: null,
+      merchant_offers: [],
     }
     expect(detail.name).toBe('Le Bistrot')
   })

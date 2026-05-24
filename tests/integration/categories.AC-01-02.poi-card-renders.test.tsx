@@ -16,6 +16,8 @@ const poi: PoiCardType = {
   is_open_now: true,
   distance_km: 1.234,
   photo_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
+  latitude: 45.89,
+  longitude: 6.71,
 }
 
 describe('PoiCard — AC-01-02 (all required fields rendered)', () => {
@@ -46,6 +48,17 @@ describe('PoiCard — AC-01-02 (all required fields rendered)', () => {
   it('renders the photo as an img', () => {
     const img = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
     expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')
+  })
+
+  it('AC-02-02: renders the owner note when the POI is featured for a lodging', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, owner_note: 'Notre table préférée après une randonnée.' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    expect(screen.getByText('Notre table préférée après une randonnée.')).toBeInTheDocument()
   })
 
   it('links to /guide/[city]/[category]/[slug]', () => {

@@ -20,7 +20,7 @@ const mockCategory = { id: 'cat-1' }
 
 function makePoi(overrides: {
   id: string; slug: string; latitude: number; longitude: number;
-  rating?: number | null; is_open_now?: boolean | null
+  rating?: number | null; is_open_now?: boolean | null; geocode_status?: string
 }) {
   return {
     id: overrides.id,
@@ -33,6 +33,7 @@ function makePoi(overrides: {
     rating_count: 0,
     is_open_now: overrides.is_open_now ?? null,
     photos: [],
+    geocode_status: overrides.geocode_status ?? 'pending',
     subcategory: null,
   }
 }
@@ -100,5 +101,30 @@ describe('getPoiCards', () => {
 
     const result = await getPoiCards('saint-gervais', 'restaurants')
     expect(result!.primary[0].photo_url).toBeNull()
+  })
+
+  it('paginates primary and nearby zones independently with limit capped by options', async () => {
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      makePoi({ id: 'p1', slug: 'primary-1', latitude: 45.89, longitude: 6.71, geocode_status: 'success' }),
+      makePoi({ id: 'p2', slug: 'primary-2', latitude: 45.90, longitude: 6.71, geocode_status: 'success' }),
+      makePoi({ id: 'n1', slug: 'nearby-1', latitude: 46.05, longitude: 6.71, geocode_status: 'success' }),
+      makePoi({ id: 'n2', slug: 'nearby-2', latitude: 46.10, longitude: 6.71, geocode_status: 'success' }),
+    ] as never)
+
+    const result = await getPoiCards('saint-gervais', 'restaurants', { page: 2, limit: 1 })
+
+    expect(result).not.toBeNull()
+    expect(result!.primary.map(p => p.slug)).toEqual(['primary-2'])
+    expect(result!.nearby.map(p => p.slug)).toEqual(['nearby-2'])
+    expect(result!.meta).toMatchObject({
+      total: 4,
+      page: 2,
+      limit: 1,
+      total_pages: 2,
+      primary_total: 2,
+      nearby_total: 2,
+      primary_total_pages: 2,
+      nearby_total_pages: 2,
+    })
   })
 })

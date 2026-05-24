@@ -7,7 +7,7 @@
 
 ## 1. Vue d'ensemble
 
-StayLocal est une application web mobile-first construite avec Next.js 14 App Router.
+StayLocal est une application web mobile-first construite avec Next.js 16 App Router.
 Elle se compose de trois espaces distincts :
 
 ```
@@ -29,7 +29,7 @@ Elle se compose de trois espaces distincts :
 
 | Couche | Choix | Justification |
 |---|---|---|
-| Framework | Next.js 14 App Router | Server Components, Server Actions, routing file-based |
+| Framework | Next.js 16 App Router | Server Components, Server Actions, routing file-based |
 | Language | TypeScript strict | Sécurité de typage, maintenabilité |
 | Styling | Tailwind CSS | Utility-first, mobile-first, pas de CSS custom |
 | UI Components | Shadcn/ui | Composants accessibles, personnalisables, basés Radix |
@@ -91,6 +91,13 @@ Request → Check GeminiCache (expires_at > now)
 - **Image optimization** — Next.js Image component avec formats WebP/AVIF
 - **Cache Gemini** — évite les appels API répétés, TTL par catégorie
 
+## 5.1 UI Contract
+
+- Les fichiers dans `docs/DAT/diagrams/mockups/<NNN-feature>/` sont des contrats visuels pour les routes publiques quand ils existent.
+- Toute modification UI publique doit d'abord lire le mockup de la spec concernée et conserver sa structure, ses espacements, sa typographie, ses tokens couleur et ses patterns d'interaction.
+- `specs/features/001-city-guide/spec.md` définit `docs/DAT/diagrams/mockups/001-city-guide/home.html` comme référence contractuelle pour `/guide/[city-slug]`.
+- Une divergence volontaire avec un mockup doit être documentée dans la spec concernée avant code, puis reportée dans `docs/traceability-matrix.md`.
+
 ---
 
 ## 6. Déploiement
@@ -111,12 +118,46 @@ Request → Check GeminiCache (expires_at > now)
 | ADR-003 | Stratégie de cache Gemini hybride | accepted |
 | ADR-004 | Soft delete systématique | accepted |
 | ADR-005 | Stripe Connect pour les commissions | accepted |
+| ADR-006 | Rôle de Gemini API : découverte + descriptif uniquement | accepted |
+| ADR-007 | Scalabilité métier par bounded contexts | accepted |
 
 Voir `docs/DAT/adr/` pour le détail de chaque décision.
 
 ---
 
-## 8. Références métier
+## 8. Scalabilité métier cible
+
+StayLocal doit pouvoir évoluer du guide touristique MVP vers plusieurs verticales métier sans transformer le code en modèle générique difficile à maintenir. Le socle reste le guide local autour de `City`, `Category`, `SubCategory`, `PointOfInterest`, `Lodging`, `Analytics` et des rôles applicatifs.
+
+### Principes de découpage
+
+- Chaque verticale future est isolée dans un bounded context : `trails`, `reservations`, `merchant`, `billing`, `admin`.
+- `PointOfInterest` reste l'objet public commun pour afficher une adresse, une activité, un commerce ou une randonnée dans le guide.
+- Les capacités métier avancées sont portées par des extensions dédiées, jamais par un modèle générique unique.
+- Les modules futurs ne doivent pas ajouter de logique implicite dans les composants React publics. La logique métier reste dans `queries`, `services`, `actions` ou routes API.
+- Les specs futures doivent réutiliser les routes et modèles existants seulement si leur contrat est explicitement compatible.
+
+### Extensions prévues
+
+| Domaine | Noyau public | Extension métier future | Déclencheur spec |
+|---|---|---|---|
+| Restaurants | `PointOfInterest` catégorie restaurant | `MerchantProfile`, `RestaurantProfile`, `Reservation`, `Table`, `ServiceSlot` | Specs merchant + réservation approuvées |
+| Randonnées | `PointOfInterest` catégorie randonnée | `TrailDetail`, `TrailGeometry`, `TrailImportJob`, `TrailSource` | Spec trails/import approuvée |
+| Hébergements | `Lodging` | QR codes, analytics owner, abonnement owner | Specs owner approuvées |
+| Facturation | `Subscription`, `Payment` | Stripe Connect, commissions, factures | Spec billing approuvée |
+
+### Règles pour les futures specs
+
+- Ne pas créer de modèle abstrait de type `ReservableThing` tant qu'au moins deux verticales n'ont pas prouvé le même besoin métier.
+- Ne pas dupliquer une fiche publique restaurant ou randonnée si une extension de `PointOfInterest` suffit.
+- Toute donnée géographique mesurable vient de Mapbox, IGN, Overpass ou source spécialisée ; jamais de Gemini.
+- Toute donnée transactionnelle future utilise PostgreSQL + Prisma avec contraintes, transactions et soft delete.
+- Toute logique de commission, abonnement, annulation ou no-show doit être isolée dans une spec dédiée avant code.
+- Les intégrations externes sont appelées côté serveur, avec cache ou jobs quand la donnée n'a pas besoin d'être temps réel.
+
+---
+
+## 9. Références métier
 
 Ces documents contiennent les instructions d'implémentation détaillées pour les features avancées. Ils doivent être lus **avant** de rédiger les specs correspondantes.
 

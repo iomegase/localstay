@@ -45,8 +45,20 @@ describe('GuidePage (AC-01-03)', () => {
     render(jsx)
 
     expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
-    expect(screen.getByText('Restaurants')).toBeInTheDocument()
+    expect(screen.getAllByText('Restaurants').length).toBeGreaterThan(0)
     expect(screen.getByText('Randonnées')).toBeInTheDocument()
+  })
+
+  it('AC-03-03: follows the 001 home mockup structure', async () => {
+    ;(getCityGuide as jest.Mock).mockResolvedValue(mockGuide)
+    const jsx = await GuidePage({ params: { 'city-slug': 'saint-gervais-les-bains' } })
+    render(jsx)
+
+    expect(screen.getByPlaceholderText('Une envie particulière ?')).toBeInTheDocument()
+    expect(screen.getByText('Tous')).toBeInTheDocument()
+    expect(screen.getByText('Nos coups de coeur')).toBeInTheDocument()
+    expect(screen.queryByTestId('category-grid')).not.toBeInTheDocument()
+    expect(screen.getByTestId('category-row')).toHaveClass('overflow-x-auto')
   })
 
   it('AC-01-02: calls notFound() when slug does not exist in DB', async () => {

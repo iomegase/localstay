@@ -16,6 +16,8 @@ const basePoi: PoiCardType = {
   is_open_now: true,
   distance_km: 0.3,
   photo_url: null,
+  latitude: 45.89,
+  longitude: 6.71,
 }
 
 describe('PoiCard — AC-01-03 (Fermé badge)', () => {

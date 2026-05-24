@@ -22,9 +22,10 @@ do not write the corresponding code — ask for clarification instead.
 2. READ   → specs/glossary.md                       (shared vocabulary)
 3. READ   → docs/DAT/architecture.md                (technical constraints)
 4. READ   → docs/DAT/adr/                           (understand past decisions)
-5. WRITE  → src/                                    (generate code from spec only)
-6. WRITE  → tests/                                  (generate tests from acceptance criteria)
-7. UPDATE → docs/traceability-matrix.md             (link spec → code → tests)
+5. READ   → docs/DAT/diagrams/mockups/<feature>/    (UI contract, when present)
+6. WRITE  → src/                                    (generate code from spec only)
+7. WRITE  → tests/                                  (generate tests from acceptance criteria)
+8. UPDATE → docs/traceability-matrix.md             (link spec → code → tests)
 ```
 
 Never skip a step. Never reorder the steps.
@@ -105,10 +106,11 @@ Check `metadata.status` before writing a single line of code.
 
 ### 5.1 General
 - Language: **TypeScript** (strict mode, no `any`)
-- Framework: **Next.js 14 App Router** — use Server Components by default, Client Components only when spec requires interactivity
+- Framework: **Next.js 16 App Router** — use Server Components by default, Client Components only when spec requires interactivity
 - Styling: **Tailwind CSS** utility classes only — no inline styles, no CSS modules unless spec explicitly requires it
 - UI components: **Shadcn/ui** for all dashboard interfaces (hébergeur, commerçant, super-admin)
 - Icons: **Lucide React** preferred, **Font Awesome** as fallback
+- Public UI must follow the feature mockup in `docs/DAT/diagrams/mockups/<NNN-feature>/` when it exists. Mockups are UI contracts, not inspiration. Any deviation must be explicit in the feature spec and traceability.
 
 ### 5.2 File placement
 ```
@@ -267,7 +269,7 @@ These rules apply across all features and must never be violated:
 **Application:** Guide touristique local intelligent
 **Name (TBD):** StayLocal / StayPilot / StayMap (final name pending INPI check)
 **MVP scope:** MVP 1 — City Guide (tourist-facing, no auth required)
-**Stack:** Next.js 14 · TypeScript · Supabase · Prisma · Shadcn/ui · Tailwind · Mapbox GL JS · Gemini API · Stripe · Resend
+**Stack:** Next.js 16 · TypeScript · Supabase · Prisma · Shadcn/ui · Tailwind · Mapbox GL JS · Gemini API · Stripe · Resend
 **Deployment:** Vercel
 **Primary device:** Mobile (375px+) — mobile-first, then desktop
 

@@ -1,7 +1,5 @@
-import { createSupabaseRouteClient } from '@/shared/lib/supabase'
-import { prisma } from '@/shared/lib/prisma'
 import { getOverviewMetrics } from '@/features/dashboard-owner/queries/overview'
-import { redirect } from 'next/navigation'
+import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import Link from 'next/link'
 import {
   Card,
@@ -11,17 +9,13 @@ import {
 } from '@/shared/components/ui/card'
 import { Building2, QrCode, TrendingUp, MapPin } from 'lucide-react'
 import { OverviewChart } from '@/features/dashboard-owner/components/OverviewChart'
+import type { OverviewMetrics } from '@/features/dashboard-owner/queries/overview'
+import type { ReactNode } from 'react'
+
+type ZoneMetricSet = OverviewMetrics['top_categories']
 
 export default async function DashboardPage() {
-  const supabase = await createSupabaseRouteClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const dbUser = await prisma.user.findFirst({
-    where: { supabase_id: user.id, deleted_at: null },
-  })
-  if (!dbUser || dbUser.role !== 'owner') redirect('/auth/login')
-
+  const dbUser = await getPageOwner()
   const metrics = await getOverviewMetrics(dbUser.id)
 
   if (metrics.lodging_count === 0) {
@@ -69,40 +63,60 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> Top catégorie
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-semibold truncate">
-              {metrics.top_categories[0]?.name ?? '—'}
-            </p>
-            {metrics.top_categories[0] && (
-              <p className="text-xs text-muted-foreground">{metrics.top_categories[0].clicks} clics</p>
-            )}
-          </CardContent>
-        </Card>
+        <ZoneMetricCard
+          title="Top catégorie"
+          icon={<TrendingUp className="w-3.5 h-3.5" />}
+          metrics={metrics.top_categories}
+        />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" /> Top POI
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-semibold truncate">
-              {metrics.top_pois[0]?.name ?? '—'}
-            </p>
-            {metrics.top_pois[0] && (
-              <p className="text-xs text-muted-foreground">{metrics.top_pois[0].clicks} clics</p>
-            )}
-          </CardContent>
-        </Card>
+        <ZoneMetricCard
+          title="Top POI"
+          icon={<MapPin className="w-3.5 h-3.5" />}
+          metrics={metrics.top_pois}
+        />
       </div>
 
       <OverviewChart />
     </div>
+  )
+}
+
+function ZoneMetricCard({
+  title,
+  icon,
+  metrics,
+}: {
+  title: string
+  icon: ReactNode
+  metrics: ZoneMetricSet
+}) {
+  const primary = metrics.primary[0]
+  const nearby = metrics.nearby[0]
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          {icon} {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {primary ? (
+          <div>
+            <p className="text-sm font-semibold truncate">{primary.name}</p>
+            <p className="text-xs text-muted-foreground">Zone primaire · {primary.clicks} clics</p>
+          </div>
+        ) : (
+          <p className="text-sm font-semibold">—</p>
+        )}
+        {nearby && (
+          <div className="border-t pt-2">
+            <p className="text-xs text-muted-foreground">Aux alentours</p>
+            <p className="text-sm font-semibold truncate">{nearby.name}</p>
+            <p className="text-xs text-muted-foreground">{nearby.clicks} clics</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -25,7 +25,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-ivory text-charcoal font-sans antialiased">
+      <body
+        className="bg-ivory text-charcoal font-sans antialiased"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

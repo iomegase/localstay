@@ -63,7 +63,7 @@ Chargement d'une carte Mapbox dans le navigateur. Unité de facturation Mapbox (
 Suppression logique : champ `deleted_at` renseigné. Aucune suppression physique dans ce projet.
 
 ### Server Action
-Fonction Next.js 14 exécutée côté serveur, appelée depuis un composant React. Utilisée pour toutes les mutations.
+Fonction Next.js App Router exécutée côté serveur, appelée depuis un composant React. Utilisée pour toutes les mutations.
 
 ### Server Component
 Composant React rendu côté serveur (défaut App Router). Utilisé pour les pages sans interactivité.

@@ -10,6 +10,7 @@ mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
 updated_at: 2026-05-23
+last_contract_review_at: 2026-05-24
 depends_on: [009-auth-owner, 001-city-guide, 002-categories]
 ```
 
@@ -217,6 +218,10 @@ paths:
                 city_id:
                   type: string
                   format: uuid
+                is_active:
+                  type: boolean
+                  enum: [false]
+                  description: "Désactivation uniquement. `true` n'est pas accepté par ce endpoint."
       responses:
         "201":
           description: Logement créé
@@ -300,7 +305,7 @@ components:
   schemas:
     LodgingItem:
       type: object
-      required: [id, name, city_id, city_name, is_active, qr_scan_count, created_at]
+      required: [id, name, city_id, city_name, is_active, qr_code_status, qr_scan_count, created_at]
       properties:
         id:
           type: string
@@ -312,6 +317,10 @@ components:
           type: string
         is_active:
           type: boolean
+        qr_code_status:
+          type: string
+          enum: [generated, missing]
+          description: "Statut d'affichage uniquement. La génération, régénération et téléchargement relèvent de la spec 011."
         qr_scan_count:
           type: integer
         created_at:
@@ -327,21 +336,29 @@ components:
         qr_scans_7d:
           type: integer
         top_categories:
-          type: array
-          items:
-            type: object
-            required: [name, clicks]
-            properties:
-              name: { type: string }
-              clicks: { type: integer }
+          $ref: "#/components/schemas/ZoneMetricSet"
         top_pois:
+          $ref: "#/components/schemas/ZoneMetricSet"
+
+    ZoneMetricSet:
+      type: object
+      required: [primary, nearby]
+      properties:
+        primary:
           type: array
           items:
-            type: object
-            required: [name, clicks]
-            properties:
-              name: { type: string }
-              clicks: { type: integer }
+            $ref: "#/components/schemas/MetricItem"
+        nearby:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricItem"
+
+    MetricItem:
+      type: object
+      required: [name, clicks]
+      properties:
+        name: { type: string }
+        clicks: { type: integer }
 
     DashboardStats:
       type: object
@@ -422,13 +439,15 @@ components:
 
 ### Page `/dashboard` — Overview
 - Cards Shadcn `<Card>` : scans 7j, nombre de logements, catégorie top, POI top
+- Les tops catégories et POI distinguent visuellement `zone primaire` et `alentours`; les sections alentours vides ne sont pas affichées.
 - Graphique Recharts (via Shadcn `<ChartContainer>`) : scans par jour (30 jours)
 - Empty state si `lodging_count === 0` : message + bouton vers `/dashboard/lodgings`
 
 ### Page `/dashboard/lodgings`
-- `<Table>` Shadcn/ui avec colonnes : Nom, Ville, Scans, Actions
+- `<Table>` Shadcn/ui avec colonnes : Nom, Ville, Statut QR, Scans, Actions
 - Bouton "Ajouter un logement" → `<Dialog>` Shadcn avec formulaire nom + sélecteur ville
-- Actions : Modifier (ouvre `<Dialog>` pré-rempli), Désactiver (soft delete is_active → false)
+- Actions : Modifier (ouvre `<Dialog>` pré-rempli), Désactiver (soft delete `is_active = false` + `deleted_at = now()`)
+- La page logements affiche seulement le statut QR (`generated` ou `missing`). La génération, régénération et téléchargement restent dans la spec 011.
 
 ### Page `/dashboard/stats`
 - `<Card>` pour chaque métrique
@@ -453,8 +472,8 @@ components:
 
 ## Out of Scope
 
-- Personnalisation du guide (spec 011)
-- QR codes par logement — génération et téléchargement (spec 012)
+- Personnalisation du guide (spec 012)
+- QR codes par logement — génération et téléchargement (spec 011)
 - Abonnement et facturation (spec 013)
 - Ajout manuel de POI (MVP 3)
 

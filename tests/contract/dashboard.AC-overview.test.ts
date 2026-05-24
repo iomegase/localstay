@@ -45,16 +45,14 @@ describe('GET /api/dashboard/overview', () => {
     mockFindManyPois.mockResolvedValue([])
   })
 
-  it('AC-01-01: returns 200 with overview metrics', async () => {
+  it('AC-01-01: returns 200 with zone-aware overview metrics', async () => {
     const res = await GET(new NextRequest('http://localhost:3000/api/dashboard/overview'))
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toHaveProperty('lodging_count', 2)
     expect(json).toHaveProperty('qr_scans_7d', 42)
-    expect(json).toHaveProperty('top_categories')
-    expect(json).toHaveProperty('top_pois')
-    expect(Array.isArray(json.top_categories)).toBe(true)
-    expect(Array.isArray(json.top_pois)).toBe(true)
+    expect(json.top_categories).toEqual({ primary: [], nearby: [] })
+    expect(json.top_pois).toEqual({ primary: [], nearby: [] })
   })
 
   it('AC-01-02: returns lodging_count = 0 when no lodgings', async () => {
@@ -64,6 +62,8 @@ describe('GET /api/dashboard/overview', () => {
     const json = await res.json()
     expect(json.lodging_count).toBe(0)
     expect(json.qr_scans_7d).toBe(0)
+    expect(json.top_categories).toEqual({ primary: [], nearby: [] })
+    expect(json.top_pois).toEqual({ primary: [], nearby: [] })
   })
 
   it('returns 401 when not authenticated', async () => {
@@ -72,17 +72,53 @@ describe('GET /api/dashboard/overview', () => {
     expect(res.status).toBe(401)
   })
 
-  it('computes top_categories from analytics events', async () => {
-    const catId = 'cat-1'
+  it('computes top categories and POIs independently for primary and nearby zones', async () => {
+    const primaryCatId = 'cat-primary'
+    const nearbyCatId = 'cat-nearby'
+    const primaryPoiId = 'poi-primary'
+    const nearbyPoiId = 'poi-nearby'
     mockFindManyAnalytics.mockImplementation(({ where }: { where: { event_type: string } }) => {
       if (where.event_type === 'category_click') {
-        return Promise.resolve([{ category_id: catId }, { category_id: catId }])
+        return Promise.resolve([
+          { category_id: primaryCatId, poi_id: primaryPoiId },
+          { category_id: primaryCatId, poi_id: primaryPoiId },
+          { category_id: nearbyCatId, poi_id: nearbyPoiId },
+        ])
+      }
+      if (where.event_type === 'poi_click') {
+        return Promise.resolve([
+          { poi_id: primaryPoiId },
+          { poi_id: nearbyPoiId },
+          { poi_id: nearbyPoiId },
+        ])
       }
       return Promise.resolve([])
     })
-    mockFindManyCategories.mockResolvedValue([{ id: catId, name: 'Restaurants' }])
+    mockFindManyPois.mockResolvedValue([
+      {
+        id: primaryPoiId,
+        name: 'Restaurant Centre',
+        category_id: primaryCatId,
+        latitude: 45.01,
+        longitude: 6.0,
+        city: { latitude: 45.0, longitude: 6.0 },
+        category: { name: 'Restaurants' },
+      },
+      {
+        id: nearbyPoiId,
+        name: 'Auberge Alentours',
+        category_id: nearbyCatId,
+        latitude: 45.2,
+        longitude: 6.0,
+        city: { latitude: 45.0, longitude: 6.0 },
+        category: { name: 'Auberges' },
+      },
+    ])
     const res = await GET(new NextRequest('http://localhost:3000/api/dashboard/overview'))
     const json = await res.json()
-    expect(json.top_categories[0]).toEqual({ name: 'Restaurants', clicks: 2 })
+    expect(json.top_categories.primary[0]).toEqual({ name: 'Restaurants', clicks: 2 })
+    expect(json.top_categories.nearby[0]).toEqual({ name: 'Auberges', clicks: 1 })
+    expect(json.top_pois.primary[0]).toEqual({ name: 'Restaurant Centre', clicks: 1 })
+    expect(json.top_pois.nearby[0]).toEqual({ name: 'Auberge Alentours', clicks: 2 })
   })
 })

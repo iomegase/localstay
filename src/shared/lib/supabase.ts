@@ -27,6 +27,21 @@ export async function createSupabaseRouteClient() {
   })
 }
 
+// Server Component client (read-only cookie store)
+export async function createSupabasePageClient() {
+  const cookieStore = await cookies()
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll() {
+        // Server Components cannot mutate cookies; middleware/route handlers persist refreshes.
+      },
+    },
+  })
+}
+
 // Service role client (admin operations, bypasses RLS)
 export function createSupabaseServer() {
   return createServerClient(

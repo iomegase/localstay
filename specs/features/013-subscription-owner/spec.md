@@ -4,12 +4,12 @@
 
 ```yaml
 id: 013-subscription-owner
-title: "Plan d'abonnement et facturation Stripe — Owner"
-status: draft
+title: "Abonnement Owner — trial et plans indicatifs"
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-05-22
+updated_at: 2026-05-24
 depends_on: [009-auth-owner, 010-dashboard-owner]
 ```
 
@@ -17,16 +17,18 @@ depends_on: [009-auth-owner, 010-dashboard-owner]
 
 ## Context
 
-En MVP 2, tous les abonnements sont en `trial` gratuit 12 mois. La logique métier de monétisation est néanmoins entièrement implémentée en base et dans le code — Stripe est intégré mais aucun paiement n'est déclenché. L'Owner peut consulter son plan actif, voir la date de fin de période gratuite, et accéder à la page de facturation Stripe (Stripe Customer Portal) quand le plan sera activé.
+En MVP 2, tous les abonnements Owner sont en `trial` gratuit 12 mois. Cette spec informe l'Owner sur son plan actuel, sa date de fin de période gratuite et les offres commerciales envisagées.
+
+La monétisation réelle n'est pas activée dans cette spec : aucun Checkout Stripe, aucun Customer Portal, aucun webhook et aucun appel API Stripe ne sont exécutés en MVP 2. Les plans affichés sont un tableau statique typé côté code, avec prix indicatifs non contractuels.
 
 ---
 
 ## Glossary References
 
 - **Subscription** : abonnement Owner avec plan, statut et dates
-- **Plan** : offre tarifaire (`free` | `basic` | `pro` | `concierge`)
+- **Plan** : offre tarifaire indicative (`discovery` | `basic` | `pro` | `concierge`)
 - **Trial** : période gratuite de 12 mois à partir de l'inscription
-- **Stripe Customer Portal** : portail Stripe pour gérer son abonnement
+- **Stripe Customer Portal** : portail Stripe futur pour gérer son abonnement, hors MVP 2
 
 ---
 
@@ -51,48 +53,54 @@ En MVP 2, tous les abonnements sont en `trial` gratuit 12 mois. La logique méti
 
 #### Acceptance Criteria
 
-- **AC-02-01**: Given la page abonnement, When l'Owner consulte les plans, Then il voit la grille tarifaire complète : Découverte (gratuit), Basic (9-19€/logement), Pro (29-49€/logement), Conciergerie (99-299€)
+- **AC-02-01**: Given la page abonnement, When l'Owner consulte les plans, Then il voit une grille tarifaire statique : Découverte (gratuit), Basic (9-19€/logement), Pro (29-49€/logement), Conciergerie (99-299€), avec mention "prix indicatifs non contractuels"
 - **AC-02-02**: Given un Owner cliquant "Choisir ce plan", When il est en `trial`, Then un message l'informe que la facturation démarrera à la fin de la période gratuite — aucun paiement immédiat
 
 ---
 
 ## Business Rules
 
-- **BR-01**: En MVP 2, aucun paiement n'est déclenché — Stripe est intégré mais inactif (`trial`)
-- **BR-02**: La table `Subscription` et la table `Plan` existent en base avec toutes les données
+- **BR-01**: En MVP 2, aucun paiement n'est déclenché.
+- **BR-02**: Aucun appel Stripe n'est effectué en MVP 2 : pas de Checkout, pas de Customer Portal, pas de webhook, pas de création de Customer Stripe.
 - **BR-03**: `trial_ends_at` = date d'inscription + 12 mois — calculé à l'inscription (spec 009)
 - **BR-04**: Quand `trial_ends_at` est dépassé, le statut passe automatiquement à `past_due` (cron job)
-- **BR-05**: Le Stripe Customer Portal est préparé mais non accessible en MVP 2 (bouton désactivé)
-- **BR-06**: Les fonctionnalités autorisées par plan sont définies dans la table `PlanFeature`
+- **BR-05**: Le bouton "Gérer ma facturation" est désactivé en MVP 2 et n'appelle aucune route Stripe.
+- **BR-06**: Les plans affichés sont définis dans un tableau statique typé côté code, pas en base.
+- **BR-07**: Les prix affichés sont indicatifs et non contractuels tant qu'une spec billing dédiée n'est pas approuvée.
 
 ---
 
 ## Data Model
 
 ```prisma
-model Plan {
-  id            String   @id @default(uuid())
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+// Existing model from 009-auth-owner.
+model Subscription {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
 
-  slug          String   @unique  # free | basic | pro | concierge
-  name          String
-  price_monthly Decimal? @db.Decimal(10, 2)
-  price_yearly  Decimal? @db.Decimal(10, 2)
-  target        String   # owner | merchant
-  is_active     Boolean  @default(true)
-  stripe_price_id_monthly String?
-  stripe_price_id_yearly  String?
-
-  features      PlanFeature[]
+  user_id       String
+  user          User     @relation(fields: [user_id], references: [id])
+  plan          String   @default("trial")
+  status        String   @default("trial") // trial | active | past_due | cancelled
+  trial_ends_at DateTime
+  started_at    DateTime @default(now())
+  ends_at       DateTime?
 }
+```
 
-model PlanFeature {
-  id        String  @id @default(uuid())
-  plan_id   String
-  plan      Plan    @relation(fields: [plan_id], references: [id])
-  feature   String  # qr_code_custom | stats | customization | multi_lodging | ...
-  enabled   Boolean @default(true)
+### Static Owner Plan Catalog
+
+Les plans affichés sur `/dashboard/subscription` sont déclarés côté code dans un tableau typé, par exemple `src/features/subscription-owner/plans.ts`.
+
+```ts
+type OwnerPlanDisplay = {
+  slug: 'discovery' | 'basic' | 'pro' | 'concierge'
+  name: string
+  price_label: string
+  price_disclaimer: 'indicative_non_contractual'
+  features: string[]
 }
 ```
 
@@ -118,11 +126,15 @@ paths:
 
   /api/dashboard/subscription/plans:
     get:
-      summary: "Liste des plans disponibles"
+      summary: "Liste statique des plans indicatifs Owner"
       tags: [subscription]
       responses:
         "200":
-          description: Plans disponibles pour les Owners
+          description: Plans indicatifs disponibles pour les Owners
+        "401":
+          description: Non authentifié
+        "403":
+          description: Réservé au rôle Owner
 
 components:
   schemas:
@@ -142,13 +154,32 @@ components:
           type: array
           items:
             type: string
+    OwnerPlanDisplay:
+      type: object
+      required: [slug, name, price_label, price_disclaimer, features]
+      properties:
+        slug:
+          type: string
+          enum: [discovery, basic, pro, concierge]
+        name:
+          type: string
+        price_label:
+          type: string
+          description: "Prix indicatif non contractuel"
+        price_disclaimer:
+          type: string
+          enum: [indicative_non_contractual]
+        features:
+          type: array
+          items:
+            type: string
 ```
 
 ---
 
 ## Infrastructure
 
-Cron job pour détecter les trials expirés :
+Le cron de détection des trials expirés est centralisé dans `vercel.json` :
 
 ```json
 {
@@ -161,7 +192,7 @@ Cron job pour détecter les trials expirés :
 }
 ```
 
-Tous les jours à 9h, vérifie les `Subscription` dont `trial_ends_at < now` et `status = trial` → passe à `past_due`.
+Tous les jours à 9h, il vérifie les `Subscription` dont `trial_ends_at < now` et `status = trial`, puis les passe à `past_due`.
 
 ---
 
@@ -171,7 +202,8 @@ Tous les jours à 9h, vérifie les `Subscription` dont `trial_ends_at < now` et 
 - Card Shadcn : plan actif + badge statut (`Trial` en vert)
 - Barre de progression : jours restants / 365
 - Message : "Votre accès gratuit se termine le [date]"
-- Grille tarifaire (3 colonnes desktop, 1 mobile) avec Shadcn Card
+- Grille tarifaire indicative (3 colonnes desktop, 1 mobile) avec Shadcn Card
+- Mention visible : "Prix indicatifs non contractuels"
 - Bouton "Choisir ce plan" → Dialog d'information (pas de paiement en MVP 2)
 - Bouton "Gérer ma facturation" → désactivé en MVP 2
 
@@ -183,7 +215,7 @@ Tous les jours à 9h, vérifie les `Subscription` dont `trial_ends_at < now` et 
 |---|---|---|
 | AC-01-01 | Page abonnement affiche plan + statut + date | integration |
 | AC-01-02 | Message "Gratuit jusqu'au [date]" avec jours restants | unit |
-| AC-02-01 | Grille tarifaire complète affichée | unit |
+| AC-02-01 | Grille tarifaire indicative statique affichée | unit |
 | AC-02-02 | Clic "Choisir plan" → message informatif, pas de paiement | unit |
 
 ---
@@ -192,10 +224,12 @@ Tous les jours à 9h, vérifie les `Subscription` dont `trial_ends_at < now` et 
 
 - Paiement Stripe réel (MVP 3+)
 - Stripe Customer Portal actif (MVP 3+)
-- Abonnement Merchant (spec 016)
+- Checkout Stripe, webhooks Stripe, Customer Stripe
+- Tables `Plan` et `PlanFeature`
+- Abonnement Merchant : future spec billing merchant dédiée
 
 ---
 
 ## Open Questions
 
-Aucune — spec complète et prête pour review.
+Aucune — spec prête pour validation Product Owner.

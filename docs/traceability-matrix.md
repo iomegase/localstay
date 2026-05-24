@@ -23,13 +23,13 @@
 |---|---|---|---|---|
 | AC-01-01 | Scan QR → LCP < 3s sur 4G (Lighthouse Mobile) | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/e2e/city-guide.AC-01-01.lcp-under-3s.test.ts` | ✅ done |
 | AC-01-02 | Slug inexistant → 404 avec lien retour | `src/app/(public)/guide/[city-slug]/not-found.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-01-02.slug-not-found-404.test.ts`<br>`tests/e2e/city-guide.AC-01-01.lcp-under-3s.test.ts` | ✅ done |
-| AC-01-03 | Nom ville + catégories disponibles affichés | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
+| AC-01-03 | Nom ville + catégories disponibles affichés | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/features/city-guide/components/CategoryRow.tsx` | `tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
 | AC-02-01 | Saisie ville valide → redirection guide | `src/features/city-guide/components/CitySearchInput.tsx` | `tests/integration/city-guide.AC-02-01.city-search-redirect.test.tsx` | ✅ done |
 | AC-02-02 | Saisie sans résultat → message clair | `src/features/city-guide/components/CitySearchInput.tsx` | `tests/unit/city-guide.AC-02-02.no-result-message.test.tsx` | ✅ done |
 | AC-02-03 | Autocomplétion dès 3 chars, max 10, accent-insensitive | `src/app/api/cities/search/route.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/city-guide/components/CitySearchInput.tsx` | `tests/unit/city-guide.AC-02-03.autocomplete-logic.test.ts`<br>`tests/unit/city-guide.AC-02-02.no-result-message.test.tsx` | ✅ done |
 | AC-03-01 | Seules catégories avec POI actif visibles (absentes du DOM) | `src/features/city-guide/components/CategoryRow.tsx`<br>`src/features/city-guide/queries/cities.ts` | `tests/unit/city-guide.AC-03-01.categories-filter.test.tsx` | ✅ done |
 | AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | `src/features/city-guide/components/CategoryRow.tsx` | `tests/unit/city-guide.AC-03-01.categories-filter.test.tsx`<br>`tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts` | ✅ done |
-| AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal | `src/app/(public)/layout.tsx` | `tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts` | ✅ done |
+| AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal, conforme mockup `001-city-guide/home.html` | `src/app/(public)/layout.tsx`<br>`src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/features/city-guide/components/CategoryRow.tsx`<br>`src/features/city-guide/components/PublicMenu.tsx` | `tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx`<br>`tests/unit/public-layout.mockup-menu.test.tsx` | ✅ done |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-03-04.empty-city-200.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
 
 ---
@@ -50,6 +50,8 @@
 
 ## 003 — POI List
 
+> Spec `003-poi-list` approuvée le 2026-05-24. Décisions PO intégrées : distance affichée depuis GPS après opt-in avec fallback centre-ville ; pagination progressive via "Charger plus".
+
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-01-01 | Tri par distance par défaut | `src/features/categories/queries/poi-cards.ts`<br>`src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx` | `tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts` | ✅ done |
@@ -59,6 +61,8 @@
 | AC-02-02 | Filtre sous-catégorie fonctionne | `src/features/categories/queries/poi-cards.ts`<br>`src/app/api/cities/[slug]/categories/[category-slug]/pois/route.ts` | `tests/contract/categories.AC-poi-list-api.test.ts`<br>`tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
 | AC-02-03 | Suppression filtre → reset liste | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
 | AC-03-01 | Clic card → redirection fiche POI | `src/features/categories/components/PoiCard.tsx` | `tests/e2e/categories.AC-03-01.poi-navigation.test.ts` | ✅ done |
+| BR-01a | Distance affichée depuis GPS après opt-in, fallback centre-ville | `src/features/categories/components/CategoryViewWrapper.tsx` | `tests/unit/categories.AC-nearby-section.test.tsx` | ✅ done |
+| BR-05 | Pagination progressive "Charger plus", limit max 50 | `src/app/api/cities/[slug]/categories/[category-slug]/pois/route.ts`<br>`src/features/categories/queries/poi-cards.ts`<br>`src/features/categories/components/CategoryViewWrapper.tsx` | `tests/contract/categories.AC-poi-list-api.test.ts`<br>`tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts`<br>`tests/unit/categories.AC-nearby-section.test.tsx` | ✅ done |
 
 ---
 
@@ -165,14 +169,14 @@
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
-| AC-01-01 | Overview affiche métriques correctes | `src/app/api/dashboard/overview/route.ts`<br>`src/features/dashboard-owner/queries/overview.ts` | `tests/contract/dashboard.AC-overview.test.ts` | ✅ done |
+| AC-01-01 | Overview affiche métriques correctes | `src/app/(dashboard)/dashboard/page.tsx`<br>`src/app/api/dashboard/overview/route.ts`<br>`src/features/dashboard-owner/queries/overview.ts` | `tests/contract/dashboard.AC-overview.test.ts` | ✅ done |
 | AC-01-02 | Empty state si aucun logement | `src/app/(dashboard)/dashboard/page.tsx` | `tests/unit/dashboard.AC-01-02.empty-state.test.tsx` | ✅ done |
-| AC-02-01 | Liste logements avec stats | `src/app/api/dashboard/lodgings/route.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| AC-02-01 | Liste logements avec stats | `src/app/(dashboard)/dashboard/lodgings/page.tsx`<br>`src/app/api/dashboard/lodgings/route.ts`<br>`src/features/dashboard-owner/queries/lodgings.ts`<br>`src/features/dashboard-owner/components/LodgingsTable.tsx` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
 | AC-02-02 | Création logement fonctionne | `src/app/api/dashboard/lodgings/route.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
-| AC-02-03 | Modification logement fonctionne | `src/app/api/dashboard/lodgings/[id]/route.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| AC-02-03 | Modification logement fonctionne | `src/app/api/dashboard/lodgings/[id]/route.ts`<br>`src/features/dashboard-owner/schemas.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
 | AC-03-01 | Stats 30 jours affichées | `src/app/api/dashboard/stats/route.ts`<br>`src/features/dashboard-owner/queries/stats.ts` | `tests/contract/dashboard.AC-stats.test.ts` | ✅ done |
 | AC-03-02 | Graphiques Recharts via Shadcn | `src/features/dashboard-owner/components/OverviewChart.tsx`<br>`src/features/dashboard-owner/components/StatsCharts.tsx` | `tests/unit/dashboard.AC-01-02.empty-state.test.tsx` | ✅ done |
-| BR-01 | Owner ne voit que ses propres données | `src/features/dashboard-owner/lib/get-session-owner.ts` | `tests/contract/dashboard.AC-lodgings.test.ts` | ✅ done |
+| BR-01 | Owner ne voit que ses propres données | `src/features/dashboard-owner/lib/get-session-owner.ts`<br>`src/features/dashboard-owner/lib/get-page-owner.ts` | `tests/contract/dashboard.AC-lodgings.test.ts`<br>`tests/unit/dashboard-owner.get-page-owner.test.ts` | ✅ done |
 | BR-04 | Interface utilise Shadcn/ui | `src/shared/components/ui/` | — | ✅ done |
 
 ## 011 — QR Code Owner
@@ -185,3 +189,71 @@
 | AC-02-01 | qr_scan enregistré dans Analytics via page guide | `src/features/analytics/lib/record-qr-scan.ts` | `tests/contract/guide.AC-02-01.analytics-scan.test.ts` | ✅ done |
 | BR-01 | 1 QR actif max par logement | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | BR-05 | Owner ne génère que ses propres QR codes | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+
+## 012 — Guide Customization
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Message d'accueil sauvegardé | `src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/features/guide-customization/queries/customization.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts` | ✅ done |
+| AC-01-02 | Message affiché si lodging param présent | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/route.ts`<br>`src/features/city-guide/queries/cities.ts` | `tests/contract/guide-customization.AC-01-02.public-routes.test.ts` | ✅ done |
+| AC-02-01 | POI favoris affichés exclusivement dans le guide personnalisé | `src/features/categories/queries/poi-cards.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts` | ✅ done |
+| AC-02-02 | Note personnelle affichée sur card | `src/features/categories/components/PoiCard.tsx`<br>`src/features/categories/types.ts` | `tests/integration/categories.AC-01-02.poi-card-renders.test.tsx` | ✅ done |
+| AC-02-03 | Sans lodging param → guide standard | `src/features/categories/queries/poi-cards.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts` | ✅ done |
+| AC-03-01 | Ordre catégories sauvegardé et appliqué | `src/features/guide-customization/queries/customization.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/categories/queries/categories.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts`<br>`tests/unit/guide-customization.AC-03-01.category-order.test.ts` | ✅ done |
+| BR-07 | Owner isolation sur GET/PUT customization | `src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts` | ✅ done |
+| BR-08/09 | POI favori limité au périmètre du Guide | `src/features/guide-customization/lib/validation.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/guide-customization.BR-08-10.validation.test.ts` | ✅ done |
+| BR-10 | Catégories invalides isolées et non sauvegardées | `src/features/guide-customization/lib/validation.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/guide-customization.BR-08-10.validation.test.ts` | ✅ done |
+| BR-12 | Avec recommandations, catégories/POI publics filtrés sur la sélection Owner | `src/features/guide-customization/queries/customization.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/categories/queries/categories.ts`<br>`src/features/categories/queries/poi-cards.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts`<br>`tests/unit/guide-customization.AC-03-01.category-order.test.ts` | ✅ done |
+
+## 013 — Subscription Owner
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Page/API abonnement affiche plan, statut, date et fonctionnalités | `src/app/(dashboard)/dashboard/subscription/page.tsx`<br>`src/app/api/dashboard/subscription/route.ts`<br>`src/features/subscription-owner/queries/subscription.ts` | `tests/contract/subscription-owner.AC-01-01.api.test.ts` | ✅ done |
+| AC-01-02 | Message "Gratuit jusqu'au [date]" avec jours restants | `src/features/subscription-owner/subscription-detail.ts`<br>`src/app/(dashboard)/dashboard/subscription/page.tsx` | `tests/unit/subscription-owner.AC-01-02.trial-days.test.ts` | ✅ done |
+| AC-02-01 | Grille tarifaire statique indicative affichée | `src/features/subscription-owner/plans.ts`<br>`src/features/subscription-owner/components/SubscriptionPlanGrid.tsx`<br>`src/app/api/dashboard/subscription/plans/route.ts` | `tests/unit/subscription-owner.AC-02-01.static-plans.test.ts`<br>`tests/contract/subscription-owner.AC-02-01.plans-api.test.ts` | ✅ done |
+| AC-02-02 | Clic "Choisir ce plan" affiche un message informatif sans paiement | `src/features/subscription-owner/components/SubscriptionPlanGrid.tsx` | `tests/unit/subscription-owner.AC-02-02.plan-dialog.test.tsx` | ✅ done |
+| BR-01/02/05 | Aucun paiement ni appel Stripe en MVP2 | `src/features/subscription-owner/components/SubscriptionPlanGrid.tsx`<br>`src/app/(dashboard)/dashboard/subscription/page.tsx` | `tests/unit/subscription-owner.AC-02-02.plan-dialog.test.tsx` | ✅ done |
+| BR-04 | Trials expirés passés en `past_due` par cron internal | `src/app/api/internal/check-subscriptions/route.ts`<br>`src/features/subscription-owner/queries/subscription.ts`<br>`vercel.json` | `tests/contract/subscription-owner.BR-04.check-subscriptions-cron.test.ts` | ✅ done |
+| BR-06/07 | Plans statiques typés, prix indicatifs non contractuels | `src/features/subscription-owner/plans.ts` | `tests/unit/subscription-owner.AC-02-01.static-plans.test.ts` | ✅ done |
+
+## 014 — Auth Merchant
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Inscription merchant → rôle merchant + onboarding | `src/app/api/auth/register/route.ts`<br>`src/features/auth/schemas.ts`<br>`src/features/merchant/lib/redirect.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| AC-01-02 | Subscription trial créée via logique 009 | `src/app/api/auth/register/route.ts`<br>`src/features/auth/lib/subscription.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| AC-01-03 | Merchant sans profile redirigé onboarding | `src/app/(merchant)/merchant/dashboard/page.tsx`<br>`src/features/merchant/lib/get-page-merchant.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-02-01 | Recherche POI par nom/adresse | `src/app/api/merchant/onboarding/search/route.ts`<br>`src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-02-02 | POI déjà rattaché non revendicable | `src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-02-03 | POI inactif/supprimé/rejeté exclu | `src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-02-04 | Résultat search affiche metadata POI | `src/features/merchant/components/MerchantOnboardingClient.tsx`<br>`src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-03-01 | Claim pending créée | `src/app/api/merchant/onboarding/claim/route.ts`<br>`src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-03-02 | Une seule claim pending par Merchant | `src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-03-03 | Merchant déjà lié ne peut pas claim | `src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-03-04 | POI déjà claim actif interdit | `src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-03-05 | Claim pending affichée en attente | `src/app/(merchant)/merchant/onboarding/page.tsx`<br>`src/features/merchant/queries/onboarding.ts` | `tests/contract/auth-merchant.AC-02-03.onboarding-api.test.ts` | ✅ done |
+| AC-04-01 | Admin approve → MerchantProfile actif | `src/app/api/admin/merchant-claims/[id]/approve/route.ts`<br>`src/features/merchant/queries/admin-claims.ts` | `tests/contract/auth-merchant.AC-04.admin-claims-api.test.ts` | ✅ done |
+| AC-04-02 | Admin reject → pas de MerchantProfile | `src/app/api/admin/merchant-claims/[id]/reject/route.ts`<br>`src/features/merchant/queries/admin-claims.ts` | `tests/contract/auth-merchant.AC-04.admin-claims-api.test.ts` | ✅ done |
+| AC-04-03 | Claim reviewed non retraitable | `src/features/merchant/queries/admin-claims.ts` | `tests/contract/auth-merchant.AC-04.admin-claims-api.test.ts` | ✅ done |
+| AC-04-04 | Routes admin interdites non-admin | `src/features/merchant/lib/session.ts`<br>`src/app/api/admin/merchant-claims/route.ts` | `tests/contract/auth-merchant.AC-04.admin-claims-api.test.ts` | ✅ done |
+| AC-05-01 | Login Merchant sans claim/profile → onboarding | `src/app/api/auth/login/route.ts`<br>`src/features/merchant/lib/redirect.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-05-02 | Login Merchant pending → onboarding pending | `src/app/api/auth/login/route.ts`<br>`src/features/merchant/lib/redirect.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-05-03 | Login Merchant approved → dashboard | `src/app/api/auth/login/route.ts`<br>`src/features/merchant/lib/redirect.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
+| AC-05-04 | Owner interdit sur routes Merchant | `src/proxy.ts`<br>`src/features/merchant/lib/session.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
+
+## 015 — Dashboard Merchant
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Modification fiche sauvegardée et visible publiquement | `src/app/api/merchant/profile/route.ts`<br>`src/features/merchant/queries/dashboard.ts`<br>`src/app/(merchant)/merchant/profile/page.tsx`<br>`src/features/merchant/components/MerchantProfileForm.tsx` | `tests/contract/dashboard-merchant.AC-01-03.api.test.ts` | ✅ done |
+| AC-01-02 | Upload photo visible dans carousel public | `src/app/api/merchant/photos/route.ts`<br>`src/features/merchant/queries/dashboard.ts`<br>`src/features/categories/queries/poi-detail.ts` | `tests/contract/dashboard-merchant.AC-01-03.api.test.ts` | ✅ done |
+| AC-01-03 | Limite 5 photos appliquée | `src/app/api/merchant/photos/route.ts`<br>`src/features/merchant/queries/dashboard.ts` | `tests/contract/dashboard-merchant.AC-01-03.api.test.ts` | ✅ done |
+| AC-01-04 | Isolation Merchant sur son POI | `src/features/merchant/lib/session.ts`<br>`src/features/merchant/queries/dashboard.ts` | `tests/contract/dashboard-merchant.AC-01-03.api.test.ts` | ✅ done |
+| AC-02-01 | Stats 30 jours: vues, téléphone, itinéraire, site web | `src/app/api/merchant/stats/route.ts`<br>`src/features/merchant/queries/dashboard.ts`<br>`src/app/(merchant)/merchant/stats/page.tsx` | `tests/contract/dashboard-merchant.AC-02-03.stats-offers-api.test.ts` | ✅ done |
+| AC-02-02 | Graphique Recharts avec 30 points | `src/features/merchant/components/MerchantStatsChart.tsx`<br>`src/app/(merchant)/merchant/stats/page.tsx` | `tests/contract/dashboard-merchant.AC-02-03.stats-offers-api.test.ts` | ✅ done |
+| AC-02-03 | Stats isolées au POI du Merchant | `src/features/merchant/queries/dashboard.ts` | `tests/contract/dashboard-merchant.AC-02-03.stats-offers-api.test.ts` | ✅ done |
+| AC-03-01 | Offre créée visible sur fiche publique | `src/app/api/merchant/offers/route.ts`<br>`src/features/merchant/queries/dashboard.ts`<br>`src/features/categories/components/MerchantOffersBlock.tsx`<br>`src/features/categories/queries/poi-detail.ts` | `tests/contract/dashboard-merchant.AC-02-03.stats-offers-api.test.ts`<br>`tests/integration/dashboard-merchant.AC-03-01-02.public-offers.test.tsx` | ✅ done |
+| AC-03-02 | Offre expirée masquée publiquement | `src/features/categories/components/MerchantOffersBlock.tsx`<br>`src/features/categories/queries/poi-detail.ts` | `tests/integration/dashboard-merchant.AC-03-01-02.public-offers.test.tsx` | ✅ done |
+| AC-03-03 | Limite 3 offres actives appliquée | `src/app/api/merchant/offers/route.ts`<br>`src/features/merchant/queries/dashboard.ts` | `tests/contract/dashboard-merchant.AC-02-03.stats-offers-api.test.ts` | ✅ done |
+| AC-03-04 | Suppression offre en soft delete | `src/app/api/merchant/offers/[id]/route.ts`<br>`src/features/merchant/queries/dashboard.ts` | `tests/contract/dashboard-merchant.AC-02-03.stats-offers-api.test.ts` | ✅ done |

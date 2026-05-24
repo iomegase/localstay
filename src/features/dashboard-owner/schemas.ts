@@ -8,7 +8,12 @@ export const CreateLodgingSchema = z.object({
 export const UpdateLodgingSchema = z.object({
   name: z.string().min(1).max(100).trim().optional(),
   city_id: z.string().uuid().optional(),
-}).refine(data => data.name !== undefined || data.city_id !== undefined, {
+  is_active: z.literal(false).optional(),
+}).refine(data => (
+  data.name !== undefined ||
+  data.city_id !== undefined ||
+  data.is_active !== undefined
+), {
   message: 'Au moins un champ doit être fourni',
 })
 

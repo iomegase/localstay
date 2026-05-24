@@ -1,5 +1,9 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { CitySearchResult, CityGuide, CategorySummary } from '../types'
+import {
+  applyCustomizationToCategorySummaries,
+  getPublicCustomization,
+} from '@/features/guide-customization/queries/customization'
 
 /**
  * Searches cities by name or postal code.
@@ -29,7 +33,10 @@ export async function searchCities(q: string): Promise<CitySearchResult[]> {
  * Categories are filtered to those with at least 1 active POI (BR-01, BR-02).
  * Returns null when the slug does not exist or the city is inactive/deleted.
  */
-export async function getCityGuide(slug: string): Promise<CityGuide | null> {
+export async function getCityGuide(
+  slug: string,
+  options: { lodgingId?: string } = {},
+): Promise<CityGuide | null> {
   const city = await prisma.city.findFirst({
     where: { slug, deleted_at: null, is_active: true },
     select: {
@@ -78,5 +85,17 @@ export async function getCityGuide(slug: string): Promise<CityGuide | null> {
       poi_count: c._count.pois,
     }))
 
-  return { city, categories }
+  const customization = await getPublicCustomization(city.id, options.lodgingId)
+
+  return {
+    city,
+    categories: customization
+      ? applyCustomizationToCategorySummaries(
+        categories,
+        customization.category_order,
+        customization.featured_pois,
+      )
+      : categories,
+    welcome_message: customization?.welcome_message ?? null,
+  }
 }

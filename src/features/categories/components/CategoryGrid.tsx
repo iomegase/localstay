@@ -15,9 +15,11 @@ function CategoryIcon({ iconSlug }: { iconSlug: string }) {
 export function CategoryGrid({
   categories,
   citySlug,
+  lodgingId,
 }: {
   categories: CategorySummary[]
   citySlug: string
+  lodgingId?: string
 }) {
   if (categories.length === 0) return null
 
@@ -26,7 +28,7 @@ export function CategoryGrid({
       {categories.map(cat => (
         <Link
           key={cat.id}
-          href={`/guide/${citySlug}/${cat.slug}`}
+          href={lodgingId ? `/guide/${citySlug}/${cat.slug}?lodging=${lodgingId}` : `/guide/${citySlug}/${cat.slug}`}
           className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white shadow-sm active:scale-95 transition-transform"
         >
           <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center">

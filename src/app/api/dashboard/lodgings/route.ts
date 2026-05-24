@@ -34,7 +34,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const city = await prisma.city.findFirst({ where: { id: parsed.data.city_id } })
+  const city = await prisma.city.findFirst({
+    where: { id: parsed.data.city_id, deleted_at: null, is_active: true },
+  })
   if (!city) {
     return NextResponse.json(
       { error: { code: 'CITY_NOT_FOUND', message: 'Ville introuvable' } },
@@ -58,6 +60,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       city_id: lodging.city_id,
       city_name: lodging.city.name,
       is_active: lodging.is_active,
+      qr_code_status: 'missing',
       qr_scan_count: 0,
       created_at: lodging.created_at,
     },

@@ -7,6 +7,7 @@ import { createSupabaseRouteClient } from '@/shared/lib/supabase'
 import { prisma } from '@/shared/lib/prisma'
 import { sendWelcomeEmail } from '@/shared/lib/resend'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
+import { getMerchantRedirect } from '@/features/merchant/lib/redirect'
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let body: unknown
@@ -80,7 +81,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // RegisterSchema constrains role to 'owner' | 'merchant', both of which are
   // valid keys of DASHBOARD_ROUTES — this cast is safe by construction.
-  const redirectTo = DASHBOARD_ROUTES[role as keyof typeof DASHBOARD_ROUTES]
+  const redirectTo = role === 'merchant'
+    ? getMerchantRedirect({})
+    : DASHBOARD_ROUTES[role as keyof typeof DASHBOARD_ROUTES]
 
   return NextResponse.json(
     {

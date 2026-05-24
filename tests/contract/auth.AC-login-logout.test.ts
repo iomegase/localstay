@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server'
 // Create getter functions to defer variable access
 const mockSignIn = jest.fn()
 const mockSignOut = jest.fn()
+const mockUpdateUser = jest.fn().mockResolvedValue({ data: {}, error: null })
 const mockFindUser = jest.fn()
 
 jest.mock('@/shared/lib/supabase', () => ({
@@ -10,7 +11,8 @@ jest.mock('@/shared/lib/supabase', () => ({
     return {
       auth: {
         signInWithPassword: mockSignIn,
-        signOut: mockSignOut
+        signOut: mockSignOut,
+        updateUser: mockUpdateUser,
       },
     }
   }),
@@ -41,7 +43,7 @@ describe('POST /api/auth/login', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockSignIn.mockResolvedValue({
-      data: { user: { id: 'supabase-uid-1' }, session: {} },
+      data: { user: { id: 'supabase-uid-1', user_metadata: {} }, session: {} },
       error: null,
     })
     mockFindUser.mockResolvedValue({
@@ -62,7 +64,7 @@ describe('POST /api/auth/login', () => {
     expect(json.user.role).toBe('owner')
   })
 
-  it('AC-02-01: returns redirect_to /merchant for merchant role', async () => {
+  it('014 AC-05-01: redirects merchant without claim or profile to onboarding', async () => {
     mockFindUser.mockResolvedValue({
       id: 'prisma-user-2',
       email: 'merchant@test.com',
@@ -70,10 +72,44 @@ describe('POST /api/auth/login', () => {
       first_name: 'Marie',
       last_name: 'Martin',
       subscriptions: [{ plan: 'free', status: 'trial', trial_ends_at: new Date() }],
+      merchant_profile: null,
+      merchant_claims: [],
     })
     const res = await loginPOST(makeRequest('/api/auth/login', { email: 'merchant@test.com', password: 'password123' }))
     const json = await res.json()
-    expect(json.redirect_to).toBe('/merchant')
+    expect(json.redirect_to).toBe('/merchant/onboarding')
+  })
+
+  it('014 AC-05-02: redirects merchant with pending claim to onboarding pending', async () => {
+    mockFindUser.mockResolvedValue({
+      id: 'prisma-user-2',
+      email: 'merchant@test.com',
+      role: 'merchant',
+      first_name: 'Marie',
+      last_name: 'Martin',
+      subscriptions: [{ plan: 'free', status: 'trial', trial_ends_at: new Date() }],
+      merchant_profile: null,
+      merchant_claims: [{ id: 'claim-1', status: 'pending' }],
+    })
+    const res = await loginPOST(makeRequest('/api/auth/login', { email: 'merchant@test.com', password: 'password123' }))
+    const json = await res.json()
+    expect(json.redirect_to).toBe('/merchant/onboarding?status=pending')
+  })
+
+  it('014 AC-05-03: redirects approved merchant to dashboard', async () => {
+    mockFindUser.mockResolvedValue({
+      id: 'prisma-user-2',
+      email: 'merchant@test.com',
+      role: 'merchant',
+      first_name: 'Marie',
+      last_name: 'Martin',
+      subscriptions: [{ plan: 'free', status: 'trial', trial_ends_at: new Date() }],
+      merchant_profile: { id: 'profile-1', status: 'active', deleted_at: null },
+      merchant_claims: [],
+    })
+    const res = await loginPOST(makeRequest('/api/auth/login', { email: 'merchant@test.com', password: 'password123' }))
+    const json = await res.json()
+    expect(json.redirect_to).toBe('/merchant/dashboard')
   })
 
   it('AC-02-02: returns 401 with generic message on wrong credentials', async () => {

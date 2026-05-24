@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -118,6 +118,45 @@ async function main() {
         '6': { open: '19:00', close: '22:30' },
       },
       is_active: true,
+      city_id: city.id,
+      category_id: restaurants.id,
+      subcategory_id: subcatGastro.id,
+    },
+  })
+
+  await prisma.pointOfInterest.upsert({
+    where: { city_id_slug: { city_id: city.id, slug: 'brasserie-du-mont-blanc' } },
+    update: {
+      name: 'Brasserie du Mont Blanc',
+      address: '31 Avenue du Mont Paccard, 74170 Saint-Gervais-les-Bains',
+      latitude: 45.892331,
+      longitude: 6.711156,
+      description: "Brasserie conviviale au coeur de Saint-Gervais, avec une cuisine de brasserie et des spécialités de montagne.",
+      is_active: true,
+      deleted_at: null,
+      geocode_status: 'success',
+      geocode_provider: 'mapbox',
+      geocoded_at: new Date('2026-05-24T00:00:00.000Z'),
+    },
+    create: {
+      name: 'Brasserie du Mont Blanc',
+      slug: 'brasserie-du-mont-blanc',
+      address: '31 Avenue du Mont Paccard, 74170 Saint-Gervais-les-Bains',
+      latitude: 45.892331,
+      longitude: 6.711156,
+      phone: null,
+      website: null,
+      description: "Brasserie conviviale au coeur de Saint-Gervais, avec une cuisine de brasserie et des spécialités de montagne.",
+      rating: null,
+      rating_count: 0,
+      is_open_now: null,
+      photos: [],
+      tags: [],
+      hours: Prisma.JsonNull,
+      is_active: true,
+      geocode_status: 'success',
+      geocode_provider: 'mapbox',
+      geocoded_at: new Date('2026-05-24T00:00:00.000Z'),
       city_id: city.id,
       category_id: restaurants.id,
       subcategory_id: subcatGastro.id,

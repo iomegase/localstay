@@ -111,8 +111,76 @@ model PointOfInterest {
   subcategory_id    String?
   subcategory       SubCategory?  @relation(fields: [subcategory_id], references: [id])
   hiking_detail     HikingDetail?
+  featured_by_lodgings LodgingFeaturedPoi[]
+  merchant_profile MerchantProfile?
+  merchant_claims   MerchantClaim[]
+  merchant_offers   MerchantOffer[]
 
   @@unique([city_id, slug])
+}
+
+// ─── Spec 014 — Auth Merchant ───────────────────────────────────────────────
+
+model MerchantProfile {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  merchant_id String    @unique
+  merchant    User      @relation(fields: [merchant_id], references: [id])
+
+  poi_id      String    @unique
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+
+  status      String    @default("active") // active | suspended
+  approved_claim_id String @unique
+  approved_claim MerchantClaim @relation("ApprovedClaimProfile", fields: [approved_claim_id], references: [id])
+
+  @@index([status])
+}
+
+model MerchantClaim {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  merchant_id String
+  merchant    User      @relation("MerchantClaims", fields: [merchant_id], references: [id])
+
+  poi_id      String
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+
+  status      String    @default("pending") // pending | approved | rejected
+  admin_note  String?
+  reviewed_at DateTime?
+  reviewed_by String?
+  reviewer    User?     @relation("MerchantClaimReviews", fields: [reviewed_by], references: [id])
+
+  merchant_profile MerchantProfile? @relation("ApprovedClaimProfile")
+
+  @@index([merchant_id, status])
+  @@index([poi_id, status])
+}
+
+// ─── Spec 015 — Dashboard Merchant ──────────────────────────────────────────
+
+model MerchantOffer {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  poi_id      String
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+
+  title       String
+  description String
+  ends_at     DateTime
+  is_active   Boolean   @default(true)
+
+  @@index([poi_id, deleted_at, is_active, ends_at])
 }
 
 // ─── Spec 004 — POI Detail ───────────────────────────────────────────────────
@@ -210,6 +278,9 @@ model User {
 
   subscriptions Subscription[]
   lodgings      Lodging[]
+  merchant_profile MerchantProfile?
+  merchant_claims MerchantClaim[] @relation("MerchantClaims")
+  reviewed_merchant_claims MerchantClaim[] @relation("MerchantClaimReviews")
 }
 
 model Subscription {
@@ -245,6 +316,40 @@ model Lodging {
 
   qr_codes    QrCode[]
   analytics   Analytics[]
+  customization LodgingCustomization?
+  featured_pois LodgingFeaturedPoi[]
+}
+
+// ─── Spec 012 — Guide Customization ─────────────────────────────────────────
+
+model LodgingCustomization {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  lodging_id      String   @unique
+  lodging         Lodging  @relation(fields: [lodging_id], references: [id])
+  welcome_message String?
+  category_order  String[]
+}
+
+model LodgingFeaturedPoi {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  lodging_id  String
+  lodging     Lodging         @relation(fields: [lodging_id], references: [id])
+  poi_id      String
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+  owner_note  String?
+  sort_order  Int            @default(0)
+
+  @@unique([lodging_id, poi_id])
+  @@index([lodging_id, deleted_at])
+  @@index([poi_id])
 }
 
 // Analytics est append-only — les événements ne sont jamais modifiés.

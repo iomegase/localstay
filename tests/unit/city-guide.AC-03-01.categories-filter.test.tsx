@@ -33,7 +33,22 @@ describe('CategoryRow (AC-03-01, AC-03-02)', () => {
   it('AC-03-02: each category links to /guide/[citySlug]/[categorySlug]', () => {
     render(<CategoryRow categories={categories} citySlug="saint-gervais-les-bains" />)
     const links = screen.getAllByRole('link')
-    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants')
-    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees')
+    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains')
+    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants')
+    expect(links[2]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees')
+  })
+
+  it('012: preserves lodging query in category links when provided', () => {
+    render(
+      <CategoryRow
+        categories={categories}
+        citySlug="saint-gervais-les-bains"
+        lodgingId="lodging-1"
+      />
+    )
+    const links = screen.getAllByRole('link')
+    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains?lodging=lodging-1')
+    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants?lodging=lodging-1')
+    expect(links[2]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees?lodging=lodging-1')
   })
 })

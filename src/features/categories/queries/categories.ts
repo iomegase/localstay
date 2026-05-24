@@ -1,7 +1,14 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { CategoryWithCount, SubCategoryWithCount, CategoryDetail, PoiSummary } from '../types'
+import {
+  applyCustomizationToCategories,
+  getPublicCustomization,
+} from '@/features/guide-customization/queries/customization'
 
-export async function getCategoriesForCity(citySlug: string): Promise<CategoryWithCount[] | null> {
+export async function getCategoriesForCity(
+  citySlug: string,
+  options: { lodgingId?: string } = {},
+): Promise<CategoryWithCount[] | null> {
   const city = await prisma.city.findFirst({
     where: { slug: citySlug, is_active: true, deleted_at: null },
     select: { id: true },
@@ -25,12 +32,21 @@ export async function getCategoriesForCity(citySlug: string): Promise<CategoryWi
     id: string; name: string; slug: string; icon: string; sort_order: number;
     _count: { pois: number }
   }
-  return (categories as RawCategory[])
+  const filteredCategories = (categories as RawCategory[])
     .filter(c => c._count.pois > 0)
     .map(c => ({
       id: c.id, name: c.name, slug: c.slug, icon: c.icon,
       sort_order: c.sort_order, poi_count: c._count.pois,
     }))
+
+  const customization = await getPublicCustomization(city.id, options.lodgingId)
+  return customization
+    ? applyCustomizationToCategories(
+      filteredCategories,
+      customization.category_order,
+      customization.featured_pois,
+    )
+    : filteredCategories
 }
 
 export async function getCategoryDetail(

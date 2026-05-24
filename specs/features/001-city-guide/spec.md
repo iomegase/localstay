@@ -265,8 +265,10 @@ components:
 > - la typographie (serif italic pour les titres, tracking serré pour les labels)
 > - la structure du menu overlay (navigation plein écran)
 > - le header glassmorphism sticky
-> - la grille des catégories
+> - la ligne horizontale des catégories (`overflow-x-auto`, cards rondes)
 > - les cards de catégorie (icône + nom + badge count)
+> - le champ de recherche visuel "Une envie particulière ?"
+> - la section "Nos coups de coeur"
 >
 > Toute déviation du mockup doit être explicitement justifiée dans le code (commentaire) et soumise au Product Owner.
 
@@ -280,7 +282,7 @@ components:
 - **Empty state** : message "Aucun contenu disponible pour cette ville pour le moment" + illustration neutre + lien retour accueil — HTTP 200
 - **Error state** : message d'erreur générique + bouton "Réessayer"
 - **404 state** : page dédiée "Ville introuvable" + lien retour accueil — HTTP 404
-- **Success state** : grille de cards catégories (2 colonnes mobile, 3+ desktop) — conforme mockup `home.html`
+- **Success state** : home conforme mockup `home.html` avec titre City, sous-titre, champ de recherche visuel, ligne horizontale de catégories, section "Nos coups de coeur", bottom navigation
 - **Mobile** : `max-w-[430px]`, fond `#FAF9F6`, header glassmorphism sticky, menu overlay plein écran
 
 ### Composant : CitySearchInput (page d'accueil `/`)

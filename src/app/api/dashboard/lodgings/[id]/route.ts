@@ -41,15 +41,37 @@ export async function PATCH(
     )
   }
 
+  if (parsed.data.city_id !== undefined) {
+    const city = await prisma.city.findFirst({
+      where: { id: parsed.data.city_id, deleted_at: null, is_active: true },
+    })
+
+    if (!city) {
+      return NextResponse.json(
+        { error: { code: 'CITY_NOT_FOUND', message: 'Ville introuvable' } },
+        { status: 404 },
+      )
+    }
+  }
+
   const updated = await prisma.lodging.update({
     where: { id },
     data: {
       ...(parsed.data.name !== undefined && { name: parsed.data.name }),
       ...(parsed.data.city_id !== undefined && { city_id: parsed.data.city_id }),
+      ...(parsed.data.is_active === false && {
+        is_active: false,
+        deleted_at: new Date(),
+      }),
     },
     include: {
       city: { select: { name: true } },
       analytics: { where: { event_type: 'qr_scan' } },
+      qr_codes: {
+        where: { is_active: true, deleted_at: null },
+        select: { id: true },
+        take: 1,
+      },
     },
   })
 
@@ -59,6 +81,7 @@ export async function PATCH(
     city_id: updated.city_id,
     city_name: updated.city.name,
     is_active: updated.is_active,
+    qr_code_status: updated.qr_codes.length > 0 ? 'generated' : 'missing',
     qr_scan_count: updated.analytics.length,
     created_at: updated.created_at,
   })

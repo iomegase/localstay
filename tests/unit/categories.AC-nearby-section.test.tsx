@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
 import type { PoiCard } from '@/features/categories/types'
 
@@ -32,6 +33,10 @@ const primaryPoi = makePoi({ id: 'p1', name: 'Café du Centre', distance_km: 2 }
 const nearbyPoi = makePoi({ id: 'n1', name: 'Chalet des Alpes', distance_km: 18 })
 
 describe('CategoryViewWrapper — nearby section (BR-06)', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it('renders primary POIs in the main list', () => {
     render(
       <CategoryViewWrapper
@@ -97,5 +102,73 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
       />,
     )
     expect(screen.getByText('Aucun résultat')).toBeInTheDocument()
+  })
+
+  it('uses the Tourist GPS position for displayed distance after explicit opt-in', async () => {
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: jest.fn(success => success({
+          coords: { latitude: 45.8921, longitude: 6.7085 },
+        })),
+      },
+    })
+
+    render(
+      <CategoryViewWrapper
+        primary={[{ ...primaryPoi, distance_km: 10 }]}
+        nearby={[]}
+        citySlug="saint-gervais"
+        categorySlug="restaurants"
+        cityCenter={CITY_CENTER}
+      />,
+    )
+
+    expect(screen.getByTestId('poi-distance')).toHaveTextContent('10.0 km')
+
+    await userEvent.click(screen.getByRole('button', { name: /utiliser ma position/i }))
+
+    expect(screen.getByTestId('poi-distance')).toHaveTextContent('0 m')
+  })
+
+  it('loads the next page through the POI API when more results are available', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          primary: [makePoi({ id: 'p2', name: 'Salon de thé', distance_km: 3 })],
+          nearby: [],
+        },
+        meta: {
+          total: 2,
+          page: 2,
+          limit: 1,
+          total_pages: 2,
+          primary_total: 2,
+          nearby_total: 0,
+          primary_total_pages: 2,
+          nearby_total_pages: 0,
+        },
+      }),
+    })
+
+    render(
+      <CategoryViewWrapper
+        primary={[primaryPoi]}
+        nearby={[]}
+        citySlug="saint-gervais"
+        categorySlug="restaurants"
+        cityCenter={CITY_CENTER}
+        sort="distance"
+        page={1}
+        limit={1}
+        totalPages={2}
+      />,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /charger plus/i }))
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/cities/saint-gervais/categories/restaurants/pois?sort=distance&page=2&limit=1')
+    expect(await screen.findByText('Salon de thé')).toBeInTheDocument()
   })
 })

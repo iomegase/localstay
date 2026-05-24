@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Building2, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Building2, BarChart3, CreditCard } from 'lucide-react'
 import { Separator } from '@/shared/components/ui/separator'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Accueil', icon: LayoutDashboard },
   { href: '/dashboard/lodgings', label: 'Logements', icon: Building2 },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
+  { href: '/dashboard/subscription', label: 'Abonnement', icon: CreditCard },
 ]
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -40,7 +41,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="mt-auto px-3 pb-4">
             <Separator className="mb-4" />
             <p className="text-xs text-muted-foreground px-3">QR Codes · Abonnement</p>
-            <p className="text-xs text-muted-foreground px-3 mt-0.5">(disponibles bientôt)</p>
           </div>
         </aside>
 

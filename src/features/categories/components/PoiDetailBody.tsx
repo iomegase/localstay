@@ -5,6 +5,7 @@ import { ActionButtons } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
 import { MiniMap } from './MiniMap'
+import { MerchantOffersBlock } from './MerchantOffersBlock'
 import type { PoiDetail } from '../types'
 
 interface Props {
@@ -86,6 +87,10 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
         {poi.description && (
           <p className="px-6 text-sm text-charcoal/70 leading-relaxed">{poi.description}</p>
         )}
+
+        <div className="px-6">
+          <MerchantOffersBlock offers={poi.merchant_offers} />
+        </div>
 
         {/* Photo carousel (additional photos) */}
         {poi.photos.length > 1 && (
