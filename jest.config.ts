@@ -5,6 +5,7 @@ const createJestConfig = nextJest({ dir: './' })
 
 const config: Config = {
   coverageProvider: 'v8',
+  maxWorkers: '50%',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {

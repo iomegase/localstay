@@ -19,6 +19,9 @@ export type MerchantClaimDto = {
   created_at: Date
   reviewed_at: Date | null
   admin_note: string | null
+  merchant_email?: string
+  poi_name?: string
+  city_name?: string
 }
 
 export type MerchantProfileDto = {

@@ -6,6 +6,7 @@ import { filterPois } from './poi-filter'
 import { persistPois } from './poi-persister'
 import { acquireLock, getCacheInfo, getTtlHours, releaseLock } from './cache-manager'
 import type { GeminiFetchResult, FetchParams } from '../types'
+import { buildGeminiCategoryWhere } from '@/features/admin-taxonomy/lib/gemini-taxonomy'
 
 const RADIUS_KM = 10 // OQ-03: fixed 10km for MVP
 
@@ -18,8 +19,8 @@ export async function runGeminiFetch(params: FetchParams): Promise<GeminiFetchRe
       where: { id: cityId },
       select: { name: true, postal_code: true, latitude: true, longitude: true },
     }),
-    prisma.category.findUnique({
-      where: { id: categoryId },
+    prisma.category.findFirst({
+      where: { id: categoryId, ...buildGeminiCategoryWhere() },
       select: { name: true, slug: true },
     }),
   ])

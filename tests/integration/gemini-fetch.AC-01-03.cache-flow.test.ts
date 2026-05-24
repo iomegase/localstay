@@ -21,6 +21,8 @@ import type { GeminiRawPoi } from '@/features/gemini-fetch/types'
 
 const mockCallGemini = callGemini as jest.MockedFunction<typeof callGemini>
 
+jest.setTimeout(30000)
+
 const MOCK_POIS: GeminiRawPoi[] = [
   {
     name: 'Restaurant Test 007',

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
 
 type ClaimablePoi = {
   id: string
@@ -15,7 +16,17 @@ type ClaimablePoi = {
   subcategory_name: string | null
 }
 
-export function MerchantOnboardingClient() {
+type MissingPoiOption = {
+  id: string
+  name: string
+}
+
+type MerchantOnboardingClientProps = {
+  cities?: MissingPoiOption[]
+  categories?: MissingPoiOption[]
+}
+
+export function MerchantOnboardingClient({ cities = [], categories = [] }: MerchantOnboardingClientProps) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<ClaimablePoi[]>([])
@@ -23,10 +34,20 @@ export function MerchantOnboardingClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
+  const [showMissingForm, setShowMissingForm] = useState(false)
+  const [missingPoi, setMissingPoi] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    website: '',
+    city_id: cities[0]?.id ?? '',
+    category_id: categories[0]?.id ?? '',
+  })
 
   async function search() {
     setError(null)
     setSelected(null)
+    setShowMissingForm(false)
     setHasSearched(false)
     if (query.trim().length < 3) {
       setError('Saisissez au moins 3 caractères.')
@@ -70,6 +91,32 @@ export function MerchantOnboardingClient() {
     }
   }
 
+  async function submitMissingPoi() {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/merchant/onboarding/missing-poi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...missingPoi,
+          category_id: missingPoi.category_id || null,
+          phone: missingPoi.phone || null,
+          website: missingPoi.website || null,
+        }),
+      })
+      const json = await response.json()
+      if (!response.ok) {
+        setError(json.error?.message ?? 'Demande impossible.')
+        return
+      }
+      router.push('/merchant/onboarding?status=missing-poi-pending')
+      router.refresh()
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex gap-3">
@@ -88,9 +135,12 @@ export function MerchantOnboardingClient() {
       <div className="space-y-3">
         {loading && <p className="text-sm text-charcoal/60">Recherche en cours...</p>}
         {!loading && hasSearched && results.length === 0 && (
-          <p className="rounded-lg border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal/60">
-            Aucun établissement trouvé. Essayez avec un mot du nom ou de l'adresse, par exemple "Mont-Blanc".
-          </p>
+          <div className="space-y-3 rounded-lg border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal/60">
+            <p>Aucun établissement trouvé. Essayez avec un mot du nom ou de l'adresse, par exemple "Mont-Blanc".</p>
+            <Button type="button" variant="outline" onClick={() => setShowMissingForm(true)}>
+              Mon établissement n'apparaît pas
+            </Button>
+          </div>
         )}
         {results.map(poi => (
           <Card key={poi.id} className={selected?.id === poi.id ? 'border-forest' : undefined}>
@@ -118,6 +168,74 @@ export function MerchantOnboardingClient() {
             </p>
             <Button type="button" onClick={claim} disabled={loading}>
               Revendiquer cet établissement
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {showMissingForm && (
+        <Card>
+          <CardContent className="space-y-4 p-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="missing-name">Nom de l’établissement</Label>
+                <Input
+                  id="missing-name"
+                  value={missingPoi.name}
+                  onChange={event => setMissingPoi(current => ({ ...current, name: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="missing-address">Adresse complète</Label>
+                <Input
+                  id="missing-address"
+                  value={missingPoi.address}
+                  onChange={event => setMissingPoi(current => ({ ...current, address: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="missing-phone">Téléphone</Label>
+                <Input
+                  id="missing-phone"
+                  value={missingPoi.phone}
+                  onChange={event => setMissingPoi(current => ({ ...current, phone: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="missing-website">Site web</Label>
+                <Input
+                  id="missing-website"
+                  value={missingPoi.website}
+                  onChange={event => setMissingPoi(current => ({ ...current, website: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="missing-city">Ville</Label>
+                <select
+                  id="missing-city"
+                  value={missingPoi.city_id}
+                  onChange={event => setMissingPoi(current => ({ ...current, city_id: event.target.value }))}
+                  className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                >
+                  {cities.length === 0 && <option value="">Sélectionner une ville</option>}
+                  {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="missing-category">Catégorie</Label>
+                <select
+                  id="missing-category"
+                  value={missingPoi.category_id}
+                  onChange={event => setMissingPoi(current => ({ ...current, category_id: event.target.value }))}
+                  className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                >
+                  <option value="">Je ne sais pas</option>
+                  {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <Button type="button" onClick={submitMissingPoi} disabled={loading || !missingPoi.name || !missingPoi.address || !missingPoi.city_id}>
+              Envoyer pour revue
             </Button>
           </CardContent>
         </Card>

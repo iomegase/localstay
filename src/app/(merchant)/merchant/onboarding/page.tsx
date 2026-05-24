@@ -1,12 +1,14 @@
 import { redirect } from 'next/navigation'
 import { getPageMerchant } from '@/features/merchant/lib/get-page-merchant'
 import { MerchantOnboardingClient } from '@/features/merchant/components/MerchantOnboardingClient'
+import { getMissingPoiFormOptions } from '@/features/poi-acquisition/queries/missing-poi'
 
 export default async function MerchantOnboardingPage() {
   const { redirect_to, merchant } = await getPageMerchant()
   if (redirect_to === '/merchant/dashboard') redirect('/merchant/dashboard')
 
   const pendingClaim = merchant.merchant_claims.find(claim => claim.status === 'pending')
+  const options = pendingClaim ? { cities: [], categories: [] } : await getMissingPoiFormOptions()
 
   return (
     <div className="space-y-8">
@@ -27,7 +29,7 @@ export default async function MerchantOnboardingPage() {
           </p>
         </div>
       ) : (
-        <MerchantOnboardingClient />
+        <MerchantOnboardingClient cities={options.cities} categories={options.categories} />
       )}
     </div>
   )

@@ -5,9 +5,31 @@ import { toClaimDto, toProfileDto } from './onboarding'
 export async function listPendingMerchantClaims(): Promise<MerchantClaimDto[]> {
   const claims = await prisma.merchantClaim.findMany({
     where: { status: 'pending', deleted_at: null },
-    orderBy: { created_at: 'asc' },
+    orderBy: { created_at: 'desc' },
+    select: {
+      id: true,
+      merchant_id: true,
+      poi_id: true,
+      status: true,
+      created_at: true,
+      reviewed_at: true,
+      admin_note: true,
+      merchant: { select: { email: true } },
+      poi: { select: { name: true, city: { select: { name: true } } } },
+    },
   })
-  return claims.map(claim => toClaimDto(claim))
+  return claims.map(claim => ({
+    id: claim.id,
+    merchant_id: claim.merchant_id,
+    poi_id: claim.poi_id,
+    status: claim.status as MerchantClaimDto['status'],
+    created_at: claim.created_at,
+    reviewed_at: claim.reviewed_at,
+    admin_note: claim.admin_note,
+    merchant_email: claim.merchant?.email,
+    poi_name: claim.poi?.name,
+    city_name: claim.poi?.city?.name,
+  }))
 }
 
 async function getReviewableClaim(id: string) {

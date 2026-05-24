@@ -11,6 +11,11 @@
       "description": "Vérification des trials expirés — tous les jours à 9h"
     },
     {
+      "path": "/api/internal/cleanup-google-review-payloads",
+      "schedule": "0 2 * * *",
+      "description": "Purge des payloads Google temporaires expirés — tous les jours à 2h"
+    },
+    {
       "path": "/api/internal/gemini-refresh",
       "schedule": "0 3 * * *",
       "description": "Refresh Gemini des caches expirés — tous les jours à 3h"

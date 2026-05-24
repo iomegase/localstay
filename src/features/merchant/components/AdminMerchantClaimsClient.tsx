@@ -10,6 +10,9 @@ type Claim = {
   poi_id: string
   status: string
   created_at: Date | string
+  merchant_email?: string
+  poi_name?: string
+  city_name?: string
 }
 
 export function AdminMerchantClaimsClient({ claims }: { claims: Claim[] }) {
@@ -67,8 +70,10 @@ export function AdminMerchantClaimsClient({ claims }: { claims: Claim[] }) {
         <div key={claim.id} className="rounded-xl border border-charcoal/10 bg-white p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-medium text-charcoal">Claim {claim.id}</p>
-              <p className="text-sm text-charcoal/60">Merchant {claim.merchant_id} · POI {claim.poi_id}</p>
+              <p className="font-medium text-charcoal">{claim.poi_name ?? `POI ${claim.poi_id}`}</p>
+              <p className="text-sm text-charcoal/60">
+                {claim.merchant_email ?? `Merchant ${claim.merchant_id}`} · {claim.city_name ?? 'Ville inconnue'} · {new Date(claim.created_at).toLocaleDateString('fr-FR')}
+              </p>
             </div>
             <div className="flex gap-2">
               <Button type="button" onClick={() => approve(claim.id)} disabled={busyId === claim.id}>

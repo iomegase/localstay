@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client'
+import { seedRecommendedTaxonomy } from '../src/features/admin-taxonomy/lib/recommended-taxonomy'
 
 const prisma = new PrismaClient()
 
@@ -38,6 +39,9 @@ async function main() {
       create: { ...cat, is_active: true },
     })
   }
+
+  // Spec 017 — recommended taxonomy is additive and non-destructive.
+  await seedRecommendedTaxonomy(prisma)
 
   const restaurants = await prisma.category.findFirstOrThrow({
     where: { slug: 'restaurants' },
@@ -277,7 +281,7 @@ async function main() {
     },
   })
 
-  console.log('✓ Seed complete — Saint-Gervais-les-Bains: 5 categories, 3 subcategories, 6 POIs (bistrot enriched, Lac Blanc with HikingDetail)')
+  console.log('✓ Seed complete — Saint-Gervais-les-Bains demo data + recommended admin taxonomy upserted')
 }
 
 main()

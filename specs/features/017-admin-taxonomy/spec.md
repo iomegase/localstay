@@ -5,7 +5,7 @@
 ```yaml
 id: 017-admin-taxonomy
 title: "Super-admin — Gestion des catégories et sous-catégories"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-24
@@ -655,5 +655,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Les slugs déjà utilisés doivent-ils rester verrouillés, ou faut-il implémenter des redirections historiques ? | Product Owner | 2026-05-25 | Proposition actuelle : slugs verrouillés dès qu'ils ont des dépendances actives ; redirections historiques hors scope. |
-| OQ-02 | La taxonomie recommandée doit-elle remplacer progressivement les 5 catégories seedées actuelles ou coexister pendant une phase de migration ? | Product Owner | 2026-05-25 | Proposition actuelle : migration non destructive par upsert, sans désactivation automatique. |
+| OQ-01 | Les slugs déjà utilisés doivent-ils rester verrouillés, ou faut-il implémenter des redirections historiques ? | Product Owner | 2026-05-24 | Résolu : slugs verrouillés dès qu'ils ont des dépendances actives ; redirections historiques hors scope. |
+| OQ-02 | La taxonomie recommandée doit-elle remplacer progressivement les 5 catégories seedées actuelles ou coexister pendant une phase de migration ? | Product Owner | 2026-05-24 | Résolu : migration non destructive par upsert, sans désactivation automatique. |
