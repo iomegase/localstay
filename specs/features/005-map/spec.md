@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-22
+updated_at: 2026-05-25
 depends_on: [003-poi-list, 004-poi-detail]
 ```
 
@@ -64,7 +64,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 #### Acceptance Criteria
 
 - **AC-03-01**: Given une fiche POI, When elle s'affiche, Then une mini-carte Mapbox affiche le marker du POI
-- **AC-03-02**: Given une mini-carte, When elle est affichée, Then elle est non-interactive (pas de zoom, pas de drag) pour éviter les Map Loads inutiles
+- **AC-03-02**: Given une mini-carte, When elle est affichée, Then elle est non-interactive (pas de zoom, pas de drag) et utilise un zoom statique rapproché par défaut (`zoom = 16`) pour mieux situer le POI.
 
 ---
 
@@ -123,6 +123,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 - Image statique Mapbox Static Images API (pas un Map Load)
 - Dimensions : 100% largeur × 180px hauteur
 - Non-interactive
+- Zoom statique par défaut : `16`
 - Marker rouge sur le POI
 - Lien vers la carte complète au clic
 
@@ -147,7 +148,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 | AC-02-02 | Clic "Voir la fiche" → fiche POI | e2e |
 | AC-02-03 | Clic hors popup → fermeture | e2e |
 | AC-03-01 | Mini-carte visible dans fiche POI | integration |
-| AC-03-02 | Mini-carte non-interactive | unit |
+| AC-03-02 | Mini-carte non-interactive avec zoom statique rapproché | unit |
 
 ---
 

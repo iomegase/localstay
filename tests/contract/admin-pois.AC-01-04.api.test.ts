@@ -91,6 +91,7 @@ describe('022 admin POI API', () => {
       name: 'Nom corrigé',
       category_id: categoryId,
       photos: ['https://example.com/photo.jpg'],
+      tags: ['culture', 'exposition'],
     }), params)
 
     expect(res.status).toBe(200)
@@ -100,6 +101,8 @@ describe('022 admin POI API', () => {
         name: 'Nom corrigé',
         category_id: categoryId,
         photos: ['https://example.com/photo.jpg'],
+        tags: ['culture', 'exposition'],
+        force_geocode: false,
         confirm_geocode_pending_review: false,
       },
       'admin-1',

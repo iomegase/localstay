@@ -60,6 +60,7 @@ export const AdminPoiPatchSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
   photos: z.array(z.string().trim().url().refine(isUsableAdminPhotoUrl, 'Invalid photo URL')).max(12).optional(),
   is_active: z.boolean().optional(),
+  force_geocode: z.boolean().default(false),
   confirm_geocode_pending_review: z.boolean().default(false),
 }).strict()
 

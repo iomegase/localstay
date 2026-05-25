@@ -79,9 +79,10 @@ Cette spec ajoute une gestion complète des POI publiés, organisée par City, a
 
 #### Acceptance Criteria
 
-- **AC-02-01**: Given un POI existant, When l'Admin ouvre `/admin/pois/{id}`, Then il voit les champs : nom, slug en lecture seule, description, adresse, téléphone, site web, Category, SubCategory, tags, photos, statut, géocodage, Merchant lié et Trail lié si présent.
+- **AC-02-01**: Given un POI existant, When l'Admin ouvre `/admin/pois/{id}`, Then il voit les champs : nom, slug en lecture seule, description, adresse, téléphone, site web, Category, SubCategory, tags POI dans une section dédiée, photos, statut, géocodage, Merchant lié et Trail lié si présent.
 - **AC-02-02**: Given un payload valide, When l'Admin sauvegarde, Then les champs éditables sont mis à jour et un audit log `poi_updated` conserve avant/après.
 - **AC-02-03**: Given un changement d'adresse, When l'Admin sauvegarde, Then le serveur relance Mapbox avant update.
+- **AC-02-03b**: Given l'adresse publique est correcte mais les coordonnées sont obsolètes, When l'Admin active "Recalculer coordonnées" puis sauvegarde, Then le serveur relance Mapbox même si le texte d'adresse n'a pas changé.
 - **AC-02-04**: Given un géocodage Mapbox ambigu, When `confirm_geocode_pending_review = false`, Then l'API retourne `409 MAPBOX_GEOCODE_AMBIGUOUS` sans modifier le POI.
 - **AC-02-05**: Given un POI randonnée avec `trail_detail`, When l'Admin tente de modifier une donnée métier randonnée, Then l'API retourne `409 TRAIL_FIELDS_LOCKED`.
 - **AC-02-06**: Given un changement de Category ou SubCategory, When la cible est inactive ou supprimée logiquement, Then l'API retourne `400 INVALID_CATEGORY` ou `400 INVALID_SUBCATEGORY`.
@@ -100,6 +101,7 @@ Cette spec ajoute une gestion complète des POI publiés, organisée par City, a
 - **AC-03-03**: Given le site officiel est inaccessible ou sans image exploitable, When le refresh échoue, Then l'API retourne `200` avec `photos_added = 0` et n'efface pas les photos existantes.
 - **AC-03-04**: Given une fiche publique avec photos et `website`, When le Tourist consulte le détail, Then l'attribution photo reste affichée selon `018`.
 - **AC-03-05**: Given une URL non HTTP(S), un favicon, un logo ou un placeholder, When l'Admin sauvegarde les photos, Then l'API retourne `400 INVALID_PHOTO_URL`.
+- **AC-03-06**: Given un POI avec plusieurs photos, When l'Admin choisit une hero image, Then cette photo devient la première entrée du tableau `photos` et donc `primary_photo_url`.
 
 ### US-04 — Désactiver, archiver et restaurer un POI
 
@@ -135,8 +137,8 @@ Cette spec ajoute une gestion complète des POI publiés, organisée par City, a
 - **BR-01**: Seul `User.role = admin`, `is_active = true`, `deleted_at = null` peut accéder à `/admin/pois` et `/api/admin/pois/*`.
 - **BR-02**: La liste principale est toujours filtrée par City ; aucune liste globale non filtrée n'est affichée dans l'UI.
 - **BR-03**: `slug` n'est pas éditable dans `022`. Les URLs historiques restent stables.
-- **BR-04**: `name`, `description`, `address`, `phone`, `website`, `category_id`, `subcategory_id`, `photos`, `tags` et `is_active` sont éditables selon les règles de cette spec.
-- **BR-05**: Toute modification d'adresse relance le géocodage Mapbox côté serveur.
+- **BR-04**: `name`, `description`, `address`, `phone`, `website`, `category_id`, `subcategory_id`, `tags`, `photos` et `is_active` sont éditables selon les règles de cette spec.
+- **BR-05**: Toute modification d'adresse relance le géocodage Mapbox côté serveur. L'Admin peut aussi forcer le recalcul des coordonnées via `force_geocode = true` sans modifier l'adresse.
 - **BR-06**: Gemini ne fournit jamais de coordonnées, distances, métriques géographiques ou photos.
 - **BR-07**: Les photos admin sont des URLs distantes uniquement. Aucun upload, téléchargement, transformation persistante ou re-hébergement n'est inclus.
 - **BR-08**: Les photos sont limitées à 12 URLs par POI.
@@ -152,6 +154,9 @@ Cette spec ajoute une gestion complète des POI publiés, organisée par City, a
 - **BR-18**: Les catégories et sous-catégories inactives ne peuvent pas être choisies comme nouvelle classification, mais un POI existant peut conserver une référence historique inactive jusqu'à modification.
 - **BR-19**: Les erreurs API suivent le format standard du projet.
 - **BR-20**: `PATCH is_active = true` peut réactiver uniquement un POI non archivé, avec City, Category et SubCategory valides, et un `geocode_status` différent de `rejected`.
+- **BR-21**: Les tags globaux du POI sont édités dans une section dédiée, séparée des photos. Aucun tag par photo n'est géré dans `022` v1.
+- **BR-22**: L'image hero est représentée par `photos[0]`. Sélectionner une hero image réordonne le tableau `photos` sans créer de nouveau champ métier.
+- **BR-23**: Le select `SubCategory` affiche uniquement les sous-catégories actives de la `Category` sélectionnée. Changer de `Category` réinitialise la `SubCategory`.
 
 ---
 
@@ -467,7 +472,8 @@ components:
               items: { type: string, format: uri }
             tags:
               type: array
-              items: { type: string }
+              maxItems: 20
+              items: { type: string, minLength: 1, maxLength: 40 }
             latitude: { type: number }
             longitude: { type: number }
             slug_editable: { type: boolean, enum: [false] }
@@ -492,6 +498,7 @@ components:
           maxItems: 12
           items: { type: string, format: uri }
         is_active: { type: boolean }
+        force_geocode: { type: boolean, default: false }
         confirm_geocode_pending_review: { type: boolean, default: false }
 
     AdminPoiCity:
@@ -594,9 +601,13 @@ errors:
   - identité publique ;
   - classification ;
   - localisation ;
+  - tags POI ;
   - photos ;
   - statut et impact public.
 - `slug` visible en lecture seule.
+- Le select `SubCategory` dépend de la `Category` sélectionnée ; il ne doit jamais afficher les sous-catégories des autres catégories.
+- Les tags POI sont édités dans une section dédiée avant les photos et ne sont jamais mélangés avec les photos.
+- Dans la section photos, la première photo est marquée "Hero actuelle" ; les autres photos proposent l'action "Définir comme hero", qui réordonne `photos`.
 - Si `trail_detail` existe, afficher un bloc "Randonnée liée" avec lien vers le backoffice trails et message "Données parcours verrouillées ici".
 - Si `MerchantProfile` actif existe, afficher un bloc d'impact avant désactivation ou archivage.
 - Confirmations obligatoires pour désactiver, archiver et restaurer.
@@ -628,6 +639,7 @@ errors:
 | AC-02-01 | Détail POI admin affiche champs complets et slug readonly | integration |
 | AC-02-02 | PATCH met à jour et audite avant/après | contract |
 | AC-02-03 | Changement adresse relance Mapbox | contract |
+| AC-02-03b | Recalcul forcé relance Mapbox sans changement d'adresse | unit |
 | AC-02-04 | Géocodage ambigu retourne 409 sans update | contract |
 | AC-02-05 | Champs randonnée verrouillés | unit |
 | AC-02-06 | Category/SubCategory invalides rejetées | contract |
@@ -637,6 +649,7 @@ errors:
 | AC-03-03 | Refresh sans image n'efface rien | contract |
 | AC-03-04 | Attribution photo publique conservée | integration |
 | AC-03-05 | URLs photos invalides rejetées | unit |
+| AC-03-06 | Sélection hero image via réordonnancement `photos[0]` | integration |
 | AC-04-01 | Désactivation masque du Guide sans `deleted_at` | contract |
 | AC-04-02 | Archivage soft delete | contract |
 | AC-04-03 | Archivés visibles seulement via filtre | contract |

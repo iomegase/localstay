@@ -9,6 +9,7 @@ const base = {
   website: 'https://bistrot-mont-blanc.fr',
   latitude: 45.8921,
   longitude: 6.7085,
+  address: "25 Place de l'Église, Saint-Nicolas de Véroce, 74170 Saint-Gervais-les-Bains",
   poiName: 'Le Bistrot du Mont-Blanc',
   poiUrl: '/guide/saint-gervais-les-bains/restaurants/restaurants-gastro-demo',
 }
@@ -41,6 +42,15 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
   it('always renders Itinéraire button', () => {
     render(<ActionButtons {...base} />)
     expect(screen.getByTestId('btn-directions')).toBeInTheDocument()
+  })
+
+  it('uses the public POI address for Google Maps directions before falling back to coordinates', () => {
+    render(<ActionButtons {...base} />)
+    const href = screen.getByTestId('btn-directions').getAttribute('href') ?? ''
+
+    expect(href).toContain('google.com/maps/dir')
+    expect(href).toContain('destination=25%20Place%20de%20l%27%C3%89glise')
+    expect(href).not.toContain('destination=45.8921,6.7085')
   })
 
   it('always renders disabled Réserver button', () => {

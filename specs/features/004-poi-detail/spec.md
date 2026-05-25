@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-22
+updated_at: 2026-05-25
 depends_on: [001-city-guide, 002-categories, 003-poi-list]
 ```
 
@@ -53,7 +53,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 #### Acceptance Criteria
 
 - **AC-02-01**: Given un POI avec téléphone, When le Tourist clique "Appeler", Then le téléphone natif s'ouvre avec le numéro pré-rempli (`tel:` link)
-- **AC-02-02**: Given un POI avec coordonnées GPS, When le Tourist clique "Itinéraire", Then Mapbox directions s'ouvre (ou Google Maps en fallback)
+- **AC-02-02**: Given un POI avec une adresse publique, When le Tourist clique "Itinéraire", Then Google Maps s'ouvre avec cette adresse comme destination. Si l'adresse est absente, les coordonnées GPS sont utilisées en fallback.
 - **AC-02-03**: Given un POI avec site web, When le Tourist clique "Site web", Then le site s'ouvre dans un nouvel onglet
 - **AC-02-04**: Given tout POI, When le Tourist clique "Partager", Then le Web Share API natif s'ouvre avec l'URL de la fiche
 
@@ -305,7 +305,7 @@ components:
 | AC-01-03 | Bouton Site masqué si pas de site | unit |
 | AC-01-04 | Badge Ouvert avec heure fermeture | unit |
 | AC-02-01 | Bouton Appeler → `tel:` link | e2e |
-| AC-02-02 | Bouton Itinéraire → Mapbox directions | e2e |
+| AC-02-02 | Bouton Itinéraire → Google Maps avec adresse publique puis fallback coordonnées | e2e |
 | AC-02-03 | Bouton Site → nouvel onglet | e2e |
 | AC-02-04 | Bouton Partager → Web Share API | e2e |
 | AC-03-01 | Bloc randonnée visible si hiking_detail | integration |
@@ -327,4 +327,4 @@ components:
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
 | OQ-01 | Afficher les avis Google Places dans la fiche MVP 1 ? | Product Owner | 2026-05-22 | **Résolu** : rating/count depuis la DB uniquement. Les champs `google_place_id`, `review_source`, `reviews_synced_at` sont ajoutés à `PointOfInterest` comme scaffold pour l'intégration MVP 3+. |
-| OQ-02 | Fallback itinéraire : Google Maps ou Apple Maps selon le device ? | Product Owner | 2026-05-22 | **Résolu** : Google Maps URL universelle — `https://www.google.com/maps/dir/?api=1&destination={lat},{lng}`. Fonctionne iOS + Android sans détection de device. |
+| OQ-02 | Fallback itinéraire : Google Maps ou Apple Maps selon le device ? | Product Owner | 2026-05-22 | **Résolu** : Google Maps URL universelle — `https://www.google.com/maps/dir/?api=1&destination={address}` ; fallback `{lat},{lng}` uniquement si adresse absente. Fonctionne iOS + Android sans détection de device. |

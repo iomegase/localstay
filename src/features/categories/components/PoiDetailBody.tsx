@@ -137,6 +137,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
             website={poi.website}
             latitude={poi.latitude}
             longitude={poi.longitude}
+            address={poi.address}
             poiName={poi.name}
             poiUrl={poiUrl}
           />

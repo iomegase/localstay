@@ -23,6 +23,7 @@ describe('MiniMap — AC-03-02', () => {
     expect(src).toContain('api.mapbox.com/styles/v1/mapbox/outdoors-v12/static')
     expect(src).toContain('6.7085')
     expect(src).toContain('45.8921')
+    expect(src).toContain('/6.7085,45.8921,16/')
     expect(src).toContain('pk.test-token')
   })
 

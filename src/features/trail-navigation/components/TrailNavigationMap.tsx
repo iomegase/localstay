@@ -1,13 +1,14 @@
 'use client'
 
-import { AlertTriangle, LocateFixed, MapPin, Mountain, Navigation, X } from 'lucide-react'
+import { AlertTriangle, LocateFixed, Mountain, Navigation, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
+import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
 import { getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
 
-type GpsState = 'gps_prompt' | 'tracking' | 'off_track' | 'low_accuracy' | 'gps_denied'
+type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
 
 interface Props {
   trail: TrailNavigationData
@@ -17,17 +18,31 @@ interface Props {
 export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }: Props) {
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
-  const [gpsState, setGpsState] = useState<GpsState>('gps_prompt')
+  const mapRef = useRef<MapRef | null>(null)
+  const watchIdRef = useRef<number | null>(null)
+  const hasReachedTrailRef = useRef(false)
+  const [gpsState, setGpsState] = useState<GpsState>('ready')
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!geometry || !('geolocation' in navigator)) {
-      setGpsState('gps_denied')
-      return undefined
+    return () => {
+      if (watchIdRef.current !== null && 'geolocation' in navigator) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+      }
     }
+  }, [])
 
-    const watchId = navigator.geolocation.watchPosition(
+  function startGpsTracking() {
+    if (!geometry) return
+    if (!('geolocation' in navigator)) {
+      setGpsState('gps_denied')
+      return
+    }
+    if (watchIdRef.current !== null) return
+
+    setGpsState('gps_prompt')
+    watchIdRef.current = navigator.geolocation.watchPosition(
       nextPosition => {
         const current = {
           latitude: nextPosition.coords.latitude,
@@ -42,23 +57,36 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         }
 
         const distanceToTrail = getTrailDistanceMeters(current, geometry)
-        setGpsState(distanceToTrail > 120 ? 'off_track' : 'tracking')
+        if (distanceToTrail <= 120) {
+          hasReachedTrailRef.current = true
+          setGpsState('tracking')
+          return
+        }
+
+        setGpsState(hasReachedTrailRef.current ? 'off_track' : 'pre_start')
       },
       () => {
         setGpsState('gps_denied')
       },
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 10_000 },
     )
+  }
 
-    return () => {
-      navigator.geolocation.clearWatch(watchId)
-    }
-  }, [geometry])
+  function recenterOnPosition() {
+    if (!position) return
+    mapRef.current?.flyTo({
+      center: [position.longitude, position.latitude],
+      zoom: 16,
+      essential: true,
+    })
+  }
 
   const progress = useMemo(() => {
-    if (!position || !geometry) return null
+    if (!position || !geometry || gpsState === 'pre_start') {
+      return null
+    }
     return getPositionProgress(position, geometry)
-  }, [geometry, position])
+  }, [geometry, gpsState, position])
 
   if (!geometry || !endpoints) {
     return (
@@ -78,6 +106,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   return (
     <main className="relative h-screen overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
       <Map
+        ref={mapRef}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{
           latitude: trail.start_latitude,
@@ -116,7 +145,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         <Link href={backHref} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
           <X className="h-5 w-5" />
         </Link>
-        <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow" aria-label="Recentrer">
+        <button
+          type="button"
+          onClick={recenterOnPosition}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow disabled:opacity-50"
+          aria-label="Recentrer"
+          disabled={!position}
+        >
           <LocateFixed className="h-5 w-5" />
         </button>
       </div>
@@ -139,10 +174,31 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
           <Metric label="D+" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
         </div>
 
+        {gpsState === 'ready' && (
+          <button
+            type="button"
+            onClick={startGpsTracking}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#455E4C] px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
+          >
+            <LocateFixed className="h-4 w-4" />
+            Activer le suivi GPS
+          </button>
+        )}
+
         {progress && (
           <p className="mt-3 text-xs text-charcoal/60">
             Progression indicative : {Math.round(progress.percent)}% · {Math.round(progress.distance_m)} m parcourus estimés.
           </p>
+        )}
+
+        {gpsState === 'pre_start' && (
+          <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65">
+            <p className="font-semibold text-charcoal">Vous n&apos;êtes pas encore au départ.</p>
+            <p className="mt-1">Rejoignez le point de départ avant de suivre le tracé.</p>
+            <Link href={backHref} className="mt-2 inline-flex font-bold uppercase tracking-[0.12em] text-[#455E4C]">
+              Rejoindre le départ
+            </Link>
+          </div>
         )}
 
         {gpsState === 'off_track' && (
@@ -187,7 +243,9 @@ function formatDuration(minutes: number | null): string {
 }
 
 function gpsStateLabel(status: GpsState): string {
+  if (status === 'ready') return 'Prêt'
   if (status === 'gps_prompt') return 'GPS en attente'
+  if (status === 'pre_start') return 'Pré-départ'
   if (status === 'off_track') return 'Hors tracé'
   if (status === 'low_accuracy') return 'Précision GPS faible'
   return 'GPS indisponible'

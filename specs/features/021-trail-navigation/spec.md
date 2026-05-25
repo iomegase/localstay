@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-25
-updated_at: 2026-05-25
+updated_at: 2026-05-26
 depends_on:
   - 004-poi-detail
   - 005-map
@@ -28,9 +28,13 @@ La fiche randonnée doit distinguer deux intentions utilisateur qui étaient tro
 
 Le mockup de référence est `docs/DAT/diagrams/mockups/004-poi-detail/rando_details.html`. Il définit le contrat visuel de la fiche randonnée : hero image, sheet arrondie, stats rapides, galerie, carte outdoor, section "Comment s'y rendre", CTA principal "Commencer la rando" et CTA secondaire "Rejoindre le départ".
 
-Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` : les randonnées ne doivent pas utiliser Google Maps comme fallback d'itinéraire. L'expérience randonnée utilise Mapbox, conformément à `005-map`, `ADR-001` et au choix produit inspiré des usages type AllTrails.
+Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` : l'accès au départ et le suivi de randonnée sont deux intentions distinctes. "Rejoindre le départ" peut ouvrir Google Maps vers les coordonnées du départ, comme une action d'accès externe. "Commencer la rando" reste une expérience StayLocal basée sur Mapbox, conformément à `005-map`, `ADR-001` et au choix produit inspiré des usages type AllTrails.
 
 `021` ne modifie pas l'acquisition des randonnées. Les données de tracé, départ, distance, dénivelé, source et attribution restent produites et validées par `019-trails-acquisition`.
+
+Décision PO du 2026-05-26 : le mode "Commencer la rando" ne déclenche pas le GPS automatiquement au chargement. Il affiche d'abord le tracé en état `ready`, puis demande le consentement uniquement après une action explicite "Activer le suivi GPS". Si le Tourist est loin du départ ou du tracé, l'interface doit l'indiquer comme pré-départ plutôt que comme une erreur de guidage.
+
+Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire Google Maps vers `TrailDetail.start_latitude` / `TrailDetail.start_longitude`. Cette action ne démarre pas le guidage randonnée, ne demande pas le GPS StayLocal et ne remplace pas le mode "Commencer la rando".
 
 ---
 
@@ -58,10 +62,10 @@ Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` 
 #### Acceptance Criteria
 
 - **AC-01-01**: Given une randonnée publiée avec `TrailDetail.start_latitude` et `TrailDetail.start_longitude`, When la fiche randonnée s'affiche, Then le CTA secondaire "Rejoindre le départ" est visible.
-- **AC-01-02**: Given le Tourist clique "Rejoindre le départ", When il accepte la géolocalisation navigateur, Then une carte Mapbox affiche un itinéraire entre sa position courante et le point de départ.
-- **AC-01-03**: Given le Tourist refuse la géolocalisation ou que le navigateur ne la supporte pas, When il clique "Rejoindre le départ", Then la carte Mapbox affiche au minimum le marker du départ, son libellé et ses coordonnées utiles.
+- **AC-01-02**: Given le Tourist clique "Rejoindre le départ", When un point de départ fiable existe, Then une URL Google Maps s'ouvre avec `destination={start_latitude},{start_longitude}`.
+- **AC-01-03**: Given le Tourist clique "Rejoindre le départ", When l'action est rendue, Then aucune géolocalisation navigateur StayLocal n'est demandée pour cette action.
 - **AC-01-04**: Given une randonnée sans point de départ fiable, When la fiche randonnée s'affiche, Then le CTA "Rejoindre le départ" est masqué.
-- **AC-01-05**: Given le Tourist utilise une fiche randonnée, When il demande l'itinéraire vers le départ, Then aucune URL Google Maps ou Apple Maps n'est ouverte.
+- **AC-01-05**: Given le Tourist utilise une fiche randonnée, When il clique "Commencer la rando", Then aucune URL Google Maps ou Apple Maps n'est ouverte et le mode StayLocal Mapbox est utilisé.
 
 ### US-02 — Commencer une randonnée guidée
 
@@ -73,9 +77,10 @@ Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` 
 
 - **AC-02-01**: Given une randonnée publiée avec `TrailDetail.geometry_geojson` valide, When la fiche randonnée s'affiche, Then le CTA principal "Commencer la rando" est visible.
 - **AC-02-02**: Given le Tourist clique "Commencer la rando", When la randonnée possède une géométrie valide, Then il est dirigé vers `/guide/[city-slug]/rando/[trail-slug]/start`.
-- **AC-02-03**: Given le mode randonnée démarre, When la page charge, Then une carte Mapbox `outdoors` plein écran affiche le tracé, le point de départ, l'arrivée si détectable, et la position utilisateur si consentie.
+- **AC-02-03**: Given le mode randonnée démarre, When la page charge, Then une carte Mapbox `outdoors` plein écran affiche le tracé, le point de départ et l'arrivée si détectable en état `ready`, sans lancer `watchPosition`.
 - **AC-02-04**: Given le Tourist refuse la géolocalisation, When le mode randonnée est ouvert, Then le tracé reste visible mais le guidage live est remplacé par un état "GPS indisponible".
 - **AC-02-05**: Given une randonnée sans géométrie fiable, When la fiche randonnée s'affiche, Then le CTA "Commencer la rando" est masqué et aucun mode guidage n'est accessible.
+- **AC-02-06**: Given le mode randonnée est en état `ready`, When le Tourist clique "Activer le suivi GPS" et accepte la géolocalisation navigateur, Then `watchPosition` démarre et la position utilisateur s'affiche sur la carte.
 
 ### US-03 — Suivre sa progression sur le tracé
 
@@ -87,7 +92,8 @@ Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` 
 
 - **AC-03-01**: Given le GPS est autorisé, When le navigateur retourne une position, Then la position utilisateur est affichée sur la carte sous forme de marker dynamique.
 - **AC-03-02**: Given le GPS est autorisé et le tracé existe, When la position change, Then la distance approximative au tracé est calculée côté client.
-- **AC-03-03**: Given la distance au tracé dépasse le seuil de sécurité défini par l'interface, When l'état est recalculé, Then un message "Vous semblez vous éloigner du tracé" est affiché sans bloquer la navigation.
+- **AC-03-03**: Given la position GPS est loin du départ ou du tracé au démarrage, When l'état est recalculé, Then l'interface affiche "Vous n'êtes pas encore au départ" avec un accès à l'action "Rejoindre le départ".
+- **AC-03-06**: Given le Tourist a déjà rejoint la zone de randonnée puis s'éloigne du tracé, When la distance au tracé dépasse le seuil de sécurité défini par l'interface, Then un message "Vous semblez vous éloigner du tracé" est affiché sans bloquer la navigation.
 - **AC-03-04**: Given le GPS est autorisé, When la position progresse le long du tracé, Then l'interface affiche une progression indicative : distance parcourue estimée ou pourcentage de tracé.
 - **AC-03-05**: Given la précision GPS retournée par le navigateur est faible, When la position est affichée, Then l'interface montre un état "Précision GPS faible" au lieu de prétendre à un guidage fiable.
 
@@ -99,7 +105,7 @@ Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` 
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given le Tourist ouvre le mode randonnée, When la géolocalisation est demandée, Then le consentement est demandé via l'API navigateur et aucune position n'est récupérée avant accord.
+- **AC-04-01**: Given le Tourist ouvre le mode randonnée, When il n'a pas encore cliqué "Activer le suivi GPS", Then aucune géolocalisation n'est demandée et aucune position n'est récupérée.
 - **AC-04-02**: Given une position GPS est obtenue, When le mode randonnée est actif, Then cette position reste en mémoire navigateur et n'est jamais persistée en base.
 - **AC-04-03**: Given le mode randonnée est actif, When l'interface s'affiche, Then un avertissement sécurité indique que StayLocal ne remplace pas une carte officielle, la météo, le balisage terrain ou l'équipement adapté.
 - **AC-04-04**: Given le Tourist quitte ou termine le mode randonnée, When la session locale se ferme, Then le suivi GPS navigateur est arrêté.
@@ -109,13 +115,13 @@ Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` 
 
 ## Business Rules
 
-- **BR-01**: Les randonnées utilisent exclusivement Mapbox pour les cartes et le guidage public ; Google Maps et Apple Maps sont interdits pour les actions randonnée de `021`.
+- **BR-01**: Le guidage randonnée public "Commencer la rando" utilise exclusivement Mapbox ; Google Maps et Apple Maps sont interdits pour le suivi du tracé.
 - **BR-02**: Le libellé public pour l'accès au point de départ est "Rejoindre le départ". Le libellé "Itinéraire" ne doit pas être utilisé sur une fiche randonnée.
 - **BR-03**: "Rejoindre le départ" cible toujours `TrailDetail.start_latitude` / `TrailDetail.start_longitude`, jamais un centroid arbitraire du tracé.
 - **BR-04**: "Commencer la rando" est disponible uniquement si `TrailDetail.geometry_geojson` est valide et si `TrailDetail.data_quality_status` n'interdit pas le guidage.
 - **BR-05**: La géolocalisation du Tourist requiert un consentement explicite navigateur.
 - **BR-06**: La position GPS du Tourist n'est jamais envoyée à Gemini, Overpass, IGN, ni persistée en base en MVP 2.
-- **BR-07**: Les seules requêtes externes autorisées depuis le navigateur pour `021` sont Mapbox GL / tiles et, si nécessaire, Mapbox Directions pour rejoindre le départ.
+- **BR-07**: Les seules requêtes externes autorisées depuis le navigateur pour `021` sont Mapbox GL / tiles pour les cartes, et Google Maps deep-link pour rejoindre le départ.
 - **BR-08**: Aucune requête frontend directe vers Overpass, IGN / Géoplateforme ou site officiel n'est autorisée.
 - **BR-09**: La carte du mode randonnée utilise un style Mapbox outdoor adapté au contexte montagne.
 - **BR-10**: Les calculs de distance au tracé et progression sont indicatifs, calculés côté client, et ne constituent pas une donnée géographique officielle.
@@ -123,6 +129,10 @@ Cette spec corrige explicitement une ambiguïté historique de `004-poi-detail` 
 - **BR-12**: La fermeture du mode randonnée doit appeler l'arrêt du `watchPosition` navigateur.
 - **BR-13**: Les erreurs Mapbox, GPS refusé, GPS indisponible ou tracé absent doivent produire des états UI explicites sans page blanche.
 - **BR-14**: L'interface doit prévenir le Tourist des limites sécurité et batterie avant ou au moment du démarrage du guidage.
+- **BR-15**: Le mode "Commencer la rando" ne lance jamais `watchPosition` au chargement initial ; il attend une action explicite "Activer le suivi GPS".
+- **BR-16**: Le bouton "Recentrer" du mode randonnée recentre sur la dernière position GPS connue. S'il n'existe pas encore de position, il ne déclenche pas de tracking implicite.
+- **BR-17**: Une position GPS éloignée du départ au premier calcul est un état pré-départ, pas un état `off_track`.
+- **BR-18**: "Rejoindre le départ" ne déclenche jamais `navigator.geolocation` côté StayLocal ; Google Maps gère l'origine de navigation si l'utilisateur l'autorise dans Google.
 
 ---
 
@@ -289,9 +299,9 @@ external_services:
   mapbox_gl:
     purpose: "Carte outdoor et affichage du tracé"
     env: NEXT_PUBLIC_MAPBOX_TOKEN
-  mapbox_directions:
-    purpose: "Itinéraire vers le point de départ uniquement"
-    env: NEXT_PUBLIC_MAPBOX_TOKEN
+  google_maps_deeplink:
+    purpose: "Itinéraire externe vers le point de départ uniquement"
+    env: none
   browser_geolocation:
     purpose: "Position utilisateur après consentement"
     persistence: "none"
@@ -321,9 +331,9 @@ Le CTA "Réserver" n'est pas utilisé pour une randonnée dans `021`.
 
 ### Action "Rejoindre le départ"
 
-- Si GPS accepté : afficher une route Mapbox entre la position courante et le point de départ.
-- Si GPS refusé : afficher le point de départ, le libellé et les coordonnées.
-- Si Mapbox Directions échoue : garder la carte centrée sur le départ et afficher une alerte non bloquante.
+- Le CTA est un lien externe Google Maps construit avec `https://www.google.com/maps/dir/?api=1&destination={start_latitude},{start_longitude}`.
+- L'origine n'est pas fournie par StayLocal ; Google Maps utilise la position utilisateur seulement si l'utilisateur l'autorise dans Google.
+- Aucun état `gps_prompt`, `gps_denied` ou route Mapbox n'est affiché par StayLocal pour cette action.
 
 ### Mode "Commencer la rando"
 
@@ -335,7 +345,8 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 - tracé GeoJSON visible avec style contrasté ;
 - marker départ ;
 - marker arrivée si le tracé permet de l'inférer ;
-- marker position utilisateur après consentement ;
+- bouton "Activer le suivi GPS" visible en état `ready` ;
+- marker position utilisateur après activation du suivi et consentement ;
 - bouton recentrer sur position ;
 - panneau bas avec titre randonnée, distance/durée/dénivelé, état GPS et état de suivi ;
 - bouton "Terminer" ou "Quitter la rando" ;
@@ -343,10 +354,11 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 
 États UI obligatoires :
 
-- `ready`: tracé chargé, GPS pas encore demandé ;
+- `ready`: tracé chargé, GPS pas encore demandé, bouton "Activer le suivi GPS" visible ;
 - `gps_prompt`: consentement en cours ;
 - `tracking`: position utilisateur suivie ;
-- `off_track`: distance au tracé supérieure au seuil UI ;
+- `pre_start`: position utilisateur éloignée du départ ou du tracé avant démarrage effectif ;
+- `off_track`: distance au tracé supérieure au seuil UI après démarrage effectif sur la zone de randonnée ;
 - `low_accuracy`: précision GPS faible ;
 - `gps_denied`: GPS refusé ;
 - `map_error`: Mapbox indisponible ;
@@ -359,20 +371,22 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | ID | Description | Test type |
 |---|---|---|
 | AC-01-01 | CTA Rejoindre le départ visible si départ fiable | integration |
-| AC-01-02 | Rejoindre le départ affiche route Mapbox après consentement GPS | e2e |
-| AC-01-03 | GPS refusé affiche départ sans route live | e2e |
+| AC-01-02 | Rejoindre le départ ouvre Google Maps vers les coordonnées du départ | unit |
+| AC-01-03 | Rejoindre le départ ne demande pas la géolocalisation StayLocal | unit |
 | AC-01-04 | Pas de départ fiable → CTA masqué | unit |
-| AC-01-05 | Aucune URL Google Maps / Apple Maps sur fiche randonnée | unit |
+| AC-01-05 | Commencer la rando n'ouvre aucune URL Google Maps / Apple Maps | unit |
 | AC-02-01 | CTA Commencer visible si géométrie valide | integration |
 | AC-02-02 | CTA Commencer navigue vers `/start` | e2e |
 | AC-02-03 | Mode randonnée affiche Mapbox outdoor + tracé + markers | e2e |
 | AC-02-04 | GPS refusé garde le tracé mais désactive guidage live | e2e |
 | AC-02-05 | Pas de géométrie fiable → CTA Commencer masqué | unit |
-| AC-03-01 | Position utilisateur affichée après `watchPosition` | unit |
+| AC-02-06 | Activation explicite démarre `watchPosition` | unit |
+| AC-03-01 | Position utilisateur affichée après activation GPS | unit |
 | AC-03-02 | Distance au tracé calculée côté client | unit |
-| AC-03-03 | Alerte off-track affichée au-delà du seuil | unit |
+| AC-03-03 | Position initiale éloignée affiche l'état pré-départ | unit |
 | AC-03-04 | Progression indicative affichée | unit |
 | AC-03-05 | Précision GPS faible affichée explicitement | unit |
+| AC-03-06 | Alerte off-track affichée au-delà du seuil après démarrage effectif | unit |
 | AC-04-01 | Consentement navigateur requis avant position | e2e |
 | AC-04-02 | Position non persistée en base/API | contract |
 | AC-04-03 | Avertissement sécurité visible | integration |
@@ -404,6 +418,6 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
 | OQ-01 | `Itinéraire` doit-il désigner l'accès au départ ou le suivi du tracé ? | Product Owner | 2026-05-25 | Résolu : accès au départ uniquement, renommé "Rejoindre le départ". |
-| OQ-02 | Le mode randonnée peut-il utiliser Google Maps ? | Product Owner | 2026-05-25 | Résolu : non, Mapbox uniquement. |
+| OQ-02 | Le mode randonnée peut-il utiliser Google Maps ? | Product Owner | 2026-05-25 | Résolu : Google Maps est autorisé seulement pour "Rejoindre le départ"; "Commencer la rando" reste Mapbox uniquement. |
 | OQ-03 | La position GPS doit-elle être persistée en MVP 2 ? | Product Owner + Architecture | 2026-05-25 | Résolu : non, suivi local navigateur uniquement. |
 | OQ-04 | La navigation live appartient-elle à `019-trails-acquisition` ? | Architecture | 2026-05-25 | Résolu : non, `019` reste acquisition ; `021` couvre la navigation. |

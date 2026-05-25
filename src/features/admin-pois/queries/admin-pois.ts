@@ -180,8 +180,11 @@ export async function updateAdminPoi(
     data.subcategory = input.subcategory_id ? { connect: { id: input.subcategory_id } } : { disconnect: true }
   }
 
-  if (input.address && input.address !== before.address) {
-    const geocode = await geocodeForAcquisition(input.address, {
+  const addressForGeocode = input.address ?? before.address
+  const shouldGeocode = Boolean(input.address && input.address !== before.address) || input.force_geocode
+
+  if (shouldGeocode) {
+    const geocode = await geocodeForAcquisition(addressForGeocode, {
       latitude: before.city.latitude,
       longitude: before.city.longitude,
     })
@@ -198,7 +201,7 @@ export async function updateAdminPoi(
       })
     }
 
-    data.address = input.address
+    data.address = addressForGeocode
     data.latitude = geocode.latitude
     data.longitude = geocode.longitude
     data.geocode_status = geocode.status

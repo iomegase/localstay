@@ -12,6 +12,7 @@ created_at: 2026-05-24
 updated_at: 2026-05-24
 depends_on: [003-poi-list, 004-poi-detail, 007-gemini-fetch, 008-mapbox-geocoding, 014-auth-merchant, 017-admin-taxonomy]
 bounded_context: admin
+adr_refs: [ADR-008-google-places-primary-poi-acquisition]
 ```
 
 ---
@@ -22,13 +23,14 @@ StayLocal doit enrichir rapidement les Guides tout en évitant les POI manquants
 
 Le pipeline retenu est hybride :
 
-- **Gemini** découvre des POI et rédige des descriptions.
-- **Google Places** vérifie l'existence, aide au matching et fournit un `google_place_id`.
+- **Google Places** propose les POI généralistes et devient la source primaire d'existence.
 - **Mapbox** géocode les adresses et fournit les coordonnées GPS stockées.
+- **Site officiel** enrichit les fiches avec photos, contenu fiable et attribution quand une URL officielle existe.
+- **Gemini** rédige ou reformule une description éditoriale uniquement à partir de données déjà vérifiées.
 - **Super-admin** valide les candidats, crée manuellement des POI si nécessaire et arbitre les doublons.
 - **Merchant** peut signaler un POI absent pendant l'onboarding.
 
-Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validation et d'acquisition exploitable par l'admin avant publication définitive.
+Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un mode Google Places-first. Elle ne modifie pas le pipeline randonnée `019-trails-acquisition`.
 
 ---
 
@@ -40,7 +42,8 @@ Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validat
 - **SubCategory** : sous-catégorie globale administrée par `017-admin-taxonomy`.
 - **Merchant** : commerçant pouvant revendiquer un POI.
 - **MerchantClaim** : demande de revendication d'un POI.
-- **Gemini Fetch** : découverte et description de POI.
+- **Google Places Primary Acquisition** : acquisition POI généraliste basée sur Google Places comme source d'existence.
+- **Gemini Fetch** : usage legacy ou descriptif ; ne découvre plus librement les POI généralistes.
 - **Soft Delete** : suppression logique via `deleted_at`.
 
 ---
@@ -56,10 +59,11 @@ Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validat
 #### Acceptance Criteria
 
 - **AC-01-01**: Given une City active et une Category active, When l'Admin lance une acquisition, Then un `PoiAcquisitionRun` est créé avec `status = running`.
-- **AC-01-02**: Given un run lancé, When Gemini retourne des POI, Then chaque POI devient un `PoiAcquisitionCandidate` avec `source = gemini`.
-- **AC-01-03**: Given un candidat Gemini avec nom + adresse, When Google Places trouve une correspondance probable, Then le candidat reçoit `google_place_id` et `match_status = matched`.
+- **AC-01-02**: Given un run lancé, When Google Places retourne des établissements pour la City + Category, Then chaque établissement admissible devient un `PoiAcquisitionCandidate` avec `source = google_places`.
+- **AC-01-03**: Given un candidat Google Places avec données vérifiées, When Gemini est appelé, Then Gemini rédige uniquement une description éditoriale à partir de ces données et ne crée aucun nouveau POI.
 - **AC-01-04**: Given un candidat avec adresse, When Mapbox géocode l'adresse avec une confiance suffisante, Then le candidat reçoit `latitude`, `longitude`, `geocode_status = success`.
 - **AC-01-05**: Given un candidat ambigu ou doublon probable, When le run termine, Then le candidat reste en `review_status = needs_review` et n'est pas publié automatiquement.
+- **AC-01-06**: Given l'Admin coche "Site officiel" au lancement d'acquisition, When il renseigne une URL officielle valide, Then le serveur scrape cette page de façon non bloquante pour enrichir les candidats Google Places sans permettre à Gemini de découvrir librement des POI.
 
 ### US-02 — Validation admin des candidats
 
@@ -134,10 +138,11 @@ Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validat
 
 ## Business Rules
 
-- **BR-01**: Gemini reste limité à la découverte de POI et à la génération de descriptions.
+- **BR-01**: Google Places est la source primaire d'existence des POI généralistes.
+- **BR-01a**: Gemini est limité à la rédaction ou reformulation de descriptions depuis des données déjà vérifiées ; Gemini ne découvre plus librement des POI généralistes.
 - **BR-02**: Gemini ne fournit jamais les coordonnées GPS, distances, tracés, dénivelés ou métriques géographiques.
 - **BR-03**: Mapbox est la source des coordonnées GPS stockées pour les POI généralistes.
-- **BR-04**: Google Places est utilisé pour le matching, l'anti-doublon, la vérification d'existence et le `google_place_id`.
+- **BR-04**: Google Places est utilisé pour proposer les candidats, vérifier l'existence, aider au matching, alimenter l'anti-doublon et fournir le `google_place_id`.
 - **BR-05**: Le contenu Google Places ne doit pas être recopié durablement comme contenu public StayLocal, hors champs explicitement autorisés et conformité aux règles Google.
 - **BR-06**: Les données Google temporaires de review expirent automatiquement et sont séparées des champs publics du POI.
 - **BR-07**: Aucun candidat d'acquisition n'est publié si `geocode_status = rejected`.
@@ -153,6 +158,8 @@ Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validat
 - **BR-17**: Les photos issues d'un site officiel sont stockées comme URLs distantes uniquement ; StayLocal ne les télécharge pas et ne les re-héberge pas.
 - **BR-18**: L'URL canonique d'attribution est le champ `website` du POI quand les photos proviennent du site officiel.
 - **BR-19**: Le scraper officiel exclut les favicons, logos, placeholders, images de recherche générique et ressources non HTTP(S).
+- **BR-20**: Une URL officielle fournie au lancement d'un run sert uniquement à enrichir le contexte des candidats Google Places ; un échec de scrape ne bloque pas l'acquisition Google Places + Mapbox + Gemini descriptif.
+- **BR-21**: Les randonnées sont exclues de ce pipeline Google Places-first et restent couvertes par `019-trails-acquisition`.
 
 ---
 
@@ -200,7 +207,7 @@ model PoiAcquisitionRun {
   city_id     String
   category_id String
   status      String   @default("running") // running | completed | failed
-  source      String   @default("hybrid") // hybrid | gemini | admin
+  source      String   @default("hybrid") // hybrid | google_places_primary | admin
   started_by  String?
   error       String?
 
@@ -216,7 +223,7 @@ model PoiAcquisitionCandidate {
   run_id      String
   run         PoiAcquisitionRun @relation(fields: [run_id], references: [id])
 
-  source      String   // gemini | google_places | manual | merchant_missing
+  source      String   // google_places | manual | merchant_missing
   name        String
   address     String
   description String?
@@ -278,6 +285,7 @@ Notes :
 - Une tâche de nettoyage supprimera ou vide les payloads Google expirés.
 - `PointOfInterest.google_place_id` sert à éviter les doublons et à réconcilier les données.
 - `PointOfInterest.photos` peut contenir des URLs distantes de site officiel. L'attribution publique utilise `PointOfInterest.website` comme URL canonique.
+- Gemini peut alimenter `description` seulement après construction d'un candidat depuis Google Places, site officiel ou saisie admin.
 
 ---
 
@@ -291,6 +299,17 @@ paths:
       tags: [poi-acquisition]
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [city_id, category_id]
+              properties:
+                city_id: { type: string }
+                category_id: { type: string }
+                source_url: { type: string, format: uri, nullable: true }
     get:
       summary: "Lister les runs d'acquisition"
       tags: [poi-acquisition]
@@ -381,6 +400,9 @@ errors:
 
 - Liste des runs avec City, Category, statut, nombre de candidats, nombre publiés, nombre à revoir.
 - CTA "Lancer acquisition".
+- Le formulaire de lancement affiche une source optionnelle "Site officiel".
+- Si "Site officiel" est coché, une URL officielle devient obligatoire avant soumission.
+- L'URL officielle est transmise au serveur comme `source_url`; elle est scrapée pour enrichir les candidats Google Places et fournir du contexte descriptif sans changer la source géographique Mapbox.
 
 ### `/admin/poi-acquisition/runs/{id}`
 
@@ -420,10 +442,11 @@ errors:
 | ID | Description | Test type |
 |---|---|---|
 | AC-01-01 | Run acquisition créé | integration |
-| AC-01-02 | Candidats Gemini créés | integration |
-| AC-01-03 | Matching Google Places alimente `google_place_id` | integration |
+| AC-01-02 | Candidats Google Places créés | integration |
+| AC-01-03 | Gemini rédige depuis données vérifiées uniquement | integration |
 | AC-01-04 | Géocodage Mapbox candidat | integration |
 | AC-01-05 | Ambigus/doublons restent en review | integration |
+| AC-01-06 | Source site officiel optionnelle au lancement | integration + contract |
 | AC-02-01 | UI admin liste candidats et statuts | integration |
 | AC-02-02 | Publication candidat crée POI | integration |
 | AC-02-03 | Fusion candidat n'ajoute pas de doublon | integration |

@@ -63,18 +63,31 @@ describe('021 public trail detail', () => {
       'href',
       '/guide/saint-gervais-les-bains/rando/mont-joux-crete-mont-darbois/start',
     )
-    expect(screen.getByRole('button', { name: /rejoindre le départ/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /rejoindre le départ/i })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=45.8731%2C6.673',
+    )
     expect(screen.getByText(/StayLocal ne remplace pas une carte officielle/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /réserver/i })).not.toBeInTheDocument()
     expect(screen.queryByText(/^Itinéraire$/i)).not.toBeInTheDocument()
   })
 
-  it('AC-01-05: does not render Google Maps or Apple Maps links for trail actions', () => {
+  it('AC-01-05: uses Google Maps only for Rejoindre le départ and keeps Commencer la rando inside StayLocal', () => {
     render(<PoiDetailBody poi={trailPoi} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
 
-    const html = document.body.innerHTML
-    expect(html).not.toContain('google.com/maps')
-    expect(html).not.toContain('maps.apple.com')
+    expect(screen.getByRole('link', { name: /rejoindre le départ/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining('google.com/maps/dir'),
+    )
+    expect(screen.getByRole('link', { name: /commencer la rando/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/rando/mont-joux-crete-mont-darbois/start',
+    )
+    expect(screen.getByRole('link', { name: /commencer la rando/i })).not.toHaveAttribute(
+      'href',
+      expect.stringContaining('google.com/maps'),
+    )
+    expect(document.body.innerHTML).not.toContain('maps.apple.com')
   })
 
   it('AC-01-04/AC-02-05: hides navigation CTAs when trail start or geometry is missing', () => {

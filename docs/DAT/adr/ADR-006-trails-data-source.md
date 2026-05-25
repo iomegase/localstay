@@ -4,6 +4,8 @@
 
 `accepted`
 
+> Note 2026-05-25 : pour les POI généralistes, la découverte libre par Gemini est remplacée par `ADR-008 — Google Places source primaire d'existence des POI généralistes`. Les randonnées restent traitées par leur pipeline spécialisé.
+
 ---
 
 ## Contexte

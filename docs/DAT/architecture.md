@@ -35,7 +35,8 @@ Elle se compose de trois espaces distincts :
 | UI Components | Shadcn/ui | Composants accessibles, personnalisables, basés Radix |
 | Base de données | Supabase (PostgreSQL) | Auth intégrée, Realtime, Storage, hosted |
 | ORM | Prisma | Type-safe, migrations, schéma versioning |
-| IA | Google Gemini API | Qualité de structuration des données locales |
+| IA | Google Gemini API | Rédaction et reformulation éditoriale depuis sources vérifiées |
+| Données POI | Google Places API | Source primaire d'existence des POI généralistes |
 | Cartographie | Mapbox GL JS | 50k loads/mois gratuits, qualité rendu mobile |
 | Paiements | Stripe + Stripe Connect | Gestion acomptes, abonnements, marketplace |
 | Déploiement | Vercel | Intégration native Next.js, edge functions |
@@ -54,7 +55,7 @@ Elle se compose de trois espaces distincts :
 Tourist scanne QR → /guide/[city-slug]
   → GET /api/cities/[slug]           → Supabase: City
   → GET /api/cities/[slug]/categories → Supabase: Category + count POI
-  → (si cache expiré) Gemini Fetch   → Gemini API → Supabase: POI
+  → (MVP2 admin) POI Acquisition     → Google Places + Mapbox + validation admin
   → GET /api/.../pois                → Supabase: PointOfInterest[]
   → GET /api/.../pois/[slug]         → Supabase: PointOfInterest + HikingDetail
 ```
@@ -89,7 +90,7 @@ Request → Check GeminiCache (expires_at > now)
 - **Mapbox lazy load** — chargé uniquement quand visible (Intersection Observer)
 - **Mapbox Static Images** pour les mini-cartes — pas de Map Load complet
 - **Image optimization** — Next.js Image component avec formats WebP/AVIF
-- **Cache Gemini** — évite les appels API répétés, TTL par catégorie
+- **Cache Gemini** — limité aux flux legacy et aux usages descriptifs ; l'acquisition POI MVP2 passe par validation admin
 
 ## 5.1 UI Contract
 
@@ -120,6 +121,7 @@ Request → Check GeminiCache (expires_at > now)
 | ADR-005 | Stripe Connect pour les commissions | accepted |
 | ADR-006 | Rôle de Gemini API : découverte + descriptif uniquement | accepted |
 | ADR-007 | Scalabilité métier par bounded contexts | accepted |
+| ADR-008 | Google Places source primaire d'existence des POI généralistes | accepted |
 
 Voir `docs/DAT/adr/` pour le détail de chaque décision.
 
@@ -151,6 +153,7 @@ StayLocal doit pouvoir évoluer du guide touristique MVP vers plusieurs vertical
 - Ne pas créer de modèle abstrait de type `ReservableThing` tant qu'au moins deux verticales n'ont pas prouvé le même besoin métier.
 - Ne pas dupliquer une fiche publique restaurant ou randonnée si une extension de `PointOfInterest` suffit.
 - Toute donnée géographique mesurable vient de Mapbox, IGN, Overpass ou source spécialisée ; jamais de Gemini.
+- Pour les POI généralistes, Google Places est la source primaire d'existence ; Gemini ne découvre pas librement des établissements.
 - Toute donnée transactionnelle future utilise PostgreSQL + Prisma avec contraintes, transactions et soft delete.
 - Toute logique de commission, abonnement, annulation ou no-show doit être isolée dans une spec dédiée avant code.
 - Les intégrations externes sont appelées côté serveur, avec cache ou jobs quand la donnée n'a pas besoin d'être temps réel.

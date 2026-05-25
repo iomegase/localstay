@@ -6,6 +6,7 @@ import { messageForPoiAcquisitionCode, PoiAcquisitionError } from './errors'
 export const AcquisitionRunCreateSchema = z.object({
   city_id: z.string().min(1),
   category_id: z.string().min(1),
+  source_url: z.string().url().nullable().optional(),
 })
 
 export const ReviewPublishSchema = z.object({

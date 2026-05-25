@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import AdminPathLayout from '@/app/admin/layout'
 import AdminPoisPage from '@/app/admin/pois/page'
@@ -32,7 +32,21 @@ function options() {
         id: 'cat-1',
         name: 'Culture',
         slug: 'culture',
-        subcategories: [{ id: 'sub-1', name: 'Musées', slug: 'musees' }],
+        subcategories: [
+          { id: 'sub-0', name: 'Patrimoine', slug: 'patrimoine' },
+          { id: 'sub-1', name: 'Musées', slug: 'musees' },
+          { id: 'sub-2', name: 'Monuments', slug: 'monuments' },
+        ],
+      },
+      {
+        id: 'cat-2',
+        name: 'Dîner',
+        slug: 'diner',
+        subcategories: [
+          { id: 'sub-3', name: 'Restaurants', slug: 'restaurants' },
+          { id: 'sub-4', name: 'Gastronomie locale', slug: 'gastronomie-locale' },
+          { id: 'sub-5', name: 'Ouvert maintenant', slug: 'ouvert-maintenant' },
+        ],
       },
     ],
   }
@@ -95,8 +109,8 @@ describe('022 admin POI pages', () => {
       description: 'Exposition locale',
       phone: '+33 4 50 00 00 00',
       website: 'https://www.saintgervais.com/pile-pont-expo',
-      photos: ['https://example.com/photo.jpg'],
-      tags: ['culture'],
+      photos: ['https://example.com/photo.jpg', 'https://example.com/photo-2.jpg'],
+      tags: ['culture', 'exposition'],
       latitude: 45.89,
       longitude: 6.71,
       geocode_status: 'success',
@@ -159,9 +173,31 @@ describe('022 admin POI pages', () => {
 
     expect(screen.getByDisplayValue('Le Pile Pont Expo')).toBeInTheDocument()
     expect(screen.getByDisplayValue('le-pile-pont-expo')).toHaveAttribute('readOnly')
+    expect(selectOptions('Sous-catégorie')).toEqual(['Aucune', 'Patrimoine', 'Musées', 'Monuments'])
+    expect(selectOptions('Sous-catégorie')).not.toContain('Restaurants')
+    fireEvent.change(screen.getByLabelText('Catégorie'), { target: { value: 'cat-2' } })
+    expect(selectOptions('Sous-catégorie')).toEqual(['Aucune', 'Restaurants', 'Gastronomie locale', 'Ouvert maintenant'])
     expect(screen.getByText(/Données parcours verrouillées ici/i)).toBeInTheDocument()
     expect(screen.getByText('Merchant lié')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Recalculer coordonnées/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tags du POI' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Tags du POI, un par ligne')).toHaveValue('culture\nexposition')
+    expect(screen.getByRole('heading', { name: 'Photos' })).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: /Photos du POI/i })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Photo 1' })).toHaveAttribute('src', 'https://example.com/photo.jpg')
+    expect(screen.getByText('Photo 1')).toBeInTheDocument()
+    expect(screen.getByText('Hero actuelle')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Définir Photo 2 comme hero/i }))
+    expect(screen.getByRole('img', { name: 'Photo 1' })).toHaveAttribute('src', 'https://example.com/photo-2.jpg')
+    expect(screen.getByRole('button', { name: /Effacer Photo 1/i })).toBeInTheDocument()
+    expect(screen.queryByText('https://example.com/photo.jpg')).not.toBeInTheDocument()
+    expect(screen.queryByText('Photos et tags')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Désactiver/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Archiver/i })).toBeInTheDocument()
   })
 })
+
+function selectOptions(label: string): string[] {
+  const select = screen.getByLabelText(label) as HTMLSelectElement
+  return Array.from(select.options).map(option => option.textContent ?? '')
+}

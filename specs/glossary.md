@@ -72,7 +72,10 @@ Offre tarifaire (free, basic, pro, concierge pour hébergeurs ; free, verified, 
 ## Termes techniques
 
 ### Gemini Fetch
-Action de récupérer et structurer les POI d'une City + Category via Gemini API. Résultat mis en cache selon Cache TTL.
+Flux legacy ou descriptif utilisant Gemini API. En MVP2, Gemini ne découvre plus librement les POI généralistes : il rédige ou reformule une description depuis des données déjà vérifiées.
+
+### Google Places Primary Acquisition
+Mode d'acquisition des POI généralistes où Google Places fournit les candidats d'existence, Mapbox confirme les coordonnées, le site officiel enrichit le contenu et le Super-admin valide avant publication.
 
 ### Cache TTL
 Durée de validité d'un résultat Gemini en base. Passé ce délai, un nouveau Gemini Fetch est déclenché.

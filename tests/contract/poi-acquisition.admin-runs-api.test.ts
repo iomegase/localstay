@@ -41,6 +41,26 @@ describe('018 admin acquisition runs API', () => {
     expect(mockCreateAcquisitionRun).toHaveBeenCalledWith({ city_id: 'city-1', category_id: 'cat-1' }, 'admin-1')
   })
 
+  it('AC-01-06: accepts an official website source URL for the acquisition run', async () => {
+    mockCreateAcquisitionRun.mockResolvedValue({ id: 'run-1', status: 'running' })
+
+    const res = await POST(request({
+      city_id: 'city-1',
+      category_id: 'cat-1',
+      source_url: 'https://www.saintgervais.com/je-minspire/vie-culturelle/',
+    }))
+
+    expect(res.status).toBe(201)
+    expect(mockCreateAcquisitionRun).toHaveBeenCalledWith(
+      {
+        city_id: 'city-1',
+        category_id: 'cat-1',
+        source_url: 'https://www.saintgervais.com/je-minspire/vie-culturelle/',
+      },
+      'admin-1',
+    )
+  })
+
   it('AC-01-02/01-03/01-04/01-05: returns run candidates with acquisition statuses', async () => {
     mockGetAcquisitionRun.mockResolvedValue({
       id: 'run-1',
@@ -48,7 +68,7 @@ describe('018 admin acquisition runs API', () => {
       candidates: [
         {
           id: 'cand-1',
-          source: 'gemini',
+          source: 'google_places',
           google_place_id: 'place-1',
           match_status: 'matched',
           geocode_status: 'success',
@@ -64,7 +84,7 @@ describe('018 admin acquisition runs API', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
       data: expect.objectContaining({
-        candidates: [expect.objectContaining({ source: 'gemini', match_status: 'matched' })],
+        candidates: [expect.objectContaining({ source: 'google_places', match_status: 'matched' })],
       }),
     })
   })

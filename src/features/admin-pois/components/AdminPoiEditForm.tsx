@@ -14,7 +14,14 @@ type Props = {
 
 export function AdminPoiEditForm({ poi, categories }: Props) {
   const [message, setMessage] = useState<string | null>(null)
+  const [photos, setPhotos] = useState<string[]>(poi.photos)
+  const [newPhotoUrl, setNewPhotoUrl] = useState('')
+  const [forceGeocode, setForceGeocode] = useState(false)
+  const [selectedCategoryId, setSelectedCategoryId] = useState(poi.category.id)
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState(poi.subcategory?.id ?? '')
   const [isPending, startTransition] = useTransition()
+  const selectedCategory = categories.find(category => category.id === selectedCategoryId)
+  const subcategories = selectedCategory?.subcategories ?? []
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -29,8 +36,9 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       category_id: String(formData.get('category_id') ?? ''),
       subcategory_id: nullableString(formData.get('subcategory_id')),
       tags: splitLines(String(formData.get('tags') ?? '')),
-      photos: splitLines(String(formData.get('photos') ?? '')),
+      photos,
       is_active: formData.get('is_active') === 'true',
+      force_geocode: forceGeocode,
     }
 
     startTransition(async () => {
@@ -44,6 +52,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         setMessage(json?.error?.message ?? 'Enregistrement impossible')
         return
       }
+      setForceGeocode(false)
       setMessage('POI enregistré')
     })
   }
@@ -83,7 +92,11 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             <select
               id="category_id"
               name="category_id"
-              defaultValue={poi.category.id}
+              value={selectedCategoryId}
+              onChange={event => {
+                setSelectedCategoryId(event.target.value)
+                setSelectedSubcategoryId('')
+              }}
               className="h-10 rounded-md bg-white px-3 text-sm text-slate-950"
             >
               {categories.map(category => (
@@ -95,11 +108,12 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             <select
               id="subcategory_id"
               name="subcategory_id"
-              defaultValue={poi.subcategory?.id ?? ''}
+              value={selectedSubcategoryId}
+              onChange={event => setSelectedSubcategoryId(event.target.value)}
               className="h-10 rounded-md bg-white px-3 text-sm text-slate-950"
             >
               <option value="">Aucune</option>
-              {categories.flatMap(category => category.subcategories ?? []).map(subcategory => (
+              {subcategories.map(subcategory => (
                 <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>
               ))}
             </select>
@@ -120,20 +134,126 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             </select>
           </Field>
           <div className="rounded-xl bg-black/20 p-3 text-sm text-slate-300">
-            Géocodage : {poi.geocode_status} · {poi.latitude.toFixed(5)}, {poi.longitude.toFixed(5)}
+            <p>Géocodage : {poi.geocode_status} · {poi.latitude.toFixed(5)}, {poi.longitude.toFixed(5)}</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => {
+                setForceGeocode(true)
+                setMessage('Recalcul coordonnées activé. Cliquez sur Enregistrer.')
+              }}
+            >
+              Recalculer coordonnées
+            </Button>
+            {forceGeocode && (
+              <p className="mt-2 text-xs text-amber-200">
+                Le prochain enregistrement relancera Mapbox même si l'adresse est inchangée.
+              </p>
+            )}
           </div>
         </div>
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="text-lg font-semibold text-white">Photos et tags</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <Field label="Photos distantes, une URL par ligne" htmlFor="photos">
-            <Textarea id="photos" name="photos" defaultValue={poi.photos.join('\n')} className="min-h-40 bg-white text-slate-950" />
+        <h2 className="text-lg font-semibold text-white">Tags du POI</h2>
+        <div className="mt-4 max-w-3xl">
+          <Field label="Tags du POI, un par ligne" htmlFor="tags">
+            <Textarea
+              id="tags"
+              name="tags"
+              defaultValue={poi.tags.join('\n')}
+              className="min-h-32 bg-white text-slate-950"
+            />
           </Field>
-          <Field label="Tags, un par ligne" htmlFor="tags">
-            <Textarea id="tags" name="tags" defaultValue={poi.tags.join('\n')} className="min-h-40 bg-white text-slate-950" />
-          </Field>
+          <p className="mt-2 text-xs text-slate-400">
+            Tags globaux de la fiche POI. Ils ne sont pas liés aux photos.
+          </p>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <h2 className="text-lg font-semibold text-white">Photos</h2>
+        <div className="mt-4 max-w-5xl">
+          <div>
+            <Label htmlFor="new_photo_url" className="text-slate-200">Ajouter une photo distante</Label>
+            <div className="mt-2 flex gap-2">
+              <Input
+                id="new_photo_url"
+                value={newPhotoUrl}
+                onChange={event => setNewPhotoUrl(event.target.value)}
+                placeholder="https://example.com/photo.jpg"
+                className="bg-white text-slate-950"
+              />
+              <Button type="button" variant="outline" onClick={addPhoto} disabled={photos.length >= 12}>
+                Ajouter
+              </Button>
+            </div>
+            <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
+              <table aria-label="Photos du POI" className="w-full text-sm">
+                <caption className="sr-only">Photos du POI</caption>
+                <thead className="bg-white/10 text-left text-slate-300">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">Vignette</th>
+                    <th className="px-3 py-2 font-medium">Titre</th>
+                    <th className="px-3 py-2 font-medium">Hero</th>
+                    <th className="px-3 py-2 text-right font-medium">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {photos.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-6 text-center text-slate-400">
+                        Aucune photo distante.
+                      </td>
+                    </tr>
+                  ) : (
+                    photos.map((photo, index) => {
+                      const title = `Photo ${index + 1}`
+                      return (
+                        <tr key={`${photo}-${index}`} className="bg-black/10">
+                          <td className="px-3 py-2">
+                            <img src={photo} alt={title} className="h-14 w-20 rounded-lg object-cover" />
+                          </td>
+                          <td className="px-3 py-2 font-medium text-white">{title}</td>
+                          <td className="px-3 py-2">
+                            {index === 0 ? (
+                              <span className="rounded-full bg-amber-300 px-2 py-1 text-xs font-semibold text-slate-950">
+                                Hero actuelle
+                              </span>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                aria-label={`Définir ${title} comme hero`}
+                                onClick={() => setHeroPhoto(index)}
+                              >
+                                Définir comme hero
+                              </Button>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              aria-label={`Effacer ${title}`}
+                              onClick={() => removePhoto(index)}
+                            >
+                              Effacer
+                            </Button>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-xs text-slate-400">{photos.length}/12 photos. Les URLs restent masquées dans l'interface.</p>
+          </div>
         </div>
       </section>
 
@@ -157,6 +277,25 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       </div>
     </form>
   )
+
+  function addPhoto() {
+    const trimmed = newPhotoUrl.trim()
+    if (!trimmed || photos.includes(trimmed) || photos.length >= 12) return
+    setPhotos(current => [...current, trimmed])
+    setNewPhotoUrl('')
+  }
+
+  function removePhoto(index: number) {
+    setPhotos(current => current.filter((_, photoIndex) => photoIndex !== index))
+  }
+
+  function setHeroPhoto(index: number) {
+    setPhotos(current => {
+      const selected = current[index]
+      if (!selected) return current
+      return [selected, ...current.filter((_, photoIndex) => photoIndex !== index)]
+    })
+  }
 }
 
 function Field({

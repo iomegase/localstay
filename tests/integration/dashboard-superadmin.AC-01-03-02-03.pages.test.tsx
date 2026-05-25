@@ -78,6 +78,7 @@ describe('016 superadmin pages', () => {
     expect(screen.getByText('Villes actives')).toBeInTheDocument()
     expect(screen.getByText('Facturation non activée en MVP 2')).toBeInTheDocument()
     expect(screen.getByText('Bistrot')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Gérer les POI par ville/i })).toHaveAttribute('href', '/admin/pois')
   })
 
   it('AC-04-01/04-02/04-03: renders consultative cities with public guide link', async () => {

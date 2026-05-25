@@ -6,12 +6,14 @@ interface Props {
   website: string | null
   latitude: number
   longitude: number
+  address: string
   poiName: string
   poiUrl: string
 }
 
-export function ActionButtons({ phone, website, latitude, longitude, poiName, poiUrl }: Props) {
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
+export function ActionButtons({ phone, website, latitude, longitude, address, poiName, poiUrl }: Props) {
+  const destination = address.trim() || `${latitude},${longitude}`
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
   const telHref = phone ? `tel:${phone.replace(/\s/g, '')}` : null
 
   async function handleShare() {
@@ -76,4 +78,8 @@ export function ActionButtons({ phone, website, latitude, longitude, poiName, po
       </button>
     </div>
   )
+}
+
+function encodeMapsDestination(value: string): string {
+  return encodeURIComponent(value).replace(/'/g, '%27')
 }

@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 
 jest.mock('react-map-gl/mapbox', () => ({
@@ -41,7 +42,25 @@ describe('021 trail navigation start mode', () => {
     jest.restoreAllMocks()
   })
 
-  it('AC-02-03/AC-03-01/AC-04-04: renders outdoor trail map and stops watchPosition on unmount', async () => {
+  it('AC-02-03/AC-04-01: renders ready mode without starting GPS tracking automatically', () => {
+    const clearWatch = jest.fn()
+    const watchPosition = jest.fn()
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+
+    expect(screen.getByTestId('mapbox-outdoors')).toBeInTheDocument()
+    expect(screen.getByTestId('map-layer-trail-line')).toBeInTheDocument()
+    expect(screen.getByText(/Départ Mont Joux/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /activer le suivi gps/i })).toBeInTheDocument()
+    expect(screen.getByText(/Prêt/i)).toBeInTheDocument()
+    expect(watchPosition).not.toHaveBeenCalled()
+  })
+
+  it('AC-02-06/AC-03-01/AC-04-04: starts watchPosition after explicit activation and clears it on unmount', async () => {
     const clearWatch = jest.fn()
     const watchPosition = jest.fn((success: PositionCallback) => {
       success({
@@ -65,9 +84,10 @@ describe('021 trail navigation start mode', () => {
 
     const { unmount } = render(<TrailNavigationMap trail={trail} />)
 
-    expect(screen.getByTestId('mapbox-outdoors')).toBeInTheDocument()
-    expect(screen.getByTestId('map-layer-trail-line')).toBeInTheDocument()
-    expect(screen.getByText(/Départ Mont Joux/)).toBeInTheDocument()
+    expect(watchPosition).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+
+    await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(screen.getByText(/GPS actif/i)).toBeInTheDocument())
 
     unmount()
@@ -86,8 +106,37 @@ describe('021 trail navigation start mode', () => {
     })
 
     render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
     expect(screen.getByTestId('map-layer-trail-line')).toBeInTheDocument()
     expect(await screen.findByText(/GPS indisponible/i)).toBeInTheDocument()
+  })
+
+  it('AC-03-03: shows pre-start state instead of off-track when first GPS position is far from the trail', async () => {
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      success({
+        coords: {
+          latitude: 45.93,
+          longitude: 6.76,
+          accuracy: 8,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+        timestamp: 1,
+      } satisfies GeolocationPosition)
+      return 99
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+
+    expect(await screen.findByText(/Vous n'êtes pas encore au départ/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Vous semblez vous éloigner du tracé/i)).not.toBeInTheDocument()
   })
 })

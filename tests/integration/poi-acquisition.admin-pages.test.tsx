@@ -1,12 +1,13 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import AdminPathLayout from '@/app/admin/layout'
 import AdminPoiAcquisitionPage from '@/app/admin/poi-acquisition/page'
 import AdminPoiAcquisitionRunPage from '@/app/admin/poi-acquisition/runs/[id]/page'
 import AdminNewPoiPage from '@/app/admin/pois/new/page'
+import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
 
 jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
@@ -78,6 +79,24 @@ describe('018 admin acquisition pages', () => {
     expect(screen.getAllByText('Saint-Gervais')[0]).toBeInTheDocument()
     expect(screen.getByText('3 candidats')).toBeInTheDocument()
     expect(screen.getByText('Gemini API timeout')).toBeInTheDocument()
+  })
+
+  it('AC-01-06: renders official website source checkbox and requires an URL when selected', () => {
+    render(
+      <AdminAcquisitionLauncher
+        cities={[{ id: 'city-1', name: 'Saint-Gervais-les-Bains' }]}
+        categories={[{ id: 'cat-1', name: 'Culture' }]}
+      />,
+    )
+
+    expect(screen.queryByLabelText(/URL officielle/i)).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /Site officiel/i }))
+    expect(screen.getByLabelText(/URL officielle/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Lancer acquisition/i }))
+
+    expect(screen.getByText(/Renseignez une URL officielle/i)).toBeInTheDocument()
   })
 
   it('AC-02-01/05-03: renders candidate review statuses and Google attribution', async () => {

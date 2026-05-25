@@ -2,8 +2,8 @@
   "crons": [
     {
       "path": "/api/internal/geocode-pois",
-      "schedule": "0 * * * *",
-      "description": "Géocodage Mapbox des POI en attente — toutes les heures"
+      "schedule": "0 4 * * *",
+      "description": "Géocodage Mapbox des POI en attente — tous les jours à 4h"
     },
     {
       "path": "/api/internal/check-subscriptions",
