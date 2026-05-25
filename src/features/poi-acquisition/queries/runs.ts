@@ -17,6 +17,7 @@ type RunCreateInput = {
 type RunRow = {
   id: string
   status: string
+  error: string | null
   created_at: Date
   city: { name: string }
   category: { name: string }
@@ -137,6 +138,7 @@ export async function listAcquisitionRuns(): Promise<AcquisitionRunListItem[]> {
     select: {
       id: true,
       status: true,
+      error: true,
       created_at: true,
       city: { select: { name: true } },
       category: { select: { name: true } },
@@ -151,6 +153,7 @@ export async function listAcquisitionRuns(): Promise<AcquisitionRunListItem[]> {
   return (runs as RunRow[]).map(run => ({
     id: run.id,
     status: run.status,
+    error: run.error,
     city_name: run.city.name,
     category_name: run.category.name,
     candidate_count: run.candidates.length,
@@ -166,6 +169,7 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
     select: {
       id: true,
       status: true,
+      error: true,
       city: { select: { name: true } },
       category: { select: { name: true } },
       candidates: {
@@ -192,6 +196,7 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
   return {
     id: run.id,
     status: run.status,
+    error: run.error,
     city_name: run.city.name,
     category_name: run.category.name,
     candidates: (run.candidates as CandidateRow[]).map(mapCandidate),

@@ -6,14 +6,22 @@ const mockFindFirstProfile = jest.fn()
 const mockUpdatePoi = jest.fn()
 const mockFindFirstPoi = jest.fn()
 const mockUpload = jest.fn()
+const mockGetPublicUrl = jest.fn()
 
 jest.mock('@/shared/lib/supabase', () => ({
   createSupabaseRouteClient: jest.fn(async function() {
     return {
       auth: { getUser: function() { return mockGetUser.apply(this, arguments as any) } },
+    }
+  }),
+  createSupabaseServer: jest.fn(function() {
+    return {
       storage: {
         from: function() {
-          return { upload: function() { return mockUpload.apply(this, arguments as any) } }
+          return {
+            upload: function() { return mockUpload.apply(this, arguments as any) },
+            getPublicUrl: function() { return mockGetPublicUrl.apply(this, arguments as any) },
+          }
         },
       },
     }
@@ -76,6 +84,11 @@ describe('015 merchant profile and photos API', () => {
     mockFindUser.mockResolvedValue(merchant)
     mockFindFirstProfile.mockResolvedValue(activeProfile)
     mockFindFirstPoi.mockResolvedValue(activeProfile.poi)
+    mockGetPublicUrl.mockReturnValue({
+      data: {
+        publicUrl: 'https://storage.supabase.co/storage/v1/object/public/merchant-poi-photos/merchant-1/poi-1/photo.webp',
+      },
+    })
   })
 
   it('AC-01-01: returns the active merchant profile and public URL', async () => {
@@ -113,6 +126,28 @@ describe('015 merchant profile and photos API', () => {
     })
   })
 
+  it('AC-01-01: accepts a phone number and normalizes website without protocol', async () => {
+    mockUpdatePoi.mockResolvedValue({
+      ...activeProfile.poi,
+      phone: '+33 4 50 78 00 00',
+      website: 'https://latablealpine.fr',
+    })
+
+    const res = await profilePATCH(jsonRequest('http://localhost/api/merchant/profile', 'PATCH', {
+      phone: ' +33 4 50 78 00 00 ',
+      website: 'latablealpine.fr',
+    }))
+
+    expect(res.status).toBe(200)
+    expect(mockUpdatePoi).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'poi-1' },
+      data: expect.objectContaining({
+        phone: '+33 4 50 78 00 00',
+        website: 'https://latablealpine.fr',
+      }),
+    }))
+  })
+
   it('AC-01-04: rejects non-editable POI fields', async () => {
     const res = await profilePATCH(jsonRequest('http://localhost/api/merchant/profile', 'PATCH', {
       address: 'Nouvelle adresse interdite',
@@ -137,7 +172,13 @@ describe('015 merchant profile and photos API', () => {
   it('AC-01-02: uploads a valid photo and appends its public URL to POI photos', async () => {
     mockFindFirstPoi.mockResolvedValue(activeProfile.poi)
     mockUpload.mockResolvedValue({ data: { path: 'merchant-1/poi-1/photo.webp' }, error: null })
-    mockUpdatePoi.mockResolvedValue({ ...activeProfile.poi, photos: [...activeProfile.poi.photos, '/storage/v1/object/public/merchant-poi-photos/merchant-1/poi-1/photo.webp'] })
+    mockUpdatePoi.mockResolvedValue({
+      ...activeProfile.poi,
+      photos: [
+        ...activeProfile.poi.photos,
+        'https://storage.supabase.co/storage/v1/object/public/merchant-poi-photos/merchant-1/poi-1/photo.webp',
+      ],
+    })
 
     const res = await photosPOST(formRequest(new File(['img'], 'photo.webp', { type: 'image/webp' })))
 
@@ -145,9 +186,14 @@ describe('015 merchant profile and photos API', () => {
     const json = await res.json()
     expect(json.data.photos).toHaveLength(2)
     expect(mockUpload).toHaveBeenCalled()
+    expect(mockGetPublicUrl).toHaveBeenCalledWith('merchant-1/poi-1/photo.webp')
     expect(mockUpdatePoi).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'poi-1' },
-      data: expect.objectContaining({ photos: expect.arrayContaining(['/storage/v1/object/public/merchant-poi-photos/merchant-1/poi-1/photo.webp']) }),
+      data: expect.objectContaining({
+        photos: expect.arrayContaining([
+          'https://storage.supabase.co/storage/v1/object/public/merchant-poi-photos/merchant-1/poi-1/photo.webp',
+        ]),
+      }),
     }))
   })
 })

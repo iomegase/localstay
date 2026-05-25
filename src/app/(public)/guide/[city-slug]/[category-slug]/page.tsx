@@ -12,6 +12,8 @@ interface Props {
 }
 
 async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {
+  if (process.env.LEGACY_PUBLIC_GEMINI_FETCH_ENABLED !== 'true') return
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
   const secret = process.env.INTERNAL_API_SECRET
   if (!secret) return

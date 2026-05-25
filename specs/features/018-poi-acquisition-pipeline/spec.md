@@ -117,6 +117,19 @@ Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validat
 - **AC-05-03**: Given une UI admin affichant des données Google, When elles sont visibles, Then l'attribution requise par Google est affichée.
 - **AC-05-04**: Given un POI public StayLocal, When il est affiché aux Tourists, Then il affiche les données StayLocal validées, pas une copie brute d'une Google card.
 
+### US-06 — Enrichissement photo depuis site officiel
+
+**As an** Admin
+**I want to** enrichir une fiche POI depuis son site officiel
+**So that** les fiches publiques affichent plus de photos sans copier de Google card
+
+#### Acceptance Criteria
+
+- **AC-06-01**: Given une URL officielle de POI, When la page expose des images via JSON-LD, OpenGraph, `window.globals`, `img`, `srcset` ou `data-src`, Then le pipeline extrait des URLs image distantes, les normalise et les déduplique.
+- **AC-06-02**: Given des images extraites d'un site officiel, When un candidat est publié ou un POI est créé manuellement, Then `PointOfInterest.photos` stocke jusqu'à 12 URLs distantes sans téléchargement ni re-hébergement.
+- **AC-06-03**: Given une fiche publique avec photos enrichies depuis un site officiel, When le Tourist consulte le détail, Then la fiche affiche une attribution photo pointant vers l'URL canonique du site.
+- **AC-06-04**: Given une page officielle inaccessible ou sans image exploitable, When l'enrichissement échoue, Then la création ou publication du POI continue avec `photos = []` sans bloquer le workflow admin.
+
 ---
 
 ## Business Rules
@@ -137,6 +150,9 @@ Cette spec ne remplace pas `007-gemini-fetch`. Elle ajoute une étape de validat
 - **BR-14**: Toutes les suppressions utilisent `deleted_at`; les candidats rejetés sont conservés pour audit.
 - **BR-15**: Les routes internes d'acquisition ne sont jamais appelées depuis le client public.
 - **BR-16**: Les coûts API doivent être maîtrisés par déduplication, cache de run et rate limiting.
+- **BR-17**: Les photos issues d'un site officiel sont stockées comme URLs distantes uniquement ; StayLocal ne les télécharge pas et ne les re-héberge pas.
+- **BR-18**: L'URL canonique d'attribution est le champ `website` du POI quand les photos proviennent du site officiel.
+- **BR-19**: Le scraper officiel exclut les favicons, logos, placeholders, images de recherche générique et ressources non HTTP(S).
 
 ---
 
@@ -261,6 +277,7 @@ Notes :
 - `google_review_payload` est temporaire et ne doit pas alimenter directement le contenu public.
 - Une tâche de nettoyage supprimera ou vide les payloads Google expirés.
 - `PointOfInterest.google_place_id` sert à éviter les doublons et à réconcilier les données.
+- `PointOfInterest.photos` peut contenir des URLs distantes de site officiel. L'attribution publique utilise `PointOfInterest.website` comme URL canonique.
 
 ---
 
@@ -384,12 +401,17 @@ errors:
 - Preview Mapbox du résultat géocodé.
 - Alerte doublons probables avant création.
 - Confirmation explicite si l'Admin veut créer malgré un doublon probable.
+- Si `website` est renseigné, le serveur tente un enrichissement photo non bloquant depuis cette URL.
 
 ### `/merchant/onboarding`
 
 - Après une recherche sans résultat satisfaisant, afficher "Mon établissement n'apparaît pas".
 - Formulaire POI manquant : nom, adresse, téléphone, site web.
 - Écran d'attente après soumission.
+
+### Fiche publique POI
+
+- Si `photos` contient au moins une image et `website` est renseigné, afficher une attribution courte "Photos : <host>" liée à l'URL canonique.
 
 ---
 
@@ -422,6 +444,10 @@ errors:
 | AC-05-02 | Payload Google temporaire expire | integration |
 | AC-05-03 | Attribution Google en UI admin | unit |
 | AC-05-04 | Public affiche données StayLocal validées | integration |
+| AC-06-01 | Extraction images site officiel normalisée | unit |
+| AC-06-02 | Publication/création conserve URLs distantes sans re-hosting | integration |
+| AC-06-03 | Attribution photo affichée sur fiche publique | integration |
+| AC-06-04 | Enrichissement officiel non bloquant | unit |
 
 ---
 
@@ -430,6 +456,7 @@ errors:
 - Import massif non supervisé depuis Google Places.
 - Copie permanente de Google cards comme contenu public.
 - Achat ou gestion de licence de données tierces.
+- Téléchargement, transformation persistante ou re-hébergement des photos officielles.
 - Randonnées GPX / dénivelé : source spécialisée Overpass / IGN dans une spec dédiée.
 - Données temps réel : pharmacies de garde, événements live, disponibilités.
 - Réservations et paiements Merchant.

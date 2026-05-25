@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionMerchant } from '@/features/merchant/lib/session'
 import { apiError, validationError } from '@/features/merchant/lib/responses'
-import { createSupabaseRouteClient } from '@/shared/lib/supabase'
+import { createSupabaseServer } from '@/shared/lib/supabase'
 import {
   appendMerchantPoiPhoto,
   assertMerchantCanAppendPhoto,
@@ -11,10 +11,6 @@ import {
 const BUCKET = 'merchant-poi-photos'
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const MAX_FILE_SIZE = 5 * 1024 * 1024
-
-function publicStorageUrl(path: string): string {
-  return `/storage/v1/object/public/${BUCKET}/${path}`
-}
 
 function extensionFor(file: File): string {
   if (file.type === 'image/jpeg') return 'jpg'
@@ -39,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     await assertMerchantCanAppendPhoto(session.user.id)
 
-    const supabase = await createSupabaseRouteClient()
+    const supabase = createSupabaseServer()
     const timestamp = Date.now()
     const path = `${session.user.id}/${timestamp}.${extensionFor(file)}`
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -47,10 +43,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       .upload(path, file, { contentType: file.type, upsert: false })
 
     if (uploadError) {
+      console.error('[MerchantPhotos] Supabase Storage upload failed', {
+        bucket: BUCKET,
+        statusCode: uploadError.statusCode,
+        message: uploadError.message,
+      })
       return apiError('PHOTO_UPLOAD_FAILED', 'Upload photo impossible', 500)
     }
 
-    const data = await appendMerchantPoiPhoto(session.user.id, publicStorageUrl(uploadData.path))
+    const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(uploadData.path)
+    const data = await appendMerchantPoiPhoto(session.user.id, publicUrlData.publicUrl)
     return NextResponse.json({ data }, { status: 201 })
   } catch (error) {
     if (error instanceof MerchantDashboardError) {

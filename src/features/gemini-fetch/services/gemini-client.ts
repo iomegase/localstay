@@ -9,7 +9,7 @@ const GeminiRawPoiSchema = z.object({
   website: z.string().nullable().default(null),
   description: z.string().default(''),
   subcategory: z.string().nullable().default(null),
-  hours: z.record(z.string()).nullable().default(null),
+  hours: z.record(z.string().nullable()).nullable().default(null),
   tags: z.array(z.string()).default([]),
 })
 

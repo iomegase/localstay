@@ -4,6 +4,10 @@ import { geocodeForAcquisition } from '../lib/geocode'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
 import { PoiAcquisitionError } from '../lib/errors'
 import { createPoiSlug } from '../lib/slug'
+import {
+  fetchOfficialWebsitePhotoEnrichment,
+  mergeOfficialWebsitePhotos,
+} from '../services/official-website-photos'
 import type { ManualPoiCreateSchema } from '../lib/api'
 import type { z } from 'zod'
 
@@ -110,6 +114,8 @@ export async function createManualPoi(input: ManualPoiInput, adminId: string) {
     })
   }
 
+  const officialPhotos = await fetchOfficialWebsitePhotoEnrichment(input.website ?? null)
+
   return prisma.$transaction(async tx => {
     const poi = await tx.pointOfInterest.create({
       data: {
@@ -121,7 +127,7 @@ export async function createManualPoi(input: ManualPoiInput, adminId: string) {
         longitude: geocode.longitude,
         phone: input.phone ?? null,
         website: input.website ?? null,
-        photos: [],
+        photos: mergeOfficialWebsitePhotos([], officialPhotos?.photos ?? []),
         tags: [],
         geocode_status: geocode.status,
         geocoded_at: new Date(),

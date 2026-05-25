@@ -84,6 +84,11 @@ describe('PoiDetailBody — AC-01-01 (all required fields rendered)', () => {
   it('renders Site button (website present)', () => {
     expect(screen.getByTestId('btn-site')).toBeInTheDocument()
   })
+
+  it('renders photo attribution when photos and website are present', () => {
+    expect(screen.getByTestId('photo-attribution')).toHaveTextContent('Photos : bistrot-mont-blanc.fr')
+    expect(screen.getByTestId('photo-attribution')).toHaveAttribute('href', 'https://bistrot-mont-blanc.fr')
+  })
 })
 
 describe('PoiDetailBody — AC-03-01 (hiking block conditional)', () => {

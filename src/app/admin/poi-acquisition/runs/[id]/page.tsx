@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Badge } from '@/shared/components/ui/badge'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAcquisitionRun } from '@/features/poi-acquisition/queries/runs'
+import { AdminCandidateReviewActions } from '@/features/poi-acquisition/components/AdminCandidateReviewActions'
 
 export default async function AdminPoiAcquisitionRunPage({
   params,
@@ -22,9 +23,21 @@ export default async function AdminPoiAcquisitionRunPage({
           {run.city_name} · {run.category_name}
         </h1>
         <p className="mt-2 text-sm text-slate-400">Statut du run: {run.status}</p>
+        {run.error && (
+          <p className="mt-3 max-w-2xl rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            {run.error}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4">
+        {run.candidates.length === 0 && (
+          <Card className="border-white/10 bg-white/5 text-slate-100">
+            <CardContent className="p-6 text-sm text-slate-400">
+              Aucun candidat dans ce run. Vérifiez le statut du run, la configuration Gemini et la catégorie choisie.
+            </CardContent>
+          </Card>
+        )}
         {run.candidates.map(candidate => (
           <Card key={candidate.id} className="border-white/10 bg-white/5 text-slate-100">
             <CardHeader>
@@ -57,6 +70,11 @@ export default async function AdminPoiAcquisitionRunPage({
               {candidate.duplicate_poi_ids.length > 0 && (
                 <p>Doublons probables: {candidate.duplicate_poi_ids.join(', ')}</p>
               )}
+              <AdminCandidateReviewActions
+                candidateId={candidate.id}
+                reviewStatus={candidate.review_status}
+                duplicatePoiIds={candidate.duplicate_poi_ids}
+              />
             </CardContent>
           </Card>
         ))}

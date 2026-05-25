@@ -45,6 +45,11 @@ type CategoryRow = {
 
 type AuditPayload = Prisma.InputJsonObject
 
+type TaxonomyLockMaps = {
+  categoryLocks: Set<string>
+  subCategoryLocks: Set<string>
+}
+
 export async function getCategorySlugLock(category: CategoryLockInput): Promise<boolean> {
   const [
     activePoiCount,
@@ -110,7 +115,10 @@ export async function getAdminTaxonomy(): Promise<AdminCategory[]> {
     },
   })
 
-  return Promise.all((categories as CategoryRow[]).map(mapCategory))
+  const rows = categories as CategoryRow[]
+  const locks = await getTaxonomyLockMaps(rows)
+
+  return rows.map(category => mapCategory(category, locks))
 }
 
 export async function createCategory(input: CategoryCreateInput, adminId: string): Promise<AdminCategory> {
@@ -362,11 +370,12 @@ async function getCategoryById(id: string): Promise<AdminCategory> {
   })
 
   if (!category) throw new ApiTaxonomyError('NOT_FOUND', 404)
-  return mapCategory(category as CategoryRow)
+  const row = category as CategoryRow
+  return mapCategory(row, await getTaxonomyLockMaps([row]))
 }
 
-async function mapCategory(category: CategoryRow): Promise<AdminCategory> {
-  const subcategories = await Promise.all(category.subcategories.map(mapSubCategory))
+function mapCategory(category: CategoryRow, locks: TaxonomyLockMaps): AdminCategory {
+  const subcategories = category.subcategories.map(subcategory => mapSubCategory(subcategory, locks))
   return {
     id: category.id,
     name: category.name,
@@ -374,14 +383,17 @@ async function mapCategory(category: CategoryRow): Promise<AdminCategory> {
     icon: category.icon,
     sort_order: category.sort_order,
     is_active: category.is_active,
-    slug_locked: await getCategorySlugLock({ id: category.id, slug: category.slug }),
+    slug_locked: locks.categoryLocks.has(category.id),
     poi_count: category._count.pois,
     subcategory_count: subcategories.length,
     subcategories,
   }
 }
 
-async function mapSubCategory(subcategory: CategoryRow['subcategories'][number]): Promise<AdminSubCategory> {
+function mapSubCategory(
+  subcategory: CategoryRow['subcategories'][number],
+  locks: TaxonomyLockMaps,
+): AdminSubCategory {
   return {
     id: subcategory.id,
     category_id: subcategory.category_id,
@@ -389,9 +401,94 @@ async function mapSubCategory(subcategory: CategoryRow['subcategories'][number])
     slug: subcategory.slug,
     sort_order: subcategory.sort_order,
     is_active: subcategory.is_active,
-    slug_locked: await getSubCategorySlugLock(subcategory.id),
+    slug_locked: locks.subCategoryLocks.has(subcategory.id),
     poi_count: subcategory._count.pois,
   }
+}
+
+async function getTaxonomyLockMaps(categories: CategoryRow[]): Promise<TaxonomyLockMaps> {
+  const categoryIds = categories.map(category => category.id)
+  const categorySlugs = categories.map(category => category.slug)
+  const subCategoryIds = categories.flatMap(category => category.subcategories.map(subcategory => subcategory.id))
+
+  if (categoryIds.length === 0 && subCategoryIds.length === 0) {
+    return { categoryLocks: new Set(), subCategoryLocks: new Set() }
+  }
+
+  const [
+    activePoiByCategory,
+    activePoiBySubCategory,
+    geminiCacheByCategory,
+    cacheConfigs,
+    customizations,
+    analyticsByCategory,
+  ] = await Promise.all([
+    categoryIds.length > 0
+      ? prisma.pointOfInterest.groupBy({
+          by: ['category_id'],
+          where: { category_id: { in: categoryIds }, is_active: true, deleted_at: null },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+    subCategoryIds.length > 0
+      ? prisma.pointOfInterest.groupBy({
+          by: ['subcategory_id'],
+          where: { subcategory_id: { in: subCategoryIds }, is_active: true, deleted_at: null },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+    categoryIds.length > 0
+      ? prisma.geminiCache.groupBy({
+          by: ['category_id'],
+          where: { category_id: { in: categoryIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+    categorySlugs.length > 0
+      ? prisma.cacheTtlConfig.findMany({
+          where: { category_slug: { in: categorySlugs } },
+          select: { category_slug: true },
+        })
+      : Promise.resolve([]),
+    categorySlugs.length > 0
+      ? prisma.lodgingCustomization.findMany({
+          where: { deleted_at: null, category_order: { hasSome: categorySlugs } },
+          select: { category_order: true },
+        })
+      : Promise.resolve([]),
+    categoryIds.length > 0
+      ? prisma.analytics.groupBy({
+          by: ['category_id'],
+          where: { category_id: { in: categoryIds } },
+          _count: { _all: true },
+        })
+      : Promise.resolve([]),
+  ])
+
+  const categoryLocks = new Set<string>()
+  const subCategoryLocks = new Set<string>()
+  const slugToId = new Map(categories.map(category => [category.slug, category.id]))
+
+  for (const row of activePoiByCategory) categoryLocks.add(row.category_id)
+  for (const row of geminiCacheByCategory) categoryLocks.add(row.category_id)
+  for (const row of analyticsByCategory) {
+    if (row.category_id) categoryLocks.add(row.category_id)
+  }
+  for (const row of cacheConfigs) {
+    const categoryId = slugToId.get(row.category_slug)
+    if (categoryId) categoryLocks.add(categoryId)
+  }
+  for (const customization of customizations) {
+    for (const slug of customization.category_order) {
+      const categoryId = slugToId.get(slug)
+      if (categoryId) categoryLocks.add(categoryId)
+    }
+  }
+  for (const row of activePoiBySubCategory) {
+    if (row.subcategory_id) subCategoryLocks.add(row.subcategory_id)
+  }
+
+  return { categoryLocks, subCategoryLocks }
 }
 
 async function assertCategorySlugAvailable(slug: string, ignoreId?: string): Promise<void> {

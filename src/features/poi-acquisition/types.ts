@@ -31,6 +31,7 @@ export type DuplicatePoi = DuplicateCandidateInput & {
 export type AcquisitionRunListItem = {
   id: string
   status: string
+  error: string | null
   city_name: string
   category_name: string
   candidate_count: number
@@ -55,6 +56,7 @@ export type AcquisitionCandidateDto = {
 export type AcquisitionRunDetail = {
   id: string
   status: string
+  error: string | null
   city_name: string
   category_name: string
   candidates: AcquisitionCandidateDto[]

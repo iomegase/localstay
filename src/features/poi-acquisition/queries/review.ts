@@ -2,6 +2,10 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { PoiAcquisitionError } from '../lib/errors'
 import { createPoiSlug } from '../lib/slug'
+import {
+  fetchOfficialWebsitePhotoEnrichment,
+  mergeOfficialWebsitePhotos,
+} from '../services/official-website-photos'
 
 export async function publishCandidate(
   candidateId: string,
@@ -47,6 +51,7 @@ export async function publishCandidate(
 
   const latitude = candidate.latitude
   const longitude = candidate.longitude
+  const officialPhotos = await fetchOfficialWebsitePhotoEnrichment(candidate.website)
 
   return prisma.$transaction(async tx => {
     const poi = await tx.pointOfInterest.create({
@@ -59,7 +64,7 @@ export async function publishCandidate(
         longitude,
         phone: candidate.phone,
         website: candidate.website,
-        photos: [],
+        photos: mergeOfficialWebsitePhotos([], officialPhotos?.photos ?? []),
         tags: [],
         google_place_id: candidate.google_place_id,
         geocode_status: candidate.geocode_status === 'success' ? 'success' : 'pending_review',

@@ -5,7 +5,7 @@ export interface GeminiRawPoi {
   website: string | null
   description: string
   subcategory: string | null
-  hours: Record<string, string> | null
+  hours: Record<string, string | null> | null
   tags: string[]
 }
 

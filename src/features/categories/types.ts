@@ -44,6 +44,12 @@ export interface PoiCard {
   latitude: number
   longitude: number
   owner_note?: string | null
+  trail_detail?: {
+    difficulty: 'easy' | 'medium' | 'hard' | 'expert' | 'unknown'
+    estimated_duration_min: number | null
+    distance_km: number | null
+    elevation_gain_m: number | null
+  } | null
 }
 
 export interface PoiCardGroups {
@@ -88,6 +94,31 @@ export interface HikingDetailData {
   gpx_url: string | null
 }
 
+export interface TrailDetailData {
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert' | 'unknown'
+  estimated_duration_min: number | null
+  distance_km: number | null
+  elevation_gain_m: number | null
+  start_label: string | null
+  start_latitude: number | null
+  start_longitude: number | null
+  geometry_geojson: unknown | null
+  parking_info: string | null
+  kids_friendly: boolean | null
+  pets_friendly: boolean | null
+  best_season: string[]
+  gpx_url: string | null
+  data_quality_status: 'complete' | 'incomplete'
+  primary_source_type: string
+  source_refs: Array<{
+    type: string
+    name?: string | null
+    url?: string | null
+    attribution: string
+    used_for: string[]
+  }>
+}
+
 export interface PoiDetail {
   id: string
   name: string
@@ -106,6 +137,7 @@ export interface PoiDetail {
   distance_km: number | null
   category: { id: string; name: string; slug: string; icon: string }
   subcategory: { id: string; name: string; slug: string } | null
+  trail_detail?: TrailDetailData | null
   hiking_detail: HikingDetailData | null
   merchant_offers: Array<{
     id: string

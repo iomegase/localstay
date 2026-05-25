@@ -12,12 +12,20 @@ export const MerchantClaimRejectSchema = z.object({
   admin_note: z.string().trim().min(1).max(500),
 })
 
+const NullableUrlSchema = z.preprocess(value => {
+  if (typeof value !== 'string') return value
+  const trimmed = value.trim()
+  if (trimmed === '') return null
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://${trimmed}`
+}, z.string().url().nullable())
+
 export const MerchantProfilePatchSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(1000).nullable().optional(),
   hours: z.record(z.string(), z.unknown()).nullable().optional(),
   phone: z.string().trim().max(30).nullable().optional(),
-  website: z.string().trim().url().nullable().optional(),
+  website: NullableUrlSchema.optional(),
 }).strict()
 
 export const MerchantOfferCreateSchema = z.object({

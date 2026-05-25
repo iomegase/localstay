@@ -21,7 +21,8 @@ export default async function AdminPoiAcquisitionPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">Pipeline hybride</p>
           <h1 className="mt-2 text-3xl font-semibold text-white">Acquisition POI</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            Lancements Gemini, matching Google, géocodage Mapbox et revue manuelle avant publication.
+            Lancements Gemini, matching Google, géocodage Mapbox et revue manuelle avant publication. Cette étape crée
+            des candidats; un POI public apparaît seulement après publication admin.
           </p>
         </div>
         <Button asChild>
@@ -55,6 +56,11 @@ export default async function AdminPoiAcquisitionPage() {
               </Badge>
             </CardHeader>
             <CardContent className="flex justify-end p-6 pt-0">
+              {run.error && (
+                <p className="mr-auto max-w-2xl rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                  {run.error}
+                </p>
+              )}
               <Button asChild variant="outline">
                 <Link href={`/admin/poi-acquisition/runs/${run.id}`}>Ouvrir</Link>
               </Button>

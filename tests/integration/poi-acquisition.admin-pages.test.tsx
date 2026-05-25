@@ -16,6 +16,7 @@ jest.mock('@/features/poi-acquisition/queries/runs', () => ({
   getAcquisitionRun: jest.fn(async () => ({
     id: 'run-1',
     status: 'completed',
+    error: null,
     city_name: 'Saint-Gervais',
     category_name: 'Dîner',
     candidates: [
@@ -42,6 +43,16 @@ jest.mock('@/features/poi-acquisition/queries/runs', () => ({
       published_count: 1,
       needs_review_count: 2,
     },
+    {
+      id: 'run-2',
+      status: 'failed',
+      error: 'Gemini API timeout',
+      city_name: 'Saint-Gervais',
+      category_name: 'Shopping',
+      candidate_count: 0,
+      published_count: 0,
+      needs_review_count: 0,
+    },
   ]),
 }))
 
@@ -64,8 +75,9 @@ describe('018 admin acquisition pages', () => {
     render(await AdminPoiAcquisitionPage())
 
     expect(screen.getByText('Acquisition POI')).toBeInTheDocument()
-    expect(screen.getByText('Saint-Gervais')).toBeInTheDocument()
+    expect(screen.getAllByText('Saint-Gervais')[0]).toBeInTheDocument()
     expect(screen.getByText('3 candidats')).toBeInTheDocument()
+    expect(screen.getByText('Gemini API timeout')).toBeInTheDocument()
   })
 
   it('AC-02-01/05-03: renders candidate review statuses and Google attribution', async () => {
@@ -74,6 +86,8 @@ describe('018 admin acquisition pages', () => {
     expect(screen.getByText('Brasserie Candidate')).toBeInTheDocument()
     expect(screen.getByText('matched')).toBeInTheDocument()
     expect(screen.getByText('Google Maps')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Publier/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Rejeter/i })).toBeInTheDocument()
   })
 
   it('AC-04-01: renders manual POI creation form', async () => {

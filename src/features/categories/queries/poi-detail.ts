@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/lib/prisma'
-import type { PoiDetail, PoiHours, HikingDetailData } from '../types'
+import type { PoiDetail, PoiHours, HikingDetailData, TrailDetailData } from '../types'
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371
@@ -46,6 +46,28 @@ export async function getPoiDetail(
           kids_friendly: true, pets_friendly: true, best_season: true, gpx_url: true,
         },
       },
+      trail_detail: {
+        select: {
+          is_active: true,
+          deleted_at: true,
+          difficulty: true,
+          estimated_duration_min: true,
+          distance_km: true,
+          elevation_gain_m: true,
+          start_label: true,
+          start_latitude: true,
+          start_longitude: true,
+          geometry_geojson: true,
+          parking_info: true,
+          kids_friendly: true,
+          pets_friendly: true,
+          best_season: true,
+          gpx_url: true,
+          data_quality_status: true,
+          primary_source_type: true,
+          source_refs: true,
+        },
+      },
       merchant_offers: {
         where: {
           deleted_at: null,
@@ -74,6 +96,27 @@ export async function getPoiDetail(
       }
     : null
 
+  const trail: TrailDetailData | null = row.trail_detail && row.trail_detail.is_active && !row.trail_detail.deleted_at
+    ? {
+        difficulty: row.trail_detail.difficulty as TrailDetailData['difficulty'],
+        estimated_duration_min: row.trail_detail.estimated_duration_min,
+        distance_km: row.trail_detail.distance_km,
+        elevation_gain_m: row.trail_detail.elevation_gain_m,
+        start_label: row.trail_detail.start_label,
+        start_latitude: row.trail_detail.start_latitude,
+        start_longitude: row.trail_detail.start_longitude,
+        geometry_geojson: row.trail_detail.geometry_geojson,
+        parking_info: row.trail_detail.parking_info,
+        kids_friendly: row.trail_detail.kids_friendly,
+        pets_friendly: row.trail_detail.pets_friendly,
+        best_season: row.trail_detail.best_season,
+        gpx_url: row.trail_detail.gpx_url,
+        data_quality_status: row.trail_detail.data_quality_status as TrailDetailData['data_quality_status'],
+        primary_source_type: row.trail_detail.primary_source_type,
+        source_refs: toTrailSourceRefs(row.trail_detail.source_refs),
+      }
+    : null
+
   return {
     id: row.id,
     name: row.name,
@@ -92,6 +135,7 @@ export async function getPoiDetail(
     distance_km: haversineKm(city.latitude, city.longitude, row.latitude, row.longitude),
     category: row.category,
     subcategory: row.subcategory,
+    trail_detail: trail,
     hiking_detail: hiking,
     merchant_offers: (row.merchant_offers ?? []).map(offer => ({
       id: offer.id,
@@ -101,4 +145,22 @@ export async function getPoiDetail(
       status: 'active',
     })),
   }
+}
+
+function toTrailSourceRefs(value: unknown): TrailDetailData['source_refs'] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap(item => {
+    if (typeof item !== 'object' || item === null || Array.isArray(item)) return []
+    const record = item as Record<string, unknown>
+    if (typeof record.type !== 'string' || typeof record.attribution !== 'string' || !Array.isArray(record.used_for)) {
+      return []
+    }
+    return [{
+      type: record.type,
+      name: typeof record.name === 'string' ? record.name : null,
+      url: typeof record.url === 'string' ? record.url : null,
+      attribution: record.attribution,
+      used_for: record.used_for.filter((use): use is string => typeof use === 'string'),
+    }]
+  })
 }

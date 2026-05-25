@@ -101,6 +101,16 @@ export async function getPoiCards(
       photos: true,
       geocode_status: true,
       subcategory: { select: { name: true } },
+      trail_detail: {
+        select: {
+          is_active: true,
+          deleted_at: true,
+          difficulty: true,
+          estimated_duration_min: true,
+          distance_km: true,
+          elevation_gain_m: true,
+        },
+      },
     },
     }),
     getPublicCustomization(city.id, options.lodgingId),
@@ -112,6 +122,14 @@ export async function getPoiCards(
     rating_count: number; is_open_now: boolean | null; photos: string[]
     geocode_status: string
     subcategory: { name: string } | null
+    trail_detail: {
+      is_active: boolean
+      deleted_at: Date | null
+      difficulty: string
+      estimated_duration_min: number | null
+      distance_km: number | null
+      elevation_gain_m: number | null
+    } | null
   }
 
   const featuredByPoiId = new Map(
@@ -136,6 +154,14 @@ export async function getPoiCards(
     latitude: p.latitude,
     longitude: p.longitude,
     owner_note: featuredByPoiId.get(p.id)?.owner_note ?? null,
+    trail_detail: p.trail_detail && p.trail_detail.is_active && !p.trail_detail.deleted_at
+      ? {
+          difficulty: p.trail_detail.difficulty as NonNullable<PoiCard['trail_detail']>['difficulty'],
+          estimated_duration_min: p.trail_detail.estimated_duration_min,
+          distance_km: p.trail_detail.distance_km,
+          elevation_gain_m: p.trail_detail.elevation_gain_m,
+        }
+      : null,
   }))
 
   // Split: nearby = géocodés avec succès ET distance > 15km

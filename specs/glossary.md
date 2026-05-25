@@ -16,6 +16,27 @@ Ensemble des contenus (catégories + POI) affichés pour une City donnée. Dans 
 ### POI (Point of Interest / Point d'Intérêt)
 Lieu, établissement, activité ou service référencé dans l'application. Appartient à une City, une Category et une SubCategory. Contient : nom, adresse, coordonnées GPS, horaires, téléphone, site web, note, photos.
 
+### Trail (Randonnée)
+Parcours de randonnée publiable dans le Guide. Apparaît publiquement comme un POI de catégorie `Rando`, mais ses données spécialisées (tracé, distance, dénivelé, durée, difficulté, source) vivent dans un modèle dédié.
+
+### Trail Candidate (Randonnée candidate)
+Randonnée détectée par une source d'acquisition ou créée manuellement, mais pas encore publiée. Doit être revue par un Admin avant d'être visible dans le Guide.
+
+### Trail Import Run (Run d'acquisition randonnée)
+Exécution d'un pipeline d'acquisition randonnée pour une City, une zone et une ou plusieurs sources : site officiel, Overpass, IGN / Géoplateforme, Gemini descriptif, GPX ou saisie manuelle.
+
+### Trail Detail (Détail randonnée)
+Extension métier liée à un POI randonnée publié. Contient les données propres au parcours : difficulté, distance, dénivelé, durée, départ, géométrie, source et attribution.
+
+### Trail Source (Source randonnée)
+Référence de source utilisée pour une randonnée ou une randonnée candidate. Peut être un site officiel, Overpass, IGN / Géoplateforme, Gemini, un GPX ou une saisie manuelle. Chaque source précise son attribution et son usage : contenu, géométrie, dénivelé, description ou validation manuelle.
+
+### Trail Navigation (Navigation randonnée)
+Mode de guidage randonnée côté navigateur. Affiche une carte Mapbox outdoor, le tracé publié, le point de départ, la position GPS du Tourist après consentement et des indicateurs locaux de suivi du tracé.
+
+### Trail Navigation Session (Session de navigation randonnée)
+Session temporaire locale ouverte quand le Tourist clique "Commencer la rando". En MVP 2, elle n'est pas persistée en base et s'arrête quand le Tourist quitte ou termine le mode randonnée.
+
 ### Category (Catégorie)
 Regroupement thématique de POI (ex : Manger, Explorer, Sport). Ne s'affiche que si elle contient au moins un POI visible.
 

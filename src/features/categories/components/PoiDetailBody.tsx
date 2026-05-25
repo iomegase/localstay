@@ -6,6 +6,8 @@ import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
 import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
+import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
+import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
 import type { PoiDetail } from '../types'
 
 interface Props {
@@ -15,6 +17,10 @@ interface Props {
 }
 
 export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
+  if (categorySlug === 'rando' && poi.trail_detail) {
+    return <TrailPoiDetailBody poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+  }
+
   const distanceLabel =
     poi.distance_km === null
       ? null
@@ -23,6 +29,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
       : `${poi.distance_km.toFixed(1)} km`
 
   const poiUrl = `/guide/${citySlug}/${categorySlug}/${poi.slug}`
+  const photoAttributionHost = getWebsiteHost(poi.website)
 
   return (
     <>
@@ -97,6 +104,20 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
           <PhotoCarousel photos={poi.photos.slice(1)} name={poi.name} />
         )}
 
+        {poi.photos.length > 0 && poi.website && photoAttributionHost && (
+          <div className="px-6">
+            <a
+              href={poi.website}
+              target="_blank"
+              rel="noreferrer"
+              data-testid="photo-attribution"
+              className="text-[11px] text-charcoal/45 underline underline-offset-2"
+            >
+              Photos : {photoAttributionHost}
+            </a>
+          </div>
+        )}
+
         {/* Hours */}
         {poi.hours && (
           <div className="px-6">
@@ -121,8 +142,14 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
           />
         </div>
 
-        {/* Hiking block */}
-        {poi.hiking_detail && (
+        {/* Trail block, with legacy hiking fallback */}
+        {poi.trail_detail && (
+          <div className="px-6">
+            <TrailDetailBlock trail={poi.trail_detail} />
+          </div>
+        )}
+
+        {!poi.trail_detail && poi.hiking_detail && (
           <div className="px-6">
             <HikingBlock hiking={poi.hiking_detail} />
           </div>
@@ -130,4 +157,14 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
       </main>
     </>
   )
+}
+
+function getWebsiteHost(website: string | null): string | null {
+  if (!website) return null
+
+  try {
+    return new URL(website).hostname
+  } catch {
+    return null
+  }
 }

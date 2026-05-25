@@ -32,6 +32,8 @@ model City {
   analytics   Analytics[]
   acquisition_runs PoiAcquisitionRun[]
   missing_poi_requests MissingPoiRequest[]
+  trail_import_runs TrailImportRun[]
+  trail_candidates TrailCandidate[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -117,12 +119,14 @@ model PointOfInterest {
   subcategory_id    String?
   subcategory       SubCategory?  @relation(fields: [subcategory_id], references: [id])
   hiking_detail     HikingDetail?
+  trail_detail      TrailDetail?
   featured_by_lodgings LodgingFeaturedPoi[]
   merchant_profile MerchantProfile?
   merchant_claims   MerchantClaim[]
   merchant_offers   MerchantOffer[]
   acquisition_candidates_published PoiAcquisitionCandidate[]
   missing_poi_requests_linked MissingPoiRequest[]
+  trail_candidates_published TrailCandidate[] @relation("TrailCandidatePublishedPoi")
 
   @@unique([city_id, slug])
 }
@@ -295,6 +299,9 @@ model User {
   missing_poi_requests MissingPoiRequest[] @relation("MissingPoiRequests")
   missing_poi_request_reviews MissingPoiRequest[] @relation("MissingPoiRequestReviews")
   poi_acquisition_audit_logs PoiAcquisitionAuditLog[] @relation("PoiAcquisitionAuditLogs")
+  trail_import_runs_started TrailImportRun[] @relation("TrailImportRunStartedBy")
+  trail_candidates_reviewed TrailCandidate[] @relation("TrailCandidateReviewedBy")
+  trail_audit_logs TrailAuditLog[]
 }
 
 // ─── Spec 017 — Admin Taxonomy ──────────────────────────────────────────────
@@ -447,6 +454,143 @@ model PoiAcquisitionAuditLog {
   @@index([admin_id])
   @@index([run_id])
   @@index([candidate_id])
+}
+
+// ─── Spec 019 — Trails Acquisition ─────────────────────────────────────────
+
+model TrailImportRun {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  city_id     String
+  city        City     @relation(fields: [city_id], references: [id])
+  status      String   @default("running")
+  source_types String[]
+  source_url  String?
+  zone_radius_km Float?
+  started_by  String?
+  starter     User?    @relation("TrailImportRunStartedBy", fields: [started_by], references: [id])
+  error        String?
+  source_errors Json?
+
+  candidates  TrailCandidate[]
+
+  @@index([city_id, status])
+  @@index([deleted_at])
+}
+
+model TrailCandidate {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  run_id      String?
+  run         TrailImportRun? @relation(fields: [run_id], references: [id])
+
+  city_id     String
+  city        City     @relation(fields: [city_id], references: [id])
+  primary_source_type String
+  source_refs Json
+  raw_payload Json?
+
+  title       String
+  slug        String?
+  description String?
+  difficulty  String?
+  distance_km Float?
+  elevation_gain_m Int?
+  estimated_duration_min Int?
+  loop_type String?
+  activity_type String @default("hiking")
+  data_quality_status String @default("draft")
+
+  start_label String?
+  start_latitude Float?
+  start_longitude Float?
+  geometry_geojson Json?
+  metric_source String?
+  geometry_status String @default("missing")
+  elevation_status String @default("missing")
+  parking_info String?
+  kids_friendly Boolean?
+  pets_friendly Boolean?
+  best_season String[] @default([])
+
+  duplicate_poi_ids String[] @default([])
+  review_status String @default("needs_review")
+  published_poi_id String?
+  published_poi PointOfInterest? @relation("TrailCandidatePublishedPoi", fields: [published_poi_id], references: [id])
+  trail_detail_id String?
+  trail_detail TrailDetail? @relation(fields: [trail_detail_id], references: [id])
+
+  reviewed_by String?
+  reviewer    User?    @relation("TrailCandidateReviewedBy", fields: [reviewed_by], references: [id])
+  reviewed_at DateTime?
+  admin_note  String?
+
+  @@index([run_id, review_status])
+  @@index([city_id, primary_source_type])
+  @@index([published_poi_id])
+  @@index([deleted_at])
+}
+
+model TrailDetail {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  poi_id      String   @unique
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+
+  difficulty  String
+  distance_km Float?
+  elevation_gain_m Int?
+  estimated_duration_min Int?
+  loop_type String?
+  activity_type String @default("hiking")
+  data_quality_status String @default("complete")
+
+  start_label String?
+  start_latitude Float
+  start_longitude Float
+  geometry_geojson Json?
+
+  primary_source_type String
+  source_refs Json
+  metric_source String?
+  parking_info String?
+  kids_friendly Boolean?
+  pets_friendly Boolean?
+  best_season String[] @default([])
+  gpx_url String?
+
+  is_active Boolean @default(true)
+
+  candidates TrailCandidate[]
+
+  @@index([deleted_at, is_active])
+}
+
+model TrailAuditLog {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  admin_id    String
+  admin       User     @relation(fields: [admin_id], references: [id])
+  action      String
+  target_type String
+  target_id   String
+  before      Json?
+  after       Json?
+
+  @@index([admin_id, action])
+  @@index([target_type, target_id])
 }
 
 model Subscription {
