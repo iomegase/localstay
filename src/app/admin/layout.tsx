@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { BarChart3, Building2, LayoutDashboard, MapPinPlus, Mountain, Radar, Tags, Users } from 'lucide-react'
+import { BarChart3, Building2, LayoutDashboard, MapPinPlus, MapPinned, Mountain, Radar, Tags, Users } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Vue globale', icon: LayoutDashboard },
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: '/admin/cities', label: 'Villes', icon: Building2 },
   { href: '/admin/taxonomy', label: 'Taxonomie', icon: Tags },
   { href: '/admin/poi-acquisition', label: 'Acquisition POI', icon: Radar },
+  { href: '/admin/pois', label: 'POI par ville', icon: MapPinned },
   { href: '/admin/trails', label: 'Randonnées', icon: Mountain },
   { href: '/admin/pois/new', label: 'Créer POI', icon: MapPinPlus },
   { href: '/admin/users', label: 'Utilisateurs', icon: Users },

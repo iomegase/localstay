@@ -129,6 +129,10 @@ model PointOfInterest {
   trail_candidates_published TrailCandidate[] @relation("TrailCandidatePublishedPoi")
 
   @@unique([city_id, slug])
+  @@index([city_id, deleted_at, is_active, updated_at])
+  @@index([city_id, category_id, deleted_at, is_active])
+  @@index([city_id, subcategory_id, deleted_at, is_active])
+  @@index([city_id, geocode_status, deleted_at])
 }
 
 // ─── Spec 014 — Auth Merchant ───────────────────────────────────────────────
