@@ -1,8 +1,9 @@
 import { Prisma } from '@prisma/client'
 import { extractOfficialWebsiteTrailCandidates } from './official-website'
 import { enrichCandidatesWithIgn } from './ign'
-import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions } from './gemini-trails'
+import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extractStartLabelFromDescription } from './gemini-trails'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
+import { mergeDuplicateCandidates } from '../lib/dedup'
 import type { TrailSourceType } from '../types'
 
 type RunSourceInput = {
@@ -102,7 +103,18 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
     }
   }
 
-  return { candidates, source_errors: sourceErrors }
+  // 3. Fallback regex pour start_label depuis la description (cas où Gemini n'a pas structuré)
+  for (const candidate of candidates) {
+    if (!candidate.start_label && candidate.description) {
+      const extracted = extractStartLabelFromDescription(candidate.description)
+      if (extracted) candidate.start_label = extracted
+    }
+  }
+
+  // 4. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
+  const merged = mergeDuplicateCandidates(candidates)
+
+  return { candidates: merged, source_errors: sourceErrors }
 }
 
 const OVERPASS_FALLBACK_ENDPOINTS = [

@@ -1,6 +1,6 @@
 import { TrailsAcquisitionError } from './errors'
 
-const GEMINI_ALLOWED_KEYS = ['title', 'description', 'source_refs'] as const
+const GEMINI_ALLOWED_KEYS = ['title', 'description', 'start_label', 'source_refs'] as const
 
 export function assertAllowedTrailSource(url: string): true {
   let parsed: URL

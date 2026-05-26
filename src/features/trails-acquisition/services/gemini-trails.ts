@@ -20,11 +20,13 @@ const DiscoverySchema = z.object({
   trails: z.array(z.object({
     title: z.string().min(2).max(120),
     description: z.string().min(20).max(600),
+    start_label: z.string().min(2).max(120).nullable().optional(),
   })).max(20),
 })
 
 const DescriptionSchema = z.object({
   description: z.string().min(20).max(600),
+  start_label: z.string().min(2).max(120).nullable().optional(),
 })
 
 type CityRef = { name: string; latitude: number; longitude: number }
@@ -44,7 +46,7 @@ function parseJsonResponse(text: string): unknown {
   return JSON.parse(cleaned)
 }
 
-export async function discoverTrailsWithGemini(city: CityRef): Promise<Array<{ title: string; description: string }>> {
+export async function discoverTrailsWithGemini(city: CityRef): Promise<Array<{ title: string; description: string; start_label: string | null }>> {
   const prompt = `Liste les 10 randonnées pédestres les plus emblématiques et accessibles autour de ${city.name} (Haute-Savoie, France, ~${city.latitude.toFixed(4)},${city.longitude.toFixed(4)}).
 
 Inclus les classiques connus localement (sommets, lacs, alpages, refuges) accessibles à pied sans matériel d'alpinisme.
@@ -52,7 +54,11 @@ Inclus les classiques connus localement (sommets, lacs, alpages, refuges) access
 Format JSON strict :
 {
   "trails": [
-    { "title": "Nom usuel de la randonnée", "description": "Description éditoriale 2-4 phrases : intérêt, paysages, difficulté générale, point de départ courant. Ne pas inventer de chiffres précis (km, dénivelé)." }
+    {
+      "title": "Nom usuel de la randonnée",
+      "description": "Description éditoriale 2-4 phrases : intérêt, paysages, difficulté générale. Ne pas inventer de chiffres précis (km, dénivelé).",
+      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée, par exemple 'Parking du Bettex' ou 'Plateau de la Croix'. null si inconnu."
+    }
   ]
 }
 
@@ -63,26 +69,30 @@ Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Pas de chiffre
   const json = parseJsonResponse(result.response.text())
   const parsed = DiscoverySchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini discovery validation failed: ${parsed.error.message}`)
-  return parsed.data.trails
+  return parsed.data.trails.map(t => ({ title: t.title, description: t.description, start_label: t.start_label ?? null }))
 }
 
-export async function generateTrailDescription(title: string, city: CityRef): Promise<string> {
+export async function generateTrailDescription(title: string, city: CityRef): Promise<{ description: string; start_label: string | null }> {
   const prompt = `Rédige une description éditoriale courte (2-4 phrases) pour la randonnée "${title}" située autour de ${city.name} (Haute-Savoie, France).
 
 Format JSON strict :
-{ "description": "Texte éditorial neutre. Pas de chiffres inventés (km, dénivelé, durée). Mentionne le paysage et l'intérêt général." }`
+{
+  "description": "Texte éditorial neutre. Pas de chiffres inventés (km, dénivelé, durée). Mentionne le paysage et l'intérêt général.",
+  "start_label": "Lieu/hameau/parking de départ courant (ex: 'Parking du Bettex'). null si inconnu."
+}`
 
   const model = getModel()
   const result = await model.generateContent(prompt)
   const json = parseJsonResponse(result.response.text())
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
-  return parsed.data.description
+  return { description: parsed.data.description, start_label: parsed.data.start_label ?? null }
 }
 
 type EnrichableCandidate = {
   title: string
   description: string | null
+  start_label?: string | null
   source_refs: unknown
 }
 
@@ -94,13 +104,25 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
   let errors = 0
 
   for (const candidate of candidates) {
-    if (candidate.description && candidate.description.trim().length > 0) continue
+    const needsDescription = !candidate.description || candidate.description.trim().length === 0
+    const needsStart = !candidate.start_label
+    if (!needsDescription && !needsStart) continue
 
     try {
-      const description = await generateTrailDescription(candidate.title, city)
-      candidate.description = description
-      candidate.source_refs = appendGeminiRef(candidate.source_refs)
-      enriched += 1
+      const result = await generateTrailDescription(candidate.title, city)
+      const usedFor: string[] = []
+      if (needsDescription) {
+        candidate.description = result.description
+        usedFor.push('description')
+      }
+      if (needsStart && result.start_label) {
+        candidate.start_label = result.start_label
+        usedFor.push('start_label')
+      }
+      if (usedFor.length > 0) {
+        candidate.source_refs = appendGeminiRef(candidate.source_refs, usedFor)
+        enriched += 1
+      }
     } catch {
       errors += 1
     }
@@ -109,8 +131,17 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
   return { enriched, errors }
 }
 
-function appendGeminiRef(existing: unknown): unknown {
-  const geminiRef = { type: 'gemini', attribution: 'Gemini', used_for: ['description'] }
+const START_LABEL_PATTERN = /au d[ée]part d[eu]s?\s+([^.,;:!?\n]+)/i
+
+export function extractStartLabelFromDescription(description: string | null): string | null {
+  if (!description) return null
+  const match = description.match(START_LABEL_PATTERN)
+  if (!match) return null
+  return match[1].trim().slice(0, 120)
+}
+
+function appendGeminiRef(existing: unknown, usedFor: string[]): unknown {
+  const geminiRef = { type: 'gemini', attribution: 'Gemini', used_for: usedFor }
   if (!Array.isArray(existing)) return [geminiRef]
   return [...existing, geminiRef]
 }
