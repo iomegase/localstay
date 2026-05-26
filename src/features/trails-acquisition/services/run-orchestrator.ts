@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { extractOfficialWebsiteTrailCandidates } from './official-website'
+import { enrichCandidatesWithIgn } from './ign'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import type { TrailSourceType } from '../types'
 
@@ -60,6 +61,14 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
       candidates.push(...normalizeOverpassTrails(payload))
     } catch (error) {
       sourceErrors.overpass = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  if (input.sourceTypes.includes('ign')) {
+    try {
+      await enrichCandidatesWithIgn(candidates)
+    } catch (error) {
+      sourceErrors.ign = error instanceof Error ? error.message : String(error)
     }
   }
 
