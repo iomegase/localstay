@@ -105,17 +105,46 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
   return { candidates, source_errors: sourceErrors }
 }
 
+const OVERPASS_FALLBACK_ENDPOINTS = [
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+]
+
+const TRANSIENT_HTTP_STATUSES = new Set([429, 502, 503, 504])
+
 async function fetchOverpassPayload(input: RunSourceInput): Promise<OverpassPayload> {
-  const endpoint = process.env.OVERPASS_API_URL
-  if (!endpoint) return { elements: [] }
+  const primary = process.env.OVERPASS_API_URL
+  if (!primary) return { elements: [] }
+
   const radiusMeters = Math.round((input.zoneRadiusKm ?? 15) * 1000)
   const query = `
-    [out:json][timeout:25];
+    [out:json][timeout:60];
     (
       relation["route"="hiking"](around:${radiusMeters},${input.city.latitude},${input.city.longitude});
     );
     out geom;
   `
+
+  const endpoints = [primary, ...OVERPASS_FALLBACK_ENDPOINTS.filter(url => url !== primary)]
+  let lastError: Error | null = null
+
+  for (let i = 0; i < endpoints.length; i += 1) {
+    try {
+      return await postOverpass(endpoints[i], query)
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      const status = readStatus(lastError)
+      const isTransient = status === null || TRANSIENT_HTTP_STATUSES.has(status)
+      const hasNextEndpoint = i < endpoints.length - 1
+      if (!isTransient || !hasNextEndpoint) break
+      await delay(500 * (i + 1))
+    }
+  }
+
+  throw lastError ?? new Error('Overpass failed')
+}
+
+async function postOverpass(endpoint: string, query: string): Promise<OverpassPayload> {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -125,6 +154,21 @@ async function fetchOverpassPayload(input: RunSourceInput): Promise<OverpassPayl
     },
     body: new URLSearchParams({ data: query }).toString(),
   })
-  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`) as Error & { status: number }
+    err.status = response.status
+    throw err
+  }
   return await response.json() as OverpassPayload
+}
+
+function readStatus(error: Error): number | null {
+  const status = Reflect.get(error, 'status')
+  if (typeof status === 'number') return status
+  const match = error.message.match(/HTTP (\d{3})/)
+  return match ? Number(match[1]) : null
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
