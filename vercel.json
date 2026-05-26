@@ -2,23 +2,21 @@
   "crons": [
     {
       "path": "/api/internal/geocode-pois",
-      "schedule": "0 4 * * *",
-      "description": "Géocodage Mapbox des POI en attente — tous les jours à 4h"
+      "schedule": "0 4 * * *"
     },
     {
       "path": "/api/internal/check-subscriptions",
-      "schedule": "0 9 * * *",
-      "description": "Vérification des trials expirés — tous les jours à 9h"
+      "schedule": "0 9 * * *"
     },
     {
       "path": "/api/internal/cleanup-google-review-payloads",
-      "schedule": "0 2 * * *",
-      "description": "Purge des payloads Google temporaires expirés — tous les jours à 2h"
+      "schedule": "0 2 * * *"
+    
     },
     {
       "path": "/api/internal/gemini-refresh",
-      "schedule": "0 3 * * *",
-      "description": "Refresh Gemini des caches expirés — tous les jours à 3h"
+      "schedule": "0 3 * * *"
+   
     }
   ]
 }

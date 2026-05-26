@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, ReactNode, useState, useTransition } from 'react'
+import { Info, MapPin, Tag as TagIcon, Image as ImageIcon, Map, Building2, CheckCircle2, Trash2, Star, Plus } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -53,41 +54,83 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         return
       }
       setForceGeocode(false)
-      setMessage('POI enregistré')
+      setMessage('Modifications enregistrées avec succès')
     })
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-6">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="text-lg font-semibold text-white">Identité publique</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+    <form onSubmit={submit} className="grid relative gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
+      {/* SECTION 1: Identité publique */}
+      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-indigo-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 transition-colors duration-300 group-hover:bg-indigo-100 group-hover:text-indigo-600">
+            <Info size={24} strokeWidth={2} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Identité publique</h2>
+            <p className="mt-1 text-[13px] font-medium text-slate-500">Informations de base visibles par les utilisateurs</p>
+          </div>
+        </div>
+        
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           <Field label="Nom" htmlFor="name">
-            <Input id="name" name="name" defaultValue={poi.name} className="bg-white text-slate-950" />
+            <Input 
+              id="name" 
+              name="name" 
+              defaultValue={poi.name} 
+              className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm" 
+            />
           </Field>
           <Field label="Slug verrouillé" htmlFor="slug">
-            <Input id="slug" name="slug" defaultValue={poi.slug} readOnly className="bg-slate-200 text-slate-700" />
+            <Input 
+              id="slug" 
+              name="slug" 
+              defaultValue={poi.slug} 
+              readOnly 
+              className="h-12 w-full rounded-xl border-slate-100 bg-slate-100/50 px-4 text-[14px] font-mono text-slate-500 shadow-none focus-visible:ring-0" 
+            />
           </Field>
           <Field label="Description" htmlFor="description" className="md:col-span-2">
             <Textarea
               id="description"
               name="description"
               defaultValue={poi.description ?? ''}
-              className="min-h-32 bg-white text-slate-950"
+              className="min-h-32 w-full rounded-[16px] border-slate-200 bg-slate-50 p-4 text-[15px] font-medium leading-relaxed text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm resize-y"
             />
           </Field>
           <Field label="Téléphone" htmlFor="phone">
-            <Input id="phone" name="phone" defaultValue={poi.phone ?? ''} className="bg-white text-slate-950" />
+            <Input 
+              id="phone" 
+              name="phone" 
+              defaultValue={poi.phone ?? ''} 
+              className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm" 
+            />
           </Field>
           <Field label="Site web" htmlFor="website">
-            <Input id="website" name="website" defaultValue={poi.website ?? ''} className="bg-white text-slate-950" />
+            <Input 
+              id="website" 
+              name="website" 
+              defaultValue={poi.website ?? ''} 
+              className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm" 
+            />
           </Field>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="text-lg font-semibold text-white">Classification et localisation</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+      {/* SECTION 2: Classification et localisation */}
+      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-emerald-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 transition-colors duration-300 group-hover:bg-emerald-100 group-hover:text-emerald-600">
+            <MapPin size={24} strokeWidth={2} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Classification & Localisation</h2>
+            <p className="mt-1 text-[13px] font-medium text-slate-500">Catégorisation et positionnement sur la carte</p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           <Field label="Catégorie" htmlFor="category_id">
             <select
               id="category_id"
@@ -97,7 +140,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                 setSelectedCategoryId(event.target.value)
                 setSelectedSubcategoryId('')
               }}
-              className="h-10 rounded-md bg-white px-3 text-sm text-slate-950"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-[14px] font-medium text-slate-900 outline-none transition-all hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
             >
               {categories.map(category => (
                 <option key={category.id} value={category.id}>{category.name}</option>
@@ -110,7 +153,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
               name="subcategory_id"
               value={selectedSubcategoryId}
               onChange={event => setSelectedSubcategoryId(event.target.value)}
-              className="h-10 rounded-md bg-white px-3 text-sm text-slate-950"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-[14px] font-medium text-slate-900 outline-none transition-all hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
             >
               <option value="">Aucune</option>
               {subcategories.map(subcategory => (
@@ -118,162 +161,253 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
               ))}
             </select>
           </Field>
-          <Field label="Adresse" htmlFor="address" className="md:col-span-2">
-            <Input id="address" name="address" defaultValue={poi.address} className="bg-white text-slate-950" />
+          <Field label="Adresse postale complète" htmlFor="address" className="md:col-span-2">
+            <Input 
+              id="address" 
+              name="address" 
+              defaultValue={poi.address} 
+              className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 shadow-sm" 
+            />
           </Field>
           <Field label="Statut public" htmlFor="is_active">
             <select
               id="is_active"
               name="is_active"
               defaultValue={poi.status === 'active' ? 'true' : 'false'}
-              className="h-10 rounded-md bg-white px-3 text-sm text-slate-950"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-[14px] font-medium text-slate-900 outline-none transition-all hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 shadow-sm disabled:opacity-50"
               disabled={poi.status === 'archived'}
             >
               <option value="true">Actif</option>
               <option value="false">Inactif</option>
             </select>
           </Field>
-          <div className="rounded-xl bg-black/20 p-3 text-sm text-slate-300">
-            <p>Géocodage : {poi.geocode_status} · {poi.latitude.toFixed(5)}, {poi.longitude.toFixed(5)}</p>
+          
+          <div className="md:col-span-2 mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[20px] border border-slate-100 bg-slate-50/50 p-5 shadow-inner">
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-slate-700">Coordonnées géographiques</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-600 shadow-sm">
+                  {poi.geocode_status}
+                </span>
+                <span className="font-mono text-[13px] font-medium text-slate-500">
+                  {poi.latitude.toFixed(5)}, {poi.longitude.toFixed(5)}
+                </span>
+              </div>
+              {forceGeocode && (
+                <p className="mt-3 flex max-w-max items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-[12px] font-bold text-emerald-600">
+                  <CheckCircle2 size={16} />
+                  Recalcul directionnel Mapbox forcé au prochain enregistrement
+                </p>
+              )}
+            </div>
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              className="mt-3"
+              className="h-11 rounded-xl bg-white px-5 font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 active:scale-95"
               onClick={() => {
                 setForceGeocode(true)
-                setMessage('Recalcul coordonnées activé. Cliquez sur Enregistrer.')
+                setMessage("Recalcul activé. N'oubliez pas d'enregistrer.")
               }}
             >
-              Recalculer coordonnées
+              Recalculer
             </Button>
-            {forceGeocode && (
-              <p className="mt-2 text-xs text-amber-200">
-                Le prochain enregistrement relancera Mapbox même si l'adresse est inchangée.
-              </p>
-            )}
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="text-lg font-semibold text-white">Tags du POI</h2>
-        <div className="mt-4 max-w-3xl">
-          <Field label="Tags du POI, un par ligne" htmlFor="tags">
+      {/* SECTION 3: Tags du POI */}
+      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-sky-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 transition-colors duration-300 group-hover:bg-sky-100 group-hover:text-sky-600">
+            <TagIcon size={24} strokeWidth={2} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Tags de recherche</h2>
+            <p className="mt-1 text-[13px] font-medium text-slate-500">Mots-clés pour le moteur de recherche interne</p>
+          </div>
+        </div>
+        <div className="mt-8 max-w-3xl">
+          <Field label="Un tag par ligne" htmlFor="tags">
             <Textarea
               id="tags"
               name="tags"
               defaultValue={poi.tags.join('\n')}
-              className="min-h-32 bg-white text-slate-950"
+              className="min-h-36 w-full rounded-[16px] border-slate-200 bg-slate-50 p-4 text-[14px] font-medium leading-relaxed text-slate-900 transition-all hover:border-sky-200 focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-500/10 shadow-sm resize-y"
             />
           </Field>
-          <p className="mt-2 text-xs text-slate-400">
-            Tags globaux de la fiche POI. Ils ne sont pas liés aux photos.
+          <p className="mt-3 text-[13px] font-medium text-slate-400">
+            Ces attributs ne sont pas liés à l'IA d'extraction photo, mais améliorent la découverte intraréseau.
           </p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="text-lg font-semibold text-white">Photos</h2>
-        <div className="mt-4 max-w-5xl">
+      {/* SECTION 4: Photos */}
+      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-amber-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 transition-colors duration-300 group-hover:bg-amber-100 group-hover:text-amber-600">
+            <ImageIcon size={24} strokeWidth={2} />
+          </div>
           <div>
-            <Label htmlFor="new_photo_url" className="text-slate-200">Ajouter une photo distante</Label>
-            <div className="mt-2 flex gap-2">
+            <h2 className="text-xl font-bold text-slate-900">Médias & Photos</h2>
+            <p className="mt-1 text-[13px] font-medium text-slate-500">Gérez l'apparence visuelle ({photos.length}/12)</p>
+          </div>
+        </div>
+        
+        <div className="mt-8 max-w-5xl">
+          <div className="mb-6 rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
+            <Label htmlFor="new_photo_url" className="text-[14px] font-bold text-slate-700">Ajouter une URL d'image existante</Label>
+            <div className="mt-3 flex flex-col sm:flex-row gap-3">
               <Input
                 id="new_photo_url"
                 value={newPhotoUrl}
                 onChange={event => setNewPhotoUrl(event.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                className="bg-white text-slate-950"
+                placeholder="https://example.com/asset/photo.jpg"
+                className="h-12 flex-1 rounded-xl border-slate-200 bg-white px-4 text-[14px] transition-all hover:border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 shadow-sm"
               />
-              <Button type="button" variant="outline" onClick={addPhoto} disabled={photos.length >= 12}>
+              <Button 
+                type="button" 
+                onClick={addPhoto} 
+                disabled={photos.length >= 12}
+                className="h-12 w-full sm:w-auto rounded-xl bg-amber-500 px-6 font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-amber-500/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              >
+                <Plus size={18} className="mr-2" strokeWidth={2.5} />
                 Ajouter
               </Button>
             </div>
-            <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
-              <table aria-label="Photos du POI" className="w-full text-sm">
-                <caption className="sr-only">Photos du POI</caption>
-                <thead className="bg-white/10 text-left text-slate-300">
+          </div>
+
+          <div className="overflow-hidden rounded-[20px] border border-slate-100 bg-white shadow-sm">
+            <table aria-label="Photos du POI" className="w-full text-left">
+              <caption className="sr-only">Photos du POI</caption>
+              <thead className="bg-slate-50/80 border-b border-slate-100">
+                <tr>
+                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500">Image</th>
+                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Asset</th>
+                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-center">Rôle</th>
+                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {photos.length === 0 ? (
                   <tr>
-                    <th className="px-3 py-2 font-medium">Vignette</th>
-                    <th className="px-3 py-2 font-medium">Titre</th>
-                    <th className="px-3 py-2 font-medium">Hero</th>
-                    <th className="px-3 py-2 text-right font-medium">Action</th>
+                    <td colSpan={4} className="px-5 py-12 text-center">
+                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 mb-4">
+                        <ImageIcon size={32} />
+                      </div>
+                      <p className="text-[14px] font-medium text-slate-500">Aucune photo actuellement liée à cette fiche.</p>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-white/10">
-                  {photos.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-3 py-6 text-center text-slate-400">
-                        Aucune photo distante.
-                      </td>
-                    </tr>
-                  ) : (
-                    photos.map((photo, index) => {
-                      const title = `Photo ${index + 1}`
-                      return (
-                        <tr key={`${photo}-${index}`} className="bg-black/10">
-                          <td className="px-3 py-2">
-                            <img src={photo} alt={title} className="h-14 w-20 rounded-lg object-cover" />
-                          </td>
-                          <td className="px-3 py-2 font-medium text-white">{title}</td>
-                          <td className="px-3 py-2">
-                            {index === 0 ? (
-                              <span className="rounded-full bg-amber-300 px-2 py-1 text-xs font-semibold text-slate-950">
-                                Hero actuelle
-                              </span>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                aria-label={`Définir ${title} comme hero`}
-                                onClick={() => setHeroPhoto(index)}
-                              >
-                                Définir comme hero
-                              </Button>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-right">
+                ) : (
+                  photos.map((photo, index) => {
+                    const title = `Photo ${index + 1}`
+                    return (
+                      <tr key={`${photo}-${index}`} className="group hover:bg-slate-50/30 transition-colors duration-200">
+                        <td className="px-5 py-4">
+                          <div className="overflow-hidden rounded-xl bg-slate-100 w-24 h-16">
+                            <img src={photo} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 font-semibold text-[14px] text-slate-700 hidden sm:table-cell">{title}</td>
+                        <td className="px-5 py-4 text-center">
+                          {index === 0 ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 shadow-sm">
+                              <Star size={12} className="fill-amber-500 stroke-amber-500" />
+                              Hero Image
+                            </span>
+                          ) : (
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              aria-label={`Effacer ${title}`}
-                              onClick={() => removePhoto(index)}
+                              className="h-8 rounded-lg border-slate-200 px-3 text-[12px] font-bold text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700"
+                              aria-label={`Définir ${title} comme hero`}
+                              onClick={() => setHeroPhoto(index)}
                             >
-                              Effacer
+                              Définir hero
                             </Button>
-                          </td>
-                        </tr>
-                      )
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-2 text-xs text-slate-400">{photos.length}/12 photos. Les URLs restent masquées dans l'interface.</p>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 shrink-0 rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+                            aria-label={`Effacer ${title}`}
+                            onClick={() => removePhoto(index)}
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
 
-      {poi.trail_fields_locked && (
-        <section className="rounded-2xl border border-amber-300/30 bg-amber-300/10 p-5 text-sm text-amber-100">
-          <h2 className="font-semibold text-white">Randonnée liée</h2>
-          <p className="mt-2">Données parcours verrouillées ici. Utiliser le backoffice randonnées pour modifier tracé, distance, dénivelé ou départ.</p>
-        </section>
+      {/* Lock Warnings Section */}
+      {(poi.trail_fields_locked || poi.merchant_attached) && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {poi.trail_fields_locked && (
+            <section className="flex items-start gap-4 rounded-[20px] border border-amber-200/60 bg-amber-50/50 p-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 shadow-sm">
+                <Map size={20} strokeWidth={2.5} />
+              </div>
+              <div className="pt-1">
+                <h2 className="text-[15px] font-bold text-amber-900">Randonnée protégée</h2>
+                <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-amber-700/80">Données parcours verrouillées ici. Utiliser le gestionnaire dédié pour modifier le tracé, la distance experte ou le point de départ métrique.</p>
+              </div>
+            </section>
+          )}
+
+          {poi.merchant_attached && (
+            <section className="flex items-start gap-4 rounded-[20px] border border-sky-200/60 bg-sky-50/50 p-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 shadow-sm">
+                <Building2 size={20} strokeWidth={2.5} />
+              </div>
+              <div className="pt-1">
+                <h2 className="text-[15px] font-bold text-sky-900">Revendication valide</h2>
+                <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-sky-700/80">Les actions sensibles (modifications cat/sub et archivage) peuvent impacter la visibilité d'un Merchant qui exploite cette fiche au public.</p>
+              </div>
+            </section>
+          )}
+        </div>
       )}
 
-      {poi.merchant_attached && (
-        <section className="rounded-2xl border border-sky-300/30 bg-sky-300/10 p-5 text-sm text-sky-100">
-          <h2 className="font-semibold text-white">Merchant lié</h2>
-          <p className="mt-2">Les actions sensibles peuvent masquer ou modifier une fiche revendiquée par un Merchant.</p>
-        </section>
-      )}
-
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={isPending}>Enregistrer</Button>
-        {message && <p className="text-sm text-slate-300">{message}</p>}
+      {/* Floating Action Bar */}
+      <div className="sticky bottom-6 z-10 mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-[24px] border border-slate-200/60 bg-white/80 backdrop-blur-xl p-4 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.1)]">
+        <div className="pl-2">
+          {message ? (
+            <span className="flex items-center gap-2.5 text-[14px] font-bold text-emerald-600 animate-in slide-in-from-left-4">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle2 size={14} className="text-emerald-700" strokeWidth={3} />
+              </div>
+              {message}
+            </span>
+          ) : (
+             <span className="text-[13px] font-bold text-slate-400 uppercase tracking-widest pl-2">
+              Statut non sauvé
+            </span>
+          )}
+        </div>
+        <Button 
+          type="submit" 
+          disabled={isPending}
+          className="h-14 rounded-2xl bg-indigo-600 px-8 text-[15px] font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] active:translate-y-0 disabled:pointer-events-none disabled:bg-slate-100 disabled:text-slate-400 w-full sm:w-auto"
+        >
+          {isPending ? (
+            <span className="flex items-center gap-3">
+              <span className="h-5 w-5 animate-spin rounded-full border-[3px] border-white/30 border-t-white" />
+              Confirmation...
+            </span>
+          ) : (
+            'Enregistrer la fiche'
+          )}
+        </Button>
       </div>
     </form>
   )
@@ -311,8 +445,10 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <Label htmlFor={htmlFor} className="text-slate-200">{label}</Label>
-      <div className="mt-2">{children}</div>
+      <Label htmlFor={htmlFor} className="mb-2 block text-[13px] font-bold text-slate-700">
+        {label}
+      </Label>
+      <div className="relative">{children}</div>
     </div>
   )
 }
