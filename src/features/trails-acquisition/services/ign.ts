@@ -84,8 +84,18 @@ export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T
 function extractLineStringCoordinates(geometry: unknown): Array<[number, number]> {
   if (!geometry || typeof geometry !== 'object') return []
   const geo = geometry as { type?: string; coordinates?: unknown }
-  if (geo.type !== 'LineString' || !Array.isArray(geo.coordinates)) return []
-  return geo.coordinates.flatMap(pair => {
+  if (!Array.isArray(geo.coordinates)) return []
+
+  if (geo.type === 'LineString') return toCoordList(geo.coordinates)
+  if (geo.type === 'MultiLineString') {
+    // Concaténer tous les segments pour l'enrichissement IGN (profil global)
+    return geo.coordinates.flatMap(line => (Array.isArray(line) ? toCoordList(line) : []))
+  }
+  return []
+}
+
+function toCoordList(values: unknown[]): Array<[number, number]> {
+  return values.flatMap(pair => {
     if (
       Array.isArray(pair) &&
       typeof pair[0] === 'number' &&

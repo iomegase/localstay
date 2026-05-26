@@ -37,14 +37,26 @@ export type OverpassTrailCandidate = {
   metric_source: 'computed_geometry'
 }
 
+// Rôles à exclure : ne représentent pas le tracé principal
+const EXCLUDED_MEMBER_ROLES = new Set(['alternate', 'approach', 'excursion', 'shortcut', 'access', 'link'])
+
 export function normalizeOverpassTrails(payload: OverpassPayload): OverpassTrailCandidate[] {
   return (payload.elements ?? []).flatMap(element => {
     if (!isTrailCandidateElement(element)) return []
-    const coordinates = extractCoordinates(element)
-    if (coordinates.length < 2) return []
+    const segments = extractSegments(element)
+    if (segments.length === 0) return []
 
     const title = element.tags?.name?.trim()
     if (!title) return []
+
+    // 1 segment → LineString (compat tests + ways simples)
+    // N segments → MultiLineString (relations OSM avec members non connexes)
+    const geometry: Prisma.InputJsonValue = segments.length === 1
+      ? { type: 'LineString', coordinates: segments[0] }
+      : { type: 'MultiLineString', coordinates: segments }
+
+    const firstPoint = segments[0][0]
+    const totalDistanceKm = segments.reduce((sum, seg) => sum + lineDistanceKm(seg), 0)
 
     return [{
       primary_source_type: 'overpass',
@@ -57,15 +69,12 @@ export function normalizeOverpassTrails(payload: OverpassPayload): OverpassTrail
       title,
       description: null,
       raw_payload: element as Prisma.InputJsonValue,
-      geometry_geojson: {
-        type: 'LineString',
-        coordinates,
-      },
+      geometry_geojson: geometry,
       geometry_status: 'valid',
-      start_latitude: coordinates[0][1],
-      start_longitude: coordinates[0][0],
+      start_latitude: firstPoint[1],
+      start_longitude: firstPoint[0],
       difficulty: difficultyFromSacScale(element.tags?.sac_scale),
-      distance_km: distanceFromCoordinates(coordinates),
+      distance_km: Math.round(totalDistanceKm * 10) / 10,
       metric_source: 'computed_geometry',
     }]
   })
@@ -84,14 +93,23 @@ function isTrailCandidateElement(element: OverpassElement): boolean {
   )
 }
 
-function extractCoordinates(element: OverpassElement): Array<[number, number]> {
+type Coord = [number, number]
+
+function extractSegments(element: OverpassElement): Coord[][] {
   // 1. Format simple (way ou relation simplifiée dans les tests) : geometry sur l'élément
   if (Array.isArray(element.geometry) && element.geometry.length > 0) {
-    return pointsToCoordinates(element.geometry)
+    const coords = pointsToCoordinates(element.geometry)
+    return coords.length >= 2 ? [coords] : []
   }
-  // 2. Format réel des relations OSM : assemblage des members[].geometry
+  // 2. Format réel des relations OSM : 1 segment par member way (rôle accepté)
   if (Array.isArray(element.members) && element.members.length > 0) {
-    return element.members.flatMap(member => pointsToCoordinates(member.geometry))
+    return element.members.flatMap(member => {
+      if (member.type !== 'way') return []
+      const role = (member.role ?? '').toLowerCase()
+      if (EXCLUDED_MEMBER_ROLES.has(role)) return []
+      const coords = pointsToCoordinates(member.geometry)
+      return coords.length >= 2 ? [coords] : []
+    })
   }
   return []
 }
@@ -128,11 +146,10 @@ function difficultyFromSacScale(value: string | undefined): TrailDifficulty {
   }
 }
 
-function distanceFromCoordinates(coordinates: Array<[number, number]>): number {
-  const distance = coordinates.slice(1).reduce((sum, coordinate, index) => {
+function lineDistanceKm(coordinates: Array<[number, number]>): number {
+  return coordinates.slice(1).reduce((sum, coordinate, index) => {
     return sum + distanceBetween(coordinates[index], coordinate)
   }, 0)
-  return Math.round(distance * 10) / 10
 }
 
 function distanceBetween(start: [number, number], end: [number, number]): number {
