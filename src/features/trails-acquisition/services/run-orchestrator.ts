@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { extractOfficialWebsiteTrailCandidates } from './official-website'
 import { enrichCandidatesWithIgn } from './ign'
+import { enrichCandidatesWithDuration } from './ors'
 import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extractStartLabelFromDescription } from './gemini-trails'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
@@ -111,7 +112,14 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
     }
   }
 
-  // 4. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
+  // 4. Estimation de durée : ORS si clé dispo + géométrie, sinon Naismith local
+  try {
+    await enrichCandidatesWithDuration(candidates)
+  } catch (error) {
+    sourceErrors.duration = error instanceof Error ? error.message : String(error)
+  }
+
+  // 5. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
   const merged = mergeDuplicateCandidates(candidates)
 
   return { candidates: merged, source_errors: sourceErrors }
