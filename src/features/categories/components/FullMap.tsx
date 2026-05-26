@@ -121,7 +121,7 @@ export function FullMap({ pois, cityCenter, citySlug, categorySlug }: Props) {
               <p className="font-semibold text-sm leading-tight" data-testid="popup-name">
                 {popup.name}
               </p>
-              {popup.rating !== null && (
+              {typeof popup.rating === 'number' && (
                 <p className="text-xs text-charcoal/60" data-testid="popup-rating">
                   ★ {popup.rating.toFixed(1)}
                 </p>
