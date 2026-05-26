@@ -1,11 +1,21 @@
 import type { Prisma } from '@prisma/client'
 import type { TrailDifficulty, TrailSourceRef } from '../types'
 
+type OverpassPoint = { lat?: number; lon?: number }
+
+type OverpassMember = {
+  type?: string
+  ref?: number
+  role?: string
+  geometry?: OverpassPoint[]
+}
+
 type OverpassElement = {
   type?: string
   id?: number
   tags?: Record<string, string>
-  geometry?: Array<{ lat?: number; lon?: number }>
+  geometry?: OverpassPoint[]
+  members?: OverpassMember[]
 }
 
 export type OverpassPayload = {
@@ -30,7 +40,7 @@ export type OverpassTrailCandidate = {
 export function normalizeOverpassTrails(payload: OverpassPayload): OverpassTrailCandidate[] {
   return (payload.elements ?? []).flatMap(element => {
     if (!isTrailCandidateElement(element)) return []
-    const coordinates = coordinatesFromGeometry(element.geometry)
+    const coordinates = extractCoordinates(element)
     if (coordinates.length < 2) return []
 
     const title = element.tags?.name?.trim()
@@ -74,9 +84,21 @@ function isTrailCandidateElement(element: OverpassElement): boolean {
   )
 }
 
-function coordinatesFromGeometry(geometry: OverpassElement['geometry']): Array<[number, number]> {
-  if (!Array.isArray(geometry)) return []
-  return geometry.flatMap(point => {
+function extractCoordinates(element: OverpassElement): Array<[number, number]> {
+  // 1. Format simple (way ou relation simplifiée dans les tests) : geometry sur l'élément
+  if (Array.isArray(element.geometry) && element.geometry.length > 0) {
+    return pointsToCoordinates(element.geometry)
+  }
+  // 2. Format réel des relations OSM : assemblage des members[].geometry
+  if (Array.isArray(element.members) && element.members.length > 0) {
+    return element.members.flatMap(member => pointsToCoordinates(member.geometry))
+  }
+  return []
+}
+
+function pointsToCoordinates(points: OverpassPoint[] | undefined): Array<[number, number]> {
+  if (!Array.isArray(points)) return []
+  return points.flatMap(point => {
     if (
       typeof point.lat === 'number' &&
       Number.isFinite(point.lat) &&

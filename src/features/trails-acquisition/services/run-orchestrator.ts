@@ -74,7 +74,6 @@ async function fetchOverpassPayload(input: RunSourceInput): Promise<OverpassPayl
     [out:json][timeout:25];
     (
       relation["route"="hiking"](around:${radiusMeters},${input.city.latitude},${input.city.longitude});
-      way["highway"~"path|track|footway"]["name"](around:${radiusMeters},${input.city.latitude},${input.city.longitude});
     );
     out geom;
   `
