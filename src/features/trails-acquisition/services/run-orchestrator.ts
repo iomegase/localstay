@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { extractOfficialWebsiteTrailCandidates } from './official-website'
+import { fetchCamptocampTrails } from './camptocamp'
 import { enrichCandidatesWithIgn } from './ign'
 import { enrichCandidatesWithDuration } from './ors'
 import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extractStartLabelFromDescription } from './gemini-trails'
@@ -55,6 +56,19 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
       candidates.push(...extractOfficialWebsiteTrailCandidates(html, input.sourceUrl))
     } catch (error) {
       sourceErrors.official_website = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  if (input.sourceTypes.includes('camptocamp')) {
+    try {
+      const trails = await fetchCamptocampTrails({
+        latitude: input.city.latitude,
+        longitude: input.city.longitude,
+        radiusKm: input.zoneRadiusKm ?? 15,
+      })
+      candidates.push(...trails)
+    } catch (error) {
+      sourceErrors.camptocamp = error instanceof Error ? error.message : String(error)
     }
   }
 

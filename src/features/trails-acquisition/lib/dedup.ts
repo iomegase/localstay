@@ -28,12 +28,13 @@ const STOP_WORDS = new Set([
 ])
 
 const SOURCE_PRIORITY: Record<string, number> = {
-  overpass: 0,
-  official_website: 1,
-  gpx: 2,
-  manual: 3,
-  ign: 4,
-  gemini: 5,
+  camptocamp: 0,
+  overpass: 1,
+  official_website: 2,
+  gpx: 3,
+  manual: 4,
+  ign: 5,
+  gemini: 6,
 }
 
 const SIMILARITY_THRESHOLD = 0.5

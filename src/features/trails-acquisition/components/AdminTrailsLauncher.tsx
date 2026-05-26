@@ -13,9 +13,10 @@ type CityOption = {
 }
 
 const SOURCE_OPTIONS: Array<{ value: TrailSourceType; label: string }> = [
+  { value: 'camptocamp', label: 'Camptocamp' },
   { value: 'official_website', label: 'Site officiel' },
   { value: 'overpass', label: 'Overpass' },
-  { value: 'ign', label: 'IGN' },
+  { value: 'ign', label: 'IGN (élévation)' },
   { value: 'gemini', label: 'Gemini descriptif' },
 ]
 

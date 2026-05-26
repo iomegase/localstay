@@ -1,4 +1,4 @@
-export const TRAIL_SOURCE_TYPES = ['official_website', 'overpass', 'ign', 'gemini', 'gpx', 'manual'] as const
+export const TRAIL_SOURCE_TYPES = ['official_website', 'overpass', 'ign', 'gemini', 'gpx', 'manual', 'camptocamp'] as const
 export type TrailSourceType = (typeof TRAIL_SOURCE_TYPES)[number]
 
 export const TRAIL_SOURCE_USES = ['content', 'geometry', 'elevation', 'description', 'manual_review'] as const
