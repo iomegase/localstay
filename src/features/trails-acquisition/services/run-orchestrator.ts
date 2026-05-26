@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { extractOfficialWebsiteTrailCandidates } from './official-website'
 import { enrichCandidatesWithIgn } from './ign'
+import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions } from './gemini-trails'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import type { TrailSourceType } from '../types'
 
@@ -69,6 +70,35 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
       await enrichCandidatesWithIgn(candidates)
     } catch (error) {
       sourceErrors.ign = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  if (input.sourceTypes.includes('gemini')) {
+    // 1. Découverte de randos emblématiques absentes d'OSM (sans coords → needs_review)
+    try {
+      const discoveries = await discoverTrailsWithGemini(input.city)
+      const existingTitles = new Set(candidates.map(c => c.title.toLowerCase()))
+      for (const trail of discoveries) {
+        if (existingTitles.has(trail.title.toLowerCase())) continue
+        candidates.push({
+          primary_source_type: 'gemini',
+          source_refs: [{ type: 'gemini', attribution: 'Gemini', used_for: ['title', 'description'] }] as Prisma.InputJsonValue,
+          raw_payload: { trail } as Prisma.InputJsonValue,
+          title: trail.title,
+          description: trail.description,
+          geometry_status: 'missing',
+          data_quality_status: 'needs_review',
+        })
+      }
+    } catch (error) {
+      sourceErrors.gemini_discovery = error instanceof Error ? error.message : String(error)
+    }
+
+    // 2. Enrichissement des descriptions manquantes (candidats Overpass sans description)
+    try {
+      await enrichCandidatesWithGeminiDescriptions(candidates, input.city)
+    } catch (error) {
+      sourceErrors.gemini_descriptions = error instanceof Error ? error.message : String(error)
     }
   }
 
