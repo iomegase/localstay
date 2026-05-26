@@ -11,14 +11,14 @@ import { listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
 export default async function AdminTrailsPage() {
   await getPageAdmin()
 
-  // La logique métier et le fetch concurrentiel restent identiques
+  // Logique métier inchangée
   const [runs, options] = await Promise.all([
     listTrailImportRuns(),
     getTrailAcquisitionOptions(),
   ])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader />
       <AdminTrailsLauncher cities={options.cities} />
       <RunsList runs={runs} />
@@ -30,19 +30,19 @@ export default async function AdminTrailsPage() {
 
 function PageHeader() {
   return (
-    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center border-b border-slate-100 pb-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           Pipeline randonnée
         </p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
           Acquisition randonnées
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+        <p className="mt-2 max-w-2xl text-sm text-slate-500">
           Acquisition multi-sources côté serveur, validation Super-admin obligatoire, puis publication comme POI Rando avec TrailDetail.
         </p>
       </div>
-      <Button asChild>
+      <Button asChild className="shrink-0">
         <Link href="/admin/trails/new">Créer randonnée</Link>
       </Button>
     </div>
@@ -50,12 +50,14 @@ function PageHeader() {
 }
 
 function RunsList({ runs }: { runs: any[] }) {
-  // Gestion claire de l'état vide (Early return)
   if (runs.length === 0) {
     return (
-      <Card className="border-white/10 bg-white/5 text-slate-100">
-        <CardContent className="p-6 text-sm text-slate-400">
-          Aucun run randonnée pour le moment.
+      <Card className="border-dashed border-slate-200 bg-slate-50 shadow-none">
+        <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+          <p className="text-sm font-medium text-slate-600">Aucun run actif</p>
+          <p className="mt-1 text-sm text-slate-400">
+            Les imports de randonnées apparaîtront ici.
+          </p>
         </CardContent>
       </Card>
     )
@@ -72,30 +74,39 @@ function RunsList({ runs }: { runs: any[] }) {
 
 function RunCard({ run }: { run: any }) {
   return (
-    <Card className="border-white/10 bg-white/5 text-slate-100">
-      <CardHeader className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+    <Card className="border border-slate-200 bg-slate-100 shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-col justify-between gap-4 pb-4 md:flex-row md:items-start">
         <div>
-          <CardTitle className="text-xl">{run.city_name}</CardTitle>
-          <p className="mt-2 text-sm text-slate-400">
-            {run.candidate_count} candidats · {run.needs_review_count} en revue · {run.published_count} publiés
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            Sources: {run.source_types.join(', ')}
+          <CardTitle className="text-lg font-semibold text-slate-900">
+            {run.city_name}
+          </CardTitle>
+          <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+            <span><strong className="font-medium text-slate-700">{run.candidate_count}</strong> candidats</span>
+            <span>·</span>
+            <span><strong className="font-medium text-slate-700">{run.needs_review_count}</strong> en revue</span>
+            <span>·</span>
+            <span><strong className="font-medium text-slate-700">{run.published_count}</strong> publiés</span>
+          </div>
+          <p className="mt-2 text-xs text-slate-400">
+            Sources : {run.source_types.join(', ')}
           </p>
         </div>
-        <Badge variant="outline" className="w-fit border-white/20 text-slate-200">
+        
+        <Badge variant="secondary" className="w-fit bg-slate-100 text-slate-600 hover:bg-slate-200">
           {run.status}
         </Badge>
       </CardHeader>
       
-      <CardContent className="flex justify-end p-6 pt-0">
-        {run.error && (
-          <p className="mr-auto max-w-2xl rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-            {run.error}
-          </p>
-        )}
-        <Button asChild variant="outline">
-          <Link href={`/admin/trails/runs/${run.id}`}>Ouvrir</Link>
+      <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-0">
+        <div className="flex-1">
+          {run.error && (
+            <p className="max-w-2xl rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
+              {run.error}
+            </p>
+          )}
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0 bg-white">
+          <Link href={`/admin/trails/runs/${run.id}`}>Ouvrir le run</Link>
         </Button>
       </CardContent>
     </Card>
