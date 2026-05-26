@@ -4,6 +4,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { AdminTrailsLauncher } from '@/features/trails-acquisition/components/AdminTrailsLauncher'
+import { DeleteRunButton } from '@/features/trails-acquisition/components/DeleteRunButton'
 import { getTrailAcquisitionOptions } from '@/features/trails-acquisition/queries/options'
 import { listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
 
@@ -105,9 +106,12 @@ function RunCard({ run }: { run: any }) {
             </p>
           )}
         </div>
-        <Button asChild variant="outline" size="sm" className="shrink-0 bg-white">
-          <Link href={`/admin/trails/runs/${run.id}`}>Ouvrir le run</Link>
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button asChild variant="outline" size="sm" className="bg-white">
+            <Link href={`/admin/trails/runs/${run.id}`}>Ouvrir le run</Link>
+          </Button>
+          <DeleteRunButton runId={run.id} cityName={run.city_name} />
+        </div>
       </CardContent>
     </Card>
   )

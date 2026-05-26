@@ -137,6 +137,34 @@ export async function createTrailImportRun(
   return detail
 }
 
+export async function deleteTrailImportRun(id: string, adminId: string): Promise<void> {
+  const run = await prisma.trailImportRun.findFirst({
+    where: { id, deleted_at: null },
+    select: { id: true },
+  })
+  if (!run) throw new TrailsAcquisitionError('NOT_FOUND', 404)
+
+  const now = new Date()
+  await prisma.$transaction([
+    prisma.trailCandidate.updateMany({
+      where: { run_id: id, deleted_at: null },
+      data: { deleted_at: now },
+    }),
+    prisma.trailImportRun.update({
+      where: { id },
+      data: { deleted_at: now },
+    }),
+    prisma.trailAuditLog.create({
+      data: {
+        admin_id: adminId,
+        action: 'import_deleted',
+        target_type: 'TrailImportRun',
+        target_id: id,
+      },
+    }),
+  ])
+}
+
 export async function listTrailImportRuns(): Promise<TrailImportRunListItem[]> {
   const runs = await prisma.trailImportRun.findMany({
     where: { deleted_at: null },
