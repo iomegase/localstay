@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
-import { getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
+import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
 
 type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'approaching' | 'ready_to_join' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
 
@@ -137,6 +137,42 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     return getPositionProgress(position, geometry)
   }, [geometry, gpsState, position])
 
+  // Segment d'approche : ligne pointillée entre position et point le plus proche du tracé
+  const approachLine = useMemo(() => {
+    if (!position || !geometry) return null
+    if (gpsState !== 'approaching' && gpsState !== 'ready_to_join') return null
+    const target = getClosestPointOnTrail(position, geometry)
+    return {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: [
+          [position.longitude, position.latitude],
+          [target.longitude, target.latitude],
+        ],
+      },
+    }
+  }, [geometry, gpsState, position])
+
+  // Cercle d'incertitude GPS (accuracy en mètres)
+  const accuracyCircle = useMemo(() => {
+    if (!position || !accuracy) return null
+    return {
+      type: 'Feature' as const,
+      properties: { accuracy },
+      geometry: { type: 'Point' as const, coordinates: [position.longitude, position.latitude] },
+    }
+  }, [accuracy, position])
+
+  // Couleur du marker selon l'état
+  const markerColor = useMemo(() => {
+    if (gpsState === 'off_track') return '#DC2626' // rouge
+    if (gpsState === 'tracking') return '#16A34A'  // vert
+    if (gpsState === 'approaching') return '#F59E0B' // ambre
+    return '#2563EB' // bleu (ready_to_join, autres)
+  }, [gpsState])
+
   if (!geometry || !endpoints) {
     return (
       <main className="min-h-screen bg-[#FAF9F6] px-6 py-10">
@@ -183,9 +219,57 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         <Marker latitude={endpoints.end.latitude} longitude={endpoints.end.longitude} anchor="bottom">
           <span className="flex rounded-full bg-[#455E4C] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow">Arrivée</span>
         </Marker>
+        {accuracyCircle && (
+          <Source id="accuracy-circle" type="geojson" data={accuracyCircle}>
+            <Layer
+              id="accuracy-circle-fill"
+              type="circle"
+              paint={{
+                'circle-radius': [
+                  'interpolate',
+                  ['exponential', 2],
+                  ['zoom'],
+                  // À zoom Z, 1m ≈ pixels selon résolution Mercator à 45° lat ≈ 156543.03 * cos(lat) / 2^z
+                  10, ['/', ['get', 'accuracy'], 108],
+                  15, ['/', ['get', 'accuracy'], 3.4],
+                  18, ['/', ['get', 'accuracy'], 0.42],
+                  22, ['/', ['get', 'accuracy'], 0.026],
+                ],
+                'circle-color': markerColor,
+                'circle-opacity': 0.12,
+                'circle-stroke-color': markerColor,
+                'circle-stroke-opacity': 0.4,
+                'circle-stroke-width': 1,
+              }}
+            />
+          </Source>
+        )}
+        {approachLine && (
+          <Source id="approach-line" type="geojson" data={approachLine}>
+            <Layer
+              id="approach-line-layer"
+              type="line"
+              paint={{
+                'line-color': markerColor,
+                'line-width': 3,
+                'line-dasharray': [2, 2],
+                'line-opacity': 0.8,
+              }}
+            />
+          </Source>
+        )}
         {position && (
           <Marker latitude={position.latitude} longitude={position.longitude} anchor="center">
-            <span className="block h-5 w-5 rounded-full border-2 border-white bg-blue-500 shadow-lg" />
+            <span className="relative flex h-7 w-7 items-center justify-center">
+              <span
+                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+                style={{ backgroundColor: markerColor }}
+              />
+              <span
+                className="relative inline-flex h-5 w-5 rounded-full border-2 border-white shadow-lg"
+                style={{ backgroundColor: markerColor }}
+              />
+            </span>
           </Marker>
         )}
       </Map>

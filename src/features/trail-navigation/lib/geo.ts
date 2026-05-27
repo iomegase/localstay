@@ -14,6 +14,33 @@ export function getLineEndpoints(geometry: TrailGeometry): { start: TrailCoordin
   }
 }
 
+export function getClosestPointOnTrail(position: TrailCoordinate, geometry: TrailGeometry): TrailCoordinate {
+  const coordinates = flattenCoordinates(geometry)
+  let bestDistance = Number.POSITIVE_INFINITY
+  let bestPoint: Coordinate = coordinates[0]
+
+  for (let index = 0; index < coordinates.length - 1; index += 1) {
+    const segmentStart = coordinateToPosition(coordinates[index])
+    const segmentEnd = coordinateToPosition(coordinates[index + 1])
+    const startPoint = toLocalPoint(segmentStart, position)
+    const endPoint = toLocalPoint(segmentEnd, position)
+    const projection = projectPointToSegment(toLocalPoint(position, position), startPoint, endPoint)
+    const distance = distanceBetweenPoints(toLocalPoint(position, position), projection.point)
+
+    if (distance < bestDistance) {
+      bestDistance = distance
+      // Reconvertir le point projeté en lng/lat via interpolation
+      const t = projection.t
+      bestPoint = [
+        segmentStart.longitude + t * (segmentEnd.longitude - segmentStart.longitude),
+        segmentStart.latitude + t * (segmentEnd.latitude - segmentStart.latitude),
+      ]
+    }
+  }
+
+  return coordinateToPosition(bestPoint)
+}
+
 export function getTrailDistanceMeters(position: TrailCoordinate, geometry: TrailGeometry): number {
   const coordinates = flattenCoordinates(geometry)
   const projectedPosition = toLocalPoint(position, position)
