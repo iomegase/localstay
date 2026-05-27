@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, ChevronDown, LocateFixed, Mountain, Navigation, X } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Flag, FlagTriangleRight, LocateFixed, Mountain, Navigation, RotateCcw, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
@@ -208,6 +208,12 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     }
   }, [accuracy, position])
 
+  // Détection rando en boucle : start et end ≤ 50m → un seul marqueur fusionné
+  const isLoopTrail = useMemo(() => {
+    if (!endpoints) return false
+    return haversineMeters(endpoints.start, endpoints.end) <= 50
+  }, [endpoints])
+
   // Couleur du marker selon l'état
   const markerColor = useMemo(() => {
     if (gpsState === 'off_track') return '#DC2626' // rouge
@@ -256,12 +262,26 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
             }}
           />
         </Source>
-        <Marker latitude={endpoints.start.latitude} longitude={endpoints.start.longitude} anchor="bottom">
-          <span className="flex rounded-full bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow">Départ</span>
-        </Marker>
-        <Marker latitude={endpoints.end.latitude} longitude={endpoints.end.longitude} anchor="bottom">
-          <span className="flex rounded-full bg-[#455E4C] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow">Arrivée</span>
-        </Marker>
+        {isLoopTrail ? (
+          <Marker latitude={endpoints.start.latitude} longitude={endpoints.start.longitude} anchor="bottom">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#455E4C] text-white shadow-lg" aria-label="Départ et arrivée (boucle)">
+              <RotateCcw className="h-4 w-4" />
+            </span>
+          </Marker>
+        ) : (
+          <>
+            <Marker latitude={endpoints.start.latitude} longitude={endpoints.start.longitude} anchor="bottom">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow-lg" aria-label="Départ">
+                <Flag className="h-4 w-4" />
+              </span>
+            </Marker>
+            <Marker latitude={endpoints.end.latitude} longitude={endpoints.end.longitude} anchor="bottom">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#1F2937] text-white shadow-lg" aria-label="Arrivée">
+                <FlagTriangleRight className="h-4 w-4" />
+              </span>
+            </Marker>
+          </>
+        )}
         {accuracyCircle && (
           <Source id="accuracy-circle" type="geojson" data={accuracyCircle}>
             <Layer
@@ -485,6 +505,16 @@ function formatDuration(minutes: number | null): string {
   if (hours === 0) return `${remaining} min`
   if (remaining === 0) return `${hours} h`
   return `${hours} h ${remaining}`
+}
+
+function haversineMeters(a: TrailCoordinate, b: TrailCoordinate): number {
+  const R = 6_371_000
+  const lat1 = (a.latitude * Math.PI) / 180
+  const lat2 = (b.latitude * Math.PI) / 180
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180
+  const dLng = ((b.longitude - a.longitude) * Math.PI) / 180
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
 }
 
 function gpsStateLabel(status: GpsState): string {
