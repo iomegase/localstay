@@ -96,6 +96,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
           geometry={trail.geometry_geojson}
           startLatitude={trail.start_latitude}
           startLongitude={trail.start_longitude}
+          startHref={`/guide/${citySlug}/rando/${poi.slug}/start`}
         />
 
         <section className="px-4 pt-8">
