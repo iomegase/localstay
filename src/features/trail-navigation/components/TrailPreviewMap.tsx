@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Flag, FlagTriangleRight, MapPin, Navigation, RotateCcw } from 'lucide-react'
+import { Flag, FlagTriangleRight, MapPin, RotateCcw } from 'lucide-react'
 import { isValidTrailGeometry } from '../lib/geo'
 
 interface Props {
@@ -44,12 +44,6 @@ export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude,
           <div className="absolute inset-0 bg-gradient-to-br from-[#dfe8d7] to-[#b5c7aa]" />
         )}
 
-        {/* CTA Démarrer flottant */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-[#455E4C] px-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xl ring-2 ring-white/40 transition-transform group-active:scale-95">
-          <Navigation className="h-4 w-4" />
-          Démarrer la rando
-        </div>
-
         {/* Attribution Mapbox */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-white/85 px-2 py-1 text-[9px] font-medium text-[#121212] shadow-sm">
           <MapPin className="h-3 w-3" />
@@ -90,25 +84,32 @@ function buildStaticUrl(
     return `${STATIC_BASE}/pin-s+${STROKE_COLOR}(${startLng},${startLat})/${startLng},${startLat},13,0,${PITCH}/${IMAGE_W}x${IMAGE_H}@2x?access_token=${token}`
   }
 
-  const simplified = simplifyGeometry(geometry)
+  const simplified = simplifyGeometryPreservingSegments(geometry)
   if (!simplified) return null
 
-  const { coordinates: coords, bbox } = simplified
+  const { segments, bbox } = simplified
   const centerLng = (bbox.minLng + bbox.maxLng) / 2
   const centerLat = (bbox.minLat + bbox.maxLat) / 2
   const zoom = computeZoom(bbox)
+
+  // Préserver les segments en MultiLineString → Mapbox ne dessine pas de lignes
+  // fantômes entre segments non connexes (relations OSM, variantes…).
+  const overlayGeometry = segments.length === 1
+    ? { type: 'LineString' as const, coordinates: segments[0] }
+    : { type: 'MultiLineString' as const, coordinates: segments }
 
   const geojsonOverlay = encodeURIComponent(
     JSON.stringify({
       type: 'Feature',
       properties: { stroke: `#${STROKE_COLOR}`, 'stroke-width': STROKE_WIDTH, 'stroke-opacity': 0.95 },
-      geometry: { type: 'LineString', coordinates: coords },
+      geometry: overlayGeometry,
     }),
   )
 
   const overlays = [`geojson(${geojsonOverlay})`]
-  const startPoint = coords[0]
-  const endPoint = coords[coords.length - 1]
+  const startPoint = segments[0][0]
+  const lastSegment = segments[segments.length - 1]
+  const endPoint = lastSegment[lastSegment.length - 1]
   const isLoop = haversineMeters(
     { latitude: startPoint[1], longitude: startPoint[0] },
     { latitude: endPoint[1], longitude: endPoint[0] },
@@ -132,18 +133,32 @@ function buildStaticUrl(
 }
 
 type BBox = { minLng: number; minLat: number; maxLng: number; maxLat: number }
-type Simplified = { coordinates: Array<[number, number]>; bbox: BBox }
+type Simplified = { segments: Array<Array<[number, number]>>; bbox: BBox }
 
-function simplifyGeometry(geometry: unknown): Simplified | null {
-  const flat = flattenToCoordList(geometry)
-  if (flat.length < 2) return null
+function simplifyGeometryPreservingSegments(geometry: unknown): Simplified | null {
+  const rawSegments = extractSegments(geometry)
+  if (rawSegments.length === 0) return null
 
-  const stride = Math.max(1, Math.ceil(flat.length / MAX_GEOMETRY_POINTS))
-  const sampled: Array<[number, number]> = []
-  for (let i = 0; i < flat.length; i += stride) sampled.push(flat[i])
-  if (sampled[sampled.length - 1] !== flat[flat.length - 1]) sampled.push(flat[flat.length - 1])
+  // Distribuer le budget de points sur les segments proportionnellement à leur longueur
+  const totalPoints = rawSegments.reduce((sum, seg) => sum + seg.length, 0)
+  if (totalPoints < 2) return null
+  const ratio = Math.min(1, MAX_GEOMETRY_POINTS / totalPoints)
 
-  const bbox: BBox = sampled.reduce<BBox>(
+  const sampledSegments: Array<Array<[number, number]>> = []
+  for (const seg of rawSegments) {
+    const targetPoints = Math.max(2, Math.round(seg.length * ratio))
+    if (targetPoints >= seg.length) {
+      sampledSegments.push(seg)
+      continue
+    }
+    const stride = (seg.length - 1) / (targetPoints - 1)
+    const sampled: Array<[number, number]> = []
+    for (let i = 0; i < targetPoints; i += 1) sampled.push(seg[Math.round(i * stride)])
+    if (sampled[sampled.length - 1] !== seg[seg.length - 1]) sampled.push(seg[seg.length - 1])
+    sampledSegments.push(sampled)
+  }
+
+  const bbox: BBox = sampledSegments.flat().reduce<BBox>(
     (acc, [lng, lat]) => ({
       minLng: Math.min(acc.minLng, lng),
       minLat: Math.min(acc.minLat, lat),
@@ -153,7 +168,23 @@ function simplifyGeometry(geometry: unknown): Simplified | null {
     { minLng: 180, minLat: 90, maxLng: -180, maxLat: -90 },
   )
 
-  return { coordinates: sampled, bbox }
+  return { segments: sampledSegments, bbox }
+}
+
+function extractSegments(geometry: unknown): Array<Array<[number, number]>> {
+  if (!geometry || typeof geometry !== 'object') return []
+  const geo = geometry as { type?: string; coordinates?: unknown }
+  if (!Array.isArray(geo.coordinates)) return []
+  if (geo.type === 'LineString') {
+    const seg = toPairs(geo.coordinates)
+    return seg.length >= 2 ? [seg] : []
+  }
+  if (geo.type === 'MultiLineString') {
+    return geo.coordinates
+      .map(line => (Array.isArray(line) ? toPairs(line) : []))
+      .filter(seg => seg.length >= 2)
+  }
+  return []
 }
 
 function flattenToCoordList(geometry: unknown): Array<[number, number]> {
