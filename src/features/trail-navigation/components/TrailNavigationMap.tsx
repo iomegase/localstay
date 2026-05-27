@@ -1,12 +1,13 @@
 'use client'
 
-import { AlertTriangle, LocateFixed, Mountain, Navigation, X } from 'lucide-react'
+import { AlertTriangle, ChevronDown, LocateFixed, Mountain, Navigation, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
 import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
+import { NavigationHud } from './NavigationHud'
 
 type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'approaching' | 'ready_to_join' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
 
@@ -42,6 +43,9 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
   const [distanceToTrail, setDistanceToTrail] = useState<number | null>(null)
+  const [isHudExpanded, setIsHudExpanded] = useState(false)
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
+  const trackingStartedAtRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
@@ -50,6 +54,33 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
       }
     }
   }, [])
+
+  // Mode immersif : masquer header/footer globaux pendant tout le rendu de cette page
+  useEffect(() => {
+    document.body.classList.add('immersive-map')
+    return () => { document.body.classList.remove('immersive-map') }
+  }, [])
+
+  // Chrono : démarre au premier passage en `tracking`, tick chaque seconde
+  useEffect(() => {
+    if (gpsState === 'tracking' && trackingStartedAtRef.current === null) {
+      trackingStartedAtRef.current = Date.now()
+    }
+    if (trackingStartedAtRef.current === null) return
+    const tick = () => {
+      const startedAt = trackingStartedAtRef.current
+      if (startedAt !== null) setElapsedSeconds((Date.now() - startedAt) / 1000)
+    }
+    tick()
+    const id = window.setInterval(tick, 1000)
+    return () => window.clearInterval(id)
+  }, [gpsState])
+
+  // Auto-collapse du HUD selon l'état GPS (mode immersif sur états "en mouvement")
+  useEffect(() => {
+    const immersiveStates: GpsState[] = ['approaching', 'tracking', 'off_track']
+    setIsHudExpanded(!immersiveStates.includes(gpsState))
+  }, [gpsState])
 
   function tiltMapForImmersion() {
     mapRef.current?.flyTo({
@@ -300,16 +331,48 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         </button>
       </div>
 
-      <section className="absolute inset-x-4 bottom-4 rounded-[2rem] bg-[#FAF9F6]/95 p-5 shadow-2xl backdrop-blur" data-testid="trail-navigation-panel">
+      {!isHudExpanded && (
+        <NavigationHud
+          statusColor={markerColor}
+          statusLabel={gpsState === 'tracking' ? 'GPS actif' : gpsStateLabel(gpsState)}
+          distanceRemainingKm={
+            progress && trail.distance_km
+              ? Math.max(0, trail.distance_km - progress.distance_m / 1000)
+              : trail.distance_km
+          }
+          progressPercent={progress ? progress.percent : null}
+          elapsedSeconds={elapsedSeconds}
+          pulse={gpsState === 'off_track'}
+          onExpand={() => setIsHudExpanded(true)}
+        />
+      )}
+
+      <section
+        className={`absolute inset-x-4 bottom-4 rounded-[2rem] bg-[#FAF9F6]/95 p-5 shadow-2xl backdrop-blur transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        data-testid="trail-navigation-panel"
+        aria-hidden={!isHudExpanded}
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#A68E69]">Guidage randonnée</p>
             <h1 className="mt-1 font-serif text-2xl italic leading-tight text-[#121212]">{trail.name}</h1>
             <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
           </div>
-          <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
-            {statusLabel}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
+              {statusLabel}
+            </span>
+            {(gpsState === 'approaching' || gpsState === 'tracking' || gpsState === 'off_track') && (
+              <button
+                type="button"
+                onClick={() => setIsHudExpanded(false)}
+                aria-label="Mode immersif"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-charcoal shadow-sm active:scale-95 transition-transform"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">

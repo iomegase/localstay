@@ -40,3 +40,8 @@
     -webkit-backdrop-filter: blur(14px);
   }
 }
+
+/* Mode immersif : carte plein écran pendant le guidage rando */
+body.immersive-map .immersive-hide { display: none !important; }
+body.immersive-map .immersive-main { padding: 0 !important; }
+body.immersive-map .immersive-container { max-width: 100% !important; border: 0 !important; box-shadow: none !important; background: transparent !important; }

@@ -88,7 +88,7 @@ describe('021 trail navigation start mode', () => {
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
     await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
-    await waitFor(() => expect(screen.getByText(/GPS actif/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText(/GPS actif/i).length).toBeGreaterThan(0))
 
     unmount()
 

@@ -8,9 +8,9 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-ivory">
-      {/* Glassmorphism sticky header */}
-      <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50">
+    <div className="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-ivory immersive-container">
+      {/* Glassmorphism sticky header — masqué en mode immersif */}
+      <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50 immersive-hide">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-charcoal rounded-full flex items-center justify-center">
             <span className="text-white text-[10px] font-bold">SL</span>
@@ -23,10 +23,10 @@ export default function PublicLayout({
       </header>
 
       {/* Page content — bottom padding clears the fixed nav bar */}
-      <main className="pb-32 pt-6">{children}</main>
+      <main className="pb-32 pt-6 immersive-main">{children}</main>
 
-      {/* Floating bottom navigation bar */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px]">
+      {/* Floating bottom navigation bar — masqué en mode immersif */}
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] immersive-hide">
         <div className="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl">
           <NavItem icon={<Compass className="w-5 h-5" />} label="Explorer" href="/" active />
           <NavItem icon={<Map className="w-5 h-5" />} label="Carte" href="#" />
