@@ -448,9 +448,20 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
               Rapprochez-vous à moins de {JOIN_TOLERANCE_M} m pour démarrer le guidage — vous pourrez démarrer
               <strong> en n&apos;importe quel point</strong> du tracé, pas obligatoirement au début.
             </p>
-            <Link href={backHref} className="mt-2 inline-flex font-bold uppercase tracking-[0.12em] text-[#455E4C]">
-              Voir le départ officiel
-            </Link>
+            <div className="mt-3 flex flex-col gap-2">
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${trail.start_latitude},${trail.start_longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#455E4C] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
+              >
+                <Navigation className="h-4 w-4" />
+                Me guider vers le départ
+              </a>
+              <Link href={backHref} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
+                Voir la fiche du tracé
+              </Link>
+            </div>
           </div>
         )}
 
