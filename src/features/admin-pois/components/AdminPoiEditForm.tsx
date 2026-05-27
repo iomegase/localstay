@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, ReactNode, useState, useTransition } from 'react'
+import { FormEvent, ReactNode, useId, useState, useTransition } from 'react'
 import { Info, MapPin, Tag as TagIcon, Image as ImageIcon, Map, Building2, CheckCircle2, Trash2, Star, Plus, GripVertical } from 'lucide-react'
 import {
   closestCenter,
@@ -44,6 +44,8 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
+  const dndContextId = useId()
+  const [photoUrlError, setPhotoUrlError] = useState<string | null>(null)
 
   function reorderPhotos(event: DragEndEvent) {
     const { active, over } = event
@@ -296,9 +298,9 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                 placeholder="https://example.com/asset/photo.jpg"
                 className="h-12 flex-1 rounded-xl border-slate-200 bg-white px-4 text-[14px] transition-all hover:border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 shadow-sm"
               />
-              <Button 
-                type="button" 
-                onClick={addPhoto} 
+              <Button
+                type="button"
+                onClick={addPhoto}
                 disabled={photos.length >= 12}
                 className="h-12 w-full sm:w-auto rounded-xl bg-amber-500 px-6 font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-amber-500/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
               >
@@ -306,9 +308,12 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                 Ajouter
               </Button>
             </div>
+            {photoUrlError && (
+              <p className="mt-3 text-[13px] font-medium text-red-600">{photoUrlError}</p>
+            )}
           </div>
 
-          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={reorderPhotos}>
+          <DndContext id={dndContextId} sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={reorderPhotos}>
             <div className="overflow-hidden rounded-[20px] border border-slate-100 bg-white shadow-sm">
               <table aria-label="Photos du POI" className="w-full text-left">
                 <caption className="sr-only">Photos du POI</caption>
@@ -415,8 +420,24 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   )
 
   function addPhoto() {
+    setPhotoUrlError(null)
     const trimmed = newPhotoUrl.trim()
-    if (!trimmed || photos.includes(trimmed) || photos.length >= 12) return
+    if (!trimmed || photos.length >= 12) return
+    if (photos.includes(trimmed)) {
+      setPhotoUrlError('Cette URL est déjà dans la liste.')
+      return
+    }
+    try {
+      const parsed = new URL(trimmed)
+      // Accepter uniquement les URLs qui ressemblent à des images
+      if (!/\.(jpe?g|png|webp|avif|gif)(\?.*)?$/i.test(parsed.pathname)) {
+        setPhotoUrlError("L'URL ne pointe pas vers un fichier image (jpg/png/webp/avif/gif).")
+        return
+      }
+    } catch {
+      setPhotoUrlError('URL invalide.')
+      return
+    }
     setPhotos(current => [...current, trimmed])
     setNewPhotoUrl('')
   }
@@ -468,7 +489,12 @@ function SortablePhotoRow({
       </td>
       <td className="px-5 py-4">
         <div className="overflow-hidden rounded-xl bg-slate-100 w-24 h-16">
-          <img src={photo} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+          <img
+            src={photo}
+            alt={title}
+            referrerPolicy="no-referrer"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
         </div>
       </td>
       <td className="px-5 py-4 font-semibold text-[14px] text-slate-700 hidden sm:table-cell">{title}</td>
