@@ -8,7 +8,7 @@ import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
 import { getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
 
-type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'ready_to_join' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
+type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'approaching' | 'ready_to_join' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
 
 // Seuils GPS — précision et tolérances
 const TRACKING_TOLERANCE_M = 35           // strict : sortie de tracé détectée tôt
@@ -32,7 +32,12 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   const endpoints = geometry ? getLineEndpoints(geometry) : null
   const mapRef = useRef<MapRef | null>(null)
   const watchIdRef = useRef<number | null>(null)
-  const hasReachedTrailRef = useRef(false)
+  // Distinction intention vs réalité :
+  //   - hasIntentToJoinRef : user a cliqué "Démarrer depuis ici" OU a été détecté physiquement sur le tracé
+  //   - hasPhysicallyReachedRef : distance ≤ TRACKING_TOLERANCE observée au moins une fois
+  // off_track ne se déclenche qu'après une vraie atteinte physique du tracé.
+  const hasIntentToJoinRef = useRef(false)
+  const hasPhysicallyReachedRef = useRef(false)
   const [gpsState, setGpsState] = useState<GpsState>('ready')
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
@@ -72,17 +77,24 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         const distanceToTrail = getTrailDistanceMeters(current, geometry)
         setDistanceToTrail(distanceToTrail)
 
-        // Sur le tracé (seuil strict) → guidage actif
+        // Sur le tracé physiquement (seuil strict) → guidage actif
         if (distanceToTrail <= TRACKING_TOLERANCE_M) {
-          hasReachedTrailRef.current = true
+          hasIntentToJoinRef.current = true
+          hasPhysicallyReachedRef.current = true
           setGpsState('tracking')
           return
         }
 
-        // Déjà raccroché et maintenant trop loin → hors piste (alerte forte)
-        if (hasReachedTrailRef.current) {
+        // Déjà PHYSIQUEMENT atteint le tracé et maintenant trop loin → hors piste (alerte)
+        if (hasPhysicallyReachedRef.current) {
           if (typeof navigator.vibrate === 'function') navigator.vibrate(200)
           setGpsState('off_track')
+          return
+        }
+
+        // User a explicitement cliqué "Démarrer depuis ici" mais n'a pas encore physiquement atteint le tracé
+        if (hasIntentToJoinRef.current) {
+          setGpsState('approaching')
           return
         }
 
@@ -115,8 +127,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   }
 
   function confirmJoinFromHere() {
-    hasReachedTrailRef.current = true
-    setGpsState('tracking')
+    hasIntentToJoinRef.current = true
+    setGpsState('approaching')
   }
 
   const progress = useMemo(() => {
@@ -263,6 +275,18 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
           </div>
         )}
 
+        {gpsState === 'approaching' && (
+          <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
+            <p className="font-semibold text-charcoal flex items-center gap-2">
+              <Navigation className="h-4 w-4 text-[#455E4C]" />
+              En route vers le tracé.
+            </p>
+            <p className="mt-1">
+              Encore <strong>{distanceToTrail ? Math.round(distanceToTrail) : '?'} m</strong>. Le guidage actif démarrera dès que vous serez sur le sentier.
+            </p>
+          </div>
+        )}
+
         {gpsState === 'off_track' && (
           <p className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -308,6 +332,7 @@ function gpsStateLabel(status: GpsState): string {
   if (status === 'ready') return 'Prêt'
   if (status === 'gps_prompt') return 'GPS en attente'
   if (status === 'ready_to_join') return 'Prêt à intégrer'
+  if (status === 'approaching') return 'Approche du tracé'
   if (status === 'pre_start') return 'Trop loin du tracé'
   if (status === 'off_track') return 'Hors tracé'
   if (status === 'low_accuracy') return 'Précision GPS faible'
