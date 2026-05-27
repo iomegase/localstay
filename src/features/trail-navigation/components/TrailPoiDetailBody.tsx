@@ -6,6 +6,13 @@ import { TrailAccessActions } from './TrailAccessActions'
 import { TrailPreviewMap } from './TrailPreviewMap'
 import { isValidTrailGeometry } from '../lib/geo'
 
+function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+  if (!token || latitude === null || longitude === null) return null
+  // Vue terrain immersive sans overlay : effet "photo paysage" pour les randos sans image
+  return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${longitude},${latitude},13,0,60/1080x720@2x?access_token=${token}`
+}
+
 interface Props {
   poi: PoiDetail
   citySlug: string
@@ -31,7 +38,10 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
   return (
     <>
       <header className="relative h-[560px] overflow-hidden bg-[#E8E6DF]">
-        {poi.photos[0] && <img src={poi.photos[0]} alt={poi.name} className="absolute inset-0 h-full w-full object-cover" />}
+        {(() => {
+          const heroSrc = poi.photos[0] ?? buildMapboxHeroUrl(trail.start_latitude, trail.start_longitude)
+          return heroSrc ? <img src={heroSrc} alt={poi.name} className="absolute inset-0 h-full w-full object-cover" /> : null
+        })()}
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/25" />
         <div className="absolute left-6 right-6 top-8 z-10 flex items-center justify-between">
           <Link

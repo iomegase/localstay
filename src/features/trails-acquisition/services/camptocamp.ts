@@ -3,9 +3,21 @@ import { bboxAroundPoint, bboxToMercator, mercatorXToLng, mercatorYToLat } from 
 import type { TrailDifficulty, TrailSourceRef } from '../types'
 
 const CAMPTOCAMP_API = 'https://api.camptocamp.org'
+const CAMPTOCAMP_MEDIA = 'https://media.camptocamp.org/c2corg-active'
 const PAGE_SIZE = 30
 const MAX_ROUTES_PER_RUN = 50
 const DETAIL_CONCURRENCY = 4
+const MAX_PHOTOS_PER_TRAIL = 8
+
+export function extractCamptocampImageUrls(rawPayload: unknown): string[] {
+  if (!rawPayload || typeof rawPayload !== 'object') return []
+  const detail = rawPayload as { associations?: { images?: Array<{ filename?: string }> } }
+  const images = detail.associations?.images ?? []
+  return images
+    .map(img => (typeof img.filename === 'string' && img.filename.length > 0 ? `${CAMPTOCAMP_MEDIA}/${img.filename}` : null))
+    .filter((url): url is string => url !== null)
+    .slice(0, MAX_PHOTOS_PER_TRAIL)
+}
 
 export type CamptocampTrailCandidate = {
   primary_source_type: 'camptocamp'

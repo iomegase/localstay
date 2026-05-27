@@ -3,6 +3,12 @@ import { prisma } from '@/shared/lib/prisma'
 import { TrailsAcquisitionError } from '../lib/errors'
 import { createTrailSlug } from '../lib/slug'
 import { mapTrailCandidate } from './runs'
+import { extractCamptocampImageUrls } from '../services/camptocamp'
+
+function extractPhotosForCandidate(primarySourceType: string, rawPayload: Prisma.JsonValue): string[] {
+  if (primarySourceType === 'camptocamp') return extractCamptocampImageUrls(rawPayload)
+  return []
+}
 
 type PublishOptions = {
   confirm_duplicate: boolean
@@ -63,7 +69,7 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
         address: candidate.start_label ?? candidate.city.name,
         latitude: startLatitude,
         longitude: startLongitude,
-        photos: [],
+        photos: extractPhotosForCandidate(candidate.primary_source_type, candidate.raw_payload),
         tags: ['rando'],
         geocode_status: 'success',
         geocoded_at: new Date(),
