@@ -5,7 +5,58 @@
  */
 
 const ORS_ENDPOINT = 'https://api.openrouteservice.org/v2/directions/foot-hiking'
+const ORS_WALKING_ENDPOINT = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson'
 const ORS_MAX_WAYPOINTS = 50
+
+export type OrsWalkingRoute = {
+  geometry: { type: 'LineString'; coordinates: Array<[number, number]> }
+  distance_m: number
+  duration_s: number
+}
+
+export async function fetchOrsWalkingRoute(
+  from: [number, number],
+  to: [number, number],
+): Promise<OrsWalkingRoute | null> {
+  const apiKey = process.env.ORS_API_KEY
+  if (!apiKey) return null
+
+  const response = await fetch(ORS_WALKING_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: apiKey,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ coordinates: [from, to] }),
+  })
+  if (!response.ok) throw new Error(`ORS HTTP ${response.status}`)
+
+  const payload = await response.json() as {
+    features?: Array<{
+      geometry?: { type?: string; coordinates?: unknown }
+      properties?: { summary?: { distance?: number; duration?: number } }
+    }>
+  }
+  const feature = payload.features?.[0]
+  const geom = feature?.geometry
+  const summary = feature?.properties?.summary
+  if (!geom || geom.type !== 'LineString' || !Array.isArray(geom.coordinates)) return null
+
+  const coords = geom.coordinates.flatMap(p => {
+    if (Array.isArray(p) && typeof p[0] === 'number' && typeof p[1] === 'number') {
+      return [[p[0], p[1]] as [number, number]]
+    }
+    return []
+  })
+  if (coords.length < 2) return null
+
+  return {
+    geometry: { type: 'LineString', coordinates: coords },
+    distance_m: summary?.distance ?? 0,
+    duration_s: summary?.duration ?? 0,
+  }
+}
 
 export function naismithDurationMin(distanceKm: number | null | undefined, elevationGainM: number | null | undefined): number | null {
   if (typeof distanceKm !== 'number' || !Number.isFinite(distanceKm) || distanceKm <= 0) return null

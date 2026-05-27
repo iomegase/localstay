@@ -180,11 +180,16 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     return getPositionProgress(position, geometry)
   }, [geometry, gpsState, position])
 
-  // Segment d'approche : ligne pointillée entre position et point le plus proche du tracé
-  const approachLine = useMemo(() => {
+  // Cible : point le plus proche du tracé pour l'approche
+  const approachTarget = useMemo(() => {
     if (!position || !geometry) return null
-    if (gpsState !== 'approaching' && gpsState !== 'ready_to_join') return null
-    const target = getClosestPointOnTrail(position, geometry)
+    if (gpsState !== 'approaching' && gpsState !== 'ready_to_join' && gpsState !== 'pre_start') return null
+    return getClosestPointOnTrail(position, geometry)
+  }, [geometry, gpsState, position])
+
+  // Segment d'approche en ligne droite (fallback toujours dispo)
+  const approachLine = useMemo(() => {
+    if (!position || !approachTarget) return null
     return {
       type: 'Feature' as const,
       properties: {},
@@ -192,11 +197,60 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         type: 'LineString' as const,
         coordinates: [
           [position.longitude, position.latitude],
-          [target.longitude, target.latitude],
+          [approachTarget.longitude, approachTarget.latitude],
         ],
       },
     }
-  }, [geometry, gpsState, position])
+  }, [position, approachTarget])
+
+  // Itinéraire réel ORS (chemin sur routes/sentiers) — remplace le pointillé droit quand dispo
+  const [walkingRoute, setWalkingRoute] = useState<{ geometry: { type: 'LineString'; coordinates: Array<[number, number]> }; distance_m: number } | null>(null)
+  const lastFetchPositionRef = useRef<{ lat: number; lng: number; targetLat: number; targetLng: number } | null>(null)
+
+  useEffect(() => {
+    if (!position || !approachTarget) {
+      setWalkingRoute(null)
+      return
+    }
+    // Re-fetch seulement si la position OU la cible a bougé > 50m depuis le dernier appel
+    const last = lastFetchPositionRef.current
+    if (last) {
+      const movedSelf = haversineMeters(position, { latitude: last.lat, longitude: last.lng })
+      const movedTarget = haversineMeters(approachTarget, { latitude: last.targetLat, longitude: last.targetLng })
+      if (movedSelf < 50 && movedTarget < 50) return
+    }
+    const controller = new AbortController()
+    const debounceId = window.setTimeout(async () => {
+      try {
+        const res = await fetch('/api/trails/walking-route', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: [position.longitude, position.latitude],
+            to: [approachTarget.longitude, approachTarget.latitude],
+          }),
+          signal: controller.signal,
+        })
+        if (!res.ok) return
+        const json = (await res.json()) as { data?: { geometry: { type: 'LineString'; coordinates: Array<[number, number]> }; distance_m: number } | null }
+        if (json.data) {
+          setWalkingRoute({ geometry: json.data.geometry, distance_m: json.data.distance_m })
+          lastFetchPositionRef.current = {
+            lat: position.latitude,
+            lng: position.longitude,
+            targetLat: approachTarget.latitude,
+            targetLng: approachTarget.longitude,
+          }
+        }
+      } catch {
+        // Silent : fallback sur pointillé droit
+      }
+    }, 600)
+    return () => {
+      controller.abort()
+      window.clearTimeout(debounceId)
+    }
+  }, [position, approachTarget])
 
   // Cercle d'incertitude GPS (accuracy en mètres)
   const accuracyCircle = useMemo(() => {
@@ -307,7 +361,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
             />
           </Source>
         )}
-        {approachLine && (
+        {/* Pointillé droit (fallback toujours visible quand pas de route ORS) */}
+        {approachLine && !walkingRoute && (
           <Source id="approach-line" type="geojson" data={approachLine}>
             <Layer
               id="approach-line-layer"
@@ -316,7 +371,30 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
                 'line-color': markerColor,
                 'line-width': 3,
                 'line-dasharray': [2, 2],
-                'line-opacity': 0.8,
+                'line-opacity': 0.7,
+              }}
+            />
+          </Source>
+        )}
+        {/* Vrai itinéraire de marche ORS — suit les routes & sentiers */}
+        {walkingRoute && (
+          <Source id="walking-route" type="geojson" data={{ type: 'Feature', properties: {}, geometry: walkingRoute.geometry }}>
+            <Layer
+              id="walking-route-halo"
+              type="line"
+              paint={{
+                'line-color': '#ffffff',
+                'line-width': 8,
+                'line-opacity': 0.7,
+              }}
+            />
+            <Layer
+              id="walking-route-line"
+              type="line"
+              paint={{
+                'line-color': '#6366F1',
+                'line-width': 5,
+                'line-opacity': 0.95,
               }}
             />
           </Source>
@@ -442,7 +520,10 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         {gpsState === 'pre_start' && (
           <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65">
             <p className="font-semibold text-charcoal">
-              Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé.
+              Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé
+              {walkingRoute && (
+                <span className="font-normal text-charcoal/55"> ({Math.round(walkingRoute.distance_m)} m à pied par les chemins)</span>
+              )}.
             </p>
             <p className="mt-1">
               Rapprochez-vous à moins de {JOIN_TOLERANCE_M} m pour démarrer le guidage — vous pourrez démarrer
