@@ -1,7 +1,24 @@
 "use client"
 
 import { FormEvent, ReactNode, useState, useTransition } from 'react'
-import { Info, MapPin, Tag as TagIcon, Image as ImageIcon, Map, Building2, CheckCircle2, Trash2, Star, Plus } from 'lucide-react'
+import { Info, MapPin, Tag as TagIcon, Image as ImageIcon, Map, Building2, CheckCircle2, Trash2, Star, Plus, GripVertical } from 'lucide-react'
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -23,6 +40,21 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   const [isPending, startTransition] = useTransition()
   const selectedCategory = categories.find(category => category.id === selectedCategoryId)
   const subcategories = selectedCategory?.subcategories ?? []
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  function reorderPhotos(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setPhotos(current => {
+      const oldIndex = current.indexOf(String(active.id))
+      const newIndex = current.indexOf(String(over.id))
+      if (oldIndex === -1 || newIndex === -1) return current
+      return arrayMove(current, oldIndex, newIndex)
+    })
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -281,69 +313,39 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
               <caption className="sr-only">Photos du POI</caption>
               <thead className="bg-slate-50/80 border-b border-slate-100">
                 <tr>
+                  <th className="px-3 py-4 w-10"></th>
                   <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500">Image</th>
                   <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Asset</th>
                   <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-center">Rôle</th>
                   <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
-                {photos.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-5 py-12 text-center">
-                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 mb-4">
-                        <ImageIcon size={32} />
-                      </div>
-                      <p className="text-[14px] font-medium text-slate-500">Aucune photo actuellement liée à cette fiche.</p>
-                    </td>
-                  </tr>
-                ) : (
-                  photos.map((photo, index) => {
-                    const title = `Photo ${index + 1}`
-                    return (
-                      <tr key={`${photo}-${index}`} className="group hover:bg-slate-50/30 transition-colors duration-200">
-                        <td className="px-5 py-4">
-                          <div className="overflow-hidden rounded-xl bg-slate-100 w-24 h-16">
-                            <img src={photo} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={reorderPhotos}>
+                <SortableContext items={photos} strategy={verticalListSortingStrategy}>
+                  <tbody className="divide-y divide-slate-50">
+                    {photos.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-5 py-12 text-center">
+                          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 mb-4">
+                            <ImageIcon size={32} />
                           </div>
-                        </td>
-                        <td className="px-5 py-4 font-semibold text-[14px] text-slate-700 hidden sm:table-cell">{title}</td>
-                        <td className="px-5 py-4 text-center">
-                          {index === 0 ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 shadow-sm">
-                              <Star size={12} className="fill-amber-500 stroke-amber-500" />
-                              Hero Image
-                            </span>
-                          ) : (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-8 rounded-lg border-slate-200 px-3 text-[12px] font-bold text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700"
-                              aria-label={`Définir ${title} comme hero`}
-                              onClick={() => setHeroPhoto(index)}
-                            >
-                              Définir hero
-                            </Button>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-10 w-10 shrink-0 rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
-                            aria-label={`Effacer ${title}`}
-                            onClick={() => removePhoto(index)}
-                          >
-                            <Trash2 size={18} />
-                          </Button>
+                          <p className="text-[14px] font-medium text-slate-500">Aucune photo actuellement liée à cette fiche.</p>
                         </td>
                       </tr>
-                    )
-                  })
-                )}
-              </tbody>
+                    ) : (
+                      photos.map((photo, index) => (
+                        <SortablePhotoRow
+                          key={photo}
+                          photo={photo}
+                          index={index}
+                          onRemove={() => removePhoto(index)}
+                          onSetHero={() => setHeroPhoto(index)}
+                        />
+                      ))
+                    )}
+                  </tbody>
+                </SortableContext>
+              </DndContext>
             </table>
           </div>
         </div>
@@ -430,6 +432,79 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       return [selected, ...current.filter((_, photoIndex) => photoIndex !== index)]
     })
   }
+}
+
+function SortablePhotoRow({
+  photo,
+  index,
+  onRemove,
+  onSetHero,
+}: {
+  photo: string
+  index: number
+  onRemove: () => void
+  onSetHero: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+  const title = `Photo ${index + 1}`
+
+  return (
+    <tr ref={setNodeRef} style={style} className="group hover:bg-slate-50/30 transition-colors duration-200">
+      <td className="px-3 py-4 align-middle">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Réordonner cette photo"
+          className="flex h-8 w-8 cursor-grab items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:cursor-grabbing"
+        >
+          <GripVertical size={16} />
+        </button>
+      </td>
+      <td className="px-5 py-4">
+        <div className="overflow-hidden rounded-xl bg-slate-100 w-24 h-16">
+          <img src={photo} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+        </div>
+      </td>
+      <td className="px-5 py-4 font-semibold text-[14px] text-slate-700 hidden sm:table-cell">{title}</td>
+      <td className="px-5 py-4 text-center">
+        {index === 0 ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 shadow-sm">
+            <Star size={12} className="fill-amber-500 stroke-amber-500" />
+            Hero Image
+          </span>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-lg border-slate-200 px-3 text-[12px] font-bold text-slate-500 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700"
+            aria-label={`Définir ${title} comme hero`}
+            onClick={onSetHero}
+          >
+            Définir hero
+          </Button>
+        )}
+      </td>
+      <td className="px-5 py-4 text-right">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 shrink-0 rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+          aria-label={`Effacer ${title}`}
+          onClick={onRemove}
+        >
+          <Trash2 size={18} />
+        </Button>
+      </td>
+    </tr>
+  )
 }
 
 function Field({

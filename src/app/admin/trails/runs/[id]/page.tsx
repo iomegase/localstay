@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
+import { ExternalLink } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -158,6 +160,15 @@ function CandidateRow({ candidate }: { candidate: any }) {
             geometryStatus={candidate.geometry_status}
           />
         </div>
+        {candidate.published_poi_id && (
+          <Link
+            href={`/admin/pois/${candidate.published_poi_id}`}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-700"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Gérer la fiche & photos
+          </Link>
+        )}
       </TableCell>
     </TableRow>
   )
