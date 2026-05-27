@@ -51,6 +51,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     }
   }, [])
 
+  function tiltMapForImmersion() {
+    mapRef.current?.flyTo({
+      pitch: 55,
+      zoom: 16,
+      duration: 1500,
+      essential: true,
+    })
+  }
+
   function startGpsTracking() {
     if (!geometry) return
     if (!('geolocation' in navigator)) {
@@ -60,6 +69,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     if (watchIdRef.current !== null) return
 
     setGpsState('gps_prompt')
+    tiltMapForImmersion()
     watchIdRef.current = navigator.geolocation.watchPosition(
       nextPosition => {
         const current = {
@@ -122,6 +132,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
       zoom: 16,
+      pitch: 55,
+      duration: 800,
       essential: true,
     })
   }
