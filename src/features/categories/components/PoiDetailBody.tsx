@@ -39,7 +39,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
           <img
             src={poi.photos[0]}
             alt={poi.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full bg-white objobject-center"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
