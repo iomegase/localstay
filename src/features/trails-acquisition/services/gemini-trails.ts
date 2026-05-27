@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, type Tool } from '@google/generative-ai'
 import { z } from 'zod'
 import { rejectGeminiGeoMetrics } from '../lib/source-policy'
 
@@ -34,10 +34,16 @@ type CityRef = { name: string; latitude: number; longitude: number }
 function getModel() {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY not set')
-  const modelName = process.env.GEMINI_MODEL ?? 'gemini-flash-latest'
+  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'
+  // Google Search grounding — le modèle interroge Google live pour récupérer
+  // des infos fraîches sur les randos (descriptions, points de départ).
+  // Gemini 2.0+ utilise `googleSearch: {}` (le SDK v0.24 le typait encore
+  // `googleSearchRetrieval`, deprecated côté API depuis 2025).
+  // Incompatible avec responseMimeType JSON forcé → on parse le JSON depuis
+  // le texte de réponse via parseJsonResponse().
   return new GoogleGenerativeAI(apiKey).getGenerativeModel({
     model: modelName,
-    generationConfig: { responseMimeType: 'application/json' },
+    tools: [{ googleSearch: {} } as unknown as Tool],
   })
 }
 
@@ -47,22 +53,23 @@ function parseJsonResponse(text: string): unknown {
 }
 
 export async function discoverTrailsWithGemini(city: CityRef): Promise<Array<{ title: string; description: string; start_label: string | null }>> {
-  const prompt = `Liste les 10 randonnées pédestres les plus emblématiques et accessibles autour de ${city.name} (Haute-Savoie, France, ~${city.latitude.toFixed(4)},${city.longitude.toFixed(4)}).
+  const prompt = `Utilise Google Search pour trouver les 10 randonnées pédestres les plus emblématiques et accessibles autour de ${city.name} (Haute-Savoie, France, ~${city.latitude.toFixed(4)},${city.longitude.toFixed(4)}).
 
-Inclus les classiques connus localement (sommets, lacs, alpages, refuges) accessibles à pied sans matériel d'alpinisme.
+Cherche sur les sites de référence : office de tourisme local, visorando.com, altituderando.com, camptocamp.org, Wikipedia. Inclus les classiques connus localement (sommets, lacs, alpages, refuges) accessibles à pied sans matériel d'alpinisme.
 
-Format JSON strict :
+IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans markdown, sans backticks. Structure exacte attendue :
+
 {
   "trails": [
     {
-      "title": "Nom usuel de la randonnée",
-      "description": "Description éditoriale 2-4 phrases : intérêt, paysages, difficulté générale. Ne pas inventer de chiffres précis (km, dénivelé).",
-      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée, par exemple 'Parking du Bettex' ou 'Plateau de la Croix'. null si inconnu."
+      "title": "Nom usuel de la randonnée tel qu'utilisé localement",
+      "description": "Description éditoriale 2-4 phrases riches : intérêt, paysages traversés, difficulté générale, période favorable. Synthèse de ce que tu as trouvé via Google Search. Ne pas inventer de chiffres précis (km, dénivelé) sauf s'ils sont confirmés par les sources.",
+      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée d'après les sources (ex: 'Parking du Bettex' ou 'Plateau de la Croix'). null si introuvable."
     }
   ]
 }
 
-Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Pas de chiffres précis non vérifiés.`
+Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Privilégie la précision factuelle (vérifiée via search) sur la verbosité.`
 
   const model = getModel()
   const result = await model.generateContent(prompt)
@@ -73,12 +80,15 @@ Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Pas de chiffre
 }
 
 export async function generateTrailDescription(title: string, city: CityRef): Promise<{ description: string; start_label: string | null }> {
-  const prompt = `Rédige une description éditoriale courte (2-4 phrases) pour la randonnée "${title}" située autour de ${city.name} (Haute-Savoie, France).
+  const prompt = `Utilise Google Search pour trouver des informations factuelles sur la randonnée "${title}" située autour de ${city.name} (Haute-Savoie, France).
 
-Format JSON strict :
+Cherche sur visorando.com, altituderando.com, camptocamp.org, l'office de tourisme local, Wikipedia. Combine plusieurs sources pour une synthèse fiable.
+
+IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans markdown, sans backticks. Structure exacte :
+
 {
-  "description": "Texte éditorial neutre. Pas de chiffres inventés (km, dénivelé, durée). Mentionne le paysage et l'intérêt général.",
-  "start_label": "Lieu/hameau/parking de départ courant (ex: 'Parking du Bettex'). null si inconnu."
+  "description": "Description éditoriale 2-4 phrases riches : paysages traversés, intérêt (sommet, lac, alpage, refuge), difficulté générale, période favorable. Synthèse factuelle des sources trouvées. Pas de chiffres inventés (km, dénivelé, durée) sauf si confirmés.",
+  "start_label": "Lieu/hameau/parking de départ d'après les sources (ex: 'Parking du Bettex', 'Plateau de la Croix'). null si introuvable."
 }`
 
   const model = getModel()
