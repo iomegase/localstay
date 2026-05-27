@@ -26,7 +26,7 @@ export async function fetchOrsWalkingRoute(
     headers: {
       Authorization: apiKey,
       'Content-Type': 'application/json',
-      Accept: 'application/json',
+      Accept: 'application/geo+json, application/json',
     },
     body: JSON.stringify({ coordinates: [from, to] }),
   })
