@@ -72,7 +72,7 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
 Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Privilégie la précision factuelle (vérifiée via search) sur la verbosité.`
 
   const model = getModel()
-  const result = await model.generateContent(prompt)
+  const result = await withTimeout(model.generateContent(prompt), 30_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DiscoverySchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini discovery validation failed: ${parsed.error.message}`)
@@ -92,7 +92,7 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
 }`
 
   const model = getModel()
-  const result = await model.generateContent(prompt)
+  const result = await withTimeout(model.generateContent(prompt), 15_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
@@ -106,6 +106,9 @@ type EnrichableCandidate = {
   source_refs: unknown
 }
 
+const GEMINI_DESCRIPTION_TIMEOUT_MS = 15_000
+const GEMINI_DESCRIPTION_CONCURRENCY = 5
+
 export async function enrichCandidatesWithGeminiDescriptions<T extends EnrichableCandidate>(
   candidates: T[],
   city: CityRef,
@@ -113,13 +116,21 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
   let enriched = 0
   let errors = 0
 
-  for (const candidate of candidates) {
+  const toEnrich = candidates.filter(c => {
+    const needsDescription = !c.description || c.description.trim().length === 0
+    const needsStart = !c.start_label
+    return needsDescription || needsStart
+  })
+
+  await mapWithConcurrency(toEnrich, GEMINI_DESCRIPTION_CONCURRENCY, async candidate => {
     const needsDescription = !candidate.description || candidate.description.trim().length === 0
     const needsStart = !candidate.start_label
-    if (!needsDescription && !needsStart) continue
 
     try {
-      const result = await generateTrailDescription(candidate.title, city)
+      const result = await withTimeout(
+        generateTrailDescription(candidate.title, city),
+        GEMINI_DESCRIPTION_TIMEOUT_MS,
+      )
       const usedFor: string[] = []
       if (needsDescription) {
         candidate.description = result.description
@@ -136,9 +147,31 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
     } catch {
       errors += 1
     }
-  }
+  })
 
   return { enriched, errors }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timeout ${ms}ms`)), ms)
+    promise.then(value => { clearTimeout(timer); resolve(value) }, err => { clearTimeout(timer); reject(err) })
+  })
+}
+
+async function mapWithConcurrency<T, R>(items: T[], concurrency: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const index = cursor
+      cursor += 1
+      if (index >= items.length) return
+      results[index] = await fn(items[index])
+    }
+  })
+  await Promise.all(workers)
+  return results
 }
 
 const START_LABEL_PATTERN = /au d[ée]part d[eu]s?\s+([^.,;:!?\n]+)/i
