@@ -136,7 +136,7 @@ describe('021 trail navigation start mode', () => {
     render(<TrailNavigationMap trail={trail} />)
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
-    expect(await screen.findByText(/Vous n'êtes pas encore au départ/i)).toBeInTheDocument()
+    expect(await screen.findByText(/pas obligatoirement au début/i)).toBeInTheDocument()
     expect(screen.queryByText(/Vous semblez vous éloigner du tracé/i)).not.toBeInTheDocument()
   })
 })

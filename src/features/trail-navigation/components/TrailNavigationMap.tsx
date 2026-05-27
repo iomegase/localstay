@@ -8,7 +8,19 @@ import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
 import { getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
 
-type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
+type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'ready_to_join' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
+
+// Seuils GPS — précision et tolérances
+const TRACKING_TOLERANCE_M = 35           // strict : sortie de tracé détectée tôt
+const LOW_ACCURACY_THRESHOLD_M = 30       // alerte plus tôt qu'avant (75 m)
+const JOIN_TOLERANCE_M = clampJoinTolerance(
+  parseInt(process.env.NEXT_PUBLIC_JOIN_TOLERANCE_M ?? '150', 10),
+)
+
+function clampJoinTolerance(value: number): number {
+  if (!Number.isFinite(value)) return 150
+  return Math.max(50, Math.min(500, value))
+}
 
 interface Props {
   trail: TrailNavigationData
@@ -24,6 +36,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   const [gpsState, setGpsState] = useState<GpsState>('ready')
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
+  const [distanceToTrail, setDistanceToTrail] = useState<number | null>(null)
 
   useEffect(() => {
     return () => {
@@ -51,29 +64,49 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         setPosition(current)
         setAccuracy(nextPosition.coords.accuracy)
 
-        if (nextPosition.coords.accuracy > 75) {
+        if (nextPosition.coords.accuracy > LOW_ACCURACY_THRESHOLD_M) {
           setGpsState('low_accuracy')
           return
         }
 
         const distanceToTrail = getTrailDistanceMeters(current, geometry)
-        if (distanceToTrail <= 120) {
+        setDistanceToTrail(distanceToTrail)
+
+        // Sur le tracé (seuil strict) → guidage actif
+        if (distanceToTrail <= TRACKING_TOLERANCE_M) {
           hasReachedTrailRef.current = true
           setGpsState('tracking')
           return
         }
 
-        setGpsState(hasReachedTrailRef.current ? 'off_track' : 'pre_start')
+        // Déjà raccroché et maintenant trop loin → hors piste (alerte forte)
+        if (hasReachedTrailRef.current) {
+          if (typeof navigator.vibrate === 'function') navigator.vibrate(200)
+          setGpsState('off_track')
+          return
+        }
+
+        // Première approche, dans la zone d'intégration → propose démarrage ici
+        if (distanceToTrail <= JOIN_TOLERANCE_M) {
+          setGpsState('ready_to_join')
+          return
+        }
+
+        // Trop loin pour intégrer
+        setGpsState('pre_start')
       },
       () => {
         setGpsState('gps_denied')
       },
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 10_000 },
+      { enableHighAccuracy: true, timeout: 6_000, maximumAge: 2_000 },
     )
   }
 
   function recenterOnPosition() {
-    if (!position) return
+    if (!position) {
+      startGpsTracking()
+      return
+    }
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
       zoom: 16,
@@ -81,10 +114,14 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     })
   }
 
+  function confirmJoinFromHere() {
+    hasReachedTrailRef.current = true
+    setGpsState('tracking')
+  }
+
   const progress = useMemo(() => {
-    if (!position || !geometry || gpsState === 'pre_start') {
-      return null
-    }
+    if (!position || !geometry) return null
+    if (gpsState === 'pre_start' || gpsState === 'gps_denied' || gpsState === 'ready') return null
     return getPositionProgress(position, geometry)
   }, [geometry, gpsState, position])
 
@@ -148,11 +185,10 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         <button
           type="button"
           onClick={recenterOnPosition}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow disabled:opacity-50"
-          aria-label="Recentrer"
-          disabled={!position}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+          aria-label={position ? 'Recentrer sur ma position' : 'Activer la localisation'}
         >
-          <LocateFixed className="h-5 w-5" />
+          <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-[#455E4C]' : ''}`} />
         </button>
       </div>
 
@@ -191,12 +227,38 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
           </p>
         )}
 
+        {gpsState === 'ready_to_join' && (
+          <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
+            <p className="font-semibold text-charcoal">
+              Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé.
+            </p>
+            {progress && (
+              <p className="mt-1">
+                Point d&apos;entrée estimé : <strong>{Math.round(progress.percent)}%</strong> du parcours
+                ({Math.round(progress.distance_m)} m parcourus si vous démarrez ici).
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={confirmJoinFromHere}
+              className="mt-3 w-full rounded-full bg-[#455E4C] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
+            >
+              Démarrer depuis ici
+            </button>
+          </div>
+        )}
+
         {gpsState === 'pre_start' && (
           <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65">
-            <p className="font-semibold text-charcoal">Vous n&apos;êtes pas encore au départ.</p>
-            <p className="mt-1">Rejoignez le point de départ avant de suivre le tracé.</p>
+            <p className="font-semibold text-charcoal">
+              Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé.
+            </p>
+            <p className="mt-1">
+              Rapprochez-vous à moins de {JOIN_TOLERANCE_M} m pour démarrer le guidage — vous pourrez démarrer
+              <strong> en n&apos;importe quel point</strong> du tracé, pas obligatoirement au début.
+            </p>
             <Link href={backHref} className="mt-2 inline-flex font-bold uppercase tracking-[0.12em] text-[#455E4C]">
-              Rejoindre le départ
+              Voir le départ officiel
             </Link>
           </div>
         )}
@@ -245,7 +307,8 @@ function formatDuration(minutes: number | null): string {
 function gpsStateLabel(status: GpsState): string {
   if (status === 'ready') return 'Prêt'
   if (status === 'gps_prompt') return 'GPS en attente'
-  if (status === 'pre_start') return 'Pré-départ'
+  if (status === 'ready_to_join') return 'Prêt à intégrer'
+  if (status === 'pre_start') return 'Trop loin du tracé'
   if (status === 'off_track') return 'Hors tracé'
   if (status === 'low_accuracy') return 'Précision GPS faible'
   return 'GPS indisponible'
