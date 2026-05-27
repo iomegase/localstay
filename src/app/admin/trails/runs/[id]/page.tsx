@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Card, CardContent } from '@/shared/components/ui/card'
-import { Badge } from '@/shared/components/ui/badge'
 import { ExternalLink } from 'lucide-react'
 import {
   Table,
@@ -38,6 +37,7 @@ export default async function AdminTrailRunPage({
 // --- SOUS-COMPOSANTS ---
 
 function RunHeader({ run }: { run: any }) {
+  const stats = computeStats(run.candidates ?? [])
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-600">
@@ -49,7 +49,19 @@ function RunHeader({ run }: { run: any }) {
       <p className="mt-2 text-sm text-slate-600">
         Statut du run: <span className="font-medium">{run.status}</span> · Sources: {run.source_types.join(', ')}
       </p>
-      
+
+      {/* État synthétique du run */}
+      {stats.total > 0 && (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6 max-w-4xl">
+          <StatBox label="Total" value={stats.total} color="text-slate-900" />
+          <StatBox label="Complets" value={stats.complete} color="text-emerald-700" />
+          <StatBox label="Partiels" value={stats.partial} color="text-amber-700" />
+          <StatBox label="Géom. valide" value={stats.geometryValid} color="text-emerald-700" />
+          <StatBox label="Élév. valide" value={stats.elevationValid} color="text-emerald-700" />
+          <StatBox label="Publiés" value={stats.published} color="text-indigo-700" />
+        </div>
+      )}
+
       {run.error && (
         <p className="mt-3 max-w-2xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {run.error}
@@ -57,6 +69,67 @@ function RunHeader({ run }: { run: any }) {
       )}
     </div>
   )
+}
+
+function StatBox({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className={`mt-0.5 text-xl font-bold ${color}`}>{value}</p>
+    </div>
+  )
+}
+
+function computeStats(candidates: any[]) {
+  const total = candidates.length
+  let geometryValid = 0, elevationValid = 0, complete = 0, partial = 0, published = 0
+  for (const c of candidates) {
+    if (c.geometry_status === 'valid') geometryValid += 1
+    if (c.elevation_status === 'valid') elevationValid += 1
+    if (c.data_quality_status === 'complete') complete += 1
+    else partial += 1
+    if (c.review_status === 'published') published += 1
+  }
+  return { total, geometryValid, elevationValid, complete, partial, published }
+}
+
+function StatusBadge({ label, value }: { label: string; value: string }) {
+  const colorClass = badgeColorForStatus(value)
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${colorClass}`}>
+      <span className="opacity-70">{label}</span>
+      <span>{value}</span>
+    </span>
+  )
+}
+
+function badgeColorForStatus(value: string): string {
+  switch (value) {
+    case 'valid':
+    case 'published':
+    case 'complete':
+      return 'border-emerald-300 bg-emerald-50 text-emerald-700'
+    case 'needs_review':
+      return 'border-amber-300 bg-amber-50 text-amber-700'
+    case 'missing':
+    case 'failed':
+    case 'rejected':
+    case 'invalid':
+      return 'border-red-200 bg-red-50 text-red-700'
+    case 'merged':
+      return 'border-indigo-200 bg-indigo-50 text-indigo-700'
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-600'
+  }
+}
+
+function candidateScore(candidate: any): number {
+  // Tri : 'complete' geom+elev en premier, puis 'valid' partiel, puis 'missing'
+  let score = 0
+  if (candidate.geometry_status === 'valid') score += 4
+  if (candidate.elevation_status === 'valid') score += 2
+  if (candidate.data_quality_status === 'complete') score += 1
+  return score
 }
 
 function CandidatesTable({ candidates }: { candidates: any[] }) {
@@ -70,16 +143,19 @@ function CandidatesTable({ candidates }: { candidates: any[] }) {
     )
   }
 
-  // Tri par ordre alphabétique sur le titre
-  const sortedCandidates = [...candidates].sort((a, b) =>
-    (a.title || '').localeCompare(b.title || '', 'fr', { ignorePunctuation: true })
-  )
+  // Tri : score décroissant (valides en premier), puis alphabétique
+  const sortedCandidates = [...candidates].sort((a, b) => {
+    const diff = candidateScore(b) - candidateScore(a)
+    if (diff !== 0) return diff
+    return (a.title || '').localeCompare(b.title || '', 'fr', { ignorePunctuation: true })
+  })
 
   return (
     <div className="rounded-md border border-slate-200 bg-white shadow-sm">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-12 text-center">#</TableHead>
             <TableHead className="w-[35%]">Randonnée</TableHead>
             <TableHead>Métriques</TableHead>
             <TableHead>Statuts & Sources</TableHead>
@@ -87,8 +163,8 @@ function CandidatesTable({ candidates }: { candidates: any[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedCandidates.map((candidate) => (
-            <CandidateRow key={candidate.id} candidate={candidate} />
+          {sortedCandidates.map((candidate, index) => (
+            <CandidateRow key={candidate.id} candidate={candidate} rowNumber={index + 1} />
           ))}
         </TableBody>
       </Table>
@@ -96,9 +172,14 @@ function CandidatesTable({ candidates }: { candidates: any[] }) {
   )
 }
 
-function CandidateRow({ candidate }: { candidate: any }) {
+function CandidateRow({ candidate, rowNumber }: { candidate: any; rowNumber: number }) {
   return (
     <TableRow>
+      {/* Colonne 0 : Numéro */}
+      <TableCell className="align-top text-center text-sm font-mono text-slate-400">
+        {rowNumber}
+      </TableCell>
+
       {/* Colonne 1 : Infos principales */}
       <TableCell className="align-top">
         <p className="font-semibold text-slate-900 text-base">{candidate.title}</p>
@@ -129,9 +210,9 @@ function CandidateRow({ candidate }: { candidate: any }) {
       {/* Colonne 3 : Statuts & Sources */}
       <TableCell className="align-top">
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge variant="outline" className="text-xs bg-slate-50">{candidate.geometry_status}</Badge>
-          <Badge variant="outline" className="text-xs bg-slate-50">{candidate.elevation_status}</Badge>
-          <Badge variant="outline" className="text-xs bg-slate-50">{candidate.review_status}</Badge>
+          <StatusBadge label="Géom." value={candidate.geometry_status} />
+          <StatusBadge label="Élév." value={candidate.elevation_status} />
+          <StatusBadge label="Revue" value={candidate.review_status} />
         </div>
         
         <div className="text-xs text-slate-500 space-y-1">
