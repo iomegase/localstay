@@ -308,19 +308,19 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[20px] border border-slate-100 bg-white shadow-sm">
-            <table aria-label="Photos du POI" className="w-full text-left">
-              <caption className="sr-only">Photos du POI</caption>
-              <thead className="bg-slate-50/80 border-b border-slate-100">
-                <tr>
-                  <th className="px-3 py-4 w-10"></th>
-                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500">Image</th>
-                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Asset</th>
-                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-center">Rôle</th>
-                  <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
-                </tr>
-              </thead>
-              <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={reorderPhotos}>
+          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={reorderPhotos}>
+            <div className="overflow-hidden rounded-[20px] border border-slate-100 bg-white shadow-sm">
+              <table aria-label="Photos du POI" className="w-full text-left">
+                <caption className="sr-only">Photos du POI</caption>
+                <thead className="bg-slate-50/80 border-b border-slate-100">
+                  <tr>
+                    <th className="px-3 py-4 w-10"></th>
+                    <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500">Image</th>
+                    <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Asset</th>
+                    <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-center">Rôle</th>
+                    <th className="px-5 py-4 text-[12px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                  </tr>
+                </thead>
                 <SortableContext items={photos} strategy={verticalListSortingStrategy}>
                   <tbody className="divide-y divide-slate-50">
                     {photos.length === 0 ? (
@@ -345,9 +345,9 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                     )}
                   </tbody>
                 </SortableContext>
-              </DndContext>
-            </table>
-          </div>
+              </table>
+            </div>
+          </DndContext>
         </div>
       </section>
 
