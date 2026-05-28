@@ -4,6 +4,7 @@ export interface ViewState {
   latitude: number
   longitude: number
   zoom: number
+  bearing?: number
 }
 
 export interface PoiGeoJson {
@@ -22,7 +23,7 @@ export interface PoiGeoJson {
 }
 
 export function getInitialViewState(latitude: number, longitude: number): ViewState {
-  return { latitude, longitude, zoom: 13 }
+  return { latitude, longitude, zoom: 13, bearing: 0 }
 }
 
 export function shouldCluster(count: number): boolean {

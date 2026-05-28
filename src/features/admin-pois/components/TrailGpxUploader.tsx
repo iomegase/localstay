@@ -4,7 +4,13 @@ import { useRef, useState } from 'react'
 import { Map, Upload } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 
-export function TrailGpxUploader({ poiId }: { poiId: string }) {
+export function TrailGpxUploader({
+  poiId,
+  hasTrailDetail = true,
+}: {
+  poiId: string
+  hasTrailDetail?: boolean
+}) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -25,7 +31,7 @@ export function TrailGpxUploader({ poiId }: { poiId: string }) {
       })
       const json = await response.json().catch(() => null) as {
         error?: { message?: string }
-        data?: { points?: number; distance_km?: number }
+        data?: { points?: number; distance_km?: number; created?: boolean }
       } | null
       if (!response.ok) {
         setError(json?.error?.message ?? 'Upload GPX impossible')
@@ -33,7 +39,13 @@ export function TrailGpxUploader({ poiId }: { poiId: string }) {
       }
       const pts = json?.data?.points ?? 0
       const dist = json?.data?.distance_km ?? null
-      setMessage(`Tracé mis à jour : ${pts} points${dist != null ? ` · ${dist.toFixed(1)} km` : ''}`)
+      const created = json?.data?.created
+      const verb = created ? 'Fiche randonnée créée' : 'Tracé mis à jour'
+      setMessage(`${verb} : ${pts} points${dist != null ? ` · ${dist.toFixed(1)} km` : ''}`)
+      if (created) {
+        // Reload pour révéler le rendu rando immersif côté public.
+        setTimeout(() => window.location.reload(), 800)
+      }
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
@@ -47,10 +59,14 @@ export function TrailGpxUploader({ poiId }: { poiId: string }) {
           <Map size={20} strokeWidth={2.5} />
         </div>
         <div className="flex-1 pt-1">
-          <h2 className="text-[15px] font-bold text-emerald-900">Mettre à jour le tracé GPX</h2>
+          <h2 className="text-[15px] font-bold text-emerald-900">
+            {hasTrailDetail ? 'Mettre à jour le tracé GPX' : 'Convertir en randonnée avec un GPX'}
+          </h2>
           <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-emerald-700/80">
-            Importer un fichier .gpx pour remplacer la géométrie actuelle (LineString) et recalculer le point de départ.
-            Sources fiables : apidae-tourisme.com, visorando (export manuel), traces GPS perso.
+            {hasTrailDetail
+              ? 'Importer un fichier .gpx pour remplacer la géométrie actuelle (LineString) et recalculer le point de départ.'
+              : 'Ce POI est dans la catégorie rando mais n\'a pas encore de fiche randonnée. Importer un .gpx créera la fiche, le tracé, la distance et le point de départ d\'un coup.'}
+            {' '}Sources fiables : apidae-tourisme.com, visorando (export manuel), traces GPS perso.
           </p>
           <div className="mt-4 flex items-center gap-3">
             <Button

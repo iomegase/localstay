@@ -52,6 +52,9 @@ export function FullMap({ pois, cityCenter, citySlug, categorySlug }: Props) {
       <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={getInitialViewState(cityCenter.latitude, cityCenter.longitude)}
+        // Nord verrouillé en haut : pas de drag rotate, twist 2-doigts désactivé au load.
+        dragRotate={false}
+        onLoad={event => event.target.touchZoomRotate.disableRotation()}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         interactiveLayerIds={['unclustered-point']}

@@ -399,8 +399,11 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         </div>
       </section>
 
-      {/* Trail GPX Uploader (POI rando publié) */}
-      {poi.trail_fields_locked && <TrailGpxUploader poiId={poi.id} />}
+      {/* Trail GPX Uploader — visible pour tout POI rando, qu'il ait déjà un
+          TrailDetail ou non. Si manquant, l'upload le créera. */}
+      {(poi.trail_fields_locked || poi.category.slug === 'rando') && (
+        <TrailGpxUploader poiId={poi.id} hasTrailDetail={poi.trail_fields_locked} />
+      )}
 
       {/* Lock Warnings Section */}
       {(poi.trail_fields_locked || poi.merchant_attached) && (

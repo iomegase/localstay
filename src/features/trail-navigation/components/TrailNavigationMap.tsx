@@ -300,9 +300,21 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
           latitude: trail.start_latitude,
           longitude: trail.start_longitude,
           zoom: 14,
+          bearing: 0,
         }}
+        // Le nord reste en haut : on bloque la rotation interactive (drag droit + pinch
+        // deux doigts) et la rotation via gestures pitch. Le tilt vertical (pitch) reste
+        // autorisé pour le mode immersif.
+        dragRotate={false}
+        touchPitch={true}
+        touchZoomRotate={true}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         style={{ width: '100%', height: '100%' }}
+        onLoad={event => {
+          // touchZoomRotate ne sait pas accepter une seule capacité — on garde
+          // le zoom à 2 doigts et on tue la rotation (twist).
+          event.target.touchZoomRotate.disableRotation()
+        }}
       >
         <NavigationControl position="top-right" />
         <Source id="trail-navigation-line" type="geojson" data={{ type: 'Feature', properties: {}, geometry }}>

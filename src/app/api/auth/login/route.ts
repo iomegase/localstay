@@ -31,6 +31,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error || !data.user) {
+    // Cas particulier : provider Email désactivé côté Supabase Dashboard
+    // (configuration projet, pas un problème de credentials)
+    if (error?.code === 'email_provider_disabled' || error?.message?.toLowerCase().includes('email logins are disabled')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'EMAIL_PROVIDER_DISABLED',
+            message: 'Connexion par email désactivée côté Supabase. Réactiver dans Auth → Providers → Email.',
+          },
+        },
+        { status: 503 },
+      )
+    }
+    if (error?.message?.toLowerCase().includes('email not confirmed')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'EMAIL_NOT_CONFIRMED',
+            message: 'Compte non confirmé. Vérifiez votre boîte mail ou désactivez "Confirm email" côté Supabase en dev.',
+          },
+        },
+        { status: 401 },
+      )
+    }
     return NextResponse.json(
       { error: { code: 'INVALID_CREDENTIALS', message: 'Email ou mot de passe incorrect' } },
       { status: 401 },

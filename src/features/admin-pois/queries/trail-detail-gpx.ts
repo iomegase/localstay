@@ -12,6 +12,7 @@ export type TrailDetailGpxUpdateResult = {
   distance_km: number
   start_latitude: number
   start_longitude: number
+  created: boolean
 }
 
 export async function updateTrailDetailFromGpx(
@@ -23,18 +24,18 @@ export async function updateTrailDetailFromGpx(
     where: { id: poiId, deleted_at: null },
     select: {
       id: true,
+      category: { select: { slug: true } },
       trail_detail: { select: { id: true, distance_km: true, source_refs: true, deleted_at: true } },
     },
   })
   if (!poi) throw new PoiAcquisitionError('POI_NOT_FOUND', 404)
-  if (!poi.trail_detail || poi.trail_detail.deleted_at) {
-    throw new PoiAcquisitionError('TRAIL_DETAIL_MISSING', 404)
-  }
 
   const parsed = parseGpx(file.content)
   const geometry = { type: 'LineString' as const, coordinates: parsed.coordinates }
   const distanceKm = computeLineDistanceKm(parsed.coordinates)
-  const existingRefs = parseSourceRefs(poi.trail_detail.source_refs)
+
+  const hasActiveTrailDetail = Boolean(poi.trail_detail && !poi.trail_detail.deleted_at)
+  const existingRefs = hasActiveTrailDetail ? parseSourceRefs(poi.trail_detail!.source_refs) : []
   const nextRefs: SourceRef[] = [
     ...existingRefs.filter(r => r.type !== 'gpx'),
     {
@@ -45,14 +46,53 @@ export async function updateTrailDetailFromGpx(
   ]
 
   const result = await prisma.$transaction(async tx => {
-    const updated = await tx.trailDetail.update({
-      where: { id: poi.trail_detail!.id },
+    if (hasActiveTrailDetail) {
+      const updated = await tx.trailDetail.update({
+        where: { id: poi.trail_detail!.id },
+        data: {
+          geometry_geojson: geometry as Prisma.InputJsonValue,
+          start_latitude: parsed.startLatitude,
+          start_longitude: parsed.startLongitude,
+          distance_km: poi.trail_detail!.distance_km ?? distanceKm,
+          source_refs: nextRefs as Prisma.InputJsonValue,
+        },
+        select: { id: true, distance_km: true, start_latitude: true, start_longitude: true },
+      })
+
+      await tx.poiAcquisitionAuditLog.create({
+        data: {
+          admin_id: adminId,
+          action: 'poi_trail_gpx_uploaded',
+          target_type: 'poi',
+          target_id: poiId,
+          after: {
+            trail_detail_id: updated.id,
+            points: parsed.coordinates.length,
+            distance_km: distanceKm,
+            file_name: file.name,
+            created: false,
+          },
+        },
+      })
+
+      return { ...updated, created: false }
+    }
+
+    // Pas de TrailDetail actif → on en crée un (gère le cas POI rando manuellement
+    // créé via /admin/pois/new, ou TrailDetail précédemment soft-deleted).
+    const created = await tx.trailDetail.create({
       data: {
-        geometry_geojson: geometry as Prisma.InputJsonValue,
+        poi_id: poiId,
+        difficulty: 'unknown',
+        distance_km: distanceKm,
+        activity_type: 'hiking',
+        data_quality_status: 'complete',
         start_latitude: parsed.startLatitude,
         start_longitude: parsed.startLongitude,
-        distance_km: poi.trail_detail!.distance_km ?? distanceKm,
+        geometry_geojson: geometry as Prisma.InputJsonValue,
+        primary_source_type: 'gpx',
         source_refs: nextRefs as Prisma.InputJsonValue,
+        is_active: true,
       },
       select: { id: true, distance_km: true, start_latitude: true, start_longitude: true },
     })
@@ -60,19 +100,20 @@ export async function updateTrailDetailFromGpx(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
-        action: 'poi_trail_gpx_uploaded',
+        action: 'poi_trail_gpx_created',
         target_type: 'poi',
         target_id: poiId,
         after: {
-          trail_detail_id: updated.id,
+          trail_detail_id: created.id,
           points: parsed.coordinates.length,
           distance_km: distanceKm,
           file_name: file.name,
+          created: true,
         },
       },
     })
 
-    return updated
+    return { ...created, created: true }
   })
 
   return {
@@ -82,6 +123,7 @@ export async function updateTrailDetailFromGpx(
     distance_km: result.distance_km ?? distanceKm,
     start_latitude: result.start_latitude,
     start_longitude: result.start_longitude,
+    created: result.created,
   }
 }
 
