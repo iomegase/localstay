@@ -32,6 +32,7 @@ export type CamptocampTrailCandidate = {
   difficulty: TrailDifficulty
   distance_km: number | null
   elevation_gain_m: number | null
+  elevation_status: 'valid' | 'missing'
   estimated_duration_min: number | null
   metric_source: 'camptocamp'
   start_label: string | null
@@ -146,6 +147,7 @@ function normalize(detail: RouteDetail): CamptocampTrailCandidate | null {
     difficulty: mapHikingRating(detail.hiking_rating),
     distance_km: geometry ? Math.round(computeLineDistanceKm(geometry) * 10) / 10 : null,
     elevation_gain_m: typeof detail.height_diff_up === 'number' ? detail.height_diff_up : null,
+    elevation_status: typeof detail.height_diff_up === 'number' ? 'valid' : 'missing',
     estimated_duration_min: null,
     metric_source: 'camptocamp',
     start_label: null,

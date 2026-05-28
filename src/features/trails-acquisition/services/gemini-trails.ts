@@ -164,6 +164,12 @@ type EnrichableCandidate = {
   description: string | null
   start_label?: string | null
   source_refs: unknown
+  distance_km?: number | null
+  elevation_gain_m?: number | null
+  elevation_status?: string
+  estimated_duration_min?: number | null
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert' | 'unknown' | string | null
+  metric_source?: string | null
 }
 
 const GEMINI_DESCRIPTION_TIMEOUT_MS = 45_000  // marge pour grounding lent (la fct interne timeout à 30s)
@@ -179,12 +185,20 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
   const toEnrich = candidates.filter(c => {
     const needsDescription = !c.description || c.description.trim().length === 0
     const needsStart = !c.start_label
-    return needsDescription || needsStart
+    const needsDistance = c.distance_km == null
+    const needsElevation = c.elevation_gain_m == null
+    const needsDuration = c.estimated_duration_min == null
+    const needsDifficulty = !c.difficulty || c.difficulty === 'unknown'
+    return needsDescription || needsStart || needsDistance || needsElevation || needsDuration || needsDifficulty
   })
 
   await mapWithConcurrency(toEnrich, GEMINI_DESCRIPTION_CONCURRENCY, async candidate => {
     const needsDescription = !candidate.description || candidate.description.trim().length === 0
     const needsStart = !candidate.start_label
+    const needsDistance = candidate.distance_km == null
+    const needsElevation = candidate.elevation_gain_m == null
+    const needsDuration = candidate.estimated_duration_min == null
+    const needsDifficulty = !candidate.difficulty || candidate.difficulty === 'unknown'
 
     try {
       const result = await withTimeout(
@@ -200,8 +214,29 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
         candidate.start_label = result.start_label
         usedFor.push('start_label')
       }
+      if (needsDistance && result.distance_km != null) {
+        candidate.distance_km = result.distance_km
+        usedFor.push('distance_km')
+      }
+      if (needsElevation && result.elevation_gain_m != null) {
+        candidate.elevation_gain_m = result.elevation_gain_m
+        candidate.elevation_status = 'valid'
+        usedFor.push('elevation_gain_m')
+      }
+      if (needsDuration && result.estimated_duration_min != null) {
+        candidate.estimated_duration_min = result.estimated_duration_min
+        usedFor.push('estimated_duration_min')
+      }
+      if (needsDifficulty && result.difficulty != null) {
+        candidate.difficulty = result.difficulty
+        usedFor.push('difficulty')
+      }
       if (usedFor.length > 0) {
         candidate.source_refs = appendGeminiRef(candidate.source_refs, usedFor)
+        // Marquer la métrique comme gemini_grounded si on a complété des chiffres
+        if (usedFor.some(f => ['distance_km', 'elevation_gain_m', 'estimated_duration_min'].includes(f))) {
+          if (!candidate.metric_source) candidate.metric_source = 'gemini_grounded'
+        }
         enriched += 1
       }
     } catch {
