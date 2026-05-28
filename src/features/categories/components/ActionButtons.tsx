@@ -1,5 +1,6 @@
 'use client'
 import { Phone, Navigation, Globe, Share2, CalendarPlus } from 'lucide-react'
+import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 
 interface Props {
   phone: string | null
@@ -9,9 +10,16 @@ interface Props {
   address: string
   poiName: string
   poiUrl: string
+  favorite?: {
+    poi_id: string
+    city_slug: string
+    category_slug: string
+    poi_slug: string
+    photo: string | null
+  }
 }
 
-export function ActionButtons({ phone, website, latitude, longitude, address, poiName, poiUrl }: Props) {
+export function ActionButtons({ phone, website, latitude, longitude, address, poiName, poiUrl, favorite }: Props) {
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
   const telHref = phone ? `tel:${phone.replace(/\s/g, '')}` : null
@@ -65,8 +73,22 @@ export function ActionButtons({ phone, website, latitude, longitude, address, po
         className="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
       >
         <Share2 className="w-4 h-4" />
-       
+
       </button>
+
+      {favorite && (
+        <FavoriteToggleButton
+          poi={{
+            poi_id: favorite.poi_id,
+            name: poiName,
+            city_slug: favorite.city_slug,
+            category_slug: favorite.category_slug,
+            poi_slug: favorite.poi_slug,
+            photo: favorite.photo,
+            added_at: '',
+          }}
+        />
+      )}
 
       <button
         disabled

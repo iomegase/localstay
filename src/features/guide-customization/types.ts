@@ -11,13 +11,41 @@ export interface FeaturedPoiResponse {
   sort_order: number
 }
 
-export interface LodgingCustomizationInput {
+export interface PracticalInfoFields {
+  lodging_address: string | null
+  wifi_ssid: string | null
+  wifi_password: string | null
+  parking_info: string | null
+  equipment_info: string | null
+  checkout_instructions: string | null
+  trash_info: string | null
+  house_rules: string | null
+  emergency_contacts: string | null
+  useful_services: string | null
+}
+
+export const PRACTICAL_INFO_KEYS = [
+  'lodging_address',
+  'wifi_ssid',
+  'wifi_password',
+  'parking_info',
+  'equipment_info',
+  'checkout_instructions',
+  'trash_info',
+  'house_rules',
+  'emergency_contacts',
+  'useful_services',
+] as const satisfies ReadonlyArray<keyof PracticalInfoFields>
+
+export type PracticalInfoInput = Partial<PracticalInfoFields>
+
+export interface LodgingCustomizationInput extends PracticalInfoInput {
   welcome_message?: string | null
   category_order: string[]
   featured_pois: FeaturedPoiInput[]
 }
 
-export interface LodgingCustomizationResponse {
+export interface LodgingCustomizationResponse extends PracticalInfoFields {
   lodging_id: string
   welcome_message: string | null
   category_order: string[]

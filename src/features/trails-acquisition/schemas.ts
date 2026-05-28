@@ -48,3 +48,13 @@ export const TrailMergeSchema = z.object({
 export const TrailRejectSchema = z.object({
   admin_note: z.string().max(500).nullable().optional(),
 })
+
+export const TrailCandidateUpdateSchema = z.object({
+  title: z.string().trim().min(2).max(160).optional(),
+  description: z.string().trim().max(4000).nullable().optional(),
+  difficulty: z.enum(TRAIL_DIFFICULTIES).nullable().optional(),
+  start_label: z.string().trim().max(200).nullable().optional(),
+  distance_km: z.number().positive().max(500).nullable().optional(),
+  elevation_gain_m: z.number().int().min(0).max(10_000).nullable().optional(),
+  estimated_duration_min: z.number().int().positive().max(10_000).nullable().optional(),
+})

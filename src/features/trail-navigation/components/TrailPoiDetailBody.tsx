@@ -5,6 +5,7 @@ import type { PoiDetail, TrailDetailData } from '@/features/categories/types'
 import { TrailAccessActions } from './TrailAccessActions'
 import { TrailPreviewMap } from './TrailPreviewMap'
 import { isValidTrailGeometry } from '../lib/geo'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 
 function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
@@ -74,13 +75,17 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
               </span>
             </div>
             <h1 className="font-serif text-4xl font-light italic leading-none text-[#121212]">{poi.name}</h1>
-            {poi.description && <p className="mt-5 max-w-[340px] text-xs leading-6 text-gray-500">{poi.description}</p>}
+            {poi.description && (
+              <MarkdownText source={poi.description} className="mt-5 max-w-[340px] text-xs leading-6 text-gray-500" />
+            )}
           </div>
         </section>
 
         <section className="px-4">
           <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Description</p>
-          {poi.description && <p className="text-justify text-xs leading-7 text-gray-500">{poi.description}</p>}
+          {poi.description && (
+            <MarkdownText source={poi.description} className="text-justify text-xs leading-7 text-gray-500" />
+          )}
         </section>
 
         <section className="mb-8 mt-8 flex gap-3 px-6" data-testid="trail-quick-stats">

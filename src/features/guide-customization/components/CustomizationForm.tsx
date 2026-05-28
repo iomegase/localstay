@@ -24,10 +24,14 @@ import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { Input } from '@/shared/components/ui/input'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 import type {
   FeaturedPoiInput,
   LodgingCustomizationResponse,
+  PracticalInfoFields,
 } from '../types'
+import { PRACTICAL_INFO_KEYS } from '../types'
 
 interface CategoryOption {
   id: string
@@ -107,8 +111,24 @@ export function CustomizationForm({
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
   )
+  const [practicalInfo, setPracticalInfo] = useState<PracticalInfoFields>(() => ({
+    lodging_address: initialCustomization.lodging_address ?? null,
+    wifi_ssid: initialCustomization.wifi_ssid ?? null,
+    wifi_password: initialCustomization.wifi_password ?? null,
+    parking_info: initialCustomization.parking_info ?? null,
+    equipment_info: initialCustomization.equipment_info ?? null,
+    checkout_instructions: initialCustomization.checkout_instructions ?? null,
+    trash_info: initialCustomization.trash_info ?? null,
+    house_rules: initialCustomization.house_rules ?? null,
+    emergency_contacts: initialCustomization.emergency_contacts ?? null,
+    useful_services: initialCustomization.useful_services ?? null,
+  }))
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
+
+  function setPracticalField<K extends keyof PracticalInfoFields>(key: K, value: string) {
+    setPracticalInfo(current => ({ ...current, [key]: value.length === 0 ? null : value }))
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -155,6 +175,12 @@ export function CustomizationForm({
     setStatus('saving')
     setMessage(null)
 
+    const practicalPayload = PRACTICAL_INFO_KEYS.reduce<Record<string, string | null>>((acc, key) => {
+      const raw = practicalInfo[key]
+      acc[key] = raw && raw.trim().length > 0 ? raw.trim() : null
+      return acc
+    }, {})
+
     const response = await fetch(`/api/dashboard/lodgings/${lodgingId}/customization`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -166,6 +192,7 @@ export function CustomizationForm({
           owner_note: featuredPoi.owner_note?.trim() || null,
           sort_order: index,
         })),
+        ...practicalPayload,
       }),
     })
 
@@ -184,6 +211,18 @@ export function CustomizationForm({
       owner_note: featuredPoi.owner_note,
       sort_order: featuredPoi.sort_order,
     })))
+    setPracticalInfo({
+      lodging_address: payload.lodging_address ?? null,
+      wifi_ssid: payload.wifi_ssid ?? null,
+      wifi_password: payload.wifi_password ?? null,
+      parking_info: payload.parking_info ?? null,
+      equipment_info: payload.equipment_info ?? null,
+      checkout_instructions: payload.checkout_instructions ?? null,
+      trash_info: payload.trash_info ?? null,
+      house_rules: payload.house_rules ?? null,
+      emergency_contacts: payload.emergency_contacts ?? null,
+      useful_services: payload.useful_services ?? null,
+    })
     setStatus('saved')
     setMessage(
       payload.ignored_category_slugs.length > 0
@@ -211,6 +250,8 @@ export function CustomizationForm({
           <p className="text-right text-xs text-muted-foreground">{welcomeMessage.length}/300</p>
         </CardContent>
       </Card>
+
+      <PracticalInfoCard practicalInfo={practicalInfo} setPracticalField={setPracticalField} />
 
       <Card>
         <CardHeader>
@@ -294,5 +335,175 @@ export function CustomizationForm({
         </div>
       </div>
     </div>
+  )
+}
+
+type PracticalSection = {
+  key: keyof PracticalInfoFields
+  label: string
+  placeholder: string
+  type: 'input' | 'textarea'
+  maxLength: number
+  rows?: number
+  markdown?: boolean
+}
+
+const PRACTICAL_SECTIONS: PracticalSection[] = [
+  {
+    key: 'lodging_address',
+    label: 'Adresse du logement',
+    placeholder: '12 rue des Alpages, 74170 Saint-Gervais-les-Bains',
+    type: 'input',
+    maxLength: 255,
+  },
+  {
+    key: 'wifi_ssid',
+    label: 'Wi-Fi — Nom du réseau (SSID)',
+    placeholder: 'Chalet-StGervais',
+    type: 'input',
+    maxLength: 120,
+  },
+  {
+    key: 'wifi_password',
+    label: 'Wi-Fi — Mot de passe',
+    placeholder: 'mon-mot-de-passe-wifi',
+    type: 'input',
+    maxLength: 120,
+  },
+  {
+    key: 'parking_info',
+    label: 'Parking',
+    placeholder: 'Place numéro 12 dans la cour intérieure, code portail 1234.',
+    type: 'textarea',
+    maxLength: 2000,
+    rows: 3,
+    markdown: true,
+  },
+  {
+    key: 'equipment_info',
+    label: 'Fonctionnement des équipements',
+    placeholder: 'Chauffage : thermostat à droite de la cheminée…\nTV : télécommande grise, source HDMI 1…',
+    type: 'textarea',
+    maxLength: 4000,
+    rows: 5,
+    markdown: true,
+  },
+  {
+    key: 'checkout_instructions',
+    label: 'Consignes de départ',
+    placeholder: 'Merci de vider le frigo, lancer le lave-vaisselle, fermer les volets et déposer les clés dans la boîte à l’entrée.',
+    type: 'textarea',
+    maxLength: 4000,
+    rows: 4,
+    markdown: true,
+  },
+  {
+    key: 'trash_info',
+    label: 'Poubelles',
+    placeholder: 'Tri sélectif : conteneurs bleu/jaune au bout de la rue.\nRamassage ordures ménagères : mardi et vendredi matin.',
+    type: 'textarea',
+    maxLength: 2000,
+    rows: 3,
+    markdown: true,
+  },
+  {
+    key: 'house_rules',
+    label: 'Règlement intérieur',
+    placeholder: 'Non-fumeur. Animaux acceptés sur demande. Soirées calmes après 22h.',
+    type: 'textarea',
+    maxLength: 4000,
+    rows: 4,
+    markdown: true,
+  },
+  {
+    key: 'emergency_contacts',
+    label: 'Urgences',
+    placeholder: 'Pompiers : 18\nSAMU : 15\nGendarmerie Saint-Gervais : 04 50 47 75 49\nProprietaire : 06 12 34 56 78',
+    type: 'textarea',
+    maxLength: 2000,
+    rows: 4,
+    markdown: true,
+  },
+  {
+    key: 'useful_services',
+    label: 'Services utiles',
+    placeholder: 'Boulangerie du village (50m).\nMédecin de garde : 39 66.\nLocation skis : Sport 2000 (200m).',
+    type: 'textarea',
+    maxLength: 4000,
+    rows: 4,
+    markdown: true,
+  },
+]
+
+function PracticalInfoCard({
+  practicalInfo,
+  setPracticalField,
+}: {
+  practicalInfo: PracticalInfoFields
+  setPracticalField: <K extends keyof PracticalInfoFields>(key: K, value: string) => void
+}) {
+  const [previewKey, setPreviewKey] = useState<keyof PracticalInfoFields | null>(null)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Infos pratiques</CardTitle>
+        <CardDescription>
+          Renseignements affichés sur le guide du voyageur. Markdown supporté pour les champs longs
+          (**gras**, listes, [liens](url)).
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {PRACTICAL_SECTIONS.map(section => {
+          const value = practicalInfo[section.key] ?? ''
+          const isPreviewing = previewKey === section.key
+          return (
+            <div key={section.key} className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor={`practical-${section.key}`}>{section.label}</Label>
+                {section.markdown && value.trim() !== '' && (
+                  <button
+                    type="button"
+                    onClick={() => setPreviewKey(isPreviewing ? null : section.key)}
+                    className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-700"
+                  >
+                    {isPreviewing ? 'Masquer aperçu' : 'Aperçu'}
+                  </button>
+                )}
+              </div>
+              {section.type === 'input' ? (
+                <Input
+                  id={`practical-${section.key}`}
+                  value={value}
+                  maxLength={section.maxLength}
+                  placeholder={section.placeholder}
+                  onChange={event => setPracticalField(section.key, event.target.value)}
+                />
+              ) : (
+                <Textarea
+                  id={`practical-${section.key}`}
+                  rows={section.rows}
+                  maxLength={section.maxLength}
+                  value={value}
+                  placeholder={section.placeholder}
+                  onChange={event => setPracticalField(section.key, event.target.value)}
+                />
+              )}
+              {isPreviewing && (
+                <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                    Aperçu Markdown
+                  </p>
+                  <MarkdownText source={value} className="text-sm leading-relaxed text-slate-700" />
+                </div>
+              )}
+              <p className="text-right text-xs text-muted-foreground">
+                {value.length}/{section.maxLength}
+              </p>
+            </div>
+          )
+        })}
+      </CardContent>
+    </Card>
   )
 }

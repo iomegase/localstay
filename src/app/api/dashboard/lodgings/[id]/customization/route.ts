@@ -13,10 +13,24 @@ const featuredPoiSchema = z.object({
   sort_order: z.number().int().min(0),
 })
 
+const practicalText = (max: number) =>
+  z.string().max(max).nullable().optional()
+
 const customizationSchema = z.object({
   welcome_message: z.string().max(300).nullable().optional(),
   category_order: z.array(z.string().min(1)).default([]),
   featured_pois: z.array(featuredPoiSchema).max(100).default([]),
+  // Spec 013 — Infos pratiques
+  lodging_address: practicalText(255),
+  wifi_ssid: practicalText(120),
+  wifi_password: practicalText(120),
+  parking_info: practicalText(2000),
+  equipment_info: practicalText(4000),
+  checkout_instructions: practicalText(4000),
+  trash_info: practicalText(2000),
+  house_rules: practicalText(4000),
+  emergency_contacts: practicalText(2000),
+  useful_services: practicalText(4000),
 })
 
 function errorResponse(code: string, message: string, status: number, details?: unknown) {

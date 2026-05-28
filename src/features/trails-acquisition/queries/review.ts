@@ -186,14 +186,16 @@ export async function rejectTrailCandidate(candidateId: string, adminId: string,
     throw new TrailsAcquisitionError('CANDIDATE_NOT_REVIEWABLE', 409)
   }
 
+  const now = new Date()
   return prisma.$transaction(async tx => {
     const updated = await tx.trailCandidate.update({
       where: { id: candidate.id },
       data: {
         review_status: 'rejected',
         reviewed_by: adminId,
-        reviewed_at: new Date(),
+        reviewed_at: now,
         admin_note: adminNote ?? null,
+        deleted_at: now,
       },
       select: trailCandidateSelect,
     })
@@ -206,6 +208,65 @@ export async function rejectTrailCandidate(candidateId: string, adminId: string,
         target_id: candidate.id,
         before: candidateAudit(candidate),
         after: candidateAudit(updated),
+      },
+    })
+
+    return mapTrailCandidate(updated)
+  })
+}
+
+export type TrailCandidateUpdateInput = {
+  title?: string
+  description?: string | null
+  difficulty?: string | null
+  start_label?: string | null
+  distance_km?: number | null
+  elevation_gain_m?: number | null
+  estimated_duration_min?: number | null
+}
+
+export async function updateTrailCandidate(
+  candidateId: string,
+  adminId: string,
+  input: TrailCandidateUpdateInput,
+) {
+  const candidate = await prisma.trailCandidate.findFirst({
+    where: { id: candidateId, deleted_at: null },
+    select: trailCandidateSelect,
+  })
+  if (!candidate || candidate.review_status !== 'needs_review') {
+    throw new TrailsAcquisitionError('CANDIDATE_NOT_REVIEWABLE', 409)
+  }
+
+  const data: Prisma.TrailCandidateUpdateInput = {}
+  if (input.title !== undefined) data.title = input.title
+  if (input.description !== undefined) data.description = input.description
+  if (input.difficulty !== undefined) data.difficulty = input.difficulty
+  if (input.start_label !== undefined) data.start_label = input.start_label
+  if (input.distance_km !== undefined) data.distance_km = input.distance_km
+  if (input.elevation_gain_m !== undefined) {
+    data.elevation_gain_m = input.elevation_gain_m
+    data.elevation_status = input.elevation_gain_m == null ? 'missing' : 'valid'
+  }
+  if (input.estimated_duration_min !== undefined) data.estimated_duration_min = input.estimated_duration_min
+
+  if (Object.keys(data).length === 0) return mapTrailCandidate(candidate)
+
+  return prisma.$transaction(async tx => {
+    const updated = await tx.trailCandidate.update({
+      where: { id: candidate.id },
+      data,
+      select: trailCandidateSelect,
+    })
+
+    await tx.trailAuditLog.create({
+      data: {
+        admin_id: adminId,
+        action: 'candidate_edited',
+        target_type: 'TrailCandidate',
+        target_id: candidate.id,
+        before: { fields: Object.keys(data) } as Prisma.InputJsonObject,
+        after: { fields: Object.keys(data) } as Prisma.InputJsonObject,
       },
     })
 

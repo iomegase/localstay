@@ -8,6 +8,7 @@ import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
 import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 import type { PoiDetail } from '../types'
 
 interface Props {
@@ -92,7 +93,10 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
 
         {/* Description */}
         {poi.description && (
-          <p className="px-6 text-sm text-charcoal/70 leading-relaxed">{poi.description}</p>
+          <MarkdownText
+            source={poi.description}
+            className="px-6 text-sm text-charcoal/70 leading-relaxed"
+          />
         )}
 
         <div className="px-6">
@@ -140,6 +144,13 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
             address={poi.address}
             poiName={poi.name}
             poiUrl={poiUrl}
+            favorite={{
+              poi_id: poi.id,
+              city_slug: citySlug,
+              category_slug: categorySlug,
+              poi_slug: poi.slug,
+              photo: poi.photos?.[0] ?? null,
+            }}
           />
         </div>
 

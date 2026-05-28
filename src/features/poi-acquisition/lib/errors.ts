@@ -18,8 +18,10 @@ export function messageForPoiAcquisitionCode(code: string): string {
   if (code === 'CANDIDATE_NOT_REVIEWABLE') return 'Candidat non reviewable'
   if (code === 'TRAIL_FIELDS_LOCKED') return 'Données randonnée verrouillées dans ce backoffice'
   if (code === 'POI_NOT_FOUND') return 'POI introuvable'
-  if (code === 'POI_NOT_ARCHIVED') return 'POI non archivé'
-  if (code === 'POI_ALREADY_ARCHIVED') return 'POI déjà archivé'
+  if (code === 'TRAIL_DETAIL_MISSING') return 'Ce POI n\'a pas de TrailDetail associé'
+  if (code === 'POI_NOT_DELETED') return 'POI non effacé'
+  if (code === 'POI_ALREADY_DELETED') return 'POI déjà effacé'
+  if (code === 'POI_DELETED') return 'POI effacé : restaurer avant réactivation'
   if (code === 'NOT_FOUND') return 'Ressource introuvable'
   return 'Erreur acquisition POI'
 }

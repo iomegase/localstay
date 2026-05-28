@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { LayoutDashboard, Building2, BarChart3, CreditCard } from 'lucide-react'
 import { Separator } from '@/shared/components/ui/separator'
+import { LogoutButton } from '@/shared/components/LogoutButton'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Accueil', icon: LayoutDashboard },
@@ -16,11 +17,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Desktop: top header + sidebar */}
       <header className="hidden md:flex h-14 items-center border-b border-border bg-card px-6 justify-between">
         <span className="font-serif italic text-lg text-foreground">StayLocal</span>
-        <form action="/api/auth/logout" method="POST">
-          <button type="submit" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Se déconnecter
-          </button>
-        </form>
+        <LogoutButton variant="header" />
       </header>
 
       <div className="flex flex-1">
@@ -49,11 +46,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Mobile header */}
           <header className="md:hidden flex h-14 items-center border-b border-border bg-card px-4 justify-between">
             <span className="font-serif italic text-lg text-foreground">StayLocal</span>
-            <form action="/api/auth/logout" method="POST">
-              <button type="submit" className="text-sm text-muted-foreground">
-                Déconnexion
-              </button>
-            </form>
+            <LogoutButton variant="compact" />
           </header>
 
           <div className="p-4 md:p-8 pb-24 md:pb-8">

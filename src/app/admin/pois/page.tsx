@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Archive, MapPin, Search, Store } from 'lucide-react'
+import { Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
@@ -36,7 +36,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
             Backoffice POI
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-slate-500 max-w-2xl">
-            Gestion opérationnelle des POI publiés par ville : édition, photos, statut public, acquisition et archivage logique.
+            Gestion opérationnelle des POI publiés par ville : édition, photos, statut public, acquisition et effacement logique.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -119,7 +119,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                 <option value="current">Courants</option>
                 <option value="active">Actifs</option>
                 <option value="inactive">Inactifs</option>
-                <option value="archived">Archivés</option>
+                <option value="archived">Effacés</option>
               </select>
             </div>
 
@@ -143,13 +143,13 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
             <section className="grid grid-cols-2 gap-4 md:grid-cols-5 xl:gap-6">
               <MetricCard title="Actifs" value={response.kpis.active_count} icon={CheckCircle2} colorClass="bg-emerald-500" />
               <MetricCard title="Inactifs" value={response.kpis.inactive_count} icon={XCircle} colorClass="bg-red-400" />
-              <MetricCard title="Archivés" value={response.kpis.archived_count} icon={Archive} colorClass="bg-amber-400" />
+              <MetricCard title="Effacés" value={response.kpis.archived_count} icon={Trash2} colorClass="bg-amber-400" />
               <MetricCard title="Sans photos" value={response.kpis.without_photos_count} icon={ImageIcon} colorClass="bg-slate-400" />
               <MetricCard title="Géocodage à revoir" value={response.kpis.pending_geocode_count} icon={MapPin} colorClass="bg-rose-500" />
             </section>
 
             {/* Layout Grid */}
-            <section className="grid gap-8 xl:grid-cols-[1fr_360px]">
+            <section className="grid gap-8 grid-cols-1">
               
               {/* POI Table */}
               <div className="rounded-2xl border border-slate-200 bg-white shadow-[0_2px_10px_rgb(0,0,0,0.02)] xl:overflow-hidden">

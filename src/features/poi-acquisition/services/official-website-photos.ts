@@ -27,38 +27,63 @@ export function extractOfficialWebsitePhotoEnrichment(
   }
 }
 
-export async function fetchOfficialWebsitePhotoEnrichment(
+export type OfficialWebsitePhotoFetchResult =
+  | { status: 'ok'; enrichment: OfficialWebsitePhotoEnrichment }
+  | { status: 'no_website' }
+  | { status: 'fetch_failed'; reason: string }
+  | { status: 'not_html'; contentType: string }
+  | { status: 'no_photos_extracted'; canonicalUrl: string }
+
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+
+export async function fetchOfficialWebsitePhotoEnrichmentDetailed(
   website: string | null,
-): Promise<OfficialWebsitePhotoEnrichment | null> {
-  if (!website) return null
+): Promise<OfficialWebsitePhotoFetchResult> {
+  if (!website || website.trim() === '') return { status: 'no_website' }
 
   const canonicalUrl = normalizeCanonicalUrl(website)
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5000)
+  const timeout = setTimeout(() => controller.abort(), 15_000)
 
   try {
     const response = await fetch(canonicalUrl, {
       headers: {
-        accept: 'text/html,application/xhtml+xml',
-        'user-agent': 'StayLocalBot/1.0 official-poi-photo-enrichment',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'fr-FR,fr;q=0.9,en;q=0.8',
+        'user-agent': BROWSER_USER_AGENT,
       },
+      redirect: 'follow',
       signal: controller.signal,
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      return { status: 'fetch_failed', reason: `HTTP ${response.status}` }
+    }
 
     const contentType = response.headers.get('content-type') ?? ''
     if (contentType && !contentType.includes('text/html') && !contentType.includes('application/xhtml+xml')) {
-      return null
+      return { status: 'not_html', contentType }
     }
 
     const enrichment = extractOfficialWebsitePhotoEnrichment(await response.text(), canonicalUrl)
-    return enrichment.photos.length > 0 ? enrichment : null
-  } catch {
-    return null
+    if (enrichment.photos.length === 0) {
+      return { status: 'no_photos_extracted', canonicalUrl }
+    }
+    return { status: 'ok', enrichment }
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+    return { status: 'fetch_failed', reason }
   } finally {
     clearTimeout(timeout)
   }
+}
+
+export async function fetchOfficialWebsitePhotoEnrichment(
+  website: string | null,
+): Promise<OfficialWebsitePhotoEnrichment | null> {
+  const result = await fetchOfficialWebsitePhotoEnrichmentDetailed(website)
+  return result.status === 'ok' ? result.enrichment : null
 }
 
 export function mergeOfficialWebsitePhotos(existing: string[], officialPhotos: string[]): string[] {
@@ -174,15 +199,17 @@ function isUsableImageUrl(url: string): boolean {
 
   try {
     const parsed = new URL(url)
-    const normalized = parsed.toString().toLowerCase()
+    const path = parsed.pathname.toLowerCase()
 
     if (!['http:', 'https:'].includes(parsed.protocol)) return false
-    if (normalized.includes('favicon')) return false
-    if (normalized.includes('no-image')) return false
-    if (normalized.includes('placeholder')) return false
-    if (normalized.includes('/blank/')) return false
-    if (normalized.includes('logo')) return false
-    if (normalized.endsWith('.svg')) return false
+    if (path.includes('favicon')) return false
+    if (path.includes('no-image')) return false
+    if (path.includes('placeholder')) return false
+    if (path.includes('/blank/')) return false
+    // Filtre 'logo' restreint au path : on rejette /logo/ ou foo-logo.png, pas
+    // toute URL contenant le mot 'logo' (ex: /vente-locale-de-logogeranium.jpg)
+    if (/(?:^|\/)logo(?:[-_.]|\/)/.test(path)) return false
+    if (path.endsWith('.svg')) return false
 
     return /\.(avif|gif|jpe?g|png|webp)(\?|$|\/)/i.test(parsed.pathname) || parsed.hostname === 'api.cloudly.space'
   } catch {

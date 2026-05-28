@@ -24,6 +24,8 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import type { AdminPoiCategory, AdminPoiDetail } from '../types'
+import { TrailGpxUploader } from './TrailGpxUploader'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 
 type Props = {
   poi: AdminPoiDetail
@@ -46,6 +48,8 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   )
   const dndContextId = useId()
   const [photoUrlError, setPhotoUrlError] = useState<string | null>(null)
+  const [descriptionValue, setDescriptionValue] = useState(poi.description ?? '')
+  const [showDescriptionPreview, setShowDescriptionPreview] = useState(false)
 
   function reorderPhotos(event: DragEndEvent) {
     const { active, over } = event
@@ -64,7 +68,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
     const formData = new FormData(event.currentTarget)
     const payload = {
       name: String(formData.get('name') ?? ''),
-      description: String(formData.get('description') ?? ''),
+      description: descriptionValue,
       address: String(formData.get('address') ?? ''),
       phone: nullableString(formData.get('phone')),
       website: nullableString(formData.get('website')),
@@ -82,9 +86,23 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const json = await response.json().catch(() => null) as { error?: { message?: string } } | null
+      const json = await response.json().catch(() => null) as {
+        error?: {
+          message?: string
+          details?: {
+            fieldErrors?: Record<string, string[]>
+            formErrors?: string[]
+          }
+        }
+      } | null
       if (!response.ok) {
-        setMessage(json?.error?.message ?? 'Enregistrement impossible')
+        const fieldErrors = json?.error?.details?.fieldErrors ?? {}
+        const fieldsWithErrors = Object.entries(fieldErrors)
+          .filter(([, errs]) => Array.isArray(errs) && errs.length > 0)
+          .map(([field, errs]) => `${field} — ${errs!.join(', ')}`)
+          .join(' · ')
+        const generic = json?.error?.message ?? 'Enregistrement impossible'
+        setMessage(fieldsWithErrors ? `${generic} : ${fieldsWithErrors}` : generic)
         return
       }
       setForceGeocode(false)
@@ -126,12 +144,37 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             />
           </Field>
           <Field label="Description" htmlFor="description" className="md:col-span-2">
-            <Textarea
-              id="description"
-              name="description"
-              defaultValue={poi.description ?? ''}
-              className="min-h-32 w-full rounded-[16px] border-slate-200 bg-slate-50 p-4 text-[15px] font-medium leading-relaxed text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm resize-y"
-            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                  Markdown supporté : **gras**, *italique*, listes, [liens](url)
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDescriptionPreview(prev => !prev)}
+                  className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-700"
+                >
+                  {showDescriptionPreview ? 'Masquer l\'aperçu' : 'Afficher l\'aperçu'}
+                </button>
+              </div>
+              <Textarea
+                id="description"
+                name="description"
+                value={descriptionValue}
+                onChange={e => setDescriptionValue(e.target.value)}
+                className="min-h-32 w-full rounded-[16px] border-slate-200 bg-slate-50 p-4 text-[15px] font-medium leading-relaxed text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm resize-y"
+              />
+              {showDescriptionPreview && (
+                <div className="rounded-[16px] border border-indigo-100 bg-indigo-50/40 p-4">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-indigo-600">Aperçu</p>
+                  {descriptionValue.trim() === '' ? (
+                    <p className="text-sm italic text-slate-400">Description vide.</p>
+                  ) : (
+                    <MarkdownText source={descriptionValue} className="text-[14px] leading-relaxed text-slate-700" />
+                  )}
+                </div>
+              )}
+            </div>
           </Field>
           <Field label="Téléphone" htmlFor="phone">
             <Input 
@@ -356,6 +399,9 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         </div>
       </section>
 
+      {/* Trail GPX Uploader (POI rando publié) */}
+      {poi.trail_fields_locked && <TrailGpxUploader poiId={poi.id} />}
+
       {/* Lock Warnings Section */}
       {(poi.trail_fields_locked || poi.merchant_attached) && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -366,7 +412,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
               </div>
               <div className="pt-1">
                 <h2 className="text-[15px] font-bold text-amber-900">Randonnée protégée</h2>
-                <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-amber-700/80">Données parcours verrouillées ici. Utiliser le gestionnaire dédié pour modifier le tracé, la distance experte ou le point de départ métrique.</p>
+                <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-amber-700/80">Distance, dénivelé et difficulté restent verrouillés ici. Le tracé GPX se met à jour ci-dessus.</p>
               </div>
             </section>
           )}

@@ -38,14 +38,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   })
 
   if (error || !data.user) {
-    if (error?.message?.toLowerCase().includes('already registered') || error?.status === 422) {
+    const errMessage = error?.message ?? ''
+    const errLower = errMessage.toLowerCase()
+    if (errLower.includes('already registered') || error?.status === 422) {
       return NextResponse.json(
         { error: { code: 'EMAIL_CONFLICT', message: 'Cet email est déjà utilisé' } },
         { status: 409 },
       )
     }
+    if (errLower.includes('rate limit') || error?.status === 429) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'EMAIL_RATE_LIMIT',
+            message: 'Limite d\'envoi d\'emails atteinte pour cette adresse. Réessayez dans 1 heure ou utilisez une autre adresse email.',
+          },
+        },
+        { status: 429 },
+      )
+    }
     return NextResponse.json(
-      { error: { code: 'SIGNUP_ERROR', message: error?.message ?? 'Erreur lors de l\'inscription' } },
+      { error: { code: 'SIGNUP_ERROR', message: errMessage || 'Erreur lors de l\'inscription' } },
       { status: 500 },
     )
   }
@@ -65,9 +78,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     })
 
     subscription = await createTrialSubscription(user.id)
-  } catch {
+  } catch (dbError) {
+    console.error('[register] DB error after Supabase signUp:', dbError)
+    const message = dbError instanceof Error ? dbError.message : String(dbError)
     return NextResponse.json(
-      { error: { code: 'DB_ERROR', message: 'Erreur interne' } },
+      {
+        error: {
+          code: 'DB_ERROR',
+          message: 'Erreur interne lors de la création du compte',
+          details: process.env.NODE_ENV === 'production' ? undefined : message,
+        },
+      },
       { status: 500 },
     )
   }

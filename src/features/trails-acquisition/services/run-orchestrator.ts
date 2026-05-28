@@ -7,6 +7,7 @@ import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extra
 import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
+import { inheritGeometryByTitle } from '../lib/geometry-inheritance'
 import type { TrailSourceType } from '../types'
 
 type RunSourceInput = {
@@ -157,6 +158,11 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
 
   // 6. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
   const merged = mergeDuplicateCandidates(candidates)
+
+  // 7. Géométrie héritée par titre : pour les Gemini-only ou C2C sans geom_detail,
+  // copier la géométrie d'un candidat OSM/C2C dont le titre matche fortement (≥0.75).
+  // Ne fusionne pas — duplique juste la géom + start coords. Source_refs trace l'origine.
+  inheritGeometryByTitle(merged)
 
   return { candidates: merged, source_errors: sourceErrors }
 }

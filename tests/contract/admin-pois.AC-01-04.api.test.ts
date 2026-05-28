@@ -6,7 +6,7 @@ const mockListAdminPois = jest.fn()
 const mockGetAdminPoi = jest.fn()
 const mockUpdateAdminPoi = jest.fn()
 const mockDisableAdminPoi = jest.fn()
-const mockArchiveAdminPoi = jest.fn()
+const mockDeleteAdminPoi = jest.fn()
 const mockRestoreAdminPoi = jest.fn()
 const mockRefreshOfficialPhotos = jest.fn()
 
@@ -19,7 +19,7 @@ jest.mock('@/features/admin-pois/queries/admin-pois', () => ({
   getAdminPoi: (...args: unknown[]) => mockGetAdminPoi(...args),
   updateAdminPoi: (...args: unknown[]) => mockUpdateAdminPoi(...args),
   disableAdminPoi: (...args: unknown[]) => mockDisableAdminPoi(...args),
-  archiveAdminPoi: (...args: unknown[]) => mockArchiveAdminPoi(...args),
+  deleteAdminPoi: (...args: unknown[]) => mockDeleteAdminPoi(...args),
   restoreAdminPoi: (...args: unknown[]) => mockRestoreAdminPoi(...args),
   refreshAdminPoiOfficialPhotos: (...args: unknown[]) => mockRefreshOfficialPhotos(...args),
 }))
@@ -27,7 +27,7 @@ jest.mock('@/features/admin-pois/queries/admin-pois', () => ({
 import { GET as listGET, POST as createPOST } from '@/app/api/admin/pois/route'
 import { GET as detailGET, PATCH as detailPATCH } from '@/app/api/admin/pois/[id]/route'
 import { POST as disablePOST } from '@/app/api/admin/pois/[id]/disable/route'
-import { POST as archivePOST } from '@/app/api/admin/pois/[id]/archive/route'
+import { POST as deletePOST } from '@/app/api/admin/pois/[id]/delete/route'
 import { POST as restorePOST } from '@/app/api/admin/pois/[id]/restore/route'
 import { POST as refreshPOST } from '@/app/api/admin/pois/[id]/refresh-official-photos/route'
 
@@ -123,18 +123,18 @@ describe('022 admin POI API', () => {
 
   it('AC-04-01/04-02/04-04: routes sensitive status actions', async () => {
     mockDisableAdminPoi.mockResolvedValue({ id: poiId, status: 'inactive' })
-    mockArchiveAdminPoi.mockResolvedValue({ id: poiId, status: 'archived' })
+    mockDeleteAdminPoi.mockResolvedValue({ id: poiId, status: 'archived' })
     mockRestoreAdminPoi.mockResolvedValue({ id: poiId, status: 'inactive' })
 
     await expect(disablePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/disable`), params))
       .resolves.toHaveProperty('status', 200)
-    await expect(archivePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/archive`), params))
+    await expect(deletePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/delete`), params))
       .resolves.toHaveProperty('status', 200)
     await expect(restorePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/restore`), params))
       .resolves.toHaveProperty('status', 200)
 
     expect(mockDisableAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
-    expect(mockArchiveAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
+    expect(mockDeleteAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
     expect(mockRestoreAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
   })
 

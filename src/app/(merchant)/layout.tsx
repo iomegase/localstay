@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import { LogoutButton } from '@/shared/components/LogoutButton'
 
 export default function MerchantLayout({ children }: { children: ReactNode }) {
   return (
@@ -9,12 +10,15 @@ export default function MerchantLayout({ children }: { children: ReactNode }) {
           <Link href="/merchant" className="font-semibold tracking-tight text-charcoal">
             StayLocal Merchant
           </Link>
-          <nav className="flex gap-4 text-sm text-charcoal/60">
-            <Link href="/merchant/dashboard" className="hover:text-charcoal">Accueil</Link>
-            <Link href="/merchant/profile" className="hover:text-charcoal">Ma fiche</Link>
-            <Link href="/merchant/stats" className="hover:text-charcoal">Statistiques</Link>
-            <Link href="/merchant/offers" className="hover:text-charcoal">Offres</Link>
-          </nav>
+          <div className="flex items-center gap-6">
+            <nav className="flex gap-4 text-sm text-charcoal/60">
+              <Link href="/merchant/dashboard" className="hover:text-charcoal">Accueil</Link>
+              <Link href="/merchant/profile" className="hover:text-charcoal">Ma fiche</Link>
+              <Link href="/merchant/stats" className="hover:text-charcoal">Statistiques</Link>
+              <Link href="/merchant/offers" className="hover:text-charcoal">Offres</Link>
+            </nav>
+            <LogoutButton variant="header" />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>

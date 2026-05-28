@@ -12,8 +12,31 @@ import type {
   GuideCustomizationErrorCode,
   LodgingCustomizationInput,
   LodgingCustomizationResponse,
+  PracticalInfoFields,
 } from '../types'
-import { GuideCustomizationError } from '../types'
+import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
+
+const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
+  lodging_address: null,
+  wifi_ssid: null,
+  wifi_password: null,
+  parking_info: null,
+  equipment_info: null,
+  checkout_instructions: null,
+  trash_info: null,
+  house_rules: null,
+  emergency_contacts: null,
+  useful_services: null,
+}
+
+function pickPracticalInfo(source: Partial<PracticalInfoFields> | null | undefined): PracticalInfoFields {
+  if (!source) return { ...EMPTY_PRACTICAL_INFO }
+  return PRACTICAL_INFO_KEYS.reduce<PracticalInfoFields>((acc, key) => {
+    const value = source[key]
+    acc[key] = typeof value === 'string' && value.trim().length > 0 ? value : null
+    return acc
+  }, { ...EMPTY_PRACTICAL_INFO })
+}
 
 type CustomizableLodging = {
   id: string
@@ -184,7 +207,20 @@ export async function getLodgingCustomization(
 
   const customization = await prisma.lodgingCustomization.findFirst({
     where: { lodging_id: lodgingId, deleted_at: null },
-    select: { welcome_message: true, category_order: true },
+    select: {
+      welcome_message: true,
+      category_order: true,
+      lodging_address: true,
+      wifi_ssid: true,
+      wifi_password: true,
+      parking_info: true,
+      equipment_info: true,
+      checkout_instructions: true,
+      trash_info: true,
+      house_rules: true,
+      emergency_contacts: true,
+      useful_services: true,
+    },
   })
 
   const featuredPois = await prisma.lodgingFeaturedPoi.findMany({
@@ -209,6 +245,7 @@ export async function getLodgingCustomization(
       sort_order: featuredPoi.sort_order,
     })),
     ignored_category_slugs: [],
+    ...pickPracticalInfo(customization),
   }
 }
 
@@ -245,6 +282,7 @@ export async function saveLodgingCustomization(
   )
   const categoryOrderResult = filterValidCategoryOrder(input.category_order, validCategorySlugs)
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
+  const practicalInfo = pickPracticalInfo(input)
 
   await prisma.$transaction(async tx => {
     await tx.lodgingCustomization.upsert({
@@ -253,11 +291,13 @@ export async function saveLodgingCustomization(
         welcome_message: input.welcome_message ?? null,
         category_order: categoryOrderResult.category_order,
         deleted_at: null,
+        ...practicalInfo,
       },
       create: {
         lodging_id: lodgingId,
         welcome_message: input.welcome_message ?? null,
         category_order: categoryOrderResult.category_order,
+        ...practicalInfo,
       },
     })
 
@@ -290,6 +330,7 @@ export async function saveLodgingCustomization(
     category_order: categoryOrderResult.category_order,
     featured_pois: featuredPois,
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
+    ...practicalInfo,
   }
 }
 

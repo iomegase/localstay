@@ -3,7 +3,7 @@ import { prisma } from '@/shared/lib/prisma'
 import { geocodeForAcquisition } from '@/features/poi-acquisition/lib/geocode'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
 import {
-  fetchOfficialWebsitePhotoEnrichment,
+  fetchOfficialWebsitePhotoEnrichmentDetailed,
   mergeOfficialWebsitePhotos,
 } from '@/features/poi-acquisition/services/official-website-photos'
 import { buildAdminPoiWhere, getAdminPoiStatus } from '../lib/admin-poi-rules'
@@ -163,7 +163,7 @@ export async function updateAdminPoi(
   })
 
   if (input.is_active === true) {
-    if (before.deleted_at) throw new PoiAcquisitionError('POI_NOT_ARCHIVED', 409)
+    if (before.deleted_at) throw new PoiAcquisitionError('POI_DELETED', 409)
     if (before.geocode_status === 'rejected') throw new PoiAcquisitionError('MAPBOX_GEOCODE_FAILED', 409)
   }
 
@@ -256,9 +256,9 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
   return mapAdminPoiDetail(updated as AdminPoiRow)
 }
 
-export async function archiveAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function deleteAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
   const before = await getPoiForMutation(id)
-  if (before.deleted_at) throw new PoiAcquisitionError('POI_ALREADY_ARCHIVED', 409)
+  if (before.deleted_at) throw new PoiAcquisitionError('POI_ALREADY_DELETED', 409)
 
   const updated = await prisma.$transaction(async tx => {
     const poi = await tx.pointOfInterest.update({
@@ -269,7 +269,7 @@ export async function archiveAdminPoi(id: string, adminId: string): Promise<Admi
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
-        action: 'poi_archived',
+        action: 'poi_deleted',
         target_type: 'poi',
         target_id: id,
         before: buildAuditSnapshot(before),
@@ -283,7 +283,7 @@ export async function archiveAdminPoi(id: string, adminId: string): Promise<Admi
 
 export async function restoreAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
   const before = await getPoiForMutation(id)
-  if (!before.deleted_at) throw new PoiAcquisitionError('POI_NOT_ARCHIVED', 409)
+  if (!before.deleted_at) throw new PoiAcquisitionError('POI_NOT_DELETED', 409)
 
   await validatePoiDependencies({
     cityId: before.city_id,
@@ -315,10 +315,22 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
 export async function refreshAdminPoiOfficialPhotos(
   id: string,
   adminId: string,
-): Promise<{ photos: string[]; photos_added: number }> {
+): Promise<{ photos: string[]; photos_added: number; diagnostic: string }> {
   const before = await getPoiForMutation(id)
-  const enrichment = await fetchOfficialWebsitePhotoEnrichment(before.website)
-  const merged = mergeOfficialWebsitePhotos(before.photos, enrichment?.photos ?? [])
+  const fetchResult = await fetchOfficialWebsitePhotoEnrichmentDetailed(before.website)
+
+  const diagnostic = (() => {
+    switch (fetchResult.status) {
+      case 'ok': return `${fetchResult.enrichment.photos.length} URL(s) trouvée(s) sur ${fetchResult.enrichment.canonical_url}`
+      case 'no_website': return 'Aucune URL website renseignée sur ce POI'
+      case 'fetch_failed': return `Échec du fetch website : ${fetchResult.reason}`
+      case 'not_html': return `Le website ne renvoie pas de HTML (content-type: ${fetchResult.contentType})`
+      case 'no_photos_extracted': return `HTML lu sur ${fetchResult.canonicalUrl} mais aucune photo exploitable trouvée`
+    }
+  })()
+
+  const enrichmentPhotos = fetchResult.status === 'ok' ? fetchResult.enrichment.photos : []
+  const merged = mergeOfficialWebsitePhotos(before.photos, enrichmentPhotos)
   const photosAdded = merged.length - before.photos.length
 
   if (photosAdded === 0) {
@@ -329,10 +341,10 @@ export async function refreshAdminPoiOfficialPhotos(
         target_type: 'poi',
         target_id: id,
         before: { photos: before.photos },
-        after: { photos: before.photos, photos_added: 0 },
+        after: { photos: before.photos, photos_added: 0, diagnostic },
       },
     })
-    return { photos: before.photos, photos_added: 0 }
+    return { photos: before.photos, photos_added: 0, diagnostic }
   }
 
   await prisma.$transaction(async tx => {
@@ -348,12 +360,12 @@ export async function refreshAdminPoiOfficialPhotos(
         target_type: 'poi',
         target_id: id,
         before: { photos: before.photos },
-        after: { photos: merged, photos_added: photosAdded },
+        after: { photos: merged, photos_added: photosAdded, diagnostic },
       },
     })
   })
 
-  return { photos: merged, photos_added: photosAdded }
+  return { photos: merged, photos_added: photosAdded, diagnostic }
 }
 
 async function getAdminPoiKpis(cityId: string): Promise<AdminPoiKpis> {

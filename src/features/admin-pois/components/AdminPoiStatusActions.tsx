@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from 'react'
-import { ImagePlus, Power, Archive, ArchiveRestore } from 'lucide-react'
+import { ImagePlus, Power, Trash2, ArchiveRestore } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import type { AdminPoiStatus } from '../types'
 
-type ActionKind = 'disable' | 'archive' | 'restore' | 'refresh-official-photos'
+type ActionKind = 'disable' | 'restore' | 'refresh-official-photos'
 
 type Props = {
   poiId: string
@@ -28,12 +28,6 @@ const actionConfig: Record<ActionKind, { label: string; icon: React.ElementType;
     icon: Power, 
     colorStyle: 'border-amber-200/60 bg-amber-50/30 text-amber-700 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800', 
     iconColor: 'text-amber-500' 
-  },
-  archive: { 
-    label: 'Archiver', 
-    icon: Archive, 
-    colorStyle: 'border-red-200/60 bg-red-50/30 text-red-700 hover:bg-red-50 hover:border-red-200 hover:text-red-800', 
-    iconColor: 'text-red-500' 
   },
   restore: { 
     label: 'Restaurer', 
@@ -63,7 +57,7 @@ export function AdminPoiStatusActions({ poiId, status, merchantAttached }: Props
           poiId={poiId}
           action="restore"
           title="Restaurer ce POI"
-          description="Le POI sera restauré en statut inactif. Il restera masqué du guide public jusqu'à réactivation explicite."
+          description="Le POI effacé sera restauré en statut inactif. Il restera masqué du guide public jusqu'à réactivation explicite."
         />
       ) : (
         <>
@@ -75,13 +69,7 @@ export function AdminPoiStatusActions({ poiId, status, merchantAttached }: Props
               description={`Le POI disparaîtra du guide public mais restera éditable. ${merchantAttached ? 'Un Merchant est lié à cette fiche.' : ''}`}
             />
           )}
-          <ActionDialog
-            poiId={poiId}
-            action="archive"
-            title="Archiver ce POI"
-            description={`Le POI sera supprimé logiquement, masqué du guide public et retiré des listes par défaut. ${merchantAttached ? 'Un Merchant est lié à cette fiche.' : ''}`}
-            destructive
-          />
+          <QuickDeleteButton poiId={poiId} merchantAttached={merchantAttached} />
         </>
       )}
     </div>
@@ -112,9 +100,16 @@ function ActionDialog({
     setError(null)
     startTransition(async () => {
       const response = await fetch(`/api/admin/pois/${poiId}/${action}`, { method: 'POST' })
+      const json = await response.json().catch(() => null) as {
+        error?: { message?: string }
+        data?: { photos_added?: number; diagnostic?: string }
+      } | null
       if (!response.ok) {
-        const json = await response.json().catch(() => null) as { error?: { message?: string } } | null
         setError(json?.error?.message ?? 'Action impossible')
+        return
+      }
+      if (action === 'refresh-official-photos' && json?.data?.photos_added === 0) {
+        setError(json?.data?.diagnostic ?? 'Aucune photo ajoutée (aucune nouvelle source détectée)')
         return
       }
       window.location.reload()
@@ -195,5 +190,42 @@ function ActionDialog({
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function QuickDeleteButton({ poiId, merchantAttached }: { poiId: string; merchantAttached: boolean }) {
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function handleClick() {
+    const merchantNote = merchantAttached ? ' Un Merchant est lié à cette fiche.' : ''
+    if (!confirm(`Effacer ce POI ? Il sera masqué du guide public (restaurable via "Effacés").${merchantNote}`)) return
+
+    setError(null)
+    startTransition(async () => {
+      const response = await fetch(`/api/admin/pois/${poiId}/delete`, { method: 'POST' })
+      if (!response.ok) {
+        const json = (await response.json().catch(() => null)) as { error?: { message?: string } } | null
+        setError(json?.error?.message ?? 'Action impossible')
+        return
+      }
+      window.location.reload()
+    })
+  }
+
+  return (
+    <div className="flex flex-col items-stretch gap-1">
+      <Button
+        type="button"
+        variant="outline"
+        disabled={isPending}
+        onClick={handleClick}
+        className="group flex items-center justify-center gap-2.5 rounded-xl border border-red-200/60 bg-red-50/30 px-4 py-2.5 text-[13px] font-bold text-red-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-800 hover:shadow-md disabled:opacity-60"
+      >
+        <Trash2 size={16} strokeWidth={2.5} className="text-red-500 transition-transform duration-300 group-hover:scale-110" />
+        {isPending ? 'Effacement…' : 'Effacer'}
+      </Button>
+      {error && <p className="px-1 text-xs text-red-600">{error}</p>}
+    </div>
   )
 }

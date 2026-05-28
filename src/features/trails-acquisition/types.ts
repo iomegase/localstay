@@ -54,6 +54,7 @@ export type TrailImportRunListItem = {
   status: string
   city_name: string
   source_types: TrailSourceType[]
+  zone_radius_km: number | null
   candidate_count: number
   needs_review_count: number
   published_count: number
@@ -67,6 +68,7 @@ export type TrailImportRunDetail = {
   status: string
   city_name: string
   source_types: TrailSourceType[]
+  zone_radius_km: number | null
   error: string | null
   source_errors: Record<string, string> | null
   candidates: TrailCandidateDto[]

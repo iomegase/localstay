@@ -4,12 +4,33 @@ import { createSupabaseMiddlewareClient } from '@/shared/lib/supabase'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
 import type { Role } from '@/shared/types/roles'
 
+const LODGING_COOKIE_NAME = 'lodging_id'
+const LODGING_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 jours
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
+  const path = request.nextUrl.pathname
+
+  // === Branche publique : /guide/:path* — pas d'auth, juste le cookie séjour ===
+  if (path.startsWith('/guide/')) {
+    const lodgingFromQuery = request.nextUrl.searchParams.get('lodging')
+    if (lodgingFromQuery && UUID_REGEX.test(lodgingFromQuery)) {
+      response.cookies.set({
+        name: LODGING_COOKIE_NAME,
+        value: lodgingFromQuery,
+        maxAge: LODGING_COOKIE_MAX_AGE_SECONDS,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      })
+    }
+    return response
+  }
+
+  // === Branche authentifiée : dashboard/merchant/admin ===
   const supabase = createSupabaseMiddlewareClient(request, response)
   const { data: { user } } = await supabase.auth.getUser()
-
-  const path = request.nextUrl.pathname
 
   function redirectWithCookies(destination: string) {
     const redirect = NextResponse.redirect(new URL(destination, request.url), { status: 307 })
@@ -41,5 +62,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/merchant/:path*', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/merchant/:path*', '/admin/:path*', '/guide/:path*'],
 }

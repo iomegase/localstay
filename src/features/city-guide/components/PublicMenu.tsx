@@ -3,8 +3,30 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-export function PublicMenu() {
+type MenuItem = { href: string; label: string }
+
+type Props = {
+  mode: 'anonymous' | 'lodging'
+  lodgingName?: string | null
+  citySlug?: string | null
+}
+
+const ANONYMOUS_ITEMS: MenuItem[] = [
+  { href: '/', label: 'Home' },
+  { href: '/contact', label: 'Contact' },
+]
+
+const LODGING_ITEMS: MenuItem[] = [
+  { href: '/', label: 'Home' },
+  { href: '/le-logement', label: 'Le Logement' },
+  { href: '/services-prives', label: 'Services Privés' },
+  { href: '/mes-favoris', label: 'Mes Favoris' },
+  { href: '/contact', label: 'Nous Contacter' },
+]
+
+export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
   const [isOpen, setIsOpen] = useState(false)
+  const items = mode === 'lodging' ? LODGING_ITEMS : ANONYMOUS_ITEMS
 
   return (
     <>
@@ -14,15 +36,33 @@ export function PublicMenu() {
             <p className="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold">
               Navigation
             </p>
+            {mode === 'lodging' && lodgingName && (
+              <p className="text-sm text-gray-500">
+                Séjour en cours :{' '}
+                <Link
+                  href={citySlug ? `/guide/${citySlug}` : '/'}
+                  className="font-medium text-charcoal underline-offset-4 hover:underline"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {lodgingName}
+                </Link>
+              </p>
+            )}
             <nav className="space-y-6">
-              <Link href="#" className="block text-4xl font-serif italic">Le Logement</Link>
-              <Link href="#" className="block text-4xl font-serif italic">Services Privés</Link>
-              <Link href="#" className="block text-4xl font-serif italic">Mes Favoris</Link>
-              <Link href="#" className="block text-4xl font-serif italic">Nous Contacter</Link>
+              {items.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className="block text-4xl font-serif italic"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </nav>
           </div>
           <div className="border-t border-gray-100 pt-8">
-            <p className="text-sm text-gray-400">StayLocal Concierge v1.0</p>
+            <p className="text-sm text-gray-400">MyStay Concierge</p>
           </div>
         </div>
       )}

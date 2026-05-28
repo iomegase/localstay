@@ -1,17 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { Upload } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { EditCandidateButton } from './EditCandidateButton'
 
 type Props = {
   candidateId: string
   reviewStatus: string
   duplicatePoiIds: string[]
   geometryStatus: string
+  editable: {
+    title: string
+    description: string | null
+    difficulty: string | null
+    start_label: string | null
+    distance_km: number | null
+    elevation_gain_m: number | null
+    estimated_duration_min: number | null
+  }
 }
 
-export function AdminTrailCandidateActions({ candidateId, reviewStatus, duplicatePoiIds, geometryStatus }: Props) {
+export function AdminTrailCandidateActions({ candidateId, reviewStatus, duplicatePoiIds, geometryStatus, editable }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mergePoiId, setMergePoiId] = useState(duplicatePoiIds[0] ?? '')
@@ -41,6 +52,7 @@ export function AdminTrailCandidateActions({ candidateId, reviewStatus, duplicat
   return (
     <div className="space-y-3 border-t border-white/10 pt-4">
       <div className="flex flex-wrap gap-2">
+        <EditCandidateButton candidateId={candidateId} initial={editable} disabled={loading} />
         <Button
           type="button"
           size="sm"
@@ -77,6 +89,13 @@ export function AdminTrailCandidateActions({ candidateId, reviewStatus, duplicat
         >
           Rejeter
         </Button>
+        {geometryStatus !== 'valid' && (
+          <UploadGpxButton
+            candidateId={candidateId}
+            disabled={loading}
+            onUploaded={() => window.location.reload()}
+          />
+        )}
       </div>
 
       {duplicatePoiIds.length > 0 && (
@@ -103,6 +122,67 @@ export function AdminTrailCandidateActions({ candidateId, reviewStatus, duplicat
       )}
       {error && <p className="text-sm text-red-300">{error}</p>}
     </div>
+  )
+}
+
+function UploadGpxButton({
+  candidateId,
+  disabled,
+  onUploaded,
+}: {
+  candidateId: string
+  disabled?: boolean
+  onUploaded: () => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const formData = new FormData()
+    formData.append('gpx', file)
+    try {
+      const response = await fetch(`/api/admin/trails/candidates/${candidateId}/upload-gpx`, {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await safeJson(response)
+      if (!response.ok) {
+        setError(errorMessage(json) ?? 'Upload GPX impossible.')
+        return
+      }
+      onUploaded()
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  return (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={disabled || uploading}
+        onClick={() => inputRef.current?.click()}
+      >
+        <Upload className="mr-1 h-3.5 w-3.5" />
+        {uploading ? 'Upload…' : 'Importer GPX'}
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".gpx,application/gpx+xml,application/xml,text/xml"
+        className="hidden"
+        onChange={handleFile}
+      />
+      {error && <p className="w-full text-xs text-red-300">{error}</p>}
+    </>
   )
 }
 

@@ -646,6 +646,18 @@ model LodgingCustomization {
   lodging         Lodging  @relation(fields: [lodging_id], references: [id])
   welcome_message String?
   category_order  String[]
+
+  // Spec 013 — Infos pratiques logement
+  lodging_address        String?
+  wifi_ssid              String?
+  wifi_password          String?
+  parking_info           String?
+  equipment_info         String?
+  checkout_instructions  String?
+  trash_info             String?
+  house_rules            String?
+  emergency_contacts     String?
+  useful_services        String?
 }
 
 model LodgingFeaturedPoi {

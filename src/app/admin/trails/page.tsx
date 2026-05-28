@@ -94,6 +94,9 @@ function RunCard({ run }: { run: any }) {
           </div>
           <p className="mt-2 text-xs text-slate-400">
             Sources : {run.source_types.join(', ')}
+            {run.zone_radius_km != null && (
+              <> · Rayon : <span className="font-medium text-slate-600">{run.zone_radius_km} km</span></>
+            )}
           </p>
         </div>
         

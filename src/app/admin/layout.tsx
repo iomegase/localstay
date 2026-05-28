@@ -15,7 +15,8 @@ import {
   Users, 
   ChevronRight 
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion' 
+import { motion, AnimatePresence } from 'framer-motion'
+import { LogoutButton } from '@/shared/components/LogoutButton'
 
 
 const NAV_ITEMS = [
@@ -153,20 +154,28 @@ export default function AdminPathLayout({ children }: { children: ReactNode }) {
               )
             })}
           </nav>
+
+          {/* Logout au pied du sidebar */}
+          <div className="border-t border-slate-100 p-3">
+            <LogoutButton variant="sidebar" showLabel={!isCollapsed} />
+          </div>
         </motion.aside>
 
         {/* MAIN CONTENT */}
         <main className="flex w-full min-w-0 flex-1 flex-col">
           {/* MOBILE HEADER */}
           <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/80 px-4 py-3 shadow-[0_4px_16px_rgba(0,0,0,0.01)] backdrop-blur-xl md:hidden">
-            <div className="flex items-center gap-3 px-1">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-xs font-bold text-white shadow-sm">
-                SL
+            <div className="flex items-center justify-between gap-3 px-1">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-xs font-bold text-white shadow-sm">
+                  SL
+                </div>
+                <div className="pt-0.5">
+                  <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-slate-400">StayLocal</p>
+                  <p className="text-sm font-semibold leading-none text-slate-800">Super-Admin</p>
+                </div>
               </div>
-              <div className="pt-0.5">
-                <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-slate-400">StayLocal</p>
-                <p className="text-sm font-semibold leading-none text-slate-800">Super-Admin</p>
-              </div>
+              <LogoutButton variant="compact" />
             </div>
             <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide px-1">
               {NAV_ITEMS.map((item, index) => {
