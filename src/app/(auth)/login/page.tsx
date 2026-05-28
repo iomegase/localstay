@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-sm overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-slate-100">
+    <div className="mx-auto w-full max-w-sm overflow-hidden ">
       <div className="p-8">
         <div className="mb-8 text-center">
           <h2 className="mb-10 text-2xl font-thin font-serif tracking-tight text-slate-900">
