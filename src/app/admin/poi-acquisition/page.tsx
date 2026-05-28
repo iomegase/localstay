@@ -3,9 +3,10 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { listAcquisitionRuns } from '@/features/poi-acquisition/queries/runs'
 import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
 import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
-import { 
-  Tag, 
-  AlertCircle, 
+import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/components/CleanupStaleCandidatesButton'
+import {
+  Tag,
+  AlertCircle,
   ArrowRight,
   Plus
 } from 'lucide-react'
@@ -32,15 +33,18 @@ export default async function AdminPoiAcquisitionPage() {
             Cette étape crée des candidats ; un POI public apparaît seulement après publication admin.
           </p>
         </div>
-        <Link
-          href="/admin/pois/new"
-          className="group relative flex h-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 w-fit shrink-0"
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            <Plus size={16} />
-            Créer POI
-          </span>
-        </Link>
+        <div className="flex items-center gap-3 shrink-0">
+          <CleanupStaleCandidatesButton />
+          <Link
+            href="/admin/pois/new"
+            className="group relative flex h-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 w-fit"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              <Plus size={16} />
+              Créer POI
+            </span>
+          </Link>
+        </div>
       </header>
 
       <AdminAcquisitionLauncher cities={options.cities} categories={options.categories} />

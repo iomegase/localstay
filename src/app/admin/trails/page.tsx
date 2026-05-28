@@ -4,6 +4,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { AdminTrailsLauncher } from '@/features/trails-acquisition/components/AdminTrailsLauncher'
+import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/components/CleanupStaleCandidatesButton'
 import { DeleteRunButton } from '@/features/trails-acquisition/components/DeleteRunButton'
 import { getTrailAcquisitionOptions } from '@/features/trails-acquisition/queries/options'
 import { listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
@@ -43,9 +44,12 @@ function PageHeader() {
           Acquisition multi-sources côté serveur, validation Super-admin obligatoire, puis publication comme POI Rando avec TrailDetail.
         </p>
       </div>
-      <Button asChild className="shrink-0">
-        <Link href="/admin/trails/new">Créer randonnée</Link>
-      </Button>
+      <div className="flex items-start gap-3 shrink-0">
+        <CleanupStaleCandidatesButton />
+        <Button asChild>
+          <Link href="/admin/trails/new">Créer randonnée</Link>
+        </Button>
+      </div>
     </div>
   )
 }

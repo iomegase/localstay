@@ -11,12 +11,14 @@
     {
       "path": "/api/internal/cleanup-google-review-payloads",
       "schedule": "0 2 * * *"
-    
     },
     {
       "path": "/api/internal/gemini-refresh",
       "schedule": "0 3 * * *"
-   
+    },
+    {
+      "path": "/api/internal/cleanup-stale-candidates",
+      "schedule": "30 2 * * *"
     }
   ]
 }
