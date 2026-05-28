@@ -385,17 +385,28 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
             />
           </Source>
         )}
-        {/* Pointillé droit (fallback toujours visible quand pas de route ORS) */}
+        {/* Pointillé droit (fallback toujours visible quand pas de route ORS) — rouge vif
+            quelle que soit la couleur d'état pour attirer l'attention */}
         {approachLine && !walkingRoute && (
           <Source id="approach-line" type="geojson" data={approachLine}>
+            <Layer
+              id="approach-line-halo"
+              type="line"
+              paint={{
+                'line-color': '#ffffff',
+                'line-width': 8,
+                'line-opacity': 0.6,
+                'line-blur': 1,
+              }}
+            />
             <Layer
               id="approach-line-layer"
               type="line"
               paint={{
-                'line-color': markerColor,
-                'line-width': 3,
+                'line-color': '#ef4444',
+                'line-width': 4,
                 'line-dasharray': [2, 2],
-                'line-opacity': 0.7,
+                'line-opacity': 0.95,
               }}
             />
           </Source>
@@ -425,14 +436,23 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         )}
         {position && (
           <Marker latitude={position.latitude} longitude={position.longitude} anchor="center">
-            <span className="relative flex h-7 w-7 items-center justify-center">
+            {/* Double pulse pour bien voir sa position : anneau large + anneau intermédiaire +
+                point central plein avec contour blanc et halo de drop-shadow */}
+            <span className="relative flex h-10 w-10 items-center justify-center">
               <span
-                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
-                style={{ backgroundColor: markerColor }}
+                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-50"
+                style={{ backgroundColor: markerColor, animationDuration: '1800ms' }}
               />
               <span
-                className="relative inline-flex h-5 w-5 rounded-full border-2 border-white shadow-lg"
-                style={{ backgroundColor: markerColor }}
+                className="absolute inline-flex h-7 w-7 animate-ping rounded-full opacity-70"
+                style={{ backgroundColor: markerColor, animationDuration: '1200ms', animationDelay: '300ms' }}
+              />
+              <span
+                className="relative inline-flex h-5 w-5 rounded-full border-[3px] border-white"
+                style={{
+                  backgroundColor: markerColor,
+                  boxShadow: `0 0 0 2px ${markerColor}40, 0 4px 12px rgba(0,0,0,0.35)`,
+                }}
               />
             </span>
           </Marker>
