@@ -3,6 +3,7 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { listAcquisitionRuns } from '@/features/poi-acquisition/queries/runs'
 import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
 import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
+import { DeleteAcquisitionRunButton } from '@/features/poi-acquisition/components/DeleteAcquisitionRunButton'
 import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/components/CleanupStaleCandidatesButton'
 import {
   Tag,
@@ -104,14 +105,18 @@ export default async function AdminPoiAcquisitionPage() {
                 )}
               </div>
 
-              <div className="border-t border-slate-50 p-2">
-                <Link 
+              <div className="flex flex-col gap-2 border-t border-slate-50 p-2">
+                <Link
                   href={`/admin/poi-acquisition/runs/${run.id}`}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-600"
                 >
                   Ouvrir les détails
                   <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                 </Link>
+                <DeleteAcquisitionRunButton
+                  runId={run.id}
+                  label={`${run.city_name} · ${run.category_name}`}
+                />
               </div>
             </div>
           ))

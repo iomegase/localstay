@@ -138,6 +138,35 @@ export async function createAcquisitionRun(
   return detail
 }
 
+export async function deleteAcquisitionRun(id: string, adminId: string): Promise<void> {
+  const run = await prisma.poiAcquisitionRun.findFirst({
+    where: { id, deleted_at: null },
+    select: { id: true },
+  })
+  if (!run) throw new PoiAcquisitionError('NOT_FOUND', 404)
+
+  const now = new Date()
+  await prisma.$transaction([
+    prisma.poiAcquisitionCandidate.updateMany({
+      where: { run_id: id, deleted_at: null },
+      data: { deleted_at: now },
+    }),
+    prisma.poiAcquisitionRun.update({
+      where: { id },
+      data: { deleted_at: now },
+    }),
+    prisma.poiAcquisitionAuditLog.create({
+      data: {
+        admin_id: adminId,
+        action: 'run_deleted',
+        target_type: 'PoiAcquisitionRun',
+        target_id: id,
+        run_id: id,
+      },
+    }),
+  ])
+}
+
 export async function listAcquisitionRuns(): Promise<AcquisitionRunListItem[]> {
   const runs = await prisma.poiAcquisitionRun.findMany({
     where: { deleted_at: null },
