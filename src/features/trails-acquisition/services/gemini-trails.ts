@@ -16,17 +16,31 @@ export function sanitizeGeminiTrailDiscovery(candidate: GeminiTrailDiscovery) {
   return rejectGeminiGeoMetrics(candidate)
 }
 
+// Schemas étendus depuis l'activation du grounding Google Search : Gemini peut
+// désormais extraire des métriques factuelles (distance/dénivelé/durée) depuis
+// les sources web (visorando, camptocamp). L'admin valide ces valeurs en revue.
+const DifficultyEnum = z.enum(['easy', 'medium', 'hard', 'expert']).nullable().optional()
+const PositiveNumber = z.number().positive().nullable().optional()
+
 const DiscoverySchema = z.object({
   trails: z.array(z.object({
     title: z.string().min(2).max(120),
     description: z.string().min(20).max(600),
     start_label: z.string().min(2).max(120).nullable().optional(),
+    distance_km: PositiveNumber,
+    elevation_gain_m: PositiveNumber,
+    estimated_duration_min: PositiveNumber,
+    difficulty: DifficultyEnum,
   })).max(20),
 })
 
 const DescriptionSchema = z.object({
   description: z.string().min(20).max(600),
   start_label: z.string().min(2).max(120).nullable().optional(),
+  distance_km: PositiveNumber,
+  elevation_gain_m: PositiveNumber,
+  estimated_duration_min: PositiveNumber,
+  difficulty: DifficultyEnum,
 })
 
 type CityRef = { name: string; latitude: number; longitude: number }
@@ -52,7 +66,17 @@ function parseJsonResponse(text: string): unknown {
   return JSON.parse(cleaned)
 }
 
-export async function discoverTrailsWithGemini(city: CityRef): Promise<Array<{ title: string; description: string; start_label: string | null }>> {
+type DiscoveredTrail = {
+  title: string
+  description: string
+  start_label: string | null
+  distance_km: number | null
+  elevation_gain_m: number | null
+  estimated_duration_min: number | null
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert' | null
+}
+
+export async function discoverTrailsWithGemini(city: CityRef): Promise<DiscoveredTrail[]> {
   const prompt = `Utilise Google Search pour trouver les 10 randonnées pédestres les plus emblématiques et accessibles autour de ${city.name} (Haute-Savoie, France, ~${city.latitude.toFixed(4)},${city.longitude.toFixed(4)}).
 
 Cherche sur les sites de référence : office de tourisme local, visorando.com, altituderando.com, camptocamp.org, Wikipedia. Inclus les classiques connus localement (sommets, lacs, alpages, refuges) accessibles à pied sans matériel d'alpinisme.
@@ -63,23 +87,44 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
   "trails": [
     {
       "title": "Nom usuel de la randonnée tel qu'utilisé localement",
-      "description": "Description éditoriale 2-4 phrases riches : intérêt, paysages traversés, difficulté générale, période favorable. Synthèse de ce que tu as trouvé via Google Search. Ne pas inventer de chiffres précis (km, dénivelé) sauf s'ils sont confirmés par les sources.",
-      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée d'après les sources (ex: 'Parking du Bettex' ou 'Plateau de la Croix'). null si introuvable."
+      "description": "Description éditoriale 2-4 phrases riches : intérêt, paysages traversés, difficulté générale, période favorable. Synthèse de ce que tu as trouvé via Google Search.",
+      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée d'après les sources (ex: 'Parking du Bettex'). null si introuvable.",
+      "distance_km": 12.5,          // distance aller-retour en km, seulement si trouvée sur visorando/camptocamp/etc. null sinon.
+      "elevation_gain_m": 800,      // dénivelé positif en m, idem null si non sourcé.
+      "estimated_duration_min": 240, // durée estimée en min, idem.
+      "difficulty": "medium"        // easy/medium/hard/expert d'après la cotation officielle. null si inconnu.
     }
   ]
 }
 
-Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Privilégie la précision factuelle (vérifiée via search) sur la verbosité.`
+Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. **N'invente AUCUN chiffre** : mets null si la source ne confirme pas. La précision factuelle prime sur la complétude.`
 
   const model = getModel()
   const result = await withTimeout(model.generateContent(prompt), 30_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DiscoverySchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini discovery validation failed: ${parsed.error.message}`)
-  return parsed.data.trails.map(t => ({ title: t.title, description: t.description, start_label: t.start_label ?? null }))
+  return parsed.data.trails.map(t => ({
+    title: t.title,
+    description: t.description,
+    start_label: t.start_label ?? null,
+    distance_km: t.distance_km ?? null,
+    elevation_gain_m: t.elevation_gain_m ?? null,
+    estimated_duration_min: t.estimated_duration_min ?? null,
+    difficulty: t.difficulty ?? null,
+  }))
 }
 
-export async function generateTrailDescription(title: string, city: CityRef): Promise<{ description: string; start_label: string | null }> {
+type DescriptionResult = {
+  description: string
+  start_label: string | null
+  distance_km: number | null
+  elevation_gain_m: number | null
+  estimated_duration_min: number | null
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert' | null
+}
+
+export async function generateTrailDescription(title: string, city: CityRef): Promise<DescriptionResult> {
   const prompt = `Utilise Google Search pour trouver des informations factuelles sur la randonnée "${title}" située autour de ${city.name} (Haute-Savoie, France).
 
 Cherche sur visorando.com, altituderando.com, camptocamp.org, l'office de tourisme local, Wikipedia. Combine plusieurs sources pour une synthèse fiable.
@@ -87,16 +132,29 @@ Cherche sur visorando.com, altituderando.com, camptocamp.org, l'office de touris
 IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans markdown, sans backticks. Structure exacte :
 
 {
-  "description": "Description éditoriale 2-4 phrases riches : paysages traversés, intérêt (sommet, lac, alpage, refuge), difficulté générale, période favorable. Synthèse factuelle des sources trouvées. Pas de chiffres inventés (km, dénivelé, durée) sauf si confirmés.",
-  "start_label": "Lieu/hameau/parking de départ d'après les sources (ex: 'Parking du Bettex', 'Plateau de la Croix'). null si introuvable."
-}`
+  "description": "Description éditoriale 2-4 phrases riches : paysages traversés, intérêt (sommet, lac, alpage, refuge), difficulté générale, période favorable. Synthèse factuelle des sources trouvées.",
+  "start_label": "Lieu/hameau/parking de départ d'après les sources (ex: 'Parking du Bettex'). null si introuvable.",
+  "distance_km": 12.5,             // aller-retour en km, seulement si trouvé sur visorando/camptocamp/etc. null sinon.
+  "elevation_gain_m": 800,         // dénivelé positif m, null si non sourcé.
+  "estimated_duration_min": 240,   // durée estimée en min.
+  "difficulty": "medium"           // easy/medium/hard/expert d'après cotation officielle. null si inconnu.
+}
+
+**N'invente AUCUN chiffre** : mets null si la source ne confirme pas. La précision factuelle prime sur la complétude.`
 
   const model = getModel()
   const result = await withTimeout(model.generateContent(prompt), 15_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
-  return { description: parsed.data.description, start_label: parsed.data.start_label ?? null }
+  return {
+    description: parsed.data.description,
+    start_label: parsed.data.start_label ?? null,
+    distance_km: parsed.data.distance_km ?? null,
+    elevation_gain_m: parsed.data.elevation_gain_m ?? null,
+    estimated_duration_min: parsed.data.estimated_duration_min ?? null,
+    difficulty: parsed.data.difficulty ?? null,
+  }
 }
 
 type EnrichableCandidate = {

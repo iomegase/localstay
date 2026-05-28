@@ -4,6 +4,7 @@ import { fetchCamptocampTrails } from './camptocamp'
 import { enrichCandidatesWithIgn } from './ign'
 import { enrichCandidatesWithDuration } from './ors'
 import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extractStartLabelFromDescription } from './gemini-trails'
+import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
 import type { TrailSourceType } from '../types'
@@ -96,13 +97,25 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
       const existingTitles = new Set(candidates.map(c => c.title.toLowerCase()))
       for (const trail of discoveries) {
         if (existingTitles.has(trail.title.toLowerCase())) continue
+        const usedFor = ['title', 'description']
+        if (trail.distance_km != null) usedFor.push('distance_km')
+        if (trail.elevation_gain_m != null) usedFor.push('elevation_gain_m')
+        if (trail.estimated_duration_min != null) usedFor.push('estimated_duration_min')
+        if (trail.difficulty != null) usedFor.push('difficulty')
         candidates.push({
           primary_source_type: 'gemini',
-          source_refs: [{ type: 'gemini', attribution: 'Gemini', used_for: ['title', 'description'] }] as Prisma.InputJsonValue,
+          source_refs: [{ type: 'gemini', attribution: 'Gemini (Google Search grounded)', used_for: usedFor }] as Prisma.InputJsonValue,
           raw_payload: { trail } as Prisma.InputJsonValue,
           title: trail.title,
           description: trail.description,
+          start_label: trail.start_label,
+          distance_km: trail.distance_km,
+          elevation_gain_m: trail.elevation_gain_m,
+          estimated_duration_min: trail.estimated_duration_min,
+          difficulty: trail.difficulty,
+          metric_source: trail.distance_km != null || trail.elevation_gain_m != null ? 'gemini_grounded' : null,
           geometry_status: 'missing',
+          elevation_status: trail.elevation_gain_m != null ? 'valid' : 'missing',
           data_quality_status: 'needs_review',
         })
       }
@@ -126,14 +139,23 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
     }
   }
 
-  // 4. Estimation de durée : ORS si clé dispo + géométrie, sinon Naismith local
+  // 4. Géocodage Mapbox du start_label pour les candidats sans coordonnées de départ
+  // (typiquement les randos découvertes via Gemini-only). "Parking du Bettex" →
+  // (45.8732, 6.6731). Permet la publication même sans géométrie Overpass/C2C.
+  try {
+    await enrichCandidatesWithStartGeocoding(candidates, input.city)
+  } catch (error) {
+    sourceErrors.start_geocoding = error instanceof Error ? error.message : String(error)
+  }
+
+  // 5. Estimation de durée : ORS si clé dispo + géométrie, sinon Naismith local
   try {
     await enrichCandidatesWithDuration(candidates)
   } catch (error) {
     sourceErrors.duration = error instanceof Error ? error.message : String(error)
   }
 
-  // 5. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
+  // 6. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
   const merged = mergeDuplicateCandidates(candidates)
 
   return { candidates: merged, source_errors: sourceErrors }

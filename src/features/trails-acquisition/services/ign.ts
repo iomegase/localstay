@@ -56,16 +56,19 @@ type Candidate = {
   metric_source?: string | null
 }
 
+const IGN_TIMEOUT_MS = 10_000
+const IGN_CONCURRENCY = 5
+
 export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T[]): Promise<{ enriched: number; errors: number }> {
   let enriched = 0
   let errors = 0
 
-  for (const candidate of candidates) {
-    const coordinates = extractLineStringCoordinates(candidate.geometry_geojson)
-    if (coordinates.length < 2) continue
+  const toEnrich = candidates.filter(c => extractLineStringCoordinates(c.geometry_geojson).length >= 2)
 
+  await mapWithConcurrency(toEnrich, IGN_CONCURRENCY, async candidate => {
+    const coordinates = extractLineStringCoordinates(candidate.geometry_geojson)
     try {
-      const profile = await fetchIgnElevationProfile(coordinates)
+      const profile = await withTimeout(fetchIgnElevationProfile(coordinates), IGN_TIMEOUT_MS)
       const result = deriveElevationFromIgnProfile(profile)
       if (result.elevation_status === 'valid') {
         candidate.elevation_gain_m = result.elevation_gain_m
@@ -76,9 +79,31 @@ export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T
     } catch {
       errors += 1
     }
-  }
+  })
 
   return { enriched, errors }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timeout ${ms}ms`)), ms)
+    promise.then(value => { clearTimeout(timer); resolve(value) }, err => { clearTimeout(timer); reject(err) })
+  })
+}
+
+async function mapWithConcurrency<T, R>(items: T[], concurrency: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const index = cursor
+      cursor += 1
+      if (index >= items.length) return
+      results[index] = await fn(items[index])
+    }
+  })
+  await Promise.all(workers)
+  return results
 }
 
 function extractLineStringCoordinates(geometry: unknown): Array<[number, number]> {
