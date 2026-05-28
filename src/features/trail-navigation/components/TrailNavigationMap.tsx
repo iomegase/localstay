@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, ChevronDown, Flag, FlagTriangleRight, LocateFixed, Mountain, Navigation, RotateCcw, X } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Mountain, Navigation, RotateCcw, Unlock, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
@@ -45,6 +45,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   const [distanceToTrail, setDistanceToTrail] = useState<number | null>(null)
   const [isHudExpanded, setIsHudExpanded] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
+  const [northLocked, setNorthLocked] = useState(true)
   const trackingStartedAtRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -81,6 +82,25 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     const immersiveStates: GpsState[] = ['approaching', 'tracking', 'off_track']
     setIsHudExpanded(!immersiveStates.includes(gpsState))
   }, [gpsState])
+
+  // Application du verrouillage nord sur le map ref (drag rotate + twist 2-doigts).
+  // Au unlock on laisse l'utilisateur libre ; au lock on remet la boussole à zéro.
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+    if (northLocked) {
+      map.dragRotate.disable()
+      map.touchZoomRotate.disableRotation()
+      map.easeTo({ bearing: 0, duration: 400 })
+    } else {
+      map.dragRotate.enable()
+      map.touchZoomRotate.enableRotation()
+    }
+  }, [northLocked])
+
+  function toggleNorthLock() {
+    setNorthLocked(prev => !prev)
+  }
 
   function tiltMapForImmersion() {
     mapRef.current?.flyTo({
@@ -162,7 +182,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     }
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
-      zoom: 16,
+      zoom: 17.5,
       pitch: 55,
       duration: 800,
       essential: true,
@@ -302,19 +322,11 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
           zoom: 14,
           bearing: 0,
         }}
-        // Le nord reste en haut : on bloque la rotation interactive (drag droit + pinch
-        // deux doigts) et la rotation via gestures pitch. Le tilt vertical (pitch) reste
-        // autorisé pour le mode immersif.
-        dragRotate={false}
+        // Le verrouillage nord est toggle-able via le bouton compass. État appliqué
+        // dans le useEffect ci-dessous, qui réagit à `northLocked`.
         touchPitch={true}
-        touchZoomRotate={true}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         style={{ width: '100%', height: '100%' }}
-        onLoad={event => {
-          // touchZoomRotate ne sait pas accepter une seule capacité — on garde
-          // le zoom à 2 doigts et on tue la rotation (twist).
-          event.target.touchZoomRotate.disableRotation()
-        }}
       >
         <NavigationControl position="top-right" />
         <Source id="trail-navigation-line" type="geojson" data={{ type: 'Feature', properties: {}, geometry }}>
@@ -431,14 +443,30 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         <Link href={backHref} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
           <X className="h-5 w-5" />
         </Link>
-        <button
-          type="button"
-          onClick={recenterOnPosition}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
-          aria-label={position ? 'Recentrer sur ma position' : 'Activer la localisation'}
-        >
-          <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-[#455E4C]' : ''}`} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleNorthLock}
+            className={`flex h-11 w-11 items-center justify-center rounded-full shadow transition-colors ${
+              northLocked
+                ? 'bg-white/90 text-charcoal'
+                : 'bg-amber-400 text-white'
+            }`}
+            aria-pressed={northLocked}
+            aria-label={northLocked ? 'Déverrouiller la rotation (nord libre)' : 'Verrouiller le nord en haut'}
+            title={northLocked ? 'Nord verrouillé — tap pour libérer la rotation' : 'Rotation libre — tap pour reverrouiller le nord'}
+          >
+            {northLocked ? <Compass className="h-5 w-5" /> : <Unlock className="h-5 w-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={recenterOnPosition}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+            aria-label={position ? 'Recentrer sur ma position' : 'Activer la localisation'}
+          >
+            <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-[#455E4C]' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {!isHudExpanded && (
