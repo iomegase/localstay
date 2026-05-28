@@ -100,7 +100,8 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
 Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. **N'invente AUCUN chiffre** : mets null si la source ne confirme pas. La précision factuelle prime sur la complétude.`
 
   const model = getModel()
-  const result = await withTimeout(model.generateContent(prompt), 30_000)
+  // 60s : la discovery avec grounding sur 10 randos peut prendre du temps
+  const result = await withTimeout(model.generateContent(prompt), 60_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DiscoverySchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini discovery validation failed: ${parsed.error.message}`)
@@ -143,7 +144,8 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
 **N'invente AUCUN chiffre** : mets null si la source ne confirme pas. La précision factuelle prime sur la complétude.`
 
   const model = getModel()
-  const result = await withTimeout(model.generateContent(prompt), 15_000)
+  // 30s : descriptions avec grounding sont plus rapides que discovery mais laissent de la marge
+  const result = await withTimeout(model.generateContent(prompt), 30_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
@@ -164,8 +166,8 @@ type EnrichableCandidate = {
   source_refs: unknown
 }
 
-const GEMINI_DESCRIPTION_TIMEOUT_MS = 15_000
-const GEMINI_DESCRIPTION_CONCURRENCY = 5
+const GEMINI_DESCRIPTION_TIMEOUT_MS = 45_000  // marge pour grounding lent (la fct interne timeout à 30s)
+const GEMINI_DESCRIPTION_CONCURRENCY = 5      // OK : Gemini Tier 1 supporte largement 5 RPS
 
 export async function enrichCandidatesWithGeminiDescriptions<T extends EnrichableCandidate>(
   candidates: T[],

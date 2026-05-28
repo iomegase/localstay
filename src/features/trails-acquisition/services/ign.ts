@@ -56,8 +56,9 @@ type Candidate = {
   metric_source?: string | null
 }
 
-const IGN_TIMEOUT_MS = 10_000
-const IGN_CONCURRENCY = 5
+const IGN_TIMEOUT_MS = 30_000        // 30s : l'API publique IGN peut être lente
+const IGN_CONCURRENCY = 1            // séquentiel : l'API publique IGN throttle agressivement le parallèle
+const IGN_RETRY_DELAY_MS = 2_000     // 2s d'attente avant retry sur échec transient
 
 export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T[]): Promise<{ enriched: number; errors: number }> {
   let enriched = 0
@@ -65,23 +66,40 @@ export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T
 
   const toEnrich = candidates.filter(c => extractLineStringCoordinates(c.geometry_geojson).length >= 2)
 
+  // Séquentiel volontaire : tests live ont montré que le parallèle 5 cassait
+  // l'API IGN (rate limit silencieux → 92% d'échec). Avec concurrency=1, on
+  // retrouve les ~95% de succès du séquentiel d'origine.
   await mapWithConcurrency(toEnrich, IGN_CONCURRENCY, async candidate => {
     const coordinates = extractLineStringCoordinates(candidate.geometry_geojson)
-    try {
-      const profile = await withTimeout(fetchIgnElevationProfile(coordinates), IGN_TIMEOUT_MS)
-      const result = deriveElevationFromIgnProfile(profile)
-      if (result.elevation_status === 'valid') {
-        candidate.elevation_gain_m = result.elevation_gain_m
-        candidate.elevation_status = 'valid'
-        candidate.metric_source = result.metric_source
-        enriched += 1
-      }
-    } catch {
+    const profile = await fetchWithRetry(() => fetchIgnElevationProfile(coordinates))
+    if (!profile) {
       errors += 1
+      return
+    }
+    const result = deriveElevationFromIgnProfile(profile)
+    if (result.elevation_status === 'valid') {
+      candidate.elevation_gain_m = result.elevation_gain_m
+      candidate.elevation_status = 'valid'
+      candidate.metric_source = result.metric_source
+      enriched += 1
     }
   })
 
   return { enriched, errors }
+}
+
+async function fetchWithRetry<T>(fetcher: () => Promise<T>): Promise<T | null> {
+  try {
+    return await withTimeout(fetcher(), IGN_TIMEOUT_MS)
+  } catch {
+    // Retry une fois après pause (récupère les timeouts/429 transitoires)
+    await new Promise(r => setTimeout(r, IGN_RETRY_DELAY_MS))
+    try {
+      return await withTimeout(fetcher(), IGN_TIMEOUT_MS)
+    } catch {
+      return null
+    }
+  }
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
