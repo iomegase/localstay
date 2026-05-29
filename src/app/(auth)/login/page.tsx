@@ -76,9 +76,9 @@ export default function LoginPage() {
               </label>
               <Link 
                 href="/auth/forgot-password" 
-                className="text-[10px] font-medium text-slate-900 hover:text-slate-800 hover:underline"
+                className="font-light uppercase text-[10px] text-slate-900 pl-2 hover:text-slate-900 hover:underline"
               >
-                Oublié ?
+                Mot de passe oublié ?
               </Link>
             </div>
             <div className="group relative">
