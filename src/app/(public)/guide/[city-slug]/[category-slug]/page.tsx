@@ -70,6 +70,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       </Suspense>
 
       <CategoryViewWrapper
+
         primary={poiGroups.primary}
         nearby={poiGroups.nearby}
         citySlug={citySlug}

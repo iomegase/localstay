@@ -21,6 +21,11 @@ const customizationSchema = z.object({
   category_order: z.array(z.string().min(1)).default([]),
   featured_pois: z.array(featuredPoiSchema).max(100).default([]),
   // Spec 013 — Infos pratiques
+  cover_photo_url: z.union([
+    z.string().trim().url(),
+    z.string().trim().length(0).transform(() => null),
+    z.null(),
+  ]).optional(),
   lodging_address: practicalText(255),
   wifi_ssid: practicalText(120),
   wifi_password: practicalText(120),

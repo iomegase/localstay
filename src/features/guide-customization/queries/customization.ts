@@ -17,6 +17,7 @@ import type {
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 
 const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
+  cover_photo_url: null,
   lodging_address: null,
   wifi_ssid: null,
   wifi_password: null,
@@ -211,6 +212,7 @@ export async function getLodgingCustomization(
     select: {
       welcome_message: true,
       category_order: true,
+      cover_photo_url: true,
       lodging_address: true,
       wifi_ssid: true,
       wifi_password: true,

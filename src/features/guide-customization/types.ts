@@ -12,6 +12,7 @@ export interface FeaturedPoiResponse {
 }
 
 export interface PracticalInfoFields {
+  cover_photo_url: string | null
   lodging_address: string | null
   wifi_ssid: string | null
   wifi_password: string | null
@@ -26,6 +27,7 @@ export interface PracticalInfoFields {
 }
 
 export const PRACTICAL_INFO_KEYS = [
+  'cover_photo_url',
   'lodging_address',
   'wifi_ssid',
   'wifi_password',

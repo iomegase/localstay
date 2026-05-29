@@ -1,16 +1,23 @@
 import Link from 'next/link'
 import { CitySearchInput } from '@/features/city-guide/components/CitySearchInput'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { prisma } from '@/shared/lib/prisma'
 
 export default async function HomePage() {
   const lodgingContext = await getActiveLodgingContext()
 
   if (lodgingContext) {
+    const customization = await prisma.lodgingCustomization.findFirst({
+      where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
+      select: { cover_photo_url: true, welcome_message: true },
+    })
     return (
       <LodgingHome
         citySlug={lodgingContext.citySlug}
         lodgingName={lodgingContext.lodgingName}
         cityName={lodgingContext.cityName}
+        coverPhotoUrl={customization?.cover_photo_url ?? null}
+        welcomeMessage={customization?.welcome_message ?? null}
       />
     )
   }
@@ -44,17 +51,37 @@ function LodgingHome({
   citySlug,
   lodgingName,
   cityName,
+  coverPhotoUrl,
+  welcomeMessage,
 }: {
   citySlug: string
   lodgingName: string
   cityName: string
+  coverPhotoUrl: string | null
+  welcomeMessage: string | null
 }) {
   return (
-    <div className="flex flex-col items-center px-6 pt-10">
+    <div className="flex flex-col items-center px-6 pt-2">
+      {coverPhotoUrl && (
+        <div className="-mx-6 mb-6 w-[calc(100%+3rem)] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverPhotoUrl}
+            alt={lodgingName}
+            referrerPolicy="no-referrer"
+            className="h-56 w-full object-cover"
+          />
+        </div>
+      )}
       <div className="mb-6 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Votre séjour</p>
         <h1 className="mt-2 font-serif italic text-3xl text-charcoal">{lodgingName}</h1>
         <p className="mt-1 text-sm text-gray-500">{cityName}</p>
+        {welcomeMessage && welcomeMessage.trim() !== '' && (
+          <p className="mx-auto mt-5 max-w-sm text-sm leading-relaxed text-charcoal/70 italic">
+            « {welcomeMessage} »
+          </p>
+        )}
       </div>
 
       <Link

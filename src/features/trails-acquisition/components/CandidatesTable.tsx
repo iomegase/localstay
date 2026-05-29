@@ -2,16 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, Search } from 'lucide-react'
-import { Card, CardContent } from '@/shared/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/ui/table'
+import { ExternalLink, MapPin, Search } from 'lucide-react'
 import { AdminTrailCandidateActions } from './AdminTrailCandidateActions'
 
 type Candidate = {
@@ -44,6 +35,22 @@ function normalize(value: string | null | undefined): string {
     .replace(DIACRITICS_RE, '')
 }
 
+function candidateScore(c: Candidate): number {
+  let score = 0
+  if (c.geometry_status === 'valid') score += 4
+  if (c.elevation_status === 'valid') score += 2
+  if (c.data_quality_status === 'complete') score += 1
+  return score
+}
+
+function formatDuration(minutes: number | null): string {
+  if (minutes == null) return '—'
+  const h = Math.floor(minutes / 60)
+  const m = Math.round(minutes % 60)
+  if (h === 0) return `${m}m`
+  return `${h}h ${m.toString().padStart(2, '0')}`
+}
+
 export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
   const [query, setQuery] = useState('')
 
@@ -67,193 +74,177 @@ export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
   }, [filtered])
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+    <div className="flex flex-col">
+      {/* Barre recherche + compteur */}
+      <div className="flex flex-col gap-4 border-b border-gray-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full max-w-md">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Filtrer par titre, description, départ, source…"
-            className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+            placeholder="Filtrer par titre, description, source…"
+            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 text-[13px] text-neutral-900 placeholder-gray-400 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
           />
         </div>
-        <p className="text-sm text-slate-500">
-          {filtered.length} / {candidates.length} candidat{candidates.length > 1 ? 's' : ''}
-        </p>
+        <div className="shrink-0 text-[12px] font-semibold text-gray-500">
+          {sorted.length} / {candidates.length} candidat{candidates.length > 1 ? 's' : ''}
+        </div>
       </div>
 
-      {sorted.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-slate-600">
-            {candidates.length === 0
-              ? 'Aucun candidat randonnée. Vérifiez les sources et URLs fournies.'
-              : 'Aucun candidat ne correspond à votre recherche.'}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="rounded-md border border-slate-200 bg-white shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12 text-center">#</TableHead>
-                <TableHead className="w-[35%]">Randonnée</TableHead>
-                <TableHead>Métriques</TableHead>
-                <TableHead>Statuts & Sources</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map((candidate, index) => (
-                <CandidateRow key={candidate.id} candidate={candidate} rowNumber={index + 1} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead className="border-b border-gray-100 bg-gray-50/50">
+            <tr>
+              <th className="w-12 px-5 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">#</th>
+              <th className="min-w-[280px] px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Randonnée</th>
+              <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">Dist.</th>
+              <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">Déniv.</th>
+              <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">Durée</th>
+              <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">Diff.</th>
+              <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Statuts &amp; Sources</th>
+              <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50/80 bg-white">
+            {sorted.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="bg-gray-50/30 py-12 text-center text-[13px] font-medium text-gray-400">
+                  {candidates.length === 0
+                    ? 'Aucun candidat randonnée. Vérifiez les sources et URLs fournies.'
+                    : 'Aucun candidat ne correspond à votre recherche.'}
+                </td>
+              </tr>
+            ) : (
+              sorted.map((c, index) => <CandidateRow key={c.id} candidate={c} rowNumber={index + 1} />)
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
 
-function CandidateRow({ candidate, rowNumber }: { candidate: Candidate; rowNumber: number }) {
-  const hasCoords = candidate.start_latitude !== null && candidate.start_longitude !== null
-  const coordsLabel = hasCoords
-    ? `${candidate.start_latitude!.toFixed(6)}, ${candidate.start_longitude!.toFixed(6)}`
-    : null
-  const departText = candidate.start_label ?? coordsLabel ?? 'Non renseigné'
+function CandidateRow({ candidate: c, rowNumber }: { candidate: Candidate; rowNumber: number }) {
+  const hasCoords = c.start_latitude !== null && c.start_longitude !== null
+  const coordsLabel = hasCoords ? `${c.start_latitude!.toFixed(6)}, ${c.start_longitude!.toFixed(6)}` : null
+  const departText = c.start_label ?? coordsLabel ?? null
+  const attribution = c.source_refs.map(s => s.attribution).filter(Boolean).join(' · ')
 
   return (
-    <TableRow>
-      <TableCell className="align-top text-center text-sm font-mono text-slate-400">
-        {rowNumber}
-      </TableCell>
+    <tr className="group transition-colors duration-200 hover:bg-gray-50/50">
+      <td className="px-5 py-3 text-center">
+        <span className="text-[11px] font-semibold text-gray-400">{rowNumber}</span>
+      </td>
 
-      <TableCell className="align-top">
-        <p className="font-semibold text-slate-900 text-base">{candidate.title}</p>
-        <p className="mt-1 text-sm text-slate-600 line-clamp-2" title={candidate.description ?? undefined}>
-          {candidate.description ?? 'Sans description.'}
-        </p>
-        <div className="mt-3 space-y-1 text-xs text-slate-500">
-          <p><span className="font-medium text-slate-700">Départ:</span> {departText}</p>
-          {candidate.start_label && coordsLabel && (
-            <p><span className="font-medium text-slate-700">Coords:</span> {coordsLabel}</p>
+      <td className="px-4 py-3">
+        <div className="flex max-w-[350px] flex-col">
+          <span className="truncate text-[13px] font-bold text-neutral-900" title={c.title}>{c.title}</span>
+          <span
+            className="mt-0.5 line-clamp-2 whitespace-normal text-[11px] leading-relaxed text-gray-500"
+            title={c.description ?? ''}
+          >
+            {c.description ?? <span className="italic opacity-60">Sans description.</span>}
+          </span>
+          {departText && (
+            <span className="mt-1 flex items-center gap-1 text-[10px] font-mono text-gray-400">
+              <MapPin size={10} />
+              Départ : {departText}
+            </span>
           )}
         </div>
-      </TableCell>
+      </td>
 
-      <TableCell className="align-top text-sm text-slate-600">
-        <ul className="space-y-1.5">
-          <li><span className="text-slate-400">Dist. :</span> {formatDistance(candidate.distance_km)}</li>
-          <li><span className="text-slate-400">Déniv. :</span> {formatElevation(candidate.elevation_gain_m)}</li>
-          <li><span className="text-slate-400">Durée :</span> {formatDuration(candidate.estimated_duration_min)}</li>
-          <li><span className="text-slate-400">Diff. :</span> {candidate.difficulty ?? 'inconnue'}</li>
-        </ul>
-      </TableCell>
+      <td className="px-3 py-3 text-right">
+        <span className="text-[12px] font-bold text-neutral-700">
+          {c.distance_km != null ? `${c.distance_km.toFixed(1)} km` : '—'}
+        </span>
+      </td>
+      <td className="px-3 py-3 text-right">
+        <span className="text-[12px] font-bold text-neutral-700">
+          {c.elevation_gain_m != null ? `${Math.round(c.elevation_gain_m)} m` : '—'}
+        </span>
+      </td>
+      <td className="px-3 py-3 text-right">
+        <span className="text-[12px] font-bold text-neutral-700">{formatDuration(c.estimated_duration_min)}</span>
+      </td>
+      <td className="px-3 py-3 text-center">
+        <span className="text-[11px] font-semibold capitalize text-gray-500">{c.difficulty ?? '—'}</span>
+      </td>
 
-      <TableCell className="align-top">
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <StatusBadge label="Géom." value={candidate.geometry_status} />
-          <StatusBadge label="Élév." value={candidate.elevation_status} />
-          <StatusBadge label="Revue" value={candidate.review_status} />
-        </div>
-        <div className="text-xs text-slate-500 space-y-1">
-          <p><span className="font-medium text-slate-700">Source:</span> {candidate.primary_source_type}</p>
-          {candidate.source_refs.length > 0 && (
-            <p className="line-clamp-2" title={candidate.source_refs.map(s => s.attribution).join(' · ')}>
-              <span className="font-medium text-slate-700">Attr:</span> {candidate.source_refs.map(s => s.attribution).join(', ')}
-            </p>
-          )}
-        </div>
-      </TableCell>
-
-      <TableCell className="align-top text-right space-y-3">
-        {candidate.duplicate_poi_ids.length > 0 && (
-          <div className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 inline-block border border-amber-200">
-            Doublons : {candidate.duplicate_poi_ids.join(', ')}
+      <td className="px-4 py-3">
+        <div className="flex max-w-[280px] flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusBadge value={c.geometry_status} label="Géom." />
+            <StatusBadge value={c.elevation_status} label="Élév." />
+            <StatusBadge value={c.review_status} label="Revue" />
           </div>
-        )}
-        <div className="flex justify-end">
+          <div className="mt-0.5 flex flex-col whitespace-normal">
+            <span className="text-[10px] text-gray-500">
+              <span className="font-semibold">Source :</span> {c.primary_source_type}
+            </span>
+            {attribution && (
+              <span className="line-clamp-1 text-[9px] leading-tight text-gray-400" title={attribution}>
+                <span className="font-semibold">Attr :</span> {attribution}
+              </span>
+            )}
+          </div>
+        </div>
+      </td>
+
+      <td className="px-5 py-3 align-top">
+        <div className="flex flex-col items-end gap-2">
+          {c.duplicate_poi_ids.length > 0 && (
+            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              Doublons : {c.duplicate_poi_ids.length}
+            </span>
+          )}
           <AdminTrailCandidateActions
-            candidateId={candidate.id}
-            reviewStatus={candidate.review_status}
-            duplicatePoiIds={candidate.duplicate_poi_ids}
-            geometryStatus={candidate.geometry_status}
+            candidateId={c.id}
+            reviewStatus={c.review_status}
+            duplicatePoiIds={c.duplicate_poi_ids}
+            geometryStatus={c.geometry_status}
             editable={{
-              title: candidate.title,
-              description: candidate.description,
-              difficulty: candidate.difficulty,
-              start_label: candidate.start_label,
-              distance_km: candidate.distance_km,
-              elevation_gain_m: candidate.elevation_gain_m,
-              estimated_duration_min: candidate.estimated_duration_min,
+              title: c.title,
+              description: c.description,
+              difficulty: c.difficulty,
+              start_label: c.start_label,
+              distance_km: c.distance_km,
+              elevation_gain_m: c.elevation_gain_m,
+              estimated_duration_min: c.estimated_duration_min,
             }}
           />
+          {c.published_poi_id && (
+            <Link
+              href={`/admin/pois/${c.published_poi_id}`}
+              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-[#0B1437] hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Gérer la fiche
+            </Link>
+          )}
         </div>
-        {candidate.published_poi_id && (
-          <Link
-            href={`/admin/pois/${candidate.published_poi_id}`}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-700"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Gérer la fiche & photos
-          </Link>
-        )}
-      </TableCell>
-    </TableRow>
+      </td>
+    </tr>
   )
 }
 
 function StatusBadge({ label, value }: { label: string; value: string }) {
+  let colorClass = 'border-gray-200 bg-gray-50 text-gray-500'
+  const s = value?.toLowerCase()
+  if (s === 'valid' || s === 'published' || s === 'complete')
+    colorClass = 'border-emerald-200/60 bg-emerald-50 text-emerald-600'
+  else if (s === 'invalid' || s === 'missing' || s === 'failed' || s === 'rejected')
+    colorClass = 'border-rose-200/60 bg-rose-50 text-rose-600'
+  else if (s === 'needs_review')
+    colorClass = 'border-amber-200/60 bg-amber-50 text-amber-600'
+  else if (s === 'merged')
+    colorClass = 'border-[#0B1437]/20 bg-[#F4F7FE] text-[#0B1437]'
+
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeColorForStatus(value)}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest ${colorClass}`}>
       <span className="opacity-70">{label}</span>
       <span>{value}</span>
     </span>
   )
-}
-
-function badgeColorForStatus(value: string): string {
-  switch (value) {
-    case 'valid':
-    case 'published':
-    case 'complete':
-      return 'border-emerald-300 bg-emerald-50 text-emerald-700'
-    case 'needs_review':
-      return 'border-amber-300 bg-amber-50 text-amber-700'
-    case 'missing':
-    case 'failed':
-    case 'rejected':
-    case 'invalid':
-      return 'border-red-200 bg-red-50 text-red-700'
-    case 'merged':
-      return 'border-indigo-200 bg-indigo-50 text-indigo-700'
-    default:
-      return 'border-slate-200 bg-slate-50 text-slate-600'
-  }
-}
-
-function candidateScore(candidate: Candidate): number {
-  let score = 0
-  if (candidate.geometry_status === 'valid') score += 4
-  if (candidate.elevation_status === 'valid') score += 2
-  if (candidate.data_quality_status === 'complete') score += 1
-  return score
-}
-
-function formatDistance(value: number | null): string {
-  return value === null ? 'n/a' : `${value.toFixed(1)} km`
-}
-
-function formatElevation(value: number | null): string {
-  return value === null ? 'n/a' : `${value} m`
-}
-
-function formatDuration(value: number | null): string {
-  if (value === null) return 'n/a'
-  const hours = Math.floor(value / 60)
-  const minutes = value % 60
-  if (hours > 0 && minutes > 0) return `${hours} h ${minutes.toString().padStart(2, '0')}`
-  if (hours > 0) return `${hours} h`
-  return `${minutes} min`
 }

@@ -12,6 +12,13 @@ import {
   Plus
 } from 'lucide-react'
 
+const STATUS_STYLES = {
+  COMPLETED: 'bg-emerald-50/80 text-emerald-600 border-emerald-100/50',
+  FAILED: 'bg-rose-50/80 text-rose-600 border-rose-100/50',
+  RUNNING: 'bg-blue-50/80 text-blue-600 border-blue-100/50 animate-pulse',
+  DEFAULT: 'bg-gray-100/80 text-gray-500 border-gray-200/50',
+}
+
 export default async function AdminPoiAcquisitionPage() {
   await getPageAdmin()
   const [runs, options] = await Promise.all([
@@ -20,107 +27,139 @@ export default async function AdminPoiAcquisitionPage() {
   ])
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="flex flex-col justify-between gap-6 pb-2 md:flex-row md:items-end">
-        <div className="group">
-          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-500">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      
+      {/* Header façon Carte Blanche */}
+      <header className="flex flex-col justify-between gap-6 md:flex-row md:items-center rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm">
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
             Pipeline hybride
           </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 transition-colors">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-neutral-900">
             Acquisition POI
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+          <p className="mt-2 text-sm leading-relaxed text-gray-500">
             Lancements Gemini, matching Google, géocodage Mapbox et revue manuelle avant publication. 
             Cette étape crée des candidats ; un POI public apparaît seulement après publication admin.
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <CleanupStaleCandidatesButton />
           <Link
             href="/admin/pois/new"
-            className="group relative flex h-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 w-fit"
+            className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md"
           >
-            <span className="relative z-10 flex items-center gap-2">
-              <Plus size={16} />
-              Créer POI
-            </span>
+            <Plus size={16} />
+            Créer POI
           </Link>
         </div>
       </header>
 
+      {/* Lanceur (Composant existant) */}
       <AdminAcquisitionLauncher cities={options.cities} categories={options.categories} />
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {runs.length === 0 ? (
-          <div className="col-span-full flex h-40 items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50">
-            <p className="text-sm text-slate-500">Aucun run d&apos;acquisition pour le moment.</p>
-          </div>
-        ) : (
-          runs.map(run => (
-            <div 
-              key={run.id} 
-              className="group flex flex-col justify-between overflow-hidden rounded-[24px] border border-slate-100 bg-white shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-1 hover:border-indigo-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
-            >
-              <div className="p-6 pb-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-bold text-slate-800 line-clamp-1" title={run.city_name}>
-                      {run.city_name}
-                    </h3>
-                    <div className="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-slate-500">
-                      <Tag size={13} className="text-indigo-400" />
-                      <span className="truncate" title={run.category_name}>{run.category_name}</span>
-                    </div>
-                  </div>
-                  <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    run.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' :
-                    run.status === 'FAILED' ? 'bg-rose-50 text-rose-600' :
-                    run.status === 'RUNNING' ? 'bg-blue-50 text-blue-600 animate-pulse' :
-                    'bg-slate-100 text-slate-600'
-                  }`}>
-                    {run.status}
-                  </span>
-                </div>
+      {/* Tableau des Runs (Corporate Style) */}
+      <div className="w-full overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+            
+            <thead className="bg-white border-b border-gray-100">
+              <tr>
+                <th className="px-8 py-5 text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Cible (Ville & Catégorie)</th>
+                <th className="px-6 py-5 text-center text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Statut</th>
+                <th className="px-6 py-5 text-center text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Candidats</th>
+                <th className="px-6 py-5 text-center text-[11px] font-semibold tracking-widest text-gray-400 uppercase">À revoir</th>
+                <th className="px-6 py-5 text-center text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Publiés</th>
+                <th className="px-8 py-5 text-right text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Actions</th>
+              </tr>
+            </thead>
+            
+            <tbody className="divide-y divide-gray-50/80 bg-white">
+              {runs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="h-48 text-center text-sm font-medium text-gray-400 bg-gray-50/30">
+                    Aucun run d'acquisition pour le moment.
+                  </td>
+                </tr>
+              ) : (
+                runs.map(run => (
+                  <tr 
+                    key={run.id} 
+                    className="group transition-colors duration-200 hover:bg-gray-50/50"
+                  >
+                    {/* Colonne Cible & Erreurs */}
+                    <td className="px-8 py-5">
+                      <div className="flex flex-col">
+                        <span className="text-[14px] font-bold text-neutral-900">{run.city_name}</span>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-gray-400">
+                          <Tag size={12} className="text-[#0B1437]/40" />
+                          <span className="truncate max-w-[200px]" title={run.category_name}>
+                            {run.category_name}
+                          </span>
+                        </div>
+                        {/* Affichage des erreurs en ligne sous le nom de la ville pour ne pas casser la table */}
+                        {run.error && (
+                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-rose-500 max-w-[250px]">
+                            <AlertCircle size={12} className="shrink-0" />
+                            <span className="truncate" title={run.error}>{run.error}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
 
-                <div className="mt-6 grid grid-cols-3 gap-2 border-t border-slate-50 pt-4">
-                  <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 p-2">
-                    <span className="text-lg font-bold text-slate-700">{run.candidate_count}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-center">Candidats</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center rounded-xl bg-amber-50 p-2 transition-colors group-hover:bg-amber-100/50">
-                    <span className="text-lg font-bold text-amber-700">{run.needs_review_count}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600/70 text-center">À revoir</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center rounded-xl bg-emerald-50 p-2 transition-colors group-hover:bg-emerald-100/50">
-                    <span className="text-lg font-bold text-emerald-700">{run.published_count}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/70 text-center">Publiés</span>
-                  </div>
-                </div>
+                    {/* Badge Statut */}
+                    <td className="px-6 py-5 text-center">
+                      <span className={`inline-flex shrink-0 items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                        STATUS_STYLES[run.status as keyof typeof STATUS_STYLES] || STATUS_STYLES.DEFAULT
+                      }`}>
+                        {run.status}
+                      </span>
+                    </td>
 
-                {run.error && (
-                  <div className="mt-4 flex items-start gap-2 rounded-xl bg-rose-50 p-3 text-sm text-rose-600">
-                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                    <p className="leading-snug line-clamp-2" title={run.error}>{run.error}</p>
-                  </div>
-                )}
-              </div>
+                    {/* Statistiques alignées et propres */}
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-[15px] font-bold text-neutral-900">
+                        {run.candidate_count}
+                      </span>
+                    </td>
 
-              <div className="flex flex-col gap-2 border-t border-slate-50 p-2">
-                <Link
-                  href={`/admin/poi-acquisition/runs/${run.id}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-600"
-                >
-                  Ouvrir les détails
-                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-                </Link>
-                <DeleteAcquisitionRunButton
-                  runId={run.id}
-                  label={`${run.city_name} · ${run.category_name}`}
-                />
-              </div>
-            </div>
-          ))
-        )}
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-[15px] font-bold text-amber-600">
+                        {run.needs_review_count}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-[15px] font-bold text-emerald-600">
+                        {run.published_count}
+                      </span>
+                    </td>
+
+                    {/* Actions (Détails + Bouton de suppression) */}
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <Link 
+                          href={`/admin/poi-acquisition/runs/${run.id}`}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-4 py-2.5 text-[13px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
+                        >
+                          Détails
+                          <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
+                        </Link>
+                        
+                        {/* Le bouton de suppression côté client vient s'insérer ici naturellement */}
+                        <DeleteAcquisitionRunButton
+                          runId={run.id}
+                          label={`${run.city_name} · ${run.category_name}`}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

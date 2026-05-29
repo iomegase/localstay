@@ -1,11 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Pencil, Upload } from 'lucide-react'
+import { Pencil, Upload, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
-import { Label } from '@/shared/components/ui/label'
-import { Textarea } from '@/shared/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -64,6 +61,8 @@ export function EditCandidateButton({ candidateId, initial, disabled }: Props) {
     setElevation(initial.elevation_gain_m != null ? String(initial.elevation_gain_m) : '')
     setDuration(initial.estimated_duration_min != null ? String(initial.estimated_duration_min) : '')
     setError(null)
+    setGpxError(null)
+    setGpxMessage(null)
   }
 
   async function handleGpxUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -89,7 +88,7 @@ export function EditCandidateButton({ candidateId, initial, disabled }: Props) {
       }
       const pts = json?.data?.points ?? 0
       const dist = json?.data?.distance_km ?? null
-      setGpxMessage(`Trace importée : ${pts} points${dist != null ? ` · ${dist.toFixed(1)} km` : ''}`)
+      setGpxMessage(`Trace importée avec succès : ${pts} points${dist != null ? ` · ${dist.toFixed(1)} km` : ''}`)
     } finally {
       setGpxUploading(false)
       if (gpxInputRef.current) gpxInputRef.current.value = ''
@@ -141,88 +140,133 @@ export function EditCandidateButton({ candidateId, initial, disabled }: Props) {
         if (next) reset()
       }}
     >
-      <Button
+      {/* Bouton de déclenchement (Stylé comme dans le tableau) */}
+      <button
         type="button"
-        size="sm"
-        variant="outline"
         disabled={disabled}
         onClick={() => setOpen(true)}
+        className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-[11px] font-bold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Pencil className="mr-1 h-3.5 w-3.5" />
+        <Pencil size={12} />
         Modifier
-      </Button>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Modifier le candidat</DialogTitle>
+      </button>
+
+      <DialogContent className="max-w-2xl bg-white rounded-[25px] border-none shadow-xl p-8">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-bold text-neutral-900">Modifier le candidat</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 py-2 text-slate-900">
-          <div className="space-y-1">
-            <Label htmlFor="edit-title">Titre</Label>
-            <Input id="edit-title" value={title} onChange={e => setTitle(e.target.value)} />
+        <div className="grid gap-5 text-neutral-900">
+          
+          {/* Titre */}
+          <div className="space-y-1.5">
+            <label htmlFor="edit-title" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Titre de la randonnée</label>
+            <input 
+              id="edit-title" 
+              value={title} 
+              onChange={e => setTitle(e.target.value)} 
+              className="w-full h-[52px] rounded-xl border border-gray-100 bg-[#F4F7FE]/50 px-4 text-[13px] font-bold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+            />
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="edit-description">Description</Label>
-            <Textarea
+          {/* Description */}
+          <div className="space-y-1.5">
+            <label htmlFor="edit-description" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Description</label>
+            <textarea
               id="edit-description"
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={4}
+              className="w-full rounded-xl border border-gray-100 bg-[#F4F7FE]/50 p-4 text-[13px] text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437] resize-y min-h-[100px]"
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor="edit-start">Lieu de départ</Label>
-              <Input id="edit-start" value={startLabel} onChange={e => setStartLabel(e.target.value)} />
+          {/* Lieu de départ & Difficulté */}
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label htmlFor="edit-start" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Lieu de départ</label>
+              <input 
+                id="edit-start" 
+                value={startLabel} 
+                onChange={e => setStartLabel(e.target.value)} 
+                className="w-full h-[52px] rounded-xl border border-gray-100 bg-[#F4F7FE]/50 px-4 text-[13px] font-medium text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+              />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="edit-difficulty">Difficulté</Label>
-              <select
-                id="edit-difficulty"
-                value={difficulty}
-                onChange={e => setDifficulty(e.target.value)}
-                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900"
-              >
-                {DIFFICULTIES.map(d => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-1">
-              <Label htmlFor="edit-distance">Distance (km)</Label>
-              <Input id="edit-distance" type="text" inputMode="decimal" value={distance} onChange={e => setDistance(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="edit-elevation">Dénivelé (m)</Label>
-              <Input id="edit-elevation" type="text" inputMode="numeric" value={elevation} onChange={e => setElevation(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="edit-duration">Durée (min)</Label>
-              <Input id="edit-duration" type="text" inputMode="numeric" value={duration} onChange={e => setDuration(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">Tracé GPX</p>
-                <p className="text-xs text-slate-500">Importer un fichier .gpx (visorando, apidae, perso) pour remplir géométrie + coords de départ.</p>
+            <div className="space-y-1.5">
+              <label htmlFor="edit-difficulty" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Difficulté</label>
+              <div className="relative">
+                <select
+                  id="edit-difficulty"
+                  value={difficulty}
+                  onChange={e => setDifficulty(e.target.value)}
+                  className="w-full h-[52px] appearance-none rounded-xl border border-gray-100 bg-[#F4F7FE]/50 px-4 text-[13px] font-medium text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+                >
+                  {DIFFICULTIES.map(d => (
+                    <option key={d.value} value={d.value}>{d.label}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
               </div>
-              <Button
+            </div>
+          </div>
+
+          {/* Métriques */}
+          <div className="grid gap-5 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <label htmlFor="edit-distance" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Distance (km)</label>
+              <input 
+                id="edit-distance" 
+                type="text" 
+                inputMode="decimal" 
+                value={distance} 
+                onChange={e => setDistance(e.target.value)} 
+                className="w-full h-[52px] rounded-xl border border-gray-100 bg-[#F4F7FE]/50 px-4 text-[13px] font-bold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="edit-elevation" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Dénivelé (m)</label>
+              <input 
+                id="edit-elevation" 
+                type="text" 
+                inputMode="numeric" 
+                value={elevation} 
+                onChange={e => setElevation(e.target.value)} 
+                className="w-full h-[52px] rounded-xl border border-gray-100 bg-[#F4F7FE]/50 px-4 text-[13px] font-bold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="edit-duration" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Durée (min)</label>
+              <input 
+                id="edit-duration" 
+                type="text" 
+                inputMode="numeric" 
+                value={duration} 
+                onChange={e => setDuration(e.target.value)} 
+                className="w-full h-[52px] rounded-xl border border-gray-100 bg-[#F4F7FE]/50 px-4 text-[13px] font-bold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+              />
+            </div>
+          </div>
+
+          {/* Upload GPX Zone */}
+          <div className="mt-2 rounded-[16px] border border-dashed border-gray-300 bg-gray-50/50 p-5">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <p className="text-[13px] font-bold text-neutral-900">Tracé GPX</p>
+                <p className="mt-0.5 text-[11px] text-gray-500 max-w-sm leading-relaxed">
+                  Importer un fichier .gpx (visorando, apidae, perso) pour remplir géométrie et coordonnées de départ.
+                </p>
+              </div>
+              <button
                 type="button"
-                size="sm"
-                variant="outline"
                 onClick={() => gpxInputRef.current?.click()}
                 disabled={gpxUploading}
+                className="flex shrink-0 h-[40px] items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 text-[12px] font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:text-[#0B1437] disabled:opacity-50"
               >
-                <Upload className="mr-1 h-3.5 w-3.5" />
+                <Upload size={14} />
                 {gpxUploading ? 'Upload…' : 'Importer GPX'}
-              </Button>
+              </button>
               <input
                 ref={gpxInputRef}
                 type="file"
@@ -231,20 +275,47 @@ export function EditCandidateButton({ candidateId, initial, disabled }: Props) {
                 onChange={handleGpxUpload}
               />
             </div>
-            {gpxMessage && <p className="text-xs text-emerald-600">{gpxMessage}</p>}
-            {gpxError && <p className="text-xs text-red-600">{gpxError}</p>}
+            
+            {/* Messages GPX (Succès / Erreur) */}
+            {gpxMessage && (
+              <div className="mt-4 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 p-2 rounded-lg">
+                <CheckCircle2 size={14} />
+                {gpxMessage}
+              </div>
+            )}
+            {gpxError && (
+              <div className="mt-4 flex items-center gap-1.5 text-[11px] font-bold text-rose-600 bg-rose-50 p-2 rounded-lg">
+                <AlertCircle size={14} />
+                {gpxError}
+              </div>
+            )}
           </div>
 
+          {/* Erreur de soumission globale */}
           {error && (
-            <p className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</p>
+            <div className="flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 p-3 text-[12px] font-bold text-rose-600">
+              <AlertCircle size={16} />
+              {error}
+            </div>
           )}
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
+        <DialogFooter className="mt-6 flex gap-3 border-t border-gray-50 pt-6">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => setOpen(false)} 
+            disabled={submitting}
+            className="flex-1 h-[52px] rounded-xl border-gray-200 text-[13px] font-bold text-gray-600 hover:bg-gray-50"
+          >
             Annuler
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={submitting || title.trim().length < 2}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit} 
+            disabled={submitting || title.trim().length < 2}
+            className="flex-1 h-[52px] rounded-xl bg-[#0B1437] text-[13px] font-bold text-white hover:bg-gray-900 hover:shadow-md disabled:opacity-50"
+          >
             {submitting ? 'Enregistrement…' : 'Enregistrer'}
           </Button>
         </DialogFooter>

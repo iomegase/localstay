@@ -648,6 +648,7 @@ model LodgingCustomization {
   category_order  String[]
 
   // Spec 013 — Infos pratiques logement
+  cover_photo_url        String?
   lodging_address        String?
   wifi_ssid              String?
   wifi_password          String?

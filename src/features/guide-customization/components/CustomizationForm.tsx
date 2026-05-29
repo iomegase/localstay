@@ -112,6 +112,7 @@ export function CustomizationForm({
       .sort((a, b) => a.sort_order - b.sort_order),
   )
   const [practicalInfo, setPracticalInfo] = useState<PracticalInfoFields>(() => ({
+    cover_photo_url: initialCustomization.cover_photo_url ?? null,
     lodging_address: initialCustomization.lodging_address ?? null,
     wifi_ssid: initialCustomization.wifi_ssid ?? null,
     wifi_password: initialCustomization.wifi_password ?? null,
@@ -213,6 +214,7 @@ export function CustomizationForm({
       sort_order: featuredPoi.sort_order,
     })))
     setPracticalInfo({
+      cover_photo_url: payload.cover_photo_url ?? null,
       lodging_address: payload.lodging_address ?? null,
       wifi_ssid: payload.wifi_ssid ?? null,
       wifi_password: payload.wifi_password ?? null,
@@ -463,6 +465,35 @@ function PracticalInfoCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
+
+        {/* Photo du logement : URL + miniature aperçu, affichée en hero sur la home voyageur */}
+        <div className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/40 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="practical-cover_photo_url">Photo du logement (URL)</Label>
+            <span className="text-[11px] text-slate-400">Hero sur la home voyageur</span>
+          </div>
+          <Input
+            id="practical-cover_photo_url"
+            type="url"
+            value={practicalInfo.cover_photo_url ?? ''}
+            maxLength={1000}
+            placeholder="https://exemple.com/ma-photo.jpg"
+            onChange={event => setPracticalField('cover_photo_url', event.target.value)}
+          />
+          {practicalInfo.cover_photo_url && practicalInfo.cover_photo_url.trim() !== '' && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={practicalInfo.cover_photo_url}
+              alt="Aperçu photo du logement"
+              referrerPolicy="no-referrer"
+              className="h-40 w-full rounded-lg object-cover"
+            />
+          )}
+          <p className="text-[11px] text-slate-400">
+            URL d&apos;une image (.jpg, .png, .webp). L&apos;upload natif arrivera plus tard.
+          </p>
+        </div>
+
         {PRACTICAL_SECTIONS.map(section => {
           const value = practicalInfo[section.key] ?? ''
           const isPreviewing = previewKey === section.key

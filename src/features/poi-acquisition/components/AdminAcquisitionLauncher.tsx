@@ -56,17 +56,15 @@ export function AdminAcquisitionLauncher({ cities, categories }: AdminAcquisitio
   }
 
   return (
-    <Card className="overflow-hidden border-0 bg-white shadow-xl ring-1 ring-slate-100">
-      {/* Barre de décoration unie en haut de la carte */}
-      <div className="h-1.5 w-full bg-violet-600" />
-      
-      <CardContent className="grid gap-8 p-6 md:p-8">
+    <Card className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
+      <CardContent className="p-6 md:p-8 space-y-8">
+        
         {/* Section principale : Sélections et Bouton d'action */}
         <div className="grid gap-6 md:grid-cols-[1fr_1fr_auto] md:items-end">
           
           {/* Select : Ville */}
-          <div className="space-y-1">
-            <Label htmlFor="acquisition-city" className="font-semibold text-slate-700">
+          <div className="space-y-2">
+            <Label htmlFor="acquisition-city" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
               Ville cible
             </Label>
             <div className="relative">
@@ -74,18 +72,20 @@ export function AdminAcquisitionLauncher({ cities, categories }: AdminAcquisitio
                 id="acquisition-city"
                 value={cityId}
                 onChange={event => setCityId(event.target.value)}
-                className="peer w-full rounded-none border-0 border-b-2 border-slate-200 bg-transparent py-2 pl-0 pr-8 text-sm text-slate-900 focus:outline-none focus:ring-0"
+                className="w-full h-[52px] appearance-none rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
               >
                 {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
               </select>
-              {/* Animation de soulignement au focus */}
-              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-violet-600 transition-all duration-300 ease-out peer-focus:w-full" />
+              {/* Icône Select personnalisée pour masquer celle par défaut */}
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
             </div>
           </div>
           
           {/* Select : Catégorie */}
-          <div className="space-y-1">
-            <Label htmlFor="acquisition-category" className="font-semibold text-slate-700">
+          <div className="space-y-2">
+            <Label htmlFor="acquisition-category" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
               Catégorie de POI
             </Label>
             <div className="relative">
@@ -93,12 +93,13 @@ export function AdminAcquisitionLauncher({ cities, categories }: AdminAcquisitio
                 id="acquisition-category"
                 value={categoryId}
                 onChange={event => setCategoryId(event.target.value)}
-                className="peer w-full rounded-none border-0 border-b-2 border-slate-200 bg-transparent py-2 pl-0 pr-8 text-sm text-slate-900 focus:outline-none focus:ring-0"
+                className="w-full h-[52px] appearance-none rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
               >
                 {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
-              {/* Animation de soulignement au focus */}
-              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-violet-600 transition-all duration-300 ease-out peer-focus:w-full" />
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
             </div>
           </div>
 
@@ -106,71 +107,71 @@ export function AdminAcquisitionLauncher({ cities, categories }: AdminAcquisitio
             type="button" 
             onClick={launch} 
             disabled={loading || !cityId || !categoryId}
-            className="h-11 bg-violet-600 px-6 font-semibold text-white shadow-md transition-all hover:bg-violet-700 hover:shadow-lg disabled:opacity-50 disabled:shadow-none"
+            className="h-[52px] w-full rounded-xl bg-[#0B1437] px-8 text-[13px] font-bold text-white transition-all hover:bg-gray-900 hover:shadow-md disabled:opacity-50 disabled:hover:shadow-none md:w-auto"
           >
             {loading ? 'Lancement...' : 'Lancer l\'acquisition'}
           </Button>
         </div>
 
         {/* Section secondaire : Configuration des sources */}
-        <fieldset className="space-y-6 rounded-xl border border-slate-100 bg-slate-50/80 p-5">
-          <legend className="px-2 text-sm font-bold uppercase tracking-wide text-slate-800">
+        <div className="rounded-[20px] border border-gray-100 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
             Configuration des sources
-          </legend>
+          </h3>
           
-          <label 
-            className={`flex w-fit cursor-pointer select-none items-center gap-3 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors ${
-              useOfficialWebsite 
-                ? 'border-violet-500 bg-violet-50 text-violet-900 shadow-sm' 
-                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={useOfficialWebsite}
-              onChange={event => setUseOfficialWebsite(event.target.checked)}
-              className="h-4 w-4 accent-violet-600"
-            />
-            Scanner le site officiel
-          </label>
+          <div className="space-y-5">
+            <label 
+              className={`flex w-fit cursor-pointer select-none items-center gap-3 rounded-xl border px-5 py-3 text-[13px] font-bold transition-all ${
+                useOfficialWebsite 
+                  ? 'border-[#0B1437] bg-[#F4F7FE] text-[#0B1437]' 
+                  : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={useOfficialWebsite}
+                onChange={event => setUseOfficialWebsite(event.target.checked)}
+                className="h-4 w-4 rounded-[4px] border-gray-300 text-[#0B1437] focus:ring-[#0B1437]"
+                style={{ accentColor: '#0B1437' }}
+              />
+              Scanner le site officiel
+            </label>
 
-          {useOfficialWebsite && (
-            <div className="animate-in fade-in slide-in-from-top-2 max-w-3xl space-y-1 pt-2">
-              <Label htmlFor="acquisition-source-url" className="text-slate-700">
-                URL officielle à scraper
-              </Label>
-              <div className="relative">
+            {useOfficialWebsite && (
+              <div className="animate-in fade-in slide-in-from-top-2 max-w-3xl space-y-2">
+                <Label htmlFor="acquisition-source-url" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
+                  URL officielle à scraper
+                </Label>
                 <Input
                   id="acquisition-source-url"
                   value={sourceUrl}
                   onChange={event => setSourceUrl(event.target.value)}
                   placeholder="https://www.saintgervais.com/..."
-                  className="peer h-10 w-full rounded-none border-0 border-b-2 border-slate-200 bg-transparent px-0 shadow-none focus-visible:outline-none focus-visible:ring-0"
+                  className="h-[52px] w-full rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-medium transition-all focus-visible:border-[#0B1437] focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-[#0B1437]"
                 />
-                {/* Animation de soulignement au focus */}
-                <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-violet-600 transition-all duration-300 ease-out peer-focus-visible:w-full peer-focus:w-full" />
               </div>
-            </div>
-          )}
-        </fieldset>
+            )}
+          </div>
+        </div>
 
         {/* Section Infos & Erreurs */}
         <div className="flex flex-col gap-4">
-          <div className="flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50/50 p-4 text-blue-800">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-5 w-5 shrink-0 text-blue-500">
+          <div className="flex items-start gap-3 rounded-xl bg-[#F4F7FE]/80 p-4 text-[#0B1437]">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-5 w-5 shrink-0 opacity-70">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
             </svg>
-            <p className="text-sm leading-relaxed">
-              <strong className="font-semibold">Note technique :</strong> Gemini reste limité à la découverte et aux descriptions. Les coordonnées géographiques seront automatiquement géocodées par <span className="font-medium">Mapbox</span>.
+            <p className="text-[13px] leading-relaxed">
+              <strong className="font-bold">Note technique :</strong> Gemini reste limité à la découverte et aux descriptions. Les coordonnées géographiques seront automatiquement géocodées par <span className="font-bold">Mapbox</span>.
             </p>
           </div>
 
           {error && (
-            <div className="animate-in fade-in rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
+            <div className="animate-in fade-in rounded-xl border border-rose-100 bg-rose-50 p-4 text-[13px] font-bold text-rose-600">
               {error}
             </div>
           )}
         </div>
+        
       </CardContent>
     </Card>
   )

@@ -17,7 +17,9 @@ export default async function AdminTrailRunPage({
   return (
     <div className="space-y-6">
       <RunHeader run={run} />
-      <CandidatesTable candidates={run.candidates} />
+      <div className="rounded-[25px] border border-gray-50 bg-white shadow-sm overflow-hidden">
+        <CandidatesTable candidates={run.candidates} />
+      </div>
     </div>
   )
 }
@@ -25,44 +27,45 @@ export default async function AdminTrailRunPage({
 function RunHeader({ run }: { run: any }) {
   const stats = computeStats(run.candidates ?? [])
   return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-600">
+    <header className="rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
         Revue randonnées
       </p>
-      <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+      <h1 className="mt-2 text-3xl font-bold tracking-tight text-neutral-900">
         {run.city_name}
       </h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Statut du run: <span className="font-medium">{run.status}</span> · Sources: {run.source_types.join(', ')}
+      <p className="mt-2 text-sm text-gray-500">
+        Statut : <span className="font-medium text-neutral-900">{run.status}</span>
+        {' · '}Sources : {run.source_types.join(', ')}
         {run.zone_radius_km != null && (
-          <> · Rayon: <span className="font-medium">{run.zone_radius_km} km</span></>
+          <> · Rayon : <span className="font-medium text-neutral-900">{run.zone_radius_km} km</span></>
         )}
       </p>
 
       {stats.total > 0 && (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6 max-w-4xl">
-          <StatBox label="Total" value={stats.total} color="text-slate-900" />
-          <StatBox label="Complets" value={stats.complete} color="text-emerald-700" />
-          <StatBox label="Partiels" value={stats.partial} color="text-amber-700" />
-          <StatBox label="Géom. valide" value={stats.geometryValid} color="text-emerald-700" />
-          <StatBox label="Élév. valide" value={stats.elevationValid} color="text-emerald-700" />
-          <StatBox label="Publiés" value={stats.published} color="text-indigo-700" />
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6 max-w-4xl">
+          <StatBox label="Total" value={stats.total} color="text-neutral-900" />
+          <StatBox label="Complets" value={stats.complete} color="text-emerald-600" />
+          <StatBox label="Partiels" value={stats.partial} color="text-amber-600" />
+          <StatBox label="Géom. valide" value={stats.geometryValid} color="text-emerald-600" />
+          <StatBox label="Élév. valide" value={stats.elevationValid} color="text-emerald-600" />
+          <StatBox label="Publiés" value={stats.published} color="text-[#0B1437]" />
         </div>
       )}
 
       {run.error && (
-        <p className="mt-3 max-w-2xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="mt-4 max-w-2xl rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3 text-sm text-rose-600">
           {run.error}
         </p>
       )}
-    </div>
+    </header>
   )
 }
 
 function StatBox({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+    <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
       <p className={`mt-0.5 text-xl font-bold ${color}`}>{value}</p>
     </div>
   )
