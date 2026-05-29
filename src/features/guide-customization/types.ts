@@ -19,6 +19,7 @@ export interface PracticalInfoFields {
   equipment_info: string | null
   checkout_instructions: string | null
   trash_info: string | null
+  trash_location: string | null
   house_rules: string | null
   emergency_contacts: string | null
   useful_services: string | null
@@ -32,6 +33,7 @@ export const PRACTICAL_INFO_KEYS = [
   'equipment_info',
   'checkout_instructions',
   'trash_info',
+  'trash_location',
   'house_rules',
   'emergency_contacts',
   'useful_services',

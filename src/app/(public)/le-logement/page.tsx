@@ -19,6 +19,7 @@ export default async function LeLogementPage() {
       equipment_info: true,
       checkout_instructions: true,
       trash_info: true,
+      trash_location: true,
       house_rules: true,
       emergency_contacts: true,
       useful_services: true,
@@ -66,6 +67,8 @@ type Section = {
   value: string | null
   hasValue: boolean
   format: 'markdown' | 'plain' | 'address' | 'wifi'
+  mapsLocation?: string | null
+  mapsCtaLabel?: string
 }
 
 type CustomizationRow = {
@@ -76,6 +79,7 @@ type CustomizationRow = {
   equipment_info: string | null
   checkout_instructions: string | null
   trash_info: string | null
+  trash_location: string | null
   house_rules: string | null
   emergency_contacts: string | null
   useful_services: string | null
@@ -133,8 +137,10 @@ function buildSections(row: CustomizationRow): Section[] {
       title: 'Poubelles',
       icon: <Trash2 className="h-5 w-5" />,
       value: row?.trash_info ?? null,
-      hasValue: has(row?.trash_info),
+      hasValue: has(row?.trash_info) || has(row?.trash_location),
       format: 'markdown',
+      mapsLocation: row?.trash_location ?? null,
+      mapsCtaLabel: 'Ouvrir le point de tri dans Maps',
     },
     {
       key: 'rules',
@@ -174,11 +180,32 @@ function PracticalCard({ section }: { section: Section }) {
           <h2 className="font-serif italic text-lg text-charcoal">{section.title}</h2>
           <div className="mt-2 text-sm leading-relaxed text-charcoal/70">
             {renderValue(section)}
+            {section.mapsLocation && section.mapsLocation.trim() !== '' && (
+              <a
+                href={buildMapsUrl(section.mapsLocation)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white shadow-sm transition-transform hover:-translate-y-0.5"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+                {section.mapsCtaLabel ?? 'Ouvrir dans Maps'}
+              </a>
+            )}
           </div>
         </div>
       </div>
     </section>
   )
+}
+
+function buildMapsUrl(value: string): string {
+  const trimmed = value.trim()
+  // Si c'est déjà une URL Maps (court ou long), on la prend telle quelle
+  if (/^https?:\/\//i.test(trimmed) && /(google\.[a-z]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(trimmed)) {
+    return trimmed
+  }
+  // Sinon on construit une recherche Google Maps depuis le texte (adresse)
+  return `https://www.google.com/maps?q=${encodeURIComponent(trimmed)}`
 }
 
 function renderValue(section: Section) {

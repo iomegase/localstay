@@ -28,6 +28,7 @@ const customizationSchema = z.object({
   equipment_info: practicalText(4000),
   checkout_instructions: practicalText(4000),
   trash_info: practicalText(2000),
+  trash_location: practicalText(500),
   house_rules: practicalText(4000),
   emergency_contacts: practicalText(2000),
   useful_services: practicalText(4000),

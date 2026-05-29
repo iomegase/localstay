@@ -655,6 +655,7 @@ model LodgingCustomization {
   equipment_info         String?
   checkout_instructions  String?
   trash_info             String?
+  trash_location         String?
   house_rules            String?
   emergency_contacts     String?
   useful_services        String?
