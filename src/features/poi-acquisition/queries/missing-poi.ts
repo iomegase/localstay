@@ -1,6 +1,6 @@
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { findGooglePlaceMatch } from '../lib/google-places'
+import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
 import { geocodeForAcquisition } from '../lib/geocode'
 import { PoiAcquisitionError } from '../lib/errors'
 import type { MissingPoiCreateSchema } from '../lib/api'
@@ -65,7 +65,7 @@ export async function createMissingPoiRequest(merchantId: string, input: Missing
       city_id: city.id,
       category_id: category?.id ?? null,
       google_place_id: googleMatch?.google_place_id ?? null,
-      google_review_payload: googleMatch?.review_payload ?? Prisma.JsonNull,
+      google_review_payload: mergeHoursIntoReviewPayload(googleMatch?.review_payload ?? null, googleMatch?.hours ?? null),
       google_review_expires_at: googleMatch?.google_review_expires_at ?? null,
       latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
       longitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.longitude : null,

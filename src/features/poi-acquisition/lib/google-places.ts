@@ -1,5 +1,7 @@
 import { googleReviewExpiry, sanitizeGoogleReviewPayload } from './google-policy'
-import type { GooglePolicyResult } from '../types'
+import { mapRegularOpeningHoursToPoiHours } from './google-hours'
+import type { GooglePolicyResult, GoogleReviewPayload } from '../types'
+import type { PoiHours } from '@/features/categories/types'
 
 type GoogleTextSearchResponse = {
   places?: unknown[]
@@ -11,9 +13,29 @@ export type GooglePlaceCandidate = {
   phone: string | null
   website: string | null
   google_place_id: string
-  review_payload: GooglePolicyResult['review_payload']
+  review_payload: GoogleReviewPayload | null
   google_review_expires_at: Date | null
+  hours: PoiHours | null
 }
+
+const PLACES_FIELD_MASK = [
+  'places.id',
+  'places.displayName',
+  'places.formattedAddress',
+  'places.nationalPhoneNumber',
+  'places.internationalPhoneNumber',
+  'places.websiteUri',
+  'places.rating',
+  'places.regularOpeningHours',
+].join(',')
+
+const PLACES_MATCH_FIELD_MASK = [
+  'places.id',
+  'places.displayName',
+  'places.formattedAddress',
+  'places.rating',
+  'places.regularOpeningHours',
+].join(',')
 
 export async function searchGooglePlaceCandidates(params: {
   cityName: string
@@ -30,15 +52,7 @@ export async function searchGooglePlaceCandidates(params: {
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': [
-        'places.id',
-        'places.displayName',
-        'places.formattedAddress',
-        'places.nationalPhoneNumber',
-        'places.internationalPhoneNumber',
-        'places.websiteUri',
-        'places.rating',
-      ].join(','),
+      'X-Goog-FieldMask': PLACES_FIELD_MASK,
     },
     body: JSON.stringify({
       textQuery: `${params.categoryName} ${params.cityName} ${params.postalCode}`,
@@ -62,7 +76,7 @@ export async function searchGooglePlaceCandidates(params: {
 export async function findGooglePlaceMatch(params: {
   name: string
   address: string
-}): Promise<(GooglePolicyResult & { google_review_expires_at: Date | null }) | null> {
+}): Promise<(GooglePolicyResult & { google_review_expires_at: Date | null; hours: PoiHours | null }) | null> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   if (!apiKey) return null
 
@@ -71,7 +85,7 @@ export async function findGooglePlaceMatch(params: {
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating',
+      'X-Goog-FieldMask': PLACES_MATCH_FIELD_MASK,
     },
     body: JSON.stringify({ textQuery: `${params.name} ${params.address}`, languageCode: 'fr' }),
   })
@@ -85,9 +99,14 @@ export async function findGooglePlaceMatch(params: {
   const sanitized = sanitizeGoogleReviewPayload(firstPlace)
   if (!sanitized.google_place_id) return null
 
+  const hours = isRecord(firstPlace)
+    ? mapRegularOpeningHoursToPoiHours(firstPlace.regularOpeningHours)
+    : null
+
   return {
     ...sanitized,
     google_review_expires_at: sanitized.review_payload ? googleReviewExpiry() : null,
+    hours,
   }
 }
 
@@ -109,6 +128,7 @@ function mapGooglePlaceCandidate(place: unknown): GooglePlaceCandidate | null {
     google_place_id: sanitized.google_place_id,
     review_payload: sanitized.review_payload,
     google_review_expires_at: sanitized.review_payload ? googleReviewExpiry() : null,
+    hours: mapRegularOpeningHoursToPoiHours(place.regularOpeningHours),
   }
 }
 

@@ -1,7 +1,10 @@
+import type { PoiHours } from '@/features/categories/types'
+
 export type GoogleReviewPayload = {
   displayName?: { text?: string }
   formattedAddress?: string
   rating?: number
+  hours?: PoiHours
   attribution: 'Google Maps'
 }
 

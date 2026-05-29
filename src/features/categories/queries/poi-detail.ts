@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiDetail, PoiHours, HikingDetailData, TrailDetailData } from '../types'
+import { computeIsOpenNow } from '../lib/is-open-now'
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371
@@ -129,7 +130,7 @@ export async function getPoiDetail(
     website: row.website,
     rating: row.rating,
     rating_count: row.rating_count,
-    is_open_now: row.is_open_now,
+    is_open_now: computeIsOpenNow(row.hours as PoiHours | null) ?? row.is_open_now,
     hours: row.hours as PoiHours | null,
     photos: row.photos,
     distance_km: haversineKm(city.latitude, city.longitude, row.latitude, row.longitude),

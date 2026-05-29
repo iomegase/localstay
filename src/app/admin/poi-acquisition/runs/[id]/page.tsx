@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAcquisitionRun } from '@/features/poi-acquisition/queries/runs'
 import { AdminCandidateReviewActions } from '@/features/poi-acquisition/components/AdminCandidateReviewActions'
-import { Eye, Trash2, AlertCircle, FileSearch } from 'lucide-react'
+import { Edit2, Trash2, AlertCircle, FileSearch } from 'lucide-react'
 
 // Fonction utilitaire pour générer un style dynamique de badge (Corporate Style)
 function getBadgeStyle(text: string) {
@@ -143,34 +143,34 @@ export default async function AdminPoiAcquisitionRunPage({
 
                     {/* COL 4 : ACTIONS */}
                     <td className="px-6 py-4 align-top">
-                      <div className="flex items-start justify-end gap-4 h-full">
+                      {/* Disposition Horizontale pour tout aligner */}
+                      <div className="flex items-center justify-end gap-2 mt-0.5">
                         
-                        {/* Composant de Revue d'action (S'intègre naturellement avec le style) */}
-                        <div className="flex justify-end pt-0.5">
-                          <AdminCandidateReviewActions
-                            candidateId={candidate.id}
-                            reviewStatus={candidate.review_status}
-                            duplicatePoiIds={candidate.duplicate_poi_ids}
-                          />
-                        </div>
+                        {/* Actions de Revue (Publier / Rejeter gérés par ce composant) */}
+                        <AdminCandidateReviewActions
+                          candidateId={candidate.id}
+                          reviewStatus={candidate.review_status}
+                          duplicatePoiIds={candidate.duplicate_poi_ids}
+                        />
                         
-                        {/* Outils secondaires (Eye, Trash) */}
-                        <div className="flex flex-col gap-2 border-l border-gray-100 pl-4 py-0.5">
-                          <button 
-                            type="button"
-                            className="flex h-[28px] w-[28px] items-center justify-center rounded-lg border border-transparent text-gray-400 transition-colors hover:bg-[#F4F7FE] hover:text-[#0B1437]"
-                            title="Voir détails"
-                          >
-                            <Eye size={14} strokeWidth={2} />
-                          </button>
-                          <button 
-                            type="button"
-                            className="flex h-[28px] w-[28px] items-center justify-center rounded-lg border border-transparent text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                            title="Supprimer candidat"
-                          >
-                            <Trash2 size={14} strokeWidth={2} />
-                          </button>
-                        </div>
+                        {/* Ligne séparatrice verticale */}
+                        <div className="mx-1 h-6 w-px bg-gray-200"></div>
+                        
+                        {/* Outils secondaires (Modifier, Corbeille) formatés comme des petits boutons carrés */}
+                        <button 
+                          type="button"
+                          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-[#0B1437]"
+                          title="Modifier"
+                        >
+                          <Edit2 size={14} strokeWidth={2.5} />
+                        </button>
+                        <button 
+                          type="button"
+                          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                          title="Supprimer candidat"
+                        >
+                          <Trash2 size={14} strokeWidth={2.5} />
+                        </button>
                         
                       </div>
                     </td>

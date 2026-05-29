@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { callGemini } from '@/features/gemini-fetch/services/gemini-client'
 import { searchGooglePlaceCandidates, type GooglePlaceCandidate } from '../lib/google-places'
+import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
 import { geocodeForAcquisition } from '../lib/geocode'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
 import { PoiAcquisitionError } from '../lib/errors'
@@ -108,7 +109,7 @@ export async function createAcquisitionRun(
           website: candidate.website,
           category_id: category.id,
           google_place_id: candidate.google_place_id,
-          google_review_payload: candidate.review_payload ?? Prisma.JsonNull,
+          google_review_payload: mergeHoursIntoReviewPayload(candidate.review_payload, candidate.hours),
           google_review_expires_at: candidate.google_review_expires_at,
           latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
           longitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.longitude : null,

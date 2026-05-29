@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
-import type { PoiCard, PoiCardGroups } from '../types'
+import type { PoiCard, PoiCardGroups, PoiHours } from '../types'
+import { computeIsOpenNow } from '../lib/is-open-now'
 import { getPublicCustomization } from '@/features/guide-customization/queries/customization'
 
 const DEFAULT_PAGE = 1
@@ -98,6 +99,7 @@ export async function getPoiCards(
       rating: true,
       rating_count: true,
       is_open_now: true,
+      hours: true,
       photos: true,
       geocode_status: true,
       subcategory: { select: { name: true } },
@@ -119,7 +121,9 @@ export async function getPoiCards(
   type RawRow = {
     id: string; name: string; slug: string; address: string
     latitude: number; longitude: number; rating: number | null
-    rating_count: number; is_open_now: boolean | null; photos: string[]
+    rating_count: number; is_open_now: boolean | null
+    hours: unknown
+    photos: string[]
     geocode_status: string
     subcategory: { name: string } | null
     trail_detail: {
@@ -148,7 +152,7 @@ export async function getPoiCards(
     subcategory_name: p.subcategory?.name ?? null,
     rating: p.rating,
     rating_count: p.rating_count,
-    is_open_now: p.is_open_now,
+    is_open_now: computeIsOpenNow(p.hours as PoiHours | null) ?? p.is_open_now,
     distance_km: haversineKm(city.latitude, city.longitude, p.latitude, p.longitude),
     photo_url: p.photos[0] ?? null,
     latitude: p.latitude,
