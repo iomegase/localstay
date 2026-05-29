@@ -42,7 +42,7 @@ export default function LoginPage() {
     <div className="mx-auto w-full max-w-sm overflow-hidden ">
       <div className="p-8">
         <div className="mb-8 text-center">
-          <h2 className="mb-10 text-2xl font-thin font-serif tracking-tight text-slate-900">
+          <h2 className="mb-14 text-2xl italic font-serif tracking-tight text-slate-900">
             Bon retour parmi nous
           </h2>
         </div>
@@ -61,7 +61,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 placeholder="vous@exemple.com"
-                className="peer w-full rounded-none border-b-2 border-slate-200 bg-white py-2.5 px-0 text-sm text-slate-900 placeholder-slate-300 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_white_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
+                className="peer w-full rounded-none border-b-2 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_rgb(248,250,252)_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
               />
               {/* Animation de soulignement au survol (group-hover) et au focus (peer-focus) */}
               <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-black transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
@@ -88,7 +88,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 placeholder="••••••••"
-                className="peer w-full rounded-none border-0 border-b-2 border-slate-200 bg-white py-2.5 px-0 text-sm text-slate-900 placeholder-slate-300 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_white_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
+                className="peer w-full rounded-none border-0 border-b-2 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_rgb(248,250,252)_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
               />
               {/* Animation de soulignement au survol (group-hover) et au focus (peer-focus) */}
               <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-black transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
@@ -110,7 +110,7 @@ export default function LoginPage() {
           >
             {loading ? (
               <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 animate-spin text-white group-hover:text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 animate-spin text-black group-hover:text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
