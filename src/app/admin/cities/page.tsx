@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminCities } from '@/features/admin/queries/dashboard'
+import { AdminCityCreateButton } from '@/features/admin/components/AdminCityCreateButton'
 import { MapPin, ArrowRight } from 'lucide-react'
 
 const STATUS_LABELS = {
@@ -24,7 +25,7 @@ export default async function AdminCitiesPage() {
     <div className="w-full animate-in fade-in duration-500">
       
       {/* Header façon Carte Blanche (comme sur le dashboard) */}
-      <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm">
+      <header className="mb-8 flex flex-col gap-6 md:flex-row md:items-center justify-between rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm">
         <div className="max-w-xl">
           <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase">
             Villes
@@ -33,9 +34,10 @@ export default async function AdminCitiesPage() {
             Villes référencées
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">
-            Consultation uniquement : aucune création ni refresh Gemini dans 016.
+            Géocodage automatique via Mapbox à la création. Slug normalisé depuis le nom.
           </p>
         </div>
+        <AdminCityCreateButton />
       </header>
 
       {/* Conteneur de la table avec les bords très arrondis */}

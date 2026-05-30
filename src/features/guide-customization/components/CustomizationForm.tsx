@@ -19,9 +19,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Save } from 'lucide-react'
-import { Button } from '@/shared/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { GripVertical, Save, Star, ChevronDown } from 'lucide-react'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Input } from '@/shared/components/ui/input'
@@ -69,18 +67,18 @@ function SortableCategoryItem({ category }: { category: CategoryOption }) {
     <li
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm"
+      className="group flex items-center gap-4 border-b border-gray-50 bg-white px-6 py-4 text-sm transition-colors hover:bg-gray-50/50 last:border-0"
     >
       <button
         type="button"
-        className="cursor-grab text-muted-foreground active:cursor-grabbing"
-        aria-label={`Deplacer ${category.name}`}
+        className="flex h-8 w-8 cursor-grab items-center justify-center rounded-lg bg-[#F4F7FE] text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white active:cursor-grabbing"
+        aria-label={`Déplacer ${category.name}`}
         {...attributes}
         {...listeners}
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span>{category.name}</span>
+      <span className="text-[13px] font-bold text-neutral-900">{category.name}</span>
     </li>
   )
 }
@@ -107,6 +105,7 @@ export function CustomizationForm({
       .map(featuredPoi => ({
         poi_id: featuredPoi.poi_id,
         owner_note: featuredPoi.owner_note,
+        owner_rating: featuredPoi.owner_rating,
         sort_order: featuredPoi.sort_order,
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
@@ -143,6 +142,7 @@ export function CustomizationForm({
   const featuredByPoiId = new Map(featuredPois.map(featuredPoi => [featuredPoi.poi_id, featuredPoi]))
   const selectedPoiIds = new Set(featuredPois.map(featuredPoi => featuredPoi.poi_id))
 
+  // Règle métier inchangée
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -155,14 +155,16 @@ export function CustomizationForm({
     })
   }
 
+  // Règle métier inchangée
   function toggleFeaturedPoi(poiId: string, checked: boolean) {
     setFeaturedPois(current => {
       if (!checked) return current.filter(featuredPoi => featuredPoi.poi_id !== poiId)
       if (current.some(featuredPoi => featuredPoi.poi_id === poiId)) return current
-      return [...current, { poi_id: poiId, owner_note: null, sort_order: current.length }]
+      return [...current, { poi_id: poiId, owner_note: null, owner_rating: null, sort_order: current.length }]
     })
   }
 
+  // Règle métier inchangée
   function updateOwnerNote(poiId: string, ownerNote: string) {
     setFeaturedPois(current =>
       current.map(featuredPoi =>
@@ -173,6 +175,18 @@ export function CustomizationForm({
     )
   }
 
+  // Règle métier inchangée
+  function updateOwnerRating(poiId: string, ownerRating: number | null) {
+    setFeaturedPois(current =>
+      current.map(featuredPoi =>
+        featuredPoi.poi_id === poiId
+          ? { ...featuredPoi, owner_rating: ownerRating }
+          : featuredPoi,
+      ),
+    )
+  }
+
+  // Règle métier inchangée
   async function saveCustomization() {
     setStatus('saving')
     setMessage(null)
@@ -192,6 +206,7 @@ export function CustomizationForm({
         featured_pois: featuredPois.map((featuredPoi, index) => ({
           poi_id: featuredPoi.poi_id,
           owner_note: featuredPoi.owner_note?.trim() || null,
+          owner_rating: featuredPoi.owner_rating ?? null,
           sort_order: index,
         })),
         ...practicalPayload,
@@ -211,6 +226,7 @@ export function CustomizationForm({
     setFeaturedPois(payload.featured_pois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
       owner_note: featuredPoi.owner_note,
+      owner_rating: featuredPoi.owner_rating,
       sort_order: featuredPoi.sort_order,
     })))
     setPracticalInfo({
@@ -230,85 +246,146 @@ export function CustomizationForm({
     setStatus('saved')
     setMessage(
       payload.ignored_category_slugs.length > 0
-        ? `Sauvegarde effectuee. Slugs ignores: ${payload.ignored_category_slugs.join(', ')}.`
-        : 'Personnalisation sauvegardee.',
+        ? `Sauvegarde effectuée. Slugs ignorés: ${payload.ignored_category_slugs.join(', ')}.`
+        : 'Personnalisation sauvegardée.',
     )
   }
 
   return (
-    <div className="space-y-6 pb-24">
-      <Card>
-        <CardHeader>
-          <CardTitle>Message d'accueil</CardTitle>
-          <CardDescription>Affiche sur le guide public personnalise de ce logement.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Label htmlFor="welcome-message">Message</Label>
-          <Textarea
-            id="welcome-message"
-            maxLength={300}
-            value={welcomeMessage}
-            onChange={event => setWelcomeMessage(event.target.value)}
-            placeholder="Bienvenue, voici nos recommandations locales..."
-          />
-          <p className="text-right text-xs text-muted-foreground">{welcomeMessage.length}/300</p>
-        </CardContent>
-      </Card>
+    <div className="space-y-6 pb-32">
+      {/* 1. Message d'accueil */}
+      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
+        <div className="border-b border-gray-100 p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+            Accueil voyageur
+          </p>
+          <h2 className="mt-1 text-base font-bold text-neutral-900">Message d&apos;accueil</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Affiché en haut du guide public personnalisé de ce logement.
+          </p>
+        </div>
+        <div className="p-6">
+          <div className="space-y-2">
+            <Label htmlFor="welcome-message" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+              Message
+            </Label>
+            <div className="group relative">
+              <Textarea
+                id="welcome-message"
+                maxLength={300}
+                value={welcomeMessage}
+                onChange={event => setWelcomeMessage(event.target.value)}
+                placeholder="Bienvenue, voici nos recommandations locales..."
+                className="peer min-h-[100px] w-full resize-none rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
+              />
+              <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
+            </div>
+            <p className="text-right text-[11px] font-medium text-gray-400">{welcomeMessage.length}/300</p>
+          </div>
+        </div>
+      </section>
 
+      {/* 2. Infos Pratiques (Sous-composant refondu plus bas) */}
       <PracticalInfoCard practicalInfo={practicalInfo} setPracticalField={setPracticalField} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Ordre des categories</CardTitle>
-          <CardDescription>Glissez les categories pour definir leur ordre dans le guide.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-            <SortableContext items={categoryOrder} strategy={verticalListSortingStrategy}>
-              <ol className="space-y-2">
-                {orderedCategories.map(category => (
-                  <SortableCategoryItem key={category.slug} category={category} />
-                ))}
-              </ol>
-            </SortableContext>
-          </DndContext>
-        </CardContent>
-      </Card>
+      {/* 3. Ordre des catégories */}
+      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
+        <div className="border-b border-gray-100 p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+            Mise en page
+          </p>
+          <h2 className="mt-1 text-base font-bold text-neutral-900">Ordre des catégories</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Glissez les catégories pour définir leur ordre dans le guide.
+          </p>
+        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={categoryOrder} strategy={verticalListSortingStrategy}>
+            <ol className="flex flex-col">
+              {orderedCategories.map(category => (
+                <SortableCategoryItem key={category.slug} category={category} />
+              ))}
+            </ol>
+          </SortableContext>
+        </DndContext>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Mes recommandations</CardTitle>
-          <CardDescription>Maximum 5 POI mis en avant par categorie, avec note personnelle optionnelle.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      {/* 4. Mes recommandations (POIs) */}
+      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
+        <div className="border-b border-gray-100 p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+            Coups de cœur
+          </p>
+          <h2 className="mt-1 text-base font-bold text-neutral-900">Mes recommandations</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Maximum 5 POI mis en avant par catégorie, avec note personnelle optionnelle (texte + étoiles).
+          </p>
+        </div>
+        <div className="divide-y divide-gray-50">
           {orderedCategories.map(category => {
             const categoryPois = pois.filter(poi => poi.category_id === category.id)
             if (categoryPois.length === 0) return null
+            const selectedCount = categoryPois.filter(poi => selectedPoiIds.has(poi.id)).length
 
             return (
-              <details key={category.id} className="rounded-lg border bg-background px-3 py-2">
-                <summary className="cursor-pointer text-sm font-medium">{category.name}</summary>
-                <div className="mt-3 space-y-3">
+              <details key={category.id} className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-4 outline-none transition-colors hover:bg-gray-50/50 [&::-webkit-details-marker]:hidden">
+                  <span className="flex items-center gap-3">
+                    <span className="text-[13px] font-bold text-neutral-900">{category.name}</span>
+                    {selectedCount > 0 && (
+                      <span className="inline-flex h-5 items-center justify-center rounded-full bg-[#F4F7FE] px-2 text-[10px] font-bold text-[#0B1437]">
+                        {selectedCount} / 5
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="space-y-3 bg-gray-50/30 px-6 py-5">
                   {categoryPois.map(poi => {
                     const featuredPoi = featuredByPoiId.get(poi.id)
+                    const isSelected = selectedPoiIds.has(poi.id)
                     return (
-                      <div key={poi.id} className="rounded-md border border-muted px-3 py-2">
-                        <label className="flex items-center gap-2 text-sm">
+                      <div
+                        key={poi.id}
+                        className={`rounded-[18px] border bg-white p-5 transition-colors ${
+                          isSelected ? 'border-[#0B1437]/15 shadow-sm' : 'border-gray-100'
+                        }`}
+                      >
+                        <label className="flex cursor-pointer items-center gap-3 text-sm font-bold text-neutral-900">
                           <input
                             type="checkbox"
-                            checked={selectedPoiIds.has(poi.id)}
+                            checked={isSelected}
                             onChange={event => toggleFeaturedPoi(poi.id, event.target.checked)}
+                            className="h-4 w-4 accent-[#0B1437]"
                           />
                           {poi.name}
                         </label>
+
                         {featuredPoi && (
-                          <Textarea
-                            className="mt-2 min-h-[64px]"
-                            maxLength={150}
-                            value={featuredPoi.owner_note ?? ''}
-                            onChange={event => updateOwnerNote(poi.id, event.target.value)}
-                            placeholder="Pourquoi recommander cette adresse ?"
-                          />
+                          <div className="mt-5 space-y-6 border-t border-gray-100 pt-5">
+                            <div className="space-y-2">
+                              <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                                Votre mot pour les voyageurs
+                              </Label>
+                              <div className="group/note relative">
+                                <Textarea
+                                  className="peer min-h-[64px] w-full resize-none rounded-none border-0 border-b-2 border-gray-200 bg-transparent px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
+                                  maxLength={300}
+                                  value={featuredPoi.owner_note ?? ''}
+                                  onChange={event => updateOwnerNote(poi.id, event.target.value)}
+                                  placeholder="Pourquoi recommander cette adresse ?"
+                                />
+                                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover/note:w-full peer-focus:w-full" />
+                              </div>
+                              <p className="text-right text-[11px] font-medium text-gray-400">
+                                {(featuredPoi.owner_note ?? '').length}/300
+                              </p>
+                            </div>
+                            <OwnerRatingInput
+                              value={featuredPoi.owner_rating ?? null}
+                              onChange={rating => updateOwnerRating(poi.id, rating)}
+                            />
+                          </div>
                         )}
                       </div>
                     )
@@ -317,24 +394,39 @@ export function CustomizationForm({
               </details>
             )
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/95 p-4 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-muted-foreground">
-            {message ?? 'Les changements sont appliques uniquement a ce logement.'}
+      {/* 5. Barre d'action fixe en bas */}
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-[12px] text-gray-500">
+            {message ? (
+              <span className={status === 'error' ? 'font-semibold text-rose-500' : 'font-semibold text-emerald-600'}>
+                {message}
+              </span>
+            ) : (
+              'Les changements sont appliqués uniquement à ce logement.'
+            )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href={`/guide/${citySlug}?lodging=${lodgingId}`} target="_blank">
-                Voir le guide comme un Tourist
-              </Link>
-            </Button>
-            <Button onClick={saveCustomization} disabled={status === 'saving'} className="gap-2">
-              <Save className="h-4 w-4" />
-              {status === 'saving' ? 'Sauvegarde...' : 'Sauvegarder'}
-            </Button>
+            <Link
+              href={`/guide/${citySlug}?lodging=${lodgingId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 text-[13px] font-bold text-[#0B1437] shadow-sm transition-all hover:border-[#0B1437]/30 hover:bg-gray-50"
+            >
+              Aperçu
+            </Link>
+            <button
+              type="button"
+              onClick={saveCustomization}
+              disabled={status === 'saving'}
+              className="group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Save size={14} className="transition-transform duration-300 group-hover:scale-110" />
+              {status === 'saving' ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
           </div>
         </div>
       </div>
@@ -456,40 +548,50 @@ function PracticalInfoCard({
   const [previewKey, setPreviewKey] = useState<keyof PracticalInfoFields | null>(null)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Infos pratiques</CardTitle>
-        <CardDescription>
-          Renseignements affichés sur le guide du voyageur. Markdown supporté pour les champs longs
-          (**gras**, listes, [liens](url)).
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
+    <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
+      <div className="border-b border-gray-100 p-6">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+          Pratique
+        </p>
+        <h2 className="mt-1 text-base font-bold text-neutral-900">Infos pratiques</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          Renseignements affichés sur le guide du voyageur. Markdown supporté pour les champs longs (**gras**, listes, [liens](url)).
+        </p>
+      </div>
 
-        {/* Photo du logement : URL + miniature aperçu, affichée en hero sur la home voyageur */}
-        <div className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/40 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="practical-cover_photo_url">Photo du logement (URL)</Label>
-            <span className="text-[11px] text-slate-400">Hero sur la home voyageur</span>
+      <div className="space-y-8 p-6">
+        {/* Photo du logement */}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <Label htmlFor="practical-cover_photo_url" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+              Photo du logement (URL)
+            </Label>
+            <span className="text-[10px] uppercase tracking-widest text-gray-300">Hero sur la home voyageur</span>
           </div>
-          <Input
-            id="practical-cover_photo_url"
-            type="url"
-            value={practicalInfo.cover_photo_url ?? ''}
-            maxLength={1000}
-            placeholder="https://exemple.com/ma-photo.jpg"
-            onChange={event => setPracticalField('cover_photo_url', event.target.value)}
-          />
+
+          <div className="group relative">
+            <Input
+              id="practical-cover_photo_url"
+              type="url"
+              value={practicalInfo.cover_photo_url ?? ''}
+              maxLength={1000}
+              placeholder="https://exemple.com/ma-photo.jpg"
+              onChange={event => setPracticalField('cover_photo_url', event.target.value)}
+              className="peer w-full rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
+            />
+            <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
+          </div>
+
           {practicalInfo.cover_photo_url && practicalInfo.cover_photo_url.trim() !== '' && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={practicalInfo.cover_photo_url}
               alt="Aperçu photo du logement"
               referrerPolicy="no-referrer"
-              className="h-40 w-full rounded-lg object-cover"
+              className="h-48 w-full rounded-[18px] border border-gray-100 object-cover shadow-sm"
             />
           )}
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[10px] uppercase tracking-widest text-gray-300">
             URL d&apos;une image (.jpg, .png, .webp). L&apos;upload natif arrivera plus tard.
           </p>
         </div>
@@ -498,52 +600,129 @@ function PracticalInfoCard({
           const value = practicalInfo[section.key] ?? ''
           const isPreviewing = previewKey === section.key
           return (
-            <div key={section.key} className="space-y-2">
+            <div key={section.key} className="space-y-2 pt-2">
               <div className="flex items-center justify-between gap-3">
-                <Label htmlFor={`practical-${section.key}`}>{section.label}</Label>
+                <Label htmlFor={`practical-${section.key}`} className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                  {section.label}
+                </Label>
                 {section.markdown && value.trim() !== '' && (
                   <button
                     type="button"
                     onClick={() => setPreviewKey(isPreviewing ? null : section.key)}
-                    className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-700"
+                    className="inline-flex h-7 items-center rounded-lg bg-[#F4F7FE] px-2.5 text-[10px] font-bold uppercase tracking-widest text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white"
                   >
-                    {isPreviewing ? 'Masquer aperçu' : 'Aperçu'}
+                    {isPreviewing ? 'Masquer' : 'Aperçu'}
                   </button>
                 )}
               </div>
-              {section.type === 'input' ? (
-                <Input
-                  id={`practical-${section.key}`}
-                  value={value}
-                  maxLength={section.maxLength}
-                  placeholder={section.placeholder}
-                  onChange={event => setPracticalField(section.key, event.target.value)}
-                />
-              ) : (
-                <Textarea
-                  id={`practical-${section.key}`}
-                  rows={section.rows}
-                  maxLength={section.maxLength}
-                  value={value}
-                  placeholder={section.placeholder}
-                  onChange={event => setPracticalField(section.key, event.target.value)}
-                />
-              )}
+
+              <div className="group relative">
+                {section.type === 'input' ? (
+                  <Input
+                    id={`practical-${section.key}`}
+                    value={value}
+                    maxLength={section.maxLength}
+                    placeholder={section.placeholder}
+                    onChange={event => setPracticalField(section.key, event.target.value)}
+                    className="peer w-full rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
+                  />
+                ) : (
+                  <Textarea
+                    id={`practical-${section.key}`}
+                    rows={section.rows}
+                    maxLength={section.maxLength}
+                    value={value}
+                    placeholder={section.placeholder}
+                    onChange={event => setPracticalField(section.key, event.target.value)}
+                    className="peer w-full resize-none rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
+                  />
+                )}
+                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
+              </div>
+
               {isPreviewing && (
-                <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                <div className="mt-3 rounded-[18px] border border-[#0B1437]/15 bg-[#F4F7FE]/40 p-4">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#0B1437]">
                     Aperçu Markdown
                   </p>
-                  <MarkdownText source={value} className="text-sm leading-relaxed text-slate-700" />
+                  <MarkdownText source={value} className="text-sm leading-relaxed text-neutral-900" />
                 </div>
               )}
-              <p className="text-right text-xs text-muted-foreground">
+
+              <p className="text-right text-[11px] font-medium text-gray-400">
                 {value.length}/{section.maxLength}
               </p>
             </div>
           )
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
+  )
+}
+
+function OwnerRatingInput({
+  value,
+  onChange,
+}: {
+  value: number | null
+  onChange: (rating: number | null) => void
+}) {
+  const stops = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5] as const
+
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Votre note</span>
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map(starIndex => {
+          const fillLevel = value === null ? 0 : Math.max(0, Math.min(1, value - (starIndex - 1)))
+          const isFull = fillLevel >= 1
+          const isHalf = fillLevel >= 0.5 && fillLevel < 1
+          const targetWhenFull = value !== null && value === starIndex ? starIndex - 0.5 : starIndex
+          const targetWhenHalf = starIndex - 0.5
+          return (
+            <div key={starIndex} className="relative h-6 w-6">
+              <button
+                type="button"
+                aria-label={`${targetWhenHalf} étoiles`}
+                onClick={() => onChange(targetWhenHalf)}
+                className="absolute left-0 top-0 z-10 h-6 w-3"
+              />
+              <button
+                type="button"
+                aria-label={`${targetWhenFull} étoiles`}
+                onClick={() => onChange(targetWhenFull)}
+                className="absolute right-0 top-0 z-10 h-6 w-3"
+              />
+              <Star className="absolute inset-0 h-6 w-6 text-gray-200" strokeWidth={1.5} />
+              {isHalf && (
+                <Star
+                  className="absolute inset-0 h-6 w-6 fill-amber-500 text-amber-500"
+                  strokeWidth={1.5}
+                  style={{ clipPath: 'inset(0 50% 0 0)' }}
+                />
+              )}
+              {isFull && (
+                <Star className="absolute inset-0 h-6 w-6 fill-amber-500 text-amber-500" strokeWidth={1.5} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <span className="text-sm font-bold tabular-nums text-neutral-900">
+        {value !== null ? value.toFixed(1) : '—'}
+      </span>
+      {value !== null && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-[#0B1437] hover:underline underline-offset-4"
+        >
+          Effacer
+        </button>
+      )}
+      <span className="sr-only">
+        {stops.map(stop => stop).join(' ')}
+      </span>
+    </div>
   )
 }

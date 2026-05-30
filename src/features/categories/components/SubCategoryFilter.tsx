@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { Grid2x2 } from 'lucide-react'
 import type { SubCategoryWithCount } from '../types'
 
 export function SubCategoryFilter({ subcategories }: { subcategories: SubCategoryWithCount[] }) {
@@ -17,28 +18,51 @@ export function SubCategoryFilter({ subcategories }: { subcategories: SubCategor
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 py-3">
-      <button
-        onClick={() => select(null)}
-        className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-colors ${
-          !active ? 'bg-gold text-white' : 'bg-white text-charcoal border border-gray-200'
-        }`}
-      >
-        Tous
-      </button>
-      {subcategories.map(sub => (
+    <section className="mt-6">
+      <div className="no-scrollbar flex gap-3 overflow-x-auto px-5">
         <button
-          key={sub.id}
-          data-testid={`subcategory-${sub.slug}`}
-          onClick={() => select(sub.slug)}
-          className={`shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-colors ${
-            active === sub.slug ? 'bg-gold text-white' : 'bg-white text-charcoal border border-gray-200'
+          onClick={() => select(null)}
+          className={`shrink-0 flex items-center gap-3 rounded-full px-4 py-3 shadow-sm transition ${
+            !active
+              ? 'bg-charcoal text-white'
+              : 'border border-gray-100 bg-white text-gray-400'
           }`}
         >
-          {sub.name}
-          <span className="opacity-70 font-normal normal-case tracking-normal">{sub.poi_count}</span>
+          <span
+            className={`flex h-8 w-8 items-center justify-center rounded-full ${
+              !active ? 'bg-white/15' : 'bg-gray-100'
+            }`}
+          >
+            <Grid2x2 className="h-4 w-4" />
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Tous</span>
         </button>
-      ))}
-    </div>
+
+        {subcategories.map(sub => {
+          const isActive = active === sub.slug
+          return (
+            <button
+              key={sub.id}
+              data-testid={`subcategory-${sub.slug}`}
+              onClick={() => select(sub.slug)}
+              className={`shrink-0 flex items-center gap-3 rounded-full px-4 py-3 shadow-sm transition ${
+                isActive
+                  ? 'bg-charcoal text-white'
+                  : 'border border-gray-100 bg-white text-charcoal/70'
+              }`}
+            >
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold ${
+                  isActive ? 'bg-white/15 text-white' : 'bg-pine/15 text-pine'
+                }`}
+              >
+                {sub.poi_count}
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest">{sub.name}</span>
+            </button>
+          )
+        })}
+      </div>
+    </section>
   )
 }

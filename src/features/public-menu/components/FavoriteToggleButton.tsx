@@ -12,9 +12,10 @@ import {
 type Props = {
   poi: FavoritePoi
   className?: string
+  variant?: 'default' | 'icon'
 }
 
-export function FavoriteToggleButton({ poi, className }: Props) {
+export function FavoriteToggleButton({ poi, className, variant = 'default' }: Props) {
   const [isFav, setIsFav] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -23,6 +24,23 @@ export function FavoriteToggleButton({ poi, className }: Props) {
     setIsFav(readIsFavorite(poi.poi_id))
     return subscribeToFavorites(() => setIsFav(readIsFavorite(poi.poi_id)))
   }, [poi.poi_id])
+
+  if (variant === 'icon') {
+    return (
+      <button
+        type="button"
+        onClick={() => toggleFavorite(poi)}
+        aria-pressed={isFav}
+        aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        data-testid="btn-favorite"
+        className={`flex h-11 w-11 items-center justify-center rounded-full bg-white/85 backdrop-blur text-charcoal shadow-sm transition-transform active:scale-95 ${
+          mounted && isFav ? 'text-red-600' : ''
+        } ${className ?? ''}`.trim()}
+      >
+        <Heart className={`h-5 w-5 ${mounted && isFav ? 'fill-current' : ''}`} />
+      </button>
+    )
+  }
 
   return (
     <button

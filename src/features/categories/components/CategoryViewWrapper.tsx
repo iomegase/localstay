@@ -1,19 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
-import { LocateFixed, Map, List } from 'lucide-react'
+import { LocateFixed, Compass, MapPin, Grid2x2 } from 'lucide-react'
 import { PoiCard } from './PoiCard'
 import type { PoiCard as PoiCardType } from '../types'
-
-const FullMap = dynamic(
-  () => import('./FullMap').then(m => ({ default: m.FullMap })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[520px] rounded-[2.4rem] bg-stone/20 animate-pulse" data-testid="map-loading" />
-    ),
-  },
-)
 
 interface Props {
   primary: PoiCardType[]
@@ -21,6 +10,9 @@ interface Props {
   citySlug: string
   categorySlug: string
   cityCenter: { latitude: number; longitude: number }
+  categoryIcon?: string
+  categoryColor?: string
+  subcategoryCount?: number
   subcategorySlug?: string
   sort?: 'distance' | 'rating'
   page?: number
@@ -57,7 +49,7 @@ export function CategoryViewWrapper({
   nearby,
   citySlug,
   categorySlug,
-  cityCenter,
+  subcategoryCount = 0,
   subcategorySlug,
   sort = 'distance',
   page = 1,
@@ -65,7 +57,6 @@ export function CategoryViewWrapper({
   totalPages = 1,
   lodgingId,
 }: Props) {
-  const [view, setView] = useState<'list' | 'map'>('list')
   const [primaryItems, setPrimaryItems] = useState(primary)
   const [nearbyItems, setNearbyItems] = useState(nearby)
   const [currentPage, setCurrentPage] = useState(page)
@@ -141,85 +132,115 @@ export function CategoryViewWrapper({
     }
   }
 
+  function scrollToList() {
+    document.getElementById('poi-list-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <>
-      <div className="px-4 pb-2 flex items-center justify-between gap-2">
-        <button
-          onClick={requestUserLocation}
-          disabled={geoStatus === 'loading'}
-          className="flex items-center gap-1.5 text-xs font-semibold text-charcoal/70 border border-charcoal/15 px-3 py-1.5 rounded-full active:scale-95 transition-transform disabled:opacity-60"
-        >
-          <LocateFixed className="w-3.5 h-3.5" />
-          {geoStatus === 'ready' ? 'Position utilisée' : geoStatus === 'loading' ? 'Localisation...' : 'Utiliser ma position'}
-        </button>
-        <button
-          onClick={() => setView(v => v === 'list' ? 'map' : 'list')}
-          data-testid="map-toggle"
-          className="flex items-center gap-1.5 text-xs font-semibold text-pine border border-pine/30 px-3 py-1.5 rounded-full active:scale-95 transition-transform"
-        >
-          {view === 'list' ? (
-            <><Map className="w-3.5 h-3.5" /> Voir la carte</>
-          ) : (
-            <><List className="w-3.5 h-3.5" /> Voir la liste</>
-          )}
-        </button>
-      </div>
-
-      {view === 'list' ? (
-        <div data-testid="poi-list-view">
+      {/* Contrôle de localisation (la carte a été retirée) */}
+      <section className="px-5 mt-2" data-testid="geo-control">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={requestUserLocation}
+            disabled={geoStatus === 'loading'}
+            className="flex items-center gap-1.5 rounded-full border border-charcoal/15 px-3 py-1.5 text-[10px] font-semibold text-charcoal/70 transition-transform active:scale-95 disabled:opacity-60"
+          >
+            <LocateFixed className="h-3.5 w-3.5" />
+            {geoStatus === 'ready' ? 'Position utilisée' : geoStatus === 'loading' ? 'Localisation...' : 'Ma position'}
+          </button>
           {(geoStatus === 'denied' || geoStatus === 'unavailable') && (
-            <p className="px-4 pt-1 text-xs text-charcoal/50">
-              Position indisponible, distances affichées depuis le centre-ville.
-            </p>
+            <span className="text-[10px] text-charcoal/50">
+              Distances depuis le centre-ville
+            </span>
           )}
+        </div>
+      </section>
 
-          <div className="px-4 pt-2 space-y-2">
-            {displayedPrimary.map(poi => (
-              <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
-            ))}
-            {displayedPrimary.length === 0 && displayedNearby.length === 0 && (
-              <p className="text-sm text-charcoal/50 py-8 text-center">Aucun résultat</p>
+      {/* Récap + Explorer */}
+
+      {/* <section className="mt-6 px-5">
+        <div className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="grid grid-cols-3 divide-x divide-gray-100">
+            <div className="px-2 text-center">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-ivory text-pine">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <p className="text-2xl font-bold">{pois.length}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                lieux
+              </p>
+            </div>
+
+            <div className="px-2 text-center">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-ivory text-pine">
+                <Grid2x2 className="h-5 w-5" />
+              </div>
+              <p className="text-2xl font-bold">{subcategoryCount}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                sous-cat.
+              </p>
+            </div>
+
+            <div className="px-2 text-center">
+              <button
+                type="button"
+                onClick={scrollToList}
+                className="flex h-full min-h-[86px] w-full flex-col items-center justify-center gap-2 rounded-[1.5rem] bg-pine text-white transition active:scale-[0.98]"
+              >
+                <Compass className="h-5 w-5" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">
+                  Explorer
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section> */}
+
+      {/* Liste des POI */}
+      <section id="poi-list-section" className="mt-6 " data-testid="poi-list-view">
+        <h2 className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+          Quelques recommandations 
+        </h2>
+
+        <div className="space-y-3">
+          {displayedPrimary.map(poi => (
+            <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+          ))}
+          {displayedPrimary.length === 0 && displayedNearby.length === 0 && (
+            <p className="py-8 text-center text-sm text-charcoal/50">Aucun résultat</p>
+          )}
+        </div>
+
+        {displayedNearby.length > 0 && (
+          <div className="mt-6">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-charcoal/40">
+              Autres activités aux alentours
+            </h3>
+            <div className="space-y-3">
+              {displayedNearby.map(poi => (
+                <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {canLoadMore && (
+          <div className="py-6">
+            <button
+              onClick={loadMore}
+              disabled={isLoadingMore}
+              className="w-full rounded-full border border-pine/30 px-4 py-2 text-sm font-semibold text-pine transition-transform active:scale-[0.99] disabled:opacity-60"
+            >
+              {isLoadingMore ? 'Chargement...' : 'Charger plus'}
+            </button>
+            {loadMoreError && (
+              <p className="mt-2 text-center text-xs text-red-700">{loadMoreError}</p>
             )}
           </div>
-
-          {displayedNearby.length > 0 && (
-            <div className="mt-6 px-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal/40 mb-3">
-                Autres activités aux alentours
-              </h2>
-              <div className="space-y-2">
-                {displayedNearby.map(poi => (
-                  <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {canLoadMore && (
-            <div className="px-4 py-6">
-              <button
-                onClick={loadMore}
-                disabled={isLoadingMore}
-                className="w-full rounded-full border border-pine/30 px-4 py-2 text-sm font-semibold text-pine active:scale-[0.99] transition-transform disabled:opacity-60"
-              >
-                {isLoadingMore ? 'Chargement...' : 'Charger plus'}
-              </button>
-              {loadMoreError && (
-                <p className="mt-2 text-center text-xs text-red-700">{loadMoreError}</p>
-              )}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="px-4 pt-2" data-testid="map-view">
-          <FullMap
-            pois={pois}
-            cityCenter={cityCenter}
-            citySlug={citySlug}
-            categorySlug={categorySlug}
-          />
-        </div>
-      )}
+        )}
+      </section>
     </>
   )
 }

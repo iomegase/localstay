@@ -82,6 +82,21 @@ export function mergeHoursIntoReviewPayload(
   return base as unknown as Prisma.InputJsonValue
 }
 
+export function extractRatingFromReviewPayload(value: unknown): number | null {
+  if (!isRecord(value)) return null
+  const rating = value.rating
+  if (typeof rating !== 'number' || !Number.isFinite(rating)) return null
+  if (rating < 0 || rating > 5) return null
+  return rating
+}
+
+export function extractRatingCountFromReviewPayload(value: unknown): number | null {
+  if (!isRecord(value)) return null
+  const count = value.userRatingCount
+  if (typeof count !== 'number' || !Number.isFinite(count) || count < 0) return null
+  return Math.trunc(count)
+}
+
 export function extractHoursFromReviewPayload(value: unknown): PoiHours | null {
   if (!isRecord(value)) return null
   const hours = value.hours

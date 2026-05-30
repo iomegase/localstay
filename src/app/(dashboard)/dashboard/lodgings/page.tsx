@@ -15,10 +15,5 @@ export default async function LodgingsPage() {
     }),
   ])
 
-  return (
-    <div className="space-y-6">
-      <h1 className="font-serif italic text-2xl text-foreground">Mes logements</h1>
-      <LodgingsTable lodgings={lodgings} cities={cities} />
-    </div>
-  )
+  return <LodgingsTable lodgings={lodgings} cities={cities} />
 }

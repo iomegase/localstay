@@ -8,6 +8,7 @@ type GooglePlaceLike = {
   displayName?: unknown
   formattedAddress?: unknown
   rating?: unknown
+  userRatingCount?: unknown
 }
 
 export function googleReviewExpiry(now: Date = new Date()): Date {
@@ -29,6 +30,9 @@ export function sanitizeGoogleReviewPayload(place: GooglePlaceLike): GooglePolic
   }
   if (typeof place.rating === 'number') {
     reviewPayload.rating = place.rating
+  }
+  if (typeof place.userRatingCount === 'number') {
+    reviewPayload.userRatingCount = place.userRatingCount
   }
 
   return { google_place_id: googlePlaceId, review_payload: reviewPayload }

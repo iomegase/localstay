@@ -20,6 +20,19 @@ export function computeIsOpenNow(hours: PoiHours | null | undefined, now: Date =
   return false
 }
 
+export function getTodayCloseLabel(
+  hours: PoiHours | null | undefined,
+  now: Date = new Date(),
+): string | null {
+  if (!hours) return null
+  const paris = parisWallClock(now)
+  const today = readSlot(hours, paris.dayIndex)
+  if (!today) return null
+  const h = Math.floor(today.closeMin / 60) % 24
+  const m = today.closeMin % 60
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
+}
+
 type Slot = { openMin: number; closeMin: number }
 
 function readSlot(hours: PoiHours, dayIndex: number): Slot | null {

@@ -6,8 +6,10 @@ import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
 import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
+import { HeroShareButton } from './HeroShareButton'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
 import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
+import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import type { PoiDetail } from '../types'
 
@@ -51,6 +53,21 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
+          <div className="flex items-center gap-2">
+            <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
+            <FavoriteToggleButton
+              variant="icon"
+              poi={{
+                poi_id: poi.id,
+                name: poi.name,
+                city_slug: citySlug,
+                category_slug: categorySlug,
+                poi_slug: poi.slug,
+                photo: poi.photos?.[0] ?? null,
+                added_at: '',
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -142,15 +159,6 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
             latitude={poi.latitude}
             longitude={poi.longitude}
             address={poi.address}
-            poiName={poi.name}
-            poiUrl={poiUrl}
-            favorite={{
-              poi_id: poi.id,
-              city_slug: citySlug,
-              category_slug: categorySlug,
-              poi_slug: poi.slug,
-              photo: poi.photos?.[0] ?? null,
-            }}
           />
         </div>
 

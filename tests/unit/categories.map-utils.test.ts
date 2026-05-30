@@ -6,6 +6,7 @@ function makePoi(override: Partial<PoiCard> = {}): PoiCard {
     id: '1', name: 'Test', slug: 'test', address: 'Addr',
     subcategory_name: null, rating: 4.2, rating_count: 10,
     is_open_now: true, distance_km: 0.5, photo_url: null,
+    photos: [], phone: null, description: null, closes_at_label: null,
     latitude: 45.89, longitude: 6.71,
     ...override,
   }

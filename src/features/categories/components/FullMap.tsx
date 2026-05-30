@@ -1,9 +1,9 @@
 'use client'
-import { useState, useCallback } from 'react'
-import Map, { Source, Layer, Popup, NavigationControl } from 'react-map-gl/mapbox'
-import type { MapMouseEvent } from 'mapbox-gl'
+import { useState } from 'react'
+import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
+import * as LucideIcons from 'lucide-react'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { getInitialViewState, poisToGeoJson, shouldCluster } from '../lib/map-utils'
+import { getInitialViewState } from '../lib/map-utils'
 import type { PoiCard } from '../types'
 
 interface PopupInfo {
@@ -20,108 +20,95 @@ interface Props {
   cityCenter: { latitude: number; longitude: number }
   citySlug: string
   categorySlug: string
+  categoryIcon?: string
+  categoryColor?: string
 }
 
-export function FullMap({ pois, cityCenter, citySlug, categorySlug }: Props) {
-  const [popup, setPopup] = useState<PopupInfo | null>(null)
-  const geojson = poisToGeoJson(pois)
-  const cluster = shouldCluster(pois.length)
+function resolveLucideIcon(iconSlug?: string): LucideIcons.LucideIcon {
+  if (!iconSlug) return LucideIcons.MapPin
+  const componentName = iconSlug
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('') as keyof typeof LucideIcons
+  const candidate = LucideIcons[componentName] as LucideIcons.LucideIcon | undefined
+  return candidate ?? LucideIcons.MapPin
+}
 
-  const handleClick = useCallback((e: MapMouseEvent) => {
-    const features = e.features
-    if (!features || features.length === 0) {
-      setPopup(null)
-      return
-    }
-    const f = features[0]
-    if (f.properties?.cluster) return
-    const props = f.properties ?? {}
-    const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number]
-    setPopup({
-      longitude: coords[0],
-      latitude: coords[1],
-      name: props.name,
-      slug: props.slug,
-      rating: props.rating,
-      photo_url: props.photo_url,
-    })
-  }, [])
+export function FullMap({
+  pois,
+  cityCenter,
+  citySlug,
+  categorySlug,
+  categoryIcon,
+  categoryColor = '#455E4C',
+}: Props) {
+  const [popup, setPopup] = useState<PopupInfo | null>(null)
+  const Icon = resolveLucideIcon(categoryIcon)
 
   return (
-    <div className="relative h-[520px] rounded-[2.4rem] overflow-hidden" data-testid="full-map">
+    <div
+      className="relative h-[520px] w-full overflow-hidden rounded-[2.4rem] border border-gray-100 shadow-sm"
+      data-testid="full-map"
+    >
       <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={getInitialViewState(cityCenter.latitude, cityCenter.longitude)}
-        // Nord verrouillé en haut : pas de drag rotate, twist 2-doigts désactivé au load.
         dragRotate={false}
         onLoad={event => event.target.touchZoomRotate.disableRotation()}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
-        interactiveLayerIds={['unclustered-point']}
-        onClick={handleClick}
       >
         <NavigationControl position="top-right" />
 
-        <Source
-          id="pois"
-          type="geojson"
-          data={geojson}
-          cluster={cluster}
-          clusterMaxZoom={14}
-          clusterRadius={50}
-        >
-          <Layer
-            id="clusters"
-            type="circle"
-            filter={['has', 'point_count']}
-            paint={{
-              'circle-color': ['step', ['get', 'point_count'], '#455E4C', 10, '#A68E69'],
-              'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30],
-              'circle-opacity': 0.85,
+        {pois.map(poi => (
+          <Marker
+            key={poi.id}
+            longitude={poi.longitude}
+            latitude={poi.latitude}
+            anchor="center"
+            onClick={event => {
+              event.originalEvent.stopPropagation()
+              setPopup({
+                longitude: poi.longitude,
+                latitude: poi.latitude,
+                name: poi.name,
+                slug: poi.slug,
+                rating: poi.rating,
+                photo_url: poi.photo_url,
+              })
             }}
-          />
-          <Layer
-            id="cluster-count"
-            type="symbol"
-            filter={['has', 'point_count']}
-            layout={{
-              'text-field': '{point_count_abbreviated}',
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 12,
-            }}
-            paint={{ 'text-color': '#ffffff' }}
-          />
-          <Layer
-            id="unclustered-point"
-            type="circle"
-            filter={['!', ['has', 'point_count']]}
-            paint={{
-              'circle-color': '#455E4C',
-              'circle-radius': 10,
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#ffffff',
-            }}
-          />
-        </Source>
+          >
+            <div
+              role="button"
+              aria-label={poi.name}
+              title={poi.name}
+              className="poi-teardrop"
+              style={{ background: categoryColor }}
+            >
+              <Icon className="poi-teardrop-icon" />
+            </div>
+          </Marker>
+        ))}
 
         {popup && (
           <Popup
             longitude={popup.longitude}
             latitude={popup.latitude}
             anchor="bottom"
+            offset={28}
             onClose={() => setPopup(null)}
-            closeOnClick={true}
+            closeOnClick
           >
             <div className="w-48 space-y-1" data-testid="popup-content">
               {popup.photo_url && (
                 <img
                   src={popup.photo_url}
                   alt={popup.name}
-                  className="w-full h-20 object-cover rounded-lg"
+                  className="h-20 w-full rounded-lg object-cover"
                   data-testid="popup-photo"
                 />
               )}
-              <p className="font-semibold text-sm leading-tight" data-testid="popup-name">
+              <p className="text-sm font-semibold leading-tight" data-testid="popup-name">
                 {popup.name}
               </p>
               {typeof popup.rating === 'number' && (
@@ -131,7 +118,7 @@ export function FullMap({ pois, cityCenter, citySlug, categorySlug }: Props) {
               )}
               <a
                 href={`/guide/${citySlug}/${categorySlug}/${popup.slug}`}
-                className="block text-center text-xs font-bold bg-pine text-white py-1.5 rounded-lg mt-1"
+                className="mt-1 block rounded-lg bg-pine py-1.5 text-center text-xs font-bold text-white"
                 data-testid="popup-link"
               >
                 Voir la fiche
@@ -140,6 +127,31 @@ export function FullMap({ pois, cityCenter, citySlug, categorySlug }: Props) {
           </Popup>
         )}
       </Map>
+
+      <style jsx>{`
+        .poi-teardrop {
+          width: 42px;
+          height: 42px;
+          border-radius: 9999px 9999px 9999px 12px;
+          transform: rotate(-45deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          box-shadow: 0 14px 28px rgba(18, 18, 18, 0.22);
+          border: 3px solid rgba(255, 255, 255, 0.9);
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        }
+        .poi-teardrop:hover {
+          transform: rotate(-45deg) scale(1.08);
+        }
+        .poi-teardrop :global(.poi-teardrop-icon) {
+          width: 20px;
+          height: 20px;
+          transform: rotate(45deg);
+        }
+      `}</style>
     </div>
   )
 }

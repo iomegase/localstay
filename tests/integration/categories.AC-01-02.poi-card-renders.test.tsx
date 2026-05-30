@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { PoiCard } from '@/features/categories/components/PoiCard'
 import type { PoiCard as PoiCardType } from '@/features/categories/types'
 
@@ -16,11 +16,15 @@ const poi: PoiCardType = {
   is_open_now: true,
   distance_km: 1.234,
   photo_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
+  photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400'],
+  phone: '+33450000000',
+  description: 'Une table gastronomique au pied du Mont-Blanc.',
+  closes_at_label: '20h',
   latitude: 45.89,
   longitude: 6.71,
 }
 
-describe('PoiCard — AC-01-02 (all required fields rendered)', () => {
+describe('PoiCard — AC-01-02 (SpaCard redesign)', () => {
   beforeEach(() => {
     render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
   })
@@ -37,10 +41,6 @@ describe('PoiCard — AC-01-02 (all required fields rendered)', () => {
     expect(screen.getByText('Place du Mont-Blanc, 74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
   })
 
-  it('renders the rating', () => {
-    expect(screen.getByTestId('poi-rating')).toHaveTextContent('4.5')
-  })
-
   it('renders the distance in km', () => {
     expect(screen.getByTestId('poi-distance')).toHaveTextContent('1.2 km')
   })
@@ -50,7 +50,17 @@ describe('PoiCard — AC-01-02 (all required fields rendered)', () => {
     expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')
   })
 
-  it('AC-02-02: renders the owner note when the POI is featured for a lodging', () => {
+  it('renders the APPELER button as a tel: link when a phone is set', () => {
+    expect(screen.getByText('APPELER').closest('a')).toHaveAttribute('href', 'tel:+33450000000')
+  })
+
+  it('shows the closing time when available', () => {
+    expect(screen.getByText('20h')).toBeInTheDocument()
+  })
+})
+
+describe('PoiCard — accordion behaviour', () => {
+  it('reveals the description only after expanding', () => {
     render(
       <PoiCard
         poi={{ ...poi, owner_note: 'Notre table préférée après une randonnée.' }}
@@ -58,17 +68,19 @@ describe('PoiCard — AC-01-02 (all required fields rendered)', () => {
         categorySlug="restaurants"
       />,
     )
+    expect(screen.queryByText('Notre table préférée après une randonnée.')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
     expect(screen.getByText('Notre table préférée après une randonnée.')).toBeInTheDocument()
-  })
-
-  it('links to /guide/[city]/[category]/[slug]', () => {
-    const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants/restaurants-gastro-demo')
   })
 
   it('renders distance in metres when < 1 km', () => {
     render(<PoiCard poi={{ ...poi, distance_km: 0.35 }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
     const distanceEls = screen.getAllByTestId('poi-distance')
     expect(distanceEls[distanceEls.length - 1]).toHaveTextContent('350 m')
+  })
+
+  it('hides the APPELER button when no phone is set', () => {
+    render(<PoiCard poi={{ ...poi, phone: null }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    expect(screen.queryByText('APPELER')).not.toBeInTheDocument()
   })
 })

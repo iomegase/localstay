@@ -5,6 +5,8 @@ import { getPoiCards } from '@/features/categories/queries/poi-cards'
 import { SubCategoryFilter } from '@/features/categories/components/SubCategoryFilter'
 import { SortControl } from '@/features/categories/components/SortControl'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
+import { getCategoryColor } from '@/features/categories/lib/category-style'
+import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string }>
@@ -38,7 +40,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const sort = resolvedSearch.sort === 'rating' ? 'rating' : 'distance'
   const page = Math.max(1, Number.parseInt(resolvedSearch.page ?? '1', 10) || 1)
   const limit = Math.min(50, Math.max(1, Number.parseInt(resolvedSearch.limit ?? '20', 10) || 20))
-  const lodgingId = resolvedSearch.lodging
+  const lodgingFromCookie = await getActiveLodgingContext()
+  const lodgingId = resolvedSearch.lodging ?? lodgingFromCookie?.lodgingId
 
   const [detail, poiGroups] = await Promise.all([
     getCategoryDetail(citySlug, categorySlug),
@@ -50,14 +53,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   // AC-01-01 / AC-03-01: trigger Gemini fetch if cache absent or expired (fire-and-forget)
   void triggerGeminiFetchIfNeeded(detail.city_id, detail.id)
 
+  const categoryColor = getCategoryColor(detail.slug)
+
   return (
     <>
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="font-serif italic text-2xl text-charcoal">{detail.name}</h1>
-        <p className="text-sm text-charcoal/60 mt-0.5">
-          {poiGroups.meta.total} adresses
+      <section className="px-5 pt-4">
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+          Points d&apos;intérêt
         </p>
-      </div>
+        <h1 className=" text-5xl font-thin  leading-none text-charcoal">
+          {detail.name}
+        </h1>
+        <p className="mt-4 text-xs leading-6 text-gray-500">
+          {poiGroups.meta.total} adresse{poiGroups.meta.total > 1 ? 's' : ''} recommandée{poiGroups.meta.total > 1 ? 's' : ''} .
+        </p>
+      </section>
 
       {detail.subcategories.length > 0 && (
         <Suspense fallback={<div className="h-12" />}>
@@ -70,12 +80,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       </Suspense>
 
       <CategoryViewWrapper
-
         primary={poiGroups.primary}
         nearby={poiGroups.nearby}
         citySlug={citySlug}
         categorySlug={categorySlug}
         cityCenter={{ latitude: detail.city_latitude, longitude: detail.city_longitude }}
+        categoryIcon={detail.icon}
+        categoryColor={categoryColor}
+        subcategoryCount={detail.subcategories.length}
         subcategorySlug={subcategorySlug}
         sort={sort}
         page={poiGroups.meta.page}

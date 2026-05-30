@@ -16,6 +16,10 @@ const basePoi: PoiCardType = {
   is_open_now: true,
   distance_km: 0.3,
   photo_url: null,
+  photos: [],
+  phone: null,
+  description: null,
+  closes_at_label: null,
   latitude: 45.89,
   longitude: 6.71,
 }

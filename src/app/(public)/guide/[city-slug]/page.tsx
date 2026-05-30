@@ -4,6 +4,7 @@ import { CategoryRow } from '@/features/city-guide/components/CategoryRow'
 import { t } from '@/shared/lib/i18n'
 import Link from 'next/link'
 import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
+import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 
 interface Props {
@@ -13,8 +14,10 @@ interface Props {
 
 export default async function GuidePage({ params, searchParams }: Props) {
   const { 'city-slug': slug } = await params
-  const { lodging } = (await searchParams) ?? {}
-  void recordQrScanIfPresent(lodging ?? null)
+  const { lodging: lodgingFromQuery } = (await searchParams) ?? {}
+  const lodgingFromCookie = await getActiveLodgingContext()
+  const lodging = lodgingFromQuery ?? lodgingFromCookie?.lodgingId
+  void recordQrScanIfPresent(lodgingFromQuery ?? null)
   const guide = await getCityGuide(slug, { lodgingId: lodging })
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.

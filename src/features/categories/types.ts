@@ -41,9 +41,14 @@ export interface PoiCard {
   is_open_now: boolean | null
   distance_km: number
   photo_url: string | null
+  photos: string[]
+  phone: string | null
+  description: string | null
+  closes_at_label: string | null
   latitude: number
   longitude: number
   owner_note?: string | null
+  owner_rating?: number | null
   trail_detail?: {
     difficulty: 'easy' | 'medium' | 'hard' | 'expert' | 'unknown'
     estimated_duration_min: number | null

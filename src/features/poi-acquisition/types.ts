@@ -4,6 +4,7 @@ export type GoogleReviewPayload = {
   displayName?: { text?: string }
   formattedAddress?: string
   rating?: number
+  userRatingCount?: number
   hours?: PoiHours
   attribution: 'Google Maps'
 }

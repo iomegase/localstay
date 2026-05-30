@@ -26,6 +26,7 @@ const PLACES_FIELD_MASK = [
   'places.internationalPhoneNumber',
   'places.websiteUri',
   'places.rating',
+  'places.userRatingCount',
   'places.regularOpeningHours',
 ].join(',')
 
@@ -34,6 +35,7 @@ const PLACES_MATCH_FIELD_MASK = [
   'places.displayName',
   'places.formattedAddress',
   'places.rating',
+  'places.userRatingCount',
   'places.regularOpeningHours',
 ].join(',')
 

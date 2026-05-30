@@ -9,7 +9,8 @@ import { GuideCustomizationError } from '@/features/guide-customization/types'
 
 const featuredPoiSchema = z.object({
   poi_id: z.string().min(1),
-  owner_note: z.string().max(150).nullable().optional(),
+  owner_note: z.string().max(300).nullable().optional(),
+  owner_rating: z.number().min(0).max(5).nullable().optional(),
   sort_order: z.number().int().min(0),
 })
 

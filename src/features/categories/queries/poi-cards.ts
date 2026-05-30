@@ -1,6 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiCardGroups, PoiHours } from '../types'
-import { computeIsOpenNow } from '../lib/is-open-now'
+import { computeIsOpenNow, getTodayCloseLabel } from '../lib/is-open-now'
 import { getPublicCustomization } from '@/features/guide-customization/queries/customization'
 
 const DEFAULT_PAGE = 1
@@ -101,6 +101,8 @@ export async function getPoiCards(
       is_open_now: true,
       hours: true,
       photos: true,
+      phone: true,
+      description: true,
       geocode_status: true,
       subcategory: { select: { name: true } },
       trail_detail: {
@@ -124,6 +126,8 @@ export async function getPoiCards(
     rating_count: number; is_open_now: boolean | null
     hours: unknown
     photos: string[]
+    phone: string | null
+    description: string | null
     geocode_status: string
     subcategory: { name: string } | null
     trail_detail: {
@@ -155,9 +159,14 @@ export async function getPoiCards(
     is_open_now: computeIsOpenNow(p.hours as PoiHours | null) ?? p.is_open_now,
     distance_km: haversineKm(city.latitude, city.longitude, p.latitude, p.longitude),
     photo_url: p.photos[0] ?? null,
+    photos: p.photos,
+    phone: p.phone,
+    description: p.description,
+    closes_at_label: getTodayCloseLabel(p.hours as PoiHours | null),
     latitude: p.latitude,
     longitude: p.longitude,
     owner_note: featuredByPoiId.get(p.id)?.owner_note ?? null,
+    owner_rating: featuredByPoiId.get(p.id)?.owner_rating ?? null,
     trail_detail: p.trail_detail && p.trail_detail.is_active && !p.trail_detail.deleted_at
       ? {
           difficulty: p.trail_detail.difficulty as NonNullable<PoiCard['trail_detail']>['difficulty'],

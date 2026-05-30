@@ -2,7 +2,11 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { PoiAcquisitionError } from '../lib/errors'
 import { createPoiSlug } from '../lib/slug'
-import { extractHoursFromReviewPayload } from '../lib/google-hours'
+import {
+  extractHoursFromReviewPayload,
+  extractRatingFromReviewPayload,
+  extractRatingCountFromReviewPayload,
+} from '../lib/google-hours'
 import {
   fetchOfficialWebsitePhotoEnrichment,
   mergeOfficialWebsitePhotos,
@@ -54,6 +58,8 @@ export async function publishCandidate(
   const longitude = candidate.longitude
   const officialPhotos = await fetchOfficialWebsitePhotoEnrichment(candidate.website)
   const hours = extractHoursFromReviewPayload(candidate.google_review_payload)
+  const googleRating = extractRatingFromReviewPayload(candidate.google_review_payload)
+  const googleRatingCount = extractRatingCountFromReviewPayload(candidate.google_review_payload)
 
   return prisma.$transaction(async tx => {
     const poi = await tx.pointOfInterest.create({
@@ -69,6 +75,8 @@ export async function publishCandidate(
         photos: mergeOfficialWebsitePhotos([], officialPhotos?.photos ?? []),
         tags: [],
         hours: hours ?? Prisma.JsonNull,
+        ...(googleRating !== null ? { rating: googleRating } : {}),
+        ...(googleRatingCount !== null ? { rating_count: googleRatingCount } : {}),
         google_place_id: candidate.google_place_id,
         geocode_status: candidate.geocode_status === 'success' ? 'success' : 'pending_review',
         geocoded_at: new Date(),
