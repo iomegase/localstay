@@ -15,13 +15,11 @@ export default async function PublicLayout({
     <div className="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-ivory immersive-container">
       {/* Glassmorphism sticky header — masqué en mode immersif */}
       <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50 immersive-hide">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-charcoal rounded-full flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold">MS</span>
-          </div>
-          <span className="text-[13px] font-semibold tracking-tighter uppercase text-charcoal">
-            MyStay
-          </span>
+        <Link href="/" className="flex items-center" aria-label="Accueil">
+          {/* <img src="/logo.png" alt="StayLocal" className="h-5 w-auto" /> */}
+          <p className="text-[30px] font-thin text-pine" style={{ fontFamily: 'Lobster, cursive' }}>
+            my <span className="text-gold">stay</span>
+          </p>
         </Link>
         <PublicMenu
           mode={mode}
