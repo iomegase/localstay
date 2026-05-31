@@ -78,7 +78,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           lodgingId={lodgingId}
           activeCategorySlug={categorySlug}
         />
-      </section>
+g       </section>
 
       {detail.subcategories.length > 0 && (
         <Suspense fallback={<div className="h-12" />}>
