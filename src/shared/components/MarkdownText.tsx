@@ -3,20 +3,25 @@ import ReactMarkdown from 'react-markdown'
 type Props = {
   source: string | null | undefined
   className?: string
+  /**
+   * Quand true, les retours à la ligne simples sont rendus comme des sauts de ligne
+   * (comportement GitHub). Par défaut false → comportement CommonMark inchangé.
+   */
+  breaks?: boolean
 }
 
 const MARKDOWN_COMPONENTS = {
   p: (props: { children?: React.ReactNode }) => (
-    <p className="mb-3 last:mb-0">{props.children}</p>
+    <p className="mb-3 text-justify text-[11px] text-color-slate-800 leading-6 last:mb-0">{props.children}</p>
   ),
   h1: (props: { children?: React.ReactNode }) => (
-    <h3 className="mb-2 mt-4 text-base font-semibold text-slate-900">{props.children}</h3>
+    <h3 className="mb-2 mt-4 text-base font-thin uppercase tracking-wide text-slate-900">{props.children}</h3>
   ),
   h2: (props: { children?: React.ReactNode }) => (
-    <h4 className="mb-2 mt-3 text-sm font-semibold text-slate-900">{props.children}</h4>
+    <h4 className="mb-1.5 mt-3 text-sm font-thin uppercase tracking-wide text-slate-900">{props.children}</h4>
   ),
   h3: (props: { children?: React.ReactNode }) => (
-    <h5 className="mb-1.5 mt-3 text-sm font-semibold text-slate-800">{props.children}</h5>
+    <h5 className="mb-1 mt-3 text-[13px] font-thin uppercase tracking-wide text-slate-800">{props.children}</h5>
   ),
   ul: (props: { children?: React.ReactNode }) => (
     <ul className="mb-3 ml-4 list-disc space-y-1 last:mb-0">{props.children}</ul>
@@ -52,8 +57,12 @@ const MARKDOWN_COMPONENTS = {
   hr: () => <hr className="my-4 border-slate-200" />,
 }
 
-export function MarkdownText({ source, className }: Props) {
+export function MarkdownText({ source, className, breaks = false }: Props) {
   if (!source || source.trim() === '') return null
+  // CommonMark fusionne les retours à la ligne simples. Pour la description on convertit
+  // chaque `\n` isolé (hors paragraphes `\n\n`) en saut de ligne dur (deux espaces + \n),
+  // sans dépendance supplémentaire. Les titres/listes restent valides.
+  const content = breaks ? source.replace(/([^\n])\n(?!\n)/g, '$1  \n') : source
   return (
     <div className={className}>
       <ReactMarkdown
@@ -61,7 +70,7 @@ export function MarkdownText({ source, className }: Props) {
         // react-markdown 10 désactive le HTML brut par défaut — pas de sanitization nécessaire
         skipHtml
       >
-        {source}
+        {content}
       </ReactMarkdown>
     </div>
   )

@@ -69,7 +69,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
 
   return (
     <div className="mt-5 space-y-4" data-testid="trail-details">
-      <div className="overflow-hidden rounded-xl">
+      <div className="overflow-hidden rounded-none">
         <TrailPreviewMap
           name={poiName}
           geometry={trail.geometry_geojson}
@@ -87,7 +87,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
         startLongitude={trail.start_longitude}
         hasGeometry={hasGeometry}
       />
-
+{/* 
       <div className="space-y-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Comment s&apos;y rendre</p>
         <InfoCard icon={<MapPin className="h-5 w-5" />} title="Départ conseillé">
@@ -108,7 +108,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
             StayLocal ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
           </p>
         </InfoCard>
-      </div>
+      </div> */}
 
       {hasPractical && (
         <div className="space-y-3">
@@ -154,7 +154,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
         </div>
       )}
 
-      {(trail.primary_source_type || attribution) && (
+      {/* {(trail.primary_source_type || attribution) && (
         <div className="rounded-[28px] border border-charcoal/5 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#A68E69]">Randonnée</p>
           <p className="mt-3 text-xs leading-5 text-charcoal/60">
@@ -163,7 +163,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
             {trail.data_quality_status === 'incomplete' ? ' · fiche incomplète validée par un administrateur' : ''}
           </p>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

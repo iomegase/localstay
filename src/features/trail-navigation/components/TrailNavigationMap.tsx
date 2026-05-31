@@ -6,10 +6,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
-import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry } from '../lib/geo'
+import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAutoFollowCamera } from '../lib/geo'
+import type { TrailGpsState } from '../lib/geo'
 import { NavigationHud } from './NavigationHud'
 
-type GpsState = 'ready' | 'gps_prompt' | 'tracking' | 'approaching' | 'ready_to_join' | 'pre_start' | 'off_track' | 'low_accuracy' | 'gps_denied'
+type GpsState = TrailGpsState
+
+// Couleur fixe du marqueur « ma position » (style Google Maps) — l'état (on-track / off-track)
+// reste lisible via le HUD, pas via la couleur du point.
+const POSITION_BLUE = '#2563EB'
 
 // Seuils GPS — précision et tolérances
 const TRACKING_TOLERANCE_M = 35           // strict : sortie de tracé détectée tôt
@@ -46,6 +51,9 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   const [isHudExpanded, setIsHudExpanded] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
   const [northLocked, setNorthLocked] = useState(true)
+  // Suivi caméra : la carte se recentre sur la position tant que true. Repasse à false
+  // dès que l'utilisateur déplace la carte à la main ; re-activé au tap sur « recentrer ».
+  const [isFollowing, setIsFollowing] = useState(true)
   const trackingStartedAtRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -102,6 +110,18 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     setNorthLocked(prev => !prev)
   }
 
+  // Suivi caméra continu : recentre la carte sur la position à chaque update GPS,
+  // en conservant zoom / pitch / bearing courants. Désactivé si l'utilisateur a paddé.
+  useEffect(() => {
+    if (!position) return
+    if (!shouldAutoFollowCamera(gpsState, isFollowing)) return
+    mapRef.current?.getMap()?.easeTo({
+      center: [position.longitude, position.latitude],
+      duration: 700,
+      essential: true,
+    })
+  }, [position, isFollowing, gpsState])
+
   function tiltMapForImmersion() {
     mapRef.current?.flyTo({
       pitch: 55,
@@ -120,6 +140,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
     if (watchIdRef.current !== null) return
 
     setGpsState('gps_prompt')
+    setIsFollowing(true)
     tiltMapForImmersion()
     watchIdRef.current = navigator.geolocation.watchPosition(
       nextPosition => {
@@ -180,6 +201,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
       startGpsTracking()
       return
     }
+    setIsFollowing(true)
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
       zoom: 17.5,
@@ -327,6 +349,14 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         touchPitch={true}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         style={{ width: '100%', height: '100%' }}
+        onMoveStart={evt => {
+          // Geste utilisateur réel (drag/pinch) → on coupe le suivi pour ne pas
+          // « tirer » la carte sous ses doigts. Les moves programmatiques (easeTo/flyTo)
+          // n'ont pas d'originalEvent et ne désactivent donc pas le suivi.
+          // `originalEvent` est présent à l'exécution mais absent du type ViewStateChangeEvent.
+          const userGesture = (evt as unknown as { originalEvent?: Event | null }).originalEvent
+          if (userGesture) setIsFollowing(false)
+        }}
       >
         <NavigationControl position="top-right" />
         <Source id="trail-navigation-line" type="geojson" data={{ type: 'Feature', properties: {}, geometry }}>
@@ -376,9 +406,9 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
                   18, ['/', ['get', 'accuracy'], 0.42],
                   22, ['/', ['get', 'accuracy'], 0.026],
                 ],
-                'circle-color': markerColor,
+                'circle-color': POSITION_BLUE,
                 'circle-opacity': 0.12,
-                'circle-stroke-color': markerColor,
+                'circle-stroke-color': POSITION_BLUE,
                 'circle-stroke-opacity': 0.4,
                 'circle-stroke-width': 1,
               }}
@@ -436,25 +466,16 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         )}
         {position && (
           <Marker latitude={position.latitude} longitude={position.longitude} anchor="center">
-            {/* Double pulse pour bien voir sa position : anneau large + anneau intermédiaire +
-                point central plein avec contour blanc et halo de drop-shadow */}
-            <span className="relative flex h-10 w-10 items-center justify-center">
-              <span
-                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-50"
-                style={{ backgroundColor: markerColor, animationDuration: '1800ms' }}
-              />
-              <span
-                className="absolute inline-flex h-7 w-7 animate-ping rounded-full opacity-70"
-                style={{ backgroundColor: markerColor, animationDuration: '1200ms', animationDelay: '300ms' }}
-              />
-              <span
-                className="relative inline-flex h-5 w-5 rounded-full border-[3px] border-white"
-                style={{
-                  backgroundColor: markerColor,
-                  boxShadow: `0 0 0 2px ${markerColor}40, 0 4px 12px rgba(0,0,0,0.35)`,
-                }}
-              />
-            </span>
+            {/* « Ma position » façon Google Maps : point bleu fixe à contour blanc.
+                Le halo de précision (cercle métrique) est géré par le layer accuracy-circle. */}
+            <span
+              className="block h-[18px] w-[18px] rounded-full border-[3px] border-white"
+              style={{
+                backgroundColor: POSITION_BLUE,
+                boxShadow: `0 0 0 2px ${POSITION_BLUE}55, 0 2px 8px rgba(0,0,0,0.35)`,
+              }}
+              aria-label="Ma position"
+            />
           </Marker>
         )}
       </Map>
@@ -481,8 +502,17 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
           <button
             type="button"
             onClick={recenterOnPosition}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
-            aria-label={position ? 'Recentrer sur ma position' : 'Activer la localisation'}
+            aria-pressed={isFollowing && !!position}
+            className={`flex h-11 w-11 items-center justify-center rounded-full shadow transition-colors ${
+              isFollowing && position ? 'bg-[#455E4C] text-white' : 'bg-white/90 text-charcoal'
+            }`}
+            aria-label={
+              position
+                ? isFollowing
+                  ? 'Suivi GPS activé — recentrer'
+                  : 'Recentrer et réactiver le suivi GPS'
+                : 'Activer la localisation'
+            }
           >
             <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-[#455E4C]' : ''}`} />
           </button>

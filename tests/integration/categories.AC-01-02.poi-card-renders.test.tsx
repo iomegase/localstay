@@ -1,9 +1,15 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { PoiCard } from '@/features/categories/components/PoiCard'
 import type { PoiCard as PoiCardType } from '@/features/categories/types'
+
+// react-markdown est ESM (casse le transform jest) ; on substitue MarkdownText par un
+// rendu identifiable pour vérifier que la description passe bien par lui.
+jest.mock('@/shared/components/MarkdownText', () => ({
+  MarkdownText: ({ source }: { source: string }) => <div data-testid="poi-markdown">{source}</div>,
+}))
 
 const poi: PoiCardType = {
   id: '1',
@@ -71,6 +77,19 @@ describe('PoiCard — accordion behaviour', () => {
     expect(screen.queryByText('Notre table préférée après une randonnée.')).not.toBeInTheDocument()
     fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
     expect(screen.getByText('Notre table préférée après une randonnée.')).toBeInTheDocument()
+  })
+
+  it('renders the description through MarkdownText (markdown-aware)', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, owner_note: '## Traversée\nDepuis la gare.' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
+    const markdown = screen.getByTestId('poi-markdown')
+    expect(within(markdown).getByText(/Traversée/)).toBeInTheDocument()
   })
 
   it('renders distance in metres when < 1 km', () => {

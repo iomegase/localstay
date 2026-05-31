@@ -49,6 +49,17 @@ const nullableText = (maxLength: number) =>
     z.null(),
   ])
 
+// Seul sous-ensemble rando éditable depuis le backoffice. Clé dédiée (hors trailLockedKeys)
+// pour ne pas toucher au garde-fou métier : géométrie, tracé, sources et GPX restent verrouillés.
+const TrailMetricsPatchSchema = z.object({
+  difficulty: z.enum(['easy', 'medium', 'hard', 'expert', 'unknown']).optional(),
+  distance_km: z.union([z.number().positive().max(1000), z.null()]).optional(),
+  elevation_gain_m: z.union([z.number().int().min(0).max(10000), z.null()]).optional(),
+  estimated_duration_min: z.union([z.number().int().min(0).max(100000), z.null()]).optional(),
+}).strict()
+
+export type AdminPoiTrailMetricsPatch = z.infer<typeof TrailMetricsPatchSchema>
+
 export const AdminPoiPatchSchema = z.object({
   name: z.string().trim().min(1).max(160).optional(),
   description: nullableText(2000).optional(),
@@ -60,6 +71,7 @@ export const AdminPoiPatchSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
   photos: z.array(z.string().trim().url().refine(isUsableAdminPhotoUrl, 'Invalid photo URL')).max(12).optional(),
   is_active: z.boolean().optional(),
+  trail_metrics: TrailMetricsPatchSchema.optional(),
   force_geocode: z.boolean().default(false),
   confirm_geocode_pending_review: z.boolean().default(false),
 }).strict()

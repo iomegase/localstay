@@ -41,6 +41,13 @@ export type AdminPoiListItem = {
   public_url: string
 }
 
+export type AdminPoiTrailDetail = {
+  difficulty: string
+  distance_km: number | null
+  elevation_gain_m: number | null
+  estimated_duration_min: number | null
+}
+
 export type AdminPoiDetail = AdminPoiListItem & {
   description: string | null
   phone: string | null
@@ -51,6 +58,7 @@ export type AdminPoiDetail = AdminPoiListItem & {
   longitude: number
   slug_editable: false
   trail_fields_locked: boolean
+  trail_detail: AdminPoiTrailDetail | null
 }
 
 export type AdminPoiKpis = {

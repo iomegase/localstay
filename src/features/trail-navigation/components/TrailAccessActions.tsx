@@ -26,38 +26,36 @@ export function TrailAccessActions({
 
   return (
     <div className="space-y-3">
-      {hasGeometry && (
-        <Link
-          href={`/guide/${citySlug}/rando/${trailSlug}/start`}
-          className="flex w-full items-center justify-between rounded-full bg-[#455E4C] px-6 py-4 text-white shadow-sm active:scale-[0.98] transition-transform"
-        >
-          <span className="flex items-center gap-3 text-[13px] font-bold uppercase tracking-[0.1em]">
-            <PlayCircle className="h-5 w-5" />
-            Commencer la rando
-          </span>
-          <ChevronRight className="h-5 w-5 text-white/55" />
-        </Link>
-      )}
+  {hasGeometry && (
+    <Link
+      href={`/guide/${citySlug}/rando/${trailSlug}/start`}
+      className="group flex w-full items-center justify-between rounded-none border-2 border-black/80 bg-black/80 px-6 py-4 text-white shadow-sm transition-colors active:scale-[0.98] hover:bg-white hover:text-black"
+    >
+      <span className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.1em]">
+        Commencer la rando
+      </span>
 
-      {joinStartHref && (
-        <a
-          href={joinStartHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex w-full items-center justify-between rounded-full border border-white/80 bg-white/70 px-6 py-4 text-[#121212] shadow-sm active:scale-[0.98] transition-transform"
-        >
-          <span className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.1em]">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#455E4C] text-white">
-              <Navigation className="h-3 w-3" />
-            </span>
-            Rejoindre le départ
-          </span>
-          <span className="rounded-md border border-gray-100 bg-white px-2.5 py-1 text-[10px] font-bold text-[#121212] shadow-sm">
-            Google Maps
-          </span>
-        </a>
-      )}
-    </div>
+      <ChevronRight className="h-5 w-5 text-current" />
+    </Link>
+  )}
+
+  {joinStartHref && (
+    <a
+      href={joinStartHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex w-full items-center justify-between rounded-none border-2 border-black/80 bg-white px-6 py-4 text-black shadow-sm transition-colors active:scale-[0.98] hover:bg-black hover:text-white"
+    >
+      <span className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.1em]">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full text-current">
+          <Navigation className="h-4 w-4 text-current" />
+        </span>
+
+        Rejoindre le départ conseillé
+      </span>
+    </a>
+  )}
+</div>
   )
 }
 

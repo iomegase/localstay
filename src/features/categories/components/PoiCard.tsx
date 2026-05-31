@@ -11,6 +11,7 @@ import {
 } from '@/features/public-menu/lib/favorites'
 import type { PoiCard as PoiCardType } from '../types'
 import { TrailCardDetails } from './TrailCardDetails'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Facile',
@@ -117,7 +118,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
         )}
         {!isTrail && poi.is_open_now === true && (
           <div className="absolute top-4 left-4">
-            <span className="border-green-500/90 border backdrop-blur-sm text-green-900 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
+            <span className="border-green-500/90 border backdrop-blur-sm text-green-500/90 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-white"></div>
               Ouvert
             </span>
@@ -125,7 +126,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
         )}
         {!isTrail && poi.is_open_now === false && (
           <div className="absolute top-4 left-4" data-testid="badge-closed">
-            <span className="border-red-500/90 border backdrop-blur-sm text-red-900 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
+            <span className="border-red-500/90 border backdrop-blur-sm text-red-500/90 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-white"></div>
               Fermé
             </span>
@@ -231,14 +232,16 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
                 className="overflow-hidden border-t border-gray-50 flex flex-col shrink-0"
               >
                 <div className="pt-5">
-                  <h3 className="text-[14px] font-medium text-gray-800 mb-1">En savoir plus</h3>
+                  {/* <h3 className="text-[14px] font-medium text-gray-800 mb-1">En savoir plus</h3> */}
                   {description && (
-                    <p className="text-[10px] font-thin text-[#86898f] mb-5 leading-5">
-                      {description}
-                    </p>
+                    <MarkdownText
+                      source={description}
+                      breaks
+                      className="text-[10px] font-thin text-[#86898f] mb-5 leading-5"
+                    />
                   )}
                   {gallery.length > 0 && (
-                    <div className="relative w-full overflow-hidden rounded-xl h-[100px]">
+                    <div className="relative w-full overflow-hidden rounded-none h-[100px]">
                       <motion.div
                         className="flex gap-2 absolute top-0 left-0 h-full w-max"
                         animate={{ x: ['0%', '-50%'] }}
@@ -248,7 +251,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
                           <img
                             key={i}
                             src={img}
-                            className="h-full w-36 object-cover rounded-[10px] shrink-0 border border-gray-50/50"
+                            className="h-full w-36 object-cover rounded-none shrink-0 border border-gray-50/50"
                             alt={`${poi.name} ${i + 1}`}
                           />
                         ))}

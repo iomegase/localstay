@@ -51,6 +51,22 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   const [descriptionValue, setDescriptionValue] = useState(poi.description ?? '')
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false)
 
+  // Données rando : seules les valeurs manquantes deviennent éditables (le reste du tracé
+  // reste piloté par le GPX). On envoie les saisies dans un patch dédié `trail_metrics`.
+  const trail = poi.trail_detail
+  const trailMissing = {
+    difficulty: Boolean(trail) && trail!.difficulty === 'unknown',
+    distance_km: Boolean(trail) && trail!.distance_km === null,
+    elevation_gain_m: Boolean(trail) && trail!.elevation_gain_m === null,
+    estimated_duration_min: Boolean(trail) && trail!.estimated_duration_min === null,
+  }
+  const [trailEdits, setTrailEdits] = useState({
+    difficulty: '',
+    distance_km: '',
+    elevation_gain_m: '',
+    estimated_duration_min: '',
+  })
+
   function reorderPhotos(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -66,6 +82,21 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
     event.preventDefault()
     setMessage(null)
     const formData = new FormData(event.currentTarget)
+    const trailMetrics: Record<string, number | string> = {}
+    if (trail) {
+      if (trailMissing.distance_km && trailEdits.distance_km.trim() !== '') {
+        trailMetrics.distance_km = Number(trailEdits.distance_km)
+      }
+      if (trailMissing.elevation_gain_m && trailEdits.elevation_gain_m.trim() !== '') {
+        trailMetrics.elevation_gain_m = Number(trailEdits.elevation_gain_m)
+      }
+      if (trailMissing.estimated_duration_min && trailEdits.estimated_duration_min.trim() !== '') {
+        trailMetrics.estimated_duration_min = Number(trailEdits.estimated_duration_min)
+      }
+      if (trailMissing.difficulty && trailEdits.difficulty !== '') {
+        trailMetrics.difficulty = trailEdits.difficulty
+      }
+    }
     const payload = {
       name: String(formData.get('name') ?? ''),
       description: descriptionValue,
@@ -78,6 +109,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       photos,
       is_active: formData.get('is_active') === 'true',
       force_geocode: forceGeocode,
+      ...(Object.keys(trailMetrics).length > 0 ? { trail_metrics: trailMetrics } : {}),
     }
 
     startTransition(async () => {
@@ -147,7 +179,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                  Markdown supporté : **gras**, *italique*, listes, [liens](url)
+                  Markdown supporté : **gras**, *italique*, listes, [liens](url), titres (# Titre, ## Sous-titre, ### Section — espace obligatoire après les #), &gt; citation, --- séparateur, retour à la ligne en appuyant sur Entrée
                 </p>
                 <button
                   type="button"
@@ -170,7 +202,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                   {descriptionValue.trim() === '' ? (
                     <p className="text-sm italic text-slate-400">Description vide.</p>
                   ) : (
-                    <MarkdownText source={descriptionValue} className="text-[14px] leading-relaxed text-slate-700" />
+                    <MarkdownText source={descriptionValue} breaks className="text-[14px] leading-relaxed text-slate-700" />
                   )}
                 </div>
               )}
@@ -405,6 +437,98 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         <TrailGpxUploader poiId={poi.id} hasTrailDetail={poi.trail_fields_locked} />
       )}
 
+      {/* Données rando issues du TrailDetail. Valeurs présentes = lecture seule (pilotées
+          par le tracé GPX) ; valeurs manquantes = éditables et enregistrées via trail_metrics. */}
+      {trail && (
+        <section
+          data-testid="trail-stats-readonly"
+          className="overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] md:p-8"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <Map size={24} strokeWidth={2} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Données randonnée</h2>
+              <p className="mt-1 text-[13px] font-medium text-slate-500">
+                Renseignez les valeurs manquantes. Les valeurs déjà issues du tracé restent verrouillées.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {trailMissing.distance_km ? (
+              <Field label="Distance (km)" htmlFor="trail_distance_km">
+                <Input
+                  id="trail_distance_km"
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  min="0"
+                  value={trailEdits.distance_km}
+                  onChange={e => setTrailEdits(prev => ({ ...prev, distance_km: e.target.value }))}
+                  className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 shadow-sm focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                />
+              </Field>
+            ) : (
+              <TrailStat label="Distance" value={formatDistanceKm(trail.distance_km)} />
+            )}
+
+            {trailMissing.difficulty ? (
+              <Field label="Difficulté" htmlFor="trail_difficulty">
+                <select
+                  id="trail_difficulty"
+                  value={trailEdits.difficulty}
+                  onChange={e => setTrailEdits(prev => ({ ...prev, difficulty: e.target.value }))}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-[14px] font-medium text-slate-900 shadow-sm outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                >
+                  <option value="">— choisir —</option>
+                  <option value="easy">Facile</option>
+                  <option value="medium">Modéré</option>
+                  <option value="hard">Difficile</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </Field>
+            ) : (
+              <TrailStat label="Difficulté" value={trailDifficultyLabel(trail.difficulty)} />
+            )}
+
+            {trailMissing.estimated_duration_min ? (
+              <Field label="Durée (min)" htmlFor="trail_duration">
+                <Input
+                  id="trail_duration"
+                  type="number"
+                  inputMode="numeric"
+                  step="1"
+                  min="0"
+                  value={trailEdits.estimated_duration_min}
+                  onChange={e => setTrailEdits(prev => ({ ...prev, estimated_duration_min: e.target.value }))}
+                  className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 shadow-sm focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                />
+              </Field>
+            ) : (
+              <TrailStat label="Durée" value={formatTrailDuration(trail.estimated_duration_min)} />
+            )}
+
+            {trailMissing.elevation_gain_m ? (
+              <Field label="Dénivelé (m)" htmlFor="trail_elevation">
+                <Input
+                  id="trail_elevation"
+                  type="number"
+                  inputMode="numeric"
+                  step="1"
+                  min="0"
+                  value={trailEdits.elevation_gain_m}
+                  onChange={e => setTrailEdits(prev => ({ ...prev, elevation_gain_m: e.target.value }))}
+                  className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 shadow-sm focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                />
+              </Field>
+            ) : (
+              <TrailStat label="Dénivelé" value={formatElevation(trail.elevation_gain_m)} />
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Lock Warnings Section */}
       {(poi.trail_fields_locked || poi.merchant_attached) && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -599,6 +723,42 @@ function Field({
         {label}
       </Label>
       <div className="relative">{children}</div>
+    </div>
+  )
+}
+
+const TRAIL_DIFFICULTY_LABEL: Record<string, string> = {
+  easy: 'Facile',
+  medium: 'Modéré',
+  hard: 'Difficile',
+  expert: 'Expert',
+}
+
+function trailDifficultyLabel(difficulty: string): string {
+  return TRAIL_DIFFICULTY_LABEL[difficulty] ?? '—'
+}
+
+function formatDistanceKm(distanceKm: number | null): string {
+  return distanceKm === null ? '—' : `${distanceKm} km`
+}
+
+function formatElevation(elevationM: number | null): string {
+  return elevationM === null ? '—' : `${elevationM} m`
+}
+
+function formatTrailDuration(minutes: number | null): string {
+  if (minutes === null || minutes === 0) return '—'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours === 0) return `${mins}min`
+  return mins === 0 ? `${hours}h` : `${hours}h${String(mins).padStart(2, '0')}`
+}
+
+function TrailStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[16px] border border-slate-100 bg-slate-50/60 p-4">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="mt-1 text-[17px] font-bold text-slate-900">{value}</p>
     </div>
   )
 }

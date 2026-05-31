@@ -22,7 +22,7 @@ export function SortControl({ currentSort }: { currentSort: 'distance' | 'rating
       <button
         onClick={() => setSort('distance')}
         data-testid="sort-distance"
-        className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
+        className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
           currentSort === 'distance'
             ? 'bg-charcoal text-white'
             : 'bg-white text-charcoal/50 shadow-sm'
@@ -33,7 +33,7 @@ export function SortControl({ currentSort }: { currentSort: 'distance' | 'rating
       <button
         onClick={() => setSort('rating')}
         data-testid="sort-rating"
-        className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
+        className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
           currentSort === 'rating'
             ? 'bg-charcoal text-white'
             : 'bg-white text-charcoal/50 shadow-sm'

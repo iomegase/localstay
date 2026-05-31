@@ -58,17 +58,17 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const categoryColor = getCategoryColor(detail.slug)
 
   return (
-    <>
+    <div className="relative">
       <section className="px-5 pt-4">
-        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+        {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
           Points d&apos;intérêt
-        </p>
+        </p> */}
         <h1 className=" text-5xl font-thin  leading-none text-charcoal">
           {detail.name}
         </h1>
-        <p className="mt-4 text-xs leading-6 text-gray-500">
+        {/* <p className="mt-4 text-xs leading-6 text-gray-500">
           {poiGroups.meta.total} adresse{poiGroups.meta.total > 1 ? 's' : ''} recommandée{poiGroups.meta.total > 1 ? 's' : ''} .
-        </p>
+        </p> */}
       </section>
 
       <section className="mt-[26px] mb-2">
@@ -78,7 +78,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           lodgingId={lodgingId}
           activeCategorySlug={categorySlug}
         />
-g       </section>
+      </section>
 
       {detail.subcategories.length > 0 && (
         <Suspense fallback={<div className="h-12" />}>
@@ -86,9 +86,12 @@ g       </section>
         </Suspense>
       )}
 
-      <Suspense fallback={<div className="h-10" />}>
-        <SortControl currentSort={sort} />
-      </Suspense>
+      {/* Le tri Distance/Note n'a pas de sens pour les randos → masqué sur cette catégorie */}
+      {categorySlug !== 'rando' && (
+        <Suspense fallback={<div className="h-10" />}>
+          <SortControl currentSort={sort} />
+        </Suspense>
+      )}
 
       <CategoryViewWrapper
         primary={poiGroups.primary}
@@ -106,6 +109,6 @@ g       </section>
         totalPages={poiGroups.meta.total_pages}
         lodgingId={lodgingId}
       />
-    </>
+    </div>
   )
 }

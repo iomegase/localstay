@@ -84,7 +84,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
         <section className="px-4">
           <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Description</p>
           {poi.description && (
-            <MarkdownText source={poi.description} className="text-justify text-xs leading-7 text-gray-500" />
+            <MarkdownText source={poi.description} breaks className="text-justify text-xs leading-7 text-gray-500" />
           )}
         </section>
 

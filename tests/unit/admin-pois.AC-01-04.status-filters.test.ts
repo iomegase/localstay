@@ -60,4 +60,25 @@ describe('022 admin POI rules', () => {
     expect(containsTrailLockedFields({ distance_km: 8 })).toBe(true)
     expect(containsTrailLockedFields({ name: 'Nom public' })).toBe(false)
   })
+
+  it('allows a constrained trail_metrics patch (the only editable trail values)', () => {
+    // La clé dédiée n'est pas verrouillée : elle ne passe pas par le garde-fou métier.
+    expect(containsTrailLockedFields({ trail_metrics: { distance_km: 8.4 } })).toBe(false)
+
+    const parsed = parseAdminPoiPatchInput({
+      trail_metrics: {
+        difficulty: 'medium',
+        distance_km: 8.4,
+        elevation_gain_m: 950,
+        estimated_duration_min: 210,
+      },
+    })
+    expect(parsed.success).toBe(true)
+  })
+
+  it('rejects unknown keys and invalid values inside trail_metrics', () => {
+    expect(parseAdminPoiPatchInput({ trail_metrics: { foo: 1 } }).success).toBe(false)
+    expect(parseAdminPoiPatchInput({ trail_metrics: { distance_km: -3 } }).success).toBe(false)
+    expect(parseAdminPoiPatchInput({ trail_metrics: { difficulty: 'extreme' } }).success).toBe(false)
+  })
 })

@@ -112,6 +112,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
         {poi.description && (
           <MarkdownText
             source={poi.description}
+            breaks
             className="px-6 text-sm text-charcoal/70 leading-relaxed"
           />
         )}

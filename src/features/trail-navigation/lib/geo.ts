@@ -2,6 +2,37 @@ import type { TrailCoordinate, TrailGeometry, TrailLineString, TrailMultiLineStr
 
 type Coordinate = [number, number]
 
+export type TrailGpsState =
+  | 'ready'
+  | 'gps_prompt'
+  | 'tracking'
+  | 'approaching'
+  | 'ready_to_join'
+  | 'pre_start'
+  | 'off_track'
+  | 'low_accuracy'
+  | 'gps_denied'
+
+// États pendant lesquels la caméra doit suivre la position en continu : on a un fix GPS
+// vivant et l'utilisateur navigue. On exclut l'attente ('ready', 'gps_prompt') et le refus.
+const CAMERA_FOLLOW_STATES: ReadonlySet<TrailGpsState> = new Set([
+  'tracking',
+  'approaching',
+  'off_track',
+  'ready_to_join',
+  'pre_start',
+  'low_accuracy',
+])
+
+/**
+ * Décide si la caméra Mapbox doit se recentrer automatiquement sur la position GPS.
+ * `isFollowing` repasse à false dès que l'utilisateur déplace la carte à la main,
+ * et à true quand il tape le bouton de recentrage.
+ */
+export function shouldAutoFollowCamera(gpsState: TrailGpsState, isFollowing: boolean): boolean {
+  return isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
+}
+
 export function isValidTrailGeometry(value: unknown): value is TrailGeometry {
   return isLineString(value) || isMultiLineString(value)
 }

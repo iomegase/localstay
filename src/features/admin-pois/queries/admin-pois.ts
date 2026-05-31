@@ -39,7 +39,14 @@ type AdminPoiRow = {
   category: { id: string; name: string; slug: string }
   subcategory: { id: string; name: string; slug: string } | null
   merchant_profile: { id: string } | null
-  trail_detail: { id: string; deleted_at: Date | null } | null
+  trail_detail: {
+    id: string
+    deleted_at: Date | null
+    difficulty: string
+    distance_km: number | null
+    elevation_gain_m: number | null
+    estimated_duration_min: number | null
+  } | null
 }
 
 type AcquisitionRunRow = {
@@ -71,7 +78,16 @@ const adminPoiSelect = {
   category: { select: { id: true, name: true, slug: true } },
   subcategory: { select: { id: true, name: true, slug: true } },
   merchant_profile: { select: { id: true } },
-  trail_detail: { select: { id: true, deleted_at: true } },
+  trail_detail: {
+    select: {
+      id: true,
+      deleted_at: true,
+      difficulty: true,
+      distance_km: true,
+      elevation_gain_m: true,
+      estimated_duration_min: true,
+    },
+  },
 } satisfies Prisma.PointOfInterestSelect
 
 export async function getAdminPoiOptions(): Promise<{
@@ -178,6 +194,20 @@ export async function updateAdminPoi(
   if (input.category_id !== undefined) data.category = { connect: { id: input.category_id } }
   if (input.subcategory_id !== undefined) {
     data.subcategory = input.subcategory_id ? { connect: { id: input.subcategory_id } } : { disconnect: true }
+  }
+
+  // Sous-ensemble rando éditable (distance / difficulté / durée / dénivelé). On met à jour
+  // le TrailDetail lié uniquement pour les champs fournis ; le reste du tracé reste intact.
+  if (input.trail_metrics) {
+    const metrics = input.trail_metrics
+    const trailData: Prisma.TrailDetailUpdateInput = {}
+    if (metrics.difficulty !== undefined) trailData.difficulty = metrics.difficulty
+    if (metrics.distance_km !== undefined) trailData.distance_km = metrics.distance_km
+    if (metrics.elevation_gain_m !== undefined) trailData.elevation_gain_m = metrics.elevation_gain_m
+    if (metrics.estimated_duration_min !== undefined) trailData.estimated_duration_min = metrics.estimated_duration_min
+    if (Object.keys(trailData).length > 0) {
+      data.trail_detail = { update: trailData }
+    }
   }
 
   const addressForGeocode = input.address ?? before.address
@@ -498,6 +528,15 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
     longitude: row.longitude,
     slug_editable: false,
     trail_fields_locked: Boolean(row.trail_detail && !row.trail_detail.deleted_at),
+    trail_detail:
+      row.trail_detail && !row.trail_detail.deleted_at
+        ? {
+            difficulty: row.trail_detail.difficulty,
+            distance_km: row.trail_detail.distance_km,
+            elevation_gain_m: row.trail_detail.elevation_gain_m,
+            estimated_duration_min: row.trail_detail.estimated_duration_min,
+          }
+        : null,
   }
 }
 

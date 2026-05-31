@@ -138,23 +138,22 @@ export function CategoryViewWrapper({
 
   return (
     <>
-      {/* Contrôle de localisation (la carte a été retirée) */}
-      <section className="px-5 mt-2" data-testid="geo-control">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={requestUserLocation}
-            disabled={geoStatus === 'loading'}
-            className="flex items-center gap-1.5 rounded-full border border-charcoal/15 px-3 py-1.5 text-[10px] font-semibold text-charcoal/70 transition-transform active:scale-95 disabled:opacity-60"
-          >
-            <LocateFixed className="h-3.5 w-3.5" />
-            {geoStatus === 'ready' ? 'Position utilisée' : geoStatus === 'loading' ? 'Localisation...' : 'Ma position'}
-          </button>
-          {(geoStatus === 'denied' || geoStatus === 'unavailable') && (
-            <span className="text-[10px] text-charcoal/50">
-              Distances depuis le centre-ville
-            </span>
-          )}
-        </div>
+      {/* Contrôle de localisation — placé en haut à droite, aligné sur la ligne du titre
+          (positionné en absolu via le conteneur `relative` de la page). */}
+      <section className="absolute right-5 top-8 z-20" data-testid="geo-control">
+        <button
+          onClick={requestUserLocation}
+          disabled={geoStatus === 'loading'}
+          title={
+            geoStatus === 'denied' || geoStatus === 'unavailable'
+              ? 'Distances depuis le centre-ville'
+              : undefined
+          }
+          className="flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-white/90 px-3 py-1.5 text-[10px] font-semibold text-charcoal/70 shadow-sm backdrop-blur-sm transition-transform active:scale-95 disabled:opacity-60"
+        >
+          <LocateFixed className="h-3.5 w-3.5" />
+          {geoStatus === 'ready' ? 'Position utilisée' : geoStatus === 'loading' ? 'Localisation...' : 'Ma position'}
+        </button>
       </section>
 
       {/* Récap + Explorer */}
@@ -200,9 +199,9 @@ export function CategoryViewWrapper({
 
       {/* Liste des POI */}
       <section id="poi-list-section" className="mt-6 " data-testid="poi-list-view">
-        <h2 className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+        {/* <h2 className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
           Quelques recommandations 
-        </h2>
+        </h2> */}
 
         <div className="space-y-3">
           {displayedPrimary.map(poi => (

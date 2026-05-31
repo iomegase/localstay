@@ -3,7 +3,9 @@ import {
   getPositionProgress,
   getTrailDistanceMeters,
   isValidTrailGeometry,
+  shouldAutoFollowCamera,
 } from '@/features/trail-navigation/lib/geo'
+import type { TrailGpsState } from '@/features/trail-navigation/lib/geo'
 
 const line = {
   type: 'LineString',
@@ -42,5 +44,35 @@ describe('021 trail navigation geometry utilities', () => {
     expect(progress.percent).toBeGreaterThan(30)
     expect(progress.percent).toBeLessThan(70)
     expect(progress.distance_m).toBeGreaterThan(0)
+  })
+})
+
+describe('shouldAutoFollowCamera', () => {
+  const activeStates: TrailGpsState[] = [
+    'tracking',
+    'approaching',
+    'off_track',
+    'ready_to_join',
+    'pre_start',
+    'low_accuracy',
+  ]
+  const idleStates: TrailGpsState[] = ['ready', 'gps_prompt', 'gps_denied']
+
+  it('follows when GPS is active and following is enabled', () => {
+    for (const state of activeStates) {
+      expect(shouldAutoFollowCamera(state, true)).toBe(true)
+    }
+  })
+
+  it('does not follow while GPS is idle, prompting, or denied', () => {
+    for (const state of idleStates) {
+      expect(shouldAutoFollowCamera(state, true)).toBe(false)
+    }
+  })
+
+  it('never follows when following has been disabled (user panned the map)', () => {
+    for (const state of [...activeStates, ...idleStates]) {
+      expect(shouldAutoFollowCamera(state, false)).toBe(false)
+    }
   })
 })
