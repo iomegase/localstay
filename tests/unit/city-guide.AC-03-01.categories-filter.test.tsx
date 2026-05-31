@@ -38,6 +38,28 @@ describe('CategoryRow (AC-03-01, AC-03-02)', () => {
     expect(links[2]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees')
   })
 
+  it('marks the active category with aria-current when activeCategorySlug matches', () => {
+    render(
+      <CategoryRow
+        categories={categories}
+        citySlug="saint-gervais-les-bains"
+        activeCategorySlug="randonnees"
+      />
+    )
+    const activeLink = screen.getByText('Randonnées').closest('a')
+    expect(activeLink).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByText('Restaurants').closest('a')).not.toHaveAttribute('aria-current')
+    // "Tous" is not the active category here
+    expect(screen.getByText('Tous').closest('a')).not.toHaveAttribute('aria-current')
+  })
+
+  it('marks no category as active when activeCategorySlug is omitted (city page unchanged)', () => {
+    render(<CategoryRow categories={categories} citySlug="saint-gervais-les-bains" />)
+    screen.getAllByRole('link').forEach(link => {
+      expect(link).not.toHaveAttribute('aria-current')
+    })
+  })
+
   it('012: preserves lodging query in category links when provided', () => {
     render(
       <CategoryRow

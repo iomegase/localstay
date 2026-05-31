@@ -6,6 +6,7 @@ interface CategoryRowProps {
   categories: CategorySummary[]
   citySlug: string
   lodgingId?: string
+  activeCategorySlug?: string
 }
 
 function CategoryIcon({ iconSlug }: { iconSlug: string }) {
@@ -28,12 +29,12 @@ function categoryHref(citySlug: string, categorySlug?: string, lodgingId?: strin
   return lodgingId ? `${baseHref}?lodging=${encodeURIComponent(lodgingId)}` : baseHref
 }
 
-export function CategoryRow({ categories, citySlug, lodgingId }: CategoryRowProps) {
+export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlug }: CategoryRowProps) {
   // BR-02: return null so categories are absent from the DOM, not just hidden
   if (categories.length === 0) return null
 
   return (
-    <div className="flex gap-5 overflow-x-auto px-6 no-scrollbar pb-2" data-testid="category-row">
+    <div className="flex gap-5 overflow-x-auto px-6 no-scrollbar pt-2 pb-2" data-testid="category-row">
       <Link
         href={categoryHref(citySlug, undefined, lodgingId)}
         className="group shrink-0 flex flex-col items-center gap-3"
@@ -46,23 +47,37 @@ export function CategoryRow({ categories, citySlug, lodgingId }: CategoryRowProp
         </span>
       </Link>
 
-      {categories.map((cat) => (
-        <Link
-          key={cat.id}
-          href={categoryHref(citySlug, cat.slug, lodgingId)}
-          className="group shrink-0 flex flex-col items-center gap-3"
-        >
-          <div className="relative w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gold group-hover:shadow-md transition-shadow active:scale-95">
-            <CategoryIcon iconSlug={cat.icon} />
-            <span className="absolute -top-1 -right-1 bg-gold text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-              {cat.poi_count > 9 ? '9+' : cat.poi_count}
+      {categories.map((cat) => {
+        const isActive = cat.slug === activeCategorySlug
+        return (
+          <Link
+            key={cat.id}
+            href={categoryHref(citySlug, cat.slug, lodgingId)}
+            aria-current={isActive ? 'page' : undefined}
+            className="group shrink-0 flex flex-col items-center gap-3"
+          >
+            <div
+              className={`relative w-14 h-14 rounded-full border flex items-center justify-center group-hover:shadow-md transition-shadow active:scale-95 ${
+                isActive
+                  ? 'bg-gold border-gold text-white shadow-md'
+                  : 'bg-white border-gray-100 text-gold'
+              }`}
+            >
+              <CategoryIcon iconSlug={cat.icon} />
+              <span
+                className={`absolute -top-1 -right-1 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none ${
+                  isActive ? 'bg-white text-gold' : 'bg-gold text-white'
+                }`}
+              >
+                {cat.poi_count > 9 ? '9+' : cat.poi_count}
+              </span>
+            </div>
+            <span className="text-[9px] text-gold font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
+              {cat.name}
             </span>
-          </div>
-          <span className="text-[9px] text-gold font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
-            {cat.name}
-          </span>
-        </Link>
-      ))}
+          </Link>
+        )
+      })}
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
-import { getCategoryDetail } from '@/features/categories/queries/categories'
+import { getCategoryDetail, getCategoriesForCity } from '@/features/categories/queries/categories'
 import { getPoiCards } from '@/features/categories/queries/poi-cards'
+import { CategoryRow } from '@/features/city-guide/components/CategoryRow'
 import { SubCategoryFilter } from '@/features/categories/components/SubCategoryFilter'
 import { SortControl } from '@/features/categories/components/SortControl'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
@@ -43,9 +44,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const lodgingFromCookie = await getActiveLodgingContext()
   const lodgingId = resolvedSearch.lodging ?? lodgingFromCookie?.lodgingId
 
-  const [detail, poiGroups] = await Promise.all([
+  const [detail, poiGroups, categories] = await Promise.all([
     getCategoryDetail(citySlug, categorySlug),
     getPoiCards(citySlug, categorySlug, { subcategorySlug, sort, page, limit, lodgingId }),
+    getCategoriesForCity(citySlug, { lodgingId }),
   ])
 
   if (!detail || poiGroups === null) { notFound(); return null }
@@ -67,6 +69,15 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <p className="mt-4 text-xs leading-6 text-gray-500">
           {poiGroups.meta.total} adresse{poiGroups.meta.total > 1 ? 's' : ''} recommandée{poiGroups.meta.total > 1 ? 's' : ''} .
         </p>
+      </section>
+
+      <section className="mt-[26px] mb-2">
+        <CategoryRow
+          categories={categories ?? []}
+          citySlug={citySlug}
+          lodgingId={lodgingId}
+          activeCategorySlug={categorySlug}
+        />
       </section>
 
       {detail.subcategories.length > 0 && (
