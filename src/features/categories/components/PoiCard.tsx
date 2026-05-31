@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Heart, MapPin, ChevronRight } from 'lucide-react'
+import { Heart, MapPin, ChevronRight, Timer, Route, TrendingUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   type FavoritePoi,
@@ -10,6 +10,22 @@ import {
   toggleFavorite,
 } from '@/features/public-menu/lib/favorites'
 import type { PoiCard as PoiCardType } from '../types'
+import { TrailCardDetails } from './TrailCardDetails'
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  easy: 'Facile',
+  medium: 'Modéré',
+  hard: 'Difficile',
+  expert: 'Expert',
+}
+
+function formatDuration(minutes: number | null): string | null {
+  if (!minutes) return null
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m}min`
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
+}
 
 interface Props {
   poi: PoiCardType
@@ -35,6 +51,14 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
 
   const description = poi.owner_note || poi.description
   const gallery = poi.photos.length > 0 ? [...poi.photos, ...poi.photos] : []
+
+  const trail = poi.trail_detail ?? null
+  const isTrail = trail !== null
+  const difficultyLabel =
+    trail && trail.difficulty !== 'unknown' ? DIFFICULTY_LABEL[trail.difficulty] ?? null : null
+  const trailDuration = trail ? formatDuration(trail.estimated_duration_min) : null
+  const trailDistance = trail && trail.distance_km !== null ? `${trail.distance_km.toFixed(1)} km` : null
+  const trailElevation = trail && trail.elevation_gain_m !== null ? `${trail.elevation_gain_m} m` : null
 
   function handleToggleFavorite(e: React.MouseEvent) {
     e.stopPropagation()
@@ -83,7 +107,15 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
             <Heart className={`h-5 w-5 ${mounted && isFav ? 'fill-red-500 text-red-500' : ''}`} />
           </button>
         </div>
-        {poi.is_open_now === true && (
+        {isTrail && difficultyLabel && (
+          <div className="absolute top-4 left-4" data-testid="badge-difficulty">
+            <span className="border-charcoal/40 border bg-white/80 backdrop-blur-sm text-charcoal text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
+              <TrendingUp className="h-3 w-3" />
+              {difficultyLabel}
+            </span>
+          </div>
+        )}
+        {!isTrail && poi.is_open_now === true && (
           <div className="absolute top-4 left-4">
             <span className="border-green-500/90 border backdrop-blur-sm text-green-900 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-white"></div>
@@ -91,7 +123,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
             </span>
           </div>
         )}
-        {poi.is_open_now === false && (
+        {!isTrail && poi.is_open_now === false && (
           <div className="absolute top-4 left-4" data-testid="badge-closed">
             <span className="border-red-500/90 border backdrop-blur-sm text-red-900 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-white"></div>
@@ -144,15 +176,41 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
         <div className="flex flex-col mt-2">
           <div className="flex items-end justify-between">
             <div>
-              <div className="flex flex-row items-center gap-3">
-                {poi.closes_at_label && (
-                  <p className="text-[9px] uppercase tracking-wide font-light text-[#86898f]">
-                    Ferme à <span className="font-thin text-gray-900">{poi.closes_at_label}</span>
-                  </p>
-                )}
-              </div>
+              {isTrail ? (
+                <div
+                  className="flex flex-row items-center gap-4 text-[9px] uppercase tracking-wide font-light text-[#86898f]"
+                  data-testid="trail-stats"
+                >
+                  {trailDuration && (
+                    <span className="flex items-center gap-1.5">
+                      <Timer className="h-3.5 w-3.5" />
+                      <span className="font-thin text-gray-900">{trailDuration}</span>
+                    </span>
+                  )}
+                  {trailDistance && (
+                    <span className="flex items-center gap-1.5">
+                      <Route className="h-3.5 w-3.5" />
+                      <span className="font-thin text-gray-900">{trailDistance}</span>
+                    </span>
+                  )}
+                  {trailElevation && (
+                    <span className="flex items-center gap-1.5">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      <span className="font-thin text-gray-900">{trailElevation}</span>
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-row items-center gap-3">
+                  {poi.closes_at_label && (
+                    <p className="text-[9px] uppercase tracking-wide font-light text-[#86898f]">
+                      Ferme à <span className="font-thin text-gray-900">{poi.closes_at_label}</span>
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-            {poi.phone && (
+            {!isTrail && poi.phone && (
               <a
                 href={`tel:${poi.phone}`}
                 className="bg-white hover:bg-black border hover:text-white border-black text-black px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95 mb-0.5"
@@ -196,6 +254,15 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
                         ))}
                       </motion.div>
                     </div>
+                  )}
+                  {isTrail && (
+                    <TrailCardDetails
+                      citySlug={citySlug}
+                      categorySlug={categorySlug}
+                      poiSlug={poi.slug}
+                      poiName={poi.name}
+                      address={poi.address}
+                    />
                   )}
                 </div>
               </motion.div>

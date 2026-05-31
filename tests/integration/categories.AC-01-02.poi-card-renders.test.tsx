@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { PoiCard } from '@/features/categories/components/PoiCard'
 import type { PoiCard as PoiCardType } from '@/features/categories/types'
 
@@ -81,6 +81,48 @@ describe('PoiCard — accordion behaviour', () => {
 
   it('hides the APPELER button when no phone is set', () => {
     render(<PoiCard poi={{ ...poi, phone: null }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    expect(screen.queryByText('APPELER')).not.toBeInTheDocument()
+  })
+})
+
+describe('PoiCard — randonnée variant', () => {
+  const trailPoi: PoiCardType = {
+    ...poi,
+    name: 'Lac de Pormenaz',
+    slug: 'lac-de-pormenaz',
+    phone: null,
+    is_open_now: null,
+    closes_at_label: null,
+    trail_detail: {
+      difficulty: 'medium',
+      estimated_duration_min: 210,
+      distance_km: 8.4,
+      elevation_gain_m: 950,
+    },
+  }
+
+  it('shows trail stats (duration, distance, elevation) instead of opening hours', () => {
+    render(<PoiCard poi={trailPoi} citySlug="les-contamines-montjoie" categorySlug="rando" />)
+    const stats = screen.getByTestId('trail-stats')
+    expect(stats).toHaveTextContent('3h30')
+    expect(stats).toHaveTextContent('8.4 km')
+    expect(stats).toHaveTextContent('950 m')
+  })
+
+  it('shows the difficulty badge and no open/closed badge', () => {
+    render(<PoiCard poi={trailPoi} citySlug="les-contamines-montjoie" categorySlug="rando" />)
+    expect(screen.getByTestId('badge-difficulty')).toHaveTextContent('Modéré')
+    expect(screen.queryByTestId('badge-closed')).not.toBeInTheDocument()
+  })
+
+  it('never shows the APPELER button for a trail', () => {
+    render(
+      <PoiCard
+        poi={{ ...trailPoi, phone: '+33450000000' }}
+        citySlug="les-contamines-montjoie"
+        categorySlug="rando"
+      />,
+    )
     expect(screen.queryByText('APPELER')).not.toBeInTheDocument()
   })
 })
