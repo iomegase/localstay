@@ -3,6 +3,7 @@ import {
   getPositionProgress,
   getTrailDistanceMeters,
   isValidTrailGeometry,
+  shouldAcceptTrackPoint,
   shouldAutoFollowCamera,
 } from '@/features/trail-navigation/lib/geo'
 import type { TrailGpsState } from '@/features/trail-navigation/lib/geo'
@@ -74,5 +75,37 @@ describe('shouldAutoFollowCamera', () => {
     for (const state of [...activeStates, ...idleStates]) {
       expect(shouldAutoFollowCamera(state, false)).toBe(false)
     }
+  })
+})
+
+describe('shouldAcceptTrackPoint', () => {
+  const origin = { latitude: 45.9, longitude: 6.7 }
+  // ~3 m au nord de l'origine (1° lat ≈ 111 320 m → 3 m ≈ 0.0000269°)
+  const movedThreeMeters = { latitude: 45.9 + 0.0000269, longitude: 6.7 }
+  // ~1 m au nord de l'origine
+  const movedOneMeter = { latitude: 45.9 + 0.0000090, longitude: 6.7 }
+
+  it('rejects an imprecise fix (accuracy above the max threshold)', () => {
+    expect(shouldAcceptTrackPoint(null, origin, 30)).toBe(false)
+    expect(shouldAcceptTrackPoint(origin, movedThreeMeters, 26)).toBe(false)
+  })
+
+  it('accepts the first precise point when there is no previous point', () => {
+    expect(shouldAcceptTrackPoint(null, origin, 10)).toBe(true)
+  })
+
+  it('accepts a precise point that moved at least the minimum step (2 m)', () => {
+    expect(shouldAcceptTrackPoint(origin, movedThreeMeters, 10)).toBe(true)
+  })
+
+  it('rejects a precise point that barely moved (below the minimum step)', () => {
+    expect(shouldAcceptTrackPoint(origin, movedOneMeter, 10)).toBe(false)
+  })
+
+  it('honours custom step and accuracy thresholds', () => {
+    // step relevé à 5 m → un déplacement de 3 m est refusé
+    expect(shouldAcceptTrackPoint(origin, movedThreeMeters, 10, { minStepM: 5, maxAccuracyM: 25 })).toBe(false)
+    // accuracy max relevée à 40 m → un fix à 30 m est accepté
+    expect(shouldAcceptTrackPoint(null, origin, 30, { minStepM: 2, maxAccuracyM: 40 })).toBe(true)
   })
 })

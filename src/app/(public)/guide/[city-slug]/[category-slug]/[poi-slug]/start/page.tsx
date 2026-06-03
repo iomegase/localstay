@@ -1,0 +1,29 @@
+import { notFound } from 'next/navigation'
+import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
+import { getPublishedTrail } from '@/features/trails-acquisition/queries/public-trails'
+import type { TrailNavigationData } from '@/features/trail-navigation/types'
+
+interface Props {
+  params: Promise<{ 'city-slug': string; 'category-slug': string; 'poi-slug': string }>
+}
+
+/**
+ * Page plein écran de navigation rando — servie sur accès direct / rafraîchissement de
+ * `/guide/<ville>/<cat>/<slug>/start`. En navigation client depuis la liste, c'est la
+ * route interceptée `@modal/(.)[poi-slug]/start` qui s'affiche en overlay à la place.
+ */
+export default async function TrailNavigationStartPage({ params }: Props) {
+  const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
+  const trail = await getPublishedTrail(citySlug, poiSlug)
+  if (!trail) {
+    notFound()
+    return null
+  }
+
+  return (
+    <TrailNavigationMap
+      trail={trail as TrailNavigationData}
+      backHref={`/guide/${citySlug}/${categorySlug}`}
+    />
+  )
+}

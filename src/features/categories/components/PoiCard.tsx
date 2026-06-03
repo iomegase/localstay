@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Heart, MapPin, ChevronRight, Timer, Route, TrendingUp } from 'lucide-react'
+import { Heart, MapPin, ChevronRight, Timer, Route, TrendingUp, Share2, Star, Globe, Navigation } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   type FavoritePoi,
@@ -38,6 +38,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isFav, setIsFav] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -61,6 +62,8 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
   const trailDistance = trail && trail.distance_km !== null ? `${trail.distance_km.toFixed(1)} km` : null
   const trailElevation = trail && trail.elevation_gain_m !== null ? `${trail.elevation_gain_m} m` : null
 
+  const displayRating = poi.rating ?? poi.owner_rating ?? null
+
   function handleToggleFavorite(e: React.MouseEvent) {
     e.stopPropagation()
     const entry: FavoritePoi = {
@@ -73,6 +76,22 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
       added_at: new Date().toISOString(),
     }
     toggleFavorite(entry)
+  }
+
+  async function handleShare(e: React.MouseEvent) {
+    e.stopPropagation()
+    const url = `${window.location.origin}/guide/${citySlug}/${categorySlug}/${poi.slug}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: poi.name, url })
+      } else {
+        await navigator.clipboard?.writeText(url)
+        setShareCopied(true)
+        setTimeout(() => setShareCopied(false), 2000)
+      }
+    } catch {
+      // Partage annulé / indisponible — sans effet
+    }
   }
 
   return (
@@ -96,14 +115,24 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#bd9254]/20 to-[#bd9254]/5" />
         )}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShare}
+            aria-label="Partager"
+            title={shareCopied ? 'Lien copié' : 'Partager'}
+            data-testid="btn-share"
+            className="backdrop-blur-sm p-3 text-gray-700 rounded-full shadow-lg hover:bg-white transition-colors bg-white/70"
+          >
+            <Share2 className="h-5 w-5" />
+          </button>
           <button
             type="button"
             onClick={handleToggleFavorite}
             aria-pressed={isFav}
             aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             data-testid="btn-favorite"
-            className="backdrop-blur-sm p-3 text-gray-700 rounded-full shadow-lg hover:bg-white transition-colors group/heart"
+            className="backdrop-blur-sm p-3 text-gray-700 rounded-full shadow-lg hover:bg-white transition-colors bg-white/70 group/heart"
           >
             <Heart className={`h-5 w-5 ${mounted && isFav ? 'fill-red-500 text-red-500' : ''}`} />
           </button>
@@ -141,6 +170,17 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex-1">
+            {!isTrail && displayRating !== null && (
+              <div className="flex items-center gap-1 mb-1" data-testid="poi-rating" aria-label={`Note ${displayRating} sur 5`}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <Star
+                    key={n}
+                    className={`h-3 w-3 ${n <= Math.round(displayRating) ? 'fill-[#bd9254] text-[#bd9254]' : 'text-gray-300'}`}
+                  />
+                ))}
+                <span className="ml-1 text-[10px] font-thin text-gray-500">{displayRating.toFixed(1)}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 mb-1">
               {poi.subcategory_name && (
                 <span className="font-thin text-gray-800 text-[11px]">{poi.subcategory_name}</span>
@@ -211,15 +251,6 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
                 </div>
               )}
             </div>
-            {!isTrail && poi.phone && (
-              <a
-                href={`tel:${poi.phone}`}
-                className="bg-white hover:bg-black border hover:text-white border-black text-black px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95 mb-0.5"
-                onClick={(e) => e.stopPropagation()}
-              >
-                APPELER
-              </a>
-            )}
           </div>
 
           <AnimatePresence>
@@ -256,6 +287,44 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
                           />
                         ))}
                       </motion.div>
+                    </div>
+                  )}
+                  {!isTrail && (
+                    <div className="mt-1 space-y-2 text-[11px] font-thin text-gray-600" data-testid="poi-more-info">
+                      {poi.website && (
+                        <a
+                          href={poi.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="flex items-center gap-1.5 text-[#bd9254] hover:underline"
+                        >
+                          <Globe className="h-3 w-3" />
+                          Site web
+                        </a>
+                      )}
+
+                      <div className="flex gap-2 pt-3">
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude},${poi.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-black text-white hover:bg-white hover:text-black px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                        >
+                          <Navigation className="h-3.5 w-3.5" />
+                          Google Maps
+                        </a>
+                        {poi.phone && (
+                          <a
+                            href={`tel:${poi.phone}`}
+                            onClick={e => e.stopPropagation()}
+                            className="flex flex-1 items-center justify-center border border-black bg-white text-black hover:bg-black hover:text-white px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                          >
+                            APPELER
+                          </a>
+                        )}
+                      </div>
                     </div>
                   )}
                   {isTrail && (

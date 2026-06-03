@@ -33,6 +33,29 @@ export function shouldAutoFollowCamera(gpsState: TrailGpsState, isFollowing: boo
   return isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
 }
 
+/** Seuils par défaut du tracé réellement parcouru (« breadcrumb »). */
+export const USER_TRACK_MIN_STEP_M = 2
+export const USER_TRACK_MAX_ACCURACY_M = 25
+
+/**
+ * Décide si un fix GPS doit être ajouté au tracé réellement parcouru.
+ * On écarte les positions imprécises (accuracy au-dessus du seuil) et celles trop proches
+ * du dernier point retenu (< pas minimal), pour limiter le bruit et le nombre de points.
+ */
+export function shouldAcceptTrackPoint(
+  last: TrailCoordinate | null,
+  next: TrailCoordinate,
+  accuracy: number,
+  opts: { minStepM: number; maxAccuracyM: number } = {
+    minStepM: USER_TRACK_MIN_STEP_M,
+    maxAccuracyM: USER_TRACK_MAX_ACCURACY_M,
+  },
+): boolean {
+  if (accuracy > opts.maxAccuracyM) return false
+  if (!last) return true
+  return haversineMeters(last, next) >= opts.minStepM
+}
+
 export function isValidTrailGeometry(value: unknown): value is TrailGeometry {
   return isLineString(value) || isMultiLineString(value)
 }

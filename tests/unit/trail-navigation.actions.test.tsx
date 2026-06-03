@@ -20,6 +20,7 @@ describe('021 trail access actions', () => {
     render(
       <TrailAccessActions
         citySlug="saint-gervais-les-bains"
+        categorySlug="rando"
         trailSlug="mont-joux"
         startLabel="Départ Mont Joux"
         startLatitude={45.8731}
@@ -47,6 +48,7 @@ describe('021 trail access actions', () => {
     render(
       <TrailAccessActions
         citySlug="saint-gervais-les-bains"
+        categorySlug="rando"
         trailSlug="mont-joux"
         startLabel="Départ Mont Joux"
         startLatitude={45.8731}
@@ -58,5 +60,24 @@ describe('021 trail access actions', () => {
     expect(screen.getByRole('link', { name: /rejoindre le départ/i })).toBeInTheDocument()
     expect(getCurrentPosition).not.toHaveBeenCalled()
     expect(screen.queryByText(/GPS indisponible/i)).not.toBeInTheDocument()
+  })
+
+  it('points "Commencer la rando" to the category-scoped start route', () => {
+    render(
+      <TrailAccessActions
+        citySlug="saint-gervais-les-bains"
+        categorySlug="balades"
+        trailSlug="mont-joux"
+        startLabel="Départ Mont Joux"
+        startLatitude={45.8731}
+        startLongitude={6.673}
+        hasGeometry={true}
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: /commencer la rando/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/balades/mont-joux/start',
+    )
   })
 })

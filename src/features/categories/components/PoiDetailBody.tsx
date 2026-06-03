@@ -17,11 +17,13 @@ interface Props {
   poi: PoiDetail
   citySlug: string
   categorySlug: string
+  /** Si fourni, le bouton retour ferme la vue (mode modal) au lieu de naviguer vers la liste. */
+  onClose?: () => void
 }
 
-export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
+export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
   if (categorySlug === 'rando' && poi.trail_detail) {
-    return <TrailPoiDetailBody poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+    return <TrailPoiDetailBody poi={poi} citySlug={citySlug} categorySlug={categorySlug} onClose={onClose} />
   }
 
   const distanceLabel =
@@ -47,12 +49,23 @@ export function PoiDetailBody({ poi, citySlug, categorySlug }: Props) {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
         <div className="absolute top-8 left-6 right-6 flex justify-between items-center z-10">
-          <Link
-            href={`/guide/${citySlug}/${categorySlug}`}
-            className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-charcoal active:scale-95 transition-transform"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fermer"
+              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          ) : (
+            <Link
+              href={`/guide/${citySlug}/${categorySlug}`}
+              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          )}
           <div className="flex items-center gap-2">
             <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
             <FavoriteToggleButton

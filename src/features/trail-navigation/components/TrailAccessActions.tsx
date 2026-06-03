@@ -5,6 +5,7 @@ import { ChevronRight, Navigation, PlayCircle } from 'lucide-react'
 
 interface Props {
   citySlug: string
+  categorySlug: string
   trailSlug: string
   startLabel: string | null
   startLatitude: number | null
@@ -14,6 +15,7 @@ interface Props {
 
 export function TrailAccessActions({
   citySlug,
+  categorySlug,
   trailSlug,
   startLatitude,
   startLongitude,
@@ -28,7 +30,7 @@ export function TrailAccessActions({
     <div className="space-y-3">
   {hasGeometry && (
     <Link
-      href={`/guide/${citySlug}/rando/${trailSlug}/start`}
+      href={`/guide/${citySlug}/${categorySlug}/${trailSlug}/start`}
       className="group flex w-full items-center justify-between rounded-none border-2 border-black/80 bg-black/80 px-6 py-4 text-white shadow-sm transition-colors active:scale-[0.98] hover:bg-white hover:text-black"
     >
       <span className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.1em]">

@@ -96,7 +96,8 @@ describe('TrailCardDetails — fetch lifecycle', () => {
     mockFetch(buildPayload(fullTrail))
     render(<TrailCardDetails {...props} />)
     expect(await screen.findByTestId('trail-details')).toBeInTheDocument()
-    expect(screen.getByText('Parking du Pont du Diable (1100 m)')).toBeInTheDocument()
+    // La fiche détaillée a bien été récupérée → la mini-carte (briques rando) est montée.
+    expect(screen.getByTestId('trail-preview-map')).toBeInTheDocument()
   })
 
   it('renders nothing when the fetch fails', async () => {

@@ -102,6 +102,7 @@ export async function getPoiCards(
       hours: true,
       photos: true,
       phone: true,
+      website: true,
       description: true,
       geocode_status: true,
       subcategory: { select: { name: true } },
@@ -127,6 +128,7 @@ export async function getPoiCards(
     hours: unknown
     photos: string[]
     phone: string | null
+    website: string | null
     description: string | null
     geocode_status: string
     subcategory: { name: string } | null
@@ -161,6 +163,7 @@ export async function getPoiCards(
     photo_url: p.photos[0] ?? null,
     photos: p.photos,
     phone: p.phone,
+    website: p.website,
     description: p.description,
     closes_at_label: getTodayCloseLabel(p.hours as PoiHours | null),
     latitude: p.latitude,

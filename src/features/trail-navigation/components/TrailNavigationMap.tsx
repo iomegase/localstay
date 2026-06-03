@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
-import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAutoFollowCamera } from '../lib/geo'
+import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAcceptTrackPoint, shouldAutoFollowCamera } from '../lib/geo'
 import type { TrailGpsState } from '../lib/geo'
 import { NavigationHud } from './NavigationHud'
 
@@ -31,9 +31,15 @@ function clampJoinTolerance(value: number): number {
 interface Props {
   trail: TrailNavigationData
   backHref?: string
+  /**
+   * Si fourni, les boutons de fermeture appellent ce callback au lieu de naviguer via
+   * `backHref`. Utilisé par le modal interceptée pour fermer via `router.back()`
+   * (un `<Link>` vers la liste ne réinitialise pas le slot @modal).
+   */
+  onClose?: () => void
 }
 
-export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }: Props) {
+export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
   const mapRef = useRef<MapRef | null>(null)
@@ -44,6 +50,12 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
   // off_track ne se déclenche qu'après une vraie atteinte physique du tracé.
   const hasIntentToJoinRef = useRef(false)
   const hasPhysicallyReachedRef = useRef(false)
+  // Tracé réellement parcouru (« breadcrumb ») : points GPS acceptés, accumulés en ref pour
+  // ne PAS re-render la carte à chaque fix. `trackVersion` n'est bumpé qu'à l'acceptation
+  // d'un point → seul ce moment reconstruit la géométrie GeoJSON (react-map-gl diffe `data`).
+  const userTrackRef = useRef<Array<[number, number]>>([])
+  const lastAcceptedPointRef = useRef<TrailCoordinate | null>(null)
+  const [trackVersion, setTrackVersion] = useState(0)
   const [gpsState, setGpsState] = useState<GpsState>('ready')
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
@@ -150,6 +162,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
         }
         setPosition(current)
         setAccuracy(nextPosition.coords.accuracy)
+
+        // Tracé parcouru : on retient le point s'il est assez précis et assez éloigné du
+        // dernier retenu. Indépendant de l'état GPS (off_track / approaching inclus) — on
+        // veut le chemin réel quoi qu'il arrive.
+        if (shouldAcceptTrackPoint(lastAcceptedPointRef.current, current, nextPosition.coords.accuracy)) {
+          userTrackRef.current = [...userTrackRef.current, [current.longitude, current.latitude]]
+          lastAcceptedPointRef.current = current
+          setTrackVersion(version => version + 1)
+        }
 
         if (nextPosition.coords.accuracy > LOW_ACCURACY_THRESHOLD_M) {
           setGpsState('low_accuracy')
@@ -303,6 +324,19 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
       geometry: { type: 'Point' as const, coordinates: [position.longitude, position.latitude] },
     }
   }, [accuracy, position])
+
+  // Tracé réellement parcouru : LineString reconstruite uniquement quand un point est
+  // accepté (trackVersion). Null tant qu'on a < 2 points (pas de ligne possible).
+  const userTrackLine = useMemo(() => {
+    void trackVersion
+    const coordinates = userTrackRef.current
+    if (coordinates.length < 2) return null
+    return {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: { type: 'LineString' as const, coordinates },
+    }
+  }, [trackVersion])
 
   // Détection rando en boucle : start et end ≤ 50m → un seul marqueur fusionné
   const isLoopTrail = useMemo(() => {
@@ -464,6 +498,24 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
             />
           </Source>
         )}
+        {/* Tracé réellement parcouru — distinct du GPX officiel (vert) et de la liaison
+            (rouge/blanc). Casing blanc + cœur bleu pour rester lisible sur fond terrain. */}
+        {userTrackLine && (
+          <Source id="user-track-line" type="geojson" data={userTrackLine}>
+            <Layer
+              id="user-track-halo"
+              type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': '#ffffff', 'line-width': 7, 'line-opacity': 0.85 }}
+            />
+            <Layer
+              id="user-track-layer"
+              type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': POSITION_BLUE, 'line-width': 4, 'line-opacity': 0.95 }}
+            />
+          </Source>
+        )}
         {position && (
           <Marker latitude={position.latitude} longitude={position.longitude} anchor="center">
             {/* « Ma position » façon Google Maps : point bleu fixe à contour blanc.
@@ -481,9 +533,20 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
       </Map>
 
       <div className="absolute left-5 right-5 top-6 flex items-center justify-between">
-        <Link href={backHref} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
-          <X className="h-5 w-5" />
-        </Link>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        ) : (
+          <Link href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
+            <X className="h-5 w-5" />
+          </Link>
+        )}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -629,9 +692,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}` }:
                 <Navigation className="h-4 w-4" />
                 Me guider vers le départ
               </a>
-              <Link href={backHref} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
-                Voir la fiche du tracé
-              </Link>
+              {onClose ? (
+                <button type="button" onClick={onClose} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
+                  Fermer
+                </button>
+              ) : (
+                <Link href={backHref} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
+                  Voir la fiche du tracé
+                </Link>
+              )}
             </div>
           </div>
         )}

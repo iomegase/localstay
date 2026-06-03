@@ -18,6 +18,8 @@ interface Props {
   poi: PoiDetail
   citySlug: string
   categorySlug: string
+  /** Si fourni, le bouton retour ferme la vue (mode modal) au lieu de naviguer vers la liste. */
+  onClose?: () => void
 }
 
 const DIFFICULTY_LABELS: Record<TrailDetailData['difficulty'], string> = {
@@ -28,7 +30,7 @@ const DIFFICULTY_LABELS: Record<TrailDetailData['difficulty'], string> = {
   unknown: 'Non précisé',
 }
 
-export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
+export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
   const trail = poi.trail_detail
   if (!trail) return null
 
@@ -45,13 +47,24 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
         })()}
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/25" />
         <div className="absolute left-6 right-6 top-8 z-10 flex items-center justify-between">
-          <Link
-            href={`/guide/${citySlug}/${categorySlug}`}
-            aria-label="Retour"
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur active:scale-95"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fermer"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur active:scale-95"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          ) : (
+            <Link
+              href={`/guide/${citySlug}/${categorySlug}`}
+              aria-label="Retour"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur active:scale-95"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          )}
           <div className="flex items-center gap-3">
             <button type="button" aria-label="Partager" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur">
               <Share2 className="h-4 w-4" />
@@ -111,7 +124,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
           geometry={trail.geometry_geojson}
           startLatitude={trail.start_latitude}
           startLongitude={trail.start_longitude}
-          startHref={`/guide/${citySlug}/rando/${poi.slug}/start`}
+          startHref={`/guide/${citySlug}/${categorySlug}/${poi.slug}/start`}
         />
 
         <section className="px-4 pt-8">
@@ -141,6 +154,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug }: Props) {
         <section className="mb-10 mt-8 px-4">
           <TrailAccessActions
             citySlug={citySlug}
+            categorySlug={categorySlug}
             trailSlug={poi.slug}
             startLabel={trail.start_label}
             startLatitude={trail.start_latitude}

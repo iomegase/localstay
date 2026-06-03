@@ -24,6 +24,7 @@ const poi: PoiCardType = {
   photo_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
   photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400'],
   phone: '+33450000000',
+  website: null,
   description: 'Une table gastronomique au pied du Mont-Blanc.',
   closes_at_label: '20h',
   latitude: 45.89,
@@ -56,8 +57,10 @@ describe('PoiCard — AC-01-02 (SpaCard redesign)', () => {
     expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')
   })
 
-  it('renders the APPELER button as a tel: link when a phone is set', () => {
-    expect(screen.getByText('APPELER').closest('a')).toHaveAttribute('href', 'tel:+33450000000')
+  it('renders the APPELER button as a tel: link at the bottom of the expanded section', () => {
+    fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
+    const panel = screen.getByTestId('poi-more-info')
+    expect(within(panel).getByText('APPELER').closest('a')).toHaveAttribute('href', 'tel:+33450000000')
   })
 
   it('shows the closing time when available', () => {
@@ -101,6 +104,69 @@ describe('PoiCard — accordion behaviour', () => {
   it('hides the APPELER button when no phone is set', () => {
     render(<PoiCard poi={{ ...poi, phone: null }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
     expect(screen.queryByText('APPELER')).not.toBeInTheDocument()
+  })
+})
+
+describe('PoiCard — infos POI (non-rando)', () => {
+  it('shows a share button next to the favourite and shares the POI detail URL', () => {
+    const share = jest.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share })
+
+    render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /partager/i }))
+    expect(share).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: expect.stringContaining('/guide/saint-gervais-les-bains/restaurants/restaurants-gastro-demo'),
+      }),
+    )
+  })
+
+  it('renders the rating as stars above the distance', () => {
+    render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    expect(screen.getByTestId('poi-rating')).toBeInTheDocument()
+  })
+
+  it('hides the stars when no rating is available', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, rating: null, owner_rating: null }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    expect(screen.queryByTestId('poi-rating')).not.toBeInTheDocument()
+  })
+
+  it('shows a Google Maps directions button at the bottom of the expanded section', () => {
+    render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
+
+    const panel = screen.getByTestId('poi-more-info')
+    expect(within(panel).getByRole('link', { name: /google maps/i })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=45.89,6.71',
+    )
+  })
+
+  it('shows the website in the expanded section but not the rating/status (already in the header)', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, website: 'https://resto.example.com' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
+
+    const panel = screen.getByTestId('poi-more-info')
+    expect(within(panel).getByRole('link', { name: /site web/i })).toHaveAttribute(
+      'href',
+      'https://resto.example.com',
+    )
+    // Note + avis et statut Ouvert/Fermé sont déjà dans l'en-tête → pas de doublon ici
+    expect(within(panel).queryByText(/avis/i)).not.toBeInTheDocument()
+    expect(within(panel).queryByText(/ouvert|fermé/i)).not.toBeInTheDocument()
   })
 })
 

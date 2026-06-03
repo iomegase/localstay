@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { ArrowRight, Heart, Trash2 } from 'lucide-react'
 import {
   type FavoritePoi,
@@ -9,9 +8,11 @@ import {
   removeFavorite,
   subscribeToFavorites,
 } from '../lib/favorites'
+import { FavoritePoiModal } from './FavoritePoiModal'
 
 export function FavoritesList() {
   const [favorites, setFavorites] = useState<FavoritePoi[] | null>(null)
+  const [selected, setSelected] = useState<FavoritePoi | null>(null)
 
   useEffect(() => {
     setFavorites(readFavorites())
@@ -37,16 +38,18 @@ export function FavoritesList() {
   }
 
   return (
-    <div className="space-y-3 pb-8">
-      {favorites.map(fav => (
-        <FavoriteCard key={fav.poi_id} fav={fav} />
-      ))}
-    </div>
+    <>
+      <div className="space-y-3 pb-8">
+        {favorites.map(fav => (
+          <FavoriteCard key={fav.poi_id} fav={fav} onOpen={() => setSelected(fav)} />
+        ))}
+      </div>
+      {selected && <FavoritePoiModal fav={selected} onClose={() => setSelected(null)} />}
+    </>
   )
 }
 
-function FavoriteCard({ fav }: { fav: FavoritePoi }) {
-  const href = `/guide/${fav.city_slug}/${fav.category_slug}/${fav.poi_slug}`
+function FavoriteCard({ fav, onOpen }: { fav: FavoritePoi; onOpen: () => void }) {
   return (
     <div className="group flex gap-4 overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-md">
       {fav.photo ? (
@@ -61,12 +64,12 @@ function FavoriteCard({ fav }: { fav: FavoritePoi }) {
           <Heart className="h-6 w-6" />
         </div>
       )}
-      <Link href={href} className="flex flex-1 flex-col justify-center">
+      <button type="button" onClick={onOpen} className="flex flex-1 flex-col justify-center text-left">
         <h3 className="font-serif italic text-base text-charcoal">{fav.name}</h3>
         <p className="text-[10px] uppercase tracking-widest text-gray-400">
           {fav.category_slug.replace(/-/g, ' ')}
         </p>
-      </Link>
+      </button>
       <div className="my-auto flex items-center gap-2">
         <button
           type="button"
@@ -76,9 +79,14 @@ function FavoriteCard({ fav }: { fav: FavoritePoi }) {
         >
           <Trash2 className="h-4 w-4" />
         </button>
-        <Link href={href} aria-label={`Ouvrir ${fav.name}`} className="rounded-full p-2 text-gray-300 hover:text-charcoal">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`Ouvrir ${fav.name}`}
+          className="rounded-full p-2 text-gray-300 hover:text-charcoal"
+        >
           <ArrowRight className="h-4 w-4" />
-        </Link>
+        </button>
       </div>
     </div>
   )

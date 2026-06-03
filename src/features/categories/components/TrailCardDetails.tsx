@@ -81,6 +81,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
 
       <TrailAccessActions
         citySlug={citySlug}
+        categorySlug={categorySlug}
         trailSlug={poiSlug}
         startLabel={trail.start_label}
         startLatitude={trail.start_latitude}

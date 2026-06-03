@@ -43,6 +43,7 @@ export interface PoiCard {
   photo_url: string | null
   photos: string[]
   phone: string | null
+  website: string | null
   description: string | null
   closes_at_label: string | null
   latitude: number
