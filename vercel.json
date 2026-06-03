@@ -11,11 +11,7 @@
     },
     {
       "path": "/api/internal/cleanup-google-review-payloads",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/internal/gemini-refresh",
-      "schedule": "0 3 * * *"
+      "schedule": "0 2 * * 0"
     },
     {
       "path": "/api/internal/cleanup-stale-candidates",
