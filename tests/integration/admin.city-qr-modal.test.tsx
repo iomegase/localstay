@@ -11,7 +11,7 @@ beforeEach(() => {
 })
 
 const QR = {
-  url: 'http://localhost:3000/guide/saint-gervais-les-bains',
+  url: 'https://localstay-psi.vercel.app/guide/saint-gervais-les-bains',
   storage_url:
     'https://cftqqyqfhlvobtsatxdq.supabase.co/storage/v1/object/public/qr-codes/cities/saint-gervais-les-bains.png',
   created_at: '2026-06-03T10:00:00.000Z',
@@ -29,20 +29,25 @@ describe('CityQrCodeModalButton', () => {
     fetchMock.mockResolvedValueOnce(notFound()) // GET à l'ouverture
     render(<CityQrCodeModalButton citySlug="saint-gervais-les-bains" cityName="Saint-Gervais" />)
 
-    // Le déclencheur est un bouton, pas un lien vers une autre page
     const trigger = screen.getByRole('button', { name: /qr code/i })
     expect(screen.queryByRole('link', { name: /qr code/i })).not.toBeInTheDocument()
 
     fireEvent.click(trigger)
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
-    expect(
-      await screen.findByRole('button', { name: /générer le qr code/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /générer le qr code/i })).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/cities/saint-gervais-les-bains/qr-code')
   })
 
-  it('generates the QR via POST and displays the resulting image (served raw, not via the optimizer)', async () => {
+  it('shows "Régénérer" when a QR already exists on open', async () => {
+    fetchMock.mockResolvedValueOnce(ok({ data: QR })) // GET retourne un QR existant
+    render(<CityQrCodeModalButton citySlug="saint-gervais-les-bains" cityName="Saint-Gervais" />)
+    fireEvent.click(screen.getByRole('button', { name: /qr code/i }))
+
+    expect(await screen.findByRole('button', { name: /régénérer/i })).toBeInTheDocument()
+  })
+
+  it('after generating, displays the refreshed (cache-busted) image and turns the action into "Fermer"', async () => {
     fetchMock.mockResolvedValueOnce(notFound()) // GET à l'ouverture
     render(<CityQrCodeModalButton citySlug="saint-gervais-les-bains" cityName="Saint-Gervais" />)
     fireEvent.click(screen.getByRole('button', { name: /qr code/i }))
@@ -57,7 +62,14 @@ describe('CityQrCodeModalButton', () => {
       }),
     )
 
+    // Image rafraîchie : pointe vers le PNG mais avec un paramètre anti-cache (≠ URL nue)
     const img = await screen.findByAltText('QR Code')
-    expect(img).toHaveAttribute('src', QR.storage_url)
+    expect(img.getAttribute('src')).toContain(QR.storage_url)
+    expect(img.getAttribute('src')).not.toBe(QR.storage_url)
+
+    // L'action devient "Fermer" et referme le modal
+    const close = await screen.findByRole('button', { name: /^fermer$/i })
+    fireEvent.click(close)
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })

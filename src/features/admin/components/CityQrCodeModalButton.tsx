@@ -33,6 +33,9 @@ export function CityQrCodeModalButton({ citySlug, cityName }: Props) {
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Passe à true après une génération/régénération réussie dans cette session : l'action
+  // devient alors « Fermer » (au lieu de « Générer »/« Régénérer »).
+  const [justGenerated, setJustGenerated] = useState(false)
 
   async function loadQr() {
     setLoading(true)
@@ -55,6 +58,7 @@ export function CityQrCodeModalButton({ citySlug, cityName }: Props) {
 
   function handleOpen() {
     setOpen(true)
+    setJustGenerated(false)
     void loadQr()
   }
 
@@ -66,6 +70,7 @@ export function CityQrCodeModalButton({ citySlug, cityName }: Props) {
       if (!res.ok) throw new Error()
       const json = await res.json()
       setQr(json.data)
+      setJustGenerated(true)
     } catch {
       setError('La génération a échoué. Veuillez réessayer.')
     } finally {
@@ -96,7 +101,9 @@ export function CityQrCodeModalButton({ citySlug, cityName }: Props) {
             <div className="flex flex-col items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={qr.storage_url}
+                // Param anti-cache : le PNG est ré-écrit au même chemin Supabase à chaque
+                // régénération ; sans ce ?v=, le navigateur réafficherait l'ancien en cache.
+                src={`${qr.storage_url}?v=${encodeURIComponent(qr.created_at)}`}
                 alt="QR Code"
                 width={220}
                 height={220}
@@ -130,9 +137,13 @@ export function CityQrCodeModalButton({ citySlug, cityName }: Props) {
           )}
 
           <DialogFooter>
-            <Button onClick={handleGenerate} disabled={generating || loading}>
-              {generating ? 'Génération…' : qr ? 'Régénérer' : 'Générer le QR code'}
-            </Button>
+            {justGenerated ? (
+              <Button onClick={() => setOpen(false)}>Fermer</Button>
+            ) : (
+              <Button onClick={handleGenerate} disabled={generating || loading}>
+                {generating ? 'Génération…' : qr ? 'Régénérer' : 'Générer le QR code'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

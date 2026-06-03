@@ -79,7 +79,10 @@ export function QrCodeCard({ lodgingId, qrCode, scanCount7d }: Props) {
         <CardContent className="space-y-4">
           <div className="flex justify-center">
             <Image
-              src={qrCode.storage_url}
+              // Param anti-cache : le PNG est ré-écrit au même chemin Supabase à chaque
+              // régénération. Sans ?v=, le navigateur réafficherait l'ancien (ex. ancienne
+              // URL localhost) → scan vers le mauvais site.
+              src={`${qrCode.storage_url}?v=${encodeURIComponent(qrCode.created_at)}`}
               alt="QR Code"
               width={200}
               height={200}

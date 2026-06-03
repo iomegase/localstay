@@ -12,7 +12,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 
 import { NextRequest, NextResponse } from 'next/server'
 import { POST, GET } from '@/app/api/admin/cities/[slug]/qr-code/route'
-import { getQrCode, upsertQrCode } from '@/features/qr-code/queries/qr-code'
+import { getQrCode, replaceCityQrCode } from '@/features/qr-code/queries/qr-code'
 import { generateQrPng } from '@/features/qr-code/services/generate-qr'
 import { uploadQrToStorage } from '@/features/qr-code/services/upload-qr'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
@@ -56,7 +56,7 @@ describe('POST /api/admin/cities/[slug]/qr-code — AC-02-01 (super-admin)', () 
     ;(prisma.city.findFirst as jest.Mock).mockResolvedValue(mockCity)
     ;(generateQrPng as jest.Mock).mockResolvedValue(Buffer.from('fake-png'))
     ;(uploadQrToStorage as jest.Mock).mockResolvedValue(mockResult.storage_url)
-    ;(upsertQrCode as jest.Mock).mockResolvedValue(mockResult)
+    ;(replaceCityQrCode as jest.Mock).mockResolvedValue(mockResult)
   })
 
   it('returns 401 when not authenticated', async () => {
@@ -99,6 +99,21 @@ describe('POST /api/admin/cities/[slug]/qr-code — AC-02-01 (super-admin)', () 
     expect(generateQrPng).toHaveBeenCalledWith(
       'https://example.com/guide/saint-gervais-les-bains',
     )
+  })
+
+  it('trims a trailing slash on the base URL (no // in the guide URL)', async () => {
+    const previous = process.env.NEXT_PUBLIC_BASE_URL
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://localstay-psi.vercel.app/'
+    try {
+      await POST(makeReq('POST', 'saint-gervais-les-bains'), {
+        params: { slug: 'saint-gervais-les-bains' },
+      })
+      expect(generateQrPng).toHaveBeenCalledWith(
+        'https://localstay-psi.vercel.app/guide/saint-gervais-les-bains',
+      )
+    } finally {
+      process.env.NEXT_PUBLIC_BASE_URL = previous
+    }
   })
 })
 

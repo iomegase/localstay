@@ -76,7 +76,8 @@ export async function POST(_req: NextRequest, { params }: Params): Promise<NextR
 
   // Même base d'URL que partout (QR ville incluse) : NEXT_PUBLIC_BASE_URL.
   // En dev = http://localhost:3000 ; en prod, doit pointer vers le domaine déployé.
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
+  // On retire un éventuel slash final pour éviter un double slash (…app//guide).
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
   const guideUrl = `${baseUrl}/guide/${lodging.city.slug}?lodging=${id}`
 
   const buffer = await generateQrPng(guideUrl)

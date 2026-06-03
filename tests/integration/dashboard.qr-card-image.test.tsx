@@ -17,12 +17,15 @@ const qr = {
 }
 
 describe('QrCodeCard — affichage de l’image QR', () => {
-  it('serves the QR PNG directly (unoptimized) instead of via the next/image optimizer', () => {
+  it('serves the QR PNG raw (unoptimized) with a cache-busting param so a regenerated QR is not served from cache', () => {
     render(<QrCodeCard lodgingId="lodg-1" qrCode={qr} scanCount7d={0} />)
 
     const img = screen.getByAltText('QR Code')
-    // unoptimized → src = URL Supabase brute. Sans unoptimized, next/image route vers
-    // /_next/image?url=… qui rejette l'hôte (400) → image cassée pour l'utilisateur.
-    expect(img.getAttribute('src')).toBe(qr.storage_url)
+    const src = img.getAttribute('src')
+    // Sert le PNG brut (pas via /_next/image qui rejette l'hôte Supabase)…
+    expect(src).toContain(qr.storage_url)
+    // …mais avec un paramètre anti-cache : sinon, après régénération, le navigateur
+    // réaffiche l'ancien PNG en cache (ancienne URL localhost) → scan vers le mauvais site.
+    expect(src).not.toBe(qr.storage_url)
   })
 })

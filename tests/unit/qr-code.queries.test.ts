@@ -2,7 +2,7 @@ jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     qrCode: {
       findFirst: jest.fn(),
-      update: jest.fn(),
+      deleteMany: jest.fn(),
       create: jest.fn(),
     },
     city: {
@@ -12,7 +12,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { getQrCode, upsertQrCode } from '@/features/qr-code/queries/qr-code'
+import { getQrCode, replaceCityQrCode } from '@/features/qr-code/queries/qr-code'
 import { uploadQrToStorage } from '@/features/qr-code/services/upload-qr'
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>
@@ -51,49 +51,33 @@ describe('getQrCode', () => {
   })
 })
 
-describe('upsertQrCode', () => {
+describe('replaceCityQrCode', () => {
   beforeEach(() => jest.clearAllMocks())
 
-  it('creates a new record when none exists and returns QrCodeResult', async () => {
-    // findFirst returns null → no existing city-level QR code
-    ;(mockPrisma.qrCode.findFirst as jest.Mock).mockResolvedValue(null)
+  it('hard-deletes any existing city-level QR codes, then creates a fresh one', async () => {
+    ;(mockPrisma.qrCode.deleteMany as jest.Mock).mockResolvedValue({ count: 1 })
     ;(mockPrisma.qrCode.create as jest.Mock).mockResolvedValue(QR_ROW)
 
-    const result = await upsertQrCode(
+    const result = await replaceCityQrCode(
       'city-1',
       'saint-gervais-les-bains',
       QR_ROW.url,
       QR_ROW.storage_url,
     )
 
-    expect(mockPrisma.qrCode.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { city_id: 'city-1', lodging_id: null } }),
-    )
+    // Suppression dure des anciens QR ville (lodging_id = null), pas d'archivage
+    expect(mockPrisma.qrCode.deleteMany).toHaveBeenCalledWith({
+      where: { city_id: 'city-1', lodging_id: null },
+    })
+    // Création d'une nouvelle ligne (créée APRÈS la suppression)
     expect(mockPrisma.qrCode.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ city_id: 'city-1', is_active: true }),
       }),
     )
-    expect(result.city_slug).toBe('saint-gervais-les-bains')
-  })
-
-  it('updates the existing record when one exists and returns QrCodeResult', async () => {
-    ;(mockPrisma.qrCode.findFirst as jest.Mock).mockResolvedValue({ id: 'qr-1' })
-    ;(mockPrisma.qrCode.update as jest.Mock).mockResolvedValue(QR_ROW)
-
-    const result = await upsertQrCode(
-      'city-1',
-      'saint-gervais-les-bains',
-      QR_ROW.url,
-      QR_ROW.storage_url,
-    )
-
-    expect(mockPrisma.qrCode.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 'qr-1' },
-        data: expect.objectContaining({ storage_url: QR_ROW.storage_url, is_active: true }),
-      }),
-    )
+    const deleteOrder = (mockPrisma.qrCode.deleteMany as jest.Mock).mock.invocationCallOrder[0]
+    const createOrder = (mockPrisma.qrCode.create as jest.Mock).mock.invocationCallOrder[0]
+    expect(deleteOrder).toBeLessThan(createOrder)
     expect(result.city_slug).toBe('saint-gervais-les-bains')
   })
 })

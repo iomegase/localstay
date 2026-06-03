@@ -30,29 +30,22 @@ export async function getQrCode(citySlug: string): Promise<QrCodeResult | null> 
   return toResult(row, city.slug)
 }
 
-export async function upsertQrCode(
+export async function replaceCityQrCode(
   cityId: string,
   citySlug: string,
   url: string,
   storageUrl: string,
 ): Promise<QrCodeResult> {
-  // city_id is no longer @unique (a city may have multiple QR codes, one per lodging).
-  // For the city-level (lodging_id = null) QR code we find the existing record first.
-  const existing = await prisma.qrCode.findFirst({
+  // Régénération du QR ville : on EFFACE les anciens QR ville (lodging_id = null) — pas
+  // d'archivage, suppression dure — puis on crée une ligne neuve (created_at à jour).
+  await prisma.qrCode.deleteMany({
     where: { city_id: cityId, lodging_id: null },
-    select: { id: true },
   })
 
-  const row = existing
-    ? await prisma.qrCode.update({
-        where: { id: existing.id },
-        data: { url, storage_url: storageUrl, is_active: true, deleted_at: null },
-        select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
-      })
-    : await prisma.qrCode.create({
-        data: { city_id: cityId, url, storage_url: storageUrl, is_active: true },
-        select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
-      })
+  const row = await prisma.qrCode.create({
+    data: { city_id: cityId, url, storage_url: storageUrl, is_active: true },
+    select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
+  })
 
   return toResult(row, citySlug)
 }

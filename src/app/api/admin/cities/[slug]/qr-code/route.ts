@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/shared/lib/prisma'
 import { generateQrPng } from '@/features/qr-code/services/generate-qr'
 import { uploadQrToStorage } from '@/features/qr-code/services/upload-qr'
-import { getQrCode, upsertQrCode } from '@/features/qr-code/queries/qr-code'
+import { getQrCode, replaceCityQrCode } from '@/features/qr-code/queries/qr-code'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
 
 export async function POST(
@@ -22,12 +22,13 @@ export async function POST(
     return NextResponse.json({ error: { code: 'CITY_NOT_FOUND' } }, { status: 404 })
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
+  // Slash final retiré pour éviter un double slash (…app//guide).
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
   const guideUrl = `${baseUrl}/guide/${slug}`
 
   const buffer = await generateQrPng(guideUrl)
   const storageUrl = await uploadQrToStorage(city.slug, buffer)
-  const result = await upsertQrCode(city.id, city.slug, guideUrl, storageUrl)
+  const result = await replaceCityQrCode(city.id, city.slug, guideUrl, storageUrl)
 
   return NextResponse.json({ data: result })
 }
