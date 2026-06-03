@@ -183,6 +183,16 @@ export function LodgingsTable({ lodgings, cities }: Props) {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() =>
+                              router.push(`/dashboard/lodgings/${lodging.id}/qr-code`)
+                            }
+                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
+                          >
+                            <QrCode size={12} />
+                            QR code
+                          </button>
+
+                          <button
+                            onClick={() =>
                               router.push(`/dashboard/lodgings/${lodging.id}/customize`)
                             }
                             className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"

@@ -5,6 +5,11 @@ jest.mock('@/features/qr-code/queries/qr-code', () => ({
   getQrCode: jest.fn(),
 }))
 
+// La page est réservée au super-admin : on simule un admin authentifié.
+jest.mock('@/features/merchant/lib/get-page-admin', () => ({
+  getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
+}))
+
 import { render, screen } from '@testing-library/react'
 import { getQrCode } from '@/features/qr-code/queries/qr-code'
 import QrCodeAdminPage from '@/app/(admin)/cities/[slug]/qr-code/page'

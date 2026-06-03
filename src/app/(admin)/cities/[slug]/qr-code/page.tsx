@@ -1,4 +1,5 @@
 import { getQrCode } from '@/features/qr-code/queries/qr-code'
+import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { QrCodeAdminClient } from './QrCodeAdminClient'
 
 interface Props {
@@ -6,9 +7,11 @@ interface Props {
 }
 
 export default async function QrCodeAdminPage({ params }: Props) {
+  // QR ville réservé au super-admin : redirige si l'utilisateur n'a pas le rôle 'admin'.
+  await getPageAdmin()
+
   const { slug } = await params
   const qr = await getQrCode(slug)
-  const adminSecret = process.env.ADMIN_SECRET ?? ''
 
   if (!qr) {
     return (
@@ -17,7 +20,7 @@ export default async function QrCodeAdminPage({ params }: Props) {
         <div data-testid="qr-empty-state" className="text-gray-500">
           Aucun QR code généré pour cette ville.
         </div>
-        <QrCodeAdminClient citySlug={slug} adminSecret={adminSecret} />
+        <QrCodeAdminClient citySlug={slug} />
       </div>
     )
   }
@@ -56,7 +59,7 @@ export default async function QrCodeAdminPage({ params }: Props) {
         >
           Télécharger PNG
         </a>
-        <QrCodeAdminClient citySlug={slug} adminSecret={adminSecret} />
+        <QrCodeAdminClient citySlug={slug} />
       </div>
     </div>
   )

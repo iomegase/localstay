@@ -83,6 +83,10 @@ export function QrCodeCard({ lodgingId, qrCode, scanCount7d }: Props) {
               alt="QR Code"
               width={200}
               height={200}
+              // QR = PNG Supabase déjà à la bonne taille : on le sert brut. Évite la
+              // ré-optimisation (qui dégrade la lisibilité au scan) et le rejet d'hôte
+              // par /_next/image. Voir tests/integration/dashboard.qr-card-image.
+              unoptimized
               className="rounded-md border border-border"
             />
           </div>

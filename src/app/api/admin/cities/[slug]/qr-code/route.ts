@@ -3,19 +3,15 @@ import { prisma } from '@/shared/lib/prisma'
 import { generateQrPng } from '@/features/qr-code/services/generate-qr'
 import { uploadQrToStorage } from '@/features/qr-code/services/upload-qr'
 import { getQrCode, upsertQrCode } from '@/features/qr-code/queries/qr-code'
-
-function isAuthorized(req: NextRequest): boolean {
-  const auth = req.headers.get('authorization') ?? ''
-  return auth === `Bearer ${process.env.ADMIN_SECRET}`
-}
+import { getSessionAdmin } from '@/features/merchant/lib/session'
 
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })
-  }
+  // QR ville = promotion de l'app : réservé au super-admin (session, rôle 'admin').
+  const session = await getSessionAdmin()
+  if (session.error) return session.error
 
   const { slug } = await params
   const city = await prisma.city.findFirst({
@@ -37,12 +33,11 @@ export async function POST(
 }
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })
-  }
+  const session = await getSessionAdmin()
+  if (session.error) return session.error
 
   const { slug } = await params
   const result = await getQrCode(slug)

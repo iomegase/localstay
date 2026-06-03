@@ -74,8 +74,10 @@ export async function POST(_req: NextRequest, { params }: Params): Promise<NextR
     )
   }
 
-  const domain = process.env.NEXT_PUBLIC_APP_URL ?? 'https://staylocal.app'
-  const guideUrl = `${domain}/guide/${lodging.city.slug}?lodging=${id}`
+  // Même base d'URL que partout (QR ville incluse) : NEXT_PUBLIC_BASE_URL.
+  // En dev = http://localhost:3000 ; en prod, doit pointer vers le domaine déployé.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
+  const guideUrl = `${baseUrl}/guide/${lodging.city.slug}?lodging=${id}`
 
   const buffer = await generateQrPng(guideUrl)
   const storageUrl = await uploadQrToStorage(lodging.city.slug, buffer, id)

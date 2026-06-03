@@ -3,10 +3,9 @@ import { useState } from 'react'
 
 interface Props {
   citySlug: string
-  adminSecret: string
 }
 
-export function QrCodeAdminClient({ citySlug, adminSecret }: Props) {
+export function QrCodeAdminClient({ citySlug }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -15,9 +14,9 @@ export function QrCodeAdminClient({ citySlug, adminSecret }: Props) {
     setLoading(true)
     setError(null)
     try {
+      // Auth portée par le cookie de session (rôle admin), pas de secret côté client.
       const res = await fetch(`/api/admin/cities/${citySlug}/qr-code`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${adminSecret}` },
       })
       if (!res.ok) throw new Error('Erreur serveur')
       window.location.reload()

@@ -111,6 +111,19 @@ describe('POST /api/dashboard/lodgings/[id]/qr-code', () => {
     expect(json.url).toContain('lodging-1')
   })
 
+  it('AC-01-02: encodes the lodging guide URL on the configured base domain (NEXT_PUBLIC_BASE_URL)', async () => {
+    const previous = process.env.NEXT_PUBLIC_BASE_URL
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://staylocal.example'
+    try {
+      await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
+      expect(mockGenerateQrPng).toHaveBeenCalledWith(
+        'https://staylocal.example/guide/saint-gervais?lodging=lodging-1',
+      )
+    } finally {
+      process.env.NEXT_PUBLIC_BASE_URL = previous
+    }
+  })
+
   it('AC-01-03: archives existing QR codes before creating new one', async () => {
     await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
     expect(mockUpdateManyQrCode).toHaveBeenCalledWith(
