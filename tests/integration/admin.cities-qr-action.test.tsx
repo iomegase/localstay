@@ -29,12 +29,18 @@ jest.mock('@/features/admin/components/AdminCityCreateButton', () => ({
   AdminCityCreateButton: () => null,
 }))
 
-describe('AdminCitiesPage — accès au QR code par ville', () => {
-  it('renders a QR code link to the city QR generation page for each city', async () => {
+describe('AdminCitiesPage — génération du QR ville en modal', () => {
+  it('exposes a QR code modal trigger (a button), not a link to a separate page', async () => {
     const page = await AdminCitiesPage()
     render(page)
 
-    const qrLink = screen.getByRole('link', { name: /qr code/i })
-    expect(qrLink).toHaveAttribute('href', '/cities/saint-gervais-les-bains/qr-code')
+    // Déclencheur de modal = bouton
+    expect(screen.getByRole('button', { name: /qr code/i })).toBeInTheDocument()
+
+    // Plus de navigation vers une page dédiée
+    expect(screen.queryByRole('link', { name: /qr code/i })).not.toBeInTheDocument()
+    expect(
+      document.querySelector('a[href="/cities/saint-gervais-les-bains/qr-code"]'),
+    ).toBeNull()
   })
 })

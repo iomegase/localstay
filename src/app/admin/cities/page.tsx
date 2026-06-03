@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminCities } from '@/features/admin/queries/dashboard'
 import { AdminCityCreateButton } from '@/features/admin/components/AdminCityCreateButton'
-import { MapPin, ArrowRight, QrCode } from 'lucide-react'
+import { MapPin, ArrowRight } from 'lucide-react'
+import { CityQrCodeModalButton } from '@/features/admin/components/CityQrCodeModalButton'
 
 const STATUS_LABELS = {
   active: 'Active',
@@ -111,13 +112,7 @@ export default async function AdminCitiesPage() {
                     {/* Action Bouton */}
                     <td className="px-8 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/cities/${city.slug}/qr-code`}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-100 bg-white px-4 py-2.5 text-[13px] font-bold text-gray-600 transition-all duration-300 hover:border-gray-200 hover:text-[#0B1437]"
-                        >
-                          <QrCode size={16} />
-                          QR code
-                        </Link>
+                        <CityQrCodeModalButton citySlug={city.slug} cityName={city.name} />
                         <Link
                           href={`/guide/${city.slug}`}
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-5 py-2.5 text-[13px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white hover:shadow-md"
