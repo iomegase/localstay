@@ -33,27 +33,89 @@ export function shouldAutoFollowCamera(gpsState: TrailGpsState, isFollowing: boo
   return isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
 }
 
-/** Seuils par défaut du tracé réellement parcouru (« breadcrumb »). */
-export const USER_TRACK_MIN_STEP_M = 2
-export const USER_TRACK_MAX_ACCURACY_M = 25
+/** Seuils par défaut du tracé réellement parcouru (« breadcrumb » filtré, façon AllTrails). */
+export interface TrackPointThresholds {
+  /** Pas minimal entre deux points retenus (m). En dessous = bruit GPS. */
+  minStepM: number
+  /** Précision maximale acceptée (m) : on ignore les fix plus flous. */
+  maxAccuracyM: number
+  /** Intervalle minimal entre deux points retenus (ms) : évite les grappes à l'arrêt. */
+  minIntervalMs: number
+  /** Vitesse maximale plausible (m/s) : au-delà = saut GPS aberrant, on rejette. */
+  maxSpeedMps: number
+}
+
+export const USER_TRACK_THRESHOLDS: TrackPointThresholds = {
+  minStepM: 5,
+  maxAccuracyM: 30,
+  minIntervalMs: 3_000,
+  maxSpeedMps: 8, // ~29 km/h : large pour une rando/trail, suffisant pour écarter les sauts
+}
+
+export interface TrackPointSample {
+  /** Dernier point retenu (null si aucun). */
+  last: TrailCoordinate | null
+  /** Horodatage du dernier point retenu (ms, null si aucun). */
+  lastAcceptedAtMs: number | null
+  /** Candidat courant. */
+  next: TrailCoordinate
+  /** Précision rapportée par le GPS (m). */
+  accuracy: number
+  /** Horodatage du candidat courant (ms). */
+  nowMs: number
+}
 
 /**
- * Décide si un fix GPS doit être ajouté au tracé réellement parcouru.
- * On écarte les positions imprécises (accuracy au-dessus du seuil) et celles trop proches
- * du dernier point retenu (< pas minimal), pour limiter le bruit et le nombre de points.
+ * Décide si un fix GPS doit rejoindre le tracé réellement parcouru. On écarte :
+ *  - les fix imprécis (accuracy au-dessus du seuil),
+ *  - les points trop rapprochés dans le temps (< intervalle minimal) → grappes à l'arrêt,
+ *  - les points qui n'ont pas bougé assez (< pas minimal) → bruit GPS,
+ *  - les sauts à vitesse impossible (> vitesse max) → points aberrants.
  */
 export function shouldAcceptTrackPoint(
-  last: TrailCoordinate | null,
-  next: TrailCoordinate,
-  accuracy: number,
-  opts: { minStepM: number; maxAccuracyM: number } = {
-    minStepM: USER_TRACK_MIN_STEP_M,
-    maxAccuracyM: USER_TRACK_MAX_ACCURACY_M,
-  },
+  sample: TrackPointSample,
+  thresholds: TrackPointThresholds = USER_TRACK_THRESHOLDS,
 ): boolean {
-  if (accuracy > opts.maxAccuracyM) return false
-  if (!last) return true
-  return haversineMeters(last, next) >= opts.minStepM
+  const { last, lastAcceptedAtMs, next, accuracy, nowMs } = sample
+  if (accuracy > thresholds.maxAccuracyM) return false
+  if (last === null || lastAcceptedAtMs === null) return true
+
+  const elapsedMs = nowMs - lastAcceptedAtMs
+  if (elapsedMs < thresholds.minIntervalMs) return false
+
+  const distanceM = haversineMeters(last, next)
+  if (distanceM < thresholds.minStepM) return false
+
+  const speedMps = distanceM / (elapsedMs / 1_000)
+  if (speedMps > thresholds.maxSpeedMps) return false
+
+  return true
+}
+
+/**
+ * Lisse un tracé [lng, lat] par moyenne glissante centrée (fenêtre clampée aux bords).
+ * Atténue le jitter GPS sans effacer la forme du parcours. Conserve le nombre de points
+ * et renvoie l'entrée telle quelle en dessous de 3 points ou pour une fenêtre ≤ 1.
+ */
+export function smoothTrack(
+  points: ReadonlyArray<[number, number]>,
+  windowSize = 3,
+): Array<[number, number]> {
+  if (points.length < 3 || windowSize <= 1) return points.map(point => [...point] as [number, number])
+
+  const half = Math.floor(windowSize / 2)
+  return points.map((_, index) => {
+    const from = Math.max(0, index - half)
+    const to = Math.min(points.length - 1, index + half)
+    let sumLng = 0
+    let sumLat = 0
+    for (let i = from; i <= to; i += 1) {
+      sumLng += points[i][0]
+      sumLat += points[i][1]
+    }
+    const count = to - from + 1
+    return [sumLng / count, sumLat / count]
+  })
 }
 
 export function isValidTrailGeometry(value: unknown): value is TrailGeometry {

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
-import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAcceptTrackPoint, shouldAutoFollowCamera } from '../lib/geo'
+import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAcceptTrackPoint, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
 import type { TrailGpsState } from '../lib/geo'
 import { NavigationHud } from './NavigationHud'
 
@@ -55,6 +55,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   // d'un point → seul ce moment reconstruit la géométrie GeoJSON (react-map-gl diffe `data`).
   const userTrackRef = useRef<Array<[number, number]>>([])
   const lastAcceptedPointRef = useRef<TrailCoordinate | null>(null)
+  const lastAcceptedAtRef = useRef<number | null>(null)
   const [trackVersion, setTrackVersion] = useState(0)
   const [gpsState, setGpsState] = useState<GpsState>('ready')
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
@@ -163,12 +164,22 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         setPosition(current)
         setAccuracy(nextPosition.coords.accuracy)
 
-        // Tracé parcouru : on retient le point s'il est assez précis et assez éloigné du
-        // dernier retenu. Indépendant de l'état GPS (off_track / approaching inclus) — on
-        // veut le chemin réel quoi qu'il arrive.
-        if (shouldAcceptTrackPoint(lastAcceptedPointRef.current, current, nextPosition.coords.accuracy)) {
+        // Tracé parcouru : on retient le point s'il est assez précis, assez espacé dans le
+        // temps et l'espace, et à une vitesse plausible (rejet des sauts GPS). Indépendant
+        // de l'état GPS (off_track / approaching inclus) — on veut le chemin réel.
+        const nowMs = nextPosition.timestamp ?? Date.now()
+        if (
+          shouldAcceptTrackPoint({
+            last: lastAcceptedPointRef.current,
+            lastAcceptedAtMs: lastAcceptedAtRef.current,
+            next: current,
+            accuracy: nextPosition.coords.accuracy,
+            nowMs,
+          })
+        ) {
           userTrackRef.current = [...userTrackRef.current, [current.longitude, current.latitude]]
           lastAcceptedPointRef.current = current
+          lastAcceptedAtRef.current = nowMs
           setTrackVersion(version => version + 1)
         }
 
@@ -325,16 +336,16 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     }
   }, [accuracy, position])
 
-  // Tracé réellement parcouru : LineString reconstruite uniquement quand un point est
-  // accepté (trackVersion). Null tant qu'on a < 2 points (pas de ligne possible).
+  // Tracé réellement parcouru : on garde le brut en mémoire (userTrackRef) et on affiche
+  // une version lissée (moyenne glissante) pour atténuer le jitter GPS. Reconstruit
+  // uniquement quand un point est accepté (trackVersion). Null tant qu'on a < 2 points.
   const userTrackLine = useMemo(() => {
     void trackVersion
-    const coordinates = userTrackRef.current
-    if (coordinates.length < 2) return null
+    if (userTrackRef.current.length < 2) return null
     return {
       type: 'Feature' as const,
       properties: {},
-      geometry: { type: 'LineString' as const, coordinates },
+      geometry: { type: 'LineString' as const, coordinates: smoothTrack(userTrackRef.current) },
     }
   }, [trackVersion])
 

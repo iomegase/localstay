@@ -5,6 +5,7 @@ import {
   isValidTrailGeometry,
   shouldAcceptTrackPoint,
   shouldAutoFollowCamera,
+  smoothTrack,
 } from '@/features/trail-navigation/lib/geo'
 import type { TrailGpsState } from '@/features/trail-navigation/lib/geo'
 
@@ -80,32 +81,85 @@ describe('shouldAutoFollowCamera', () => {
 
 describe('shouldAcceptTrackPoint', () => {
   const origin = { latitude: 45.9, longitude: 6.7 }
-  // ~3 m au nord de l'origine (1° lat ≈ 111 320 m → 3 m ≈ 0.0000269°)
-  const movedThreeMeters = { latitude: 45.9 + 0.0000269, longitude: 6.7 }
-  // ~1 m au nord de l'origine
-  const movedOneMeter = { latitude: 45.9 + 0.0000090, longitude: 6.7 }
+  // 1° lat ≈ 111 320 m
+  const movedSixMeters = { latitude: 45.9 + 6 / 111_320, longitude: 6.7 }
+  const movedTwoMeters = { latitude: 45.9 + 2 / 111_320, longitude: 6.7 }
+  const movedHundredMeters = { latitude: 45.9 + 100 / 111_320, longitude: 6.7 }
 
   it('rejects an imprecise fix (accuracy above the max threshold)', () => {
-    expect(shouldAcceptTrackPoint(null, origin, 30)).toBe(false)
-    expect(shouldAcceptTrackPoint(origin, movedThreeMeters, 26)).toBe(false)
+    expect(
+      shouldAcceptTrackPoint({ last: null, lastAcceptedAtMs: null, next: origin, accuracy: 31, nowMs: 1_000 }),
+    ).toBe(false)
   })
 
   it('accepts the first precise point when there is no previous point', () => {
-    expect(shouldAcceptTrackPoint(null, origin, 10)).toBe(true)
+    expect(
+      shouldAcceptTrackPoint({ last: null, lastAcceptedAtMs: null, next: origin, accuracy: 10, nowMs: 1_000 }),
+    ).toBe(true)
   })
 
-  it('accepts a precise point that moved at least the minimum step (2 m)', () => {
-    expect(shouldAcceptTrackPoint(origin, movedThreeMeters, 10)).toBe(true)
+  it('rejects a point recorded too soon (below the minimum interval of 3 s)', () => {
+    expect(
+      shouldAcceptTrackPoint({ last: origin, lastAcceptedAtMs: 1_000, next: movedSixMeters, accuracy: 10, nowMs: 2_500 }),
+    ).toBe(false)
   })
 
-  it('rejects a precise point that barely moved (below the minimum step)', () => {
-    expect(shouldAcceptTrackPoint(origin, movedOneMeter, 10)).toBe(false)
+  it('rejects a point that barely moved (below the minimum step of 5 m)', () => {
+    expect(
+      shouldAcceptTrackPoint({ last: origin, lastAcceptedAtMs: 1_000, next: movedTwoMeters, accuracy: 10, nowMs: 6_000 }),
+    ).toBe(false)
   })
 
-  it('honours custom step and accuracy thresholds', () => {
-    // step relevé à 5 m → un déplacement de 3 m est refusé
-    expect(shouldAcceptTrackPoint(origin, movedThreeMeters, 10, { minStepM: 5, maxAccuracyM: 25 })).toBe(false)
-    // accuracy max relevée à 40 m → un fix à 30 m est accepté
-    expect(shouldAcceptTrackPoint(null, origin, 30, { minStepM: 2, maxAccuracyM: 40 })).toBe(true)
+  it('accepts a precise point that moved ≥5 m after ≥3 s at a plausible speed', () => {
+    expect(
+      shouldAcceptTrackPoint({ last: origin, lastAcceptedAtMs: 1_000, next: movedSixMeters, accuracy: 10, nowMs: 5_000 }),
+    ).toBe(true)
+  })
+
+  it('rejects a GPS jump (implausible speed, e.g. 100 m in 4 s ≈ 25 m/s)', () => {
+    expect(
+      shouldAcceptTrackPoint({ last: origin, lastAcceptedAtMs: 1_000, next: movedHundredMeters, accuracy: 10, nowMs: 5_000 }),
+    ).toBe(false)
+  })
+
+  it('accepts a large gap covered slowly (e.g. after a GPS signal loss)', () => {
+    // 100 m en 120 s ≈ 0.8 m/s → plausible, on raccroche le tracé
+    expect(
+      shouldAcceptTrackPoint({ last: origin, lastAcceptedAtMs: 1_000, next: movedHundredMeters, accuracy: 10, nowMs: 121_000 }),
+    ).toBe(true)
+  })
+
+  it('honours custom thresholds', () => {
+    expect(
+      shouldAcceptTrackPoint(
+        { last: origin, lastAcceptedAtMs: 1_000, next: movedSixMeters, accuracy: 10, nowMs: 5_000 },
+        { minStepM: 10, maxAccuracyM: 30, minIntervalMs: 3_000, maxSpeedMps: 8 },
+      ),
+    ).toBe(false)
+  })
+})
+
+describe('smoothTrack', () => {
+  it('returns the input unchanged when there are fewer than 3 points', () => {
+    expect(smoothTrack([])).toEqual([])
+    expect(smoothTrack([[6.7, 45.9]])).toEqual([[6.7, 45.9]])
+    expect(smoothTrack([[6.7, 45.9], [6.71, 45.9]])).toEqual([[6.7, 45.9], [6.71, 45.9]])
+  })
+
+  it('preserves the number of points', () => {
+    const points: Array<[number, number]> = [
+      [0, 0], [1, 0], [2, 5], [3, 0], [4, 0],
+    ]
+    expect(smoothTrack(points)).toHaveLength(points.length)
+  })
+
+  it('attenuates an isolated spike toward its neighbours', () => {
+    const points: Array<[number, number]> = [
+      [0, 0], [1, 0], [2, 5], [3, 0], [4, 0],
+    ]
+    const smoothed = smoothTrack(points)
+    // Le pic (lat 5) est tiré vers la ligne sans l'effacer complètement
+    expect(smoothed[2][1]).toBeLessThan(5)
+    expect(smoothed[2][1]).toBeGreaterThan(0)
   })
 })
