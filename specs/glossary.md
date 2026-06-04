@@ -46,6 +46,9 @@ Subdivision d'une Category (ex : sous Manger → Restaurant, Café, Marché).
 ### Lodging (Logement)
 Hébergement touristique associé à une City. Génère un QR code pointant vers le Guide de la ville.
 
+### Contact Message (Message de contact)
+Message envoyé par un Tourist depuis la page Contact d'un séjour. Il peut être destiné au Propriétaire ou à la Conciergerie, mais reste toujours visible dans l'inbox Super-admin globale.
+
 ### Owner (Hébergeur)
 Propriétaire ou gestionnaire d'un ou plusieurs Lodgings. Accède au dashboard hébergeur (MVP 2+).
 
