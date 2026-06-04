@@ -15,6 +15,14 @@ const REQUIRED_BUCKETS = [
     fileSizeLimit: 1024 * 1024,
     allowedMimeTypes: ['image/png'],
   },
+  {
+    // Photos owner (couverture) + admin (POI) : png/jpeg convertis en webp avant upload,
+    // webp & avif conservés tels quels → le bucket n'accepte que webp + avif.
+    id: 'guide-photos',
+    public: true,
+    fileSizeLimit: 5 * 1024 * 1024,
+    allowedMimeTypes: ['image/webp', 'image/avif'],
+  },
 ] as const
 
 async function main() {

@@ -6,6 +6,7 @@ import {
   saveLodgingCustomization,
 } from '@/features/guide-customization/queries/customization'
 import { GuideCustomizationError } from '@/features/guide-customization/types'
+import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '@/features/guide-customization/lib/validation'
 
 const featuredPoiSchema = z.object({
   poi_id: z.string().min(1),
@@ -18,7 +19,13 @@ const practicalText = (max: number) =>
   z.string().max(max).nullable().optional()
 
 const customizationSchema = z.object({
-  welcome_message: z.string().max(300).nullable().optional(),
+  welcome_message: z
+    .string()
+    .refine(value => countWords(value) <= WELCOME_MESSAGE_MAX_WORDS, {
+      message: `Le message d'accueil ne doit pas dépasser ${WELCOME_MESSAGE_MAX_WORDS} mots`,
+    })
+    .nullable()
+    .optional(),
   category_order: z.array(z.string().min(1)).default([]),
   featured_pois: z.array(featuredPoiSchema).max(100).default([]),
   // Spec 013 — Infos pratiques

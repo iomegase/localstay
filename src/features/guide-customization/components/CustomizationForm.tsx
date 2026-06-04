@@ -24,6 +24,9 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Input } from '@/shared/components/ui/input'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { MarkdownHint } from '@/shared/components/MarkdownHint'
+import { ImageUpload } from '@/shared/components/ImageUpload'
+import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '../lib/validation'
 import type {
   FeaturedPoiInput,
   LodgingCustomizationResponse,
@@ -91,6 +94,9 @@ export function CustomizationForm({
   initialCustomization,
 }: Props) {
   const [welcomeMessage, setWelcomeMessage] = useState(initialCustomization.welcome_message ?? '')
+  const welcomeWordCount = countWords(welcomeMessage)
+  const welcomeOverLimit = welcomeWordCount > WELCOME_MESSAGE_MAX_WORDS
+  const [welcomePreview, setWelcomePreview] = useState(false)
   const [categoryOrder, setCategoryOrder] = useState(() => {
     const knownSlugs = new Set(categories.map(category => category.slug))
     const ordered = initialCustomization.category_order.filter(slug => knownSlugs.has(slug))
@@ -253,6 +259,9 @@ export function CustomizationForm({
 
   return (
     <div className="space-y-6 pb-32">
+      {/* Aide markdown globale : explique la mise en forme aux owners */}
+      <MarkdownHint />
+
       {/* 1. Message d'accueil */}
       <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
         <div className="border-b border-gray-100 p-6">
@@ -266,13 +275,24 @@ export function CustomizationForm({
         </div>
         <div className="p-6">
           <div className="space-y-2">
-            <Label htmlFor="welcome-message" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-              Message
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="welcome-message" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                Message
+              </Label>
+              {welcomeMessage.trim() !== '' && (
+                <button
+                  type="button"
+                  onClick={() => setWelcomePreview(previewing => !previewing)}
+                  className="inline-flex h-7 items-center rounded-lg bg-[#F4F7FE] px-2.5 text-[10px] font-bold uppercase tracking-widest text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white"
+                >
+                  {welcomePreview ? 'Masquer' : 'Aperçu'}
+                </button>
+              )}
+            </div>
             <div className="group relative">
               <Textarea
                 id="welcome-message"
-                maxLength={300}
+                maxLength={5000}
                 value={welcomeMessage}
                 onChange={event => setWelcomeMessage(event.target.value)}
                 placeholder="Bienvenue, voici nos recommandations locales..."
@@ -280,13 +300,21 @@ export function CustomizationForm({
               />
               <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
             </div>
-            <p className="text-right text-[11px] font-medium text-gray-400">{welcomeMessage.length}/300</p>
+            {welcomePreview && (
+              <div className="mt-3 rounded-[18px] border border-[#0B1437]/15 bg-[#F4F7FE]/40 p-4">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#0B1437]">Aperçu Markdown</p>
+                <MarkdownText source={welcomeMessage} breaks className="text-sm leading-relaxed text-neutral-900" />
+              </div>
+            )}
+            <p className={`text-right text-[11px] font-medium ${welcomeOverLimit ? 'text-rose-500' : 'text-gray-400'}`}>
+              {welcomeWordCount} / {WELCOME_MESSAGE_MAX_WORDS} mots
+            </p>
           </div>
         </div>
       </section>
 
       {/* 2. Infos Pratiques (Sous-composant refondu plus bas) */}
-      <PracticalInfoCard practicalInfo={practicalInfo} setPracticalField={setPracticalField} />
+      <PracticalInfoCard lodgingId={lodgingId} practicalInfo={practicalInfo} setPracticalField={setPracticalField} />
 
       {/* 3. Ordre des catégories */}
       <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
@@ -299,7 +327,9 @@ export function CustomizationForm({
             Glissez les catégories pour définir leur ordre dans le guide.
           </p>
         </div>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        {/* id stable : sinon @dnd-kit génère des ids d'accessibilité non déterministes
+            (DndDescribedBy-N) qui diffèrent entre SSR et client → mismatch d'hydratation. */}
+        <DndContext id="category-order-dnd" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={categoryOrder} strategy={verticalListSortingStrategy}>
             <ol className="flex flex-col">
               {orderedCategories.map(category => (
@@ -421,7 +451,8 @@ export function CustomizationForm({
             <button
               type="button"
               onClick={saveCustomization}
-              disabled={status === 'saving'}
+              disabled={status === 'saving' || welcomeOverLimit}
+              title={welcomeOverLimit ? `Message d'accueil limité à ${WELCOME_MESSAGE_MAX_WORDS} mots` : undefined}
               className="group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Save size={14} className="transition-transform duration-300 group-hover:scale-110" />
@@ -539,9 +570,11 @@ const PRACTICAL_SECTIONS: PracticalSection[] = [
 ]
 
 function PracticalInfoCard({
+  lodgingId,
   practicalInfo,
   setPracticalField,
 }: {
+  lodgingId: string
   practicalInfo: PracticalInfoFields
   setPracticalField: <K extends keyof PracticalInfoFields>(key: K, value: string) => void
 }) {
@@ -582,6 +615,13 @@ function PracticalInfoCard({
             <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
           </div>
 
+          {/* Upload natif (en plus de l'URL) : convertit png/jpeg → webp côté serveur */}
+          <ImageUpload
+            endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
+            onUploaded={url => setPracticalField('cover_photo_url', url)}
+            label="Téléverser une photo"
+          />
+
           {practicalInfo.cover_photo_url && practicalInfo.cover_photo_url.trim() !== '' && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -592,7 +632,7 @@ function PracticalInfoCard({
             />
           )}
           <p className="text-[10px] uppercase tracking-widest text-gray-300">
-            URL d&apos;une image (.jpg, .png, .webp). L&apos;upload natif arrivera plus tard.
+            Collez une URL d&apos;image, ou téléversez un fichier (PNG, JPEG, WebP, AVIF).
           </p>
         </div>
 

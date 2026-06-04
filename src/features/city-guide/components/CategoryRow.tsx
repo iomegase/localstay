@@ -35,18 +35,6 @@ export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlu
 
   return (
     <div className="flex gap-5 overflow-x-auto px-6 no-scrollbar pt-2 pb-2" data-testid="category-row">
-      <Link
-        href={categoryHref(citySlug, undefined, lodgingId)}
-        className="group shrink-0 flex flex-col items-center gap-3"
-      >
-        <div className="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gold group-hover:shadow-md transition-shadow active:scale-95">
-          <LucideIcons.LayoutGrid className="w-5 h-5" />
-        </div>
-        <span className="text-[9px] text-gold font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
-          Tous
-        </span>
-      </Link>
-
       {categories.map((cat) => {
         const isActive = cat.slug === activeCategorySlug
         return (

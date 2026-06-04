@@ -1,6 +1,16 @@
 const GUIDE_RADIUS_KM = 30
 const FEATURED_POI_LIMIT_PER_CATEGORY = 5
 
+/** Limite du message d'accueil owner : 400 mots (et non caractères). */
+export const WELCOME_MESSAGE_MAX_WORDS = 400
+
+/** Compte les mots d'un texte (séquences séparées par n'importe quel blanc). */
+export function countWords(text: string): number {
+  const trimmed = text.trim()
+  if (trimmed === '') return 0
+  return trimmed.split(/\s+/).length
+}
+
 export interface CategoryOrderFilterResult {
   category_order: string[]
   ignored_category_slugs: string[]

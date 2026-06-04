@@ -63,7 +63,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
           Points d&apos;intérêt
         </p> */}
-        <h1 className=" text-5xl font-thin  leading-none text-charcoal">
+        <h1 className=" text-6xl font-thin  leading-none text-charcoal">
           {detail.name}
         </h1>
         {/* <p className="mt-4 text-xs leading-6 text-gray-500">

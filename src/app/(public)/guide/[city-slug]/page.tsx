@@ -5,20 +5,30 @@ import { t } from '@/shared/lib/i18n'
 import Link from 'next/link'
 import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { MarkdownText } from '@/shared/components/MarkdownText'
+import { GuideSearchInput } from '@/features/city-guide/components/GuideSearchInput'
+import { SortControl } from '@/features/categories/components/SortControl'
+import { AllPoisList } from '@/features/categories/components/AllPoisList'
+import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
-  searchParams?: Promise<{ lodging?: string }>
+  searchParams?: Promise<{ lodging?: string; sort?: string }>
 }
 
 export default async function GuidePage({ params, searchParams }: Props) {
   const { 'city-slug': slug } = await params
-  const { lodging: lodgingFromQuery } = (await searchParams) ?? {}
+  const sp = (await searchParams) ?? {}
+  const lodgingFromQuery = sp.lodging
+  const sort = sp.sort === 'rating' ? 'rating' : 'distance'
   const lodgingFromCookie = await getActiveLodgingContext()
   const lodging = lodgingFromQuery ?? lodgingFromCookie?.lodgingId
   void recordQrScanIfPresent(lodgingFromQuery ?? null)
-  const guide = await getCityGuide(slug, { lodgingId: lodging })
+  const [guide, allPois] = await Promise.all([
+    getCityGuide(slug, { lodgingId: lodging }),
+    getAllPoiCards(slug, { sort, page: 1, limit: 10 }),
+  ])
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.
   if (!guide) {
@@ -30,42 +40,29 @@ export default async function GuidePage({ params, searchParams }: Props) {
 
   return (
     <>
+
       <div className="flex justify-between items-end mb-4 p-4">
         <div>
-          <h2 className="text-3xl font-light italic font-serif text-charcoal">
-            {city.name}
-          </h2>
-          <p className="text-gray-400 text-xs tracking-wide mt-0.5">
-            {t('guide.subtitle')}
-          </p>
-        </div>
-        <div className="text-right">
+           <div className="text-right">
           <p className="text-[10px] font-bold text-gold uppercase tracking-widest">
             Météo
           </p>
           <p className="text-[10px] text-blue-500 font-medium">--°C</p>
         </div>
+          <h2 className="text-2xl font-light uppercase text-charcoal">
+            {/* {city.name} */}Le guide
+          </h2>
+          <p className="text-gray-400 text-xs tracking-wide mt-4 leading-6">
+            {/* {t('guide.subtitle')} */}Découvrez nos recommandations pour profiter de votre séjour au mieux
+          </p>
+        </div>
+       
       </div>
 
-      {guide.welcome_message && (
-        <div className="mx-4 mb-5 rounded-3xl bg-white/80 border border-gray-100 px-5 py-4 text-sm leading-relaxed text-charcoal shadow-sm">
-          {guide.welcome_message}
-        </div>
-      )}
-
       <section className="mt-4 mb-8 px-4">
-        <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-full px-6 py-4 shadow-sm">
-          <Search className="w-4 h-4 text-gray-300" />
-          <input
-            type="text"
-            placeholder="Une envie particulière ?"
-            className="bg-transparent text-sm outline-none w-full placeholder:text-gray-300"
-            aria-label="Rechercher une envie"
-          />
-        </div>
+        <GuideSearchInput citySlug={slug} lodgingId={lodging} />
       </section>
-
-      {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
+           {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
       {categories.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-8 py-16 text-center gap-4">
           <p className="text-gray-500 text-sm leading-relaxed">
@@ -84,8 +81,29 @@ export default async function GuidePage({ params, searchParams }: Props) {
             <CategoryRow categories={categories} citySlug={slug} lodgingId={lodging} />
           </section>
 
-          <section>
-            <h2 className="text-xl p-4 font-light italic font-serif text-charcoal">
+          {/* Vue « Tous » par défaut : tous les POI de la ville, scroll infini (10 par 10) */}
+          <section className="mb-10">
+            <SortControl currentSort={sort} />
+            <AllPoisList
+              citySlug={slug}
+              initialItems={allPois?.items ?? []}
+              initialMeta={allPois?.meta ?? { page: 1, limit: 10, total: 0, total_pages: 0 }}
+              sort={sort}
+              lodgingId={lodging}
+            />
+          </section>
+
+      {/* {guide.welcome_message && (
+        <div className="mx-4 mb-5  py-4 text-sm leading-relaxed text-charcoal shadow-sm">
+          <MarkdownText source={guide.welcome_message} breaks className="text-sm leading-relaxed text-charcoal" />
+        </div>
+      )} */}
+
+    
+ 
+
+          {/* <section>
+            <h2 className="text-xl p-4 font-light uppercase text-charcoal">
               Nos coups de coeur
             </h2>
             <Link
@@ -118,7 +136,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
                 </div>
               </div>
             </Link>
-          </section>
+          </section> */}
         </>
       )}
     </>

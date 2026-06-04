@@ -72,9 +72,26 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(json.error.code).toBe('FORBIDDEN')
   })
 
-  it('returns 400 when the welcome message exceeds 300 characters', async () => {
+  it('accepts a long welcome message over 300 characters but within 400 words', async () => {
+    mockSaveCustomization.mockResolvedValue(responseBody)
+    // 350 mots ≈ 1 400 caractères : refusé par l'ancienne limite de 300 caractères,
+    // accepté par la nouvelle limite de 400 mots.
+    const longMessage = Array.from({ length: 350 }, () => 'mot').join(' ')
+
     const res = await PUT(
-      makeRequest('PUT', { welcome_message: 'x'.repeat(301), category_order: [], featured_pois: [] }),
+      makeRequest('PUT', { welcome_message: longMessage, category_order: [], featured_pois: [] }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockSaveCustomization).toHaveBeenCalled()
+  })
+
+  it('returns 400 when the welcome message exceeds 400 words', async () => {
+    const tooManyWords = Array.from({ length: 401 }, () => 'mot').join(' ')
+
+    const res = await PUT(
+      makeRequest('PUT', { welcome_message: tooManyWords, category_order: [], featured_pois: [] }),
       { params: Promise.resolve({ id: 'lodging-1' }) },
     )
 

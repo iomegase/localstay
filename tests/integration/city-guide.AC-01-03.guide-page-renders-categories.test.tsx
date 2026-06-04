@@ -5,7 +5,12 @@ import { render, screen } from '@testing-library/react'
 import type { CityGuide } from '@/features/city-guide/types'
 
 const mockNotFound = jest.fn()
-jest.mock('next/navigation', () => ({ notFound: () => mockNotFound() }))
+jest.mock('next/navigation', () => ({
+  notFound: () => mockNotFound(),
+  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/guide/saint-gervais-les-bains',
+}))
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -17,6 +22,16 @@ jest.mock('@/features/city-guide/queries/cities', () => ({
 }))
 jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
   recordQrScanIfPresent: jest.fn().mockResolvedValue(undefined),
+}))
+jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
+  getActiveLodgingContext: jest.fn().mockResolvedValue(null),
+}))
+jest.mock('@/features/categories/queries/all-poi-cards', () => ({
+  getAllPoiCards: jest.fn().mockResolvedValue({ items: [], meta: { page: 1, limit: 10, total: 0, total_pages: 0 } }),
+}))
+// react-markdown est ESM → on stubbe MarkdownText (importé via la liste « Tous » → PoiCard).
+jest.mock('@/shared/components/MarkdownText', () => ({
+  MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
 }))
 
 import { getCityGuide } from '@/features/city-guide/queries/cities'
@@ -44,7 +59,7 @@ describe('GuidePage (AC-01-03)', () => {
     const jsx = await GuidePage({ params: { 'city-slug': 'saint-gervais-les-bains' } })
     render(jsx)
 
-    expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
+    // L'en-tête affiche désormais « Le guide » (le nom de ville a été retiré du design).
     expect(screen.getAllByText('Restaurants').length).toBeGreaterThan(0)
     expect(screen.getByText('Randonnées')).toBeInTheDocument()
   })
@@ -55,8 +70,6 @@ describe('GuidePage (AC-01-03)', () => {
     render(jsx)
 
     expect(screen.getByPlaceholderText('Une envie particulière ?')).toBeInTheDocument()
-    expect(screen.getByText('Tous')).toBeInTheDocument()
-    expect(screen.getByText('Nos coups de coeur')).toBeInTheDocument()
     expect(screen.queryByTestId('category-grid')).not.toBeInTheDocument()
     expect(screen.getByTestId('category-row')).toHaveClass('overflow-x-auto')
   })

@@ -26,6 +26,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import type { AdminPoiCategory, AdminPoiDetail } from '../types'
 import { TrailGpxUploader } from './TrailGpxUploader'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { ImageUpload } from '@/shared/components/ImageUpload'
 
 type Props = {
   poi: AdminPoiDetail
@@ -386,6 +387,15 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             {photoUrlError && (
               <p className="mt-3 text-[13px] font-medium text-red-600">{photoUrlError}</p>
             )}
+
+            {/* Upload natif (en plus de l'URL) : png/jpeg → webp côté serveur */}
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <ImageUpload
+                endpoint="/api/admin/pois/photo"
+                onUploaded={addUploadedPhoto}
+                label="Téléverser une image"
+              />
+            </div>
           </div>
 
           <DndContext id={dndContextId} sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={reorderPhotos}>
@@ -613,6 +623,11 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
     }
     setPhotos(current => [...current, trimmed])
     setNewPhotoUrl('')
+  }
+
+  function addUploadedPhoto(url: string) {
+    setPhotoUrlError(null)
+    setPhotos(current => (current.length >= 12 || current.includes(url) ? current : [...current, url]))
   }
 
   function removePhoto(index: number) {

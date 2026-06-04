@@ -99,3 +99,85 @@ export async function getCityGuide(
     welcome_message: customization?.welcome_message ?? null,
   }
 }
+
+export interface GuideSearchPoi {
+  id: string
+  name: string
+  slug: string
+  category_slug: string
+  subcategory_name: string | null
+  photo: string | null
+}
+
+export interface GuideSearchCategory {
+  name: string
+  slug: string
+}
+
+export interface GuideSearchResults {
+  pois: GuideSearchPoi[]
+  categories: GuideSearchCategory[]
+}
+
+/**
+ * Recherche dans le guide d'une ville : POIs (nom OU sous-catégorie) + catégories (nom).
+ * Insensible à la casse. Renvoie un résultat vide en dessous de 2 caractères.
+ */
+export async function searchGuide(citySlug: string, q: string): Promise<GuideSearchResults> {
+  const term = q.trim()
+  if (term.length < 2) return { pois: [], categories: [] }
+
+  const [pois, categories] = await Promise.all([
+    prisma.pointOfInterest.findMany({
+      where: {
+        is_active: true,
+        deleted_at: null,
+        city: { slug: citySlug, is_active: true, deleted_at: null },
+        category: { is_active: true, deleted_at: null },
+        OR: [
+          { name: { contains: term, mode: 'insensitive' } },
+          { subcategory: { name: { contains: term, mode: 'insensitive' } } },
+        ],
+      },
+      orderBy: { name: 'asc' },
+      take: 6,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        photos: true,
+        category: { select: { slug: true } },
+        subcategory: { select: { name: true } },
+      },
+    }),
+    prisma.category.findMany({
+      where: {
+        is_active: true,
+        deleted_at: null,
+        name: { contains: term, mode: 'insensitive' },
+        pois: {
+          some: {
+            is_active: true,
+            deleted_at: null,
+            city: { slug: citySlug, is_active: true, deleted_at: null },
+          },
+        },
+      },
+      orderBy: { sort_order: 'asc' },
+      take: 4,
+      select: { name: true, slug: true },
+    }),
+  ])
+
+  return {
+    pois: pois.map(poi => ({
+      id: poi.id,
+      name: poi.name,
+      slug: poi.slug,
+      category_slug: poi.category.slug,
+      subcategory_name: poi.subcategory?.name ?? null,
+      photo: poi.photos[0] ?? null,
+    })),
+    categories: categories.map(category => ({ name: category.name, slug: category.slug })),
+  }
+}

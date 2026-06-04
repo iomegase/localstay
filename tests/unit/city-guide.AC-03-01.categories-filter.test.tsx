@@ -33,9 +33,8 @@ describe('CategoryRow (AC-03-01, AC-03-02)', () => {
   it('AC-03-02: each category links to /guide/[citySlug]/[categorySlug]', () => {
     render(<CategoryRow categories={categories} citySlug="saint-gervais-les-bains" />)
     const links = screen.getAllByRole('link')
-    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains')
-    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants')
-    expect(links[2]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees')
+    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants')
+    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees')
   })
 
   it('marks the active category with aria-current when activeCategorySlug matches', () => {
@@ -49,8 +48,6 @@ describe('CategoryRow (AC-03-01, AC-03-02)', () => {
     const activeLink = screen.getByText('Randonnées').closest('a')
     expect(activeLink).toHaveAttribute('aria-current', 'page')
     expect(screen.getByText('Restaurants').closest('a')).not.toHaveAttribute('aria-current')
-    // "Tous" is not the active category here
-    expect(screen.getByText('Tous').closest('a')).not.toHaveAttribute('aria-current')
   })
 
   it('marks no category as active when activeCategorySlug is omitted (city page unchanged)', () => {
@@ -69,8 +66,7 @@ describe('CategoryRow (AC-03-01, AC-03-02)', () => {
       />
     )
     const links = screen.getAllByRole('link')
-    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains?lodging=lodging-1')
-    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants?lodging=lodging-1')
-    expect(links[2]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees?lodging=lodging-1')
+    expect(links[0]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/restaurants?lodging=lodging-1')
+    expect(links[1]).toHaveAttribute('href', '/guide/saint-gervais-les-bains/randonnees?lodging=lodging-1')
   })
 })
