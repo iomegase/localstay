@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-05-23
+updated_at: 2026-06-04
 depends_on: [001-city-guide]
 ```
 
@@ -97,6 +97,7 @@ Cette spec couvre uniquement l'authentification commune aux trois rôles via Sup
 - **BR-06**: À l'inscription, `Subscription` créé automatiquement en `trial` gratuit 12 mois — aucun paiement
 - **BR-07**: Monolingue français en MVP 2 — architecture i18n préparée
 - **BR-08**: Aucune auth sociale (Google, Apple) en MVP 2
+- **BR-09**: `/auth/login` est la route canonique de connexion. Toute route legacy `/login` doit rediriger vers `/auth/login` et ne doit pas rendre un second formulaire de connexion.
 
 ---
 
@@ -357,7 +358,7 @@ components:
 - Lien "Créer un compte" → `/auth/register`
 - **Loading** : bouton désactivé + spinner
 - **Error** : message inline "Email ou mot de passe incorrect"
-- Design : charte StayLocal (`#FAF9F6`, serif italic, `max-w-[430px]`)
+- Design : charte MyStay (`#FAF9F6`, serif italic, `max-w-[430px]`)
 
 ### Page : `/auth/register`
 - Formulaire : prénom + nom + email + mot de passe + sélecteur rôle (Hébergeur / Prestataire)
@@ -392,6 +393,7 @@ components:
 | AC-03-02 | Session expirée → redirect /auth/login sans erreur | e2e |
 | AC-04-01 | Forgot password → email envoyé (réponse identique) | unit |
 | AC-04-02 | Reset password → mdp mis à jour + redirect login | integration |
+| BR-09 | `/login` legacy redirige vers `/auth/login` | unit |
 
 ---
 

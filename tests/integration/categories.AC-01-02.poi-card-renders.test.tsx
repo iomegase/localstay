@@ -72,20 +72,20 @@ describe('PoiCard — accordion behaviour', () => {
   it('reveals the description only after expanding', () => {
     render(
       <PoiCard
-        poi={{ ...poi, owner_note: 'Notre table préférée après une randonnée.' }}
+        poi={{ ...poi, description: 'Une table recommandée après une randonnée.' }}
         citySlug="saint-gervais-les-bains"
         categorySlug="restaurants"
       />,
     )
-    expect(screen.queryByText('Notre table préférée après une randonnée.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Une table recommandée après une randonnée.')).not.toBeInTheDocument()
     fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
-    expect(screen.getByText('Notre table préférée après une randonnée.')).toBeInTheDocument()
+    expect(screen.getByText('Une table recommandée après une randonnée.')).toBeInTheDocument()
   })
 
   it('renders the description through MarkdownText (markdown-aware)', () => {
     render(
       <PoiCard
-        poi={{ ...poi, owner_note: '## Traversée\nDepuis la gare.' }}
+        poi={{ ...poi, description: '## Traversée\nDepuis la gare.' }}
         citySlug="saint-gervais-les-bains"
         categorySlug="restaurants"
       />,
@@ -130,7 +130,7 @@ describe('PoiCard — infos POI (non-rando)', () => {
   it('hides the stars when no rating is available', () => {
     render(
       <PoiCard
-        poi={{ ...poi, rating: null, owner_rating: null }}
+        poi={{ ...poi, rating: null }}
         citySlug="saint-gervais-les-bains"
         categorySlug="restaurants"
       />,

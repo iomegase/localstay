@@ -23,7 +23,7 @@
 |---|---|---|---|---|
 | AC-01-01 | Scan QR → LCP < 3s sur 4G (Lighthouse Mobile) | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/e2e/city-guide.AC-01-01.lcp-under-3s.test.ts` | ✅ done |
 | AC-01-02 | Slug inexistant → 404 avec lien retour | `src/app/(public)/guide/[city-slug]/not-found.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-01-02.slug-not-found-404.test.ts`<br>`tests/e2e/city-guide.AC-01-01.lcp-under-3s.test.ts` | ✅ done |
-| AC-01-03 | Nom ville + catégories disponibles affichés | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/features/city-guide/components/CategoryRow.tsx` | `tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
+| AC-01-03 | Intitulé guide + catégories disponibles affichés | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/features/city-guide/components/CategoryRow.tsx` | `tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
 | AC-02-01 | Saisie ville valide → redirection guide | `src/features/city-guide/components/CitySearchInput.tsx` | `tests/integration/city-guide.AC-02-01.city-search-redirect.test.tsx` | ✅ done |
 | AC-02-02 | Saisie sans résultat → message clair | `src/features/city-guide/components/CitySearchInput.tsx` | `tests/unit/city-guide.AC-02-02.no-result-message.test.tsx` | ✅ done |
 | AC-02-03 | Autocomplétion dès 3 chars, max 10, accent-insensitive | `src/app/api/cities/search/route.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/city-guide/components/CitySearchInput.tsx` | `tests/unit/city-guide.AC-02-03.autocomplete-logic.test.ts`<br>`tests/unit/city-guide.AC-02-02.no-result-message.test.tsx` | ✅ done |
@@ -31,6 +31,7 @@
 | AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | `src/features/city-guide/components/CategoryRow.tsx` | `tests/unit/city-guide.AC-03-01.categories-filter.test.tsx`<br>`tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts` | ✅ done |
 | AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal, conforme mockup `001-city-guide/home.html` | `src/app/(public)/layout.tsx`<br>`src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/features/city-guide/components/CategoryRow.tsx`<br>`src/features/city-guide/components/PublicMenu.tsx` | `tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx`<br>`tests/unit/public-layout.mockup-menu.test.tsx` | ✅ done |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-03-04.empty-city-200.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
+| BR-09 | Nom produit MyStay + libellés publics `Bienvenue`, `Vos favoris`, `Les recommandations de {owner.name}` | `src/app/(public)/layout.tsx`<br>`src/features/city-guide/components/PublicMenu.tsx`<br>`src/features/public-menu/lib/lodging-mode.ts` | `tests/unit/public-layout.mockup-menu.test.tsx` | ✅ done |
 
 ---
 
@@ -63,6 +64,7 @@
 | AC-03-01 | Clic card → redirection fiche POI | `src/features/categories/components/PoiCard.tsx` | `tests/e2e/categories.AC-03-01.poi-navigation.test.ts` | ✅ done |
 | BR-01a | Distance affichée depuis GPS après opt-in, fallback centre-ville | `src/features/categories/components/CategoryViewWrapper.tsx` | `tests/unit/categories.AC-nearby-section.test.tsx` | ✅ done |
 | BR-05 | Pagination progressive "Charger plus", limit max 50 | `src/app/api/cities/[slug]/categories/[category-slug]/pois/route.ts`<br>`src/features/categories/queries/poi-cards.ts`<br>`src/features/categories/components/CategoryViewWrapper.tsx` | `tests/contract/categories.AC-poi-list-api.test.ts`<br>`tests/unit/categories.AC-01-01-02-01.poi-sorting.test.ts`<br>`tests/unit/categories.AC-nearby-section.test.tsx` | ✅ done |
+| BR-05a | Infinite scroll home Guide "Tous les POI" par lots de 10 | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/pois/route.ts`<br>`src/features/categories/queries/all-poi-cards.ts`<br>`src/features/categories/components/AllPoisList.tsx` | `tests/contract/all-pois.api.test.ts` | ✅ done |
 
 ---
 
@@ -108,6 +110,7 @@
 | AC-02-01 | QR code PNG avec bonne URL | `src/features/qr-code/services/generate-qr.ts`<br>`src/app/api/admin/cities/[slug]/qr-code/route.ts` | `tests/contract/qr-code.AC-02-01.api.test.ts` | ✅ done |
 | AC-02-02 | PNG 1000×1000px minimum | `src/features/qr-code/services/generate-qr.ts` | `tests/unit/qr-code.AC-02-02.generate-qr.test.ts` | ✅ done |
 | AC-02-03 | Lisible imprimé 10×10cm | — | — | ⬜ manual |
+| BR-06 | Remplacement QR City par suppression physique de l'ancien QR | `src/features/qr-code/queries/qr-code.ts`<br>`prisma/schema.prisma` | `tests/unit/qr-code.queries.test.ts` | ✅ done |
 
 ---
 
@@ -164,6 +167,7 @@
 | BR-04 | Cross-role access → redirect vers dashboard propre | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
 | BR-05 | Mot de passe minimum 8 caractères (Zod) | `src/features/auth/schemas.ts` | `tests/contract/auth.AC-register.test.ts`<br>`tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
 | BR-06 | Subscription trial 12 mois à l'inscription | `src/features/auth/lib/subscription.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |
+| BR-09 | `/login` legacy redirige vers `/auth/login` et ne rend pas un second formulaire | `src/app/(auth)/login/page.tsx`<br>`src/app/auth/login/page.tsx`<br>`src/features/auth/components/LoginPage.tsx` | `tests/unit/auth.BR-09.legacy-login-route.test.ts`<br>`tests/integration/auth.AC-02-01.login-page-redirect.test.tsx` | ✅ done |
 
 ## 010 — Dashboard Owner
 
@@ -185,7 +189,7 @@
 |---|---|---|---|---|
 | AC-01-01 | QR code généré avec URL correcte | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | AC-01-02 | Téléchargement PNG 1000×1000px | `src/features/qr-code/services/generate-qr.ts` | `tests/unit/qr-code.AC-02-02.generate-qr.test.ts` | ✅ done |
-| AC-01-03 | Régénération archive l'ancien (deleted_at + is_active=false) | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+| AC-01-03 | Régénération supprime physiquement l'ancien QR logement avant création | `src/features/dashboard-owner/queries/qr-code.ts`<br>`src/app/api/dashboard/lodgings/[id]/qr-code/route.ts`<br>`prisma/schema.prisma` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | AC-02-01 | qr_scan enregistré dans Analytics via page guide | `src/features/analytics/lib/record-qr-scan.ts` | `tests/contract/guide.AC-02-01.analytics-scan.test.ts` | ✅ done |
 | BR-01 | 1 QR actif max par logement | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | BR-05 | Owner ne génère que ses propres QR codes | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
@@ -195,15 +199,17 @@
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-01-01 | Message d'accueil sauvegardé | `src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/features/guide-customization/queries/customization.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts` | ✅ done |
-| AC-01-02 | Message affiché si lodging param présent | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/route.ts`<br>`src/features/city-guide/queries/cities.ts` | `tests/contract/guide-customization.AC-01-02.public-routes.test.ts` | ✅ done |
+| AC-01-02 | Accueil séjour `/` affiche photo logement, message d'accueil et CTA guide | `src/app/(public)/page.tsx`<br>`src/features/public-menu/lib/lodging-mode.ts` | `tests/unit/public-home.lodging-home.test.tsx`<br>`tests/contract/guide-customization.AC-01-02.public-routes.test.ts` | ✅ done |
 | AC-02-01 | POI favoris affichés exclusivement dans le guide personnalisé | `src/features/categories/queries/poi-cards.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts` | ✅ done |
-| AC-02-02 | Note personnelle affichée sur card | `src/features/categories/components/PoiCard.tsx`<br>`src/features/categories/types.ts` | `tests/integration/categories.AC-01-02.poi-card-renders.test.tsx` | ✅ done |
+| AC-02-02 | Recommandation Owner affichée sans `owner_note` ni `owner_rating` persistants | `src/features/categories/components/PoiCard.tsx`<br>`src/features/categories/types.ts`<br>`src/features/guide-customization/queries/customization.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/app/(public)/services-prives/page.tsx` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts`<br>`tests/integration/categories.AC-01-02.poi-card-renders.test.tsx` | ✅ done |
 | AC-02-03 | Sans lodging param → guide standard | `src/features/categories/queries/poi-cards.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts` | ✅ done |
 | AC-03-01 | Ordre catégories sauvegardé et appliqué | `src/features/guide-customization/queries/customization.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/categories/queries/categories.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts`<br>`tests/unit/guide-customization.AC-03-01.category-order.test.ts` | ✅ done |
+| AC-04-01 | Infos pratiques logement sauvegardées et affichées sur `/le-logement` | `src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/features/guide-customization/queries/customization.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/app/(public)/le-logement/page.tsx` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts` | ✅ done |
+| AC-04-02 | Upload photo logement conservé et affiché sur l'accueil séjour | `src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/app/api/dashboard/lodgings/[id]/cover-photo/route.ts`<br>`src/shared/lib/image-upload.ts`<br>`src/shared/lib/image-upload-service.ts`<br>`src/app/(public)/page.tsx` | `tests/unit/image-upload-format.test.ts`<br>`tests/unit/public-home.lodging-home.test.tsx` | ✅ done |
 | BR-07 | Owner isolation sur GET/PUT customization | `src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts` | ✅ done |
 | BR-08/09 | POI favori limité au périmètre du Guide | `src/features/guide-customization/lib/validation.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/guide-customization.BR-08-10.validation.test.ts` | ✅ done |
 | BR-10 | Catégories invalides isolées et non sauvegardées | `src/features/guide-customization/lib/validation.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/guide-customization.BR-08-10.validation.test.ts` | ✅ done |
-| BR-12 | Avec recommandations, catégories/POI publics filtrés sur la sélection Owner | `src/features/guide-customization/queries/customization.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/categories/queries/categories.ts`<br>`src/features/categories/queries/poi-cards.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts`<br>`tests/unit/guide-customization.AC-03-01.category-order.test.ts` | ✅ done |
+| BR-12 | Avec recommandations, catégories/POI publics filtrés sur la sélection Owner, y compris home Guide all-POI | `src/features/guide-customization/queries/customization.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/categories/queries/categories.ts`<br>`src/features/categories/queries/poi-cards.ts`<br>`src/features/categories/queries/all-poi-cards.ts` | `tests/unit/guide-customization.AC-02-01-02-03.poi-featured-order.test.ts`<br>`tests/unit/guide-customization.AC-03-01.category-order.test.ts`<br>`tests/contract/all-pois.api.test.ts` | ✅ done |
 
 ## 013 — Subscription Owner
 

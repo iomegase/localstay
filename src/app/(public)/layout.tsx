@@ -16,7 +16,7 @@ export default async function PublicLayout({
       {/* Glassmorphism sticky header — masqué en mode immersif */}
       <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50 immersive-hide">
         <Link href="/" className="flex items-center" aria-label="Accueil">
-          {/* <img src="/logo.png" alt="StayLocal" className="h-5 w-auto" /> */}
+          {/* <img src="/logo.png" alt="MyStay" className="h-5 w-auto" /> */}
           <p className="text-[30px] font-thin text-pine" style={{ fontFamily: 'Lobster, cursive' }}>
             my <span className="text-gold">stay</span>
           </p>
@@ -24,6 +24,7 @@ export default async function PublicLayout({
         <PublicMenu
           mode={mode}
           lodgingName={lodgingContext?.lodgingName ?? null}
+          ownerName={lodgingContext?.ownerName ?? null}
           citySlug={lodgingContext?.citySlug ?? null}
         />
       </header>
@@ -34,11 +35,11 @@ export default async function PublicLayout({
       {/* Floating bottom navigation bar — masqué en mode immersif */}
       <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] immersive-hide">
         <div className="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl">
-          <NavItem icon={<Compass className="w-5 h-5" />} label="Explorer" href="/" active />
+          <NavItem icon={<Compass className="w-5 h-5" />} label="Bienvenue" href="/" active />
           {mode === 'lodging' ? (
             <>
               <NavItem icon={<Home className="w-5 h-5" />} label="Logement" href="/le-logement" />
-              <NavItem icon={<Heart className="w-5 h-5" />} label="Favoris" href="/mes-favoris" />
+              <NavItem icon={<Heart className="w-5 h-5" />} label="Vos favoris" href="/mes-favoris" />
               <NavItem
                 icon={<Map className="w-5 h-5" />}
                 label="Guide"
@@ -48,7 +49,7 @@ export default async function PublicLayout({
           ) : (
             <>
               <NavItem icon={<Map className="w-5 h-5" />} label="Villes" href="/" />
-              <NavItem icon={<Heart className="w-5 h-5" />} label="Favoris" href="/mes-favoris" />
+              <NavItem icon={<Heart className="w-5 h-5" />} label="Vos favoris" href="/mes-favoris" />
               <NavItem icon={<Home className="w-5 h-5" />} label="Contact" href="/contact" />
             </>
           )}

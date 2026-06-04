@@ -58,7 +58,6 @@ describe('012 guide customization POI ordering', () => {
 
     expect(result).not.toBeNull()
     expect(result!.primary.map(poi => poi.slug)).toEqual(['near', 'featured'])
-    expect(result!.primary[0].owner_note).toBeNull()
   })
 
   it('AC-02-01: returns only featured POIs when lodging customization exists', async () => {
@@ -66,7 +65,7 @@ describe('012 guide customization POI ordering', () => {
       welcome_message: null,
       category_order: [],
       featured_pois: [
-        { poi_id: 'featured', owner_note: 'A tester absolument.', sort_order: 0, category_slug: 'restaurants' },
+        { poi_id: 'featured', sort_order: 0, category_slug: 'restaurants' },
       ],
     })
 
@@ -76,6 +75,5 @@ describe('012 guide customization POI ordering', () => {
     expect(mockGetPublicCustomization).toHaveBeenCalledWith('city-1', 'lodging-1')
     expect(result!.primary.map(poi => poi.slug)).toEqual(['featured'])
     expect(result!.meta.total).toBe(1)
-    expect(result!.primary[0].owner_note).toBe('A tester absolument.')
   })
 })

@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-24
+updated_at: 2026-06-04
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -77,6 +77,7 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 - **BR-03**: Un POI `deleted_at non null` n'apparaît jamais dans la liste
 - **BR-04**: Le tri par défaut est `distance ASC`
 - **BR-05**: Maximum 50 POI affichés par page et par zone. La pagination est progressive via un bouton "Charger plus" ; l'infinite scroll automatique est hors MVP 1.
+- **BR-05a**: Exception validée le 2026-06-04 : la vue "Tous les POI" de la home Guide (`/guide/[city-slug]`) utilise un infinite scroll automatique par lots de 10 POI. Cette exception ne modifie pas les listes par catégorie, qui restent couvertes par BR-05.
 - **BR-06**: Les POI sont séparés en deux zones géographiques selon leur distance depuis le centre-ville :
   - **Zone primaire (≤ 15 km)** : affichés dans la liste principale de la catégorie
   - **Zone alentours (15-30 km)** : affichés dans une section distincte "Autres activités aux alentours" en bas de page
@@ -130,6 +131,42 @@ model PointOfInterest {
 
 ```yaml
 paths:
+  /api/cities/{slug}/pois:
+    get:
+      summary: "Vue Tous les POI d'une ville pour la home Guide"
+      tags: [poi-list]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [distance, rating]
+            default: distance
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        "200":
+          description: Liste paginée plate de POI pour infinite scroll
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/cities/{slug}/categories/{category-slug}/pois:
     get:
       summary: "Liste des POI d'une catégorie pour une ville"
@@ -301,6 +338,7 @@ components:
 | AC-03-01 | Clic card → redirection fiche POI | e2e |
 | BR-01a | Distance affichée depuis GPS après opt-in, fallback centre-ville | unit |
 | BR-05 | Pagination progressive "Charger plus" avec limite max 50 | contract + unit |
+| BR-05a | Infinite scroll home Guide "Tous les POI" par lots de 10 | contract + unit |
 
 ---
 
@@ -317,5 +355,5 @@ components:
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-24 | Pagination progressive via bouton "Charger plus" |
+| OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-24 / 2026-06-04 | Catégories : pagination progressive via bouton "Charger plus". Home Guide "Tous les POI" : infinite scroll par lots de 10. |
 | OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-24 | Zones et tri serveur depuis centre-ville ; distance affichée depuis GPS après opt-in, fallback centre-ville |

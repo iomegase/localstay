@@ -10,8 +10,6 @@ import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '@/features/guide-customiz
 
 const featuredPoiSchema = z.object({
   poi_id: z.string().min(1),
-  owner_note: z.string().max(300).nullable().optional(),
-  owner_rating: z.number().min(0).max(5).nullable().optional(),
   sort_order: z.number().int().min(0),
 })
 
@@ -28,7 +26,7 @@ const customizationSchema = z.object({
     .optional(),
   category_order: z.array(z.string().min(1)).default([]),
   featured_pois: z.array(featuredPoiSchema).max(100).default([]),
-  // Spec 013 — Infos pratiques
+  // Spec 012 — Infos pratiques et photo logement
   cover_photo_url: z.union([
     z.string().trim().url(),
     z.string().trim().length(0).transform(() => null),

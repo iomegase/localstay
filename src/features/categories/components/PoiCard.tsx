@@ -51,7 +51,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
       ? `${Math.round(poi.distance_km * 1000)} m`
       : `${poi.distance_km.toFixed(1)} km`
 
-  const description = poi.owner_note || poi.description
+  const description = poi.description
   const gallery = poi.photos.length > 0 ? [...poi.photos, ...poi.photos] : []
 
   const trail = poi.trail_detail ?? null
@@ -62,7 +62,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
   const trailDistance = trail && trail.distance_km !== null ? `${trail.distance_km.toFixed(1)} km` : null
   const trailElevation = trail && trail.elevation_gain_m !== null ? `${trail.elevation_gain_m} m` : null
 
-  const displayRating = poi.rating ?? poi.owner_rating ?? null
+  const displayRating = poi.rating
 
   function handleToggleFavorite(e: React.MouseEvent) {
     e.stopPropagation()

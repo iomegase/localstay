@@ -23,9 +23,9 @@ describe('012 category order customization', () => {
       categories,
       ['musees', 'restaurants'],
       [
-        { poi_id: 'poi-1', owner_note: null, sort_order: 0, category_slug: 'restaurants' },
-        { poi_id: 'poi-2', owner_note: null, sort_order: 1, category_slug: 'restaurants' },
-        { poi_id: 'poi-3', owner_note: null, sort_order: 2, category_slug: 'musees' },
+        { poi_id: 'poi-1', sort_order: 0, category_slug: 'restaurants' },
+        { poi_id: 'poi-2', sort_order: 1, category_slug: 'restaurants' },
+        { poi_id: 'poi-3', sort_order: 2, category_slug: 'musees' },
       ],
     )
 

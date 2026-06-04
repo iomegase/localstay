@@ -3,6 +3,7 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminOverview } from '@/features/admin/queries/dashboard'
 import { AdminQrScansChart } from '@/features/admin/components/AdminQrScansChart'
 import { Building2, MapPin, BadgeCheck, Store, ShieldAlert, QrCode, ArrowRight } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 export default async function AdminOverviewPage() {
   await getPageAdmin()
@@ -133,7 +134,7 @@ export default async function AdminOverviewPage() {
   )
 }
 
-function MetricCard({ title, value, icon: Icon }: { title: string; value: number|string; icon: any }) {
+function MetricCard({ title, value, icon: Icon }: { title: string; value: number | string; icon: LucideIcon }) {
   return (
     <div className="group flex items-center gap-5 rounded-[20px] border border-gray-50 bg-white p-6 shadow-sm transition-all hover:border-gray-100 hover:shadow-md">
       <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#F3F4F8] text-[#111A2C] transition-transform duration-300 group-hover:scale-110">

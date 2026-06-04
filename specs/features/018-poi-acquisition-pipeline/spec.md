@@ -152,7 +152,7 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 - **BR-11**: Une demande Merchant de POI manquant ne crée jamais directement un POI public.
 - **BR-12**: Seul le rôle `admin` peut créer manuellement un POI ou publier un candidat.
 - **BR-13**: Les actions admin sont auditées.
-- **BR-14**: Toutes les suppressions utilisent `deleted_at`; les candidats rejetés sont conservés pour audit.
+- **BR-14**: Les POI publiés restent soumis au soft delete. Exception validée par le Product Owner le 2026-06-04 : les candidats d'acquisition non approuvés peuvent être purgés physiquement par les tâches de nettoyage dédiées afin de ne pas conserver de reliquats en base.
 - **BR-15**: Les routes internes d'acquisition ne sont jamais appelées depuis le client public.
 - **BR-16**: Les coûts API doivent être maîtrisés par déduplication, cache de run et rate limiting.
 - **BR-17**: Les photos issues d'un site officiel sont stockées comme URLs distantes uniquement ; StayLocal ne les télécharge pas et ne les re-héberge pas.

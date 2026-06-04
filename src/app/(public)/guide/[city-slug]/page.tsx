@@ -27,7 +27,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
   void recordQrScanIfPresent(lodgingFromQuery ?? null)
   const [guide, allPois] = await Promise.all([
     getCityGuide(slug, { lodgingId: lodging }),
-    getAllPoiCards(slug, { sort, page: 1, limit: 10 }),
+    getAllPoiCards(slug, { sort, page: 1, limit: 10, lodgingId: lodging }),
   ])
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.

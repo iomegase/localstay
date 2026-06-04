@@ -20,6 +20,7 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>
 const QR_ROW = {
   id: 'qr-1',
   city_id: 'city-1',
+  lodging_id: null,
   url: 'https://example.com/guide/saint-gervais-les-bains',
   storage_url: 'https://supabase.co/storage/v1/object/public/qr-codes/saint-gervais-les-bains.png',
   created_at: new Date('2026-05-22T10:00:00Z'),

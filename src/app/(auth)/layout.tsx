@@ -11,13 +11,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {/* REMPLACEZ "/logo.svg" PAR LE CHEMIN DE VOTRE LOGO */}
             <img 
               src="/logo.png" 
-              alt="Logo StayLocal" 
+              alt="Logo MyStay"
               className="h-10 w-auto object-contain" 
             />
           </div>
           
           {/* Titre conservé pour l'accessibilité (lecteurs d'écran) mais caché visuellement */}
-          <h1 className="sr-only">StayLocal</h1>
+          <h1 className="sr-only">MyStay</h1>
           
           {/* <p className="mt-2 text-sm font-medium text-slate-500">
             Votre guide touristique local

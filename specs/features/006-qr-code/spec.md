@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-22
+updated_at: 2026-06-04
 depends_on: [001-city-guide]
 ```
 
@@ -64,6 +64,7 @@ Dans le MVP 1, un QR code est généré par ville. Il est placé physiquement da
 - **BR-03**: Le QR code est généré côté serveur (Server Action), pas côté client
 - **BR-04**: Le QR code est stocké dans Supabase Storage avec une URL publique
 - **BR-05**: Un QR code existant pour une City n'est pas régénéré sauf demande explicite
+- **BR-06**: Lors d'une régénération explicite, les anciens QR codes de cette City sont supprimés physiquement avant création du nouveau QR code. Le QR code est une exception validée à l'ADR-004 : aucun reliquat historique n'est conservé en base.
 
 ---
 
@@ -77,11 +78,11 @@ model QrCode {
 
   city_id     String
   city        City     @relation(fields: [city_id], references: [id])
+  lodging_id  String?
+  lodging     Lodging? @relation(fields: [lodging_id], references: [id])
   url         String   # URL encodée dans le QR code
   storage_url String   # URL du PNG dans Supabase Storage
   is_active   Boolean  @default(true)
-
-  @@unique([city_id])
 }
 ```
 
@@ -192,6 +193,7 @@ components:
 | AC-02-01 | QR code PNG généré avec bonne URL | integration |
 | AC-02-02 | PNG 1000×1000px minimum, fond blanc | unit |
 | AC-02-03 | Lisible imprimé en 10×10cm | manual |
+| BR-06 | Régénération supprime physiquement l'ancien QR code | unit |
 
 ---
 

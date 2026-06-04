@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-21
+updated_at: 2026-06-04
 depends_on: [002-categories, 003-poi-list, 007-gemini-fetch]
 i18n: fr (MVP 1 monolingue français — versions EN, IT, ES, NL prévues ultérieurement)
 pilot_city: saint-gervais-les-bains
@@ -19,7 +19,7 @@ pilot_city: saint-gervais-les-bains
 
 ## Context
 
-Le Tourist arrive dans son logement, scanne le QR code mis à sa disposition, et l'application se charge immédiatement sur son téléphone. Le QR code sert uniquement à faciliter l'accès à l'application — il encode l'URL `/guide/[city-slug]` et évite toute saisie manuelle. Le Tourist peut aussi accéder au guide en saisissant sa ville manuellement depuis la page d'accueil.
+Le Tourist arrive dans son logement, scanne le QR code mis à sa disposition, et l'application MyStay se charge immédiatement sur son téléphone. Le QR code sert uniquement à faciliter l'accès à l'application — il encode l'URL `/guide/[city-slug]` et évite toute saisie manuelle. Le Tourist peut aussi accéder au guide en saisissant sa ville manuellement depuis la page d'accueil.
 
 Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automatiquement (opt-in reporté en MVP 2).
 
@@ -47,7 +47,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 
 - **AC-01-01**: Given un QR code valide, When le Tourist le scanne, Then il est redirigé vers `/guide/[city-slug]` et le LCP est < 3 secondes sur réseau 4G moyen (Lighthouse Mobile preset)
 - **AC-01-02**: Given un city-slug inexistant dans l'URL, When le Tourist accède à la page, Then une page 404 claire est affichée avec un lien de retour vers la page d'accueil
-- **AC-01-03**: Given une City valide avec POI, When la page charge, Then le nom de la ville et les catégories disponibles sont affichés
+- **AC-01-03**: Given une City valide avec POI, When la page charge, Then l'intitulé du guide et les catégories disponibles sont affichés
 
 ### US-02 — Accès au guide via saisie manuelle
 
@@ -86,6 +86,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 - **BR-06**: La recherche de ville est accent-insensitive, prefix match, limitée à 10 résultats, ordonnée par pertinence (nom en premier, puis CP)
 - **BR-07**: MVP 1 est monolingue français. Toutes les chaînes UI sont en français. Les versions EN, IT, ES, NL sont prévues dans les MVPs suivants — l'architecture i18n doit être préparée (clés de traduction) sans être implémentée
 - **BR-08**: Le `poi_count` retourné par l'API reflète les POI actifs en base au moment de la requête. Si le cache Gemini est vide ou en cours de fetch, `poi_count` peut être 0 — comportement défini dans spec `007-gemini-fetch`
+- **BR-09**: Le nom produit public est MyStay. Les libellés de navigation validés le 2026-06-04 sont : bottom nav `Explorer` → `Bienvenue`, `Favoris` → `Vos favoris`; menu burger `Home` → `Bienvenue`; menu burger `Services Privés` → `Les recommandations de {owner.name}` si le nom Owner est connu, sinon `Les recommandations de votre hôte`.
 
 ---
 
@@ -271,6 +272,8 @@ components:
 > - la section "Nos coups de coeur"
 >
 > Toute déviation du mockup doit être explicitement justifiée dans le code (commentaire) et soumise au Product Owner.
+>
+> Déviations validées par le Product Owner le 2026-06-04 : nom produit MyStay, libellés de navigation listés en BR-09, et vue "Tous les POI" avec infinite scroll sur la home Guide selon `003-poi-list` BR-05a.
 
 ---
 
@@ -282,7 +285,7 @@ components:
 - **Empty state** : message "Aucun contenu disponible pour cette ville pour le moment" + illustration neutre + lien retour accueil — HTTP 200
 - **Error state** : message d'erreur générique + bouton "Réessayer"
 - **404 state** : page dédiée "Ville introuvable" + lien retour accueil — HTTP 404
-- **Success state** : home conforme mockup `home.html` avec titre City, sous-titre, champ de recherche visuel, ligne horizontale de catégories, section "Nos coups de coeur", bottom navigation
+- **Success state** : home Guide avec intitulé de guide, sous-titre, champ de recherche visuel, ligne horizontale de catégories, vue "Tous les POI" avec infinite scroll, bottom navigation
 - **Mobile** : `max-w-[430px]`, fond `#FAF9F6`, header glassmorphism sticky, menu overlay plein écran
 
 ### Composant : CitySearchInput (page d'accueil `/`)

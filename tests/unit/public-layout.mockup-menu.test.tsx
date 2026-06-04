@@ -6,6 +6,16 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PublicLayout from '@/app/(public)/layout'
 
+jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
+  getActiveLodgingContext: jest.fn(async () => ({
+    lodgingId: 'lodging-1',
+    lodgingName: 'Chalet MyStay',
+    citySlug: 'saint-gervais',
+    cityName: 'Saint-Gervais-les-Bains',
+    ownerName: 'Alice Martin',
+  })),
+}))
+
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
@@ -15,14 +25,16 @@ jest.mock('next/link', () => ({
 
 describe('PublicLayout mockup menu', () => {
   it('opens the full-screen navigation overlay from the burger button', async () => {
-    render(<PublicLayout><div>Contenu</div></PublicLayout>)
+    render(await PublicLayout({ children: <div>Contenu</div> }))
 
     expect(screen.queryByText('Navigation')).not.toBeInTheDocument()
+    expect(screen.getByText('Bienvenue')).toBeInTheDocument()
+    expect(screen.getByText('Vos favoris')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
 
     expect(screen.getByText('Navigation')).toBeInTheDocument()
     expect(screen.getByText('Le Logement')).toBeInTheDocument()
-    expect(screen.getByText('Services Privés')).toBeInTheDocument()
+    expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
   })
 })

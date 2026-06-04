@@ -70,7 +70,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 className="ml-3 flex flex-col overflow-hidden whitespace-nowrap"
               >
                 <span className="text-[10px] font-bold uppercase leading-tight tracking-[0.2em] text-gray-400">
-                  StayLocal
+                  MyStay
                 </span>
                 <span className="mt-1 text-base font-bold leading-tight text-white">
                   Hébergeur
@@ -207,7 +207,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
               <div className="pt-0.5">
                 <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-gray-400">
-                  StayLocal
+                  MyStay
                 </p>
                 <p className="text-sm font-bold leading-none text-slate-800">Hébergeur</p>
               </div>

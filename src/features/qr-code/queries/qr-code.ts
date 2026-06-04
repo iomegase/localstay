@@ -22,7 +22,7 @@ export async function getQrCode(citySlug: string): Promise<QrCodeResult | null> 
   if (!city) return null
 
   const row = await prisma.qrCode.findFirst({
-    where: { city_id: city.id, is_active: true, deleted_at: null },
+    where: { city_id: city.id, lodging_id: null, is_active: true },
     select: { id: true, city_id: true, url: true, storage_url: true, created_at: true },
   })
   if (!row) return null
@@ -36,8 +36,7 @@ export async function replaceCityQrCode(
   url: string,
   storageUrl: string,
 ): Promise<QrCodeResult> {
-  // Régénération du QR ville : on EFFACE les anciens QR ville (lodging_id = null) — pas
-  // d'archivage, suppression dure — puis on crée une ligne neuve (created_at à jour).
+  // Exception ADR-004 : les QR codes sont remplacés physiquement, sans reliquats.
   await prisma.qrCode.deleteMany({
     where: { city_id: cityId, lodging_id: null },
   })

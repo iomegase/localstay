@@ -6,6 +6,7 @@ const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(10),
   sort: z.enum(['distance', 'rating']).default('distance'),
+  lodging: z.string().uuid().optional(),
 })
 
 export async function GET(
@@ -17,13 +18,15 @@ export async function GET(
     page: sp.get('page') ?? undefined,
     limit: sp.get('limit') ?? undefined,
     sort: sp.get('sort') ?? undefined,
+    lodging: sp.get('lodging') ?? undefined,
   })
   if (!parsed.success) {
     return NextResponse.json({ error: { code: 'INVALID_QUERY', message: 'Paramètres invalides' } }, { status: 400 })
   }
 
   const { slug } = await params
-  const result = await getAllPoiCards(slug, parsed.data)
+  const { lodging, ...query } = parsed.data
+  const result = await getAllPoiCards(slug, lodging ? { ...query, lodgingId: lodging } : query)
   if (!result) {
     return NextResponse.json({ error: { code: 'CITY_NOT_FOUND', message: 'Ville introuvable' } }, { status: 404 })
   }

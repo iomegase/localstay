@@ -3,7 +3,7 @@ import { getSessionOwner } from '@/features/dashboard-owner/lib/get-session-owne
 import { prisma } from '@/shared/lib/prisma'
 import {
   getActiveLodgingQrCode,
-  archiveExistingQrCodes,
+  deleteExistingLodgingQrCodes,
   createLodgingQrCode,
 } from '@/features/dashboard-owner/queries/qr-code'
 import { generateQrPng } from '@/features/qr-code/services/generate-qr'
@@ -83,7 +83,7 @@ export async function POST(_req: NextRequest, { params }: Params): Promise<NextR
   const buffer = await generateQrPng(guideUrl)
   const storageUrl = await uploadQrToStorage(lodging.city.slug, buffer, id)
 
-  await archiveExistingQrCodes(id)
+  await deleteExistingLodgingQrCodes(id)
   const qr = await createLodgingQrCode(id, lodging.city_id, guideUrl, storageUrl)
 
   return NextResponse.json(toResponse(qr), { status: 201 })

@@ -164,7 +164,7 @@ export function MerchantOnboardingClient({ cities = [], categories = [] }: Merch
         <Card>
           <CardContent className="space-y-3 p-5">
             <p className="text-sm text-charcoal/70">
-              Vous allez revendiquer <strong>{selected.name}</strong>. L'équipe StayLocal validera la demande manuellement.
+              Vous allez revendiquer <strong>{selected.name}</strong>. L'équipe MyStay validera la demande manuellement.
             </p>
             <Button type="button" onClick={claim} disabled={loading}>
               Revendiquer cet établissement

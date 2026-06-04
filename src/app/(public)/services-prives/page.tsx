@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
-import { MarkdownText } from '@/shared/components/MarkdownText'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 
 export default async function ServicesPrivesPage() {
@@ -14,7 +13,6 @@ export default async function ServicesPrivesPage() {
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
       poi_id: true,
-      owner_note: true,
       poi: {
         select: {
           id: true,
@@ -29,12 +27,15 @@ export default async function ServicesPrivesPage() {
   })
 
   const grouped = groupByCategory(featuredPois)
+  const title = lodgingContext.ownerName
+    ? `Les recommandations de ${lodgingContext.ownerName}`
+    : 'Les recommandations de votre hôte'
 
   return (
     <div className="px-5 pt-4">
       <div className="mb-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Services privés</p>
-        <h1 className="mt-1 font-serif italic text-3xl text-charcoal">Les sélections de votre hôte</h1>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Recommandations</p>
+        <h1 className="mt-1 font-serif italic text-3xl text-charcoal">{title}</h1>
         <p className="mt-1 text-sm text-gray-500">{lodgingContext.lodgingName} · {lodgingContext.cityName}</p>
       </div>
 
@@ -58,7 +59,6 @@ export default async function ServicesPrivesPage() {
 
 type FeaturedRow = {
   poi_id: string
-  owner_note: string | null
   poi: {
     id: string
     name: string
@@ -104,7 +104,7 @@ function EmptyState({ citySlug }: { citySlug: string }) {
         href={`/guide/${citySlug}`}
         className="mt-5 inline-flex items-center justify-center rounded-full bg-charcoal px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-white"
       >
-        Explorer le guide complet
+        Voir le guide complet
       </Link>
     </div>
   )
@@ -156,24 +156,11 @@ function FeaturedCard({ item, citySlug }: { item: FeaturedRow; citySlug: string 
       )}
       <div className="flex flex-1 flex-col justify-center">
         <h3 className="font-serif italic text-base text-charcoal">{item.poi.name}</h3>
-        {item.owner_note && (
-          <p className="mt-1 text-xs italic leading-relaxed text-gold">
-            « <MarkdownInline source={item.owner_note} /> »
-          </p>
-        )}
-        {!item.owner_note && item.poi.description && (
+        {item.poi.description && (
           <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.poi.description}</p>
         )}
       </div>
       <ArrowRight className="my-auto h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-charcoal" />
     </Link>
   )
-}
-
-function MarkdownInline({ source }: { source: string }) {
-  // L'owner_note est volontairement court (limite 150) — pas besoin d'un rendu markdown complet,
-  // mais on rend la chaîne brute en respectant les sauts de ligne.
-  const cleaned = source.trim()
-  if (cleaned.length <= 80) return <span>{cleaned}</span>
-  return <MarkdownText source={cleaned} className="inline" />
 }

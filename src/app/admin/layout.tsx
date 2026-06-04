@@ -79,7 +79,7 @@ export default function AdminPathLayout({ children }: { children: ReactNode }) {
                 transition={{ duration: 0.2 }}
                 className="ml-3 flex flex-col overflow-hidden whitespace-nowrap"
               >
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 leading-tight">StayLocal</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 leading-tight">MyStay</span>
                 <span className="text-base font-bold text-white leading-tight mt-1">Super-Admin</span>
               </motion.div>
             )}
@@ -215,7 +215,7 @@ export default function AdminPathLayout({ children }: { children: ReactNode }) {
                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain filter brightness-0 invert" />
               </div>
               <div className="pt-0.5">
-                <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-gray-400">StayLocal</p>
+                <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-gray-400">MyStay</p>
                 <p className="text-sm font-bold leading-none text-slate-800">Super-Admin</p>
               </div>
             </div>

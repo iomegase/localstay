@@ -232,7 +232,6 @@ model QrCode {
   id          String    @id @default(uuid())
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
-  deleted_at  DateTime?
 
   city_id     String
   city        City      @relation(fields: [city_id], references: [id])
@@ -647,7 +646,7 @@ model LodgingCustomization {
   welcome_message String?
   category_order  String[]
 
-  // Spec 013 — Infos pratiques logement
+  // Spec 012 — Infos pratiques logement
   cover_photo_url        String?
   lodging_address        String?
   wifi_ssid              String?
@@ -672,8 +671,6 @@ model LodgingFeaturedPoi {
   lodging     Lodging         @relation(fields: [lodging_id], references: [id])
   poi_id      String
   poi         PointOfInterest @relation(fields: [poi_id], references: [id])
-  owner_note   String?
-  owner_rating Float?
   sort_order   Int            @default(0)
 
   @@unique([lodging_id, poi_id])

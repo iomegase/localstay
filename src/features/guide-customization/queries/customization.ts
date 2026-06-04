@@ -52,8 +52,6 @@ type PublicCustomization = {
   category_order: string[]
   featured_pois: Array<{
     poi_id: string
-    owner_note: string | null
-    owner_rating: number | null
     sort_order: number
     category_slug: string
   }>
@@ -61,13 +59,6 @@ type PublicCustomization = {
 
 function raise(code: GuideCustomizationErrorCode, message: string): never {
   throw new GuideCustomizationError(code, message)
-}
-
-function clampRating(value: number | null | undefined): number | null {
-  if (value === null || value === undefined) return null
-  if (!Number.isFinite(value)) return null
-  if (value <= 0) return null
-  return Math.min(5, Math.max(0, Math.round(value * 2) / 2))
 }
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -190,8 +181,6 @@ export async function getPublicCustomization(
       where: { lodging_id: lodging.id, deleted_at: null },
       select: {
         poi_id: true,
-        owner_note: true,
-        owner_rating: true,
         sort_order: true,
         poi: { select: { category: { select: { slug: true } } } },
       },
@@ -203,8 +192,6 @@ export async function getPublicCustomization(
     category_order: customization?.category_order ?? [],
     featured_pois: featuredPois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
-      owner_note: featuredPoi.owner_note,
-      owner_rating: featuredPoi.owner_rating,
       sort_order: featuredPoi.sort_order,
       category_slug: featuredPoi.poi.category.slug,
     })),
@@ -242,8 +229,6 @@ export async function getLodgingCustomization(
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
       poi_id: true,
-      owner_note: true,
-      owner_rating: true,
       sort_order: true,
       poi: { select: { category_id: true } },
     },
@@ -256,8 +241,6 @@ export async function getLodgingCustomization(
     featured_pois: featuredPois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
       category_id: featuredPoi.poi.category_id,
-      owner_note: featuredPoi.owner_note,
-      owner_rating: featuredPoi.owner_rating,
       sort_order: featuredPoi.sort_order,
     })),
     ignored_category_slugs: [],
@@ -326,16 +309,12 @@ export async function saveLodgingCustomization(
       await tx.lodgingFeaturedPoi.upsert({
         where: { lodging_id_poi_id: { lodging_id: lodgingId, poi_id: featuredPoi.poi_id } },
         update: {
-          owner_note: featuredPoi.owner_note,
-          owner_rating: featuredPoi.owner_rating,
           sort_order: featuredPoi.sort_order,
           deleted_at: null,
         },
         create: {
           lodging_id: lodgingId,
           poi_id: featuredPoi.poi_id,
-          owner_note: featuredPoi.owner_note,
-          owner_rating: featuredPoi.owner_rating,
           sort_order: featuredPoi.sort_order,
         },
       })
@@ -408,8 +387,6 @@ async function validateFeaturedPois(
     return {
       poi_id: row.id,
       category_id: row.category_id,
-      owner_note: requested.owner_note ?? null,
-      owner_rating: clampRating(requested.owner_rating),
       sort_order: requested.sort_order,
     }
   })

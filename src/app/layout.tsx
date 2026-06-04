@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'StayLocal — Votre guide touristique local',
+  title: 'MyStay — Votre guide touristique local',
   description: 'Découvrez le meilleur de votre ville de séjour.',
 }
 

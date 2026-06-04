@@ -68,7 +68,7 @@ export async function PATCH(
       city: { select: { name: true } },
       analytics: { where: { event_type: 'qr_scan' } },
       qr_codes: {
-        where: { is_active: true, deleted_at: null },
+        where: { is_active: true },
         select: { id: true },
         take: 1,
       },

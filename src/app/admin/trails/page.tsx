@@ -7,6 +7,8 @@ import { getTrailAcquisitionOptions } from '@/features/trails-acquisition/querie
 import { listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
 import { ArrowRight, Plus, AlertCircle, Map } from 'lucide-react'
 
+type TrailImportRunList = Awaited<ReturnType<typeof listTrailImportRuns>>
+
 // Styles pour les statuts
 const STATUS_STYLES: Record<string, string> = {
   COMPLETED: 'bg-emerald-50/80 text-emerald-600 border-emerald-100/50',
@@ -69,7 +71,7 @@ function PageHeader() {
   )
 }
 
-function RunsTable({ runs }: { runs: any[] }) {
+function RunsTable({ runs }: { runs: TrailImportRunList }) {
   return (
     <div className="w-full overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
       <div className="border-b border-gray-100 p-6">

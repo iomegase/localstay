@@ -8,25 +8,32 @@ type MenuItem = { href: string; label: string }
 type Props = {
   mode: 'anonymous' | 'lodging'
   lodgingName?: string | null
+  ownerName?: string | null
   citySlug?: string | null
 }
 
 const ANONYMOUS_ITEMS: MenuItem[] = [
-  { href: '/', label: 'Home' },
+  { href: '/', label: 'Bienvenue' },
   { href: '/contact', label: 'Contact' },
 ]
 
-const LODGING_ITEMS: MenuItem[] = [
-  { href: '/', label: 'Home' },
-  { href: '/le-logement', label: 'Le Logement' },
-  { href: '/services-prives', label: 'Services Privés' },
-  { href: '/mes-favoris', label: 'Mes Favoris' },
-  { href: '/contact', label: 'Nous Contacter' },
-]
+function lodgingItems(ownerName?: string | null): MenuItem[] {
+  const recommendationLabel = ownerName
+    ? `Les recommandations de ${ownerName}`
+    : 'Les recommandations de votre hôte'
 
-export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
+  return [
+    { href: '/', label: 'Bienvenue' },
+    { href: '/le-logement', label: 'Le Logement' },
+    { href: '/services-prives', label: recommendationLabel },
+    { href: '/mes-favoris', label: 'Vos favoris' },
+    { href: '/contact', label: 'Nous Contacter' },
+  ]
+}
+
+export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
   const [isOpen, setIsOpen] = useState(false)
-  const items = mode === 'lodging' ? LODGING_ITEMS : ANONYMOUS_ITEMS
+  const items = mode === 'lodging' ? lodgingItems(ownerName) : ANONYMOUS_ITEMS
 
   return (
     <>

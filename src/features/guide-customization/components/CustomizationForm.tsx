@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Save, Star, ChevronDown } from 'lucide-react'
+import { GripVertical, Save, ChevronDown } from 'lucide-react'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Input } from '@/shared/components/ui/input'
@@ -110,8 +110,6 @@ export function CustomizationForm({
     initialCustomization.featured_pois
       .map(featuredPoi => ({
         poi_id: featuredPoi.poi_id,
-        owner_note: featuredPoi.owner_note,
-        owner_rating: featuredPoi.owner_rating,
         sort_order: featuredPoi.sort_order,
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
@@ -145,7 +143,6 @@ export function CustomizationForm({
   const orderedCategories = categoryOrder
     .map(slug => categoriesBySlug.get(slug))
     .filter((category): category is CategoryOption => Boolean(category))
-  const featuredByPoiId = new Map(featuredPois.map(featuredPoi => [featuredPoi.poi_id, featuredPoi]))
   const selectedPoiIds = new Set(featuredPois.map(featuredPoi => featuredPoi.poi_id))
 
   // Règle métier inchangée
@@ -166,30 +163,8 @@ export function CustomizationForm({
     setFeaturedPois(current => {
       if (!checked) return current.filter(featuredPoi => featuredPoi.poi_id !== poiId)
       if (current.some(featuredPoi => featuredPoi.poi_id === poiId)) return current
-      return [...current, { poi_id: poiId, owner_note: null, owner_rating: null, sort_order: current.length }]
+      return [...current, { poi_id: poiId, sort_order: current.length }]
     })
-  }
-
-  // Règle métier inchangée
-  function updateOwnerNote(poiId: string, ownerNote: string) {
-    setFeaturedPois(current =>
-      current.map(featuredPoi =>
-        featuredPoi.poi_id === poiId
-          ? { ...featuredPoi, owner_note: ownerNote }
-          : featuredPoi,
-      ),
-    )
-  }
-
-  // Règle métier inchangée
-  function updateOwnerRating(poiId: string, ownerRating: number | null) {
-    setFeaturedPois(current =>
-      current.map(featuredPoi =>
-        featuredPoi.poi_id === poiId
-          ? { ...featuredPoi, owner_rating: ownerRating }
-          : featuredPoi,
-      ),
-    )
   }
 
   // Règle métier inchangée
@@ -211,8 +186,6 @@ export function CustomizationForm({
         category_order: categoryOrder,
         featured_pois: featuredPois.map((featuredPoi, index) => ({
           poi_id: featuredPoi.poi_id,
-          owner_note: featuredPoi.owner_note?.trim() || null,
-          owner_rating: featuredPoi.owner_rating ?? null,
           sort_order: index,
         })),
         ...practicalPayload,
@@ -231,8 +204,6 @@ export function CustomizationForm({
     setCategoryOrder(payload.category_order.length > 0 ? payload.category_order : categoryOrder)
     setFeaturedPois(payload.featured_pois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
-      owner_note: featuredPoi.owner_note,
-      owner_rating: featuredPoi.owner_rating,
       sort_order: featuredPoi.sort_order,
     })))
     setPracticalInfo({
@@ -348,7 +319,7 @@ export function CustomizationForm({
           </p>
           <h2 className="mt-1 text-base font-bold text-neutral-900">Mes recommandations</h2>
           <p className="mt-1 text-xs text-gray-500">
-            Maximum 5 POI mis en avant par catégorie, avec note personnelle optionnelle (texte + étoiles).
+            Maximum 5 POI mis en avant par catégorie.
           </p>
         </div>
         <div className="divide-y divide-gray-50">
@@ -372,7 +343,6 @@ export function CustomizationForm({
                 </summary>
                 <div className="space-y-3 bg-gray-50/30 px-6 py-5">
                   {categoryPois.map(poi => {
-                    const featuredPoi = featuredByPoiId.get(poi.id)
                     const isSelected = selectedPoiIds.has(poi.id)
                     return (
                       <div
@@ -390,33 +360,6 @@ export function CustomizationForm({
                           />
                           {poi.name}
                         </label>
-
-                        {featuredPoi && (
-                          <div className="mt-5 space-y-6 border-t border-gray-100 pt-5">
-                            <div className="space-y-2">
-                              <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                                Votre mot pour les voyageurs
-                              </Label>
-                              <div className="group/note relative">
-                                <Textarea
-                                  className="peer min-h-[64px] w-full resize-none rounded-none border-0 border-b-2 border-gray-200 bg-transparent px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
-                                  maxLength={300}
-                                  value={featuredPoi.owner_note ?? ''}
-                                  onChange={event => updateOwnerNote(poi.id, event.target.value)}
-                                  placeholder="Pourquoi recommander cette adresse ?"
-                                />
-                                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover/note:w-full peer-focus:w-full" />
-                              </div>
-                              <p className="text-right text-[11px] font-medium text-gray-400">
-                                {(featuredPoi.owner_note ?? '').length}/300
-                              </p>
-                            </div>
-                            <OwnerRatingInput
-                              value={featuredPoi.owner_rating ?? null}
-                              onChange={rating => updateOwnerRating(poi.id, rating)}
-                            />
-                          </div>
-                        )}
                       </div>
                     )
                   })}
@@ -697,72 +640,5 @@ function PracticalInfoCard({
         })}
       </div>
     </section>
-  )
-}
-
-function OwnerRatingInput({
-  value,
-  onChange,
-}: {
-  value: number | null
-  onChange: (rating: number | null) => void
-}) {
-  const stops = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5] as const
-
-  return (
-    <div className="flex flex-wrap items-center gap-4">
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Votre note</span>
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map(starIndex => {
-          const fillLevel = value === null ? 0 : Math.max(0, Math.min(1, value - (starIndex - 1)))
-          const isFull = fillLevel >= 1
-          const isHalf = fillLevel >= 0.5 && fillLevel < 1
-          const targetWhenFull = value !== null && value === starIndex ? starIndex - 0.5 : starIndex
-          const targetWhenHalf = starIndex - 0.5
-          return (
-            <div key={starIndex} className="relative h-6 w-6">
-              <button
-                type="button"
-                aria-label={`${targetWhenHalf} étoiles`}
-                onClick={() => onChange(targetWhenHalf)}
-                className="absolute left-0 top-0 z-10 h-6 w-3"
-              />
-              <button
-                type="button"
-                aria-label={`${targetWhenFull} étoiles`}
-                onClick={() => onChange(targetWhenFull)}
-                className="absolute right-0 top-0 z-10 h-6 w-3"
-              />
-              <Star className="absolute inset-0 h-6 w-6 text-gray-200" strokeWidth={1.5} />
-              {isHalf && (
-                <Star
-                  className="absolute inset-0 h-6 w-6 fill-amber-500 text-amber-500"
-                  strokeWidth={1.5}
-                  style={{ clipPath: 'inset(0 50% 0 0)' }}
-                />
-              )}
-              {isFull && (
-                <Star className="absolute inset-0 h-6 w-6 fill-amber-500 text-amber-500" strokeWidth={1.5} />
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <span className="text-sm font-bold tabular-nums text-neutral-900">
-        {value !== null ? value.toFixed(1) : '—'}
-      </span>
-      {value !== null && (
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-[#0B1437] hover:underline underline-offset-4"
-        >
-          Effacer
-        </button>
-      )}
-      <span className="sr-only">
-        {stops.map(stop => stop).join(' ')}
-      </span>
-    </div>
   )
 }

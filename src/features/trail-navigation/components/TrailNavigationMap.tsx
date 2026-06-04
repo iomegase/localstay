@@ -744,7 +744,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
         <p className="mt-4 flex items-start gap-2 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/60">
           <Mountain className="mt-0.5 h-4 w-4 shrink-0 text-[#455E4C]" />
-          StayLocal ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
+          MyStay ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
         </p>
       </section>
     </main>

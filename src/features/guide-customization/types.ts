@@ -1,15 +1,11 @@
 export interface FeaturedPoiInput {
   poi_id: string
-  owner_note?: string | null
-  owner_rating?: number | null
   sort_order: number
 }
 
 export interface FeaturedPoiResponse {
   poi_id: string
   category_id: string
-  owner_note: string | null
-  owner_rating: number | null
   sort_order: number
 }
 

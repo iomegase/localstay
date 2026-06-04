@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-05-23
+updated_at: 2026-06-04
 depends_on: [006-qr-code, 010-dashboard-owner]
 ```
 
@@ -41,7 +41,7 @@ En MVP 1, un seul QR code est généré par ville par l'admin. En MVP 2, chaque 
 
 - **AC-01-01**: Given un Lodging sans QR code, When l'Owner clique "Générer le QR code", Then un QR code PNG est généré encodant `https://[domain]/guide/[city-slug]?lodging=[lodging-id]`
 - **AC-01-02**: Given un QR code généré, When l'Owner clique "Télécharger", Then un fichier PNG 1000×1000px minimum est téléchargé
-- **AC-01-03**: Given un QR code existant, When l'Owner clique "Régénérer" et confirme, Then un nouveau QR code est généré, l'ancien reçoit `deleted_at = now()` et `is_active = false`
+- **AC-01-03**: Given un QR code existant, When l'Owner clique "Régénérer" et confirme, Then les anciens QR codes du logement sont supprimés physiquement et un nouveau QR code est généré
 
 ### US-02 — Tracker les scans
 
@@ -58,28 +58,26 @@ En MVP 1, un seul QR code est généré par ville par l'admin. En MVP 2, chaque 
 
 ## Business Rules
 
-- **BR-01**: 1 QR code actif (`is_active = true`, `deleted_at = null`) maximum par Lodging à tout moment
+- **BR-01**: 1 QR code actif (`is_active = true`) maximum par Lodging à tout moment
 - **BR-02**: Le QR code est stocké dans Supabase Storage, URL publique, path `qr-codes/lodgings/[lodging-id].png`
 - **BR-03**: Le paramètre `?lodging=[id]` est utilisé uniquement pour le tracking — il ne change pas le contenu du guide en MVP 2
 - **BR-04**: La génération est côté serveur (API route) — jamais côté client
 - **BR-05**: Un Owner ne peut générer que les QR codes de ses propres logements
 - **BR-06**: `uploadQrToStorage` accepte un `lodgingId` optionnel — path Storage : `qr-codes/cities/[slug].png` (existant) ou `qr-codes/lodgings/[id].png` (nouveau)
+- **BR-07**: Les QR codes logement suivent l'exception ADR-004 validée le 2026-06-04 : la régénération ne conserve aucun ancien QR code en base.
 
 ---
 
 ## Data Model
 
 ```prisma
-// Schéma QrCode existant — aucune modification requise (Gap-1 décision A).
 // city_id String non-nullable pour QR codes ville (lodging_id = null)
 // lodging_id String? non-null pour QR codes logement (city_id = city du logement)
-// deleted_at DateTime? — soft delete (ADR-004)
-// is_active Boolean — false quand archivé lors d'une régénération
+// Les anciens QR codes sont supprimés physiquement lors d'une régénération.
 model QrCode {
   id          String    @id @default(uuid())
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
-  deleted_at  DateTime?
 
   city_id     String
   city        City      @relation(fields: [city_id], references: [id])

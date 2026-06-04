@@ -4,7 +4,7 @@ const mockGetUser = jest.fn()
 const mockFindUser = jest.fn()
 const mockFindFirstLodging = jest.fn()
 const mockFindFirstQrCode = jest.fn()
-const mockUpdateManyQrCode = jest.fn()
+const mockDeleteManyQrCode = jest.fn()
 const mockCreateQrCode = jest.fn()
 const mockGenerateQrPng = jest.fn()
 const mockUploadQrToStorage = jest.fn()
@@ -21,7 +21,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodging: { findFirst: (...args: unknown[]) => mockFindFirstLodging(...args) },
     qrCode: {
       findFirst: (...args: unknown[]) => mockFindFirstQrCode(...args),
-      updateMany: (...args: unknown[]) => mockUpdateManyQrCode(...args),
+      deleteMany: (...args: unknown[]) => mockDeleteManyQrCode(...args),
       create: (...args: unknown[]) => mockCreateQrCode(...args),
     },
   },
@@ -47,7 +47,6 @@ const QR_ROW = {
   storage_url: 'https://cdn.supabase.co/qr-codes/lodgings/lodging-1.png',
   created_at: new Date('2026-05-23T10:00:00Z'),
   is_active: true,
-  deleted_at: null,
 }
 
 function makeReq(method: string, id = 'lodging-1'): NextRequest {
@@ -98,7 +97,7 @@ describe('POST /api/dashboard/lodgings/[id]/qr-code', () => {
     mockFindFirstLodging.mockResolvedValue(LODGING)
     mockGenerateQrPng.mockResolvedValue(Buffer.from('fake-png'))
     mockUploadQrToStorage.mockResolvedValue('https://cdn.supabase.co/qr-codes/lodgings/lodging-1.png')
-    mockUpdateManyQrCode.mockResolvedValue({ count: 0 })
+    mockDeleteManyQrCode.mockResolvedValue({ count: 0 })
     mockCreateQrCode.mockResolvedValue(QR_ROW)
   })
 
@@ -137,12 +136,11 @@ describe('POST /api/dashboard/lodgings/[id]/qr-code', () => {
     }
   })
 
-  it('AC-01-03: archives existing QR codes before creating new one', async () => {
+  it('AC-01-03: physically deletes existing QR codes before creating a new one', async () => {
     await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
-    expect(mockUpdateManyQrCode).toHaveBeenCalledWith(
+    expect(mockDeleteManyQrCode).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ lodging_id: 'lodging-1', is_active: true }),
-        data: expect.objectContaining({ is_active: false }),
+        where: expect.objectContaining({ lodging_id: 'lodging-1' }),
       }),
     )
   })

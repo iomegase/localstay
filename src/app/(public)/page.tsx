@@ -15,6 +15,7 @@ export default async function HomePage() {
       <LodgingHome
         citySlug={lodgingContext.citySlug}
         lodgingName={lodgingContext.lodgingName}
+        ownerName={lodgingContext.ownerName}
         cityName={lodgingContext.cityName}
         coverPhotoUrl={customization?.cover_photo_url ?? null}
         welcomeMessage={customization?.welcome_message ?? null}
@@ -50,16 +51,22 @@ function AnonymousLanding() {
 function LodgingHome({
   citySlug,
   lodgingName,
+  ownerName,
   cityName,
   coverPhotoUrl,
   welcomeMessage,
 }: {
   citySlug: string
   lodgingName: string
+  ownerName: string | null
   cityName: string
   coverPhotoUrl: string | null
   welcomeMessage: string | null
 }) {
+  const recommendationsTitle = ownerName
+    ? `Les recommandations de ${ownerName}`
+    : 'Les recommandations de votre hôte'
+
   return (
     <div className="flex flex-col items-center px-6 pt-2">
       {coverPhotoUrl && (
@@ -94,8 +101,8 @@ function LodgingHome({
       <div className="mt-10 w-full max-w-md">
         <div className="grid grid-cols-2 gap-3">
           <ShortcutCard href="/le-logement" title="Le logement" subtitle="Wi-Fi, parking, équipements" />
-          <ShortcutCard href="/services-prives" title="Services privés" subtitle="Recommandations de l'hôte" />
-          <ShortcutCard href="/mes-favoris" title="Mes favoris" subtitle="Lieux sauvegardés" />
+          <ShortcutCard href="/services-prives" title={recommendationsTitle} subtitle="Sélection de l'hôte" />
+          <ShortcutCard href="/mes-favoris" title="Vos favoris" subtitle="Lieux sauvegardés" />
           <ShortcutCard href="/contact" title="Nous contacter" subtitle="Une question ?" />
         </div>
       </div>

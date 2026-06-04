@@ -87,6 +87,36 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(mockSaveCustomization).toHaveBeenCalled()
   })
 
+  it('AC-02-02: strips owner_note and owner_rating from featured POI payloads', async () => {
+    mockSaveCustomization.mockResolvedValue({
+      ...responseBody,
+      featured_pois: [{ poi_id: 'poi-1', category_id: 'cat-1', sort_order: 0 }],
+    })
+
+    const res = await PUT(
+      makeRequest('PUT', {
+        welcome_message: 'Bienvenue',
+        category_order: [],
+        featured_pois: [
+          {
+            poi_id: 'poi-1',
+            sort_order: 0,
+            owner_note: 'Ancienne note a ignorer',
+            owner_rating: 5,
+          },
+        ],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockSaveCustomization).toHaveBeenCalledWith('owner-1', 'lodging-1', {
+      welcome_message: 'Bienvenue',
+      category_order: [],
+      featured_pois: [{ poi_id: 'poi-1', sort_order: 0 }],
+    })
+  })
+
   it('returns 400 when the welcome message exceeds 400 words', async () => {
     const tooManyWords = Array.from({ length: 401 }, () => 'mot').join(' ')
 

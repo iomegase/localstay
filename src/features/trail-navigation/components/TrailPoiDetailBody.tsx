@@ -145,7 +145,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
             </InfoCard>
             <InfoCard icon={<AlertTriangle className="h-5 w-5" />} title="À prévoir">
               <p className="mt-1 text-[11px] italic leading-4 text-gray-500">
-                StayLocal ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
+                MyStay ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
               </p>
             </InfoCard>
           </div>

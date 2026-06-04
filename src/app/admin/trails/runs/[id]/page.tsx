@@ -3,6 +3,9 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getTrailImportRun } from '@/features/trails-acquisition/queries/runs'
 import { CandidatesTable } from '@/features/trails-acquisition/components/CandidatesTable'
 
+type TrailImportRunDetail = NonNullable<Awaited<ReturnType<typeof getTrailImportRun>>>
+type TrailCandidateForStats = TrailImportRunDetail['candidates'][number]
+
 export default async function AdminTrailRunPage({
   params,
 }: {
@@ -24,7 +27,7 @@ export default async function AdminTrailRunPage({
   )
 }
 
-function RunHeader({ run }: { run: any }) {
+function RunHeader({ run }: { run: TrailImportRunDetail }) {
   const stats = computeStats(run.candidates ?? [])
   return (
     <header className="rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm">
@@ -71,7 +74,7 @@ function StatBox({ label, value, color }: { label: string; value: number; color:
   )
 }
 
-function computeStats(candidates: any[]) {
+function computeStats(candidates: TrailCandidateForStats[]) {
   const total = candidates.length
   let geometryValid = 0, elevationValid = 0, complete = 0, partial = 0, published = 0
   for (const c of candidates) {

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
@@ -337,7 +338,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
 
 /* Helper Components */
 
-function MetricCard({ title, value, icon: Icon, iconColor }: { title: string; value: number, icon: any, iconColor: string }) {
+function MetricCard({ title, value, icon: Icon, iconColor }: { title: string; value: number; icon: LucideIcon; iconColor: string }) {
   return (
     <div className="flex items-center gap-4 rounded-[20px] border border-gray-50 bg-white p-5 shadow-sm transition-colors hover:border-gray-100">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-50">

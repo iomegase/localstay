@@ -1,1 +1,3 @@
-export { default } from '../../(auth)/login/page'
+import { LoginPage } from '@/features/auth/components/LoginPage'
+
+export default LoginPage

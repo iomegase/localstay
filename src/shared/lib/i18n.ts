@@ -6,9 +6,9 @@ const fr = {
   'guide.city_not_found': 'Ville introuvable',
   'guide.back_home': "Retour à l'accueil",
   'guide.subtitle': 'Sélection exclusive de votre hôte',
-  'nav.explore': 'Explorer',
+  'nav.explore': 'Bienvenue',
   'nav.map': 'Carte',
-  'nav.favorites': 'Favoris',
+  'nav.favorites': 'Vos favoris',
   'nav.stay': 'Séjour',
 } as const
 

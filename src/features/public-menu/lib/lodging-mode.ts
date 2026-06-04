@@ -8,6 +8,7 @@ export type LodgingModeContext = {
   lodgingName: string
   citySlug: string
   cityName: string
+  ownerName: string | null
 }
 
 export async function getActiveLodgingContext(): Promise<LodgingModeContext | null> {
@@ -21,14 +22,20 @@ export async function getActiveLodgingContext(): Promise<LodgingModeContext | nu
       id: true,
       name: true,
       city: { select: { slug: true, name: true } },
+      owner: { select: { first_name: true, last_name: true } },
     },
   })
   if (!lodging) return null
+
+  const ownerName = [lodging.owner.first_name, lodging.owner.last_name]
+    .filter((part): part is string => Boolean(part && part.trim().length > 0))
+    .join(' ')
 
   return {
     lodgingId: lodging.id,
     lodgingName: lodging.name,
     citySlug: lodging.city.slug,
     cityName: lodging.city.name,
+    ownerName: ownerName === '' ? null : ownerName,
   }
 }

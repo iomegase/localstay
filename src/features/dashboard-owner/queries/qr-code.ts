@@ -11,17 +11,16 @@ export interface LodgingQrCodeResult {
 
 export async function getActiveLodgingQrCode(lodgingId: string): Promise<LodgingQrCodeResult | null> {
   const row = await prisma.qrCode.findFirst({
-    where: { lodging_id: lodgingId, is_active: true, deleted_at: null },
+    where: { lodging_id: lodgingId, is_active: true },
     select: { id: true, lodging_id: true, city_id: true, url: true, storage_url: true, created_at: true },
   })
   if (!row || !row.lodging_id) return null
   return row as LodgingQrCodeResult
 }
 
-export async function archiveExistingQrCodes(lodgingId: string): Promise<void> {
-  await prisma.qrCode.updateMany({
-    where: { lodging_id: lodgingId, is_active: true, deleted_at: null },
-    data: { is_active: false, deleted_at: new Date() },
+export async function deleteExistingLodgingQrCodes(lodgingId: string): Promise<void> {
+  await prisma.qrCode.deleteMany({
+    where: { lodging_id: lodgingId },
   })
 }
 

@@ -8,7 +8,7 @@ export default function MerchantLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-charcoal/10 bg-white/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/merchant" className="font-semibold tracking-tight text-charcoal">
-            StayLocal Merchant
+            MyStay Merchant
           </Link>
           <div className="flex items-center gap-6">
             <nav className="flex gap-4 text-sm text-charcoal/60">
