@@ -6,6 +6,10 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PublicLayout from '@/app/(public)/layout'
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/',
+}))
+
 jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: jest.fn(async () => ({
     lodgingId: 'lodging-1',
