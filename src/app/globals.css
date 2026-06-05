@@ -23,6 +23,20 @@
     --destructive-foreground: 0 0% 98%;
     --radius: 0.5rem;
   }
+
+  html {
+    min-height: 100%;
+    overflow-x: hidden;
+    background: hsl(var(--background));
+    scroll-padding-top: env(safe-area-inset-top);
+    scroll-padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: hsl(var(--background));
+  }
 }
 
 @layer utilities {
@@ -38,6 +52,25 @@
     background: rgba(250, 249, 246, 0.85);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+  }
+}
+
+@media (max-width: 767px) {
+  html {
+    min-height: 100dvh;
+  }
+
+  body.mobile-browser-immersive {
+    min-height: calc(100dvh + 1px);
+    min-height: calc(var(--mystay-viewport-height, 100dvh) + 1px);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body.mobile-browser-immersive::after {
+    content: "";
+    display: block;
+    height: max(1px, env(safe-area-inset-bottom));
+    pointer-events: none;
   }
 }
 

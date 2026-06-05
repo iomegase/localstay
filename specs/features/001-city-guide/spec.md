@@ -87,6 +87,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 - **BR-07**: MVP 1 est monolingue français. Toutes les chaînes UI sont en français. Les versions EN, IT, ES, NL sont prévues dans les MVPs suivants — l'architecture i18n doit être préparée (clés de traduction) sans être implémentée
 - **BR-08**: Le `poi_count` retourné par l'API reflète les POI actifs en base au moment de la requête. Si le cache Gemini est vide ou en cours de fetch, `poi_count` peut être 0 — comportement défini dans spec `007-gemini-fetch`
 - **BR-09**: Le nom produit public est MyStay. Les libellés de navigation validés le 2026-06-05 sont : bottom nav `Explorer` → `Bienvenue`, `Favoris` → `Vos favoris`, bouton `Guide` visible uniquement dans le contexte `/guide/[city-slug]` et pointant vers la racine de cette ville ; menu burger `Home` → `Bienvenue`; menu burger `Services Privés` → `Les recommandations de {owner.name}` si le nom Owner est connu, sinon `Les recommandations de votre hôte`.
+- **BR-10**: Sur mobile iOS/Android, le site utilise un mode immersif navigateur classique sur toutes les routes : viewport `cover`, safe areas, hauteur mobile dynamique et repli demandé des barres navigateur après chargement ou interaction tactile. Ce mode ne remplace pas une PWA installée : la disparition des barres d'adresse/bas reste soumise au comportement du navigateur.
 
 ---
 
@@ -286,7 +287,7 @@ components:
 - **Error state** : message d'erreur générique + bouton "Réessayer"
 - **404 state** : page dédiée "Ville introuvable" + lien retour accueil — HTTP 404
 - **Success state** : home Guide avec intitulé de guide, sous-titre, champ de recherche visuel, ligne horizontale de catégories, vue "Tous les POI" avec infinite scroll, bottom navigation incluant `Guide` vers `/guide/[city-slug]`
-- **Mobile** : `max-w-[430px]`, fond `#FAF9F6`, header glassmorphism sticky, menu overlay plein écran
+- **Mobile** : `max-w-[430px]`, fond `#FAF9F6`, header glassmorphism sticky, menu overlay plein écran, viewport immersif navigateur selon BR-10
 
 ### Composant : CitySearchInput (page d'accueil `/`)
 
@@ -313,6 +314,7 @@ components:
 | AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | integration |
 | AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal | e2e |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | integration |
+| BR-10 | Mode immersif navigateur mobile configuré globalement | unit |
 
 ---
 

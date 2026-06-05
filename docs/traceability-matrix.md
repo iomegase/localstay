@@ -32,6 +32,7 @@
 | AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal, conforme mockup `001-city-guide/home.html` | `src/app/(public)/layout.tsx`<br>`src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/features/city-guide/components/CategoryRow.tsx`<br>`src/features/city-guide/components/PublicMenu.tsx` | `tests/e2e/city-guide.AC-03-03.mobile-375px.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx`<br>`tests/unit/public-layout.mockup-menu.test.tsx` | ✅ done |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | `src/app/(public)/guide/[city-slug]/page.tsx`<br>`src/app/api/cities/[slug]/route.ts` | `tests/contract/city-guide.AC-03-04.empty-city-200.test.ts`<br>`tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
 | BR-09 | Nom produit MyStay + libellés publics `Bienvenue`, `Vos favoris`, `Les recommandations de {owner.name}` + bouton `Guide` contextuel sur `/guide/[city-slug]` | `src/app/(public)/layout.tsx`<br>`src/features/city-guide/components/PublicBottomNav.tsx`<br>`src/features/city-guide/components/PublicMenu.tsx`<br>`src/features/public-menu/lib/lodging-mode.ts` | `tests/unit/public-layout.mockup-menu.test.tsx`<br>`tests/unit/public-bottom-nav.test.tsx` | ✅ done |
+| BR-10 | Mode immersif navigateur mobile global : viewport cover, safe areas, hauteur dynamique, repli du chrome demandé | `src/app/layout.tsx`<br>`src/app/globals.css`<br>`src/shared/components/MobileBrowserChromeCollapser.tsx` | `tests/unit/mobile-browser-immersive.test.ts` | ✅ done |
 
 ---
 

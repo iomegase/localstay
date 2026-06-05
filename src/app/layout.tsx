@@ -1,10 +1,26 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { MobileBrowserChromeCollapser } from '@/shared/components/MobileBrowserChromeCollapser'
 import './globals.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 export const metadata: Metadata = {
   title: 'MyStay — Votre guide touristique local',
   description: 'Découvrez le meilleur de votre ville de séjour.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'MyStay',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#FAF9F6',
 }
 
 export default function RootLayout({
@@ -31,6 +47,7 @@ export default function RootLayout({
         className="bg-ivory text-charcoal font-sans antialiased"
         suppressHydrationWarning
       >
+        <MobileBrowserChromeCollapser />
         {children}
       </body>
     </html>
