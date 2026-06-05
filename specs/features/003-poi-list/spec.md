@@ -322,6 +322,7 @@ components:
 - Badge "Sponsorisé" si POI mis en avant (logique métier présente, inactive MVP 1)
 - Distance en km depuis le centre ville par défaut, ou depuis la position GPS du Tourist après consentement explicite
 - Note avec étoile et nombre d'avis
+- Le panneau détaillé de la card fonctionne en accordéon : une seule card POI peut être ouverte à la fois dans une même liste (catégorie ou vue "Tous les POI")
 
 ---
 
@@ -337,6 +338,7 @@ components:
 | AC-02-03 | Suppression filtre → reset liste | unit |
 | AC-03-01 | Clic card → redirection fiche POI | e2e |
 | BR-01a | Distance affichée depuis GPS après opt-in, fallback centre-ville | unit |
+| BR-01b | Une seule card POI ouverte à la fois par liste | unit |
 | BR-05 | Pagination progressive "Charger plus" avec limite max 50 | contract + unit |
 | BR-05a | Infinite scroll home Guide "Tous les POI" par lots de 10 | contract + unit |
 

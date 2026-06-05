@@ -30,6 +30,7 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
   const [totalPages, setTotalPages] = useState(initialMeta.total_pages)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [openPoiId, setOpenPoiId] = useState<string | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   // Re-synchronise si le serveur renvoie une nouvelle première page (changement de tri).
@@ -38,6 +39,12 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
     setPage(initialMeta.page)
     setTotalPages(initialMeta.total_pages)
   }, [initialItems, initialMeta.page, initialMeta.total_pages])
+
+  useEffect(() => {
+    if (openPoiId && !items.some(item => item.id === openPoiId)) {
+      setOpenPoiId(null)
+    }
+  }, [items, openPoiId])
 
   const canLoadMore = page < totalPages
 
@@ -79,7 +86,14 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
   return (
     <div className="space-y-3 px-4">
       {items.map(poi => (
-        <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={poi.category_slug} />
+        <PoiCard
+          key={poi.id}
+          poi={poi}
+          citySlug={citySlug}
+          categorySlug={poi.category_slug}
+          isExpanded={openPoiId === poi.id}
+          onToggleExpanded={() => setOpenPoiId(current => current === poi.id ? null : poi.id)}
+        />
       ))}
 
       {items.length === 0 && (

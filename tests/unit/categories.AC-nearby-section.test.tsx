@@ -11,6 +11,10 @@ jest.mock('@/features/categories/components/FullMap', () => ({
   FullMap: () => <div data-testid="full-map" />,
 }))
 
+jest.mock('@/shared/components/MarkdownText', () => ({
+  MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
+}))
+
 const CITY_CENTER = { latitude: 45.8921, longitude: 6.7085 }
 
 function makePoi(overrides: Partial<PoiCard> & { id: string; name: string }): PoiCard {
@@ -130,7 +134,7 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
 
     expect(screen.getByTestId('poi-distance')).toHaveTextContent('10.0 km')
 
-    await userEvent.click(screen.getByRole('button', { name: /utiliser ma position/i }))
+    await userEvent.click(screen.getByRole('button', { name: /ma position/i }))
 
     expect(screen.getByTestId('poi-distance')).toHaveTextContent('0 m')
   })

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Heart, MapPin, ChevronRight, Timer, Route, TrendingUp, Share2, Star, Globe, Navigation } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   type FavoritePoi,
   isFavorite as readIsFavorite,
@@ -32,13 +32,23 @@ interface Props {
   poi: PoiCardType
   citySlug: string
   categorySlug: string
+  isExpanded?: boolean
+  onToggleExpanded?: () => void
 }
 
-export function PoiCard({ poi, citySlug, categorySlug }: Props) {
-  const [isExpanded, setIsExpanded] = useState(false)
+export function PoiCard({
+  poi,
+  citySlug,
+  categorySlug,
+  isExpanded: isExpandedProp,
+  onToggleExpanded,
+}: Props) {
+  const [internalIsExpanded, setInternalIsExpanded] = useState(false)
   const [isFav, setIsFav] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
+
+  const isExpanded = isExpandedProp ?? internalIsExpanded
 
   useEffect(() => {
     setMounted(true)
@@ -92,6 +102,14 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
     } catch {
       // Partage annulé / indisponible — sans effet
     }
+  }
+
+  function handleToggleExpanded() {
+    if (onToggleExpanded) {
+      onToggleExpanded()
+      return
+    }
+    setInternalIsExpanded(current => !current)
   }
 
   return (
@@ -167,7 +185,7 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
       <div className="p-6 flex flex-col flex-1 justify-between">
         <div
           className="flex justify-between items-center group/card cursor-pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={handleToggleExpanded}
         >
           <div className="flex-1">
             {!isTrail && displayRating !== null && (
@@ -253,93 +271,90 @@ export function PoiCard({ poi, citySlug, categorySlug }: Props) {
             </div>
           </div>
 
-          <AnimatePresence>
-            {isExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden border-t border-gray-50 flex flex-col shrink-0"
-              >
-                <div className="pt-5">
-                  {/* <h3 className="text-[14px] font-medium text-gray-800 mb-1">En savoir plus</h3> */}
-                  {description && (
-                    <MarkdownText
-                      source={description}
-                      breaks
-                      className="text-[10px] font-thin text-[#86898f] mb-5 leading-5"
-                    />
-                  )}
-                  {gallery.length > 0 && (
-                    <div className="relative w-full overflow-hidden rounded-none h-[100px]">
-                      <motion.div
-                        className="flex gap-2 absolute top-0 left-0 h-full w-max"
-                        animate={{ x: ['0%', '-50%'] }}
-                        transition={{ repeat: Infinity, ease: 'linear', duration: 25 }}
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden border-t border-gray-50 flex flex-col shrink-0"
+            >
+              <div className="pt-5">
+                {/* <h3 className="text-[14px] font-medium text-gray-800 mb-1">En savoir plus</h3> */}
+                {description && (
+                  <MarkdownText
+                    source={description}
+                    breaks
+                    className="text-[10px] font-thin text-[#86898f] mb-5 leading-5"
+                  />
+                )}
+                {gallery.length > 0 && (
+                  <div className="relative w-full overflow-hidden rounded-none h-[100px]">
+                    <motion.div
+                      className="flex gap-2 absolute top-0 left-0 h-full w-max"
+                      animate={{ x: ['0%', '-50%'] }}
+                      transition={{ repeat: Infinity, ease: 'linear', duration: 25 }}
+                    >
+                      {gallery.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          className="h-full w-36 object-cover rounded-none shrink-0 border border-gray-50/50"
+                          alt={`${poi.name} ${i + 1}`}
+                        />
+                      ))}
+                    </motion.div>
+                  </div>
+                )}
+                {!isTrail && (
+                  <div className="mt-1 space-y-2 text-[11px] font-thin text-gray-600" data-testid="poi-more-info">
+                    {poi.website && (
+                      <a
+                        href={poi.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="flex items-center gap-1.5 text-[#bd9254] hover:underline"
                       >
-                        {gallery.map((img, i) => (
-                          <img
-                            key={i}
-                            src={img}
-                            className="h-full w-36 object-cover rounded-none shrink-0 border border-gray-50/50"
-                            alt={`${poi.name} ${i + 1}`}
-                          />
-                        ))}
-                      </motion.div>
-                    </div>
-                  )}
-                  {!isTrail && (
-                    <div className="mt-1 space-y-2 text-[11px] font-thin text-gray-600" data-testid="poi-more-info">
-                      {poi.website && (
+                        <Globe className="h-3 w-3" />
+                        Site web
+                      </a>
+                    )}
+
+                    <div className="flex gap-2 pt-3">
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude},${poi.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-black text-white hover:bg-white hover:text-black px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                      >
+                        <Navigation className="h-3.5 w-3.5" />
+                        Google Maps
+                      </a>
+                      {poi.phone && (
                         <a
-                          href={poi.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          href={`tel:${poi.phone}`}
                           onClick={e => e.stopPropagation()}
-                          className="flex items-center gap-1.5 text-[#bd9254] hover:underline"
+                          className="flex flex-1 items-center justify-center border border-black bg-white text-black hover:bg-black hover:text-white px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
                         >
-                          <Globe className="h-3 w-3" />
-                          Site web
+                          APPELER
                         </a>
                       )}
-
-                      <div className="flex gap-2 pt-3">
-                        <a
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude},${poi.longitude}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-black text-white hover:bg-white hover:text-black px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
-                        >
-                          <Navigation className="h-3.5 w-3.5" />
-                          Google Maps
-                        </a>
-                        {poi.phone && (
-                          <a
-                            href={`tel:${poi.phone}`}
-                            onClick={e => e.stopPropagation()}
-                            className="flex flex-1 items-center justify-center border border-black bg-white text-black hover:bg-black hover:text-white px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
-                          >
-                            APPELER
-                          </a>
-                        )}
-                      </div>
                     </div>
-                  )}
-                  {isTrail && (
-                    <TrailCardDetails
-                      citySlug={citySlug}
-                      categorySlug={categorySlug}
-                      poiSlug={poi.slug}
-                      poiName={poi.name}
-                      address={poi.address}
-                    />
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  </div>
+                )}
+                {isTrail && (
+                  <TrailCardDetails
+                    citySlug={citySlug}
+                    categorySlug={categorySlug}
+                    poiSlug={poi.slug}
+                    poiName={poi.name}
+                    address={poi.address}
+                  />
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

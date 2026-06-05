@@ -65,6 +65,7 @@ export function CategoryViewWrapper({
   const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable' | 'denied'>('idle')
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null)
+  const [openPoiId, setOpenPoiId] = useState<string | null>(null)
 
   useEffect(() => {
     setPrimaryItems(primary)
@@ -72,6 +73,13 @@ export function CategoryViewWrapper({
     setCurrentPage(page)
     setCurrentTotalPages(totalPages)
   }, [primary, nearby, page, totalPages])
+
+  useEffect(() => {
+    const visiblePoiIds = new Set([...primaryItems, ...nearbyItems].map(poi => poi.id))
+    if (openPoiId && !visiblePoiIds.has(openPoiId)) {
+      setOpenPoiId(null)
+    }
+  }, [primaryItems, nearbyItems, openPoiId])
 
   const displayedPrimary = withDisplayedDistance(primaryItems, userLocation)
   const displayedNearby = withDisplayedDistance(nearbyItems, userLocation)
@@ -205,7 +213,14 @@ export function CategoryViewWrapper({
 
         <div className="space-y-3">
           {displayedPrimary.map(poi => (
-            <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+            <PoiCard
+              key={poi.id}
+              poi={poi}
+              citySlug={citySlug}
+              categorySlug={categorySlug}
+              isExpanded={openPoiId === poi.id}
+              onToggleExpanded={() => setOpenPoiId(current => current === poi.id ? null : poi.id)}
+            />
           ))}
           {displayedPrimary.length === 0 && displayedNearby.length === 0 && (
             <p className="py-8 text-center text-sm text-charcoal/50">Aucun résultat</p>
@@ -219,7 +234,14 @@ export function CategoryViewWrapper({
             </h3>
             <div className="space-y-3">
               {displayedNearby.map(poi => (
-                <PoiCard key={poi.id} poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+                <PoiCard
+                  key={poi.id}
+                  poi={poi}
+                  citySlug={citySlug}
+                  categorySlug={categorySlug}
+                  isExpanded={openPoiId === poi.id}
+                  onToggleExpanded={() => setOpenPoiId(current => current === poi.id ? null : poi.id)}
+                />
               ))}
             </div>
           </div>
