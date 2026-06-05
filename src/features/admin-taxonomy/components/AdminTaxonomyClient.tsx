@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from 'react'
-import { Plus, Power, Edit2, AlertCircle } from 'lucide-react'
+import { Plus, Power, Edit2, AlertCircle, Trash2 } from 'lucide-react'
 import type { AdminCategory, AdminSubCategory } from '../types'
 import { getLucideIconComponent, LUCIDE_ICON_COMPONENTS } from '../lib/icons'
 import { Button } from '@/shared/components/ui/button'
@@ -27,10 +27,16 @@ type DisableState =
   | { kind: 'subcategory'; subcategory: AdminSubCategory }
   | null
 
+type DeleteState =
+  | { kind: 'category'; category: AdminCategory }
+  | { kind: 'subcategory'; subcategory: AdminSubCategory }
+  | null
+
 export function AdminTaxonomyClient({ initialCategories }: { initialCategories: AdminCategory[] }) {
   const [categories, setCategories] = useState(initialCategories)
   const [dialog, setDialog] = useState<DialogState>(null)
   const [disableDialog, setDisableDialog] = useState<DisableState>(null)
+  const [deleteDialog, setDeleteDialog] = useState<DeleteState>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -87,6 +93,29 @@ export function AdminTaxonomyClient({ initialCategories }: { initialCategories: 
   async function disableSubCategory(subcategory: AdminSubCategory) {
     await submitJson(`/api/admin/taxonomy/subcategories/${subcategory.id}`, 'PATCH', { is_active: false })
     setDisableDialog(null)
+  }
+
+  function runDelete(endpoint: string) {
+    setError(null)
+    startTransition(async () => {
+      const res = await fetch(endpoint, { method: 'DELETE' })
+      if (!res.ok) {
+        const json = await res.json() as { error?: { code?: string; message?: string } }
+        // On garde la modale ouverte pour afficher la raison (ex. POI actifs liés).
+        setError(json.error?.message ?? 'Suppression impossible')
+        return
+      }
+      await refreshTaxonomy()
+      setDeleteDialog(null)
+    })
+  }
+
+  function deleteCategory(category: AdminCategory) {
+    runDelete(`/api/admin/taxonomy/categories/${category.id}`)
+  }
+
+  function deleteSubCategory(subcategory: AdminSubCategory) {
+    runDelete(`/api/admin/taxonomy/subcategories/${subcategory.id}`)
   }
 
   return (
@@ -156,6 +185,8 @@ export function AdminTaxonomyClient({ initialCategories }: { initialCategories: 
                     onEditSubCategory={subcategory => setDialog({ kind: 'subcategory-edit', subcategory })}
                     onDisableCategory={() => setDisableDialog({ kind: 'category', category })}
                     onDisableSubCategory={subcategory => setDisableDialog({ kind: 'subcategory', subcategory })}
+                    onDeleteCategory={() => setDeleteDialog({ kind: 'category', category })}
+                    onDeleteSubCategory={subcategory => setDeleteDialog({ kind: 'subcategory', subcategory })}
                   />
                 ))}
               </tbody>
@@ -241,6 +272,51 @@ export function AdminTaxonomyClient({ initialCategories }: { initialCategories: 
           </DialogContent>
         )}
       </Dialog>
+
+      {/* Dialog de confirmation de SUPPRESSION (soft-delete définitif de la taxonomie) */}
+      <Dialog open={deleteDialog !== null} onOpenChange={open => { if (!open) { setDeleteDialog(null); setError(null) } }}>
+        {deleteDialog && (
+          <DialogContent className="bg-white rounded-[25px] border-none shadow-xl sm:max-w-[440px] p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-rose-600 text-lg font-bold">
+                <Trash2 className="h-5 w-5" />
+                Supprimer {deleteDialog.kind === 'category' ? 'la catégorie' : 'la sous-catégorie'}
+              </DialogTitle>
+              <DialogDescription className="pt-2 text-sm text-gray-500">
+                {deleteDialog.kind === 'category'
+                  ? 'La catégorie et ses sous-catégories seront retirées du Guide. Impossible si des POI actifs y sont encore rattachés (supprimez-les ou déplacez-les d’abord).'
+                  : 'La sous-catégorie sera retirée du Guide. Impossible si des POI actifs l’utilisent encore.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 text-[13px] text-gray-600">
+              Confirmez-vous la suppression de{' '}
+              <span className="font-bold text-neutral-900 border-b border-gray-200 pb-0.5">
+                {deleteDialog.kind === 'category' ? deleteDialog.category.name : deleteDialog.subcategory.name}
+              </span>{' '}?
+            </div>
+            {error && <p className="text-[13px] font-bold text-rose-600 p-3 bg-rose-50 rounded-xl">{error}</p>}
+            <DialogFooter className="mt-4 flex gap-3">
+              <Button type="button" variant="outline" onClick={() => { setDeleteDialog(null); setError(null) }} className="h-10 rounded-xl bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 flex-1">
+                Annuler
+              </Button>
+              <Button
+                type="button"
+                disabled={isPending}
+                onClick={() => {
+                  if (deleteDialog.kind === 'category') {
+                    deleteCategory(deleteDialog.category)
+                    return
+                  }
+                  deleteSubCategory(deleteDialog.subcategory)
+                }}
+                className="h-10 rounded-xl bg-rose-600 text-white hover:bg-rose-700 flex-1"
+              >
+                {isPending ? 'Suppression...' : 'Supprimer'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
 }
@@ -253,6 +329,8 @@ function TaxonomyCategoryRow({
   onEditSubCategory,
   onDisableCategory,
   onDisableSubCategory,
+  onDeleteCategory,
+  onDeleteSubCategory,
 }: {
   category: AdminCategory
   isPending: boolean
@@ -261,6 +339,8 @@ function TaxonomyCategoryRow({
   onEditSubCategory: (subcategory: AdminSubCategory) => void
   onDisableCategory: () => void
   onDisableSubCategory: (subcategory: AdminSubCategory) => void
+  onDeleteCategory: () => void
+  onDeleteSubCategory: (subcategory: AdminSubCategory) => void
 }) {
   const Icon = getLucideIconComponent(category.icon)
 
@@ -320,6 +400,16 @@ function TaxonomyCategoryRow({
             >
               <Power size={12} />
             </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={onDeleteCategory}
+              className="flex h-[30px] items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2 text-[11px] font-bold text-rose-600 transition-all hover:bg-rose-600 hover:text-white hover:border-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+              title="Supprimer"
+              aria-label={`Supprimer ${category.name}`}
+            >
+              <Trash2 size={12} />
+            </button>
           </div>
         </td>
       </tr>
@@ -367,6 +457,16 @@ function TaxonomyCategoryRow({
                 title="Désactiver"
               >
                 <Power size={10} />
+              </button>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => onDeleteSubCategory(subcategory)}
+                className="flex h-[26px] items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2 text-[10px] font-bold text-rose-500 transition-all hover:bg-rose-600 hover:text-white hover:border-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Supprimer"
+                aria-label={`Supprimer ${subcategory.name}`}
+              >
+                <Trash2 size={10} />
               </button>
             </div>
           </td>

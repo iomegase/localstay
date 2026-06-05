@@ -71,6 +71,18 @@ La page `/contact` doit devenir un formulaire exploitable pour les Tourists en s
 - **AC-03-02**: Given `RESEND_API_KEY` est configuré, When le Super-admin répond, Then un email est envoyé au `sender_email`
 - **AC-03-03**: Given `RESEND_API_KEY` est absent, When le Super-admin répond, Then la réponse est sauvegardée et l'API indique que l'email n'a pas été envoyé
 
+### US-04 — Voir les messages destinés au propriétaire
+
+**As an** Owner  
+**I want to** voir dans mon dashboard les messages qui me sont destinés  
+**So that** je puisse suivre les demandes voyageurs sans passer par le Super-admin
+
+#### Acceptance Criteria
+
+- **AC-04-01**: Given un message avec destination `owner`, When le Owner ouvre `/dashboard/messages`, Then une section Messages voyageurs affiche le logement, la date, le nom du Tourist, le sujet et le message
+- **AC-04-02**: Given un message avec destination `concierge`, When le Owner ouvre `/dashboard/messages`, Then ce message n'apparaît pas dans sa section Messages voyageurs
+- **AC-04-03**: Given le Owner est dans son dashboard, When l'aside menu s'affiche, Then un onglet `Messages` pointe vers `/dashboard/messages`
+
 ---
 
 ## Business Rules
@@ -85,6 +97,7 @@ La page `/contact` doit devenir un formulaire exploitable pour les Tourists en s
 - **BR-08**: Les champs publics sont validés avec Zod : nom 2–120 caractères, email valide, téléphone optionnel max 40 caractères, sujet 2–160 caractères, message 10–2000 caractères.
 - **BR-09**: La réponse Super-admin est limitée à 2000 caractères.
 - **BR-10**: Le formulaire public ne demande pas de compte Tourist.
+- **BR-11**: Le dashboard Owner affiche uniquement les Contact Messages dont `owner_id` correspond au Owner connecté et dont la destination vaut `owner`.
 
 ---
 
@@ -270,6 +283,14 @@ Les erreurs suivent la structure globale :
 - L'action corbeille archive le message et le déplace vers l'onglet Archivés.
 - Les actions utilisent des icônes Lucide React (`Eye`, `Trash2`, `Send`).
 
+### Dashboard Owner `/dashboard/messages`
+
+- Un onglet "Messages" est ajouté dans l'aside menu Owner et pointe vers `/dashboard/messages`.
+- La page "Messages voyageurs" reprend le module visuel du dashboard Super-admin en mode Owner.
+- La liste affiche uniquement les messages destinés au Propriétaire connecté.
+- Chaque message affiche : nom du logement, date, nom du Tourist, email, téléphone si présent, sujet et message.
+- Les messages destination `concierge` ne sont pas affichés au Owner.
+
 ---
 
 ## Acceptance Criteria Summary
@@ -286,12 +307,14 @@ Les erreurs suivent la structure globale :
 | AC-03-01 | Réponse sauvegardée en base | contract |
 | AC-03-02 | Email envoyé si Resend configuré | contract |
 | AC-03-03 | Réponse sauvegardée sans email si Resend absent | contract |
+| AC-04-01 | Page Messages Owner affiche messages destination propriétaire | integration |
+| AC-04-02 | Dashboard Owner masque messages conciergerie | unit |
+| AC-04-03 | Aside Owner expose onglet Messages | integration |
 
 ---
 
 ## Out of Scope
 
-- Inbox Owner dédiée dans `/dashboard`.
 - Chat temps réel ou notifications push.
 - Pièces jointes.
 - SLA ou assignation interne par opérateur.
@@ -301,4 +324,4 @@ Les erreurs suivent la structure globale :
 
 ## Open Questions
 
-Aucune question ouverte. Décision Product Owner du 2026-06-04 : les messages restent dans le dashboard Super-admin global, qu'ils soient destinés au Propriétaire ou à la Conciergerie, afin que le Super-admin conserve toujours une copie.
+Aucune question ouverte. Décision Product Owner du 2026-06-04 : les messages restent dans le dashboard Super-admin global, qu'ils soient destinés au Propriétaire ou à la Conciergerie, afin que le Super-admin conserve toujours une copie. Décision Product Owner du 2026-06-05 : les messages destinés au Propriétaire sont aussi visibles dans le dashboard Owner.

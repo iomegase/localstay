@@ -5,6 +5,7 @@ import type { PoiDetail, TrailDetailData } from '@/features/categories/types'
 import { TrailAccessActions } from './TrailAccessActions'
 import { TrailPreviewMap } from './TrailPreviewMap'
 import { isValidTrailGeometry } from '../lib/geo'
+import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 
 function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
@@ -35,6 +36,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
   if (!trail) return null
 
   const hasGeometry = isValidTrailGeometry(trail.geometry_geojson) && trail.data_quality_status === 'complete'
+  const reliability = reliabilityFromQualityStatus(trail.data_quality_status)
   const hasStart = trail.start_latitude !== null && trail.start_longitude !== null
   const attribution = trail.source_refs.map(source => source.attribution).filter(Boolean).join(' · ')
 
@@ -125,6 +127,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
           startLatitude={trail.start_latitude}
           startLongitude={trail.start_longitude}
           startHref={`/guide/${citySlug}/${categorySlug}/${poi.slug}/start`}
+          reliability={reliability}
         />
 
         <section className="px-4 pt-8">

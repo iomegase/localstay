@@ -101,7 +101,7 @@ function LodgingHome({
       <div className="mt-10 w-full max-w-md">
         <div className="grid grid-cols-2 gap-3">
           <ShortcutCard href="/le-logement" title="Le logement" subtitle="Wi-Fi, parking, équipements" />
-          <ShortcutCard href="/services-prives" title={recommendationsTitle} subtitle="Sélection de l'hôte" />
+          <ShortcutCard href="/nos-recommandations" title={recommendationsTitle} subtitle="Sélection de l'hôte" />
           <ShortcutCard href="/mes-favoris" title="Vos favoris" subtitle="Lieux sauvegardés" />
           <ShortcutCard href="/contact" title="Nous contacter" subtitle="Une question ?" />
         </div>

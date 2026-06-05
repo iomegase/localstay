@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { AdminTrailsLauncher } from '@/features/trails-acquisition/components/AdminTrailsLauncher'
 import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/components/CleanupStaleCandidatesButton'
+import { RefineTrailGeometryButton } from '@/features/trails-acquisition/components/RefineTrailGeometryButton'
 import { DeleteRunButton } from '@/features/trails-acquisition/components/DeleteRunButton'
 import { getTrailAcquisitionOptions } from '@/features/trails-acquisition/queries/options'
 import { listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
@@ -58,6 +59,7 @@ function PageHeader() {
       </div>
       
       <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <RefineTrailGeometryButton />
         <CleanupStaleCandidatesButton />
         <Link
           href="/admin/trails/new"

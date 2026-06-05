@@ -26,7 +26,7 @@ function makeRequest(body: Record<string, unknown>): NextRequest {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-})
+}
 
 const validBody = {
   lodging_id: LODGING_ID,
@@ -104,4 +104,4 @@ describe('024 contact messages public API', () => {
     expect(json.error.code).toBe('INVALID_LODGING')
     expect(mockCreateContactMessage).not.toHaveBeenCalled()
   })
-}
+})

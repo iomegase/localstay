@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronRight,
   LayoutDashboard,
+  MessageSquare,
   BarChart3,
   Search,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ import { LogoutButton } from '@/shared/components/LogoutButton'
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Accueil', icon: LayoutDashboard },
   { href: '/dashboard/lodgings', label: 'Logements', icon: Building2 },
+  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/dashboard/subscription', label: 'Abonnement', icon: CreditCard },
 ]

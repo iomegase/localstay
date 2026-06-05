@@ -334,6 +334,84 @@ export async function updateSubCategory(
   }
 }
 
+export async function deleteCategory(id: string, adminId: string): Promise<{ id: string; deleted: true }> {
+  const existing = await prisma.category.findFirst({
+    where: { id, deleted_at: null },
+    select: { id: true, name: true, slug: true, icon: true, sort_order: true, is_active: true },
+  })
+  if (!existing) throw new ApiTaxonomyError('NOT_FOUND', 404)
+
+  // Un POI référence obligatoirement une catégorie : on refuse de supprimer une catégorie
+  // encore utilisée par des POI actifs (sinon orphelins). L'admin les supprime/déplace d'abord.
+  const activePoiCount = await prisma.pointOfInterest.count({
+    where: { category_id: id, is_active: true, deleted_at: null },
+  })
+  if (activePoiCount > 0) {
+    throw new ApiTaxonomyError('CATEGORY_HAS_POIS', 409, { poi_count: activePoiCount })
+  }
+
+  const now = new Date()
+  await prisma.$transaction(async tx => {
+    // Cascade : les sous-catégories de la catégorie supprimée sont soft-deleted avec elle.
+    await tx.subCategory.updateMany({
+      where: { category_id: id, deleted_at: null },
+      data: { deleted_at: now, is_active: false },
+    })
+
+    const category = await tx.category.update({
+      where: { id },
+      data: { deleted_at: now, is_active: false },
+      select: { id: true, name: true, slug: true, icon: true, sort_order: true, is_active: true },
+    })
+
+    await createAuditLog(tx, {
+      adminId,
+      action: 'category_deleted',
+      targetType: 'category',
+      targetId: id,
+      before: categoryAuditPayload(existing),
+      after: categoryAuditPayload(category),
+    })
+  })
+
+  return { id, deleted: true }
+}
+
+export async function deleteSubCategory(id: string, adminId: string): Promise<{ id: string; deleted: true }> {
+  const existing = await prisma.subCategory.findFirst({
+    where: { id, deleted_at: null },
+    select: { id: true, category_id: true, name: true, slug: true, sort_order: true, is_active: true },
+  })
+  if (!existing) throw new ApiTaxonomyError('NOT_FOUND', 404)
+
+  const activePoiCount = await prisma.pointOfInterest.count({
+    where: { subcategory_id: id, is_active: true, deleted_at: null },
+  })
+  if (activePoiCount > 0) {
+    throw new ApiTaxonomyError('SUBCATEGORY_HAS_POIS', 409, { poi_count: activePoiCount })
+  }
+
+  const now = new Date()
+  await prisma.$transaction(async tx => {
+    const subcategory = await tx.subCategory.update({
+      where: { id },
+      data: { deleted_at: now, is_active: false },
+      select: { id: true, category_id: true, name: true, slug: true, sort_order: true, is_active: true },
+    })
+
+    await createAuditLog(tx, {
+      adminId,
+      action: 'subcategory_deleted',
+      targetType: 'subcategory',
+      targetId: id,
+      before: subCategoryAuditPayload(existing),
+      after: subCategoryAuditPayload(subcategory),
+    })
+  })
+
+  return { id, deleted: true }
+}
+
 async function getCategoryById(id: string): Promise<AdminCategory> {
   const category = await prisma.category.findFirst({
     where: { id, deleted_at: null },

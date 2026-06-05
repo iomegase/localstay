@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { Flag, FlagTriangleRight, MapPin, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Flag, FlagTriangleRight, MapPin, RotateCcw } from 'lucide-react'
 import { isValidTrailGeometry } from '../lib/geo'
+import type { TrailReliability } from '@/features/trails-acquisition/lib/geometry-quality'
 
 interface Props {
   name: string
@@ -8,6 +9,8 @@ interface Props {
   startLatitude: number | null
   startLongitude: number | null
   startHref: string
+  /** 'indicative' affiche un badge d'avertissement et atténue le tracé. Défaut: 'reliable'. */
+  reliability?: TrailReliability
 }
 
 const STATIC_BASE = 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static'
@@ -18,10 +21,11 @@ const STROKE_COLOR = '455E4C'
 const STROKE_WIDTH = 5
 const MAX_GEOMETRY_POINTS = 40
 
-export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude, startHref }: Props) {
+export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude, startHref, reliability = 'reliable' }: Props) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
+  const isIndicative = reliability === 'indicative'
   const validGeometry = isValidTrailGeometry(geometry) ? geometry : null
-  const previewSrc = buildStaticUrl(validGeometry, startLatitude, startLongitude, token)
+  const previewSrc = buildStaticUrl(validGeometry, startLatitude, startLongitude, token, isIndicative)
   const endpoints = validGeometry ? extractEndpoints(validGeometry) : null
   const isLoop = endpoints ? haversineMeters(endpoints.start, endpoints.end) <= 50 : false
 
@@ -50,6 +54,14 @@ export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude,
           Mapbox outdoors
         </div>
 
+        {/* Badge fiabilité : tracé approximatif (géométrie pauvre / incomplète / héritée) */}
+        {isIndicative && (
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-amber-50/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 shadow-sm ring-1 ring-amber-200">
+            <AlertTriangle className="h-3 w-3" />
+            Tracé indicatif
+          </div>
+        )}
+
         {/* Légende discrète (icônes seulement, pas de pills empilés) */}
         {endpoints && (
           <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
@@ -77,6 +89,7 @@ function buildStaticUrl(
   startLat: number | null,
   startLng: number | null,
   token: string,
+  indicative = false,
 ): string | null {
   if (!token) return null
   if (!geometry) {
@@ -101,7 +114,7 @@ function buildStaticUrl(
   const geojsonOverlay = encodeURIComponent(
     JSON.stringify({
       type: 'Feature',
-      properties: { stroke: `#${STROKE_COLOR}`, 'stroke-width': STROKE_WIDTH, 'stroke-opacity': 0.95 },
+      properties: { stroke: `#${STROKE_COLOR}`, 'stroke-width': STROKE_WIDTH, 'stroke-opacity': indicative ? 0.5 : 0.95 },
       geometry: overlayGeometry,
     }),
   )

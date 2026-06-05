@@ -34,7 +34,7 @@ function makeRequest(url: string, body?: Record<string, unknown>): NextRequest {
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   })
-})
+}
 
 function params(id = MESSAGE_ID): { params: Promise<{ id: string }> } {
   return { params: Promise.resolve({ id }) }
@@ -136,4 +136,4 @@ describe('024 contact messages admin API', () => {
     expect(response.status).toBe(404)
     expect(mockUpdateContactMessage).not.toHaveBeenCalled()
   })
-}
+})

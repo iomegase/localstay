@@ -4,6 +4,7 @@ import { TrailsAcquisitionError } from '../lib/errors'
 import { createTrailSlug } from '../lib/slug'
 import { mapTrailCandidate } from './runs'
 import { extractCamptocampImageUrls } from '../services/camptocamp'
+import { classifyTrailQuality } from '../lib/geometry-quality'
 
 function extractPhotosForCandidate(primarySourceType: string, rawPayload: Prisma.JsonValue): string[] {
   if (primarySourceType === 'camptocamp') return extractCamptocampImageUrls(rawPayload)
@@ -55,7 +56,12 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
   })
   if (!randoCategory) throw new TrailsAcquisitionError('INVALID_RANDO_CATEGORY', 400)
 
-  const qualityStatus = candidate.geometry_status === 'valid' ? 'complete' : 'incomplete'
+  // Le statut publié reflète la *qualité réelle* de la géométrie (densité, sauts, héritage),
+  // pas seulement la présence d'une géométrie. Voir plan 2026-06-05 (Phase B).
+  const qualityStatus = classifyTrailQuality({
+    geometry: candidate.geometry_geojson,
+    sourceRefs: candidate.source_refs,
+  })
   const difficulty = candidate.difficulty ?? 'unknown'
   const startLatitude = candidate.start_latitude
   const startLongitude = candidate.start_longitude

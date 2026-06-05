@@ -53,7 +53,10 @@ describe('Public lodging home', () => {
       'href',
       '/guide/saint-gervais',
     )
-    expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Les recommandations de Alice Martin/i })).toHaveAttribute(
+      'href',
+      '/nos-recommandations',
+    )
     expect(screen.getByText('Vos favoris')).toBeInTheDocument()
   })
 })

@@ -25,7 +25,7 @@ function lodgingItems(ownerName?: string | null): MenuItem[] {
   return [
     { href: '/', label: 'Bienvenue' },
     { href: '/le-logement', label: 'Le Logement' },
-    { href: '/services-prives', label: recommendationLabel },
+    { href: '/nos-recommandations', label: recommendationLabel },
     { href: '/mes-favoris', label: 'Vos favoris' },
     { href: '/contact', label: 'Nous Contacter' },
   ]

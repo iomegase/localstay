@@ -305,6 +305,7 @@ model User {
   trail_import_runs_started TrailImportRun[] @relation("TrailImportRunStartedBy")
   trail_candidates_reviewed TrailCandidate[] @relation("TrailCandidateReviewedBy")
   trail_audit_logs TrailAuditLog[]
+  owned_contact_messages ContactMessage[] @relation("ContactMessageOwner")
 }
 
 // ─── Spec 017 — Admin Taxonomy ──────────────────────────────────────────────
@@ -561,6 +562,9 @@ model TrailDetail {
   start_latitude Float
   start_longitude Float
   geometry_geojson Json?
+  // Spec plan 2026-06-05 (Phase C) — snap/densification ORS foot-hiking.
+  geometry_raw_geojson Json?      // sauvegarde du tracé brut avant affinage (rollback)
+  geometry_refined_at DateTime?   // horodatage du dernier passage d'affinage (null = jamais traité)
 
   primary_source_type String
   source_refs Json
@@ -631,6 +635,7 @@ model Lodging {
   analytics   Analytics[]
   customization LodgingCustomization?
   featured_pois LodgingFeaturedPoi[]
+  contact_messages ContactMessage[]
 }
 
 // ─── Spec 012 — Guide Customization ─────────────────────────────────────────
@@ -676,6 +681,48 @@ model LodgingFeaturedPoi {
   @@unique([lodging_id, poi_id])
   @@index([lodging_id, deleted_at])
   @@index([poi_id])
+}
+
+// ─── Spec 024 — Contact Messages ───────────────────────────────────────────
+
+enum ContactMessageDestination {
+  owner
+  concierge
+}
+
+enum ContactMessageStatus {
+  new
+  replied
+  archived
+}
+
+model ContactMessage {
+  id                 String   @id @default(uuid())
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  deleted_at         DateTime?
+
+  lodging_id         String?
+  lodging            Lodging? @relation(fields: [lodging_id], references: [id])
+  owner_id           String?
+  owner              User?    @relation("ContactMessageOwner", fields: [owner_id], references: [id])
+
+  destination        ContactMessageDestination
+  status             ContactMessageStatus @default(new)
+  sender_name        String
+  sender_email       String
+  sender_phone       String?
+  subject            String
+  message            String
+  archived_at        DateTime?
+  reply_body         String?
+  replied_at         DateTime?
+  replied_by_user_id String?
+
+  @@index([created_at])
+  @@index([lodging_id])
+  @@index([owner_id])
+  @@index([status])
 }
 
 // Analytics est append-only — les événements ne sont jamais modifiés.

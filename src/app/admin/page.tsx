@@ -2,12 +2,17 @@ import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminOverview } from '@/features/admin/queries/dashboard'
 import { AdminQrScansChart } from '@/features/admin/components/AdminQrScansChart'
+import { listAdminContactMessages } from '@/features/contact-messages/queries/contact-messages'
+import { AdminContactMessagesPanel } from '@/features/contact-messages/components/AdminContactMessagesPanel'
 import { Building2, MapPin, BadgeCheck, Store, ShieldAlert, QrCode, ArrowRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export default async function AdminOverviewPage() {
   await getPageAdmin()
-  const overview = await getAdminOverview()
+  const [overview, contactMessages] = await Promise.all([
+    getAdminOverview(),
+    listAdminContactMessages(),
+  ])
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -66,6 +71,8 @@ export default async function AdminOverviewPage() {
           </div>
         </div>
       </div>
+
+      <AdminContactMessagesPanel messages={contactMessages} />
 
       {/* Tableau et section Facturation */}
       <div className="mt-6 grid gap-6 xl:grid-cols-12">

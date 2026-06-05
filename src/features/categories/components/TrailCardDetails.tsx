@@ -7,6 +7,7 @@ import type { PoiDetail, TrailDetailData } from '../types'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
 import { TrailAccessActions } from '@/features/trail-navigation/components/TrailAccessActions'
 import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
+import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 
 const SEASON_LABEL: Record<string, string> = {
   spring: 'Printemps',
@@ -76,6 +77,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
           startLatitude={trail.start_latitude}
           startLongitude={trail.start_longitude}
           startHref={`/guide/${citySlug}/${categorySlug}/${poiSlug}/start`}
+          reliability={reliabilityFromQualityStatus(trail.data_quality_status)}
         />
       </div>
 

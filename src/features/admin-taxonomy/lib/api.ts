@@ -72,6 +72,8 @@ function messageForCode(code: string): string {
   if (code === 'SLUG_ALREADY_EXISTS') return 'Slug déjà utilisé'
   if (code === 'SLUG_LOCKED') return 'Slug verrouillé'
   if (code === 'INVALID_ICON') return 'Icône Lucide invalide'
+  if (code === 'CATEGORY_HAS_POIS') return 'Catégorie utilisée par des POI actifs : supprimez ou déplacez-les d’abord.'
+  if (code === 'SUBCATEGORY_HAS_POIS') return 'Sous-catégorie utilisée par des POI actifs : supprimez ou déplacez-les d’abord.'
   return 'Erreur taxonomie'
 }
 

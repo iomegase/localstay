@@ -8,6 +8,7 @@ import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailNavigationData } from '../types'
 import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAcceptTrackPoint, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
 import type { TrailGpsState } from '../lib/geo'
+import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { NavigationHud } from './NavigationHud'
 
 type GpsState = TrailGpsState
@@ -42,6 +43,7 @@ interface Props {
 export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
+  const isIndicativeTrail = reliabilityFromQualityStatus(trail.data_quality_status) === 'indicative'
   const mapRef = useRef<MapRef | null>(null)
   const watchIdRef = useRef<number | null>(null)
   // Distinction intention vs réalité :
@@ -380,6 +382,17 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   return (
     <main className="relative h-screen overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
+      {isIndicativeTrail && (
+        <div
+          data-testid="trail-indicative-banner"
+          className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)]"
+        >
+          <div className="flex items-center gap-2 rounded-full bg-amber-50/95 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-amber-700 shadow-md ring-1 ring-amber-200">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            Tracé indicatif — suivez le balisage
+          </div>
+        </div>
+      )}
       <Map
         ref={mapRef}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}

@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import * as LucideIcons from 'lucide-react'
-import 'mapbox-gl/dist/mapbox-gl.css'
 import { getInitialViewState } from '../lib/map-utils'
 import type { PoiCard } from '../types'
 

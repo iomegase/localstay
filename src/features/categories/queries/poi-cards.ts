@@ -1,7 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiCardGroups, PoiHours } from '../types'
 import { computeIsOpenNow, getTodayCloseLabel } from '../lib/is-open-now'
-import { getPublicCustomization } from '@/features/guide-customization/queries/customization'
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 20
@@ -80,8 +79,7 @@ export async function getPoiCards(
     subcategoryId = sub.id
   }
 
-  const [rows, customization] = await Promise.all([
-    prisma.pointOfInterest.findMany({
+  const rows = await prisma.pointOfInterest.findMany({
     where: {
       city_id: city.id,
       category_id: category.id,
@@ -117,9 +115,7 @@ export async function getPoiCards(
         },
       },
     },
-    }),
-    getPublicCustomization(city.id, options.lodgingId),
-  ])
+  })
 
   type RawRow = {
     id: string; name: string; slug: string; address: string
@@ -142,14 +138,7 @@ export async function getPoiCards(
     } | null
   }
 
-  const featuredByPoiId = new Map(
-    (customization?.featured_pois ?? []).map(featuredPoi => [featuredPoi.poi_id, featuredPoi]),
-  )
-
-  const onlyFeaturedPois = featuredByPoiId.size > 0
-
   const cards: PoiCard[] = (rows as RawRow[])
-    .filter(p => !onlyFeaturedPois || featuredByPoiId.has(p.id))
     .map(p => ({
     id: p.id,
     name: p.name,
@@ -182,7 +171,6 @@ export async function getPoiCards(
   // POI pending/failed gardent les coords placeholder → distance_km ≈ 0 → restent dans primary
   const geocodedSlugs = new Set(
     (rows as RawRow[])
-      .filter(r => !onlyFeaturedPois || featuredByPoiId.has(r.id))
       .filter(r => r.geocode_status === 'success')
       .map(r => r.slug)
   )
@@ -206,17 +194,8 @@ export async function getPoiCards(
     ? (a: PoiCard, b: PoiCard) => (b.rating ?? 0) - (a.rating ?? 0)
     : (a: PoiCard, b: PoiCard) => a.distance_km - b.distance_km
 
-  const sortWithFeatured = (a: PoiCard, b: PoiCard) => {
-    const featuredA = featuredByPoiId.get(a.id)
-    const featuredB = featuredByPoiId.get(b.id)
-    if (featuredA && featuredB) return featuredA.sort_order - featuredB.sort_order
-    if (featuredA) return -1
-    if (featuredB) return 1
-    return sortFn(a, b)
-  }
-
-  const sortedPrimary = primary.sort(sortWithFeatured)
-  const sortedNearby = nearby.sort(sortWithFeatured)
+  const sortedPrimary = primary.sort(sortFn)
+  const sortedNearby = nearby.sort(sortFn)
   const primaryTotalPages = Math.ceil(sortedPrimary.length / limit)
   const nearbyTotalPages = Math.ceil(sortedNearby.length / limit)
 

@@ -108,48 +108,20 @@ function applyCategoryOrder<T extends { slug: string; sort_order: number }>(
 
 type FeaturedPublicPoi = PublicCustomization['featured_pois'][number]
 
-function applyExclusiveCategorySelection<T extends { slug: string; poi_count: number }>(
-  categories: T[],
-  featuredPois?: FeaturedPublicPoi[],
-): T[] {
-  if (!featuredPois || featuredPois.length === 0) return categories
-
-  const featuredCountByCategorySlug = new Map<string, number>()
-  for (const featuredPoi of featuredPois) {
-    featuredCountByCategorySlug.set(
-      featuredPoi.category_slug,
-      (featuredCountByCategorySlug.get(featuredPoi.category_slug) ?? 0) + 1,
-    )
-  }
-
-  return categories
-    .filter(category => featuredCountByCategorySlug.has(category.slug))
-    .map(category => ({
-      ...category,
-      poi_count: featuredCountByCategorySlug.get(category.slug) ?? category.poi_count,
-    }))
-}
-
 export function applyCustomizationToCategorySummaries(
   categories: CategorySummary[],
   categoryOrder: string[],
-  featuredPois?: FeaturedPublicPoi[],
+  _featuredPois?: FeaturedPublicPoi[],
 ): CategorySummary[] {
-  return applyCategoryOrder(
-    applyExclusiveCategorySelection(categories, featuredPois),
-    categoryOrder,
-  )
+  return applyCategoryOrder(categories, categoryOrder)
 }
 
 export function applyCustomizationToCategories(
   categories: CategoryWithCount[],
   categoryOrder: string[],
-  featuredPois?: FeaturedPublicPoi[],
+  _featuredPois?: FeaturedPublicPoi[],
 ): CategoryWithCount[] {
-  return applyCategoryOrder(
-    applyExclusiveCategorySelection(categories, featuredPois),
-    categoryOrder,
-  )
+  return applyCategoryOrder(categories, categoryOrder)
 }
 
 export async function getPublicCustomization(

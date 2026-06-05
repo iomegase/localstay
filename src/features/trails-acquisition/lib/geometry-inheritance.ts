@@ -42,12 +42,21 @@ function inheritanceScore(missingTokens: Set<string>, donorTokens: Set<string>):
 const INHERIT_THRESHOLD = 0.75
 const MIN_OVERLAP_TOKENS = 2
 
+// DÉSACTIVÉ (plan 2026-06-05, Phase B). L'héritage par titre copiait la géométrie d'une rando
+// HOMONYME mais DIFFÉRENTE (ex. « Mont Joly » vs « Mont Joly par les Communailles ») → tracés
+// faux affichés à l'utilisateur. On ne fabrique plus de géométrie. Réactivation possible
+// uniquement avec une vérification « même itinéraire » (proximité des points de départ/arrivée),
+// pas un simple recouvrement de titre. L'implémentation est conservée derrière ce flag.
+const TITLE_INHERITANCE_ENABLED = false
+
 export type InheritanceResult = {
   inherited: number
   details: Array<{ recipient: string; donor: string; score: number }>
 }
 
 export function inheritGeometryByTitle<T extends Candidate>(candidates: T[]): InheritanceResult {
+  if (!TITLE_INHERITANCE_ENABLED) return { inherited: 0, details: [] }
+
   const donors = candidates
     .map((c, idx) => ({ c, idx, tokens: new Set(normalizeTitle(c.title)) }))
     .filter(entry => entry.c.geometry_status === 'valid' && entry.c.geometry_geojson)

@@ -8,6 +8,15 @@ import AdminOverviewPage from '@/app/admin/page'
 import AdminCitiesPage from '@/app/admin/cities/page'
 import AdminUsersPage from '@/app/admin/users/page'
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    refresh: jest.fn(),
+  }),
+  usePathname: () => '/admin',
+  useSearchParams: () => new URLSearchParams(),
+}))
+
 jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
 }))
@@ -51,6 +60,26 @@ jest.mock('@/features/admin/queries/dashboard', () => ({
   ]),
 }))
 
+jest.mock('@/features/contact-messages/queries/contact-messages', () => ({
+  listAdminContactMessages: jest.fn(async () => [
+    {
+      id: 'message-1',
+      created_at: '2026-06-04T10:30:00.000Z',
+      lodging_name: 'Chalet MyStay',
+      destination: 'owner',
+      status: 'new',
+      sender_name: 'Marie Dupont',
+      sender_email: 'marie@example.test',
+      sender_phone: null,
+      subject: 'Question arrivée',
+      message: 'Bonjour, pouvons-nous arriver plus tôt ?',
+      archived_at: null,
+      reply_body: null,
+      replied_at: null,
+    },
+  ]),
+}))
+
 jest.mock('recharts', () => ({
   Bar: () => null,
   BarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
@@ -78,7 +107,8 @@ describe('016 superadmin pages', () => {
     expect(screen.getByText('Villes actives')).toBeInTheDocument()
     expect(screen.getByText('Facturation non activée en MVP 2')).toBeInTheDocument()
     expect(screen.getByText('Bistrot')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Gérer les POI par ville/i })).toHaveAttribute('href', '/admin/pois')
+    expect(screen.getByText('Chalet MyStay')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Gérer les POI/i })).toHaveAttribute('href', '/admin/pois')
   })
 
   it('AC-04-01/04-02/04-03: renders consultative cities with public guide link', async () => {

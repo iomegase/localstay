@@ -159,9 +159,9 @@ export async function collectTrailCandidatesFromSources(input: RunSourceInput): 
   // 6. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
   const merged = mergeDuplicateCandidates(candidates)
 
-  // 7. Géométrie héritée par titre : pour les Gemini-only ou C2C sans geom_detail,
-  // copier la géométrie d'un candidat OSM/C2C dont le titre matche fortement (≥0.75).
-  // Ne fusionne pas — duplique juste la géom + start coords. Source_refs trace l'origine.
+  // 7. Héritage de géométrie par titre — DÉSACTIVÉ (plan 2026-06-05, Phase B).
+  // Produisait des tracés faux (rando homonyme mais itinéraire différent). L'appel est
+  // conservé mais retourne un no-op ; voir TITLE_INHERITANCE_ENABLED dans geometry-inheritance.
   inheritGeometryByTitle(merged)
 
   return { candidates: merged, source_errors: sourceErrors }

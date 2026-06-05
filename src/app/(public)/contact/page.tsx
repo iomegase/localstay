@@ -4,6 +4,7 @@ import { prisma } from '@/shared/lib/prisma'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { LeaveStayButton } from '@/features/public-menu/components/LeaveStayButton'
+import { ContactMessageForm } from '@/features/contact-messages/components/ContactMessageForm'
 
 export default async function ContactPage() {
   const lodgingContext = await getActiveLodgingContext()
@@ -26,13 +27,7 @@ function PublicContact() {
           MyStay accompagne les hôtes et leurs voyageurs en Haute-Savoie.
         </p>
       </div>
-      <ContactCard
-        icon={<Mail className="h-5 w-5" />}
-        title="Écrivez-nous"
-        subtitle="Réponse sous 48h"
-        href="mailto:hello@mystay.fr"
-        cta="hello@mystay.fr"
-      />
+      <ContactMessageForm lodgingId={null} lodgingName={null} allowOwnerDestination={false} />
       <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-5 text-sm text-gray-500">
         <p className="font-semibold text-charcoal">Vous êtes propriétaire / hôte ?</p>
         <p className="mt-1">
@@ -59,7 +54,7 @@ function LodgingContact({
   lodgingContext,
   ownerInfo,
 }: {
-  lodgingContext: { lodgingName: string; cityName: string; citySlug: string }
+  lodgingContext: { lodgingId: string; lodgingName: string; cityName: string; citySlug: string }
   ownerInfo: OwnerInfo
 }) {
   return (
@@ -69,6 +64,12 @@ function LodgingContact({
         <h1 className="mt-1 font-serif italic text-3xl text-charcoal">Votre hôte</h1>
         <p className="mt-1 text-sm text-gray-500">{lodgingContext.lodgingName} · {lodgingContext.cityName}</p>
       </div>
+
+      <ContactMessageForm
+        lodgingId={lodgingContext.lodgingId}
+        lodgingName={lodgingContext.lodgingName}
+        allowOwnerDestination
+      />
 
       {ownerInfo?.ownerEmail && (
         <ContactCard

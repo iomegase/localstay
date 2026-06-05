@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { toSourceRefs } from './runs'
+import { reliabilityFromQualityStatus, type TrailReliability } from '../lib/geometry-quality'
 import type { TrailDifficulty, TrailSourceRef, TrailSourceType } from '../types'
 
 export type PublishedTrailListItem = {
@@ -17,6 +18,7 @@ export type PublishedTrailListItem = {
   start_longitude: number
   primary_source_type: TrailSourceType
   source_refs: TrailSourceRef[]
+  reliability: TrailReliability
 }
 
 export type PublishedTrailDetail = PublishedTrailListItem & {
@@ -55,6 +57,7 @@ export async function listPublishedTrails(citySlug: string): Promise<PublishedTr
           start_longitude: true,
           primary_source_type: true,
           source_refs: true,
+          data_quality_status: true,
         },
       },
     },
@@ -133,6 +136,7 @@ function mapPublishedTrailListItem(trail: {
     start_longitude: number
     primary_source_type: string
     source_refs: Prisma.JsonValue
+    data_quality_status: string
   }
 }): PublishedTrailListItem {
   return {
@@ -149,5 +153,6 @@ function mapPublishedTrailListItem(trail: {
     start_longitude: trail.trail_detail.start_longitude,
     primary_source_type: trail.trail_detail.primary_source_type as TrailSourceType,
     source_refs: toSourceRefs(trail.trail_detail.source_refs),
+    reliability: reliabilityFromQualityStatus(trail.trail_detail.data_quality_status),
   }
 }

@@ -18,7 +18,7 @@ describe('012 category order customization', () => {
     expect(result.map(category => category.slug)).toEqual(['musees', 'restaurants', 'randonnees'])
   })
 
-  it('BR-12: filters categories to the exclusive owner selection when featured POIs exist', () => {
+  it('BR-12: keeps the full city category list even when featured POIs exist', () => {
     const result = applyCustomizationToCategorySummaries(
       categories,
       ['musees', 'restaurants'],
@@ -30,8 +30,9 @@ describe('012 category order customization', () => {
     )
 
     expect(result.map(category => [category.slug, category.poi_count])).toEqual([
-      ['musees', 1],
-      ['restaurants', 2],
+      ['musees', 2],
+      ['restaurants', 4],
+      ['randonnees', 3],
     ])
   })
 })

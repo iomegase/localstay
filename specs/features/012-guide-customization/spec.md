@@ -53,7 +53,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 
 #### Acceptance Criteria
 
-- **AC-02-01**: Given la liste des POI d'une catégorie, When l'Owner en sélectionne jusqu'à 5 comme favoris, Then seuls ces POI apparaissent dans le guide personnalisé pour les Tourists de ce logement
+- **AC-02-01**: Given la liste des POI d'une catégorie, When l'Owner en sélectionne jusqu'à 5 comme favoris, Then ces POI apparaissent dans la page `/nos-recommandations` pour les Tourists de ce logement
 - **AC-02-02**: Given un POI favori, When l'Owner l'enregistre, Then il apparaît dans la page recommandations de l'Owner sans note personnelle ni rating Owner
 - **AC-02-03**: Given les recommandations, When un Tourist arrive sans `?lodging=[id]`, Then le guide standard s'affiche sans personnalisation
 
@@ -93,7 +93,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-09**: Les POI hors périmètre (> 30 km, `geocode_status = rejected`) ne peuvent pas être mis en avant
 - **BR-10**: Si `category_order` contient des slugs inconnus, inactifs ou sans POI visible, ces slugs sont isolés dans `ignored_category_slugs` et ne sont pas sauvegardés. Les catégories valides restantes sont sauvegardées ; aucun statut de Category n'est modifié par cette spec.
 - **BR-11**: `featured_pois` accepte au maximum 100 entrées par requête comme limite technique, tout en appliquant la limite métier de 5 favoris par catégorie
-- **BR-12**: Si un `lodging` valide a au moins un `featured_poi`, le guide public devient une sélection Owner exclusive : les catégories sans POI recommandé sont masquées, `poi_count` correspond au nombre de POI recommandés par catégorie, et les listes POI n'affichent pas les POI non recommandés. Si aucun `featured_poi` n'est enregistré, le guide standard reste affiché avec l'ordre de catégories personnalisé éventuel.
+- **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. La personnalisation publique du Guide se limite au message d'accueil éventuel et à l'ordre des catégories ; les `featured_pois` sont visibles dans `/nos-recommandations`.
 - **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`.
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
 
@@ -300,7 +300,7 @@ paths:
 
   /api/cities/{slug}/categories/{category-slug}/pois:
     get:
-      summary: "Liste POI filtrée sur les favoris Owner si lodging fourni"
+      summary: "Liste POI publique de la City, avec contexte lodging optionnel"
       tags: [guide-customization]
       parameters:
         - name: slug
@@ -413,9 +413,9 @@ components:
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
 - `/le-logement` affiche les informations pratiques du logement
-- `/services-prives` affiche les POI recommandés par l'Owner, groupés par catégorie, sans note personnelle ni rating Owner
-- `/guide/[city-slug]?lodging=[id]` affiche l'ordre personnalisé des catégories, et masque les catégories sans POI recommandé si le `lodging` est valide pour cette City et contient des recommandations
-- `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche uniquement les POI favoris de cette catégorie, sans mélanger la zone primaire et la zone "Aux alentours"
+- `/nos-recommandations` affiche les POI recommandés par l'Owner, groupés par catégorie, sans note personnelle ni rating Owner
+- `/guide/[city-slug]?lodging=[id]` affiche tous les POI disponibles du Guide de la City, avec message d'accueil et ordre personnalisé éventuels, sans filtrage exclusif sur les recommandations Owner
+- `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche tous les POI disponibles de cette catégorie dans le Guide de la City, sans filtrage exclusif sur les recommandations Owner
 - Si `lodging` est absent, inconnu, supprimé, inactif ou associé à une autre City, le guide standard s'affiche sans personnalisation
 
 ---
@@ -426,7 +426,7 @@ components:
 |---|---|---|
 | AC-01-01 | Message d'accueil sauvegardé | integration |
 | AC-01-02 | Accueil séjour affiche photo, message et CTA guide | integration |
-| AC-02-01 | POI favoris affichés exclusivement dans le guide personnalisé | integration |
+| AC-02-01 | POI favoris affichés dans `/nos-recommandations` | integration |
 | AC-02-02 | Recommandation affichée sans note/rating Owner | integration |
 | AC-02-03 | Sans lodging param → guide standard | unit |
 | AC-03-01 | Ordre catégories sauvegardé et appliqué | integration |
@@ -435,6 +435,7 @@ components:
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
 | BR-08/09 | POI favori limité au périmètre du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |
+| BR-12 | Guide public complet conservé en mode lodging ; recommandations visibles sur `/nos-recommandations` | unit |
 
 ---
 

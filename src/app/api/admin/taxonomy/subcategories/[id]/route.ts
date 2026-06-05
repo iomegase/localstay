@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
-import { updateSubCategory } from '@/features/admin-taxonomy/queries/taxonomy'
+import { deleteSubCategory, updateSubCategory } from '@/features/admin-taxonomy/queries/taxonomy'
 import {
   parsedOrValidationError,
   readJson,
@@ -24,6 +24,22 @@ export async function PATCH(
   const { id } = await params
   try {
     const data = await updateSubCategory(id, parsed, session.user.id)
+    return NextResponse.json({ data })
+  } catch (error) {
+    return responseFromTaxonomyError(error)
+  }
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
+  const session = await getSessionAdmin()
+  if (session.error) return session.error
+
+  const { id } = await params
+  try {
+    const data = await deleteSubCategory(id, session.user.id)
     return NextResponse.json({ data })
   } catch (error) {
     return responseFromTaxonomyError(error)

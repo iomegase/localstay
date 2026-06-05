@@ -1,6 +1,7 @@
 /**
- * AC-02-01 — POI favoris affichés exclusivement dans le guide personnalisé
+ * AC-02-01 — Les favoris Owner restent consultables via la page dédiée
  * AC-02-03 — Sans lodging param, le guide reste standard
+ * BR-12 — Avec lodging, le guide public de la ville ne se réduit pas aux favoris
  */
 
 jest.mock('@/shared/lib/prisma', () => ({
@@ -60,7 +61,7 @@ describe('012 guide customization POI ordering', () => {
     expect(result!.primary.map(poi => poi.slug)).toEqual(['near', 'featured'])
   })
 
-  it('AC-02-01: returns only featured POIs when lodging customization exists', async () => {
+  it('BR-12: keeps the full category guide when lodging customization exists', async () => {
     mockGetPublicCustomization.mockResolvedValue({
       welcome_message: null,
       category_order: [],
@@ -72,8 +73,7 @@ describe('012 guide customization POI ordering', () => {
     const result = await getPoiCards('saint-gervais', 'restaurants', { lodgingId: 'lodging-1' })
 
     expect(result).not.toBeNull()
-    expect(mockGetPublicCustomization).toHaveBeenCalledWith('city-1', 'lodging-1')
-    expect(result!.primary.map(poi => poi.slug)).toEqual(['featured'])
-    expect(result!.meta.total).toBe(1)
+    expect(result!.primary.map(poi => poi.slug)).toEqual(['near', 'featured'])
+    expect(result!.meta.total).toBe(2)
   })
 })

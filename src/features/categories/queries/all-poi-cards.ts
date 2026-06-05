@@ -1,7 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiHours } from '../types'
 import { computeIsOpenNow, getTodayCloseLabel } from '../lib/is-open-now'
-import { getPublicCustomization } from '@/features/guide-customization/queries/customization'
 
 const NEARBY_RADIUS_KM = 30
 const DEFAULT_LIMIT = 10
@@ -30,7 +29,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 /**
  * Tous les POI actifs d'une ville (toutes catégories), triés et paginés pour le scroll
  * infini de la home (« Tous »). Liste plate : proches d'abord (tri distance) ou par note.
- * En mode logement, la liste respecte la sélection Owner exclusive si elle existe.
+ * En mode logement, le guide reste complet et ne se réduit pas aux recommandations Owner.
  */
 export async function getAllPoiCards(
   citySlug: string,
@@ -45,10 +44,6 @@ export async function getAllPoiCards(
     select: { id: true, latitude: true, longitude: true },
   })
   if (!city) return null
-
-  const customization = await getPublicCustomization(city.id, options.lodgingId ?? undefined)
-  const featuredPoiIds = new Set((customization?.featured_pois ?? []).map(featuredPoi => featuredPoi.poi_id))
-  const onlyFeaturedPois = featuredPoiIds.size > 0
 
   const rows = await prisma.pointOfInterest.findMany({
     where: {
@@ -91,7 +86,6 @@ export async function getAllPoiCards(
   type RawRow = (typeof rows)[number]
 
   const cards: AllPoisCard[] = rows
-    .filter((p: RawRow) => !onlyFeaturedPois || featuredPoiIds.has(p.id))
     .map((p: RawRow) => ({
     id: p.id,
     name: p.name,

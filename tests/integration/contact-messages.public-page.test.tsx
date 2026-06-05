@@ -31,6 +31,16 @@ jest.mock('next/link', () => ({
   ),
 }))
 
+jest.mock('@/shared/components/MarkdownText', () => ({
+  MarkdownText: ({ source, className }: { source: string; className?: string }) => (
+    <div className={className}>{source}</div>
+  ),
+}))
+
+jest.mock('@/features/public-menu/components/LeaveStayButton', () => ({
+  LeaveStayButton: () => <button type="button">Quitter le séjour</button>,
+}))
+
 describe('024 contact messages public page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
