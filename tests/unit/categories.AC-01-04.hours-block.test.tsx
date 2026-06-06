@@ -23,6 +23,12 @@ describe('HoursBlock — AC-01-04 (open badge)', () => {
     expect(screen.getByTestId('closing-time')).toHaveTextContent('14:30')
   })
 
+  it('can hide the open badge while keeping the closing time in place', () => {
+    render(<HoursBlock is_open_now={true} hours={hours} today={1} showOpenBadge={false} />)
+    expect(screen.queryByTestId('badge-open')).not.toBeInTheDocument()
+    expect(screen.getByTestId('closing-time')).toHaveTextContent('14:30')
+  })
+
   it('does NOT show open badge when is_open_now=false', () => {
     render(<HoursBlock is_open_now={false} hours={hours} today={1} />)
     expect(screen.queryByTestId('badge-open')).not.toBeInTheDocument()

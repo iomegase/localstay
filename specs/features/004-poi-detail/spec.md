@@ -42,7 +42,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **AC-01-01**: Given un POI valide, When la fiche s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos, distance ; le hero affiche les photos dans un carousel plein largeur, avec flèches seulement si plusieurs photos sont disponibles
 - **AC-01-02**: Given un POI sans téléphone, When la fiche s'affiche, Then le bouton "Appeler" est masqué
 - **AC-01-03**: Given un POI sans site web, When la fiche s'affiche, Then le bouton "Site web" est masqué
-- **AC-01-04**: Given un POI avec `is_open_now = true`, When la fiche s'affiche, Then un badge vert "Ouvert" est visible avec l'heure de fermeture
+- **AC-01-04**: Given un POI avec `is_open_now = true`, When la fiche s'affiche, Then une pastille verte "Ouvert" est visible dans le footer de l'image hero et l'heure de fermeture reste affichée dans la section horaires
 
 ### US-02 — Agir depuis la fiche
 
@@ -285,7 +285,7 @@ components:
 
 ### Page : `/guide/[city-slug]/[category-slug]/[poi-slug]`
 
-- **Header** : carousel photo plein écran (hero), avec back button overlay
+- **Header** : carousel photo plein écran (hero), avec back button overlay et pastille "Ouvert" en footer d'image si le POI est ouvert
 - **Carousel** : une photo active visible à la fois dans le hero ; flèches gauche/droite et indicateurs si `photos.length > 1`
 - **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager / Réserver
 - **Section horaires** : accordéon, jour courant en gras
@@ -303,7 +303,7 @@ components:
 | AC-01-01 | Tous les champs visibles si présents + hero photo carousel avec flèches si plusieurs photos | integration |
 | AC-01-02 | Bouton Appeler masqué si pas de tel | unit |
 | AC-01-03 | Bouton Site masqué si pas de site | unit |
-| AC-01-04 | Badge Ouvert avec heure fermeture | unit |
+| AC-01-04 | Pastille Ouvert dans le footer image + heure de fermeture dans la section horaires | unit + integration |
 | AC-02-01 | Bouton Appeler → `tel:` link | e2e |
 | AC-02-02 | Bouton Itinéraire → Google Maps avec adresse publique puis fallback coordonnées | e2e |
 | AC-02-03 | Bouton Site → nouvel onglet | e2e |

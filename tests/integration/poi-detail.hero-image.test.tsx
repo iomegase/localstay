@@ -26,7 +26,15 @@ const poi: PoiDetail = {
   rating: 4.5,
   rating_count: 120,
   is_open_now: true,
-  hours: { '1': { open: '12:00', close: '14:30' } },
+  hours: {
+    '0': { open: '12:00', close: '14:30' },
+    '1': { open: '12:00', close: '14:30' },
+    '2': { open: '12:00', close: '14:30' },
+    '3': { open: '12:00', close: '14:30' },
+    '4': { open: '12:00', close: '14:30' },
+    '5': { open: '12:00', close: '14:30' },
+    '6': { open: '12:00', close: '14:30' },
+  },
   photos: ['https://example.com/photo-hero.jpg'],
   distance_km: 0.3,
   city: {
@@ -89,5 +97,19 @@ describe('PoiDetailBody — hero image (LCP)', () => {
 
     expect(screen.queryByRole('button', { name: 'Photo suivante' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Photo précédente' })).not.toBeInTheDocument()
+  })
+
+  it('displays the open pill in the hero footer and keeps the closing time in the hours area', () => {
+    render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+
+    const hero = screen.getByTestId('poi-detail-hero-carousel')
+    const openBadge = hero.querySelector('[data-testid="poi-detail-hero-open-badge"]')
+    const openBadgeWrapper = hero.querySelector('[data-testid="poi-detail-hero-open-badge-wrapper"]')
+    expect(openBadge).toHaveTextContent('Ouvert')
+    expect(openBadge).not.toHaveClass('pb-4')
+    expect(openBadgeWrapper).toHaveClass('pb-4')
+
+    expect(screen.queryByTestId('badge-open')).not.toBeInTheDocument()
+    expect(screen.getByTestId('closing-time')).toHaveTextContent('14:30')
   })
 })

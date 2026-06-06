@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-21
+updated_at: 2026-06-06
 depends_on: [001-city-guide]
 ```
 
@@ -65,6 +65,7 @@ Le Tourist, une fois sur le guide d'une ville, navigue via un menu de catégorie
 
 - **AC-03-01**: Given une catégorie avec plusieurs sous-catégories, When le Tourist sélectionne une sous-catégorie, Then seuls les POI de cette sous-catégorie s'affichent
 - **AC-03-02**: Given un filtre sous-catégorie actif, When le Tourist le désélectionne, Then tous les POI de la catégorie s'affichent à nouveau
+- **AC-03-03**: Given une catégorie avec plusieurs sous-catégories, When les filtres s'affichent sur mobile, Then les chips restent compacts pour préserver l'espace vertical de la liste POI
 
 ---
 
@@ -256,10 +257,11 @@ components:
 
 ### Composant : SubCategoryFilter
 
-- Chips horizontaux scrollables sur mobile
+- Chips horizontaux scrollables et compacts sur mobile
 - Chip "Tous" toujours présent et actif par défaut
 - Chip sélectionné : couleur primaire
 - Masquage des chips sans POI
+- Compteurs POI affichés dans une pastille interne réduite
 
 ---
 
@@ -274,6 +276,7 @@ components:
 | AC-02-02 | Sous-catégories affichées comme filtres | integration |
 | AC-03-01 | Filtre sous-catégorie fonctionne | e2e |
 | AC-03-02 | Désélection filtre → tous POI | e2e |
+| AC-03-03 | Chips de sous-catégorie compactes sur mobile | integration |
 
 ---
 

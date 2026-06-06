@@ -48,6 +48,7 @@
 | AC-02-02 | Sous-catégories affichées comme filtres | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/integration/categories.AC-02-02.subcategory-filters.test.tsx` | ✅ done |
 | AC-03-01 | Filtre sous-catégorie fonctionne | `src/features/categories/queries/categories.ts`<br>`src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx` | `tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
 | AC-03-02 | Désélection filtre → tous POI | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/e2e/categories.AC-03-01-03-02.subcategory-filter.test.ts` | ✅ done |
+| AC-03-03 | Chips de sous-catégorie compactes sur mobile | `src/features/categories/components/SubCategoryFilter.tsx` | `tests/integration/categories.AC-02-02.subcategory-filters.test.tsx` | ✅ done |
 
 ---
 
@@ -78,7 +79,7 @@
 | AC-01-01 | Tous champs visibles si présents + hero photo carousel avec flèches si plusieurs photos | `src/features/categories/components/PoiDetailBody.tsx`<br>`src/features/categories/components/PoiDetailHeroCarousel.tsx` | `tests/integration/categories.AC-01-01.poi-detail-renders.test.tsx`<br>`tests/integration/poi-detail.hero-image.test.tsx` | ✅ done |
 | AC-01-02 | Bouton Appeler masqué si pas de tel | `src/features/categories/components/ActionButtons.tsx` | `tests/unit/categories.AC-01-02-03.action-buttons.test.tsx` | ✅ done |
 | AC-01-03 | Bouton Site masqué si pas de site | `src/features/categories/components/ActionButtons.tsx` | `tests/unit/categories.AC-01-02-03.action-buttons.test.tsx` | ✅ done |
-| AC-01-04 | Badge Ouvert avec heure fermeture | `src/features/categories/components/HoursBlock.tsx` | `tests/unit/categories.AC-01-04.hours-block.test.tsx` | ✅ done |
+| AC-01-04 | Pastille `Ouvert` dans le footer image + heure de fermeture conservée dans la section horaires | `src/features/categories/components/PoiDetailBody.tsx`<br>`src/features/categories/components/PoiDetailHeroCarousel.tsx`<br>`src/features/categories/components/HoursBlock.tsx` | `tests/unit/categories.AC-01-04.hours-block.test.tsx`<br>`tests/integration/poi-detail.hero-image.test.tsx` | ✅ done |
 | AC-02-01 | Bouton Appeler → `tel:` link | `src/features/categories/components/ActionButtons.tsx` | `tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |
 | AC-02-02 | Bouton Itinéraire → Google Maps avec adresse publique, fallback coordonnées | `src/features/categories/components/ActionButtons.tsx`<br>`src/features/categories/components/PoiDetailBody.tsx` | `tests/unit/categories.AC-01-02-03.action-buttons.test.tsx`<br>`tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |
 | AC-02-03 | Bouton Site → nouvel onglet | `src/features/categories/components/ActionButtons.tsx` | `tests/e2e/categories.AC-02-01-04.poi-actions.test.ts` | ✅ done |

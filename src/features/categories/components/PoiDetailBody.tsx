@@ -74,6 +74,19 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
             />
           </div>
         </div>
+        {poi.is_open_now === true && (
+          <div
+            data-testid="poi-detail-hero-open-badge-wrapper"
+            className="absolute bottom-8 left-6 z-10 pb-4"
+          >
+            <span
+              data-testid="poi-detail-hero-open-badge"
+              className="inline-flex rounded-full border border-green-200 bg-green-50/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 shadow-sm backdrop-blur"
+            >
+              Ouvert
+            </span>
+          </div>
+        )}
       </PoiDetailHeroCarousel>
 
       {/* Content sheet */}
@@ -130,8 +143,8 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
 
         {/* Hours */}
         {poi.hours && (
-          <div className="px-6">
-            <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} />
+          <div className="px-4">
+            <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} showOpenBadge={false} />
           </div>
         )}
 

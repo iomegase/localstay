@@ -30,6 +30,23 @@ describe('SubCategoryFilter — AC-02-02', () => {
 
   it('"Tous" chip has active styling (bg-gold) when no sub search param is set', () => {
     render(<SubCategoryFilter subcategories={subcategories} />)
-    expect(screen.getByText('Tous')).toHaveClass('bg-gold')
+    expect(screen.getByRole('button', { name: /Tous/i })).toHaveClass('bg-charcoal')
+  })
+
+  it('renders compact mobile pills', () => {
+    render(<SubCategoryFilter subcategories={subcategories} />)
+
+    expect(screen.getByRole('button', { name: /Tous/i })).toHaveClass('px-3')
+    expect(screen.getByRole('button', { name: /Tous/i })).toHaveClass('py-1.5')
+    expect(screen.getByTestId('subcategory-all-icon')).toHaveClass('h-5')
+    expect(screen.getByTestId('subcategory-all-icon')).toHaveClass('w-5')
+    expect(screen.getByTestId('subcategory-all-grid')).toHaveClass('h-2.5')
+    expect(screen.getByTestId('subcategory-all-grid')).toHaveClass('w-2.5')
+
+    const subcategory = screen.getByTestId('subcategory-gastronomique')
+    expect(subcategory).toHaveClass('px-3')
+    expect(subcategory).toHaveClass('py-1.5')
+    expect(subcategory.querySelector('[data-testid="subcategory-count-gastronomique"]')).toHaveClass('h-5')
+    expect(subcategory.querySelector('[data-testid="subcategory-count-gastronomique"]')).toHaveClass('w-5')
   })
 })

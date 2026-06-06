@@ -66,7 +66,7 @@ export function PoiDetailHeroCarousel({ photos, name, children }: Props) {
             type="button"
             onClick={showPrevPhoto}
             aria-label="Photo précédente"
-            className="absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+            className="absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -74,7 +74,7 @@ export function PoiDetailHeroCarousel({ photos, name, children }: Props) {
             type="button"
             onClick={showNextPhoto}
             aria-label="Photo suivante"
-            className="absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/70 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+            className="absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60"
           >
             <ChevronRight className="h-5 w-5" />
           </button>

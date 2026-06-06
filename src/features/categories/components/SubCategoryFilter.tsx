@@ -18,22 +18,23 @@ export function SubCategoryFilter({ subcategories }: { subcategories: SubCategor
   }
 
   return (
-    <section className="mt-6">
-      <div className="no-scrollbar flex gap-3 overflow-x-auto px-5">
+    <section className="mt-4">
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-5">
         <button
           onClick={() => select(null)}
-          className={`shrink-0 flex items-center gap-3 rounded-full px-4 py-3 shadow-sm transition ${
+          className={`shrink-0 flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm transition ${
             !active
               ? 'bg-charcoal text-white'
               : 'border border-gray-100 bg-white text-gray-400'
           }`}
         >
           <span
-            className={`flex h-8 w-8 items-center justify-center rounded-full ${
+            data-testid="subcategory-all-icon"
+            className={`flex h-5 w-5 items-center justify-center rounded-full ${
               !active ? 'bg-white/15' : 'bg-gray-100'
             }`}
           >
-            <Grid2x2 className="h-4 w-4" />
+            <Grid2x2 data-testid="subcategory-all-grid" className="h-2.5 w-2.5" />
           </span>
           <span className="text-[10px] font-bold uppercase tracking-widest">Tous</span>
         </button>
@@ -45,14 +46,15 @@ export function SubCategoryFilter({ subcategories }: { subcategories: SubCategor
               key={sub.id}
               data-testid={`subcategory-${sub.slug}`}
               onClick={() => select(sub.slug)}
-              className={`shrink-0 flex items-center gap-3 rounded-full px-4 py-3 shadow-sm transition ${
+              className={`shrink-0 flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm transition ${
                 isActive
                   ? 'bg-charcoal text-white'
                   : 'border border-gray-100 bg-white text-charcoal/70'
               }`}
             >
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold ${
+                data-testid={`subcategory-count-${sub.slug}`}
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                   isActive ? 'bg-white/15 text-white' : 'bg-pine/15 text-pine'
                 }`}
               >
