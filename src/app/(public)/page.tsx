@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { CitySearchInput } from '@/features/city-guide/components/CitySearchInput'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { prisma } from '@/shared/lib/prisma'
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+}
 
 export default async function HomePage() {
   const lodgingContext = await getActiveLodgingContext()
@@ -70,13 +76,16 @@ function LodgingHome({
   return (
     <div className="flex flex-col items-center px-6 pt-2">
       {coverPhotoUrl && (
-        <div className="-mx-6 mb-6 w-[calc(100%+3rem)] overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div className="relative -mx-6 mb-6 h-56 w-[calc(100%+3rem)] overflow-hidden">
+          <Image
             src={coverPhotoUrl}
             alt={lodgingName}
+            fill
+            priority
+            unoptimized
+            sizes="100vw"
             referrerPolicy="no-referrer"
-            className="h-56 w-full object-cover"
+            className="object-cover"
           />
         </div>
       )}

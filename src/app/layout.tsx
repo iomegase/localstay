@@ -11,7 +11,9 @@ export const metadata: Metadata = {
   title: { default: SITE.defaultTitle, template: '%s | StayLocal' },
   description: SITE.defaultDescription,
   applicationName: SITE.name,
-  alternates: { canonical: '/' },
+  // Pas de canonical global ici : il serait hérité par toutes les pages sans metadata propre
+  // (/contact, /le-logement…) qui se déclareraient alors doublons de la home. Chaque page
+  // pose son propre canonical (la home le fait dans (public)/page.tsx).
   openGraph: {
     type: 'website',
     siteName: SITE.name,

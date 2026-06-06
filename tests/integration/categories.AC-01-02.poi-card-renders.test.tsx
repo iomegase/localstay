@@ -60,6 +60,19 @@ describe('PoiCard — AC-01-02 (SpaCard redesign)', () => {
     expect(img).not.toHaveClass('object-contain')
   })
 
+  it('switches the header photo to object-contain when the loaded image is landscape', async () => {
+    const img = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
+
+    Object.defineProperty(img, 'naturalWidth', { configurable: true, value: 1600 })
+    Object.defineProperty(img, 'naturalHeight', { configurable: true, value: 900 })
+    fireEvent.load(img)
+
+    await waitFor(() => {
+      expect(img).toHaveClass('object-contain')
+    })
+    expect(img).not.toHaveClass('object-cover')
+  })
+
   it('renders the APPELER button as a tel: link at the bottom of the expanded section', () => {
     fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
     const panel = screen.getByTestId('poi-more-info')

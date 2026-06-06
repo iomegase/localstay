@@ -1,0 +1,73 @@
+<h2>Menu burger mobile-first</h2>
+<p class="subtitle">Objectif : garder le menu cohérent avec la colonne mobile `max-w-[430px]`, sans casser le mockup plein écran mobile.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="height: 260px; background: #ece7dd; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 160px; height: 230px; background: #faf9f6; box-shadow: 0 12px 40px rgba(0,0,0,.2); position: relative;">
+          <div style="position:absolute; inset:0; background:#fff; padding:34px 22px;">
+            <div style="font-size:8px; letter-spacing:.28em; color:#9ca3af; font-weight:700; text-transform:uppercase;">Navigation</div>
+            <div style="margin-top:24px; display:grid; gap:14px; font-size:18px; font-family:serif; font-style:italic; color:#121212;">
+              <div>Bienvenue</div>
+              <div>Le Logement</div>
+              <div>Favoris</div>
+            </div>
+          </div>
+        </div>
+        <div style="position:absolute; inset:0; border:3px solid #bd9254; pointer-events:none;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Plein viewport actuel</h3>
+      <p>Le menu couvre toute la fenêtre navigateur, y compris les marges desktop autour de la colonne mobile.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="height: 260px; background: #ece7dd; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 160px; height: 230px; background: #faf9f6; box-shadow: 0 12px 40px rgba(0,0,0,.2); position: relative;">
+          <div style="position:absolute; inset:0; background:#fff; padding:34px 22px;">
+            <div style="font-size:8px; letter-spacing:.28em; color:#9ca3af; font-weight:700; text-transform:uppercase;">Navigation</div>
+            <div style="margin-top:24px; display:grid; gap:14px; font-size:18px; font-family:serif; font-style:italic; color:#121212;">
+              <div>Bienvenue</div>
+              <div>Le Logement</div>
+              <div>Favoris</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Colonne mobile centrée</h3>
+      <p>Le menu reste `fixed`, mais avec `left-1/2`, `-translate-x-1/2`, `w-full`, `max-w-[430px]`, comme le layout public.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="height: 260px; background: #ece7dd; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 160px; height: 230px; background: #faf9f6; box-shadow: 0 12px 40px rgba(0,0,0,.2); position: relative;">
+          <div style="position:absolute; inset:8px; background:#fff; border-radius:18px; padding:28px 18px;">
+            <div style="font-size:8px; letter-spacing:.28em; color:#9ca3af; font-weight:700; text-transform:uppercase;">Navigation</div>
+            <div style="margin-top:22px; display:grid; gap:12px; font-size:16px; font-family:serif; font-style:italic; color:#121212;">
+              <div>Bienvenue</div>
+              <div>Le Logement</div>
+              <div>Favoris</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Drawer/panneau</h3>
+      <p>Le menu devient un panneau interne plus compact. C’est plus visible comme changement et moins proche du mockup contractuel.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Recommandation</h3>
+  <p>Je recommande B : elle respecte le mobile-first, conserve le plein écran sur 375px, et évite que l’overlay déborde de la coque `max-w-[430px]` sur desktop/tablette.</p>
+</div>

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Star, MapPin } from 'lucide-react'
 import { PhotoCarousel } from './PhotoCarousel'
@@ -41,10 +42,14 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
       {/* Hero */}
       <div className="relative h-[450px] w-full bg-gradient-to-br from-gold/20 to-gold/5">
         {poi.photos[0] && (
-          <img
+          <Image
             src={poi.photos[0]}
             alt={poi.name}
-            className="absolute inset-0 w-full h-full bg-white objobject-center"
+            fill
+            priority
+            unoptimized
+            sizes="(max-width: 480px) 100vw, 480px"
+            className="bg-white object-cover object-center"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />

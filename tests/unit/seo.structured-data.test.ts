@@ -73,7 +73,7 @@ describe('structured-data', () => {
     })
     expect(s.geo).toMatchObject({ '@type': 'GeoCoordinates', latitude: 45.85, longitude: 6.71 })
     expect(s.telephone).toBe('+33450000000')
-    expect(s.aggregateRating).toMatchObject({ '@type': 'AggregateRating', ratingValue: 4.6, reviewCount: 32 })
+    expect(s.aggregateRating).toMatchObject({ '@type': 'AggregateRating', ratingValue: 4.6, ratingCount: 32 })
     expect(s.openingHoursSpecification).toEqual([
       expect.objectContaining({ '@type': 'OpeningHoursSpecification', opens: '09:00', closes: '18:00' }),
     ])

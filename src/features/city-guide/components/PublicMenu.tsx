@@ -38,7 +38,10 @@ export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-[60] bg-white flex flex-col justify-between p-8">
+        <div
+          data-testid="public-menu-overlay"
+          className="fixed inset-y-0 left-1/2 z-[60] flex w-full max-w-[430px] -translate-x-1/2 flex-col justify-between bg-white p-8"
+        >
           <div className="mt-20 space-y-8">
             <p className="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold">
               Navigation
@@ -61,7 +64,7 @@ export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="block text-4xl font-serif italic"
+                  className="block text-2xl uppercase tracking-wide text-gray-800 font-bold transition-colors duration-200 hover:text-gray-600"
                 >
                   {item.label}
                 </Link>
@@ -69,7 +72,7 @@ export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
             </nav>
           </div>
           <div className="border-t border-gray-100 pt-8">
-            <p className="text-sm text-gray-400">MyStay Concierge</p>
+            <p className="text-sm text-gray-400">MyStay</p>
           </div>
         </div>
       )}

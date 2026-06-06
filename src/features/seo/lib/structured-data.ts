@@ -114,7 +114,7 @@ export function localBusinessSchema(poi: PoiSchemaInput): JsonLdObject {
           aggregateRating: {
             '@type': 'AggregateRating',
             ratingValue: poi.rating,
-            reviewCount: poi.ratingCount,
+            ratingCount: poi.ratingCount,
           },
         }
       : {}),

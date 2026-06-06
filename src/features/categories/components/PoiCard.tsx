@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Heart, MapPin, ChevronRight, ChevronLeft, Timer, Route, TrendingUp, Share2, Star, Globe, Navigation } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -9,6 +11,7 @@ import {
   subscribeToFavorites,
   toggleFavorite,
 } from '@/features/public-menu/lib/favorites'
+import { getPoiHeaderImageFit, type PoiHeaderImageFit } from '../lib/poi-header-image-fit'
 import type { PoiCard as PoiCardType } from '../types'
 import { TrailCardDetails } from './TrailCardDetails'
 import { MarkdownText } from '@/shared/components/MarkdownText'
@@ -48,6 +51,7 @@ export function PoiCard({
   const [mounted, setMounted] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   const [photoIndex, setPhotoIndex] = useState(0)
+  const [photoFitByUrl, setPhotoFitByUrl] = useState<Record<string, PoiHeaderImageFit>>({})
 
   const isExpanded = isExpandedProp ?? internalIsExpanded
 
@@ -67,6 +71,7 @@ export function PoiCard({
   const galleryPhotos = poi.photos.length > 0 ? poi.photos : poi.photo_url ? [poi.photo_url] : []
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
+  const currentPhotoFit = currentPhoto ? photoFitByUrl[currentPhoto] ?? 'object-cover' : 'object-cover'
 
   function showPrevPhoto(e: React.MouseEvent) {
     e.stopPropagation()
@@ -75,6 +80,20 @@ export function PoiCard({
   function showNextPhoto(e: React.MouseEvent) {
     e.stopPropagation()
     setPhotoIndex(i => (i + 1) % galleryPhotos.length)
+  }
+
+  function handleHeaderPhotoLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    if (!currentPhoto) return
+
+    const fit = getPoiHeaderImageFit({
+      width: e.currentTarget.naturalWidth,
+      height: e.currentTarget.naturalHeight,
+    })
+
+    setPhotoFitByUrl(current => {
+      if (current[currentPhoto] === fit) return current
+      return { ...current, [currentPhoto]: fit }
+    })
   }
 
   const trail = poi.trail_detail ?? null
@@ -135,11 +154,14 @@ export function PoiCard({
       {/* Image Header — galerie classique (1 photo visible, flèches si plusieurs) */}
       <div className="relative h-[270px] shrink-0 overflow-hidden group">
         {currentPhoto ? (
-          <img
+          <Image
             src={currentPhoto}
             alt={poi.name}
-            loading="lazy"
-            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            fill
+            unoptimized
+            sizes="(max-width: 480px) 100vw, 480px"
+            onLoad={handleHeaderPhotoLoad}
+            className={`${currentPhotoFit} object-center transition-transform duration-500 group-hover:scale-105`}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#bd9254]/20 to-[#bd9254]/5" />
@@ -250,7 +272,12 @@ export function PoiCard({
             </div>
 
             <h2 className="text-[18px] font-thin tracking-tight text-gray-900 leading-tight mb-2">
-              {poi.name}
+              <Link
+                href={`/guide/${citySlug}/${categorySlug}/${poi.slug}`}
+                className="underline-offset-4 decoration-gray-300 hover:underline"
+              >
+                {poi.name}
+              </Link>
             </h2>
 
             <div className="flex items-start gap-2 hover:bg-gray-50 -mx-2 px-2 py-1.5 rounded-xl transition-colors">
@@ -323,7 +350,7 @@ export function PoiCard({
               transition={{ duration: 0.3 }}
               className="overflow-hidden border-t border-gray-50 flex flex-col shrink-0"
             >
-              <div className="pt-5">
+              <div className="">
                 {/* <h3 className="text-[14px] font-medium text-gray-800 mb-1">En savoir plus</h3> */}
                 {description && (
                   <MarkdownText

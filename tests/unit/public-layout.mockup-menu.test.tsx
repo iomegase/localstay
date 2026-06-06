@@ -44,4 +44,17 @@ describe('PublicLayout mockup menu', () => {
       '/nos-recommandations',
     )
   })
+
+  it('keeps the menu overlay constrained to the mobile app shell width', async () => {
+    render(await PublicLayout({ children: <div>Contenu</div> }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+
+    expect(screen.getByTestId('public-menu-overlay')).toHaveClass(
+      'left-1/2',
+      'w-full',
+      'max-w-[430px]',
+      '-translate-x-1/2',
+    )
+  })
 })
