@@ -150,8 +150,8 @@ export function buildSitemapEntries(input: {
 ---
 
 ## Backlog (P1 / GEO — separate follow-up)
-- `opengraph-image.tsx` (static + dynamic per POI via `ImageResponse`).
-- Migrate hero `<img>` → `next/image` (`priority`) on POI/trail detail for LCP.
+- [x] **DONE (2026-06-06)** `opengraph-image.tsx` via `ImageResponse` — pure tested model `og-image.ts` (`ogCard`, truncation/fallbacks, 7 tests) + shared renderer `og-card-image.tsx` + root brand card (`src/app/opengraph-image.tsx`) + per-city card (`src/app/(public)/guide/[city-slug]/opengraph-image.tsx`, « Le guide de {ville} »). Verified live: PNG 1200×630, accents OK.
+- [x] **DONE (2026-06-06)** Migrate hero `<img>` → `next/image` for LCP — POI detail hero (`priority` → preload `<link>` verified live; also fixed `objobject-center` className bug), PoiCard header (lazy, fill), lodging cover hero (homepage, `priority`). All `unoptimized` for arbitrary external photo domains (user decision: no open image proxy). New test `poi-detail.hero-image.test.tsx`; existing card/home tests stay green.
 - `next/font` instead of blocking Google Fonts `<link>`.
 - `FAQPage` JSON-LD per city/category; `public/llms.txt`.
 - Brand-name consistency (pick "StayLocal", purge "MyStay").
