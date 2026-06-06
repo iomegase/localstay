@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-05-25
+updated_at: 2026-06-06
 depends_on: [001-city-guide, 002-categories, 003-poi-list]
 ```
 
@@ -39,7 +39,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 #### Acceptance Criteria
 
-- **AC-01-01**: Given un POI valide, When la fiche s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos, distance
+- **AC-01-01**: Given un POI valide, When la fiche s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos, distance ; le hero affiche les photos dans un carousel plein largeur, avec flèches seulement si plusieurs photos sont disponibles
 - **AC-01-02**: Given un POI sans téléphone, When la fiche s'affiche, Then le bouton "Appeler" est masqué
 - **AC-01-03**: Given un POI sans site web, When la fiche s'affiche, Then le bouton "Site web" est masqué
 - **AC-01-04**: Given un POI avec `is_open_now = true`, When la fiche s'affiche, Then un badge vert "Ouvert" est visible avec l'heure de fermeture
@@ -74,7 +74,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 - **BR-01**: Les boutons d'action (appeler, itinéraire, site, réserver) n'apparaissent que si la donnée correspondante existe
 - **BR-02**: Le bouton "Réserver" est présent dans le DOM mais désactivé en MVP 1 (logique métier prête pour MVP 4)
-- **BR-03**: Les photos sont affichées dans un carousel horizontal
+- **BR-03**: Les photos de la fiche sont affichées dans le hero sous forme de carousel plein largeur. La photo active réutilise la logique visuelle des `PoiCard` : fond flou `object-cover` pour remplir le cadre, image principale centrée en `object-contain` pour préserver le cadrage ; des flèches et indicateurs sont affichés uniquement si plusieurs photos sont disponibles.
 - **BR-04**: Si aucune photo n'est disponible, un placeholder avec l'icône de la catégorie est affiché
 - **BR-05**: Les horaires sont affichés jour par jour ; le jour courant est mis en évidence
 
@@ -285,8 +285,8 @@ components:
 
 ### Page : `/guide/[city-slug]/[category-slug]/[poi-slug]`
 
-- **Header** : photo principale en plein écran (hero), avec back button overlay
-- **Carousel** : photos horizontales scrollables
+- **Header** : carousel photo plein écran (hero), avec back button overlay
+- **Carousel** : une photo active visible à la fois dans le hero ; flèches gauche/droite et indicateurs si `photos.length > 1`
 - **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager / Réserver
 - **Section horaires** : accordéon, jour courant en gras
 - **Section carte** : mini-carte Mapbox avec marker du POI (voir spec 005-map)
@@ -300,7 +300,7 @@ components:
 
 | ID | Description | Test type |
 |---|---|---|
-| AC-01-01 | Tous les champs visibles si présents | integration |
+| AC-01-01 | Tous les champs visibles si présents + hero photo carousel avec flèches si plusieurs photos | integration |
 | AC-01-02 | Bouton Appeler masqué si pas de tel | unit |
 | AC-01-03 | Bouton Site masqué si pas de site | unit |
 | AC-01-04 | Badge Ouvert avec heure fermeture | unit |

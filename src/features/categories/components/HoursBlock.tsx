@@ -59,7 +59,7 @@ export function HoursBlock({ is_open_now, hours, today = new Date().getDay() }: 
               <div
                 key={day}
                 data-testid={`hours-row-${day}`}
-                className={`flex justify-between text-sm ${isToday ? 'font-bold text-charcoal' : 'text-charcoal/60'}`}
+                className={`flex justify-between text-[11px] ${isToday ? 'font-bold text-charcoal' : 'text-charcoal/60'}`}
               >
                 <span>{DAY_LABELS[day]}</span>
                 <span>{dayHours ? `${dayHours.open} – ${dayHours.close}` : 'Fermé'}</span>

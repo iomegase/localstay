@@ -367,7 +367,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   if (!geometry || !endpoints) {
     return (
-      <main className="min-h-screen bg-[#FAF9F6] px-6 py-10">
+      <main className="mx-auto min-h-screen w-full max-w-[430px] bg-[#FAF9F6] px-6 py-10">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Randonnée</p>
         <h1 className="mt-4 font-serif text-4xl italic leading-tight text-[#121212]">{trail.name}</h1>
         <div data-testid="missing_geometry" className="mt-8 rounded-[2rem] border border-amber-200 bg-white p-5 text-sm text-charcoal/70 shadow-sm">
@@ -381,7 +381,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const statusLabel = gpsState === 'tracking' ? 'GPS actif' : gpsStateLabel(gpsState)
 
   return (
-    <main className="relative h-screen overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
+    <main className="relative mx-auto h-screen w-full max-w-[430px] overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
       {isIndicativeTrail && (
         <div
           data-testid="trail-indicative-banner"

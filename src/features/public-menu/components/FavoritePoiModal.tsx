@@ -42,21 +42,24 @@ export function FavoritePoiModal({ fav, onClose }: { fav: FavoritePoi; onClose: 
 
   return (
     <div
-      className="fixed inset-0 z-[100] overflow-y-auto bg-ivory"
+      className="fixed inset-0 z-[100] overflow-hidden bg-black/40 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={fav.name}
       data-testid="favorite-poi-modal"
     >
-      <div className="relative mx-auto min-h-full max-w-[430px] bg-ivory">
+      <div
+        className="relative mx-auto h-[100dvh] max-h-[100dvh] w-full max-w-[430px] overflow-y-auto bg-ivory shadow-2xl sm:my-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[32px]"
+        data-testid="favorite-poi-modal-panel"
+      >
         {status === 'loading' && (
-          <div className="flex h-screen items-center justify-center" data-testid="favorite-poi-loading">
+          <div className="flex h-full items-center justify-center" data-testid="favorite-poi-loading">
             <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-gold/30 border-t-gold" />
           </div>
         )}
 
         {status === 'error' && (
-          <div className="flex h-screen flex-col items-center justify-center gap-4 px-8 text-center">
+          <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
             <p className="text-sm text-gray-500">Impossible de charger cette fiche.</p>
             <button
               type="button"

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import type { PoiDetail } from '@/features/categories/types'
 
@@ -13,11 +13,6 @@ jest.mock('@/shared/components/MarkdownText', () => ({
 jest.mock('@/features/categories/components/MiniMap', () => ({
   MiniMap: () => <div data-testid="mini-map" />,
 }))
-// PhotoCarousel rend la galerie (autres <img>) → mocké pour isoler le héros.
-jest.mock('@/features/categories/components/PhotoCarousel', () => ({
-  PhotoCarousel: () => <div data-testid="photo-carousel" />,
-}))
-
 const poi: PoiDetail = {
   id: '1',
   name: 'Le Bistrot du Mont-Blanc',
@@ -47,19 +42,52 @@ const poi: PoiDetail = {
 }
 
 describe('PoiDetailBody — hero image (LCP)', () => {
-  beforeEach(() => {
+  it('renders the first photo in a hero carousel using the same contain-over-blur display logic as PoiCard', () => {
     render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
-  })
 
-  it('renders the first photo as the hero image, covering its container', () => {
+    expect(screen.getByTestId('poi-detail-hero-carousel')).toHaveClass('h-[450px]')
+    expect(screen.getByTestId('poi-detail-hero-backdrop')).toHaveClass('object-cover')
+    expect(screen.getByTestId('poi-detail-hero-backdrop')).toHaveClass('blur-xl')
+
     const hero = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
     expect(hero).toHaveAttribute('src', 'https://example.com/photo-hero.jpg')
-    expect(hero).toHaveClass('object-cover')
-    expect(hero).not.toHaveClass('objobject-center')
+    expect(hero).toHaveClass('object-contain')
+    expect(hero).toHaveClass('object-center')
+    expect(hero).not.toHaveClass('object-cover')
   })
 
   it('loads the hero eagerly (priority) instead of lazily, since it is above the fold', () => {
+    render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+
     const hero = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
     expect(hero).not.toHaveAttribute('loading', 'lazy')
+  })
+
+  it('shows carousel arrows only when multiple photos are available and moves to the next photo', () => {
+    const multiPhotoPoi: PoiDetail = {
+      ...poi,
+      photos: ['https://example.com/photo-1.jpg', 'https://example.com/photo-2.jpg'],
+    }
+
+    render(<PoiDetailBody poi={multiPhotoPoi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+
+    const hero = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
+    expect(hero).toHaveAttribute('src', 'https://example.com/photo-1.jpg')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Photo suivante' }))
+
+    expect(screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })).toHaveAttribute(
+      'src',
+      'https://example.com/photo-2.jpg',
+    )
+    expect(screen.getByLabelText('Photo 2 sur 2')).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByRole('button', { name: 'Photo précédente' })).toBeInTheDocument()
+  })
+
+  it('does not render carousel arrows for a single photo', () => {
+    render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+
+    expect(screen.queryByRole('button', { name: 'Photo suivante' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Photo précédente' })).not.toBeInTheDocument()
   })
 })

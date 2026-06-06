@@ -5,6 +5,14 @@ import { render, screen } from '@testing-library/react'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import type { PoiDetail } from '@/features/categories/types'
 
+jest.mock('@/shared/components/MarkdownText', () => ({
+  MarkdownText: ({ source }: { source: string }) => <div>{source}</div>,
+}))
+
+jest.mock('@/features/categories/components/MiniMap', () => ({
+  MiniMap: () => <div data-testid="mini-map" />,
+}))
+
 const poi: PoiDetail = {
   id: '1',
   name: 'Le Bistrot du Mont-Blanc',

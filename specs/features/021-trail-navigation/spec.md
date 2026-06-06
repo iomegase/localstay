@@ -337,7 +337,7 @@ Le CTA "Réserver" n'est pas utilisé pour une randonnée dans `021`.
 
 ### Mode "Commencer la rando"
 
-La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein écran mobile-first.
+La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein écran mobile-first. Sur desktop et tablette, cette expérience reste contrainte à la coque publique mobile `max-w-[430px]` centrée ; la carte est plein écran dans cette coque, pas sur toute la largeur du viewport navigateur.
 
 Éléments attendus :
 

@@ -1,13 +1,12 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Star, MapPin } from 'lucide-react'
-import { PhotoCarousel } from './PhotoCarousel'
 import { ActionButtons } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
 import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
 import { HeroShareButton } from './HeroShareButton'
+import { PoiDetailHeroCarousel } from './PoiDetailHeroCarousel'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
 import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
@@ -40,19 +39,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
   return (
     <>
       {/* Hero */}
-      <div className="relative h-[450px] w-full bg-gradient-to-br from-gold/20 to-gold/5">
-        {poi.photos[0] && (
-          <Image
-            src={poi.photos[0]}
-            alt={poi.name}
-            fill
-            priority
-            unoptimized
-            sizes="(max-width: 480px) 100vw, 480px"
-            className="bg-white object-cover object-center"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
+      <PoiDetailHeroCarousel photos={poi.photos} name={poi.name}>
         <div className="absolute top-8 left-6 right-6 flex justify-between items-center z-10">
           {onClose ? (
             <button
@@ -87,10 +74,10 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
             />
           </div>
         </div>
-      </div>
+      </PoiDetailHeroCarousel>
 
       {/* Content sheet */}
-      <main className="relative bg-ivory rounded-t-[40px] -mt-8 pt-8 pb-32 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] space-y-6">
+      <main className="relative bg-ivory  -mt-8 pt-8 pb-32 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] space-y-6">
 
         {/* Header */}
         <div className="px-6 flex justify-between items-start">
@@ -98,18 +85,18 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
             <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
               {poi.subcategory?.name ?? poi.category.name}
             </span>
-            <h1 className="text-3xl font-serif italic leading-tight text-charcoal mt-1">{poi.name}</h1>
-            <p className="text-xs text-charcoal/50 mt-1 truncate">{poi.address}</p>
+            <h1 className="text-xl uppercase leading-tight text-charcoal mt-1">{poi.name}</h1>
+            <p className="mt-5 text-xs text-charcoal/50  truncate">{poi.address}</p>
           </div>
           {poi.rating !== null && (
-            <div className="flex flex-col items-end ml-4 shrink-0">
+            <div className="flex flex-row items-center justify-between ml-4 shrink-0">
               <div className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-2xl shadow-sm border border-gray-100">
-                <Star className="w-3.5 h-3.5 text-charcoal fill-charcoal" />
+                <Star className="w-3.5 h-3.5 text-gold fill-gold" />
                 <span className="text-sm font-bold" data-testid="poi-detail-rating">
                   {poi.rating.toFixed(1)}
                 </span>
               </div>
-              <span className="text-[10px] text-charcoal/40 mt-1" data-testid="poi-detail-rating-count">
+              <span className="text-[10px] ml-3 text-charcoal/40 mt-1" data-testid="poi-detail-rating-count">
                 {poi.rating_count} avis
               </span>
             </div>
@@ -139,12 +126,21 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
           <MerchantOffersBlock offers={poi.merchant_offers} />
         </div>
 
-        {/* Photo carousel (additional photos) */}
-        {poi.photos.length > 1 && (
-          <PhotoCarousel photos={poi.photos.slice(1)} name={poi.name} />
+     
+
+        {/* Hours */}
+        {poi.hours && (
+          <div className="px-6">
+            <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} />
+          </div>
         )}
 
-        {poi.photos.length > 0 && poi.website && photoAttributionHost && (
+        {/* Mini map */}
+        <div className="">
+          <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} />
+        </div>
+
+           {/* {poi.photos.length > 0 && poi.website && photoAttributionHost && (
           <div className="px-6">
             <a
               href={poi.website}
@@ -156,19 +152,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
               Photos : {photoAttributionHost}
             </a>
           </div>
-        )}
-
-        {/* Hours */}
-        {poi.hours && (
-          <div className="px-6">
-            <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} />
-          </div>
-        )}
-
-        {/* Mini map */}
-        <div className="px-6">
-          <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} />
-        </div>
+        )} */}
 
         {/* Action buttons */}
         <div className="px-6">

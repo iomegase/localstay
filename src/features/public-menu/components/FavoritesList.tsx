@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowRight, Heart, Trash2 } from 'lucide-react'
+import { ArrowRight, ChevronRight, Heart, Trash2 } from 'lucide-react'
 import {
   type FavoritePoi,
   readFavorites,
@@ -25,8 +25,8 @@ export function FavoritesList() {
 
   if (favorites.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
-        <Heart className="mx-auto h-8 w-8 text-gray-300" />
+      <div className="border border-dashed border-gray-200 bg-white p-8 text-center shadow-sm">
+        <Heart className="mx-auto h-8 w-8 text-[#A68E69]" />
         <p className="mt-3 text-sm text-gray-500">
           Aucun favori pour le moment.
         </p>
@@ -39,7 +39,7 @@ export function FavoritesList() {
 
   return (
     <>
-      <div className="space-y-3 pb-8">
+      <div className="mt-4 space-y-3 pb-8">
         {favorites.map(fav => (
           <FavoriteCard key={fav.poi_id} fav={fav} onOpen={() => setSelected(fav)} />
         ))}
@@ -50,44 +50,77 @@ export function FavoritesList() {
 }
 
 function FavoriteCard({ fav, onOpen }: { fav: FavoritePoi; onOpen: () => void }) {
+  const categoryLabel = fav.category_slug.replace(/-/g, ' ')
+
   return (
-    <div className="group flex gap-4 overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-md">
-      {fav.photo ? (
-        <img
-          src={fav.photo}
-          alt={fav.name}
-          className="h-20 w-20 shrink-0 rounded-xl object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-300">
-          <Heart className="h-6 w-6" />
+    <article
+      data-testid={`favorite-card-${fav.poi_id}`}
+      className="group flex w-full flex-col overflow-hidden rounded-none border border-gray-100 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-transform duration-300 hover:-translate-y-1"
+    >
+      <div
+        data-testid={`favorite-card-hero-${fav.poi_id}`}
+        className="relative h-[220px] shrink-0 overflow-hidden bg-gradient-to-br from-[#bd9254]/20 to-[#bd9254]/5"
+      >
+        {fav.photo ? (
+          <img
+            src={fav.photo}
+            alt={fav.name}
+            className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[#A68E69]">
+            <Heart className="h-8 w-8" />
+          </div>
+        )}
+
+        <span
+          data-testid={`favorite-card-category-${fav.poi_id}`}
+          className="absolute left-4 top-4 inline-flex rounded-full border border-charcoal/40 bg-white/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-charcoal shadow-sm backdrop-blur-sm"
+        >
+          {categoryLabel}
+        </span>
+
+        <div className="absolute right-4 top-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => removeFavorite(fav.poi_id)}
+            aria-label={`Retirer ${fav.name} des favoris`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-gray-700 shadow-lg backdrop-blur-sm transition-colors hover:bg-white hover:text-red-500"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          {/* <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`Ouvrir ${fav.name}`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-gray-700 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </button> */}
         </div>
-      )}
-      <button type="button" onClick={onOpen} className="flex flex-1 flex-col justify-center text-left">
-        <h3 className="font-serif italic text-base text-charcoal">{fav.name}</h3>
-        <p className="text-[10px] uppercase tracking-widest text-gray-400">
-          {fav.category_slug.replace(/-/g, ' ')}
-        </p>
-      </button>
-      <div className="my-auto flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => removeFavorite(fav.poi_id)}
-          aria-label={`Retirer ${fav.name} des favoris`}
-          className="rounded-full p-2 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-label={`Ouvrir ${fav.name}`}
-          className="rounded-full p-2 text-gray-300 hover:text-charcoal"
-        >
-          <ArrowRight className="h-4 w-4" />
-        </button>
       </div>
-    </div>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex w-full items-center justify-between gap-4 p-6 text-left"
+      >
+        <span className="min-w-0 flex-1">
+          {/* <span className="mb-1 flex items-center gap-2">
+            <span className="font-thin text-[11px] text-gray-800">{categoryLabel}</span>
+            <span className="text-[11px] font-thin text-gray-400">favori sauvegardé</span>
+          </span> */}
+          <span className="block text-[13px] uppercase font-thin leading-tight tracking-widest text-gray-900  decoration-gray-300 group-hover:text-gray-800 ">
+            {fav.name}
+          </span>
+        </span>
+        <ChevronRight
+          className="h-16 w-16 shrink-0 text-gray-200 transition-all duration-300 group-hover:translate-x-1 group-hover:text-gray-800"
+          strokeWidth={0.5}
+          aria-hidden="true"
+        />
+      </button>
+    </article>
   )
 }

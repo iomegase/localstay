@@ -74,6 +74,16 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 - **AC-03-03**: Given un Guide chargé sur mobile, When la page s'affiche, Then la mise en page est lisible sur écran 375px minimum sans scroll horizontal
 - **AC-03-04**: Given une City avec slug valide mais sans aucun POI actif, When la page charge, Then une réponse HTTP 200 est retournée avec un empty state explicite ("Aucun contenu disponible pour cette ville pour le moment")
 
+### US-04 — Consultation des favoris locaux
+
+**As a** Tourist
+**I want to** retrouver les lieux que j'ai sauvegardés en favoris
+**So that** je puisse rouvrir leur fiche sans quitter la page favoris
+
+#### Acceptance Criteria
+
+- **AC-04-01**: Given au moins un favori stocké localement, When le Tourist ouvre `/mes-favoris`, Then chaque favori est affiché en card verticale compacte sans accordéon, avec image, badge catégorie, actions `Retirer` et `Ouvrir`, et l'action d'ouverture affiche la fiche dans un panneau modal mobile centré avec backdrop, sans navigation d'URL
+
 ---
 
 ## Business Rules
@@ -276,6 +286,7 @@ components:
 >
 > Déviations validées par le Product Owner le 2026-06-04 : nom produit MyStay, libellés de navigation listés en BR-09, et vue "Tous les POI" avec infinite scroll sur la home Guide selon `003-poi-list` BR-05a.
 > Déviation validée par le Product Owner le 2026-06-06 : bottom nav public entièrement transparent pendant le scroll, à nouveau visible quand le scroll s'arrête, item actif en `#bd9254` et items inactifs en gris contrasté `#6f7480`.
+> Déviation validée par le Product Owner le 2026-06-06 : la page `/mes-favoris` utilise des cards verticales compactes inspirées du design POI public (`003-poi-list`) avec image hero, badge catégorie, actions flottantes et titre sous l'image, sans accordéon ; l'ouverture d'un favori reste dans un panneau modal client centré avec backdrop, sans changement d'URL.
 
 ---
 
@@ -289,6 +300,13 @@ components:
 - **404 state** : page dédiée "Ville introuvable" + lien retour accueil — HTTP 404
 - **Success state** : home Guide avec intitulé de guide, sous-titre, champ de recherche visuel, ligne horizontale de catégories, vue "Tous les POI" avec infinite scroll, bottom navigation incluant `Guide` vers `/guide/[city-slug]`, item actif en `#bd9254`, items inactifs en `#6f7480` et menu entièrement transparent pendant le scroll puis visible à l'arrêt du scroll
 - **Mobile** : `max-w-[430px]`, fond `#FAF9F6`, header glassmorphism sticky, menu overlay plein écran, viewport immersif navigateur selon BR-10
+
+### Page : `/mes-favoris`
+
+- Liste des favoris Tourist stockés localement sur l'appareil.
+- Chaque favori est rendu en card verticale compacte inspirée des cards POI publiques : image hero en haut, badge catégorie, actions flottantes `Retirer` et `Ouvrir`, titre sous l'image.
+- La liste des favoris n'utilise pas l'accordéon POI ; l'action `Ouvrir` affiche la fiche en panneau modal client centré avec backdrop, sans navigation d'URL.
+- Empty state : carte simple indiquant qu'aucun favori n'est encore sauvegardé.
 
 ### Composant : CitySearchInput (page d'accueil `/`)
 
@@ -315,6 +333,7 @@ components:
 | AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | integration |
 | AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal | e2e |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | integration |
+| AC-04-01 | Favoris locaux → cards verticales sans accordéon + ouverture en panneau modal sans navigation | integration |
 | BR-09 | Navigation publique : libellés validés, bouton `Guide` contextuel, item actif `#bd9254`, items inactifs `#6f7480`, bottom nav entièrement transparent pendant le scroll puis visible à l'arrêt | unit |
 | BR-10 | Mode immersif navigateur mobile configuré globalement | unit |
 

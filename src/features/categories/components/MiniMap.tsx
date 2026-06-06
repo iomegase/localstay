@@ -20,7 +20,7 @@ export function MiniMap({ latitude, longitude, poiName, width = 600, height = 36
       alt={`Carte — ${poiName}`}
       width={width}
       height={height}
-      className="w-full rounded-2xl object-cover"
+      className="w-full  object-cover"
       data-testid="mini-map"
       loading="lazy"
     />

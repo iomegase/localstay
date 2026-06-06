@@ -60,6 +60,26 @@ describe('021 trail navigation start mode', () => {
     expect(watchPosition).not.toHaveBeenCalled()
   })
 
+  it('keeps the full-screen navigation constrained to the mobile app shell width', () => {
+    render(<TrailNavigationMap trail={trail} />)
+
+    expect(screen.getByTestId('trail-navigation-start')).toHaveClass(
+      'mx-auto',
+      'w-full',
+      'max-w-[430px]',
+    )
+  })
+
+  it('keeps the missing-geometry state constrained to the mobile app shell width', () => {
+    render(<TrailNavigationMap trail={{ ...trail, geometry_geojson: null }} />)
+
+    expect(screen.getByTestId('missing_geometry').closest('main')).toHaveClass(
+      'mx-auto',
+      'w-full',
+      'max-w-[430px]',
+    )
+  })
+
   it('AC-02-06/AC-03-01/AC-04-04: starts watchPosition after explicit activation and clears it on unmount', async () => {
     const clearWatch = jest.fn()
     const watchPosition = jest.fn((success: PositionCallback) => {

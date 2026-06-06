@@ -13,7 +13,7 @@ jest.mock('@/features/public-menu/lib/favorites', () => ({
       city_slug: 'saint-gervais-les-bains',
       category_slug: 'shopping',
       poi_slug: 'le-boudoir-family-store',
-      photo: null,
+      photo: 'https://example.com/boudoir.jpg',
       added_at: '2026-06-01T08:00:00.000Z',
     },
   ],
@@ -33,6 +33,23 @@ jest.mock('@/features/public-menu/components/FavoritePoiModal', () => ({
 }))
 
 describe('FavoritesList — ouverture en modal', () => {
+  it('renders favorites as compact vertical POI-style cards without accordion', () => {
+    render(<FavoritesList />)
+
+    const card = screen.getByTestId('favorite-card-poi-1')
+    expect(card).toHaveClass('overflow-hidden')
+    expect(card).toHaveClass('bg-white')
+    expect(card).not.toHaveAttribute('aria-expanded')
+
+    const hero = screen.getByTestId('favorite-card-hero-poi-1')
+    expect(hero).toHaveClass('h-[220px]')
+    expect(screen.getByRole('img', { name: 'Le Boudoir Family Store' })).toHaveClass('object-cover')
+    expect(screen.getByTestId('favorite-card-category-poi-1')).toHaveTextContent('shopping')
+    expect(screen.getByRole('button', { name: 'Ouvrir Le Boudoir Family Store' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retirer Le Boudoir Family Store des favoris' })).toBeInTheDocument()
+    expect(screen.queryByText(/en savoir plus/i)).not.toBeInTheDocument()
+  })
+
   it('opens the POI in a modal on click instead of navigating to a detail page', () => {
     render(<FavoritesList />)
 
