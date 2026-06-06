@@ -161,7 +161,7 @@ describe('PoiCard — infos POI (non-rando)', () => {
   it('shows the website as a "Site" button but not the rating/status (already in the header)', () => {
     render(
       <PoiCard
-        poi={{ ...poi, website: 'https://resto.example.com' }}
+        poi={{ ...poi, website: 'https://resto.example.com', phone: null }}
         citySlug="saint-gervais-les-bains"
         categorySlug="restaurants"
       />,
@@ -169,7 +169,13 @@ describe('PoiCard — infos POI (non-rando)', () => {
     fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
 
     const panel = screen.getByTestId('poi-more-info')
-    expect(within(panel).getByRole('link', { name: /^site$/i })).toHaveAttribute(
+    const directions = within(panel).getByRole('link', { name: /itinéraire/i })
+    const site = within(panel).getByRole('link', { name: /^site$/i })
+
+    expect(directions.parentElement).toHaveClass('grid', 'grid-cols-2', 'gap-4')
+    expect(directions).toHaveClass('h-14', 'border-black', 'bg-black', 'text-white', 'uppercase')
+    expect(site).toHaveClass('h-14', 'border-black', 'bg-white', 'text-black', 'uppercase')
+    expect(site).toHaveAttribute(
       'href',
       'https://resto.example.com',
     )
@@ -195,10 +201,10 @@ describe('PoiCard — infos POI (non-rando)', () => {
 
     expect(site).toHaveAttribute('href', 'https://resto.example.com')
     expect(appeler).toHaveAttribute('href', 'tel:+33450000000')
-    // Les trois partagent la même ligne (même conteneur flex direct)
+    // Les trois partagent la même ligne (même conteneur grid direct)
     expect(itineraire.parentElement).toBe(site.parentElement)
     expect(site.parentElement).toBe(appeler.parentElement)
-    expect(itineraire.parentElement).toHaveClass('flex')
+    expect(itineraire.parentElement).toHaveClass('grid', 'grid-cols-3', 'gap-4')
   })
 })
 

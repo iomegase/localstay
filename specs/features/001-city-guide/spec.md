@@ -82,7 +82,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given au moins un favori stocké localement, When le Tourist ouvre `/mes-favoris`, Then chaque favori est affiché en card verticale compacte sans accordéon, avec image, badge catégorie, actions `Retirer` et `Ouvrir`, et l'action d'ouverture affiche la fiche dans un panneau modal mobile centré avec backdrop, sans navigation d'URL
+- **AC-04-01**: Given au moins un favori stocké localement, When le Tourist ouvre `/mes-favoris`, Then chaque favori est affiché en card verticale compacte sans accordéon, avec image, badge catégorie, actions `Retirer` et `Ouvrir`, et l'action d'ouverture affiche la fiche dans un panneau modal mobile centré avec backdrop, sans navigation d'URL ; le footer d'actions du panneau affiche les actions disponibles (`Appeler`, `Site`, `Itinéraire`) en trois colonnes sur une surface arrondie inspirée de la bottom nav publique, en position fixe en bas d'écran avec une légère marge basse, masqué pendant le scroll puis visible à l'arrêt, sans bouton `Réserver` tant que la réservation n'est pas activée par une spec dédiée.
 
 ---
 
@@ -306,6 +306,7 @@ components:
 - Liste des favoris Tourist stockés localement sur l'appareil.
 - Chaque favori est rendu en card verticale compacte inspirée des cards POI publiques : image hero en haut, badge catégorie, actions flottantes `Retirer` et `Ouvrir`, titre sous l'image.
 - La liste des favoris n'utilise pas l'accordéon POI ; l'action `Ouvrir` affiche la fiche en panneau modal client centré avec backdrop, sans navigation d'URL.
+- Dans ce panneau modal, le footer d'actions reprend le style visuel de la bottom nav publique : surface blanche/glass arrondie, trois colonnes, icône au-dessus et libellé uppercase espacé dessous. Il est fixé en bas de l'écran (`bottom` avec marge légère), disparaît pendant le scroll du panneau modal, puis revient visible quand le scroll s'arrête. Les sous-libellés `Téléphone`, `Web` et `Maps` ne sont pas rendus. Les liens ont un hover subtil vers l'accent `#bd9254` et un focus visible clavier. `Réserver` n'est pas rendu en MVP 1.
 - Empty state : carte simple indiquant qu'aucun favori n'est encore sauvegardé.
 
 ### Composant : CitySearchInput (page d'accueil `/`)
@@ -333,7 +334,7 @@ components:
 | AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | integration |
 | AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal | e2e |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | integration |
-| AC-04-01 | Favoris locaux → cards verticales sans accordéon + ouverture en panneau modal sans navigation | integration |
+| AC-04-01 | Favoris locaux → cards verticales sans accordéon + ouverture en panneau modal sans navigation + footer actions modal sans réservation | integration |
 | BR-09 | Navigation publique : libellés validés, bouton `Guide` contextuel, item actif `#bd9254`, items inactifs `#6f7480`, bottom nav entièrement transparent pendant le scroll puis visible à l'arrêt | unit |
 | BR-10 | Mode immersif navigateur mobile configuré globalement | unit |
 

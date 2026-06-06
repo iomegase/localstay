@@ -25,7 +25,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 - **POI** : point d'intérêt avec toutes ses données
 - **Tourist** : utilisateur sans compte
-- **Reservation** : disponible pour certains POI (MVP 4) — bouton présent mais inactif en MVP 1
+- **Reservation** : disponible pour certains POI (MVP 4) — hors rendu public en MVP 1 tant qu'une spec réservation dédiée ne l'active pas
 
 ---
 
@@ -72,8 +72,8 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 ## Business Rules
 
-- **BR-01**: Les boutons d'action (appeler, itinéraire, site, réserver) n'apparaissent que si la donnée correspondante existe
-- **BR-02**: Le bouton "Réserver" est présent dans le DOM mais désactivé en MVP 1 (logique métier prête pour MVP 4)
+- **BR-01**: Les boutons d'action (appeler, itinéraire, site) n'apparaissent que si la donnée correspondante existe ; l'itinéraire est toujours disponible via adresse publique ou coordonnées en fallback
+- **BR-02**: Le bouton "Réserver" n'est pas rendu en MVP 1 ; il sera introduit uniquement par une spec réservation approuvée
 - **BR-03**: Les photos de la fiche sont affichées dans le hero sous forme de carousel plein largeur. La photo active réutilise la logique visuelle des `PoiCard` : fond flou `object-cover` pour remplir le cadre, image principale centrée en `object-contain` pour préserver le cadrage ; des flèches et indicateurs sont affichés uniquement si plusieurs photos sont disponibles.
 - **BR-04**: Si aucune photo n'est disponible, un placeholder avec l'icône de la catégorie est affiché
 - **BR-05**: Les horaires sont affichés jour par jour ; le jour courant est mis en évidence
@@ -287,7 +287,7 @@ components:
 
 - **Header** : carousel photo plein écran (hero), avec back button overlay et pastille "Ouvert" en footer d'image si le POI est ouvert
 - **Carousel** : une photo active visible à la fois dans le hero ; flèches gauche/droite et indicateurs si `photos.length > 1`
-- **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager / Réserver
+- **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager ; aucun bouton Réserver en MVP 1
 - **Section horaires** : accordéon, jour courant en gras
 - **Section carte** : mini-carte Mapbox avec marker du POI (voir spec 005-map)
 - **Section randonnée** : bloc conditionnel visible si `hiking_detail` présent

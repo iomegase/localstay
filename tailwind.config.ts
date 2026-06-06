@@ -56,6 +56,8 @@ const config: Config = {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
+        lobster: ['Lobster', 'cursive'],
+        quicksand: ['Quicksand', 'sans-serif'],
       },
     },
   },

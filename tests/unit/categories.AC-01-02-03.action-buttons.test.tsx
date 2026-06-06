@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
+import { act, fireEvent } from '@testing-library/react'
 import { ActionButtons } from '@/features/categories/components/ActionButtons'
 
 const base = {
@@ -53,10 +54,44 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(href).not.toContain('destination=45.8921,6.7085')
   })
 
-  it('always renders disabled Réserver button', () => {
+  it('does not render Réserver until reservation is enabled by a dedicated spec', () => {
     render(<ActionButtons {...base} />)
-    const reserveBtn = screen.getByTestId('btn-reserve')
-    expect(reserveBtn).toBeInTheDocument()
-    expect(reserveBtn).toBeDisabled()
+    expect(screen.queryByTestId('btn-reserve')).not.toBeInTheDocument()
+  })
+
+  it('renders favorite modal footer actions with the public bottom nav visual style', () => {
+    render(<ActionButtons {...base} variant="modalFooter" />)
+
+    expect(screen.getByTestId('favorite-modal-footer-actions')).toHaveClass('fixed', 'bottom-8', 'left-1/2', 'grid', 'grid-cols-3', 'rounded-full', 'border-black/5', 'shadow-xl')
+    expect(screen.getByTestId('btn-call')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-[#bd9254]')
+    expect(screen.getByTestId('btn-site')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-[#bd9254]')
+    expect(screen.getByTestId('btn-directions')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-[#bd9254]')
+    expect(screen.getByText('Appeler')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
+    expect(screen.getByText('Site')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
+    expect(screen.getByText('Itinéraire')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
+    expect(screen.queryByText('Téléphone')).not.toBeInTheDocument()
+    expect(screen.queryByText('Web')).not.toBeInTheDocument()
+    expect(screen.queryByText('Maps')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('btn-reserve')).not.toBeInTheDocument()
+  })
+
+  it('hides the fixed favorite modal footer while scrolling and restores it when scrolling stops', () => {
+    jest.useFakeTimers()
+    render(<ActionButtons {...base} variant="modalFooter" />)
+
+    const footer = screen.getByTestId('favorite-modal-footer-actions')
+    expect(footer).toHaveClass('opacity-100', 'translate-y-0')
+
+    act(() => {
+      fireEvent.scroll(window)
+    })
+    expect(footer).toHaveClass('opacity-0', 'pointer-events-none', 'translate-y-4')
+
+    act(() => {
+      jest.advanceTimersByTime(180)
+    })
+    expect(footer).toHaveClass('opacity-100', 'translate-y-0')
+
+    jest.useRealTimers()
   })
 })

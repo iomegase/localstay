@@ -77,6 +77,7 @@ export function FavoritePoiModal({ fav, onClose }: { fav: FavoritePoi; onClose: 
             citySlug={fav.city_slug}
             categorySlug={fav.category_slug}
             onClose={onClose}
+            actionVariant="modalFooter"
           />
         )}
       </div>

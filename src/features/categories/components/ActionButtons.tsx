@@ -1,5 +1,10 @@
 'use client'
-import { Phone, Navigation, Globe, CalendarPlus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Phone, Navigation, Globe } from 'lucide-react'
+
+export type ActionButtonsVariant = 'default' | 'modalFooter'
+
+const SCROLL_IDLE_MS = 180
 
 interface Props {
   phone: string | null
@@ -7,12 +12,19 @@ interface Props {
   latitude: number
   longitude: number
   address: string
+  variant?: ActionButtonsVariant
 }
 
-export function ActionButtons({ phone, website, latitude, longitude, address }: Props) {
+export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default' }: Props) {
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
   const telHref = phone ? `tel:${phone.replace(/\s/g, '')}` : null
+
+  if (variant === 'modalFooter') {
+    return (
+      <ModalFooterActions telHref={telHref} website={website} directionsUrl={directionsUrl} />
+    )
+  }
 
   return (
     <div className="flex flex-wrap gap-2 pt-2">
@@ -49,15 +61,106 @@ export function ActionButtons({ phone, website, latitude, longitude, address }: 
           Site
         </a>
       )}
+    </div>
+  )
+}
 
-      <button
-        disabled
-        data-testid="btn-reserve"
-        className="flex-1 py-3 rounded-2xl border border-orange-400/50 text-orange-400/60 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest cursor-not-allowed"
+function ModalFooterActions({
+  telHref,
+  website,
+  directionsUrl,
+}: {
+  telHref: string | null
+  website: string | null
+  directionsUrl: string
+}) {
+  const [isScrolling, setIsScrolling] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const scrollIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const visibilityClassName = isScrolling
+    ? 'opacity-0 pointer-events-none translate-y-4'
+    : 'opacity-100 translate-y-0'
+
+  useEffect(() => {
+    const targets: Array<Window | Element> = [window]
+    const modalPanel = rootRef.current?.closest('[data-testid="favorite-poi-modal-panel"]')
+
+    if (modalPanel) {
+      targets.push(modalPanel)
+    }
+
+    const handleScroll = () => {
+      setIsScrolling(true)
+
+      if (scrollIdleTimer.current) {
+        clearTimeout(scrollIdleTimer.current)
+      }
+
+      scrollIdleTimer.current = setTimeout(() => {
+        setIsScrolling(false)
+        scrollIdleTimer.current = null
+      }, SCROLL_IDLE_MS)
+    }
+
+    targets.forEach(target => target.addEventListener('scroll', handleScroll, { passive: true }))
+
+    return () => {
+      targets.forEach(target => target.removeEventListener('scroll', handleScroll))
+
+      if (scrollIdleTimer.current) {
+        clearTimeout(scrollIdleTimer.current)
+      }
+    }
+  }, [])
+
+  return (
+    <div
+      ref={rootRef}
+      className={`glass fixed bottom-8 left-1/2 z-[120] grid w-[calc(100%-2rem)] max-w-[390px] -translate-x-1/2 grid-cols-3 items-center rounded-full border border-black/5 px-6 py-4 shadow-xl transition-[opacity,transform] duration-200 ${visibilityClassName}`}
+      data-testid="favorite-modal-footer-actions"
+    >
+      {telHref && (
+        <a
+          href={telHref}
+          data-testid="btn-call"
+          className="group col-start-1 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-[#bd9254] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
+          aria-label="Appeler"
+        >
+          <Phone className="h-5 w-5 shrink-0" />
+          <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">
+            Appeler
+          </span>
+        </a>
+      )}
+
+      {website && (
+        <a
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="btn-site"
+          className="group col-start-2 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-[#bd9254] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
+          aria-label="Site"
+        >
+          <Globe className="h-5 w-5 shrink-0" />
+          <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">
+            Site
+          </span>
+        </a>
+      )}
+
+      <a
+        href={directionsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="btn-directions"
+        className="group col-start-3 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-[#bd9254] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
       >
-        <CalendarPlus className="w-4 h-4" />
-        Réserver
-      </button>
+        <Navigation className="h-5 w-5 shrink-0" />
+        <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">
+          Itinéraire
+        </span>
+      </a>
     </div>
   )
 }

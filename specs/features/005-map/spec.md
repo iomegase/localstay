@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-05-25
+updated_at: 2026-06-06
 depends_on: [003-poi-list, 004-poi-detail]
 ```
 
@@ -92,8 +92,8 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 ```yaml
 # Endpoint Mapbox Static Images (externe, pas de route interne)
-# GET https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/
-#     pin-s+1a56a0({lng},{lat})/{lng},{lat},{zoom}/{width}x{height}
+# GET https://api.mapbox.com/styles/v1/mapbox/light-v11/static/
+#     pin-s+ef4444({lng},{lat})/{lng},{lat},{zoom}/{width}x{height}
 #     ?access_token={MAPBOX_TOKEN}
 # Utilisé pour les mini-cartes statiques dans les fiches POI
 ```
@@ -120,11 +120,11 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 ### Composant : MiniMap (carte statique dans fiche POI)
 
-- Image statique Mapbox Static Images API (pas un Map Load)
+- Image statique Mapbox Static Images API (pas un Map Load), style monochrome `light-v11`
 - Dimensions : 100% largeur × 180px hauteur
 - Non-interactive
 - Zoom statique par défaut : `16`
-- Marker rouge sur le POI
+- Marker rouge `#ef4444` sur le POI
 - Lien vers la carte complète au clic
 
 ### Composant : Popup (info-bulle marker)
@@ -164,5 +164,5 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
-| OQ-01 | Style de carte Mapbox : streets, outdoors, ou custom ? | owner | - | **Resolved** : `outdoors` (adapté au contexte alpin) |
+| OQ-01 | Style de carte Mapbox : streets, outdoors, ou custom ? | owner | - | **Resolved** : carte plein écran `outdoors` pour le contexte alpin ; mini-carte fiche POI `light-v11` monochrome avec marker rouge pour lisibilité. |
 | OQ-02 | Faut-il un toggle liste/carte sur la page catégorie ou une page carte dédiée ? | owner | - | **Resolved** : Toggle sur la page catégorie (même URL, état client) |

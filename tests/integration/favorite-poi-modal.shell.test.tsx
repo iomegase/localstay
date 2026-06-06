@@ -7,8 +7,10 @@ import type { FavoritePoi } from '@/features/public-menu/lib/favorites'
 import type { PoiDetail } from '@/features/categories/types'
 
 jest.mock('@/features/categories/components/PoiDetailBody', () => ({
-  PoiDetailBody: ({ poi }: { poi: PoiDetail }) => (
-    <div data-testid="poi-detail-body-stub">{poi.name}</div>
+  PoiDetailBody: ({ poi, actionVariant }: { poi: PoiDetail; actionVariant?: string }) => (
+    <div data-testid="poi-detail-body-stub" data-action-variant={actionVariant}>
+      {poi.name}
+    </div>
   ),
 }))
 
@@ -66,6 +68,14 @@ describe('FavoritePoiModal — shell modal', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('poi-detail-body-stub')).toHaveTextContent('Station de recharge')
+    })
+  })
+
+  it('opens the POI detail with the favorite modal footer actions variant', async () => {
+    render(<FavoritePoiModal fav={fav} onClose={jest.fn()} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('poi-detail-body-stub')).toHaveAttribute('data-action-variant', 'modalFooter')
     })
   })
 })

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, Star, MapPin } from 'lucide-react'
-import { ActionButtons } from './ActionButtons'
+import { ActionButtons, type ActionButtonsVariant } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
 import { MiniMap } from './MiniMap'
@@ -19,9 +19,10 @@ interface Props {
   categorySlug: string
   /** Si fourni, le bouton retour ferme la vue (mode modal) au lieu de naviguer vers la liste. */
   onClose?: () => void
+  actionVariant?: ActionButtonsVariant
 }
 
-export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
+export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVariant = 'default' }: Props) {
   if (categorySlug === 'rando' && poi.trail_detail) {
     return <TrailPoiDetailBody poi={poi} citySlug={citySlug} categorySlug={categorySlug} onClose={onClose} />
   }
@@ -175,6 +176,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
             latitude={poi.latitude}
             longitude={poi.longitude}
             address={poi.address}
+            variant={actionVariant}
           />
         </div>
 

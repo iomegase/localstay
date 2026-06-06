@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowRight, ChevronRight, Heart, Trash2 } from 'lucide-react'
+import { ChevronRight, Heart, Trash2 } from 'lucide-react'
 import {
   type FavoritePoi,
   readFavorites,
@@ -104,6 +104,7 @@ function FavoriteCard({ fav, onOpen }: { fav: FavoritePoi; onOpen: () => void })
       <button
         type="button"
         onClick={onOpen}
+        aria-label={`Ouvrir ${fav.name}`}
         className="flex w-full items-center justify-between gap-4 p-6 text-left"
       >
         <span className="min-w-0 flex-1">

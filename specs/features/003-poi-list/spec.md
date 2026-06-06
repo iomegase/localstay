@@ -41,7 +41,7 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 #### Acceptance Criteria
 
 - **AC-01-01**: Given une catégorie avec POI, When la liste s'affiche, Then les POI sont triés par distance croissante par défaut
-- **AC-01-02**: Given une liste de POI, When elle s'affiche, Then chaque card affiche : nom, sous-catégorie, adresse courte, note, distance, photo principale. La photo principale publique est la première URL exploitable de `photos`, en ignorant logos, favicons, placeholders et images vides ; elle reste centrée dans le header visuel. Les photos portrait ou carrées sont rendues en `object-cover`; les photos paysage sont rendues en `object-contain` pour préserver leur cadrage.
+- **AC-01-02**: Given une liste de POI, When elle s'affiche, Then chaque card affiche : nom, sous-catégorie, adresse courte, note, distance, photo principale. La photo principale publique est la première URL exploitable de `photos`, en ignorant logos, favicons, placeholders et images vides ; elle reste centrée dans le header visuel. Les photos portrait ou carrées sont rendues en `object-cover`; les photos paysage sont rendues en `object-contain` pour préserver leur cadrage. Dans le panneau détaillé d'une card non-randonnée, les actions affichent des boutons rectangulaires alignés sur une ligne : "ITINÉRAIRE" en fond noir, "SITE" en fond blanc bordé si `website` existe, et "APPELER" en fond blanc bordé si `phone` existe.
 - **AC-01-03**: Given une liste de POI, When elle s'affiche, Then les POI fermés actuellement sont visuellement différenciés (badge "Fermé")
 
 ### US-02 — Filtrer et trier les POI
@@ -323,6 +323,7 @@ components:
 - Distance en km depuis le centre ville par défaut, ou depuis la position GPS du Tourist après consentement explicite
 - Note avec étoile et nombre d'avis
 - Le panneau détaillé de la card fonctionne en accordéon : une seule card POI peut être ouverte à la fois dans une même liste (catégorie ou vue "Tous les POI")
+- Dans le panneau détaillé des POI non-randonnée, les boutons d'action restent sur une même rangée mobile-first : grille 1 colonne si seul l'itinéraire est disponible, 2 colonnes avec site ou téléphone, 3 colonnes si itinéraire + site + téléphone sont disponibles. Le bouton "ITINÉRAIRE" est noir plein ; les autres actions sont blanches avec contour noir.
 
 ---
 
@@ -331,7 +332,7 @@ components:
 | ID | Description | Test type |
 |---|---|---|
 | AC-01-01 | Tri par distance par défaut | unit |
-| AC-01-02 | Card affiche nom, sous-cat, adresse, note, distance, photo exploitable centrée, avec cover en portrait/carré et contain en paysage | integration |
+| AC-01-02 | Card affiche nom, sous-cat, adresse, note, distance, photo exploitable centrée, avec cover en portrait/carré et contain en paysage, et actions rectangulaires alignées dans le panneau détaillé | integration |
 | AC-01-03 | POI fermé visuellement différencié | unit |
 | AC-02-01 | Tri par note fonctionne | unit |
 | AC-02-02 | Filtre sous-catégorie fonctionne | integration |

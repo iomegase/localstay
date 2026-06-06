@@ -59,7 +59,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Quicksand:wght@500;600;700&display=swap"
           rel="stylesheet"
         />
         <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet"/>

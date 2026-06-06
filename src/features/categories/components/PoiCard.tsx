@@ -69,6 +69,11 @@ export function PoiCard({
   const galleryPhotos = poi.photos.length > 0 ? poi.photos : poi.photo_url ? [poi.photo_url] : []
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
+  const actionGridColumns = poi.website && poi.phone
+    ? 'grid-cols-3'
+    : poi.website || poi.phone
+      ? 'grid-cols-2'
+      : 'grid-cols-1'
 
   function showPrevPhoto(e: React.MouseEvent) {
     e.stopPropagation()
@@ -357,15 +362,15 @@ export function PoiCard({
                 )}
                 {!isTrail && (
                   <div className="mt-1 text-[11px] font-thin text-gray-600" data-testid="poi-more-info">
-                    <div className="flex gap-2 pt-3">
+                    <div className={`grid gap-4 pt-3 ${actionGridColumns}`}>
                       <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude},${poi.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-black text-white hover:bg-white hover:text-black px-3 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                        className="flex h-14 min-w-0 items-center justify-center gap-2 border border-black bg-black px-3 text-[11px] font-medium uppercase tracking-[0.12em] text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-md active:translate-y-0 active:scale-[0.98]"
                       >
-                        <Navigation className="h-3.5 w-3.5" />
+                        <Navigation className="h-4 w-4 shrink-0" />
                         ITINÉRAIRE
                       </a>
                       {poi.website && (
@@ -374,9 +379,9 @@ export function PoiCard({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
-                          className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-white text-black hover:bg-black hover:text-white px-3 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                          className="flex h-14 min-w-0 items-center justify-center gap-2 border border-black bg-white px-3 text-[11px] font-medium uppercase tracking-[0.12em] text-black shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-md active:translate-y-0 active:scale-[0.98]"
                         >
-                          <Globe className="h-3.5 w-3.5" />
+                          <Globe className="h-4 w-4 shrink-0" />
                           SITE
                         </a>
                       )}
@@ -384,7 +389,7 @@ export function PoiCard({
                         <a
                           href={`tel:${poi.phone}`}
                           onClick={e => e.stopPropagation()}
-                          className="flex flex-1 items-center justify-center border border-black bg-white text-black hover:bg-black hover:text-white px-3 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                          className="flex h-14 min-w-0 items-center justify-center border border-black bg-white px-3 text-[11px] font-medium uppercase tracking-[0.12em] text-black shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-md active:translate-y-0 active:scale-[0.98]"
                         >
                           APPELER
                         </a>
