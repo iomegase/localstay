@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiDetail, PoiHours, HikingDetailData, TrailDetailData } from '../types'
 import { computeIsOpenNow } from '../lib/is-open-now'
@@ -14,14 +15,17 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-export async function getPoiDetail(
+// Mémoïsé par requête (React cache) : generateMetadata + la page partagent le même fetch.
+export const getPoiDetail = cache(getPoiDetailUncached)
+
+async function getPoiDetailUncached(
   citySlug: string,
   categorySlug: string,
   poiSlug: string,
 ): Promise<PoiDetail | null> {
   const city = await prisma.city.findFirst({
     where: { slug: citySlug, is_active: true, deleted_at: null },
-    select: { id: true, latitude: true, longitude: true },
+    select: { id: true, name: true, slug: true, region: true, postal_code: true, latitude: true, longitude: true },
   })
   if (!city) return null
 
@@ -134,6 +138,7 @@ export async function getPoiDetail(
     hours: row.hours as PoiHours | null,
     photos: row.photos,
     distance_km: haversineKm(city.latitude, city.longitude, row.latitude, row.longitude),
+    city: { name: city.name, slug: city.slug, region: city.region, postal_code: city.postal_code },
     category: row.category,
     subcategory: row.subcategory,
     trail_detail: trail,

@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-04
+updated_at: 2026-06-06
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -41,7 +41,7 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 #### Acceptance Criteria
 
 - **AC-01-01**: Given une catégorie avec POI, When la liste s'affiche, Then les POI sont triés par distance croissante par défaut
-- **AC-01-02**: Given une liste de POI, When elle s'affiche, Then chaque card affiche : nom, sous-catégorie, adresse courte, note, distance, photo principale
+- **AC-01-02**: Given une liste de POI, When elle s'affiche, Then chaque card affiche : nom, sous-catégorie, adresse courte, note, distance, photo principale. La photo principale publique est la première URL exploitable de `photos`, en ignorant logos, favicons, placeholders et images vides ; elle remplit le header en `cover`, reste centrée, et ne doit pas être rendue en `contain`.
 - **AC-01-03**: Given une liste de POI, When elle s'affiche, Then les POI fermés actuellement sont visuellement différenciés (badge "Fermé")
 
 ### US-02 — Filtrer et trier les POI
@@ -317,7 +317,7 @@ components:
 
 ### Composant : PoiCard
 
-- Photo principale en thumbnail (ratio 16:9)
+- Photo principale en header visuel : première URL exploitable hors logo/placeholder, remplit le cadre avec `object-cover`, position centrée, sans rendu `contain`
 - Badge "Fermé" si `is_open_now = false`
 - Badge "Sponsorisé" si POI mis en avant (logique métier présente, inactive MVP 1)
 - Distance en km depuis le centre ville par défaut, ou depuis la position GPS du Tourist après consentement explicite
@@ -331,7 +331,7 @@ components:
 | ID | Description | Test type |
 |---|---|---|
 | AC-01-01 | Tri par distance par défaut | unit |
-| AC-01-02 | Card affiche nom, sous-cat, adresse, note, distance, photo | integration |
+| AC-01-02 | Card affiche nom, sous-cat, adresse, note, distance, photo exploitable en header cover centré | integration |
 | AC-01-03 | POI fermé visuellement différencié | unit |
 | AC-02-01 | Tri par note fonctionne | unit |
 | AC-02-02 | Filtre sous-catégorie fonctionne | integration |

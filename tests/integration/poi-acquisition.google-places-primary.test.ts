@@ -52,7 +52,16 @@ const googlePlacesResponse = {
 describe('018 Google Places primary POI acquisition', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    global.fetch = jest.fn(async () => Response.json(googlePlacesResponse))
+    global.fetch = jest.fn(async input => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+      if (url.startsWith('https://bibliotheque.saintgervais.com')) {
+        return new Response(
+          '<html><body><h1>Médiathèque Municipale</h1><p>Animations jeunesse, espace patrimoine et fonds montagne.</p></body></html>',
+          { headers: { 'content-type': 'text/html; charset=utf-8' } },
+        )
+      }
+      return Response.json(googlePlacesResponse)
+    })
     mockCityFindFirst.mockResolvedValue({
       id: 'city-1',
       name: 'Saint-Gervais-les-Bains',
@@ -120,6 +129,31 @@ describe('018 Google Places primary POI acquisition', () => {
         description: 'Description éditoriale réaliste issue des données vérifiées.',
         google_place_id: 'google-place-1',
         match_status: 'matched',
+      }),
+    })
+  })
+
+  it('AC-01-03/AC-06-05: enriches Gemini description prompt with candidate official website text', async () => {
+    mockCallGemini.mockResolvedValue([
+      {
+        name: 'Médiathèque Municipale de Saint-Gervais',
+        address: '450 avenue du Mont d’Arbois, 74170 Saint-Gervais-les-Bains',
+        phone: '04 50 93 57 90',
+        website: 'https://bibliotheque.saintgervais.com',
+        description: 'Description nourrie par le site officiel.',
+        subcategory: null,
+        hours: null,
+        tags: [],
+      },
+    ])
+
+    await createAcquisitionRun({ city_id: 'city-1', category_id: 'cat-1' }, 'admin-1')
+
+    expect(mockCallGemini).toHaveBeenCalledWith(expect.stringContaining('Site officiel du candidat'))
+    expect(mockCallGemini).toHaveBeenCalledWith(expect.stringContaining('Animations jeunesse, espace patrimoine et fonds montagne'))
+    expect(mockCandidateCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        description: 'Description nourrie par le site officiel.',
       }),
     })
   })

@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-04
+updated_at: 2026-06-06
 depends_on: [002-categories, 003-poi-list, 007-gemini-fetch]
 i18n: fr (MVP 1 monolingue français — versions EN, IT, ES, NL prévues ultérieurement)
 pilot_city: saint-gervais-les-bains
@@ -86,7 +86,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 - **BR-06**: La recherche de ville est accent-insensitive, prefix match, limitée à 10 résultats, ordonnée par pertinence (nom en premier, puis CP)
 - **BR-07**: MVP 1 est monolingue français. Toutes les chaînes UI sont en français. Les versions EN, IT, ES, NL sont prévues dans les MVPs suivants — l'architecture i18n doit être préparée (clés de traduction) sans être implémentée
 - **BR-08**: Le `poi_count` retourné par l'API reflète les POI actifs en base au moment de la requête. Si le cache Gemini est vide ou en cours de fetch, `poi_count` peut être 0 — comportement défini dans spec `007-gemini-fetch`
-- **BR-09**: Le nom produit public est MyStay. Les libellés de navigation validés le 2026-06-05 sont : bottom nav `Explorer` → `Bienvenue`, `Favoris` → `Vos favoris`, bouton `Guide` visible uniquement dans le contexte `/guide/[city-slug]` et pointant vers la racine de cette ville ; menu burger `Home` → `Bienvenue`; menu burger `Services Privés` → `Les recommandations de {owner.name}` si le nom Owner est connu, sinon `Les recommandations de votre hôte`.
+- **BR-09**: Le nom produit public est MyStay. Les libellés de navigation validés le 2026-06-05 sont : bottom nav `Explorer` → `Bienvenue`, `Favoris` → `Vos favoris`, bouton `Guide` visible uniquement dans le contexte `/guide/[city-slug]` et pointant vers la racine de cette ville ; menu burger `Home` → `Bienvenue`; menu burger `Services Privés` → `Les recommandations de {owner.name}` si le nom Owner est connu, sinon `Les recommandations de votre hôte`. L'item sélectionné du bottom nav public utilise la couleur `#bd9254`; les items inactifs utilisent un gris lisible `#6f7480` sur la surface glassmorphism ; le bottom nav complet (surface, textes et icônes) devient transparent pendant que l'utilisateur scrolle, puis revient visible en glassmorphism quand le scroll s'arrête.
 - **BR-10**: Sur mobile iOS/Android, le site utilise un mode immersif navigateur classique sur toutes les routes : viewport `cover`, safe areas, hauteur mobile dynamique et repli demandé des barres navigateur après chargement ou interaction tactile. Ce mode ne remplace pas une PWA installée : la disparition des barres d'adresse/bas reste soumise au comportement du navigateur.
 
 ---
@@ -275,6 +275,7 @@ components:
 > Toute déviation du mockup doit être explicitement justifiée dans le code (commentaire) et soumise au Product Owner.
 >
 > Déviations validées par le Product Owner le 2026-06-04 : nom produit MyStay, libellés de navigation listés en BR-09, et vue "Tous les POI" avec infinite scroll sur la home Guide selon `003-poi-list` BR-05a.
+> Déviation validée par le Product Owner le 2026-06-06 : bottom nav public entièrement transparent pendant le scroll, à nouveau visible quand le scroll s'arrête, item actif en `#bd9254` et items inactifs en gris contrasté `#6f7480`.
 
 ---
 
@@ -286,7 +287,7 @@ components:
 - **Empty state** : message "Aucun contenu disponible pour cette ville pour le moment" + illustration neutre + lien retour accueil — HTTP 200
 - **Error state** : message d'erreur générique + bouton "Réessayer"
 - **404 state** : page dédiée "Ville introuvable" + lien retour accueil — HTTP 404
-- **Success state** : home Guide avec intitulé de guide, sous-titre, champ de recherche visuel, ligne horizontale de catégories, vue "Tous les POI" avec infinite scroll, bottom navigation incluant `Guide` vers `/guide/[city-slug]`
+- **Success state** : home Guide avec intitulé de guide, sous-titre, champ de recherche visuel, ligne horizontale de catégories, vue "Tous les POI" avec infinite scroll, bottom navigation incluant `Guide` vers `/guide/[city-slug]`, item actif en `#bd9254`, items inactifs en `#6f7480` et menu entièrement transparent pendant le scroll puis visible à l'arrêt du scroll
 - **Mobile** : `max-w-[430px]`, fond `#FAF9F6`, header glassmorphism sticky, menu overlay plein écran, viewport immersif navigateur selon BR-10
 
 ### Composant : CitySearchInput (page d'accueil `/`)
@@ -314,6 +315,7 @@ components:
 | AC-03-02 | Icône (slug Lucide) + nom + poi_count par catégorie | integration |
 | AC-03-03 | Rendu lisible sur 375px, pas de scroll horizontal | e2e |
 | AC-03-04 | City sans POI → HTTP 200 + empty state (pas de 404) | integration |
+| BR-09 | Navigation publique : libellés validés, bouton `Guide` contextuel, item actif `#bd9254`, items inactifs `#6f7480`, bottom nav entièrement transparent pendant le scroll puis visible à l'arrêt | unit |
 | BR-10 | Mode immersif navigateur mobile configuré globalement | unit |
 
 ---

@@ -203,12 +203,13 @@ function isUsableImageUrl(url: string): boolean {
 
     if (!['http:', 'https:'].includes(parsed.protocol)) return false
     if (path.includes('favicon')) return false
+    if (path.includes('aucune-image')) return false
     if (path.includes('no-image')) return false
     if (path.includes('placeholder')) return false
     if (path.includes('/blank/')) return false
-    // Filtre 'logo' restreint au path : on rejette /logo/ ou foo-logo.png, pas
-    // toute URL contenant le mot 'logo' (ex: /vente-locale-de-logogeranium.jpg)
-    if (/(?:^|\/)logo(?:[-_.]|\/)/.test(path)) return false
+    // Filtre 'logo' par token : rejette header-logo.png, PPS+logo.png ou /logo/,
+    // sans rejeter un mot métier qui contiendrait "logo" sans séparateur.
+    if (/(?:^|[\/_.+\-%])logo(?:$|[\/_.+\-%])/.test(path)) return false
     if (path.endsWith('.svg')) return false
 
     return /\.(avif|gif|jpe?g|png|webp)(\?|$|\/)/i.test(parsed.pathname) || parsed.hostname === 'api.cloudly.space'

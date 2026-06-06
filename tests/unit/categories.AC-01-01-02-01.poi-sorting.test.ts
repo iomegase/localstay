@@ -94,6 +94,24 @@ describe('getPoiCards', () => {
     expect(result!.primary[0].photo_url).toBe('https://example.com/photo.jpg')
   })
 
+  it('maps photo_url to the first usable public photo when stored photos start with logos or placeholders', async () => {
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      {
+        ...makePoi({ id: '1', slug: 'p', latitude: 45.89, longitude: 6.71 }),
+        photos: [
+          'https://location-ski-saint-nicolas-de-veroce.fr/images/header-logo-light.png',
+          'https://location-ski-saint-nicolas-de-veroce.fr/img/aucune-image.jpg',
+          'https://location-ski-saint-nicolas-de-veroce.fr/upload/Mont-Blanc-ete.jpg',
+        ],
+      },
+    ] as never)
+
+    const result = await getPoiCards('saint-gervais', 'restaurants')
+    expect(result!.primary[0].photo_url).toBe(
+      'https://location-ski-saint-nicolas-de-veroce.fr/upload/Mont-Blanc-ete.jpg',
+    )
+  })
+
   it('maps photo_url to null when photos array is empty', async () => {
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       makePoi({ id: '1', slug: 'p', latitude: 45.89, longitude: 6.71 }),

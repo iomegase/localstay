@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Heart, MapPin, ChevronRight, Timer, Route, TrendingUp, Share2, Star, Globe, Navigation } from 'lucide-react'
+import { Heart, MapPin, ChevronRight, ChevronLeft, Timer, Route, TrendingUp, Share2, Star, Globe, Navigation } from 'lucide-react'
 import { motion } from 'framer-motion'
 import {
   type FavoritePoi,
@@ -47,6 +47,7 @@ export function PoiCard({
   const [isFav, setIsFav] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
+  const [photoIndex, setPhotoIndex] = useState(0)
 
   const isExpanded = isExpandedProp ?? internalIsExpanded
 
@@ -62,7 +63,19 @@ export function PoiCard({
       : `${poi.distance_km.toFixed(1)} km`
 
   const description = poi.description
-  const gallery = poi.photos.length > 0 ? [...poi.photos, ...poi.photos] : []
+  // Galerie classique en en-tête : 1 photo visible à la fois, navigation par flèches.
+  const galleryPhotos = poi.photos.length > 0 ? poi.photos : poi.photo_url ? [poi.photo_url] : []
+  const hasMultiplePhotos = galleryPhotos.length > 1
+  const currentPhoto = galleryPhotos[photoIndex] ?? null
+
+  function showPrevPhoto(e: React.MouseEvent) {
+    e.stopPropagation()
+    setPhotoIndex(i => (i - 1 + galleryPhotos.length) % galleryPhotos.length)
+  }
+  function showNextPhoto(e: React.MouseEvent) {
+    e.stopPropagation()
+    setPhotoIndex(i => (i + 1) % galleryPhotos.length)
+  }
 
   const trail = poi.trail_detail ?? null
   const isTrail = trail !== null
@@ -119,19 +132,47 @@ export function PoiCard({
       className="bg-white rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-gray-100 w-full transition-transform duration-300 hover:-translate-y-1 overflow-hidden flex flex-col"
       data-testid={`poi-card-${poi.slug}`}
     >
-      {/* Image Header */}
+      {/* Image Header — galerie classique (1 photo visible, flèches si plusieurs) */}
       <div className="relative h-[270px] shrink-0 overflow-hidden group">
-        {poi.photo_url ? (
+        {currentPhoto ? (
           <img
-            src={poi.photo_url}
+            src={currentPhoto}
             alt={poi.name}
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            
+            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
           />
-          
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#bd9254]/20 to-[#bd9254]/5" />
+        )}
+        {hasMultiplePhotos && (
+          <>
+            <button
+              type="button"
+              onClick={showPrevPhoto}
+              aria-label="Photo précédente"
+              data-testid="poi-photo-prev"
+              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={showNextPhoto}
+              aria-label="Photo suivante"
+              data-testid="poi-photo-next"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+              {galleryPhotos.map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all ${i === photoIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/60'}`}
+                />
+              ))}
+            </div>
+          </>
         )}
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <button
@@ -157,7 +198,7 @@ export function PoiCard({
         </div>
         {isTrail && difficultyLabel && (
           <div className="absolute top-4 left-4" data-testid="badge-difficulty">
-            <span className="border-charcoal/40 border bg-white/80 backdrop-blur-sm text-charcoal text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
+            <span className="border-charcoal/40 border bg-white/80 backdrop-blur-sm text-charcoal text-[10px] font-semibold px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
               <TrendingUp className="h-3 w-3" />
               {difficultyLabel}
             </span>
@@ -165,15 +206,15 @@ export function PoiCard({
         )}
         {!isTrail && poi.is_open_now === true && (
           <div className="absolute top-4 left-4">
-            <span className="border-green-500/90 border backdrop-blur-sm text-green-500/90 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
+            <span data-testid="badge-open" className="border-green-500/90 border bg-green-500/90 backdrop-blur-sm text-white text-[10px] font-semibold px-3 py-1.5 rounded-full tracking-widest uppercase shadow-sm flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-white"></div>
               Ouvert
             </span>
           </div>
         )}
         {!isTrail && poi.is_open_now === false && (
-          <div className="absolute top-4 left-4" data-testid="badge-closed">
-            <span className="border-red-500/90 border backdrop-blur-sm text-red-500/90 text-[10px] font-thin px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
+          <div className="absolute top-4 left-4">
+            <span data-testid="badge-closed" className="border-red-500/90 border bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-semibold tracking-widest px-3 py-1.5 rounded-full uppercase shadow-sm flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-white"></div>
               Fermé
             </span>
@@ -196,7 +237,7 @@ export function PoiCard({
                     className={`h-3 w-3 ${n <= Math.round(displayRating) ? 'fill-[#bd9254] text-[#bd9254]' : 'text-gray-300'}`}
                   />
                 ))}
-                <span className="ml-1 text-[10px] font-thin text-gray-500">{displayRating.toFixed(1)}</span>
+                <span className="ml-1 text-[10px] font-semibold text-gray-500">{displayRating.toFixed(1)}</span>
               </div>
             )}
             <div className="flex items-center gap-2 mb-1">
@@ -260,12 +301,16 @@ export function PoiCard({
                   )}
                 </div>
               ) : (
-                <div className="flex flex-row items-center gap-3">
-                  {poi.closes_at_label && (
-                    <p className="text-[9px] uppercase tracking-wide font-light text-[#86898f]">
-                      Ferme à <span className="font-thin text-gray-900">{poi.closes_at_label}</span>
+                <div className="flex flex-row items-center gap-3 pb-2" data-testid="poi-hours-line">
+                  {poi.is_open_now === false && poi.next_open_label ? (
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-green-500">
+                      Ouvre <span className="font-bold text-green-500">{poi.next_open_label}</span>
                     </p>
-                  )}
+                  ) : poi.closes_at_label ? (
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-red-500">
+                      Ferme à <span className="font-bold text-red-500">{poi.closes_at_label}</span>
+                    </p>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -284,58 +329,39 @@ export function PoiCard({
                   <MarkdownText
                     source={description}
                     breaks
-                    className="text-[10px] font-thin text-[#86898f] mb-5 leading-5"
+                    className="text-[10px] font-thin text-[#555556] mb-5 leading-5 tracking-wide"
                   />
                 )}
-                {gallery.length > 0 && (
-                  <div className="relative w-full overflow-hidden rounded-none h-[100px]">
-                    <motion.div
-                      className="flex gap-2 absolute top-0 left-0 h-full w-max"
-                      animate={{ x: ['0%', '-50%'] }}
-                      transition={{ repeat: Infinity, ease: 'linear', duration: 25 }}
-                    >
-                      {gallery.map((img, i) => (
-                        <img
-                          key={i}
-                          src={img}
-                          className="h-full w-36 object-cover rounded-none shrink-0 border border-gray-50/50"
-                          alt={`${poi.name} ${i + 1}`}
-                        />
-                      ))}
-                    </motion.div>
-                  </div>
-                )}
                 {!isTrail && (
-                  <div className="mt-1 space-y-2 text-[11px] font-thin text-gray-600" data-testid="poi-more-info">
-                    {poi.website && (
-                      <a
-                        href={poi.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        className="flex items-center gap-1.5 text-[#bd9254] hover:underline"
-                      >
-                        <Globe className="h-3 w-3" />
-                        Site web
-                      </a>
-                    )}
-
+                  <div className="mt-1 text-[11px] font-thin text-gray-600" data-testid="poi-more-info">
                     <div className="flex gap-2 pt-3">
                       <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude},${poi.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-black text-white hover:bg-white hover:text-black px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                        className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-black text-white hover:bg-white hover:text-black px-3 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
                       >
                         <Navigation className="h-3.5 w-3.5" />
-                        Google Maps
+                        ITINÉRAIRE
                       </a>
+                      {poi.website && (
+                        <a
+                          href={poi.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="flex flex-1 items-center justify-center gap-1.5 border border-black bg-white text-black hover:bg-black hover:text-white px-3 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                        >
+                          <Globe className="h-3.5 w-3.5" />
+                          SITE
+                        </a>
+                      )}
                       {poi.phone && (
                         <a
                           href={`tel:${poi.phone}`}
                           onClick={e => e.stopPropagation()}
-                          className="flex flex-1 items-center justify-center border border-black bg-white text-black hover:bg-black hover:text-white px-5 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
+                          className="flex flex-1 items-center justify-center border border-black bg-white text-black hover:bg-black hover:text-white px-3 py-2 rounded-none font-thin text-[11px] tracking-wide transition-all shadow-sm active:scale-95"
                         >
                           APPELER
                         </a>

@@ -11,10 +11,22 @@ import { SortControl } from '@/features/categories/components/SortControl'
 import { AllPoisList } from '@/features/categories/components/AllPoisList'
 import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { Metadata } from 'next'
+import { cityMetadata } from '@/features/seo/lib/metadata'
+import { getCityForSeo } from '@/features/seo/queries/page-data'
+import { JsonLd } from '@/shared/components/JsonLd'
+import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
   searchParams?: Promise<{ lodging?: string; sort?: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { 'city-slug': slug } = await params
+  const city = await getCityForSeo(slug)
+  if (!city) return { title: 'Ville introuvable', robots: { index: false } }
+  return cityMetadata({ name: city.name, region: city.region, slug: city.slug })
 }
 
 export default async function GuidePage({ params, searchParams }: Props) {
@@ -40,6 +52,12 @@ export default async function GuidePage({ params, searchParams }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: 'Accueil', path: '/' },
+          { name: city.name, path: `/guide/${slug}` },
+        ])}
+      />
 
       <div className="flex justify-between items-end mb-4 p-4">
         <div>
@@ -49,9 +67,10 @@ export default async function GuidePage({ params, searchParams }: Props) {
           </p>
           <p className="text-[10px] text-blue-500 font-medium">--°C</p>
         </div>
-          <h2 className="text-2xl font-light uppercase text-charcoal">
-            {/* {city.name} */}Le guide
-          </h2>
+          <p className="text-[10px] font-bold text-gold uppercase tracking-widest">Le guide</p>
+          <h1 className="text-2xl font-light uppercase text-charcoal">
+            {city.name}
+          </h1>
           <p className="text-gray-400 text-xs tracking-wide mt-4 leading-6">
             {/* {t('guide.subtitle')} */}Découvrez nos recommandations pour profiter de votre séjour au mieux
           </p>

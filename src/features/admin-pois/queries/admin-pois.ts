@@ -46,6 +46,11 @@ type AdminPoiRow = {
     distance_km: number | null
     elevation_gain_m: number | null
     estimated_duration_min: number | null
+    // Présents uniquement sur la requête détail (getAdminPoi), pas sur la liste.
+    geometry_geojson?: unknown | null
+    start_latitude?: number | null
+    start_longitude?: number | null
+    data_quality_status?: string
   } | null
 }
 
@@ -158,7 +163,21 @@ export async function listAdminPois(filters: AdminPoiListFilters): Promise<Admin
 export async function getAdminPoi(id: string): Promise<AdminPoiDetail | null> {
   const row = await prisma.pointOfInterest.findFirst({
     where: { id },
-    select: adminPoiSelect,
+    // Détail uniquement : on charge en plus la géométrie + départ + statut qualité pour
+    // afficher le tracé sur la fiche admin. Volontairement hors `adminPoiSelect` (liste) pour
+    // ne pas tirer le GeoJSON sur chaque ligne de tableau.
+    select: {
+      ...adminPoiSelect,
+      trail_detail: {
+        select: {
+          ...adminPoiSelect.trail_detail.select,
+          geometry_geojson: true,
+          start_latitude: true,
+          start_longitude: true,
+          data_quality_status: true,
+        },
+      },
+    },
   })
 
   return row ? mapAdminPoiDetail(row as AdminPoiRow) : null
@@ -535,6 +554,10 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
             distance_km: row.trail_detail.distance_km,
             elevation_gain_m: row.trail_detail.elevation_gain_m,
             estimated_duration_min: row.trail_detail.estimated_duration_min,
+            geometry_geojson: row.trail_detail.geometry_geojson ?? null,
+            start_latitude: row.trail_detail.start_latitude ?? null,
+            start_longitude: row.trail_detail.start_longitude ?? null,
+            data_quality_status: row.trail_detail.data_quality_status ?? 'incomplete',
           }
         : null,
   }

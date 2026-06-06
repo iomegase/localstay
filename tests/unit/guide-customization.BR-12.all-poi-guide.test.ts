@@ -63,4 +63,23 @@ describe('012 all-POI guide in lodging mode', () => {
     expect(result!.items.map(poi => poi.slug)).toEqual(['near', 'featured'])
     expect(result!.meta.total).toBe(2)
   })
+
+  it('uses the first usable photo for the public all-POI guide cards', async () => {
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      {
+        ...makePoi('photo', 'photo', 45.89),
+        photos: [
+          'https://location-ski-saint-nicolas-de-veroce.fr/images/header-logo-light.png',
+          'https://location-ski-saint-nicolas-de-veroce.fr/img/aucune-image.jpg',
+          'https://location-ski-saint-nicolas-de-veroce.fr/upload/Mont-Blanc-ete.jpg',
+        ],
+      },
+    ] as never)
+
+    const result = await getAllPoiCards('saint-gervais')
+
+    expect(result!.items[0].photo_url).toBe(
+      'https://location-ski-saint-nicolas-de-veroce.fr/upload/Mont-Blanc-ete.jpg',
+    )
+  })
 })

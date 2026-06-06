@@ -8,10 +8,27 @@ import { SortControl } from '@/features/categories/components/SortControl'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import type { Metadata } from 'next'
+import { categoryMetadata } from '@/features/seo/lib/metadata'
+import { getCategoryForSeo } from '@/features/seo/queries/page-data'
+import { JsonLd } from '@/shared/components/JsonLd'
+import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string }>
   searchParams: Promise<{ sub?: string; sort?: string; page?: string; limit?: string; lodging?: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { 'city-slug': citySlug, 'category-slug': categorySlug } = await params
+  const seo = await getCategoryForSeo(citySlug, categorySlug)
+  if (!seo) return { title: 'Catégorie introuvable', robots: { index: false } }
+  return categoryMetadata({
+    cityName: seo.cityName,
+    categoryName: seo.categoryName,
+    citySlug,
+    categorySlug,
+  })
 }
 
 async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {
@@ -56,9 +73,17 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   void triggerGeminiFetchIfNeeded(detail.city_id, detail.id)
 
   const categoryColor = getCategoryColor(detail.slug)
+  const seo = await getCategoryForSeo(citySlug, categorySlug)
 
   return (
     <div className="relative">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: 'Accueil', path: '/' },
+          ...(seo ? [{ name: seo.cityName, path: `/guide/${citySlug}` }] : []),
+          { name: detail.name, path: `/guide/${citySlug}/${categorySlug}` },
+        ])}
+      />
       <section className="px-5 pt-4">
         {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
           Points d&apos;intérêt

@@ -84,7 +84,7 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
   }, [canLoadMore, loading, page])
 
   return (
-    <div className="space-y-3 px-4">
+    <div className="space-y-3 mt-4">
       {items.map(poi => (
         <PoiCard
           key={poi.id}

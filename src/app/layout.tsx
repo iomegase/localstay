@@ -1,15 +1,34 @@
 import type { Metadata, Viewport } from 'next'
 import { MobileBrowserChromeCollapser } from '@/shared/components/MobileBrowserChromeCollapser'
+import { SITE, siteBaseUrl } from '@/features/seo/lib/site'
+import { JsonLd } from '@/shared/components/JsonLd'
+import { organizationSchema, websiteSchema } from '@/features/seo/lib/structured-data'
 import './globals.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 export const metadata: Metadata = {
-  title: 'MyStay — Votre guide touristique local',
-  description: 'Découvrez le meilleur de votre ville de séjour.',
+  metadataBase: new URL(siteBaseUrl()),
+  title: { default: SITE.defaultTitle, template: '%s | StayLocal' },
+  description: SITE.defaultDescription,
+  applicationName: SITE.name,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: SITE.name,
+    locale: SITE.locale,
+    title: SITE.defaultTitle,
+    description: SITE.defaultDescription,
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE.defaultTitle,
+    description: SITE.defaultDescription,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'MyStay',
+    title: SITE.name,
   },
   formatDetection: {
     telephone: false,
@@ -48,6 +67,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <MobileBrowserChromeCollapser />
+        <JsonLd data={[organizationSchema(), websiteSchema()]} />
         {children}
       </body>
     </html>

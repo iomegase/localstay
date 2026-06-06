@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Compass, Heart, Home, Map } from 'lucide-react'
@@ -16,6 +16,8 @@ type NavItemConfig = {
   icon: ReactNode
   active: boolean
 }
+
+const SCROLL_IDLE_MS = 180
 
 function getGuideCitySlug(pathname: string | null): string | null {
   if (!pathname) return null
@@ -104,13 +106,51 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
 
 export function PublicBottomNav({ mode, citySlug }: Props) {
   const pathname = usePathname()
+  const [isScrolling, setIsScrolling] = useState(false)
+  const scrollIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const items = mode === 'lodging'
     ? buildLodgingItems(pathname, citySlug)
     : buildAnonymousItems(pathname)
+  const navVisibilityClassName = isScrolling
+    ? 'opacity-0 pointer-events-none'
+    : 'opacity-100'
+  const surfaceClassName = isScrolling
+    ? 'bg-transparent border-transparent shadow-none backdrop-blur-0'
+    : 'glass border-black/5 shadow-xl'
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolling(true)
+
+      if (scrollIdleTimer.current) {
+        clearTimeout(scrollIdleTimer.current)
+      }
+
+      scrollIdleTimer.current = setTimeout(() => {
+        setIsScrolling(false)
+        scrollIdleTimer.current = null
+      }, SCROLL_IDLE_MS)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollIdleTimer.current) {
+        clearTimeout(scrollIdleTimer.current)
+      }
+    }
+  }, [])
 
   return (
-    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] immersive-hide">
-      <div className="glass border border-black/5 rounded-full px-8 py-4 flex justify-between items-center shadow-xl">
+    <nav
+      data-testid="public-bottom-nav"
+      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] immersive-hide transition-opacity duration-200 ${navVisibilityClassName}`}
+    >
+      <div
+        data-testid="public-bottom-nav-surface"
+        className={`border rounded-full px-8 py-4 flex justify-between items-center transition-all duration-300 ${surfaceClassName}`}
+      >
         {items.map(item => (
           <NavItem key={item.href} {...item} />
         ))}
@@ -129,7 +169,7 @@ function NavItem({
     <Link
       href={href}
       className={`group flex flex-col items-center gap-1 transition-colors ${
-        active ? 'text-charcoal' : 'text-gray-300 hover:text-gold'
+        active ? 'text-[#bd9254]' : 'text-[#6f7480] hover:text-[#bd9254]'
       }`}
     >
       {icon}

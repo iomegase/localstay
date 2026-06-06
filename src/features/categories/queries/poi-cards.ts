@@ -1,6 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiCardGroups, PoiHours } from '../types'
-import { computeIsOpenNow, getTodayCloseLabel } from '../lib/is-open-now'
+import { computeIsOpenNow, getTodayCloseLabel, getNextOpenLabel } from '../lib/is-open-now'
+import { selectPrimaryPoiPhoto } from '../lib/photo-url'
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 20
@@ -149,12 +150,13 @@ export async function getPoiCards(
     rating_count: p.rating_count,
     is_open_now: computeIsOpenNow(p.hours as PoiHours | null) ?? p.is_open_now,
     distance_km: haversineKm(city.latitude, city.longitude, p.latitude, p.longitude),
-    photo_url: p.photos[0] ?? null,
+    photo_url: selectPrimaryPoiPhoto(p.photos),
     photos: p.photos,
     phone: p.phone,
     website: p.website,
     description: p.description,
     closes_at_label: getTodayCloseLabel(p.hours as PoiHours | null),
+    next_open_label: getNextOpenLabel(p.hours as PoiHours | null),
     latitude: p.latitude,
     longitude: p.longitude,
     trail_detail: p.trail_detail && p.trail_detail.is_active && !p.trail_detail.deleted_at

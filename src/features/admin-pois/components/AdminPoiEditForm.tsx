@@ -27,6 +27,8 @@ import type { AdminPoiCategory, AdminPoiDetail } from '../types'
 import { TrailGpxUploader } from './TrailGpxUploader'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { ImageUpload } from '@/shared/components/ImageUpload'
+import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
+import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 
 type Props = {
   poi: AdminPoiDetail
@@ -535,6 +537,47 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             ) : (
               <TrailStat label="Dénivelé" value={formatElevation(trail.elevation_gain_m)} />
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Tracé de la randonnée — aperçu carte (lecture seule). Visible dès qu'une géométrie existe. */}
+      {trail?.geometry_geojson != null && (
+        <section
+          data-testid="trail-geometry-preview"
+          className="overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] md:p-8"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <Map size={24} strokeWidth={2} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Tracé</h2>
+                <p className="mt-1 text-[13px] font-medium text-slate-500">
+                  Aperçu du tracé officiel stocké pour cette randonnée.
+                </p>
+              </div>
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest ${
+                reliabilityFromQualityStatus(trail.data_quality_status) === 'indicative'
+                  ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+              }`}
+            >
+              {trail.data_quality_status}
+            </span>
+          </div>
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100">
+            <TrailPreviewMap
+              name={poi.name}
+              geometry={trail.geometry_geojson}
+              startLatitude={trail.start_latitude}
+              startLongitude={trail.start_longitude}
+              startHref={`/guide/${poi.city.slug}/${poi.category.slug}/${poi.slug}/start`}
+              reliability={reliabilityFromQualityStatus(trail.data_quality_status)}
+            />
           </div>
         </section>
       )}

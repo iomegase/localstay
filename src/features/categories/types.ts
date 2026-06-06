@@ -46,6 +46,8 @@ export interface PoiCard {
   website: string | null
   description: string | null
   closes_at_label: string | null
+  /** Prochaine ouverture (jour + heure) quand le POI est fermé — ex. "demain à 9h". */
+  next_open_label?: string | null
   latitude: number
   longitude: number
   trail_detail?: {
@@ -139,6 +141,7 @@ export interface PoiDetail {
   hours: PoiHours | null
   photos: string[]
   distance_km: number | null
+  city: { name: string; slug: string; region: string | null; postal_code: string }
   category: { id: string; name: string; slug: string; icon: string }
   subcategory: { id: string; name: string; slug: string } | null
   trail_detail?: TrailDetailData | null

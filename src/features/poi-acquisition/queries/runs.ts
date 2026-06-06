@@ -78,13 +78,18 @@ export async function createAcquisitionRun(
       latitude: city.latitude,
       longitude: city.longitude,
     })
+    const websiteContextCache = new Map<string, Promise<OfficialWebsiteSourceContext | null>>()
 
     for (const candidate of googleCandidates) {
+      const candidateOfficialSourceContext = candidate.website
+        ? await getCachedOfficialWebsiteSourceContext(candidate.website, websiteContextCache)
+        : null
       const description = await generateVerifiedDescription({
         candidate,
         cityName: city.name,
         categoryName: category.name,
         officialSourceContext,
+        candidateOfficialSourceContext,
       })
       const geocode = await geocodeForAcquisition(candidate.address, {
         latitude: city.latitude,
@@ -292,6 +297,7 @@ async function generateVerifiedDescription(params: {
   cityName: string
   categoryName: string
   officialSourceContext: OfficialWebsiteSourceContext | null
+  candidateOfficialSourceContext: OfficialWebsiteSourceContext | null
 }): Promise<string> {
   try {
     const response = await callGemini(buildVerifiedDescriptionPrompt(params))
@@ -306,15 +312,25 @@ function buildVerifiedDescriptionPrompt(params: {
   cityName: string
   categoryName: string
   officialSourceContext: OfficialWebsiteSourceContext | null
+  candidateOfficialSourceContext: OfficialWebsiteSourceContext | null
 }): string {
-  const officialContext = params.officialSourceContext
+  const runOfficialContext = params.officialSourceContext
     ? `
 
-Contexte officiel optionnel:
+Contexte officiel fourni au lancement du run:
 URL: ${params.officialSourceContext.source_url}
 Attribution: ${params.officialSourceContext.attribution}
 Extrait:
 ${params.officialSourceContext.text}`
+    : ''
+  const candidateOfficialContext = params.candidateOfficialSourceContext
+    ? `
+
+Site officiel du candidat:
+URL: ${params.candidateOfficialSourceContext.source_url}
+Attribution: ${params.candidateOfficialSourceContext.attribution}
+Extrait:
+${params.candidateOfficialSourceContext.text}`
     : ''
 
   return `Tu rédiges une description StayLocal réaliste en français pour un POI déjà vérifié.
@@ -331,7 +347,7 @@ Données vérifiées:
 - Nom: ${params.candidate.name}
 - Adresse: ${params.candidate.address}
 - Téléphone: ${params.candidate.phone ?? 'non renseigné'}
-- Site: ${params.candidate.website ?? 'non renseigné'}${officialContext}
+- Site: ${params.candidate.website ?? 'non renseigné'}${runOfficialContext}${candidateOfficialContext}
 
 Format JSON strict:
 {
@@ -348,6 +364,18 @@ Format JSON strict:
     }
   ]
 }`
+}
+
+function getCachedOfficialWebsiteSourceContext(
+  website: string,
+  cache: Map<string, Promise<OfficialWebsiteSourceContext | null>>,
+): Promise<OfficialWebsiteSourceContext | null> {
+  const cached = cache.get(website)
+  if (cached) return cached
+
+  const request = fetchOfficialWebsiteSourceContext(website)
+  cache.set(website, request)
+  return request
 }
 
 function isGoogleReviewPayload(value: Prisma.JsonValue | null): value is AcquisitionCandidateDto['google_review_payload'] {

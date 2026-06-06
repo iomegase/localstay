@@ -1,0 +1,141 @@
+import { SITE, siteBaseUrl } from './site'
+
+const SCHEMA = 'https://schema.org'
+
+// Index = jour (0 = dimanche … 6 = samedi), aligné sur le format hours stocké.
+const DAY_URIS = [
+  'https://schema.org/Sunday',
+  'https://schema.org/Monday',
+  'https://schema.org/Tuesday',
+  'https://schema.org/Wednesday',
+  'https://schema.org/Thursday',
+  'https://schema.org/Friday',
+  'https://schema.org/Saturday',
+] as const
+
+export type JsonLdObject = Record<string, unknown>
+
+export type PoiSchemaInput = {
+  name: string
+  description: string | null
+  address: string
+  latitude: number
+  longitude: number
+  phone: string | null
+  website: string | null
+  rating: number | null
+  ratingCount: number
+  hours: Record<string, { open: string; close: string } | null> | null
+  photos: string[]
+  cityName: string
+  cityRegion: string | null
+  postalCode: string
+  /** Chemin canonique de la fiche, ex. /guide/ville/cat/slug */
+  path: string
+}
+
+export function organizationSchema(): JsonLdObject {
+  const base = siteBaseUrl()
+  return {
+    '@context': SCHEMA,
+    '@type': 'Organization',
+    name: SITE.name,
+    url: base,
+  }
+}
+
+export function websiteSchema(): JsonLdObject {
+  const base = siteBaseUrl()
+  return {
+    '@context': SCHEMA,
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: base,
+    inLanguage: 'fr-FR',
+  }
+}
+
+export function breadcrumbSchema(items: Array<{ name: string; path: string }>): JsonLdObject {
+  const base = siteBaseUrl()
+  return {
+    '@context': SCHEMA,
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: `${base}${item.path}`,
+    })),
+  }
+}
+
+function openingHoursSpecification(hours: PoiSchemaInput['hours']): JsonLdObject[] | undefined {
+  if (!hours) return undefined
+  const specs: JsonLdObject[] = []
+  for (let day = 0; day < 7; day += 1) {
+    const slot = hours[String(day)]
+    if (!slot) continue
+    specs.push({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: DAY_URIS[day],
+      opens: slot.open,
+      closes: slot.close,
+    })
+  }
+  return specs.length > 0 ? specs : undefined
+}
+
+function poiUrl(path: string): string {
+  return `${siteBaseUrl()}${path}`
+}
+
+export function localBusinessSchema(poi: PoiSchemaInput): JsonLdObject {
+  const hoursSpec = openingHoursSpecification(poi.hours)
+  return {
+    '@context': SCHEMA,
+    '@type': 'LocalBusiness',
+    name: poi.name,
+    ...(poi.description ? { description: poi.description } : {}),
+    url: poiUrl(poi.path),
+    ...(poi.photos.length > 0 ? { image: poi.photos } : {}),
+    ...(poi.phone ? { telephone: poi.phone } : {}),
+    ...(poi.website ? { sameAs: [poi.website] } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: poi.address,
+      addressLocality: poi.cityName,
+      postalCode: poi.postalCode,
+      ...(poi.cityRegion ? { addressRegion: poi.cityRegion } : {}),
+      addressCountry: 'FR',
+    },
+    geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
+    ...(poi.rating != null && poi.ratingCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: poi.rating,
+            reviewCount: poi.ratingCount,
+          },
+        }
+      : {}),
+    ...(hoursSpec ? { openingHoursSpecification: hoursSpec } : {}),
+  }
+}
+
+export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
+  return {
+    '@context': SCHEMA,
+    '@type': 'TouristAttraction',
+    name: poi.name,
+    ...(poi.description ? { description: poi.description } : {}),
+    url: poiUrl(poi.path),
+    ...(poi.photos.length > 0 ? { image: poi.photos } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: poi.cityName,
+      ...(poi.cityRegion ? { addressRegion: poi.cityRegion } : {}),
+      addressCountry: 'FR',
+    },
+    geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
+  }
+}

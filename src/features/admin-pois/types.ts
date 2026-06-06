@@ -46,6 +46,10 @@ export type AdminPoiTrailDetail = {
   distance_km: number | null
   elevation_gain_m: number | null
   estimated_duration_min: number | null
+  geometry_geojson: unknown | null
+  start_latitude: number | null
+  start_longitude: number | null
+  data_quality_status: string
 }
 
 export type AdminPoiDetail = AdminPoiListItem & {

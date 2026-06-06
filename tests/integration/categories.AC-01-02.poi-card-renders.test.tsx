@@ -55,6 +55,9 @@ describe('PoiCard — AC-01-02 (SpaCard redesign)', () => {
   it('renders the photo as an img', () => {
     const img = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
     expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')
+    expect(img).toHaveClass('object-cover')
+    expect(img).toHaveClass('object-center')
+    expect(img).not.toHaveClass('object-contain')
   })
 
   it('renders the APPELER button as a tel: link at the bottom of the expanded section', () => {
@@ -138,18 +141,18 @@ describe('PoiCard — infos POI (non-rando)', () => {
     expect(screen.queryByTestId('poi-rating')).not.toBeInTheDocument()
   })
 
-  it('shows a Google Maps directions button at the bottom of the expanded section', () => {
+  it('shows an Itinéraire (directions) button at the bottom of the expanded section', () => {
     render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
     fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
 
     const panel = screen.getByTestId('poi-more-info')
-    expect(within(panel).getByRole('link', { name: /google maps/i })).toHaveAttribute(
+    expect(within(panel).getByRole('link', { name: /itinéraire/i })).toHaveAttribute(
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=45.89,6.71',
     )
   })
 
-  it('shows the website in the expanded section but not the rating/status (already in the header)', () => {
+  it('shows the website as a "Site" button but not the rating/status (already in the header)', () => {
     render(
       <PoiCard
         poi={{ ...poi, website: 'https://resto.example.com' }}
@@ -160,13 +163,115 @@ describe('PoiCard — infos POI (non-rando)', () => {
     fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
 
     const panel = screen.getByTestId('poi-more-info')
-    expect(within(panel).getByRole('link', { name: /site web/i })).toHaveAttribute(
+    expect(within(panel).getByRole('link', { name: /^site$/i })).toHaveAttribute(
       'href',
       'https://resto.example.com',
     )
     // Note + avis et statut Ouvert/Fermé sont déjà dans l'en-tête → pas de doublon ici
     expect(within(panel).queryByText(/avis/i)).not.toBeInTheDocument()
     expect(within(panel).queryByText(/ouvert|fermé/i)).not.toBeInTheDocument()
+  })
+
+  it('shows itinéraire, site and appeler as three buttons on the same row', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, website: 'https://resto.example.com', phone: '+33450000000' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    fireEvent.click(screen.getByText('Le Bistrot du Mont-Blanc'))
+
+    const panel = screen.getByTestId('poi-more-info')
+    const itineraire = within(panel).getByRole('link', { name: /itinéraire/i })
+    const site = within(panel).getByRole('link', { name: /^site$/i })
+    const appeler = within(panel).getByRole('link', { name: /appeler/i })
+
+    expect(site).toHaveAttribute('href', 'https://resto.example.com')
+    expect(appeler).toHaveAttribute('href', 'tel:+33450000000')
+    // Les trois partagent la même ligne (même conteneur flex direct)
+    expect(itineraire.parentElement).toBe(site.parentElement)
+    expect(site.parentElement).toBe(appeler.parentElement)
+    expect(itineraire.parentElement).toHaveClass('flex')
+  })
+})
+
+describe('PoiCard — horaires (ouvre / ferme)', () => {
+  it('shows the closing time when open', () => {
+    render(<PoiCard poi={{ ...poi, is_open_now: true }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    const line = screen.getByTestId('poi-hours-line')
+    expect(line).toHaveTextContent(/Ferme à/i)
+    expect(line).toHaveTextContent('20h')
+  })
+
+  it('shows the next opening (day + hour) when closed', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, is_open_now: false, next_open_label: 'demain à 9h' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    const line = screen.getByTestId('poi-hours-line')
+    expect(line).toHaveTextContent(/Ouvre/i)
+    expect(line).toHaveTextContent('demain à 9h')
+    expect(line).not.toHaveTextContent(/Ferme à/i)
+  })
+
+  it('always keeps a bottom padding (pb-2) under the hours line', () => {
+    render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    expect(screen.getByTestId('poi-hours-line')).toHaveClass('pb-2')
+  })
+})
+
+describe('PoiCard — pastille ouvert/fermé', () => {
+  it('renders the open pill with a filled green background and white text', () => {
+    render(<PoiCard poi={{ ...poi, is_open_now: true }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    const pill = screen.getByTestId('badge-open')
+    expect(pill).toHaveClass('bg-green-500/90')
+    expect(pill).toHaveClass('text-white')
+  })
+
+  it('renders the closed pill with a filled red background and white text', () => {
+    render(<PoiCard poi={{ ...poi, is_open_now: false }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    const pill = screen.getByTestId('badge-closed')
+    expect(pill).toHaveClass('bg-red-500/90')
+    expect(pill).toHaveClass('text-white')
+  })
+})
+
+describe('PoiCard — galerie photos (carrousel d’en-tête)', () => {
+  const multi: PoiCardType = {
+    ...poi,
+    photo_url: 'https://x/a.jpg',
+    photos: ['https://x/a.jpg', 'https://x/b.jpg', 'https://x/c.jpg'],
+  }
+
+  it('shows nav arrows when more than one photo and advances to the next photo', () => {
+    render(<PoiCard poi={multi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    expect(screen.getByRole('img', { name: multi.name })).toHaveAttribute('src', 'https://x/a.jpg')
+
+    fireEvent.click(screen.getByRole('button', { name: /photo suivante/i }))
+    expect(screen.getByRole('img', { name: multi.name })).toHaveAttribute('src', 'https://x/b.jpg')
+  })
+
+  it('wraps from the first photo to the last when going previous', () => {
+    render(<PoiCard poi={multi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    fireEvent.click(screen.getByRole('button', { name: /photo précédente/i }))
+    expect(screen.getByRole('img', { name: multi.name })).toHaveAttribute('src', 'https://x/c.jpg')
+  })
+
+  it('shows no arrows when there is a single photo', () => {
+    render(<PoiCard poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    expect(screen.queryByRole('button', { name: /photo suivante/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /photo précédente/i })).not.toBeInTheDocument()
+  })
+
+  it('no longer renders the duplicated auto-scroll gallery after expanding', () => {
+    render(<PoiCard poi={multi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
+    fireEvent.click(screen.getByText(multi.name))
+    // En-tête en carrousel = 1 seule image visible (plus de bande dupliquée qui boucle).
+    expect(screen.getAllByRole('img', { name: multi.name })).toHaveLength(1)
   })
 })
 

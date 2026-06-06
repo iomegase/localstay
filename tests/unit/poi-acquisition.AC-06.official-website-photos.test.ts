@@ -74,6 +74,27 @@ describe('018 official website photo enrichment', () => {
     expect(mergeOfficialWebsitePhotos(existing, [])).toEqual(existing)
   })
 
+  it('BR-19: excludes logos and placeholder images from official photo extraction', () => {
+    const enrichment = extractOfficialWebsitePhotoEnrichment(
+      `
+        <html>
+          <body>
+            <img src="/images/header-logo-light.png" />
+            <img src="/images/footer-logo.png" />
+            <img src="https://images.squarespace-cdn.com/content/PPS+logo+2016+white.png" />
+            <img src="/img/aucune-image.jpg" />
+            <img src="/upload/Mont-Blanc-ete.jpg" />
+          </body>
+        </html>
+      `,
+      'https://location-ski-saint-nicolas-de-veroce.fr/',
+    )
+
+    expect(enrichment.photos).toEqual([
+      'https://location-ski-saint-nicolas-de-veroce.fr/upload/Mont-Blanc-ete.jpg',
+    ])
+  })
+
   it('AC-06-04: returns null when official website fetch fails', async () => {
     const originalFetch = global.fetch
     global.fetch = jest.fn().mockRejectedValue(new Error('network down'))

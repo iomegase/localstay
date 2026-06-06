@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-24
-updated_at: 2026-05-24
+updated_at: 2026-06-06
 depends_on: [003-poi-list, 004-poi-detail, 007-gemini-fetch, 008-mapbox-geocoding, 014-auth-merchant, 017-admin-taxonomy]
 bounded_context: admin
 adr_refs: [ADR-008-google-places-primary-poi-acquisition]
@@ -121,11 +121,11 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 - **AC-05-03**: Given une UI admin affichant des données Google, When elles sont visibles, Then l'attribution requise par Google est affichée.
 - **AC-05-04**: Given un POI public StayLocal, When il est affiché aux Tourists, Then il affiche les données StayLocal validées, pas une copie brute d'une Google card.
 
-### US-06 — Enrichissement photo depuis site officiel
+### US-06 — Enrichissement depuis site officiel
 
 **As an** Admin
 **I want to** enrichir une fiche POI depuis son site officiel
-**So that** les fiches publiques affichent plus de photos sans copier de Google card
+**So that** les fiches publiques affichent plus de photos et une description plus pertinente sans copier de Google card
 
 #### Acceptance Criteria
 
@@ -133,6 +133,7 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 - **AC-06-02**: Given des images extraites d'un site officiel, When un candidat est publié ou un POI est créé manuellement, Then `PointOfInterest.photos` stocke jusqu'à 12 URLs distantes sans téléchargement ni re-hébergement.
 - **AC-06-03**: Given une fiche publique avec photos enrichies depuis un site officiel, When le Tourist consulte le détail, Then la fiche affiche une attribution photo pointant vers l'URL canonique du site.
 - **AC-06-04**: Given une page officielle inaccessible ou sans image exploitable, When l'enrichissement échoue, Then la création ou publication du POI continue avec `photos = []` sans bloquer le workflow admin.
+- **AC-06-05**: Given un candidat Google Places avec `website`, When Gemini génère la description, Then le serveur extrait un contexte texte nettoyé du site officiel du candidat (`title`, meta description, JSON-LD description, titres, paragraphes), l'injecte dans le prompt Gemini comme source vérifiée, et ne persiste pas le texte brut en base.
 
 ---
 
@@ -157,9 +158,10 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 - **BR-16**: Les coûts API doivent être maîtrisés par déduplication, cache de run et rate limiting.
 - **BR-17**: Les photos issues d'un site officiel sont stockées comme URLs distantes uniquement ; StayLocal ne les télécharge pas et ne les re-héberge pas.
 - **BR-18**: L'URL canonique d'attribution est le champ `website` du POI quand les photos proviennent du site officiel.
-- **BR-19**: Le scraper officiel exclut les favicons, logos, placeholders, images de recherche générique et ressources non HTTP(S).
+- **BR-19**: Le scraper officiel exclut les favicons, logos, placeholders, images de recherche générique et ressources non HTTP(S). Le terme `logo` est traité comme un token à exclure dans les chemins d'image (`header-logo`, `footer-logo`, `PPS+logo`, `/logo/`) sans bloquer les mots métier qui contiennent ces lettres sans séparateur.
 - **BR-20**: Une URL officielle fournie au lancement d'un run sert uniquement à enrichir le contexte des candidats Google Places ; un échec de scrape ne bloque pas l'acquisition Google Places + Mapbox + Gemini descriptif.
 - **BR-21**: Les randonnées sont exclues de ce pipeline Google Places-first et restent couvertes par `019-trails-acquisition`.
+- **BR-22**: Le texte extrait d'un site officiel de candidat est transitoire : il sert uniquement au prompt Gemini descriptif, il est nettoyé des éléments de navigation/footer/scripts, limité en taille et n'est jamais stocké dans `PoiAcquisitionCandidate` ni `PointOfInterest`.
 
 ---
 
@@ -286,6 +288,7 @@ Notes :
 - `PointOfInterest.google_place_id` sert à éviter les doublons et à réconcilier les données.
 - `PointOfInterest.photos` peut contenir des URLs distantes de site officiel. L'attribution publique utilise `PointOfInterest.website` comme URL canonique.
 - Gemini peut alimenter `description` seulement après construction d'un candidat depuis Google Places, site officiel ou saisie admin.
+- Le contexte texte extrait du site officiel d'un candidat n'est pas modélisé en base ; seule la description éditoriale issue de Gemini peut alimenter `description`.
 
 ---
 
@@ -471,6 +474,7 @@ errors:
 | AC-06-02 | Publication/création conserve URLs distantes sans re-hosting | integration |
 | AC-06-03 | Attribution photo affichée sur fiche publique | integration |
 | AC-06-04 | Enrichissement officiel non bloquant | unit |
+| AC-06-05 | Texte officiel candidat injecté dans Gemini sans persistance brute | unit + integration |
 
 ---
 
@@ -480,6 +484,8 @@ errors:
 - Copie permanente de Google cards comme contenu public.
 - Achat ou gestion de licence de données tierces.
 - Téléchargement, transformation persistante ou re-hébergement des photos officielles.
+- Copie permanente, indexation ou archivage du contenu textuel brut des sites officiels.
+- Crawl multi-pages profond des sites d'établissement.
 - Randonnées GPX / dénivelé : source spécialisée Overpass / IGN dans une spec dédiée.
 - Données temps réel : pharmacies de garde, événements live, disponibilités.
 - Réservations et paiements Merchant.

@@ -7,6 +7,19 @@ export type OfficialWebsiteSourceContext = {
 const MAX_SOURCE_TEXT_LENGTH = 12_000
 const MAX_SOURCE_LINKS = 60
 
+export function extractOfficialWebsiteSourceContext(
+  html: string,
+  pageUrl: string,
+): OfficialWebsiteSourceContext {
+  const canonicalUrl = normalizeCanonicalUrl(pageUrl)
+  const url = new URL(canonicalUrl)
+  return {
+    source_url: canonicalUrl,
+    attribution: url.hostname,
+    text: buildSourceText(html, url),
+  }
+}
+
 export async function fetchOfficialWebsiteSourceContext(
   sourceUrl: string | null | undefined,
 ): Promise<OfficialWebsiteSourceContext | null> {
@@ -38,15 +51,8 @@ export async function fetchOfficialWebsiteSourceContext(
       return null
     }
 
-    const html = await response.text()
-    const text = buildSourceText(html, url)
-    if (!text) return null
-
-    return {
-      source_url: url.toString(),
-      attribution: url.hostname,
-      text,
-    }
+    const context = extractOfficialWebsiteSourceContext(await response.text(), url.toString())
+    return context.text ? context : null
   } catch {
     return null
   } finally {
@@ -76,14 +82,70 @@ ${sourceContext.text}`
 }
 
 function buildSourceText(html: string, sourceUrl: URL): string {
+  const structuredText = [
+    extractTitle(html),
+    ...extractMetaDescriptions(html),
+    ...extractJsonLdDescriptions(html),
+  ]
+    .filter((text): text is string => Boolean(text))
+    .join('\n')
   const links = extractLinks(html, sourceUrl)
   const bodyText = cleanHtml(html)
   const linkText = links.map(link => `${link.label} — ${link.url}`).join('\n')
-  return [linkText, bodyText]
+  return [structuredText, linkText, bodyText]
     .filter(Boolean)
     .join('\n\n')
     .slice(0, MAX_SOURCE_TEXT_LENGTH)
     .trim()
+}
+
+function extractTitle(html: string): string | null {
+  const title = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1]
+  return title ? normalizeText(title) : null
+}
+
+function extractMetaDescriptions(html: string): string[] {
+  return [...html.matchAll(/<meta\b[^>]+>/gi)]
+    .map(match => match[0])
+    .filter(tag => {
+      const key = extractAttribute(tag, 'name') ?? extractAttribute(tag, 'property')
+      return key ? /^(description|og:description|twitter:description)$/i.test(key) : false
+    })
+    .map(tag => extractAttribute(tag, 'content'))
+    .filter((value): value is string => Boolean(value))
+    .map(normalizeText)
+    .filter(Boolean)
+}
+
+function extractJsonLdDescriptions(html: string): string[] {
+  return [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
+    .map(match => decodeHtml(match[1].trim()))
+    .flatMap(script => {
+      try {
+        return collectDescriptionValues(JSON.parse(script))
+      } catch {
+        return []
+      }
+    })
+    .map(normalizeText)
+    .filter(Boolean)
+}
+
+function collectDescriptionValues(value: unknown, keyHint = ''): string[] {
+  if (typeof value === 'string') {
+    return keyHint.toLowerCase() === 'description' ? [value] : []
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(item => collectDescriptionValues(item, keyHint))
+  }
+
+  if (!value || typeof value !== 'object') {
+    return []
+  }
+
+  return Object.entries(value as Record<string, unknown>)
+    .flatMap(([key, child]) => collectDescriptionValues(child, key))
 }
 
 function extractLinks(html: string, sourceUrl: URL): Array<{ label: string; url: string }> {
@@ -105,14 +167,18 @@ function extractLinks(html: string, sourceUrl: URL): Array<{ label: string; url:
 }
 
 function cleanHtml(html: string): string {
-  return decodeHtml(html)
+  return normalizeText(html
     .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
     .replace(/<noscript\b[\s\S]*?<\/noscript>/gi, ' ')
     .replace(/<svg\b[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<nav\b[\s\S]*?<\/nav>/gi, ' ')
+    .replace(/<footer\b[\s\S]*?<\/footer>/gi, ' ')
+    .replace(/<header\b[\s\S]*?<\/header>/gi, ' ')
+    .replace(/<aside\b[\s\S]*?<\/aside>/gi, ' ')
+    .replace(/<form\b[\s\S]*?<\/form>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+  )
 }
 
 function dedupeLinks(links: Array<{ label: string; url: string }>): Array<{ label: string; url: string }> {
@@ -123,6 +189,25 @@ function dedupeLinks(links: Array<{ label: string; url: string }>): Array<{ labe
     seen.add(key)
     return true
   })
+}
+
+function extractAttribute(tag: string, attribute: string): string | null {
+  const pattern = new RegExp(`${attribute}=["']([^"']+)["']`, 'i')
+  return tag.match(pattern)?.[1] ?? null
+}
+
+function normalizeCanonicalUrl(rawUrl: string): string {
+  try {
+    return new URL(rawUrl).toString()
+  } catch {
+    return new URL(`https://${rawUrl}`).toString()
+  }
+}
+
+function normalizeText(value: string): string {
+  return decodeHtml(value)
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function decodeHtml(value: string): string {

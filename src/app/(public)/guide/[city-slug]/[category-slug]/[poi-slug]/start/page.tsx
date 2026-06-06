@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 import { getPublishedTrail } from '@/features/trails-acquisition/queries/public-trails'
@@ -5,6 +6,18 @@ import type { TrailNavigationData } from '@/features/trail-navigation/types'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string; 'poi-slug': string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
+  const trail = await getPublishedTrail(citySlug, poiSlug)
+  if (!trail) return { title: 'Randonnée introuvable', robots: { index: false } }
+  // Outil de navigation : pas de page indexable distincte → on pointe le canonical vers la fiche.
+  return {
+    title: `Itinéraire — ${trail.name}`,
+    alternates: { canonical: `/guide/${citySlug}/${categorySlug}/${poiSlug}` },
+    robots: { index: false, follow: true },
+  }
 }
 
 /**

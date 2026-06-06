@@ -33,6 +33,40 @@ export function getTodayCloseLabel(
   return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
 }
 
+// Index = dayIndex (0 = dimanche … 6 = samedi), aligné sur getUTCDay/parisWallClock.
+const DAY_NAMES = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'] as const
+
+function formatHHMM(min: number): string {
+  const h = Math.floor(min / 60) % 24
+  const m = min % 60
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
+}
+
+/**
+ * Prochaine ouverture (jour + heure) sous forme "aujourd'hui/demain/<jour> à <h>h".
+ * Utilisé quand le POI est fermé. Parcourt jusqu'à 8 jours pour trouver le prochain créneau,
+ * en ignorant le créneau d'aujourd'hui s'il est déjà passé/ouvert. null si aucune horaire.
+ */
+export function getNextOpenLabel(
+  hours: PoiHours | null | undefined,
+  now: Date = new Date(),
+): string | null {
+  if (!hours) return null
+  const paris = parisWallClock(now)
+  const nowMinutes = paris.hour * 60 + paris.minute
+
+  for (let offset = 0; offset < 8; offset += 1) {
+    const dayIndex = (paris.dayIndex + offset) % 7
+    const slot = readSlot(hours, dayIndex)
+    if (!slot) continue
+    if (offset === 0 && nowMinutes >= slot.openMin) continue
+
+    const dayLabel = offset === 0 ? "aujourd'hui" : offset === 1 ? 'demain' : DAY_NAMES[dayIndex]
+    return `${dayLabel} à ${formatHHMM(slot.openMin)}`
+  }
+  return null
+}
+
 type Slot = { openMin: number; closeMin: number }
 
 function readSlot(hours: PoiHours, dayIndex: number): Slot | null {
