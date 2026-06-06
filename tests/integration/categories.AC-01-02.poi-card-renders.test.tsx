@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { PoiCard } from '@/features/categories/components/PoiCard'
 import type { PoiCard as PoiCardType } from '@/features/categories/types'
 
@@ -52,25 +52,18 @@ describe('PoiCard — AC-01-02 (SpaCard redesign)', () => {
     expect(screen.getByTestId('poi-distance')).toHaveTextContent('1.2 km')
   })
 
-  it('renders the photo as an img', () => {
+  it('renders the full photo (never cropped) as a contained foreground image', () => {
     const img = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
     expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')
-    expect(img).toHaveClass('object-cover')
-    expect(img).toHaveClass('object-center')
-    expect(img).not.toHaveClass('object-contain')
+    expect(img).toHaveClass('object-contain')
+    expect(img).not.toHaveClass('object-cover')
   })
 
-  it('switches the header photo to object-contain when the loaded image is landscape', async () => {
-    const img = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
-
-    Object.defineProperty(img, 'naturalWidth', { configurable: true, value: 1600 })
-    Object.defineProperty(img, 'naturalHeight', { configurable: true, value: 900 })
-    fireEvent.load(img)
-
-    await waitFor(() => {
-      expect(img).toHaveClass('object-contain')
-    })
-    expect(img).not.toHaveClass('object-cover')
+  it('fills the header with a blurred backdrop of the same photo (no empty background)', () => {
+    const backdrop = screen.getByTestId('poi-photo-backdrop')
+    expect(backdrop).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')
+    expect(backdrop).toHaveClass('object-cover')
+    expect(backdrop.className).toMatch(/blur/)
   })
 
   it('renders the APPELER button as a tel: link at the bottom of the expanded section', () => {
