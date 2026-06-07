@@ -15,5 +15,13 @@ export async function GET(
     )
   }
 
-  return NextResponse.json({ data: poi })
+  return NextResponse.json(
+    { data: poi },
+    {
+      headers: {
+        // Fiche POI publique et quasi-statique : cache navigateur 5 min, CDN 1 h, SWR 1 j.
+        'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    },
+  )
 }

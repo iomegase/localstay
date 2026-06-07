@@ -27,6 +27,8 @@ interface Props {
  * Récupère la fiche détaillée à l'ouverture (géométrie/tracé absents de la requête liste)
  * puis réutilise les briques de la fiche rando : mini-carte + actions + accès.
  */
+const MAPBOX_ORIGIN = 'https://api.mapbox.com'
+
 export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, address }: Props) {
   const [trail, setTrail] = useState<TrailDetailData | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -50,7 +52,14 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
   }, [citySlug, categorySlug, poiSlug])
 
   if (status === 'loading') {
-    return <div className="mt-5 h-[260px] w-full animate-pulse rounded-xl bg-gray-100" data-testid="trail-details-loading" />
+    return (
+      <>
+        {/* Ouvre la connexion Mapbox en parallèle du fetch JSON → l'image part dès que l'URL est prête */}
+        <link rel="preconnect" href={MAPBOX_ORIGIN} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={MAPBOX_ORIGIN} />
+        <div className="mt-5 h-[260px] w-full animate-pulse rounded-xl bg-gray-100" data-testid="trail-details-loading" />
+      </>
+    )
   }
 
   if (status === 'error' || !trail) {

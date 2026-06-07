@@ -42,7 +42,9 @@ export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude,
             src={previewSrc}
             alt={`Carte randonnée — ${name}`}
             className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#dfe8d7] to-[#b5c7aa]" />
@@ -94,7 +96,7 @@ function buildStaticUrl(
   if (!token) return null
   if (!geometry) {
     if (startLat === null || startLng === null) return null
-    return `${STATIC_BASE}/pin-s+${STROKE_COLOR}(${startLng},${startLat})/${startLng},${startLat},13,0,${PITCH}/${IMAGE_W}x${IMAGE_H}@2x?access_token=${token}`
+    return `${STATIC_BASE}/pin-s+${STROKE_COLOR}(${startLng},${startLat})/${startLng},${startLat},13,0,${PITCH}/${IMAGE_W}x${IMAGE_H}?access_token=${token}`
   }
 
   const simplified = simplifyGeometryPreservingSegments(geometry)
@@ -136,11 +138,11 @@ function buildStaticUrl(
   }
 
   const overlay = overlays.join(',')
-  const url = `${STATIC_BASE}/${overlay}/${centerLng.toFixed(6)},${centerLat.toFixed(6)},${zoom},0,${PITCH}/${IMAGE_W}x${IMAGE_H}@2x?access_token=${token}`
+  const url = `${STATIC_BASE}/${overlay}/${centerLng.toFixed(6)},${centerLat.toFixed(6)},${zoom},0,${PITCH}/${IMAGE_W}x${IMAGE_H}?access_token=${token}`
 
   // Limite Mapbox Static : ~8192 chars. Si dépassée, fallback simple sans path.
   if (url.length > 7800) {
-    return `${STATIC_BASE}/pin-s+${STROKE_COLOR}(${startPoint[0]},${startPoint[1]})/${centerLng},${centerLat},${zoom},0,${PITCH}/${IMAGE_W}x${IMAGE_H}@2x?access_token=${token}`
+    return `${STATIC_BASE}/pin-s+${STROKE_COLOR}(${startPoint[0]},${startPoint[1]})/${centerLng},${centerLat},${zoom},0,${PITCH}/${IMAGE_W}x${IMAGE_H}?access_token=${token}`
   }
   return url
 }

@@ -23,6 +23,13 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   expert: 'Expert',
 }
 
+const DIFFICULTY_STYLE: Record<string, { text: string; dot: string }> = {
+  easy: { text: 'text-green-600', dot: 'bg-green-500' },
+  medium: { text: 'text-orange-500', dot: 'bg-orange-500' },
+  hard: { text: 'text-red-600', dot: 'bg-red-500' },
+  expert: { text: 'text-red-700', dot: 'bg-red-700' },
+}
+
 function formatDuration(minutes: number | null): string | null {
   if (!minutes) return null
   const h = Math.floor(minutes / 60)
@@ -99,6 +106,8 @@ export function PoiCard({
   const isTrail = trail !== null
   const difficultyLabel =
     trail && trail.difficulty !== 'unknown' ? DIFFICULTY_LABEL[trail.difficulty] ?? null : null
+  const difficultyStyle =
+    trail && trail.difficulty !== 'unknown' ? DIFFICULTY_STYLE[trail.difficulty] ?? null : null
   const trailDuration = trail ? formatDuration(trail.estimated_duration_min) : null
   const trailDistance = trail && trail.distance_km !== null ? `${trail.distance_km.toFixed(1)} km` : null
   const trailElevation = trail && trail.elevation_gain_m !== null ? `${trail.elevation_gain_m} m` : null
@@ -186,7 +195,7 @@ export function PoiCard({
               onClick={showPrevPhoto}
               aria-label="Photo précédente"
               data-testid="poi-photo-prev"
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-gray-700/60 backdrop-blur-sm opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 hover:bg-white/60 hover:text-gray-800"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -195,7 +204,7 @@ export function PoiCard({
               onClick={showNextPhoto}
               aria-label="Photo suivante"
               data-testid="poi-photo-next"
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:bg-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-gray-700/60 backdrop-blur-sm opacity-0 translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 hover:bg-white/60 hover:text-gray-800"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -209,14 +218,14 @@ export function PoiCard({
             </div>
           </>
         )}
-        <div className="absolute top-4 right-4 flex items-center gap-2">
+        <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 -translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
           <button
             type="button"
             onClick={handleShare}
             aria-label="Partager"
             title={shareCopied ? 'Lien copié' : 'Partager'}
             data-testid="btn-share"
-            className="backdrop-blur-sm p-3 text-gray-700 rounded-full shadow-lg hover:bg-white transition-colors bg-white/70"
+            className="backdrop-blur-sm p-3 text-gray-600/60 rounded-full hover:bg-white/60 hover:text-gray-800 transition-colors bg-white/20"
           >
             <Share2 className="h-5 w-5" />
           </button>
@@ -226,19 +235,11 @@ export function PoiCard({
             aria-pressed={isFav}
             aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             data-testid="btn-favorite"
-            className="backdrop-blur-sm p-3 text-gray-700 rounded-full shadow-lg hover:bg-white transition-colors bg-white/70 group/heart"
+            className="backdrop-blur-sm p-3 text-gray-600/60 rounded-full hover:bg-white/60 hover:text-gray-800 transition-colors bg-white/20 group/heart"
           >
             <Heart className={`h-5 w-5 ${mounted && isFav ? 'fill-red-500 text-red-500' : ''}`} />
           </button>
         </div>
-        {isTrail && difficultyLabel && (
-          <div className="absolute top-4 left-4" data-testid="badge-difficulty">
-            <span className="border-charcoal/40 border bg-white/80 backdrop-blur-sm text-charcoal text-[10px] font-semibold px-3 py-1.5 rounded-full tracking-wide uppercase shadow-sm flex items-center gap-1.5">
-              <TrendingUp className="h-3 w-3" />
-              {difficultyLabel}
-            </span>
-          </div>
-        )}
         {!isTrail && poi.is_open_now === true && (
           <div className="absolute top-4 left-4">
             <span data-testid="badge-open" className="border-green-500/90 border bg-green-500/90 backdrop-blur-sm text-white text-[10px] font-semibold px-3 py-1.5 rounded-full tracking-widest uppercase shadow-sm flex items-center gap-1.5">
@@ -258,33 +259,45 @@ export function PoiCard({
       </div>
 
       {/* Content Body */}
-      <div className="p-6 flex flex-col flex-1 justify-between">
+      <div className="p-6 flex flex-col flex-1">
+        {/* Meta — niveau / catégorie / distance (ancrée en haut) */}
+        <div className="cursor-pointer" onClick={handleToggleExpanded}>
+          {!isTrail && displayRating !== null && (
+            <div className="flex items-center gap-1 mb-1" data-testid="poi-rating" aria-label={`Note ${displayRating} sur 5`}>
+              {[1, 2, 3, 4, 5].map(n => (
+                <Star
+                  key={n}
+                  className={`h-3 w-3 ${n <= Math.round(displayRating) ? 'fill-[#bd9254] text-[#bd9254]' : 'text-gray-300'}`}
+                />
+              ))}
+              <span className="ml-1 text-[10px] font-semibold text-gray-500">{displayRating.toFixed(1)}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            {isTrail && difficultyLabel && difficultyStyle && (
+              <span className="flex items-center gap-1.5" data-testid="badge-difficulty">
+                <span className={`h-1.5 w-1.5 rounded-full ${difficultyStyle.dot}`} />
+                <span className={`text-[11px] font-medium uppercase tracking-wide ${difficultyStyle.text}`}>
+                  {difficultyLabel}
+                </span>
+              </span>
+            )}
+            {poi.subcategory_name && (
+              <span className="font-thin text-gray-800 text-[11px]">{poi.subcategory_name}</span>
+            )}
+            <span className="text-gray-400 text-[11px] font-thin" data-testid="poi-distance">
+              à {distanceLabel}
+            </span>
+          </div>
+        </div>
+
+        {/* Titre + localisation — centrés verticalement entre la meta et les stats */}
         <div
-          className="flex justify-between items-center group/card cursor-pointer"
+          className="flex-1 flex items-center justify-between gap-4 py-5 group/card cursor-pointer"
           onClick={handleToggleExpanded}
         >
           <div className="flex-1">
-            {!isTrail && displayRating !== null && (
-              <div className="flex items-center gap-1 mb-1" data-testid="poi-rating" aria-label={`Note ${displayRating} sur 5`}>
-                {[1, 2, 3, 4, 5].map(n => (
-                  <Star
-                    key={n}
-                    className={`h-3 w-3 ${n <= Math.round(displayRating) ? 'fill-[#bd9254] text-[#bd9254]' : 'text-gray-300'}`}
-                  />
-                ))}
-                <span className="ml-1 text-[10px] font-semibold text-gray-500">{displayRating.toFixed(1)}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2 mb-1">
-              {poi.subcategory_name && (
-                <span className="font-thin text-gray-800 text-[11px]">{poi.subcategory_name}</span>
-              )}
-              <span className="text-gray-400 text-[11px] font-thin" data-testid="poi-distance">
-                à {distanceLabel}
-              </span>
-            </div>
-
-            <h2 className="text-[18px] font-thin tracking-tight text-gray-900 leading-tight mb-2">
+            <h2 className="text-[18px] font-thin tracking-tight text-gray-900 leading-tight mb-3">
               <Link
                 href={`/guide/${citySlug}/${categorySlug}/${poi.slug}`}
                 className="underline-offset-4 decoration-gray-300 hover:underline"
