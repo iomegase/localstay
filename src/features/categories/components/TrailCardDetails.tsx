@@ -5,8 +5,6 @@ import type { ReactNode } from 'react'
 import { AlertTriangle, Baby, Car, Dog, MapPin, ParkingCircle } from 'lucide-react'
 import type { PoiDetail, TrailDetailData } from '../types'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
-import { TrailAccessActions } from '@/features/trail-navigation/components/TrailAccessActions'
-import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 
 const SEASON_LABEL: Record<string, string> = {
@@ -59,7 +57,6 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
     return null
   }
 
-  const hasGeometry = isValidTrailGeometry(trail.geometry_geojson) && trail.data_quality_status === 'complete'
   const hasStart = trail.start_latitude !== null && trail.start_longitude !== null
   const attribution = trail.source_refs.map(source => source.attribution).filter(Boolean).join(' · ')
   const hasPractical =
@@ -81,16 +78,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
         />
       </div>
 
-      <TrailAccessActions
-        citySlug={citySlug}
-        categorySlug={categorySlug}
-        trailSlug={poiSlug}
-        startLabel={trail.start_label}
-        startLatitude={trail.start_latitude}
-        startLongitude={trail.start_longitude}
-        hasGeometry={hasGeometry}
-      />
-{/* 
+{/*
       <div className="space-y-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Comment s&apos;y rendre</p>
         <InfoCard icon={<MapPin className="h-5 w-5" />} title="Départ conseillé">

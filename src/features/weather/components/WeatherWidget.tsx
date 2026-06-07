@@ -112,6 +112,8 @@ export default function WeatherWidget({
   const [activeTab, setActiveTab] = useState<WeatherWidgetTab>('week')
   const timeLabel = useWeatherClockLabel(forecast?.timezone ?? null, initialTimeLabel ?? forecast?.current.timeLabel ?? '--:--')
 
+  useWeatherViewportLock()
+
   if (!forecast) {
     return (
       <WeatherWidgetShell
@@ -273,6 +275,22 @@ function useWeatherClockLabel(timeZone: string | null, fallbackLabel: string) {
   }, [timeZone])
 
   return timeLabel
+}
+
+function useWeatherViewportLock() {
+  useEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+
+    root.classList.add('overflow-hidden')
+    body.classList.add('overflow-hidden')
+    window.scrollTo(0, 0)
+
+    return () => {
+      root.classList.remove('overflow-hidden')
+      body.classList.remove('overflow-hidden')
+    }
+  }, [])
 }
 
 function WeatherWidgetShell({

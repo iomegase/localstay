@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { AlertTriangle, ArrowLeft, Car, Clock, Footprints, Heart, MapPin, Mountain, Share2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Car, Clock, Footprints, MapPin, Mountain } from 'lucide-react'
 import type { PoiDetail, TrailDetailData } from '@/features/categories/types'
 import { TrailAccessActions } from './TrailAccessActions'
 import { TrailPreviewMap } from './TrailPreviewMap'
 import { isValidTrailGeometry } from '../lib/geo'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
+import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
+import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 
 function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
@@ -40,21 +43,22 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
   const hasStart = trail.start_latitude !== null && trail.start_longitude !== null
   const attribution = trail.source_refs.map(source => source.attribution).filter(Boolean).join(' · ')
 
+  // Galerie intégrée au hero (comme les autres POIs) ; fallback Mapbox si aucune photo.
+  const mapboxFallback =
+    poi.photos.length === 0 ? buildMapboxHeroUrl(trail.start_latitude, trail.start_longitude) : null
+  const heroPhotos = poi.photos.length > 0 ? poi.photos : mapboxFallback ? [mapboxFallback] : []
+  const poiUrl = `/guide/${citySlug}/${categorySlug}/${poi.slug}`
+
   return (
     <>
-      <header className="relative h-[560px] overflow-hidden bg-[#E8E6DF]">
-        {(() => {
-          const heroSrc = poi.photos[0] ?? buildMapboxHeroUrl(trail.start_latitude, trail.start_longitude)
-          return heroSrc ? <img src={heroSrc} alt={poi.name} className="absolute inset-0 h-full w-full object-cover" /> : null
-        })()}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/25" />
+      <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name} poiId={poi.id}>
         <div className="absolute left-6 right-6 top-8 z-10 flex items-center justify-between">
           {onClose ? (
             <button
               type="button"
               onClick={onClose}
               aria-label="Fermer"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-charcoal backdrop-blur transition-transform active:scale-95"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -62,44 +66,49 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
             <Link
               href={`/guide/${citySlug}/${categorySlug}`}
               aria-label="Retour"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-charcoal backdrop-blur transition-transform active:scale-95"
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
           )}
-          <div className="flex items-center gap-3">
-            <button type="button" aria-label="Partager" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur">
-              <Share2 className="h-4 w-4" />
-            </button>
-            <button type="button" aria-label="Ajouter aux favoris" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-[#FAF9F6]/85 text-[#121212] shadow-sm backdrop-blur">
-              <Heart className="h-5 w-5" />
-            </button>
+          <div className="flex items-center gap-2">
+            <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
+            <FavoriteToggleButton
+              variant="icon"
+              poi={{
+                poi_id: poi.id,
+                name: poi.name,
+                city_slug: citySlug,
+                category_slug: categorySlug,
+                poi_slug: poi.slug,
+                photo: poi.photos?.[0] ?? null,
+                added_at: '',
+              }}
+            />
           </div>
         </div>
-      </header>
+      </PoiDetailHeroCarousel>
 
-      <main className="relative z-20 -mt-[82px] rounded-t-[56px] bg-[#FAF9F6] pb-36 shadow-[0_-18px_35px_rgba(0,0,0,0.08)]">
-        <section className="px-5 pb-2 pt-8">
-          <div className="mb-8">
-            <div className="mb-5 flex items-center gap-2">
-              <span className="rounded-full border border-gray-100 bg-white px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
-                {DIFFICULTY_LABELS[trail.difficulty]}
+      <main className="relative z-20 -mt-8  bg-[#FAF9F6] pb-36 shadow-[0_-18px_35px_rgba(0,0,0,0.08)]">
+        <section className="px-0 pb-2 pt-8">
+          {/* En-tête — style standard POI */}
+          <div className="flex items-start justify-between px-6">
+            <div className="min-w-0 flex-1">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+                {DIFFICULTY_LABELS[trail.difficulty]} · {poi.category.name}
               </span>
-              <span className="rounded-full bg-[#121212] px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-white shadow-sm">
-                {poi.category.name}
-              </span>
+              <h1 className="mt-1 text-xl uppercase leading-tight text-charcoal">{poi.name}</h1>
+              {poi.address && <p className="mt-5 truncate text-xs text-charcoal/50">{poi.address}</p>}
             </div>
-            <h1 className="font-serif text-4xl font-light italic leading-none text-[#121212]">{poi.name}</h1>
-            {poi.description && (
-              <MarkdownText source={poi.description} className="mt-5 max-w-[340px] text-xs leading-6 text-gray-500" />
-            )}
           </div>
-        </section>
 
-        <section className="px-4">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Description</p>
+          {/* Description — style standard POI */}
           {poi.description && (
-            <MarkdownText source={poi.description} breaks className="text-justify text-xs leading-7 text-gray-500" />
+            <MarkdownText
+              source={poi.description}
+              breaks
+              className="mt-6 px-6 text-sm leading-relaxed text-charcoal/70"
+            />
           )}
         </section>
 
@@ -108,18 +117,6 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
           <TrailStat icon={<Clock className="h-5 w-5 text-gray-400" />} label="Durée" value={formatDuration(trail.estimated_duration_min)} />
           <TrailStat icon={<Footprints className="h-5 w-5 text-[#455E4C]" />} label="Distance" value={trail.distance_km ? `${trail.distance_km.toFixed(1)} km` : 'n/a'} />
         </section>
-
-        {poi.photos.length > 1 && (
-          <section className="mt-4">
-            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4">
-              {poi.photos.slice(1).map((photo, index) => (
-                <div key={`${photo}-${index}`} className="relative h-44 w-64 shrink-0 snap-center overflow-hidden rounded-md shadow-sm">
-                  <img src={photo} alt={`${poi.name} — photo ${index + 1}`} className="h-full w-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         <TrailPreviewMap
           name={poi.name}
@@ -131,7 +128,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
         />
 
         <section className="px-4 pt-8">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Comment s’y rendre</p>
+          {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Comment s’y rendre</p> */}
           <div className="space-y-3">
             <InfoCard icon={<MapPin className="h-5 w-5" />} title="Départ conseillé">
               <p className="mt-1 text-[11px] uppercase tracking-wider text-[#455E4C]">{trail.start_label ?? poi.address}</p>
@@ -167,9 +164,9 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
         </section>
 
         <section className="px-4" data-testid="trail-detail-block">
-          <div className="rounded-[28px] border border-charcoal/5 bg-white p-5 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#A68E69]">Randonnée</p>
-            <p className="mt-3 text-xs leading-5 text-charcoal/60">
+          <div className="p-5 ">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#A68E69]">Datas</p>
+            <p className="mt-3 text-[10px] leading-5 text-charcoal/60">
               Source principale : {trail.primary_source_type}
               {attribution ? ` · ${attribution}` : ''}
               {trail.data_quality_status === 'incomplete' ? ' · fiche incomplète validée par un administrateur' : ''}
@@ -183,7 +180,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
 
 function TrailStat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm">
+    <div className="flex flex-1 flex-col rounded-md items-center justify-center  p-4 text-center shadow-sm">
       {icon}
       <span className="mt-2 text-sm font-semibold">{value}</span>
       <span className="mt-0.5 text-[9px] uppercase tracking-widest text-gray-400">{label}</span>
@@ -193,7 +190,7 @@ function TrailStat({ icon, label, value }: { icon: ReactNode; label: string; val
 
 function InfoCard({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <article className="flex gap-4 rounded-[1.8rem] border border-gray-100 bg-white p-5 shadow-sm">
+    <article className="flex gap-4 rounded-md  bg-white p-5 shadow-sm">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#455E4C] text-white">{icon}</div>
       <div>
         <h3 className="text-sm font-bold">{title}</h3>

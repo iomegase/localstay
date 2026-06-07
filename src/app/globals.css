@@ -74,7 +74,10 @@
   }
 }
 
-/* Mode immersif : carte plein écran pendant le guidage rando */
+/* Mode immersif : carte de guidage rando — on masque le chrome (header/nav, padding,
+   bordure/ombre du cadre) mais on CONSERVE le cadre portrait 430px : le site reste en
+   « mode portable » même quand le modal carte est ouvert (pas de débordement plein écran
+   sur desktop). Le modal lui-même est déjà capé à max-w-[430px]. */
 body.immersive-map .immersive-hide { display: none !important; }
 body.immersive-map .immersive-main { padding: 0 !important; }
-body.immersive-map .immersive-container { max-width: 100% !important; border: 0 !important; box-shadow: none !important; background: transparent !important; }
+body.immersive-map .immersive-container { border: 0 !important; box-shadow: none !important; }

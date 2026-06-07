@@ -416,7 +416,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           if (userGesture) setIsFollowing(false)
         }}
       >
-        <NavigationControl position="top-right" />
+        {/* Décalé vers le bas pour passer sous la rangée de boutons du haut (compass/lock). */}
+        <NavigationControl position="top-right" style={{ marginTop: '5.5rem', marginRight: '1.5rem' }} />
         <Source id="trail-navigation-line" type="geojson" data={{ type: 'Feature', properties: {}, geometry }}>
           <Layer
             id="trail-line"
@@ -623,14 +624,14 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       )}
 
       <section
-        className={`absolute inset-x-4 bottom-4 rounded-[2rem] bg-[#FAF9F6]/95 p-5 shadow-2xl backdrop-blur transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`absolute inset-x-4 bottom-4 rounded-md bg-white/95 p-5 shadow-2xl backdrop-blur transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         data-testid="trail-navigation-panel"
         aria-hidden={!isHudExpanded}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#A68E69]">Guidage randonnée</p>
-            <h1 className="mt-1 font-serif text-2xl italic leading-tight text-[#121212]">{trail.name}</h1>
+            {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#A68E69]">Guidage randonnée</p> */}
+            <h1 className="mt-1 uppercase text-xlleading-tight text-[#121212]">{trail.name}</h1>
             <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -742,23 +743,25 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         )}
 
         {gpsState === 'off_track' && (
-          <p className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <div className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             Vous semblez vous éloigner du tracé.
-          </p>
+          </div>
         )}
 
         {gpsState === 'low_accuracy' && (
-          <p className="mt-3 flex items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-charcoal/65">
+          <div className="mt-3 flex items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-charcoal/65">
             <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-[#A68E69]" />
             Précision GPS faible{accuracy ? ` (${Math.round(accuracy)} m)` : ''}. Le guidage reste indicatif.
-          </p>
+          </div>
         )}
 
-        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/60">
+        <div className="mt-4 flex items-start gap-2 justify-center rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/60">
           <Mountain className="mt-0.5 h-4 w-4 shrink-0 text-[#455E4C]" />
-          MyStay ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
-        </p>
+          <p className="text-[10px] leading-5 tracking-wide text-charcoal/90">
+            MyStay ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
+          </p>
+        </div>
       </section>
     </main>
   )
