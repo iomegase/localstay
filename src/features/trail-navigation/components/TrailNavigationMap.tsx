@@ -632,7 +632,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           <div>
             {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#A68E69]">Guidage randonnée</p> */}
             <h1 className="mt-1 uppercase text-xlleading-tight text-[#121212]">{trail.name}</h1>
-            <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
+            {/* <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p> */}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
@@ -697,7 +697,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
         {gpsState === 'pre_start' && (
           <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65">
-            <p className="font-semibold text-charcoal">
+            <p className="font-semibold text-red-600">
               Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé
               {walkingRoute && (
                 <span className="font-normal text-charcoal/55"> ({Math.round(walkingRoute.distance_m)} m à pied par les chemins)</span>
@@ -712,10 +712,10 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
                 href={`https://www.google.com/maps/dir/?api=1&destination=${trail.start_latitude},${trail.start_longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#455E4C] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
+                className="flex w-full items-center justify-center gap-2 border-b-black  bg-gray-200 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-black/70 shadow-sm active:scale-[0.98] transition-transform"
               >
                 <Navigation className="h-4 w-4" />
-                Me guider vers le départ
+              Rejoindre point de départ
               </a>
               {onClose ? (
                 <button type="button" onClick={onClose} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
@@ -769,7 +769,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white px-3 py-3">
+    <div className="rounded-md bg-white px-3 py-3 drop-shadow-sm">
       <p className="text-[9px] font-bold uppercase tracking-widest text-charcoal/40">{label}</p>
       <p className="mt-1 font-semibold text-charcoal">{value}</p>
     </div>
