@@ -34,6 +34,7 @@ export type AdminPoiListItem = {
   geocode_status: string
   photo_count: number
   primary_photo_url: string | null
+  photos_status: string
   review_source: AdminPoiReviewSource
   merchant_attached: boolean
   has_trail_detail: boolean

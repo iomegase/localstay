@@ -3,16 +3,20 @@
 import Image from 'next/image'
 import { useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
 
 interface Props {
   photos: string[]
   name: string
+  /** Si fourni, une photo qui échoue au chargement est signalée au serveur (lien-mort). */
+  poiId?: string
   children?: ReactNode
 }
 
-export function PoiDetailHeroCarousel({ photos, name, children }: Props) {
-  const galleryPhotos = photos.filter(Boolean)
+export function PoiDetailHeroCarousel({ photos, name, poiId, children }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0)
+  const [deadPhotos, setDeadPhotos] = useState<Set<string>>(new Set())
+  const galleryPhotos = photos.filter(Boolean).filter(url => !deadPhotos.has(url))
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
 
@@ -22,6 +26,13 @@ export function PoiDetailHeroCarousel({ photos, name, children }: Props) {
 
   function showNextPhoto() {
     setPhotoIndex(index => (index + 1) % galleryPhotos.length)
+  }
+
+  function handlePhotoError() {
+    if (!currentPhoto) return
+    if (poiId) reportDeadPhoto(poiId, currentPhoto)
+    setDeadPhotos(prev => new Set(prev).add(currentPhoto))
+    setPhotoIndex(0)
   }
 
   return (
@@ -49,6 +60,7 @@ export function PoiDetailHeroCarousel({ photos, name, children }: Props) {
             priority
             unoptimized
             sizes="(max-width: 480px) 100vw, 480px"
+            onError={handlePhotoError}
             className="object-contain object-center transition-transform duration-500"
           />
         </>

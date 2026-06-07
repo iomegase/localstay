@@ -14,6 +14,7 @@ import {
 import type { PoiCard as PoiCardType } from '../types'
 import { TrailCardDetails } from './TrailCardDetails'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Facile',
@@ -50,6 +51,7 @@ export function PoiCard({
   const [mounted, setMounted] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   const [photoIndex, setPhotoIndex] = useState(0)
+  const [deadPhotos, setDeadPhotos] = useState<Set<string>>(new Set())
 
   const isExpanded = isExpandedProp ?? internalIsExpanded
 
@@ -66,7 +68,8 @@ export function PoiCard({
 
   const description = poi.description
   // Galerie classique en en-tête : 1 photo visible à la fois, navigation par flèches.
-  const galleryPhotos = poi.photos.length > 0 ? poi.photos : poi.photo_url ? [poi.photo_url] : []
+  const galleryPhotos = (poi.photos.length > 0 ? poi.photos : poi.photo_url ? [poi.photo_url] : [])
+    .filter(url => !deadPhotos.has(url))
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
   const actionGridColumns = poi.website && poi.phone
@@ -82,6 +85,14 @@ export function PoiCard({
   function showNextPhoto(e: React.MouseEvent) {
     e.stopPropagation()
     setPhotoIndex(i => (i + 1) % galleryPhotos.length)
+  }
+
+  // Photo morte (URL cassée) : on la signale au serveur et on la retire localement.
+  function handlePhotoError() {
+    if (!currentPhoto) return
+    reportDeadPhoto(poi.id, currentPhoto)
+    setDeadPhotos(prev => new Set(prev).add(currentPhoto))
+    setPhotoIndex(0)
   }
 
   const trail = poi.trail_detail ?? null
@@ -161,6 +172,7 @@ export function PoiCard({
               fill
               unoptimized
               sizes="(max-width: 480px) 100vw, 480px"
+              onError={handlePhotoError}
               className="object-contain object-center transition-transform duration-500 group-hover:scale-105"
             />
           </>

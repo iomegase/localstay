@@ -216,12 +216,17 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                 <div className="flex flex-col">
                                   {/* Reduced text sizes: 14px -> 13px, 12px -> 11px */}
                                   <span className="text-[13px] font-bold text-neutral-900 max-w-[200px] truncate">{poi.name}</span>
-                                  <Link 
-                                    href={poi.public_url} 
+                                  <Link
+                                    href={poi.public_url}
                                     className="text-[11px] font-semibold text-gray-400 transition-colors hover:text-[#0B1437]"
                                   >
                                     Voir la page publique
                                   </Link>
+                                  {poi.photos_status === 'needs_refresh' && (
+                                    <span className="mt-1 inline-flex w-fit items-center rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                                      Photos à rafraîchir
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </td>

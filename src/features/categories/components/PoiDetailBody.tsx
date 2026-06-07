@@ -40,7 +40,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
   return (
     <>
       {/* Hero */}
-      <PoiDetailHeroCarousel photos={poi.photos} name={poi.name}>
+      <PoiDetailHeroCarousel photos={poi.photos} name={poi.name} poiId={poi.id}>
         <div className="absolute top-8 left-6 right-6 flex justify-between items-center z-10">
           {onClose ? (
             <button

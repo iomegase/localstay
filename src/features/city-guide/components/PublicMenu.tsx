@@ -17,23 +17,41 @@ const ANONYMOUS_ITEMS: MenuItem[] = [
   { href: '/contact', label: 'Contact' },
 ]
 
-function lodgingItems(ownerName?: string | null): MenuItem[] {
+function anonymousItems(citySlug?: string | null): MenuItem[] {
+  return citySlug
+    ? [
+      { href: '/', label: 'Bienvenue' },
+      { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
+      { href: '/contact', label: 'Contact' },
+    ]
+    : ANONYMOUS_ITEMS
+}
+
+function lodgingItems(ownerName?: string | null, citySlug?: string | null): MenuItem[] {
   const recommendationLabel = ownerName
     ? `Les recommandations de ${ownerName}`
     : 'Les recommandations de votre hôte'
 
-  return [
+  const items = [
     { href: '/', label: 'Bienvenue' },
     { href: '/le-logement', label: 'Le Logement' },
     { href: '/nos-recommandations', label: recommendationLabel },
     { href: '/mes-favoris', label: 'Vos favoris' },
     { href: '/contact', label: 'Nous Contacter' },
   ]
+
+  return citySlug
+    ? [
+      ...items.slice(0, 4),
+      { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
+      ...items.slice(4),
+    ]
+    : items
 }
 
 export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
   const [isOpen, setIsOpen] = useState(false)
-  const items = mode === 'lodging' ? lodgingItems(ownerName) : ANONYMOUS_ITEMS
+  const items = mode === 'lodging' ? lodgingItems(ownerName, citySlug) : anonymousItems(citySlug)
 
   return (
     <>

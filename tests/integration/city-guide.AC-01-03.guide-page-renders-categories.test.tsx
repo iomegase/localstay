@@ -72,6 +72,10 @@ describe('GuidePage (AC-01-03)', () => {
     expect(screen.getByPlaceholderText('Une envie particulière ?')).toBeInTheDocument()
     expect(screen.queryByTestId('category-grid')).not.toBeInTheDocument()
     expect(screen.getByTestId('category-row')).toHaveClass('overflow-x-auto')
+    expect(screen.getByRole('link', { name: /Météo Voir les prévisions/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/meteo',
+    )
   })
 
   it('AC-01-02: calls notFound() when slug does not exist in DB', async () => {

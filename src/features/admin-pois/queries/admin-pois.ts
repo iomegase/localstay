@@ -34,6 +34,7 @@ type AdminPoiRow = {
   deleted_at: Date | null
   geocode_status: string
   review_source: 'MANUAL' | 'GOOGLE'
+  photos_status: string
   updated_at: Date
   city: { id: string; name: string; slug: string }
   category: { id: string; name: string; slug: string }
@@ -78,6 +79,7 @@ const adminPoiSelect = {
   deleted_at: true,
   geocode_status: true,
   review_source: true,
+  photos_status: true,
   updated_at: true,
   city: { select: { id: true, name: true, slug: true } },
   category: { select: { id: true, name: true, slug: true } },
@@ -527,6 +529,7 @@ function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
     geocode_status: row.geocode_status,
     photo_count: row.photos.length,
     primary_photo_url: row.photos[0] ?? null,
+    photos_status: row.photos_status,
     review_source: row.review_source,
     merchant_attached: Boolean(row.merchant_profile),
     has_trail_detail: Boolean(row.trail_detail && !row.trail_detail.deleted_at),

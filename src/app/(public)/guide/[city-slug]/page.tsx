@@ -61,12 +61,12 @@ export default async function GuidePage({ params, searchParams }: Props) {
 
       <div className="flex justify-between items-end mb-4 p-4">
         <div>
-           <div className="text-right">
-          <p className="text-[10px] font-bold text-gold uppercase tracking-widest">
-            Météo
-          </p>
-          <p className="text-[10px] text-blue-500 font-medium">--°C</p>
-        </div>
+          <Link href={`/guide/${slug}/meteo`} className="text-right">
+            <p className="text-[10px] font-bold text-gold uppercase tracking-widest">
+              Météo
+            </p>
+            <p className="text-[10px] text-blue-500 font-medium">Voir les prévisions</p>
+          </Link>
           <p className="text-[10px] font-bold text-gold uppercase tracking-widest">Le guide</p>
           <h1 className="text-2xl font-light uppercase text-charcoal">
             {city.name}

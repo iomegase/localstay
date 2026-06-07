@@ -440,3 +440,14 @@
 | AC-04-01 | `/dashboard/messages` affiche les messages destination Propriétaire du Owner connecté | `src/app/(dashboard)/dashboard/messages/page.tsx`<br>`src/features/contact-messages/components/OwnerContactMessagesPanel.tsx`<br>`src/features/contact-messages/queries/contact-messages.ts` | `tests/integration/contact-messages.owner-dashboard.test.tsx` | ✅ done |
 | AC-04-02/BR-11 | Query Owner filtre sur `owner_id` connecté et `destination = owner`, excluant Conciergerie | `src/features/contact-messages/queries/contact-messages.ts` | `tests/unit/contact-messages.owner-query.test.ts` | ✅ done |
 | AC-04-03 | Aside menu Owner expose l'onglet Messages vers `/dashboard/messages` | `src/app/(dashboard)/layout.tsx` | `tests/integration/contact-messages.owner-dashboard.test.tsx` | ✅ done |
+
+## 025 — Weather
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01/AC-01-02/AC-01-03 | Page météo dédiée affiche date, heure, ville, condition, grande icône SVG animée, température, prévisions 24h et 7 jours dans un widget `w-full h-screen` sans carte flottante | `src/app/(weather)/guide/[city-slug]/meteo/page.tsx`<br>`src/app/(weather)/layout.tsx`<br>`src/features/weather/components/WeatherWidget.tsx`<br>`src/features/weather/components/WeatherScreen.tsx` | `tests/integration/weather.widget.test.tsx`<br>`tests/integration/weather.page.test.tsx`<br>`tests/integration/weather.route.test.tsx` | ✅ done |
+| AC-01-04 | City absente/inactive/supprimée → 404 | `src/app/(weather)/guide/[city-slug]/meteo/page.tsx`<br>`src/features/weather/queries/weather-city.ts` | `tests/integration/weather.route.test.tsx` | ✅ done |
+| AC-01-05 | Open-Meteo indisponible ou invalide → état d'erreur lisible | `src/app/(weather)/guide/[city-slug]/meteo/page.tsx`<br>`src/features/weather/components/WeatherWidget.tsx`<br>`src/features/weather/components/WeatherScreen.tsx`<br>`src/features/weather/queries/open-meteo.ts` | `tests/integration/weather.widget.test.tsx`<br>`tests/integration/weather.page.test.tsx`<br>`tests/integration/weather.route.test.tsx`<br>`tests/unit/weather.open-meteo.test.ts` | ✅ done |
+| AC-02-01 | Menu public contient lien météo quand `citySlug` existe | `src/features/city-guide/components/PublicMenu.tsx` | `tests/unit/weather.public-menu.test.tsx` | ✅ done |
+| AC-02-02 | Home Guide ville contient un accès vers la page météo | `src/app/(public)/guide/[city-slug]/page.tsx` | `tests/integration/city-guide.AC-01-03.guide-page-renders-categories.test.tsx` | ✅ done |
+| BR-01/BR-02/BR-03/BR-04/BR-05/BR-06/BR-07 | Météo basée City uniquement, hors POI, query serveur Open-Meteo validée Zod et cachée 30 minutes | `src/features/weather/queries/weather-city.ts`<br>`src/features/weather/queries/open-meteo.ts`<br>`src/features/weather/lib/weather-code.ts`<br>`src/features/weather/types.ts` | `tests/unit/weather.open-meteo.test.ts` | ✅ done |

@@ -100,6 +100,10 @@ model PointOfInterest {
   photos            String[]
   tags              String[]
 
+  // Spec — POI photo liveness (détection lien-mort + flag revue admin)
+  photos_status     String    @default("ok") // ok | needs_refresh
+  photos_checked_at DateTime?
+
   // Spec 008 — Mapbox Geocoding
   geocode_status    String    @default("pending") // pending | success | failed | rejected
   geocoded_at       DateTime?
@@ -133,6 +137,7 @@ model PointOfInterest {
   @@index([city_id, category_id, deleted_at, is_active])
   @@index([city_id, subcategory_id, deleted_at, is_active])
   @@index([city_id, geocode_status, deleted_at])
+  @@index([photos_status, photos_checked_at])
 }
 
 // ─── Spec 014 — Auth Merchant ───────────────────────────────────────────────
