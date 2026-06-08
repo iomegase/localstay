@@ -65,25 +65,25 @@ export function ContactMessageForm({
     })
   }
 
-  const inputClass = 'mt-2 h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-charcoal outline-none transition focus:border-charcoal'
-  const labelClass = 'text-[11px] font-bold uppercase tracking-widest text-gray-500'
+  // --- NOUVELLES CLASSES CSS (Border bottom uniquement) ---
+  const inputClass = 'mt-1 h-11 w-full border-0 border-b border-gray-200 bg-transparent px-0 text-[12px] text-charcoal outline-none transition-all placeholder:text-gray-400 focus:border-charcoal focus:ring-0'
+  const labelClass = 'text-[10px] font-bold uppercase tracking-widest text-gray-800'
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <div className="mb-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-gray-400">Message</p>
-        <h2 className="mt-1 font-serif italic text-xl text-charcoal">Nous écrire</h2>
+    <form onSubmit={submit} className="p-1">
+      <div className="mb-6">
         {lodgingName && (
-          <p className="mt-1 text-xs text-gray-500">Votre demande sera liée à {lodgingName}.</p>
+          <p className="mt-1 text-sm text-gray-500">Votre demande sera liée à <span className="font-medium text-charcoal">{lodgingName}</span>.</p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="contact-sender-name" className={labelClass}>Nom</label>
           <input
             id="contact-sender-name"
             className={inputClass}
+            placeholder="John Doe"
             value={form.sender_name}
             minLength={2}
             maxLength={120}
@@ -97,6 +97,7 @@ export function ContactMessageForm({
             id="contact-sender-email"
             className={inputClass}
             type="email"
+            placeholder="john@exemple.com"
             value={form.sender_email}
             maxLength={180}
             required
@@ -105,13 +106,14 @@ export function ContactMessageForm({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="contact-sender-phone" className={labelClass}>Téléphone</label>
           <input
             id="contact-sender-phone"
             className={inputClass}
             type="tel"
+            placeholder="+33 6 12 34 56 78"
             value={form.sender_phone}
             maxLength={40}
             onChange={(event) => setForm((current) => ({ ...current, sender_phone: event.target.value }))}
@@ -121,7 +123,7 @@ export function ContactMessageForm({
           <label htmlFor="contact-destination" className={labelClass}>Destination</label>
           <select
             id="contact-destination"
-            className={inputClass}
+            className={`${inputClass} cursor-pointer appearance-none`}
             value={form.destination}
             onChange={(event) => setForm((current) => ({
               ...current,
@@ -134,11 +136,12 @@ export function ContactMessageForm({
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-6">
         <label htmlFor="contact-subject" className={labelClass}>Sujet</label>
         <input
           id="contact-subject"
           className={inputClass}
+          placeholder="Raison de votre message..."
           value={form.subject}
           minLength={2}
           maxLength={160}
@@ -147,11 +150,13 @@ export function ContactMessageForm({
         />
       </div>
 
-      <div className="mt-4">
+      <div className="mt-6">
         <label htmlFor="contact-message" className={labelClass}>Message</label>
         <textarea
           id="contact-message"
-          className="mt-2 min-h-32 w-full resize-y rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus:border-charcoal"
+          // Classes Textarea spécifiques pour le border-bottom
+          className="mt-1 min-h-[120px] w-full resize-y border-0 border-b text-[12px] border-gray-200 bg-transparent px-0 py-3 leading-relaxed text-charcoal outline-none transition-all placeholder:text-gray-400 focus:border-charcoal focus:ring-0"
+          placeholder="Écrivez votre message ici..."
           value={form.message}
           minLength={10}
           maxLength={2000}
@@ -161,12 +166,12 @@ export function ContactMessageForm({
       </div>
 
       {state === 'sent' && (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+        <p className="mt-6 rounded-xl bg-emerald-50 px-5 py-4 text-[14px] font-medium text-emerald-800 border border-emerald-100">
           Message envoyé. L’équipe MyStay en garde une copie pour le suivi.
         </p>
       )}
       {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <p className="mt-6 rounded-xl bg-red-50 px-5 py-4 text-[14px] font-medium text-red-700 border border-red-100">
           {error}
         </p>
       )}
@@ -174,9 +179,9 @@ export function ContactMessageForm({
       <button
         type="submit"
         disabled={state === 'submitting'}
-        className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-charcoal px-5 text-sm font-bold text-white transition hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-8 inline-flex h-12 w-full items-center tracking-wider  uppercase justify-center gap-2 rounded-md bg-charcoal px-5 text-[14px] font-light text-white transition-all hover:bg-charcoal/90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98]"
       >
-        <Send className="h-4 w-4" />
+       
         {state === 'submitting' ? 'Envoi...' : 'Envoyer le message'}
       </button>
     </form>

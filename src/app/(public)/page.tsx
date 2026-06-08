@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CitySearchInput } from '@/features/city-guide/components/CitySearchInput'
+import { QrScannerButton } from '@/features/public-menu/components/QrScannerButton'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { prisma } from '@/shared/lib/prisma'
 
@@ -34,22 +35,31 @@ export default async function HomePage() {
 
 function AnonymousLanding() {
   return (
-    <div className="flex flex-col items-center px-6 pt-12">
-      <div className="mb-10 text-center">
-        <h1 className="text-5xl font-light italic font-serif text-charcoal tracking-tight">
-          MyStay
-        </h1>
-        <p className="mt-3 text-xs uppercase tracking-[0.3em] text-gray-400">
-          Le guide local de votre séjour
-        </p>
-      </div>
-      <div className="w-full max-w-md space-y-3">
-        <p className="text-center text-sm text-gray-500">Recherchez votre ville de résidence :</p>
-        <CitySearchInput />
-      </div>
-      <p className="mt-12 max-w-sm text-center text-xs text-gray-400">
-        Vous avez un QR code MyStay ? Scannez-le pour accéder au guide personnalisé de votre logement.
-      </p>
+    <div className="flex flex-col h-screen bg-ivory">
+      {/* Header */}
+
+
+      {/* Main Content */}
+      <main className="flex-1 px-6 pt-8 pb-32 flex flex-col">
+        <div>
+          <h2 className="text-2xl font-light uppercase text-charcoal leading-tight mb-8">
+            My Stay <br />
+            vous guide durant  <br />
+            
+          </h2>
+          <span className="text-4xl uppercase font-thin text-gray-400">séjour&nbsp;</span>
+
+          {/* Search */}
+          <div className="mb-6 mt-16">
+            <CitySearchInput />
+          </div>
+
+          {/* QR Code Scanner */}
+          <div className="mt-[70px]">
+            <QrScannerButton />
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

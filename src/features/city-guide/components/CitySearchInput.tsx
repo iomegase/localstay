@@ -50,7 +50,7 @@ export function CitySearchInput() {
   return (
     <div className="relative w-full max-w-[382px] mx-auto">
       {/* Search input */}
-      <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-full px-6 py-4 shadow-sm">
+      <div className="flex items-center gap-4 border-b-black border-b-[1px] px-6 py-4 shadow-sm">
         <Search className="w-4 h-4 text-gray-300 shrink-0" />
         <input
           type="text"
