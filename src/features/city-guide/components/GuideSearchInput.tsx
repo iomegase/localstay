@@ -88,7 +88,7 @@ export function GuideSearchInput({
                   role="option"
                   aria-selected={false}
                   onClick={() => go(categoryResultHref(citySlug, category.slug, lodgingId))}
-                  className="flex cursor-pointer items-center justify-between px-5 py-3 hover:bg-ivory"
+                  className="flex cursor-pointer items-center justify-between px-5 py-3 hover:bg-slate-100"
                 >
                   <span className="text-sm font-medium text-charcoal">{category.name}</span>
                   <span className="text-[10px] uppercase tracking-widest text-gray-400">Catégorie</span>
@@ -105,7 +105,7 @@ export function GuideSearchInput({
                   role="option"
                   aria-selected={false}
                   onClick={() => go(poiResultHref(citySlug, poi.category_slug, poi.slug, lodgingId))}
-                  className="flex cursor-pointer items-center gap-3 px-5 py-3 hover:bg-ivory"
+                  className="flex cursor-pointer items-center gap-3 px-5 py-3 hover:bg-slate-100"
                 >
                   {poi.photo ? (
                     // eslint-disable-next-line @next/next/no-img-element

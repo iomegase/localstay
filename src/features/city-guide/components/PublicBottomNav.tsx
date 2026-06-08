@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Compass, Heart, Home, Map } from 'lucide-react'
+import { Compass, Heart, Home, Map, LocateFixed } from 'lucide-react'
+import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 
 type Props = {
   mode: 'anonymous' | 'lodging'
@@ -154,6 +155,7 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
         {items.map(item => (
           <NavItem key={item.href} {...item} />
         ))}
+        {getGuideCitySlug(pathname) && <GeoNavButton />}
       </div>
     </nav>
   )
@@ -177,5 +179,37 @@ function NavItem({
         {label}
       </span>
     </Link>
+  )
+}
+
+/**
+ * Bouton de géolocalisation intégré à la nav : active la position (distances
+ * recalculées au plus près) et l'éteint au tap suivant. Couleur foncée = actif.
+ */
+function GeoNavButton() {
+  const { status, location, requestLocation, clearLocation } = useUserLocation()
+  const isActive = status === 'ready' && location !== null
+  const isLoading = status === 'loading'
+
+  const colorClassName = isActive
+    ? 'text-charcoal'
+    : 'text-[#6f7480] hover:text-charcoal'
+
+  const label = isLoading ? 'GPS…' : isActive ? 'Activée' : 'Position'
+
+  return (
+    <button
+      type="button"
+      onClick={() => (isActive ? clearLocation() : requestLocation())}
+      disabled={isLoading}
+      aria-pressed={isActive}
+      aria-label={isActive ? 'Désactiver la géolocalisation' : 'Activer la géolocalisation'}
+      className={`flex flex-col items-center gap-1 transition-colors ${colorClassName} ${
+        isLoading ? 'opacity-60' : ''
+      }`}
+    >
+      <LocateFixed className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
+      <span className="text-[9px] font-bold uppercase tracking-widest">{label}</span>
+    </button>
   )
 }

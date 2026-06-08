@@ -1,9 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
+import { storeLocation } from '@/features/geolocation/lib/user-location'
 import type { PoiCard } from '@/features/categories/types'
 
 // FullMap uses dynamic import + Mapbox — mock it
@@ -43,6 +44,7 @@ const nearbyPoi = makePoi({ id: 'n1', name: 'Chalet des Alpes', distance_km: 18 
 describe('CategoryViewWrapper — nearby section (BR-06)', () => {
   afterEach(() => {
     jest.restoreAllMocks()
+    window.localStorage.clear()
   })
 
   it('renders primary POIs in the main list', () => {
@@ -112,16 +114,7 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
     expect(screen.getByText('Aucun résultat')).toBeInTheDocument()
   })
 
-  it('uses the Tourist GPS position for displayed distance after explicit opt-in', async () => {
-    Object.defineProperty(navigator, 'geolocation', {
-      configurable: true,
-      value: {
-        getCurrentPosition: jest.fn(success => success({
-          coords: { latitude: 45.8921, longitude: 6.7085 },
-        })),
-      },
-    })
-
+  it('uses the Tourist GPS position for displayed distance after explicit opt-in', () => {
     render(
       <CategoryViewWrapper
         primary={[{ ...primaryPoi, distance_km: 10 }]}
@@ -132,10 +125,16 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
       />,
     )
 
+    // Avant opt-in : distance serveur (depuis le centre-ville).
     expect(screen.getByTestId('poi-distance')).toHaveTextContent('10.0 km')
 
-    await userEvent.click(screen.getByRole('button', { name: /ma position/i }))
+    // L'opt-in se fait désormais via le bouton de géolocalisation de la nav du
+    // footer, qui stocke et diffuse la position à toute l'app (shared hook).
+    act(() => {
+      storeLocation({ latitude: 45.8921, longitude: 6.7085 })
+    })
 
+    // La position coïncide avec le POI → 0 m.
     expect(screen.getByTestId('poi-distance')).toHaveTextContent('0 m')
   })
 

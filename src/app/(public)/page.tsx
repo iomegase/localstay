@@ -35,7 +35,7 @@ export default async function HomePage() {
 
 function AnonymousLanding() {
   return (
-    <div className="flex flex-col h-screen bg-ivory">
+    <div className="flex flex-col h-screen bg-slate-50">
       {/* Header */}
 
 
@@ -47,7 +47,7 @@ function AnonymousLanding() {
             vous guide durant  <br />
             
           </h2>
-          <span className="text-4xl uppercase font-thin text-gray-400">séjour&nbsp;</span>
+          <span className="text-4xl uppercase font-thin text-gray-400"> votre séjour&nbsp;</span>
 
           {/* Search */}
           <div className="mb-6 mt-16">

@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import Link from 'next/link'
 import * as LucideIcons from 'lucide-react'
 import type { CategorySummary } from '../types'
@@ -20,6 +21,30 @@ function CategoryIcon({ iconSlug }: { iconSlug: string }) {
     className?: string
   }>
   return <Icon className="w-5 h-5" />
+}
+
+/**
+ * Insère une opportunité de césure (<wbr/>) au milieu de chaque mot de plus de
+ * 10 lettres, afin qu'un mot long comme « BOULANGERIE » se scinde sur deux
+ * lignes dans sa colonne au lieu de déborder. Les mots courts et les libellés
+ * multi-mots (« LOCATION DE SKIS ») gardent leur retour à la ligne naturel.
+ */
+function splitLongWords(name: string): React.ReactNode {
+  return name.split(' ').map((word, index, words) => {
+    const trailingSpace = index < words.length - 1 ? ' ' : ''
+    if (word.length <= 10) {
+      return <Fragment key={index}>{word}{trailingSpace}</Fragment>
+    }
+    const mid = Math.ceil(word.length / 2)
+    return (
+      <Fragment key={index}>
+        {word.slice(0, mid)}
+        <wbr />
+        {word.slice(mid)}
+        {trailingSpace}
+      </Fragment>
+    )
+  })
 }
 
 function categoryHref(citySlug: string, categorySlug?: string, lodgingId?: string): string {
@@ -61,7 +86,7 @@ export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlu
               </span>
             </div>
             <span className="text-[9px] text-gold font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
-              {cat.name}
+              {splitLongWords(cat.name)}
             </span>
           </Link>
         )

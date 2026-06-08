@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { MarkdownText } from '@/shared/components/MarkdownText'
-import { GuideSearchInput } from '@/features/city-guide/components/GuideSearchInput'
+// import { GuideSearchInput } from '@/features/city-guide/components/GuideSearchInput' // réactiver lors de l'optimisation de la recherche
 import { SortControl } from '@/features/categories/components/SortControl'
 import { AllPoisList } from '@/features/categories/components/AllPoisList'
 import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
@@ -16,6 +16,10 @@ import { cityMetadata } from '@/features/seo/lib/metadata'
 import { getCityForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
+import { getWeatherCity } from '@/features/weather/queries/weather-city'
+import { getOpenMeteoForecast } from '@/features/weather/queries/open-meteo'
+import { GuideWeatherBadge } from '@/features/weather/components/GuideWeatherBadge'
+import { GeolocationPrompt } from '@/features/geolocation/components/GeolocationPrompt'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -37,9 +41,10 @@ export default async function GuidePage({ params, searchParams }: Props) {
   const lodgingFromCookie = await getActiveLodgingContext()
   const lodging = lodgingFromQuery ?? lodgingFromCookie?.lodgingId
   void recordQrScanIfPresent(lodgingFromQuery ?? null)
-  const [guide, allPois] = await Promise.all([
+  const [guide, allPois, weatherCity] = await Promise.all([
     getCityGuide(slug, { lodgingId: lodging }),
     getAllPoiCards(slug, { sort, page: 1, limit: 10, lodgingId: lodging }),
+    getWeatherCity(slug),
   ])
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.
@@ -49,6 +54,9 @@ export default async function GuidePage({ params, searchParams }: Props) {
   }
 
   const { city, categories } = guide
+  const forecast = weatherCity
+    ? await getForecastOrNull(weatherCity.latitude, weatherCity.longitude)
+    : null
 
   return (
     <>
@@ -59,14 +67,10 @@ export default async function GuidePage({ params, searchParams }: Props) {
         ])}
       />
 
-      <div className="flex justify-between items-end mb-4 p-4">
+      <GeolocationPrompt />
+
+      <div className="flex justify-between items-start mb-4 p-4">
         <div>
-          <Link href={`/guide/${slug}/meteo`} className="text-right">
-            <p className="text-[10px] font-bold text-gold uppercase tracking-widest">
-              Météo
-            </p>
-            <p className="text-[10px] text-blue-500 font-medium">Voir les prévisions</p>
-          </Link>
           <p className="text-[10px] font-bold text-gold uppercase tracking-widest">Le guide</p>
           <h1 className="text-2xl font-light uppercase text-charcoal">
             {city.name}
@@ -75,12 +79,21 @@ export default async function GuidePage({ params, searchParams }: Props) {
             {/* {t('guide.subtitle')} */}Découvrez nos recommandations pour profiter de votre séjour au mieux
           </p>
         </div>
-       
+
+        {forecast && (
+          <GuideWeatherBadge
+            citySlug={slug}
+            icon={forecast.current.icon}
+            temperature={forecast.current.temperature}
+          />
+        )}
       </div>
 
+      {/* Recherche désactivée temporairement — à réoptimiser ultérieurement.
       <section className="mt-4 mb-8 px-4">
         <GuideSearchInput citySlug={slug} lodgingId={lodging} />
       </section>
+      */}
            {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
       {categories.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-8 py-16 text-center gap-4">
@@ -160,4 +173,12 @@ export default async function GuidePage({ params, searchParams }: Props) {
       )}
     </>
   )
+}
+
+async function getForecastOrNull(latitude: number, longitude: number) {
+  try {
+    return await getOpenMeteoForecast({ latitude, longitude })
+  } catch {
+    return null
+  }
 }

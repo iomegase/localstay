@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { PoiCard } from './PoiCard'
+import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
+import { haversineKm } from '@/features/geolocation/lib/user-location'
 import type { AllPoisCard } from '../queries/all-poi-cards'
 
 interface Meta {
@@ -32,6 +34,16 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
   const [error, setError] = useState<string | null>(null)
   const [openPoiId, setOpenPoiId] = useState<string | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const { location } = useUserLocation()
+
+  // Si la position utilisateur est connue, on recalcule la distance affichée
+  // depuis sa vraie position (sans re-trier — parité avec CategoryViewWrapper).
+  const displayedItems = location
+    ? items.map(poi => ({
+        ...poi,
+        distance_km: haversineKm(location.latitude, location.longitude, poi.latitude, poi.longitude),
+      }))
+    : items
 
   // Re-synchronise si le serveur renvoie une nouvelle première page (changement de tri).
   useEffect(() => {
@@ -85,7 +97,7 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
 
   return (
     <div className="space-y-3 mt-4">
-      {items.map(poi => (
+      {displayedItems.map(poi => (
         <PoiCard
           key={poi.id}
           poi={poi}

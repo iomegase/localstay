@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { QrCode } from 'lucide-react'
 
 export function QrScannerButton() {
   const [isScanning, setIsScanning] = useState(false)
@@ -112,26 +113,11 @@ export function QrScannerButton() {
   return (
     <button
       onClick={startScanning}
-      className="w-full text-left bg-white border border-gray-100 rounded-2xl p-5 hover:bg-gray-50 transition-colors shadow-sm group"
+      className="w-full text-left bg-slate-100  rounded-md p-5 hover:bg-slate-200 transition-colors shadow-sm group"
     >
       <div className="flex items-center gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-ivory flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#5A6B5D"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <rect x="7" y="7" width="3" height="3"></rect>
-            <rect x="14" y="7" width="3" height="3"></rect>
-            <rect x="7" y="14" width="3" height="3"></rect>
-            <rect x="14" y="14" width="3" height="3"></rect>
-          </svg>
+        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors">
+          <QrCode width="24" height="24" className="text-[#5A6B5D]" strokeWidth={1.5} />
         </div>
         <div>
           <p className="font-semibold text-charcoal text-sm">J&apos;ai un code MyStay</p>

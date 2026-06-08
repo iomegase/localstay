@@ -91,7 +91,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
       </PoiDetailHeroCarousel>
 
       {/* Content sheet */}
-      <main className="relative bg-ivory  -mt-8 pt-8 pb-32 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] space-y-6">
+      <main className="relative bg-slate-50  -mt-8 pt-8 pb-32 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] space-y-6">
 
         {/* Header */}
         <div className="px-6 flex justify-between items-start">

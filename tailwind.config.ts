@@ -13,7 +13,7 @@ const config: Config = {
     extend: {
       colors: {
         // StayLocal brand tokens
-        ivory: '#FAF9F6',
+        ivory: '#f8fafc',
         charcoal: '#121212',
         gold: '#A68E69',
         forest: '#455E4C',

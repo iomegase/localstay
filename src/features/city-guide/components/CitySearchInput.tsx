@@ -90,7 +90,7 @@ export function CitySearchInput() {
               role="option"
               aria-selected={false}
               onClick={() => handleSelect(city)}
-              className="px-6 py-3 hover:bg-ivory cursor-pointer flex justify-between items-center"
+              className="px-6 py-3 hover:bg-slate-100 cursor-pointer flex justify-between items-center"
             >
               <span className="text-sm font-medium text-charcoal">{city.name}</span>
               <span className="text-xs text-gray-400">{city.postal_code}</span>

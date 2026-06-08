@@ -89,7 +89,7 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
         </div>
       </PoiDetailHeroCarousel>
 
-      <main className="relative z-20 -mt-8  bg-[#FAF9F6] pb-36 shadow-[0_-18px_35px_rgba(0,0,0,0.08)]">
+      <main className="relative z-20 -mt-8  bg-slate-50 pb-36 shadow-[0_-18px_35px_rgba(0,0,0,0.08)]\">
         <section className="px-0 pb-2 pt-8">
           {/* En-tête — style standard POI */}
           <div className="flex items-start justify-between px-6">

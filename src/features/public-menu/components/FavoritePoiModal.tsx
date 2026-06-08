@@ -49,7 +49,7 @@ export function FavoritePoiModal({ fav, onClose }: { fav: FavoritePoi; onClose: 
       data-testid="favorite-poi-modal"
     >
       <div
-        className="relative mx-auto h-[100dvh] max-h-[100dvh] w-full max-w-[430px] overflow-y-auto bg-ivory shadow-2xl sm:my-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[32px]"
+        className="relative mx-auto h-[100dvh] max-h-[100dvh] w-full max-w-[430px] overflow-y-auto bg-slate-50 shadow-2xl sm:my-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[32px]"
         data-testid="favorite-poi-modal-panel"
       >
         {status === 'loading' && (

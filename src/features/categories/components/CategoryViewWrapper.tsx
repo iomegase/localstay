@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { LocateFixed, Compass, MapPin, Grid2x2 } from 'lucide-react'
+import { Compass, MapPin, Grid2x2 } from 'lucide-react'
 import { PoiCard } from './PoiCard'
+import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
+import { haversineKm } from '@/features/geolocation/lib/user-location'
 import type { PoiCard as PoiCardType } from '../types'
 
 interface Props {
@@ -19,18 +21,6 @@ interface Props {
   limit?: number
   totalPages?: number
   lodgingId?: string
-}
-
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 function withDisplayedDistance(
@@ -61,8 +51,7 @@ export function CategoryViewWrapper({
   const [nearbyItems, setNearbyItems] = useState(nearby)
   const [currentPage, setCurrentPage] = useState(page)
   const [currentTotalPages, setCurrentTotalPages] = useState(totalPages)
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null)
-  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable' | 'denied'>('idle')
+  const { location: userLocation } = useUserLocation()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null)
   const [openPoiId, setOpenPoiId] = useState<string | null>(null)
@@ -85,28 +74,6 @@ export function CategoryViewWrapper({
   const displayedNearby = withDisplayedDistance(nearbyItems, userLocation)
   const pois = [...displayedPrimary, ...displayedNearby]
   const canLoadMore = currentPage < currentTotalPages
-
-  function requestUserLocation() {
-    if (!navigator.geolocation) {
-      setGeoStatus('unavailable')
-      return
-    }
-
-    setGeoStatus('loading')
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        })
-        setGeoStatus('ready')
-      },
-      () => {
-        setGeoStatus('denied')
-      },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 },
-    )
-  }
 
   async function loadMore() {
     if (!canLoadMore || isLoadingMore) return
@@ -146,23 +113,8 @@ export function CategoryViewWrapper({
 
   return (
     <>
-      {/* Contrôle de localisation — placé en haut à droite, aligné sur la ligne du titre
-          (positionné en absolu via le conteneur `relative` de la page). */}
-      <section className="absolute right-5 top-8 z-20" data-testid="geo-control">
-        <button
-          onClick={requestUserLocation}
-          disabled={geoStatus === 'loading'}
-          title={
-            geoStatus === 'denied' || geoStatus === 'unavailable'
-              ? 'Distances depuis le centre-ville'
-              : undefined
-          }
-          className="flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-white/90 px-3 py-1.5 text-[10px] font-semibold text-charcoal/70 shadow-sm backdrop-blur-sm transition-transform active:scale-95 disabled:opacity-60"
-        >
-          <LocateFixed className="h-3.5 w-3.5" />
-          {geoStatus === 'ready' ? 'Position utilisée' : geoStatus === 'loading' ? 'Localisation...' : 'Ma position'}
-        </button>
-      </section>
+      {/* La géolocalisation se pilote désormais depuis la nav du footer (GeoNavButton) ;
+          les distances ci-dessous se recalculent automatiquement quand elle est activée. */}
 
       {/* Récap + Explorer */}
 
