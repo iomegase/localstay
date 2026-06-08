@@ -39,9 +39,9 @@ export function HeroShareButton({ poiName, poiUrl }: Props) {
       onClick={handleShare}
       aria-label="Partager"
       data-testid="btn-share"
-      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 backdrop-blur text-charcoal shadow-sm transition-transform active:scale-95"
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/30 backdrop-blur text-charcoal/60 shadow-sm transition-transform active:scale-95 hover:bg-white/40"
     >
-      <Share2 className="h-5 w-5" />
+      <Share2 className="h-4 w-4" />
     </button>
   )
 }

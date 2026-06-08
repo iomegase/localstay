@@ -41,22 +41,22 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
     <>
       {/* Hero */}
       <PoiDetailHeroCarousel photos={poi.photos} name={poi.name} poiId={poi.id}>
-        <div className="absolute top-8 left-6 right-6 flex justify-between items-center z-10">
+        <div className="absolute top-4 left-6 right-6 flex justify-between items-center z-10">
           {onClose ? (
             <button
               type="button"
               onClick={onClose}
               aria-label="Fermer"
-              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+              className="w-10 h-10 rounded-full bg-white/30 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </button>
           ) : (
             <Link
               href={`/guide/${citySlug}/${categorySlug}`}
-              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-charcoal active:scale-95 transition-transform"
+              className="w-10 h-10 rounded-full bg-white/30 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </Link>
           )}
           <div className="flex items-center gap-2">

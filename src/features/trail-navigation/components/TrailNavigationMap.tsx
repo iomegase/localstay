@@ -610,6 +610,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       {!isHudExpanded && (
         <NavigationHud
           statusColor={markerColor}
+          healthColor={gpsHealthColor(gpsState)}
           statusLabel={gpsState === 'tracking' ? 'GPS actif' : gpsStateLabel(gpsState)}
           distanceRemainingKm={
             progress && trail.distance_km
@@ -632,11 +633,21 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           <div>
             {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#A68E69]">Guidage randonnée</p> */}
             <h1 className="mt-1 uppercase text-xlleading-tight text-[#121212]">{trail.name}</h1>
-            {/* <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p> */}
+            <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
-              {statusLabel}
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm"
+              title={statusLabel}
+              aria-label={`GPS — ${statusLabel}`}
+            >
+              GPS
+              <span
+                data-testid="gps-health-dot"
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ backgroundColor: gpsHealthColor(gpsState) }}
+                aria-hidden="true"
+              />
             </span>
             <button
               type="button"
@@ -791,6 +802,14 @@ function haversineMeters(a: TrailCoordinate, b: TrailCoordinate): number {
   const dLng = ((b.longitude - a.longitude) * Math.PI) / 180
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
+}
+
+// Santé du signal GPS résumée en feu tricolore (indépendant de l'état de navigation,
+// qui reste véhiculé par les blocs et le marqueur carte).
+function gpsHealthColor(status: GpsState): string {
+  if (status === 'gps_denied') return '#DC2626'                                                    // 🔴 indisponible
+  if (status === 'gps_prompt' || status === 'low_accuracy' || status === 'ready') return '#F59E0B' // 🟠 acquisition
+  return '#16A34A'                                                                                 // 🟢 fix fiable
 }
 
 function gpsStateLabel(status: GpsState): string {

@@ -4,6 +4,7 @@ import { ChevronUp } from 'lucide-react'
 
 type Props = {
   statusColor: string
+  healthColor: string
   statusLabel: string
   distanceRemainingKm: number | null
   progressPercent: number | null
@@ -14,6 +15,7 @@ type Props = {
 
 export function NavigationHud({
   statusColor,
+  healthColor,
   statusLabel,
   distanceRemainingKm,
   progressPercent,
@@ -30,14 +32,16 @@ export function NavigationHud({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-            style={{ backgroundColor: statusColor }}
-            aria-label={statusLabel}
-          />
           <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal/80 whitespace-nowrap">
-            {statusLabel}
+            GPS
           </span>
+          <span
+            data-testid="gps-health-dot"
+            className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+            style={{ backgroundColor: healthColor }}
+            aria-label={statusLabel}
+            title={statusLabel}
+          />
         </div>
         <div className="flex items-center gap-3 text-xs font-medium text-charcoal">
           {distanceRemainingKm !== null && (

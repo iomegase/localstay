@@ -52,23 +52,23 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
   return (
     <>
       <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name} poiId={poi.id}>
-        <div className="absolute left-6 right-6 top-8 z-10 flex items-center justify-between">
+        <div className="absolute top-5 left-6 right-6 z-10 flex items-center justify-between">
           {onClose ? (
             <button
               type="button"
               onClick={onClose}
               aria-label="Fermer"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-charcoal backdrop-blur transition-transform active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-charcoal/60 backdrop-blur transition-transform active:scale-95 hover:bg-white/40"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
             </button>
           ) : (
             <Link
               href={`/guide/${citySlug}/${categorySlug}`}
               aria-label="Retour"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-charcoal backdrop-blur transition-transform active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-charcoal/60 backdrop-blur transition-transform active:scale-95 hover:bg-white/40"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
             </Link>
           )}
           <div className="flex items-center gap-2">

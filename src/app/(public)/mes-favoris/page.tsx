@@ -2,7 +2,7 @@ import { FavoritesList } from '@/features/public-menu/components/FavoritesList'
 
 export default function MesFavorisPage() {
   return (
-    <div className="px-5 pt-4">
+    <div className="pt-4">
       <div className="mb-6">
        
         <h1 className="mt-1 uppercase text-3xl text-charcoal">Vos favoris</h1>

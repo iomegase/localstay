@@ -56,7 +56,9 @@ describe('021 trail navigation start mode', () => {
     expect(screen.getByTestId('map-layer-trail-line')).toBeInTheDocument()
     expect(screen.getByText(/Départ Mont Joux/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /activer le suivi gps/i })).toBeInTheDocument()
-    expect(screen.getByText(/Prêt/i)).toBeInTheDocument()
+    // Santé GPS « ready » → point orange (en acquisition), libellé accessible préservé
+    expect(screen.getByTestId('gps-health-dot')).toHaveStyle({ backgroundColor: '#F59E0B' })
+    expect(screen.getByTitle(/Prêt/i)).toBeInTheDocument()
     expect(watchPosition).not.toHaveBeenCalled()
   })
 
@@ -108,7 +110,12 @@ describe('021 trail navigation start mode', () => {
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
     await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
-    await waitFor(() => expect(screen.getAllByText(/GPS actif/i).length).toBeGreaterThan(0))
+    // Tracking → point(s) vert(s) (fix fiable)
+    await waitFor(() => {
+      const dots = screen.getAllByTestId('gps-health-dot')
+      expect(dots.length).toBeGreaterThan(0)
+      dots.forEach(dot => expect(dot).toHaveStyle({ backgroundColor: '#16A34A' }))
+    })
 
     unmount()
 
@@ -129,7 +136,10 @@ describe('021 trail navigation start mode', () => {
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
     expect(screen.getByTestId('map-layer-trail-line')).toBeInTheDocument()
-    expect(await screen.findByText(/GPS indisponible/i)).toBeInTheDocument()
+    // GPS refusé → point rouge (indisponible)
+    await waitFor(() =>
+      expect(screen.getByTestId('gps-health-dot')).toHaveStyle({ backgroundColor: '#DC2626' }),
+    )
   })
 
   it('AC-03-03: shows pre-start state instead of off-track when first GPS position is far from the trail', async () => {
