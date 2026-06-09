@@ -209,3 +209,23 @@ Conforme au pattern existant (`AdminAcquisitionLauncher`, `AdminTrailsLauncher` 
 - Revue/validation admin des événements (auto‑publication ici).
 - Sources complémentaires (Apidae direct, OpenAgenda).
 - Communes hors Haute‑Savoie.
+
+## 13. Révision (2026-06-09) — Pivot vers l'API REST v1 (remplace le flux)
+
+Après mise en place initiale sur le **flux ZIP** (`diffuseur.datatourisme.fr/webservice/...`, JSON‑LD), bascule vers l'**API REST v1** (`https://api.datatourisme.fr/v1`) — l'utilisateur disposait d'une clé API REST, mieux adaptée au besoin « n'importe quelle commune à la demande ».
+
+Constats vérifiés sur l'API réelle :
+- Auth `X-API-Key` (header). La clé vit dans `DATATOURISME_API_KEY` (remplace `DATATOURISME_FLUX_URL`).
+- Endpoint `/v1/entertainmentAndEvent` ; le paramètre `fields=` permet d'obtenir `takesPlaceAt` (dates) **dans la liste** → pas de N+1.
+- **Aucun filtre par propriété ne fonctionne** (commune/département INSEE, et même `lastUpdate[gte]` est ignoré) — seul **`geo_distance=lat,lon,rayon`** est honoré.
+- Structure JSON (≠ JSON‑LD) : `label.@fr`, `type:[]`, `takesPlaceAt:[{startDate,endDate,startTime}]`, `isLocatedAt[].geo.{latitude,longitude}`, `…hasAddressCity.{insee,label.@fr}`, `hasContact[].{telephone,homepage,email}`, images `hasMainRepresentation[].hasRelatedResource[].locator[]`, `uuid`.
+- Quotas : 20‑30 concurrents, 10 req/s, 1000 req/h → on pagine peu de requêtes par commune.
+
+Conséquences sur l'architecture (le modèle `Event`, les types, la normalisation, les routes, l'UI et le cron restent) :
+- **client** REST paginé (`geo_distance` + `fields` + `X-API-Key`, suit `meta.next`, garde‑fou `maxPages`).
+- **mapper** réécrit pour la structure REST.
+- **commune-geo** (nouveau) : résout une commune (nom/INSEE) → coordonnées via `geo.api.gouv.fr` (gratuit) pour la recherche admin.
+- **runner** : `geo_distance` autour de la commune (admin) ou de chaque ville suivie (cron), **rayon ajustable** (défaut 10 km, bornes 1–50), dédup par `uuid`, hard‑delete des périmés.
+- **UI** : champ **rayon** ajustable à côté de la commune.
+- Dépendance `fflate` **retirée** (le dézippage du flux n'est plus nécessaire).
+- §10 (tests) : `datatourisme-client` teste désormais la pagination REST (mock `fetch`), pas le dézippage ; ajout de tests `commune-geo` et du rayon (route + UI).
