@@ -4,16 +4,17 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  BarChart3, 
-  Building2, 
-  LayoutDashboard, 
-  MapPinPlus, 
-  MapPinned, 
-  Mountain, 
-  Radar, 
-  Tags, 
-  Users, 
+import {
+  BarChart3,
+  Building2,
+  CalendarDays,
+  LayoutDashboard,
+  MapPinPlus,
+  MapPinned,
+  Mountain,
+  Radar,
+  Tags,
+  Users,
   ChevronRight,
   Search,
   Bell,
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: '/admin/poi-acquisition', label: 'Acquisition POI', icon: Radar },
   { href: '/admin/pois', label: 'POI par ville', icon: MapPinned },
   { href: '/admin/trails', label: 'Randonnées', icon: Mountain },
+  { href: '/admin/events', label: 'Sorties culturelles', icon: CalendarDays },
   { href: '/admin/pois/new', label: 'Créer POI', icon: MapPinPlus },
   { href: '/admin/users', label: 'Utilisateurs', icon: Users },
 ]

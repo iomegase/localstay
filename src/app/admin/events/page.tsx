@@ -9,7 +9,7 @@ export default async function AdminEventsPage() {
   return (
     <div className="w-full space-y-6">
       <header>
-        <h1 className="text-xl font-semibold">Événements DATAtourisme</h1>
+        <h1 className="text-xl font-semibold">Sorties culturelles & manifestations</h1>
         <p className="text-sm text-gray-500">
           Récupérez les manifestations d'une commune de Haute-Savoie. Le cron quotidien
           rafraîchit automatiquement les communes déjà présentes.
