@@ -1,38 +1,51 @@
-import { zipSync, strToU8 } from 'fflate'
-import { parseFluxArchive, fetchFluxObjects } from '@/features/events-acquisition/lib/datatourisme-client'
+import { fetchEventsNear } from '@/features/events-acquisition/lib/datatourisme-client'
 
-function buildZip(): Uint8Array {
-  return zipSync({
-    'index.json': strToU8(JSON.stringify([{ file: 'objects/a.json' }])),
-    'objects/a.json': strToU8(JSON.stringify({ '@id': 'a', 'dc:identifier': 'A' })),
-    'objects/b.json': strToU8(JSON.stringify({ '@id': 'b', 'dc:identifier': 'B' })),
-    'context.jsonld': strToU8('{}'),
-  })
-}
+describe('fetchEventsNear (API REST v1)', () => {
+  afterEach(() => jest.restoreAllMocks())
 
-describe('datatourisme-client', () => {
-  it('parseFluxArchive: extrait les objets .json hors index/context', () => {
-    const objects = parseFluxArchive(buildZip())
-    const ids = objects.map((o: any) => o['dc:identifier']).sort()
-    expect(ids).toEqual(['A', 'B'])
-  })
-
-  it("fetchFluxObjects: telecharge puis parse l'archive", async () => {
-    const zip = buildZip()
-    const realFetch = global.fetch
-    global.fetch = jest.fn(async () => ({
-      ok: true,
-      arrayBuffer: async () => zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength),
-    })) as unknown as typeof fetch
-    try {
-      const objects = await fetchFluxObjects('https://flux.example/test')
-      expect(objects).toHaveLength(2)
-    } finally {
-      global.fetch = realFetch
+  it('pagine via meta.next, agrège, envoie X-API-Key + geo_distance + fields', async () => {
+    const page1 = {
+      objects: [{ uuid: 'a' }],
+      meta: { next: 'https://api.datatourisme.fr/v1/entertainmentAndEvent?page=2&crs=xyz' },
     }
+    const page2 = { objects: [{ uuid: 'b' }], meta: { next: null } }
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => page1 })
+      .mockResolvedValueOnce({ ok: true, json: async () => page2 })
+    global.fetch = fetchMock as unknown as typeof fetch
+
+    const objs = await fetchEventsNear({ latitude: 45.92, longitude: 6.86, radiusKm: 10, apiKey: 'KEY' })
+    expect((objs as Array<{ uuid: string }>).map((o) => o.uuid)).toEqual(['a', 'b'])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    const firstUrl = String(fetchMock.mock.calls[0][0])
+    expect(firstUrl).toContain('entertainmentAndEvent')
+    expect(decodeURIComponent(firstUrl)).toContain('geo_distance=45.92,6.86,10km')
+    expect(firstUrl).toContain('fields=')
+    const opts = fetchMock.mock.calls[0][1] as { headers: Record<string, string> }
+    expect(opts.headers['X-API-Key']).toBe('KEY')
+    expect(String(fetchMock.mock.calls[1][0])).toContain('page=2')
   })
 
-  it("fetchFluxObjects: leve une erreur si l'URL est absente", async () => {
-    await expect(fetchFluxObjects(undefined)).rejects.toThrow('DATATOURISME_FLUX_URL')
+  it('respecte maxPages (garde-fou anti-boucle)', async () => {
+    const fetchMock = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        objects: [{ uuid: 'x' }],
+        meta: { next: 'https://api.datatourisme.fr/v1/entertainmentAndEvent?p=next' },
+      }),
+    }))
+    global.fetch = fetchMock as unknown as typeof fetch
+
+    const objs = await fetchEventsNear({ latitude: 1, longitude: 2, radiusKm: 5, apiKey: 'K', maxPages: 3 })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(objs).toHaveLength(3)
+  })
+
+  it('lève une erreur si la clé est absente', async () => {
+    await expect(fetchEventsNear({ latitude: 1, longitude: 2, radiusKm: 5, apiKey: '' })).rejects.toThrow(
+      'DATATOURISME_API_KEY',
+    )
   })
 })

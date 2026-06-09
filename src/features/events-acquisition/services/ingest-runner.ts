@@ -1,10 +1,11 @@
 import { prisma } from '@/shared/lib/prisma'
-import { fetchFluxObjects } from '../lib/datatourisme-client'
+import { fetchEventsNear } from '../lib/datatourisme-client'
 import { mapDatatourismeObject } from '../lib/datatourisme-mapper'
-import { communeMatches } from '../lib/commune'
+import { resolveCommune } from '../lib/commune-geo'
 import type { ParsedEvent, RunSummary } from '../types'
 
 const SOURCE = 'datatourisme'
+export const DEFAULT_RADIUS_KM = 10
 
 function startOfToday(): Date {
   const d = new Date()
@@ -13,30 +14,41 @@ function startOfToday(): Date {
 }
 
 export async function runEventIngestion(
-  params: { communeFilter?: string; source?: 'cron' | 'admin' } = {},
+  params: { communeFilter?: string; radiusKm?: number; source?: 'cron' | 'admin' } = {},
 ): Promise<RunSummary> {
-  const { communeFilter } = params
+  const radiusKm = params.radiusKm ?? DEFAULT_RADIUS_KM
   const today = startOfToday()
-  const objects = await fetchFluxObjects()
 
-  const parsed: ParsedEvent[] = []
-  for (const obj of objects) {
-    const ev = mapDatatourismeObject(obj as Record<string, unknown>)
-    if (ev && new Date(ev.endDate) >= today) parsed.push(ev)
-  }
-  const fetched = parsed.length
-
-  let selected: ParsedEvent[]
-  if (communeFilter) {
-    selected = parsed.filter((e) => communeMatches(communeFilter, e))
+  // 1) Récupérer les objets bruts selon la cible.
+  const raw: unknown[] = []
+  if (params.communeFilter) {
+    const commune = await resolveCommune(params.communeFilter)
+    if (commune) {
+      raw.push(...(await fetchEventsNear({ latitude: commune.latitude, longitude: commune.longitude, radiusKm })))
+    }
   } else {
-    const targets = await cronTargetInsee()
-    selected = parsed.filter((e) => targets.has(e.communeInsee))
+    const cities = await prisma.city.findMany({
+      where: { insee_code: { not: null }, deleted_at: null, is_active: true },
+      select: { latitude: true, longitude: true },
+    })
+    for (const c of cities) {
+      raw.push(...(await fetchEventsNear({ latitude: c.latitude, longitude: c.longitude, radiusKm })))
+    }
   }
+  const fetched = raw.length
+
+  // 2) Mapper, exclure les terminés, dédupliquer par identifiant source
+  //    (les rayons des villes peuvent se chevaucher).
+  const byId = new Map<string, ParsedEvent>()
+  for (const obj of raw) {
+    const ev = mapDatatourismeObject(obj as Record<string, unknown>)
+    if (ev && new Date(ev.endDate) >= today) byId.set(ev.sourceId, ev)
+  }
+  const selected = [...byId.values()]
   const matched = selected.length
 
+  // 3) Lier la City par INSEE (un seul findMany) puis upsert idempotent.
   const cityIdByInsee = await resolveCityIds(selected)
-
   let upserted = 0
   for (const e of selected) {
     const row = toRow(e, cityIdByInsee.get(e.communeInsee) ?? null)
@@ -48,31 +60,12 @@ export async function runEventIngestion(
     upserted++
   }
 
+  // 4) Suppression définitive des événements terminés.
   const del = await prisma.event.deleteMany({ where: { end_date: { lt: today } } })
 
   return { fetched, matched, upserted, skipped: fetched - matched, deleted: del.count }
 }
 
-async function cronTargetInsee(): Promise<Set<string>> {
-  const [events, cities] = await Promise.all([
-    prisma.event.findMany({
-      where: { deleted_at: null },
-      select: { commune_insee: true },
-      distinct: ['commune_insee'],
-    }),
-    prisma.city.findMany({
-      where: { insee_code: { not: null } },
-      select: { insee_code: true },
-    }),
-  ])
-  const set = new Set<string>()
-  for (const e of events) set.add(e.commune_insee)
-  for (const c of cities) if (c.insee_code) set.add(c.insee_code)
-  return set
-}
-
-// Batch-resolve City ids for the selected events' communes (one query, not one
-// per event) → Map keyed by INSEE code.
 async function resolveCityIds(events: ParsedEvent[]): Promise<Map<string, string>> {
   const insees = [...new Set(events.map((e) => e.communeInsee))]
   if (insees.length === 0) return new Map()

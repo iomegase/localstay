@@ -1,28 +1,50 @@
-import { unzipSync, strFromU8 } from 'fflate'
+// Client de l'API REST v1 DATAtourisme (https://api.datatourisme.fr/v1).
+// On interroge l'endpoint pré-filtré /entertainmentAndEvent avec un filtre
+// géographique geo_distance (seul filtre serveur honoré) + projection `fields`
+// (qui inclut takesPlaceAt), en suivant la pagination via meta.next.
 
-export function parseFluxArchive(zip: Uint8Array): unknown[] {
-  const files = unzipSync(zip)
-  const objects: unknown[] = []
-  for (const [name, data] of Object.entries(files)) {
-    if (!name.endsWith('.json')) continue
-    if (name.endsWith('index.json') || name.endsWith('context.jsonld')) continue
-    const parsed = JSON.parse(strFromU8(data))
-    if (Array.isArray(parsed)) objects.push(...parsed)
-    else if (parsed && Array.isArray((parsed as Record<string, unknown>)['@graph'])) {
-      objects.push(...((parsed as Record<string, unknown>)['@graph'] as unknown[]))
-    } else {
-      objects.push(parsed)
-    }
-  }
-  return objects
+const BASE = 'https://api.datatourisme.fr/v1/entertainmentAndEvent'
+const FIELDS =
+  'uuid,identifier,label,type,takesPlaceAt,isLocatedAt,hasDescription,hasContact,hasMainRepresentation,lastUpdate'
+const PAGE_SIZE = 250
+
+export interface FetchEventsParams {
+  latitude: number
+  longitude: number
+  radiusKm: number
+  apiKey?: string
+  /** Garde-fou anti-boucle (quotas: 1000 req/h). 250 events/page → 20 pages = 5000 events max. */
+  maxPages?: number
 }
 
-export async function fetchFluxObjects(
-  fluxUrl: string | undefined = process.env.DATATOURISME_FLUX_URL,
-): Promise<unknown[]> {
-  if (!fluxUrl) throw new Error('DATATOURISME_FLUX_URL is not set')
-  const res = await fetch(fluxUrl)
-  if (!res.ok) throw new Error(`DATAtourisme flux download failed: ${res.status}`)
-  const buf = new Uint8Array(await res.arrayBuffer())
-  return parseFluxArchive(buf)
+export async function fetchEventsNear({
+  latitude,
+  longitude,
+  radiusKm,
+  apiKey = process.env.DATATOURISME_API_KEY,
+  maxPages = 20,
+}: FetchEventsParams): Promise<unknown[]> {
+  if (!apiKey) throw new Error('DATATOURISME_API_KEY is not set')
+
+  const headers = { 'X-API-Key': apiKey, Accept: 'application/json' }
+  const params = new URLSearchParams({
+    fields: FIELDS,
+    page_size: String(PAGE_SIZE),
+    geo_distance: `${latitude},${longitude},${radiusKm}km`,
+  })
+
+  let url: string | null = `${BASE}?${params.toString()}`
+  const objects: unknown[] = []
+  let pages = 0
+
+  while (url && pages < maxPages) {
+    const res = await fetch(url, { headers })
+    if (!res.ok) throw new Error(`DATAtourisme API failed: ${res.status}`)
+    const data = (await res.json()) as { objects?: unknown[]; meta?: { next?: string | null } }
+    if (Array.isArray(data.objects)) objects.push(...data.objects)
+    url = data.meta?.next ?? null
+    pages++
+  }
+
+  return objects
 }
