@@ -1,6 +1,8 @@
 import type { EventPeriod, ParsedEvent } from '../types'
 import { normalizeEventTypes } from './event-types'
 
+// JSON-LD objects have unpredictable shapes (scalar | {@value} | arrays), so the
+// mapper works against a permissive record and narrows via the helpers below.
 type Json = Record<string, any>
 
 function asArray<T>(v: T | T[] | undefined | null): T[] {
@@ -26,9 +28,13 @@ function localized(v: any): string | null {
 }
 
 function num(v: any): number | null {
-  const s = Array.isArray(v) ? v[0] : v
-  const n = typeof s === 'string' ? parseFloat(s) : typeof s === 'number' ? s : NaN
-  return Number.isFinite(n) ? n : null
+  const s = firstString(v)
+  if (s !== null) {
+    const parsed = parseFloat(s)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  const raw = Array.isArray(v) ? v[0] : v
+  return typeof raw === 'number' && Number.isFinite(raw) ? raw : null
 }
 
 export function mapDatatourismeObject(obj: Json): ParsedEvent | null {
