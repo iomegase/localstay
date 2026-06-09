@@ -63,7 +63,7 @@ describe('runEventIngestion', () => {
       obj('A', '74056', 'Chamonix-Mont-Blanc'),
       obj('B', '74236', 'Saint-Gervais-les-Bains'),
     ])
-    ;(prisma.city.findUnique as jest.Mock).mockResolvedValue({ id: 'city-cha' })
+    ;(prisma.city.findMany as jest.Mock).mockResolvedValue([{ id: 'city-cha', insee_code: '74056' }])
     const r = await runEventIngestion({ communeFilter: 'chamonix', source: 'admin' })
     expect(r.matched).toBe(1)
     const call = (prisma.event.upsert as jest.Mock).mock.calls[0][0]

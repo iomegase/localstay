@@ -35,13 +35,11 @@ export async function runEventIngestion(
   }
   const matched = selected.length
 
+  const cityIdByInsee = await resolveCityIds(selected)
+
   let upserted = 0
   for (const e of selected) {
-    const city = await prisma.city.findUnique({
-      where: { insee_code: e.communeInsee },
-      select: { id: true },
-    })
-    const row = toRow(e, city?.id ?? null)
+    const row = toRow(e, cityIdByInsee.get(e.communeInsee) ?? null)
     await prisma.event.upsert({
       where: { source_source_id: { source: SOURCE, source_id: e.sourceId } },
       create: row,
@@ -71,6 +69,18 @@ async function cronTargetInsee(): Promise<Set<string>> {
   for (const e of events) set.add(e.commune_insee)
   for (const c of cities) if (c.insee_code) set.add(c.insee_code)
   return set
+}
+
+// Batch-resolve City ids for the selected events' communes (one query, not one
+// per event) → Map keyed by INSEE code.
+async function resolveCityIds(events: ParsedEvent[]): Promise<Map<string, string>> {
+  const insees = [...new Set(events.map((e) => e.communeInsee))]
+  if (insees.length === 0) return new Map()
+  const cities = await prisma.city.findMany({
+    where: { insee_code: { in: insees } },
+    select: { id: true, insee_code: true },
+  })
+  return new Map(cities.flatMap((c) => (c.insee_code ? [[c.insee_code, c.id] as const] : [])))
 }
 
 function toRow(e: ParsedEvent, cityId: string | null) {
