@@ -10,8 +10,13 @@ interface Summary {
   deleted: number
 }
 
+const DEFAULT_RADIUS_KM = 10
+const MIN_RADIUS_KM = 1
+const MAX_RADIUS_KM = 50
+
 export function AdminEventsLauncher() {
   const [commune, setCommune] = useState('')
+  const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM)
   const [loading, setLoading] = useState(false)
   const [summary, setSummary] = useState<Summary | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +29,7 @@ export function AdminEventsLauncher() {
       const res = await fetch('/api/admin/events/fetch', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ commune }),
+        body: JSON.stringify({ commune, radiusKm }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -48,6 +53,21 @@ export function AdminEventsLauncher() {
           placeholder="Commune ou code INSEE (ex : Chamonix, 74056)"
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
         />
+        <label className="flex items-center gap-1.5 text-sm text-gray-600">
+          <span className="whitespace-nowrap">Rayon</span>
+          <input
+            type="number"
+            min={MIN_RADIUS_KM}
+            max={MAX_RADIUS_KM}
+            value={radiusKm}
+            onChange={(e) =>
+              setRadiusKm(Math.min(MAX_RADIUS_KM, Math.max(MIN_RADIUS_KM, Number(e.target.value) || DEFAULT_RADIUS_KM)))
+            }
+            aria-label="Rayon de recherche en kilomètres"
+            className="w-20 rounded-lg border border-gray-300 px-2 py-2 text-sm"
+          />
+          <span className="text-gray-400">km</span>
+        </label>
         <button
           onClick={onFetch}
           disabled={loading || commune.trim().length === 0}

@@ -7,7 +7,7 @@ import { AdminEventsLauncher } from '@/features/events-acquisition/components/Ad
 describe('AdminEventsLauncher', () => {
   afterEach(() => jest.restoreAllMocks())
 
-  it('poste la commune et affiche le résumé', async () => {
+  it('poste la commune + le rayon ajusté et affiche le résumé', async () => {
     const fetchMock = jest.fn(async () => ({
       ok: true,
       json: async () => ({ data: { fetched: 5, matched: 3, upserted: 3, skipped: 2, deleted: 1 } }),
@@ -16,10 +16,13 @@ describe('AdminEventsLauncher', () => {
 
     render(<AdminEventsLauncher />)
     fireEvent.change(screen.getByPlaceholderText(/commune/i), { target: { value: 'chamonix' } })
+    fireEvent.change(screen.getByLabelText(/rayon/i), { target: { value: '25' } })
     fireEvent.click(screen.getByRole('button', { name: /fetcher/i }))
 
     await waitFor(() => expect(screen.getByText(/3 événement/i)).toBeInTheDocument())
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/events/fetch', expect.objectContaining({ method: 'POST' }))
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as { body: string }).body)
+    expect(body).toEqual({ commune: 'chamonix', radiusKm: 25 })
   })
 
   it("affiche l'erreur renvoyée par l'API", async () => {
