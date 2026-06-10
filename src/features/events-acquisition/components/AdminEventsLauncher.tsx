@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Summary {
   fetched: number
@@ -15,6 +16,7 @@ const MIN_RADIUS_KM = 1
 const MAX_RADIUS_KM = 50
 
 export function AdminEventsLauncher() {
+  const router = useRouter()
   const [commune, setCommune] = useState('')
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM)
   const [loading, setLoading] = useState(false)
@@ -37,6 +39,7 @@ export function AdminEventsLauncher() {
         return
       }
       setSummary(json.data as Summary)
+      router.refresh()
     } catch {
       setError('Erreur réseau')
     } finally {

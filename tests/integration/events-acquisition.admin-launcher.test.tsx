@@ -4,6 +4,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AdminEventsLauncher } from '@/features/events-acquisition/components/AdminEventsLauncher'
 
+const mockRefresh = jest.fn()
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }))
+
 describe('AdminEventsLauncher', () => {
   afterEach(() => jest.restoreAllMocks())
 
@@ -23,6 +26,8 @@ describe('AdminEventsLauncher', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/events/fetch', expect.objectContaining({ method: 'POST' }))
     const body = JSON.parse((fetchMock.mock.calls[0][1] as { body: string }).body)
     expect(body).toEqual({ commune: 'chamonix', radiusKm: 25 })
+    // rafraîchit le tableau server-rendered après succès
+    expect(mockRefresh).toHaveBeenCalled()
   })
 
   it("affiche l'erreur renvoyée par l'API", async () => {
