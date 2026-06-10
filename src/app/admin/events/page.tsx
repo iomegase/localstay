@@ -3,6 +3,8 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { AdminEventsLauncher } from '@/features/events-acquisition/components/AdminEventsLauncher'
 import { listEvents } from '@/features/events-acquisition/queries/events'
 
+type AdminEventRow = Awaited<ReturnType<typeof listEvents>>[number]
+
 export default async function AdminEventsPage({
   searchParams,
 }: {
@@ -55,7 +57,7 @@ export default async function AdminEventsPage({
             </tr>
           </thead>
           <tbody>
-            {events.map((e) => (
+            {events.map((e: AdminEventRow) => (
               <tr key={e.id} className="border-t border-gray-100">
                 <td className="px-3 py-2">{e.title}</td>
                 <td className="px-3 py-2">{e.commune_name}</td>
