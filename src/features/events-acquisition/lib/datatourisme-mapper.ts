@@ -37,6 +37,7 @@ function num(v: any): number | null {
 }
 
 export function mapDatatourismeObject(obj: Json): ParsedEvent | null {
+  if (!obj || typeof obj !== 'object') return null
   const sourceId =
     (typeof obj.uuid === 'string' && obj.uuid) ||
     (typeof obj.identifier === 'string' && obj.identifier) ||

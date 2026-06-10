@@ -4,6 +4,7 @@
 // (qui inclut takesPlaceAt), en suivant la pagination via meta.next.
 
 const BASE = 'https://api.datatourisme.fr/v1/entertainmentAndEvent'
+const DETAIL_BASE = 'https://api.datatourisme.fr/v1/catalog'
 const FIELDS =
   'uuid,identifier,label,type,takesPlaceAt,isLocatedAt,hasDescription,hasContact,hasMainRepresentation,lastUpdate'
 const PAGE_SIZE = 250
@@ -47,4 +48,20 @@ export async function fetchEventsNear({
   }
 
   return objects
+}
+
+/**
+ * Détail d'un objet (/v1/catalog/{uuid}). À utiliser pour récupérer les champs
+ * absents de la liste — notamment les images (hasMainRepresentation).
+ */
+export async function fetchEventDetail(
+  uuid: string,
+  apiKey: string | undefined = process.env.DATATOURISME_API_KEY,
+): Promise<unknown> {
+  if (!apiKey) throw new Error('DATATOURISME_API_KEY is not set')
+  const res = await fetch(`${DETAIL_BASE}/${encodeURIComponent(uuid)}`, {
+    headers: { 'X-API-Key': apiKey, Accept: 'application/json' },
+  })
+  if (!res.ok) throw new Error(`DATAtourisme detail failed: ${res.status}`)
+  return res.json()
 }

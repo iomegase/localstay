@@ -1,4 +1,4 @@
-import { fetchEventsNear } from '@/features/events-acquisition/lib/datatourisme-client'
+import { fetchEventsNear, fetchEventDetail } from '@/features/events-acquisition/lib/datatourisme-client'
 
 describe('fetchEventsNear (API REST v1)', () => {
   afterEach(() => jest.restoreAllMocks())
@@ -47,5 +47,26 @@ describe('fetchEventsNear (API REST v1)', () => {
     await expect(fetchEventsNear({ latitude: 1, longitude: 2, radiusKm: 5, apiKey: '' })).rejects.toThrow(
       'DATATOURISME_API_KEY',
     )
+  })
+})
+
+describe('fetchEventDetail (API REST v1)', () => {
+  afterEach(() => jest.restoreAllMocks())
+
+  it('GET /v1/catalog/{uuid} avec X-API-Key et renvoie le JSON', async () => {
+    const detail = { uuid: 'abc', hasMainRepresentation: [{ hasRelatedResource: [{ locator: ['https://img/x.jpg'] }] }] }
+    const fetchMock = jest.fn(async () => ({ ok: true, json: async () => detail }))
+    global.fetch = fetchMock as unknown as typeof fetch
+
+    const res = await fetchEventDetail('abc', 'KEY')
+    expect(res).toEqual(detail)
+    const url = String(fetchMock.mock.calls[0][0])
+    expect(url).toContain('/v1/catalog/abc')
+    const opts = fetchMock.mock.calls[0][1] as { headers: Record<string, string> }
+    expect(opts.headers['X-API-Key']).toBe('KEY')
+  })
+
+  it('lève une erreur si la clé est absente', async () => {
+    await expect(fetchEventDetail('abc', '')).rejects.toThrow('DATATOURISME_API_KEY')
   })
 })

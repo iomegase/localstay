@@ -1,5 +1,5 @@
 import { prisma } from '@/shared/lib/prisma'
-import { fetchEventsNear } from '../lib/datatourisme-client'
+import { fetchEventsNear, fetchEventDetail } from '../lib/datatourisme-client'
 import { mapDatatourismeObject } from '../lib/datatourisme-mapper'
 import { resolveCommune } from '../lib/commune-geo'
 import type { ParsedEvent, RunSummary } from '../types'
@@ -56,6 +56,21 @@ export async function runEventIngestion(
 
   const selected = [...byId.values()]
   const matched = selected.length
+
+  // Les images (et la description complète) ne sont pas dans la liste : on enrichit
+  // chaque event retenu via son détail /v1/catalog/{uuid} (peu de requêtes : seulement
+  // les events de la commune ciblée).
+  for (const e of selected) {
+    try {
+      const enriched = mapDatatourismeObject((await fetchEventDetail(e.sourceId)) as Record<string, unknown>)
+      if (enriched) {
+        e.images = enriched.images
+        if (enriched.description) e.description = enriched.description
+      }
+    } catch {
+      // détail indisponible → on garde les données de la liste
+    }
+  }
 
   // 3) Lier la City par INSEE (un seul findMany) puis upsert idempotent.
   const cityIdByInsee = await resolveCityIds(selected)

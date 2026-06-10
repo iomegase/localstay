@@ -1,5 +1,6 @@
 jest.mock('@/features/events-acquisition/lib/datatourisme-client', () => ({
   fetchEventsNear: jest.fn(),
+  fetchEventDetail: jest.fn(),
 }))
 jest.mock('@/features/events-acquisition/lib/commune-geo', () => ({
   resolveCommune: jest.fn(),
@@ -12,7 +13,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { fetchEventsNear } from '@/features/events-acquisition/lib/datatourisme-client'
+import { fetchEventsNear, fetchEventDetail } from '@/features/events-acquisition/lib/datatourisme-client'
 import { resolveCommune } from '@/features/events-acquisition/lib/commune-geo'
 import { runEventIngestion } from '@/features/events-acquisition/services/ingest-runner'
 
@@ -37,6 +38,7 @@ beforeEach(() => {
   ;(prisma.city.findMany as jest.Mock).mockResolvedValue([])
   ;(resolveCommune as jest.Mock).mockResolvedValue(null)
   ;(fetchEventsNear as jest.Mock).mockResolvedValue([])
+  ;(fetchEventDetail as jest.Mock).mockResolvedValue(null) // par défaut: pas d'enrichissement
 })
 
 describe('runEventIngestion (API REST v1)', () => {
@@ -63,6 +65,23 @@ describe('runEventIngestion (API REST v1)', () => {
     const call = (prisma.event.upsert as jest.Mock).mock.calls[0][0]
     expect(call.create.city_id).toBe('city-cha')
     expect(call.where).toEqual({ source_source_id: { source: 'datatourisme', source_id: 'A' } })
+  })
+
+  it('enrichit les images (et la description) via le détail /catalog des events retenus', async () => {
+    ;(resolveCommune as jest.Mock).mockResolvedValue({ insee: '74056', name: 'Chamonix', latitude: 1, longitude: 2 })
+    ;(fetchEventsNear as jest.Mock).mockResolvedValue([ev('A', '74056', 'Chamonix')])
+    ;(fetchEventDetail as jest.Mock).mockResolvedValue({
+      ...ev('A', '74056', 'Chamonix'),
+      hasDescription: [{ shortDescription: { '@fr': 'Description complète' } }],
+      hasMainRepresentation: [{ hasRelatedResource: [{ locator: ['https://img/a.jpg'] }] }],
+    })
+
+    await runEventIngestion({ communeFilter: 'chamonix', source: 'admin' })
+
+    expect(fetchEventDetail).toHaveBeenCalledWith('A')
+    const call = (prisma.event.upsert as jest.Mock).mock.calls[0][0]
+    expect(call.create.images).toEqual(['https://img/a.jpg'])
+    expect(call.create.description).toBe('Description complète')
   })
 
   it('admin: commune introuvable → aucun appel API, résumé vide', async () => {
