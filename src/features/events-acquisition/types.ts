@@ -38,4 +38,6 @@ export interface RunSummary {
   upserted: number
   skipped: number
   deleted: number
+  /** Commune résolue (recherche admin) ; null pour le cron ou si introuvable. */
+  commune?: { insee: string; name: string } | null
 }

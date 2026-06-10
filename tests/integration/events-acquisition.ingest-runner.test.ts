@@ -40,11 +40,12 @@ beforeEach(() => {
 })
 
 describe('runEventIngestion (API REST v1)', () => {
-  it('admin: résout la commune, interroge geo_distance avec le rayon, upsert + lie city_id', async () => {
+  it('admin: strict — ne garde que la commune cherchée (exclut voisines + terminés), renvoie la commune', async () => {
     ;(resolveCommune as jest.Mock).mockResolvedValue({ insee: '74056', name: 'Chamonix', latitude: 45.92, longitude: 6.86 })
     ;(fetchEventsNear as jest.Mock).mockResolvedValue([
       ev('A', '74056', 'Chamonix-Mont-Blanc'),
       ev('B', '74056', 'Chamonix-Mont-Blanc', PAST),
+      ev('N', '74999', 'Commune voisine prise dans le rayon'),
     ])
     ;(prisma.city.findMany as jest.Mock).mockImplementation((args: { where?: { insee_code?: { in?: string[] } } }) =>
       args?.where?.insee_code?.in ? Promise.resolve([{ id: 'city-cha', insee_code: '74056' }]) : Promise.resolve([]),
@@ -54,9 +55,11 @@ describe('runEventIngestion (API REST v1)', () => {
 
     expect(resolveCommune).toHaveBeenCalledWith('chamonix')
     expect(fetchEventsNear).toHaveBeenCalledWith(expect.objectContaining({ latitude: 45.92, longitude: 6.86, radiusKm: 15 }))
-    expect(r.fetched).toBe(2)
-    expect(r.matched).toBe(1) // B exclu (terminé)
+    expect(r.fetched).toBe(3)
+    expect(r.matched).toBe(1) // B terminé + N voisine → exclus
     expect(r.upserted).toBe(1)
+    expect(r.commune).toEqual({ insee: '74056', name: 'Chamonix' })
+    expect(prisma.event.upsert as jest.Mock).toHaveBeenCalledTimes(1)
     const call = (prisma.event.upsert as jest.Mock).mock.calls[0][0]
     expect(call.create.city_id).toBe('city-cha')
     expect(call.where).toEqual({ source_source_id: { source: 'datatourisme', source_id: 'A' } })
@@ -70,13 +73,13 @@ describe('runEventIngestion (API REST v1)', () => {
     expect(r.upserted).toBe(0)
   })
 
-  it('cron: interroge chaque ville suivie et déduplique par identifiant', async () => {
+  it('cron: interroge chaque ville suivie, garde strictement la commune de la ville', async () => {
     ;(prisma.city.findMany as jest.Mock).mockImplementation((args: { where?: { insee_code?: { in?: string[] } } }) =>
       args?.where?.insee_code?.in
         ? Promise.resolve([])
         : Promise.resolve([
-            { latitude: 45.9, longitude: 6.8 },
-            { latitude: 45.8, longitude: 6.7 },
+            { insee_code: '74056', latitude: 45.9, longitude: 6.8 },
+            { insee_code: '74236', latitude: 45.8, longitude: 6.7 },
           ]),
     )
     ;(fetchEventsNear as jest.Mock)
@@ -87,7 +90,8 @@ describe('runEventIngestion (API REST v1)', () => {
 
     expect(fetchEventsNear).toHaveBeenCalledTimes(2)
     expect(r.fetched).toBe(3) // brut
-    expect(r.matched).toBe(2) // A dédupliqué + C
+    // ville 74056 garde A ; ville 74236 garde C (A exclu car INSEE ≠)
+    expect(r.matched).toBe(2)
     expect(r.upserted).toBe(2)
   })
 

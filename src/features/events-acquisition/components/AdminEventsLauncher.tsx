@@ -9,6 +9,7 @@ interface Summary {
   upserted: number
   skipped: number
   deleted: number
+  commune?: { insee: string; name: string } | null
 }
 
 const DEFAULT_RADIUS_KM = 10
@@ -38,8 +39,14 @@ export function AdminEventsLauncher() {
         setError(json?.error?.message ?? 'Erreur lors de la récupération')
         return
       }
-      setSummary(json.data as Summary)
-      router.refresh()
+      const data = json.data as Summary
+      setSummary(data)
+      // Filtre le tableau sur la commune cherchée ; sinon recharge juste la liste.
+      if (data.commune?.insee) {
+        router.push(`/admin/events?commune=${encodeURIComponent(data.commune.insee)}`)
+      } else {
+        router.refresh()
+      }
     } catch {
       setError('Erreur réseau')
     } finally {

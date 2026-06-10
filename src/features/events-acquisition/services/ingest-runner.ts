@@ -19,31 +19,41 @@ export async function runEventIngestion(
   const radiusKm = params.radiusKm ?? DEFAULT_RADIUS_KM
   const today = startOfToday()
 
-  // 1) Récupérer les objets bruts selon la cible.
-  const raw: unknown[] = []
+  // geo_distance ne sert qu'à *scanner* la zone : on ne garde STRICTEMENT que les
+  // événements dont la commune (INSEE) est la commune ciblée — pas les voisines.
+  const byId = new Map<string, ParsedEvent>()
+  let fetched = 0
+  let commune: { insee: string; name: string } | null = null
+
+  const consider = (obj: unknown, allowedInsee: string): void => {
+    const ev = mapDatatourismeObject(obj as Record<string, unknown>)
+    if (!ev) return
+    if (ev.communeInsee !== allowedInsee) return // commune voisine prise dans le rayon → exclue
+    if (new Date(ev.endDate) < today) return // événement terminé → exclu
+    byId.set(ev.sourceId, ev)
+  }
+
   if (params.communeFilter) {
-    const commune = await resolveCommune(params.communeFilter)
-    if (commune) {
-      raw.push(...(await fetchEventsNear({ latitude: commune.latitude, longitude: commune.longitude, radiusKm })))
+    const resolved = await resolveCommune(params.communeFilter)
+    if (resolved) {
+      commune = { insee: resolved.insee, name: resolved.name }
+      const objs = await fetchEventsNear({ latitude: resolved.latitude, longitude: resolved.longitude, radiusKm })
+      fetched += objs.length
+      for (const o of objs) consider(o, resolved.insee)
     }
   } else {
     const cities = await prisma.city.findMany({
       where: { insee_code: { not: null }, deleted_at: null, is_active: true },
-      select: { latitude: true, longitude: true },
+      select: { insee_code: true, latitude: true, longitude: true },
     })
     for (const c of cities) {
-      raw.push(...(await fetchEventsNear({ latitude: c.latitude, longitude: c.longitude, radiusKm })))
+      if (!c.insee_code) continue
+      const objs = await fetchEventsNear({ latitude: c.latitude, longitude: c.longitude, radiusKm })
+      fetched += objs.length
+      for (const o of objs) consider(o, c.insee_code)
     }
   }
-  const fetched = raw.length
 
-  // 2) Mapper, exclure les terminés, dédupliquer par identifiant source
-  //    (les rayons des villes peuvent se chevaucher).
-  const byId = new Map<string, ParsedEvent>()
-  for (const obj of raw) {
-    const ev = mapDatatourismeObject(obj as Record<string, unknown>)
-    if (ev && new Date(ev.endDate) >= today) byId.set(ev.sourceId, ev)
-  }
   const selected = [...byId.values()]
   const matched = selected.length
 
@@ -63,7 +73,7 @@ export async function runEventIngestion(
   // 4) Suppression définitive des événements terminés.
   const del = await prisma.event.deleteMany({ where: { end_date: { lt: today } } })
 
-  return { fetched, matched, upserted, skipped: fetched - matched, deleted: del.count }
+  return { fetched, matched, upserted, skipped: fetched - matched, deleted: del.count, commune }
 }
 
 async function resolveCityIds(events: ParsedEvent[]): Promise<Map<string, string>> {

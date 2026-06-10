@@ -1,22 +1,47 @@
+import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { AdminEventsLauncher } from '@/features/events-acquisition/components/AdminEventsLauncher'
 import { listEvents } from '@/features/events-acquisition/queries/events'
 
-export default async function AdminEventsPage() {
+export default async function AdminEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ commune?: string }>
+}) {
   await getPageAdmin()
-  const events = await listEvents()
+  const { commune } = await searchParams
+  const communeInsee = commune?.trim() || undefined
+  const events = await listEvents(communeInsee ? { communeInsee } : {})
+  const communeLabel = communeInsee ? (events[0]?.commune_name ?? communeInsee) : null
 
   return (
     <div className="w-full space-y-6">
       <header>
         <h1 className="text-xl font-semibold">Sorties culturelles & manifestations</h1>
         <p className="text-sm text-gray-500">
-          Récupérez les manifestations d'une commune de Haute-Savoie. Le cron quotidien
-          rafraîchit automatiquement les communes déjà présentes.
+          Récupérez les manifestations d&apos;une commune de Haute-Savoie (rayon ajustable). Le cron
+          quotidien rafraîchit automatiquement les villes suivies.
         </p>
       </header>
 
       <AdminEventsLauncher />
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          {communeInsee ? (
+            <>
+              Filtré sur <span className="font-medium text-gray-700">{communeLabel}</span> ({events.length})
+            </>
+          ) : (
+            <>Toutes communes ({events.length})</>
+          )}
+        </p>
+        {communeInsee && (
+          <Link href="/admin/events" className="text-sm text-blue-600 hover:underline">
+            Voir toutes les communes
+          </Link>
+        )}
+      </div>
 
       <div className="overflow-x-auto rounded-xl border border-gray-200/60">
         <table className="w-full text-sm">

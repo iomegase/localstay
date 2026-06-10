@@ -5,7 +5,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AdminEventsLauncher } from '@/features/events-acquisition/components/AdminEventsLauncher'
 
 const mockRefresh = jest.fn()
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }))
+const mockPush = jest.fn()
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, push: mockPush }) }))
 
 describe('AdminEventsLauncher', () => {
   afterEach(() => jest.restoreAllMocks())
@@ -13,7 +14,9 @@ describe('AdminEventsLauncher', () => {
   it('poste la commune + le rayon ajusté et affiche le résumé', async () => {
     const fetchMock = jest.fn(async () => ({
       ok: true,
-      json: async () => ({ data: { fetched: 5, matched: 3, upserted: 3, skipped: 2, deleted: 1 } }),
+      json: async () => ({
+        data: { fetched: 5, matched: 3, upserted: 3, skipped: 2, deleted: 1, commune: { insee: '74056', name: 'Chamonix' } },
+      }),
     }))
     global.fetch = fetchMock as unknown as typeof fetch
 
@@ -26,8 +29,8 @@ describe('AdminEventsLauncher', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/events/fetch', expect.objectContaining({ method: 'POST' }))
     const body = JSON.parse((fetchMock.mock.calls[0][1] as { body: string }).body)
     expect(body).toEqual({ commune: 'chamonix', radiusKm: 25 })
-    // rafraîchit le tableau server-rendered après succès
-    expect(mockRefresh).toHaveBeenCalled()
+    // filtre le tableau sur la commune cherchée
+    expect(mockPush).toHaveBeenCalledWith('/admin/events?commune=74056')
   })
 
   it("affiche l'erreur renvoyée par l'API", async () => {
