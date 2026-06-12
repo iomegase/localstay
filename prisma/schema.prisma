@@ -758,6 +758,7 @@ model Event {
   source            String    @default("datatourisme")
   source_id         String
   source_updated_at DateTime?
+  slug              String?
 
   city_id           String?
   city              City?     @relation(fields: [city_id], references: [id])
@@ -792,4 +793,5 @@ model Event {
   @@index([commune_insee, end_date])
   @@index([city_id, start_date])
   @@index([end_date])
+  @@index([slug])
 }
