@@ -65,6 +65,9 @@ describe('runEventIngestion (API REST v1)', () => {
     const call = (prisma.event.upsert as jest.Mock).mock.calls[0][0]
     expect(call.create.city_id).toBe('city-cha')
     expect(call.where).toEqual({ source_source_id: { source: 'datatourisme', source_id: 'A' } })
+    // slug généré à l'ingestion : titre 'Event A' + suffixe sha1('A')
+    const expectedSuffix = require('node:crypto').createHash('sha1').update('A').digest('hex').slice(0, 6)
+    expect(call.create.slug).toBe(`event-a-${expectedSuffix}`)
   })
 
   it('enrichit les images (et la description) via le détail /catalog des events retenus', async () => {

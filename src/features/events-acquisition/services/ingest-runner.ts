@@ -2,6 +2,7 @@ import { prisma } from '@/shared/lib/prisma'
 import { fetchEventsNear, fetchEventDetail } from '../lib/datatourisme-client'
 import { mapDatatourismeObject } from '../lib/datatourisme-mapper'
 import { resolveCommune } from '../lib/commune-geo'
+import { buildEventSlug } from '@/features/events-public/lib/event-slug'
 import type { ParsedEvent, RunSummary } from '../types'
 
 const SOURCE = 'datatourisme'
@@ -105,6 +106,7 @@ function toRow(e: ParsedEvent, cityId: string | null) {
   return {
     source: SOURCE,
     source_id: e.sourceId,
+    slug: buildEventSlug(e.title, e.sourceId),
     source_updated_at: e.sourceUpdatedAt ? new Date(e.sourceUpdatedAt) : null,
     city_id: cityId,
     commune_insee: e.communeInsee,
