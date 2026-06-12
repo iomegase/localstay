@@ -14,6 +14,10 @@ describe('buildSitemapEntries', () => {
       { slug: 'col-de-voza', city_slug: 'saint-gervais-les-bains', category_slug: 'rando', updated_at: d2 },
       { slug: 'autre-magasin', city_slug: 'saint-gervais-les-bains', category_slug: 'commerces', updated_at: d2 },
     ],
+    lodgings: [
+      { slug: 'chalet-hygge', city_slug: 'saint-gervais-les-bains', updated_at: d2 },
+      { slug: 'appartement-soleil', city_slug: 'saint-gervais-les-bains', updated_at: d2 },
+    ],
   })
   const urls = result.map(e => e.url)
 
@@ -37,5 +41,11 @@ describe('buildSitemapEntries', () => {
     const commerces = urls.filter(u => u === `${base}/guide/saint-gervais-les-bains/commerces`)
     expect(commerces).toHaveLength(1)
     expect(urls).toContain(`${base}/guide/saint-gervais-les-bains/rando`)
+  })
+
+  it('includes one lodging list per city and each published lodging detail', () => {
+    expect(urls.filter(u => u === `${base}/guide/saint-gervais-les-bains/logements`)).toHaveLength(1)
+    expect(urls).toContain(`${base}/guide/saint-gervais-les-bains/logements/chalet-hygge`)
+    expect(urls).toContain(`${base}/guide/saint-gervais-les-bains/logements/appartement-soleil`)
   })
 })

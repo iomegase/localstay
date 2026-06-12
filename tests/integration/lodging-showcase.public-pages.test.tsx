@@ -135,6 +135,23 @@ describe('lodging showcase public pages', () => {
     expect(screen.getAllByText('Chalet Hygge').length).toBeGreaterThan(0)
     expect(screen.getByText('Equipements')).toBeInTheDocument()
     expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Contacter l\'hote' })).toHaveAttribute('href', '/contact?lodging=profile-1')
+  })
+
+  it('hides external booking and contact CTAs when disabled', async () => {
+    ;(getPublishedLodgingDetail as jest.Mock).mockResolvedValue({
+      ...detailResult,
+      external_booking_url: null,
+      public_contact_enabled: false,
+    })
+
+    const jsx = await LodgingDetailPage({
+      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+    })
+    render(jsx)
+
+    expect(screen.queryByText('Reserver sur Airbnb')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Contacter l\'hote' })).not.toBeInTheDocument()
   })
 
   it('renders the lodging city section on the guide page when featured lodgings exist', async () => {
