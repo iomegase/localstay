@@ -33,6 +33,7 @@ export const OwnerRightsConfirmationSchema = z.object({
 export const LodgingAmenityItemSchema = z.object({
   code: z.string().trim().min(1).max(64),
   label: z.string().trim().min(1).max(80),
+  sort_order: z.number().int().min(0).default(0),
 })
 
 export const LodgingPhotoItemSchema = z.object({
@@ -66,6 +67,7 @@ export const LodgingPublicProfileInputSchema = z.object({
   external_booking_platform: ExternalBookingPlatformSchema.nullable().optional(),
   seo_title: z.string().trim().min(30).max(70).nullable().optional(),
   seo_description: z.string().trim().min(80).max(180).nullable().optional(),
+  source_description_text: z.string().trim().min(80).max(6000).nullable().optional(),
   public_contact_enabled: z.boolean(),
   amenities: z.array(LodgingAmenityItemSchema).max(100),
   photos: z.array(LodgingPhotoItemSchema).max(100),
