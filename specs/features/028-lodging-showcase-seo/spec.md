@@ -210,7 +210,8 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-20**: Le bloc logements sur `/guide/[city-slug]` affiche au maximum 3 fiches publiées.
 - **BR-21**: Les photos logement sont validées côté serveur, limitées à 5 Mo, converties si nécessaire via le service d'upload existant et stockées dans le bucket `guide-photos`.
 - **BR-22**: Chaque Lodging Photo doit avoir un `alt` public non vide avant publication.
-- **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` 40–180, `description` 200–4000, `seo_title` 30–70, `seo_description` 80–180.
+- **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` 40–180, `description` 80–4000, `seo_title` 30–70, `seo_description` 80–180.
+- **BR-23a**: Le passage en `review` n'exige pas 200 caractères minimum pour `description`. Une description entre 80 et 199 caractères est autorisée pour la revue, mais reste sous-optimale sur le plan éditorial et SEO.
 - **BR-24**: Aucune fiche `draft`, `review` ou `archived` ne doit être présente dans le sitemap, dans les listes publiques ou dans les JSON-LD publics.
 - **BR-25**: Les pages non publiées retournent 404 plutôt que `noindex` pour éviter l'exposition de contenu privé.
 - **BR-26**: Les données structurées JSON-LD doivent décrire uniquement des informations visibles sur la page.
