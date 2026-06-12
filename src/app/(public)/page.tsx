@@ -40,13 +40,13 @@ function AnonymousLanding() {
     <AppShell>
       <BrandMotionStyles />
 
-      <header className="relative z-20 flex items-center justify-between px-6 pt-6">
+      {/* <header className="relative z-20 flex items-center justify-between px-6 pt-6">
         <BrandLogo />
 
         <div className="rounded-full border border-white/70 bg-white/60 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6E6E73] shadow-[0_12px_40px_rgba(29,29,31,0.08)] backdrop-blur-2xl">
           Stay OS
         </div>
-      </header>
+      </header> */}
 
       <main className="relative z-10 flex-1 px-5 pb-28 pt-6">
         <FloatingAura className="left-[-90px] top-24 h-64 w-64 bg-[#007AFF]/18" />
@@ -58,9 +58,9 @@ function AnonymousLanding() {
           <div className="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,#FFE1B8_0%,rgba(255,255,255,0.55)_52%,transparent_74%)]" />
 
           <div className="relative">
-            <div className="mb-6 inline-flex rounded-full bg-[#F5F5F7]/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#007AFF]">
+            {/* <div className="mb-6 inline-flex rounded-full bg-[#F5F5F7]/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#007AFF]">
               Guide intelligent
-            </div>
+            </div> */}
 
             <h1 className="max-w-[330px] text-[3.65rem] font-semibold leading-[0.88] tracking-[-0.085em] text-[#1D1D1F]">
               Votre séjour.
@@ -85,9 +85,9 @@ function AnonymousLanding() {
           <div className="mystay-card col-span-4 rounded-[2.25rem] border border-white/75 bg-white/70 p-4 shadow-[0_18px_55px_rgba(29,29,31,0.08)] backdrop-blur-[30px]">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#007AFF]">
+                {/* <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#007AFF]">
                   Destination
-                </p>
+                </p> */}
 
                 <h2 className="mt-1 text-[1.7rem] font-semibold leading-none tracking-[-0.06em] text-[#1D1D1F]">
                   Rechercher une ville
@@ -170,7 +170,7 @@ function AnonymousLanding() {
         </section>
       </main>
 
-      <AnonymousBottomBar />
+      {/* <AnonymousBottomBar /> */}
     </AppShell>
   )
 }

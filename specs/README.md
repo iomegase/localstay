@@ -17,7 +17,8 @@ specs/
     ├── 004-poi-detail/        → Fiche détaillée d'un POI
     ├── 005-map/               → Carte Mapbox interactive
     ├── 006-qr-code/           → Génération et scan du QR code
-    └── 007-gemini-fetch/      → Récupération et structuration des données Gemini
+    ├── 007-gemini-fetch/      → Récupération et structuration des données Gemini
+    └── 027-multilingual-content/ → Contenu multilingue évolutif
 ```
 
 ## Cycle de vie d'une spec

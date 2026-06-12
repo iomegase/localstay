@@ -99,8 +99,8 @@ La feature n'expose pas d'API publique MyStay. La route Next.js serveur appelle 
 
 - Layout mobile-first, surface météo `w-full h-screen` dans le layout public, sans carte flottante ni wrapper centré.
 - Copie fidèle du screenshot météo fourni :
-  - hamburger en haut gauche via le menu public existant ;
-  - heure locale courante en haut droite ;
+  - heure locale courante en haut gauche ;
+  - hamburger en haut droite via le menu public existant, aligné avec les autres pages publiques ;
   - navigation toujours placée en haut de la surface météo ;
   - date centrée ;
   - nom de ville centré en grand ;

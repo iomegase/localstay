@@ -10,6 +10,8 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // react-markdown@10 est ESM pur (non transformé par next/jest) → stub en test.
+    '^react-markdown$': '<rootDir>/tests/__mocks__/react-markdown.tsx',
   },
   testMatch: [
     '<rootDir>/tests/unit/**/*.test.ts',

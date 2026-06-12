@@ -77,6 +77,24 @@ Offre tarifaire (free, basic, pro, concierge pour hébergeurs ; free, verified, 
 ### Gemini Fetch
 Flux legacy ou descriptif utilisant Gemini API. En MVP2, Gemini ne découvre plus librement les POI généralistes : il rédige ou reformule une description depuis des données déjà vérifiées.
 
+### Locale
+Langue d'affichage supportée par StayLocal, représentée par un code court stable (`fr`, `en`, `it`, `es`, `nl`). Le français (`fr`) est la locale source canonique du contenu éditorial.
+
+### Source Content
+Texte canonique en français utilisé comme base des traductions. Une modification du Source Content invalide uniquement les traductions du champ concerné.
+
+### Translatable Field
+Champ texte explicitement déclaré comme traduisible par une spec. Les champs non déclarés traduisibles ne doivent jamais être envoyés à un prestataire de traduction.
+
+### Content Translation
+Version traduite d'un Translatable Field pour une Locale cible. Elle conserve le hash du Source Content qui a servi à la produire afin de détecter les contenus obsolètes.
+
+### Source Hash
+Empreinte déterministe calculée à partir du texte source normalisé d'un Translatable Field. Elle permet de savoir si une traduction est encore synchronisée avec le contenu français.
+
+### Translation Job
+Tâche serveur asynchrone qui traduit ou retraduit un Translatable Field pour une Locale cible. Elle porte les tentatives, erreurs et verrous nécessaires au traitement incrémental.
+
 ### Google Places Primary Acquisition
 Mode d'acquisition des POI généralistes où Google Places fournit les candidats d'existence, Mapbox confirme les coordonnées, le site officiel enrichit le contenu et le Super-admin valide avant publication.
 
