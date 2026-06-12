@@ -46,6 +46,18 @@ Subdivision d'une Category (ex : sous Manger → Restaurant, Café, Marché).
 ### Lodging (Logement)
 Hébergement touristique associé à une City. Génère un QR code pointant vers le Guide de la ville.
 
+### Lodging Public Profile (Profil public logement)
+Extension publiable d'un Lodging utilisée pour la vitrine SEO publique. Contient les textes, photos, équipements, capacité, lien de réservation externe et règles de publication visibles hors mode séjour.
+
+### Lodging Photo (Photo logement)
+Image associée à un Lodging Public Profile. Chaque photo possède un ordre d'affichage, un texte alternatif et peut être marquée comme photo de couverture.
+
+### Lodging Amenity (Équipement logement)
+Équipement normalisé affichable sur une fiche logement publique, par exemple Wi-Fi, parking, cuisine, lave-linge ou terrasse.
+
+### External Booking Link (Lien de réservation externe)
+URL sortante vers une plateforme tierce de réservation, par exemple Airbnb ou Booking. Dans le chantier vitrine, ce lien ne crée pas de réservation MyStay.
+
 ### Contact Message (Message de contact)
 Message envoyé par un Tourist depuis la page Contact d'un séjour. Il peut être destiné au Propriétaire ou à la Conciergerie, mais reste toujours visible dans l'inbox Super-admin globale.
 
@@ -94,6 +106,12 @@ Empreinte déterministe calculée à partir du texte source normalisé d'un Tran
 
 ### Translation Job
 Tâche serveur asynchrone qui traduit ou retraduit un Translatable Field pour une Locale cible. Elle porte les tentatives, erreurs et verrous nécessaires au traitement incrémental.
+
+### GEO (Generative Engine Optimization)
+Optimisation éditoriale et technique visant à rendre les pages publiques compréhensibles, citables et utiles dans les expériences de recherche générative. Dans MyStay, GEO reste une extension du SEO : contenu visible, factuel, structuré et indexable.
+
+### VacationRental Structured Data
+Balisage JSON-LD basé sur Schema.org `VacationRental`, utilisé uniquement quand une fiche logement publique contient les champs requis et que les informations balisées sont visibles sur la page.
 
 ### Google Places Primary Acquisition
 Mode d'acquisition des POI généralistes où Google Places fournit les candidats d'existence, Mapbox confirme les coordonnées, le site officiel enrichit le contenu et le Super-admin valide avant publication.
