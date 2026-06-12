@@ -20,6 +20,9 @@ jest.mock('next/link', () => ({
 jest.mock('@/features/city-guide/queries/cities', () => ({
   getCityGuide: jest.fn(),
 }))
+jest.mock('@/features/events-public/queries/agenda', () => ({
+  cityHasUpcomingEventsBySlug: jest.fn().mockResolvedValue(false),
+}))
 jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
   recordQrScanIfPresent: jest.fn().mockResolvedValue(undefined),
 }))

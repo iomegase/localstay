@@ -6,7 +6,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { getCityAgenda, getEventBySlug, cityHasUpcomingEvents } from '@/features/events-public/queries/agenda'
+import { getCityAgenda, getEventBySlug, cityHasUpcomingEvents, cityHasUpcomingEventsBySlug } from '@/features/events-public/queries/agenda'
 
 const CITY = { id: 'city-1', insee_code: '74056', name: 'Chamonix-Mont-Blanc' }
 
@@ -91,5 +91,18 @@ describe('cityHasUpcomingEvents', () => {
   it('faux quand le compteur est 0', async () => {
     ;(prisma.event.count as jest.Mock).mockResolvedValue(0)
     expect(await cityHasUpcomingEvents('city-1', '74056')).toBe(false)
+  })
+})
+
+describe('cityHasUpcomingEventsBySlug', () => {
+  it('résout la ville par slug puis compte (scope city_id OU insee)', async () => {
+    expect(await cityHasUpcomingEventsBySlug('chamonix-mont-blanc')).toBe(true)
+    const args = (prisma.event.count as jest.Mock).mock.calls[0][0]
+    expect(args.where.OR).toEqual([{ city_id: 'city-1' }, { commune_insee: '74056' }])
+  })
+  it('faux si la ville est introuvable (aucun count lancé)', async () => {
+    ;(prisma.city.findFirst as jest.Mock).mockResolvedValue(null)
+    expect(await cityHasUpcomingEventsBySlug('inconnue')).toBe(false)
+    expect(prisma.event.count as jest.Mock).not.toHaveBeenCalled()
   })
 })

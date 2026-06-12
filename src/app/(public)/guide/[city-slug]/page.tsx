@@ -10,7 +10,7 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { SortControl } from '@/features/categories/components/SortControl'
 import { AllPoisList } from '@/features/categories/components/AllPoisList'
 import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
 import type { Metadata } from 'next'
 import { cityMetadata } from '@/features/seo/lib/metadata'
 import { getCityForSeo } from '@/features/seo/queries/page-data'
@@ -20,6 +20,7 @@ import { getWeatherCity } from '@/features/weather/queries/weather-city'
 import { getOpenMeteoForecast } from '@/features/weather/queries/open-meteo'
 import { GuideWeatherBadge } from '@/features/weather/components/GuideWeatherBadge'
 import { GeolocationPrompt } from '@/features/geolocation/components/GeolocationPrompt'
+import { cityHasUpcomingEventsBySlug } from '@/features/events-public/queries/agenda'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -57,6 +58,8 @@ export default async function GuidePage({ params, searchParams }: Props) {
   const forecast = weatherCity
     ? await getForecastOrNull(weatherCity.latitude, weatherCity.longitude)
     : null
+  const hasEvents = await cityHasUpcomingEventsBySlug(slug)
+  const agendaHref = lodging ? `/guide/${slug}/agenda?lodging=${encodeURIComponent(lodging)}` : `/guide/${slug}/agenda`
 
   return (
     <>
@@ -112,6 +115,27 @@ export default async function GuidePage({ params, searchParams }: Props) {
           <section className="mb-10">
             <CategoryRow categories={categories} citySlug={slug} lodgingId={lodging} />
           </section>
+
+          {hasEvents && (
+            <section className="mb-8 px-4">
+              <Link
+                href={agendaHref}
+                data-testid="agenda-tile"
+                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition active:scale-[0.99]"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold">
+                    <CalendarDays className="h-6 w-6" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-medium text-charcoal">Sorties &amp; manifestations</span>
+                    <span className="block text-xs text-gray-400">L&apos;agenda des événements à venir</span>
+                  </span>
+                </span>
+                <ChevronRight className="h-5 w-5 text-gray-300" />
+              </Link>
+            </section>
+          )}
 
           {/* Vue « Tous » par défaut : tous les POI de la ville, scroll infini (10 par 10) */}
           <section className="mb-10">

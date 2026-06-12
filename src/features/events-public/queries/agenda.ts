@@ -120,3 +120,13 @@ export async function cityHasUpcomingEvents(cityId: string, insee: string | null
   })
   return count > 0
 }
+
+/**
+ * Variante par slug pour la page ville : résout la ville (id + insee) puis
+ * compte. Évite d'ajouter `insee_code` au type de contrat `CitySearchResult`.
+ */
+export async function cityHasUpcomingEventsBySlug(citySlug: string): Promise<boolean> {
+  const city = await resolveCity(citySlug)
+  if (!city) return false
+  return cityHasUpcomingEvents(city.id, city.insee_code)
+}
