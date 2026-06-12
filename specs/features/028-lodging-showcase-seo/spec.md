@@ -5,7 +5,7 @@
 ```yaml
 id: 028-lodging-showcase-seo
 title: "Vitrine publique SEO/GEO des logements"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
