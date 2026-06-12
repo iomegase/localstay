@@ -10,16 +10,16 @@ export const LodgingRewriteStatusSchema = z.enum(['not_requested', 'requested', 
 export const LodgingPhotoRoomTypeSchema = z.enum(['bedroom', 'bathroom', 'common_area', 'exterior', 'kitchen', 'other'])
 
 export const SourceUrlInputSchema = z.object({
-  external_booking_url: z.string().trim().url().refine(value => value.startsWith('https://'), {
+  source_listing_url: z.string().trim().url().refine(value => value.startsWith('https://'), {
     message: 'EXTERNAL_URL_HTTPS_REQUIRED',
   }),
 }).superRefine((value, ctx) => {
   try {
-    detectExternalListingSource(value.external_booking_url)
+    detectExternalListingSource(value.source_listing_url)
   } catch (error) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['external_booking_url'],
+      path: ['source_listing_url'],
       message: error instanceof Error ? error.message : 'EXTERNAL_PLATFORM_NOT_ALLOWED',
     })
   }
@@ -27,6 +27,7 @@ export const SourceUrlInputSchema = z.object({
 
 export const OwnerRightsConfirmationSchema = z.object({
   confirmed: z.literal(true),
+  statement_version: z.string().trim().min(1).max(64),
 })
 
 export const LodgingAmenityItemSchema = z.object({
@@ -59,7 +60,9 @@ export const LodgingPublicProfileInputSchema = z.object({
   precise_location_public: z.boolean().optional(),
   public_latitude: z.number().min(-90).max(90).nullable().optional(),
   public_longitude: z.number().min(-180).max(180).nullable().optional(),
-  external_booking_url: SourceUrlInputSchema.shape.external_booking_url.nullable().optional(),
+  external_booking_url: z.string().trim().url().refine(value => value.startsWith('https://'), {
+    message: 'EXTERNAL_URL_HTTPS_REQUIRED',
+  }).nullable().optional(),
   external_booking_platform: ExternalBookingPlatformSchema.nullable().optional(),
   seo_title: z.string().trim().min(30).max(70).nullable().optional(),
   seo_description: z.string().trim().min(80).max(180).nullable().optional(),
@@ -75,7 +78,13 @@ export const LodgingRewriteRequestSchema = z.object({
 
 export const LodgingListFiltersSchema = z.object({
   guests: z.coerce.number().int().min(1).max(100).optional(),
-  amenity_codes: z.array(z.string().trim().min(1).max(64)).max(50).optional().default([]),
+  amenities: z.string().optional().transform(value => (
+    value
+      ?.split(',')
+      .map(item => item.trim())
+      .filter(item => item.length > 0)
+      .slice(0, 50)
+  ) ?? []),
 })
 
 export type SourceUrlInput = z.infer<typeof SourceUrlInputSchema>
