@@ -19,19 +19,22 @@ export type CompletenessResult = {
 export type PublicLodgingCardDto = {
   id: string
   slug: string
+  city_slug: string
   title: string
   short_description: string
   property_type: string
   max_guests: number
+  bedroom_count: number | null
   public_area_label: string | null
   cover_photo_url: string | null
-  amenities: Array<{ code: string; label: string }>
+  amenities: string[]
   href: string
 }
 
 export type PublicLodgingDetailDto = PublicLodgingCardDto & {
+  city_name: string
+  city_region: string | null
   description: string
-  bedroom_count: number | null
   bathroom_count: number | null
   bed_count: number | null
   surface_m2: number | null

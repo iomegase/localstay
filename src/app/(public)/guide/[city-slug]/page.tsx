@@ -21,6 +21,8 @@ import { getOpenMeteoForecast } from '@/features/weather/queries/open-meteo'
 import { GuideWeatherBadge } from '@/features/weather/components/GuideWeatherBadge'
 import { GeolocationPrompt } from '@/features/geolocation/components/GeolocationPrompt'
 import { cityHasUpcomingEventsBySlug } from '@/features/events-public/queries/agenda'
+import { listFeaturedLodgingsForCity } from '@/features/lodging-showcase/queries/public-lodgings'
+import { LodgingCitySection } from '@/features/lodging-showcase/components/LodgingCitySection'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -42,10 +44,11 @@ export default async function GuidePage({ params, searchParams }: Props) {
   const lodgingFromCookie = await getActiveLodgingContext()
   const lodging = lodgingFromQuery ?? lodgingFromCookie?.lodgingId
   void recordQrScanIfPresent(lodgingFromQuery ?? null)
-  const [guide, allPois, weatherCity] = await Promise.all([
+  const [guide, allPois, weatherCity, featuredLodgings] = await Promise.all([
     getCityGuide(slug, { lodgingId: lodging }),
     getAllPoiCards(slug, { sort, page: 1, limit: 10, lodgingId: lodging }),
     getWeatherCity(slug),
+    listFeaturedLodgingsForCity(slug, 3),
   ])
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.
@@ -97,7 +100,11 @@ export default async function GuidePage({ params, searchParams }: Props) {
         <GuideSearchInput citySlug={slug} lodgingId={lodging} />
       </section>
       */}
-           {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
+      {featuredLodgings.length > 0 && (
+        <LodgingCitySection citySlug={slug} cityName={city.name} lodgings={featuredLodgings} />
+      )}
+
+      {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
       {categories.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-8 py-16 text-center gap-4">
           <p className="text-gray-500 text-sm leading-relaxed">
