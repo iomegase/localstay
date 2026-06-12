@@ -52,6 +52,9 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **Lodging Photo** : image associée à un Lodging Public Profile.
 - **Lodging Amenity** : équipement normalisé affichable sur une fiche logement publique.
 - **External Booking Link** : URL sortante vers une plateforme tierce de réservation.
+- **External Listing Source** : annonce tierce fournie par l'Owner comme point de départ d'une fiche MyStay.
+- **Content Rights Confirmation** : attestation explicite de droits sur les photos, textes et informations importés.
+- **Lodging Rewrite Draft** : proposition éditoriale MyStay produite depuis un texte fourni par l'Owner.
 - **Owner** : propriétaire ou gestionnaire d'un ou plusieurs Lodgings.
 - **Tourist** : utilisateur final sans compte.
 - **Contact Message** : message envoyé depuis la page Contact ou depuis une fiche logement.
@@ -130,6 +133,13 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-05-03**: Given un Owner tente de modifier un Lodging qui ne lui appartient pas, When la route API est appelée, Then l'API retourne 404 ou 403 sans exposer les données.
 - **AC-05-04**: Given un Owner estime la fiche prête, When il clique "Demander publication", Then `publication_status` passe à `review` si les champs minimaux sont présents.
 - **AC-05-05**: Given les champs minimaux sont incomplets, When l'Owner demande publication, Then l'API refuse la transition avec une erreur structurée listant les champs manquants.
+- **AC-05-06**: Given l'Owner colle une URL Airbnb ou Booking valide, When il la sauvegarde, Then MyStay stocke l'URL, détecte la plateforme et extrait uniquement les métadonnées dérivables de l'URL sans scraper la plateforme.
+- **AC-05-07**: Given l'URL externe est invalide, non HTTPS ou appartient à une plateforme non autorisée, When l'Owner la sauvegarde, Then l'API retourne une erreur Zod structurée et aucun lien externe n'est publié.
+- **AC-05-08**: Given l'Owner souhaite utiliser des photos ou textes issus de son annonce externe, When il les importe ou les colle dans MyStay, Then il doit confirmer qu'il possède les droits nécessaires avant sauvegarde publiable.
+- **AC-05-09**: Given l'Owner téléverse des photos depuis son ordinateur, When l'upload réussit, Then MyStay stocke les photos comme `LodgingPhoto` avec `alt`, `room_type` et ordre d'affichage sans télécharger automatiquement les images depuis Airbnb.
+- **AC-05-10**: Given l'Owner colle son texte Airbnb dans le champ source et qu'un provider de réécriture est autorisé par ADR puis configuré, When il demande une réécriture MyStay, Then MyStay propose un Lodging Rewrite Draft plus SEO, premium et local, sans modifier automatiquement la fiche publiée.
+- **AC-05-11**: Given un Lodging Rewrite Draft est généré, When l'Owner l'accepte, Then le texte accepté remplit les champs MyStay (`short_description`, `description`, `seo_title`, `seo_description`) en brouillon et reste soumis à validation Admin avant publication.
+- **AC-05-12**: Given aucun provider de réécriture n'est autorisé ou configuré, When l'Owner demande une réécriture MyStay, Then l'API retourne `501` avec `code = REWRITE_PROVIDER_NOT_AVAILABLE` et conserve le texte source en brouillon.
 
 ### US-06 — Contrôler la publication côté Super-admin
 
@@ -177,6 +187,15 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-10**: Le lien de réservation externe est optionnel. S'il existe, il doit utiliser `https://` et appartenir à une plateforme autorisée (`airbnb`, `booking`, `other_verified`).
 - **BR-11**: Le lien externe ne crée aucune réservation MyStay et ne bloque aucune date.
 - **BR-12**: Aucun prix, disponibilité, frais, acompte, commission, taxe ou condition d'annulation transactionnelle n'est géré par cette spec.
+- **BR-12a**: L'URL Airbnb ou Booking sert de source externe déclarée et de CTA sortant. MyStay ne doit pas présenter cette URL comme une intégration officielle Airbnb ou Booking.
+- **BR-12b**: MyStay ne scrape pas Airbnb, Booking ou toute autre plateforme tierce. La détection automatique est limitée à la validation d'URL, au domaine, à la plateforme et à un identifiant dérivable de l'URL si présent.
+- **BR-12c**: Toute collecte automatisée de titre, description, prix, photos, avis, disponibilité ou coordonnées depuis Airbnb/Booking est interdite sauf API officielle, accord explicite ou politique plateforme compatible documentée dans une spec/ADR dédiée.
+- **BR-12d**: Les photos doivent être téléversées par l'Owner ou importées depuis un fichier qu'il fournit. MyStay ne télécharge pas automatiquement les photos depuis l'URL Airbnb.
+- **BR-12e**: Les textes collés depuis Airbnb sont stockés comme brouillon source Owner. Ils ne sont jamais publiés tels quels sans confirmation de droits et validation Admin.
+- **BR-12f**: L'Owner doit confirmer les droits contenus avant toute soumission en `review` si la fiche contient des photos téléversées, un texte source externe ou une réécriture dérivée.
+- **BR-12g**: La réécriture MyStay est une suggestion éditoriale. Elle ne peut pas inventer d'équipements, de capacité, de localisation, de prix, de disponibilité ou de règles non fournis par l'Owner.
+- **BR-12h**: Sous l'ADR-006 actuelle, Gemini ne doit pas être utilisé pour la réécriture de fiches logement. Si le Product Owner souhaite une réécriture IA générative, une ADR dédiée ou une modification d'ADR-006 doit être approuvée avant implémentation du provider.
+- **BR-12i**: Tant que cette ADR dédiée n'existe pas, l'implémentation peut stocker le texte source et préparer le flux UI, mais ne doit pas générer de réécriture IA en production.
 - **BR-13**: La localisation publique affiche par défaut une zone approximative : City, quartier, hameau ou rayon textuel. L'adresse exacte n'est pas affichée publiquement par défaut.
 - **BR-14**: Les coordonnées précises (`public_latitude`, `public_longitude`) ne sont publiables que si `precise_location_public = true`, renseigné explicitement par un Admin.
 - **BR-15**: Les données géographiques mesurables viennent de Mapbox ou d'une source spécialisée. Gemini ne doit jamais générer coordonnées, distances ou métriques géographiques.
@@ -217,6 +236,22 @@ enum ExternalBookingPlatform {
   airbnb
   booking
   other_verified
+}
+
+enum LodgingSourceMetadataStatus {
+  not_checked
+  url_only
+  unavailable
+  blocked
+}
+
+enum LodgingRewriteStatus {
+  not_requested
+  requested
+  generated
+  accepted
+  rejected
+  failed
 }
 
 model Lodging {
@@ -265,6 +300,23 @@ model LodgingPublicProfile {
   external_booking_url      String?
   external_booking_platform ExternalBookingPlatform?
   public_contact_enabled    Boolean @default(true)
+
+  source_listing_url        String?
+  source_listing_platform   ExternalBookingPlatform?
+  source_listing_identifier String?
+  source_metadata_status    LodgingSourceMetadataStatus @default(not_checked)
+  source_metadata_detected  Json?
+  source_description_text   String?
+
+  content_rights_confirmed_at DateTime?
+  content_rights_confirmed_by_user_id String?
+  content_rights_statement_version String?
+
+  rewrite_status            LodgingRewriteStatus @default(not_requested)
+  rewrite_source_text_hash  String?
+  rewrite_suggestion        String?
+  rewrite_generated_at      DateTime?
+  rewrite_provider          String?
 
   seo_title             String?
   seo_description       String?
@@ -329,6 +381,8 @@ Ces champs sont déclarés traduisibles via `027-multilingual-content` :
 - `LodgingPublicProfile.title`
 - `LodgingPublicProfile.short_description`
 - `LodgingPublicProfile.description`
+- `LodgingPublicProfile.source_description_text`
+- `LodgingPublicProfile.rewrite_suggestion`
 - `LodgingPublicProfile.public_area_label`
 - `LodgingPublicProfile.seo_title`
 - `LodgingPublicProfile.seo_description`
@@ -339,6 +393,7 @@ Ces champs ne sont pas traduisibles :
 
 - `slug`
 - URLs
+- source metadata
 - coordonnées
 - capacités numériques
 - compteurs
@@ -510,6 +565,123 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/dashboard/lodgings/{id}/public-profile/source-url:
+    post:
+      summary: "Enregistrer et analyser une URL d'annonce externe"
+      tags: [lodging-showcase-owner]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_listing_url]
+              properties:
+                source_listing_url: { type: string, format: uri }
+      responses:
+        "200":
+          description: URL validée et plateforme détectée
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [source_listing_url, source_listing_platform, source_metadata_status]
+                properties:
+                  source_listing_url: { type: string }
+                  source_listing_platform: { type: string, enum: [airbnb, booking, other_verified] }
+                  source_listing_identifier: { type: string, nullable: true }
+                  source_metadata_status: { type: string, enum: [url_only, unavailable, blocked] }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/dashboard/lodgings/{id}/public-profile/rights-confirmation:
+    post:
+      summary: "Confirmer les droits sur les contenus importés"
+      tags: [lodging-showcase-owner]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmed, statement_version]
+              properties:
+                confirmed: { type: boolean, const: true }
+                statement_version: { type: string }
+      responses:
+        "200":
+          description: Confirmation enregistrée
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content_rights_confirmed_at]
+                properties:
+                  content_rights_confirmed_at: { type: string, format: date-time }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/dashboard/lodgings/{id}/public-profile/rewrite:
+    post:
+      summary: "Créer une proposition de réécriture MyStay depuis un texte Owner"
+      tags: [lodging-showcase-owner]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_description_text]
+              properties:
+                source_description_text: { type: string, minLength: 80, maxLength: 6000 }
+                tone: { type: string, enum: [seo_premium_local], default: seo_premium_local }
+      responses:
+        "200":
+          description: Suggestion de réécriture créée
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rewrite_status, rewrite_suggestion]
+                properties:
+                  rewrite_status: { type: string, enum: [generated] }
+                  rewrite_suggestion: { type: string }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "501":
+          description: Provider de réécriture non configuré ou non autorisé par ADR
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/dashboard/lodgings/{id}/public-profile/photos:
     post:
       summary: "Uploader une photo de fiche logement"
@@ -531,6 +703,7 @@ paths:
               properties:
                 file: { type: string, format: binary }
                 alt: { type: string, minLength: 5, maxLength: 160 }
+                room_type: { type: string, enum: [bedroom, bathroom, common_area, exterior, kitchen, other] }
       responses:
         "201":
           description: Photo créée
@@ -706,7 +879,7 @@ Toutes les erreurs utilisent le format standard :
   - type ;
   - capacité ;
   - zone approximative ;
-  - 3 équipements clés maximum ;
+  - 10 équipements clés maximum ;
   - CTA "Voir le logement".
 - Filtres Client Component limités :
   - nombre de voyageurs ;
@@ -744,6 +917,7 @@ Toutes les erreurs utilisent le format standard :
 - Interface Shadcn/ui.
 - Sections :
   - publication status ;
+  - assistant d'import depuis annonce externe ;
   - contenu principal ;
   - caractéristiques ;
   - équipements ;
@@ -751,6 +925,14 @@ Toutes les erreurs utilisent le format standard :
   - lien externe ;
   - SEO preview ;
   - demande de publication.
+- Assistant d'import externe :
+  - champ URL Airbnb/Booking ;
+  - validation HTTPS et plateforme ;
+  - affichage clair "MyStay ne copie pas automatiquement les photos ou textes Airbnb" ;
+  - champ pour coller le texte source si l'Owner souhaite le réutiliser ;
+  - confirmation obligatoire des droits avant soumission en review ;
+  - upload manuel des photos depuis l'ordinateur ;
+  - bouton "Proposer une version MyStay" qui crée un brouillon de réécriture non publié.
 - Sauvegarde en `draft`.
 - Affichage des erreurs de complétude avant soumission en `review`.
 
@@ -789,6 +971,13 @@ Toutes les erreurs utilisent le format standard :
 | AC-05-03 | Isolation Owner | contract |
 | AC-05-04 | Demande publication → review si complet | contract |
 | AC-05-05 | Demande publication incomplète → erreur structurée | contract |
+| AC-05-06 | URL Airbnb/Booking validée sans scraping | contract |
+| AC-05-07 | URL externe invalide refusée | contract |
+| AC-05-08 | Confirmation droits contenus obligatoire | contract |
+| AC-05-09 | Photos téléversées manuellement, jamais téléchargées depuis Airbnb | integration |
+| AC-05-10 | Réécriture MyStay proposée depuis texte Owner | contract |
+| AC-05-11 | Acceptation du rewrite remplit les champs en brouillon | integration |
+| AC-05-12 | Provider rewrite absent/non autorisé → 501 structuré | contract |
 | AC-06-01 | Admin liste et filtre les fiches | integration |
 | AC-06-02 | Admin publie une fiche | contract |
 | AC-06-03 | Admin demande correction | contract |
@@ -811,6 +1000,9 @@ Toutes les erreurs utilisent le format standard :
 - Réservation native MyStay.
 - Paiement en ligne, Stripe Checkout, Stripe Connect, acomptes, remboursements ou commissions.
 - Synchronisation iCal, Airbnb API, Booking API ou channel manager.
+- Scraping Airbnb, Booking ou autre plateforme tierce.
+- Téléchargement automatique des photos depuis une URL Airbnb ou Booking.
+- Copie automatique du titre, de la description, des prix, des avis ou disponibilités Airbnb.
 - Gestion des disponibilités, calendrier, prix par nuit, minimum stay, dates bloquées.
 - Création automatique de contrats, factures ou taxes de séjour.
 - Avis voyageurs et notes publiques.
@@ -830,3 +1022,4 @@ Toutes les erreurs utilisent le format standard :
 | OQ-02 | La localisation exacte doit-elle être affichée publiquement par défaut ? | Product Owner | 2026-06-12 | Non. Localisation approximative par défaut ; coordonnées précises seulement si `precise_location_public = true` après validation Admin. |
 | OQ-03 | La réservation MyStay est-elle incluse dans ce chantier ? | Product Owner | 2026-06-12 | Non. Chantier séparé après la vitrine, avec paiement, disponibilités et synchronisation calendrier. |
 | OQ-04 | Le lien Airbnb est-il une intégration API ? | Product Owner | 2026-06-12 | Non. Chantier 1 utilise uniquement un External Booking Link validé. |
+| OQ-05 | Peut-on partir d'une URL Airbnb pour générer une fiche MyStay ? | Product Owner | 2026-06-12 | Oui, mais uniquement comme source déclarée : validation URL, détection plateforme, import manuel des photos/textes, confirmation de droits et réécriture MyStay en brouillon. Aucun scraping Airbnb. |

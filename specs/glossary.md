@@ -58,6 +58,15 @@ Image associée à un Lodging Public Profile. Chaque photo possède un ordre d'a
 ### External Booking Link (Lien de réservation externe)
 URL sortante vers une plateforme tierce de réservation, par exemple Airbnb ou Booking. Dans le chantier vitrine, ce lien ne crée pas de réservation MyStay.
 
+### External Listing Source (Source d'annonce externe)
+Annonce tierce fournie par l'Owner comme point de départ d'une fiche MyStay. MyStay peut stocker l'URL et détecter la plateforme, mais ne copie pas automatiquement les contenus tiers sans apport explicite de l'Owner.
+
+### Content Rights Confirmation (Confirmation de droits contenus)
+Attestation explicite de l'Owner indiquant qu'il possède les droits nécessaires ou les autorisations pour utiliser les photos, textes et informations qu'il importe dans MyStay.
+
+### Lodging Rewrite Draft (Brouillon réécrit logement)
+Proposition éditoriale générée ou préparée par MyStay à partir d'un texte fourni par l'Owner, afin de produire une version plus SEO, premium et locale. Le texte doit être relu et accepté avant publication.
+
 ### Contact Message (Message de contact)
 Message envoyé par un Tourist depuis la page Contact d'un séjour. Il peut être destiné au Propriétaire ou à la Conciergerie, mais reste toujours visible dans l'inbox Super-admin globale.
 
