@@ -6,6 +6,8 @@
 
 > Note 2026-05-25 : pour les POI généralistes, la découverte libre par Gemini est remplacée par `ADR-008 — Google Places source primaire d'existence des POI généralistes`. Les randonnées restent traitées par leur pipeline spécialisé.
 
+> Note 2026-06-12 : cette ADR encadre le rôle de Gemini pour les POI, les randonnées et les données du Guide. L'assistance éditoriale Gemini appliquée aux fiches logement Owner est un métier distinct, cadré par `ADR-009 — Gemini pour l'assistance éditoriale des fiches logement`.
+
 ---
 
 ## Contexte
@@ -16,7 +18,7 @@ La question initiale portait sur la source de données pour les randonnées. Ell
 
 ## Décision
 
-**Gemini API a exactement deux responsabilités, pas plus :**
+Dans le contexte POI / Guide, **Gemini API a exactement deux responsabilités, pas plus :**
 
 1. **Découverte** — trouver et lister tous les POI existants (restaurants, randonnées, commerces, activités, etc.) pour une ville et une catégorie donnée
 2. **Descriptif** — générer le texte de description de chaque POI (présentation, conseils, ambiance, spécificités)

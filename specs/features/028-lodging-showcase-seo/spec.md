@@ -19,6 +19,9 @@ depends_on:
   - 024-contact-messages
   - 027-multilingual-content
 bounded_context: lodging
+related_adr:
+  - ADR-006-trails-data-source
+  - ADR-009-gemini-lodging-editorial-assistance
 implementation_gate: "Code generation allowed only after status becomes approved"
 ```
 
@@ -137,9 +140,9 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-05-07**: Given l'URL externe est invalide, non HTTPS ou appartient à une plateforme non autorisée, When l'Owner la sauvegarde, Then l'API retourne une erreur Zod structurée et aucun lien externe n'est publié.
 - **AC-05-08**: Given l'Owner souhaite utiliser des photos ou textes issus de son annonce externe, When il les importe ou les colle dans MyStay, Then il doit confirmer qu'il possède les droits nécessaires avant sauvegarde publiable.
 - **AC-05-09**: Given l'Owner téléverse des photos depuis son ordinateur, When l'upload réussit, Then MyStay stocke les photos comme `LodgingPhoto` avec `alt`, `room_type` et ordre d'affichage sans télécharger automatiquement les images depuis Airbnb.
-- **AC-05-10**: Given l'Owner colle son texte Airbnb dans le champ source et qu'un provider de réécriture est autorisé par ADR puis configuré, When il demande une réécriture MyStay, Then MyStay propose un Lodging Rewrite Draft plus SEO, premium et local, sans modifier automatiquement la fiche publiée.
+- **AC-05-10**: Given l'Owner colle son texte Airbnb dans le champ source et que Gemini est configuré côté serveur, When il demande une réécriture MyStay, Then MyStay propose un Lodging Rewrite Draft plus SEO, premium et local, sans modifier automatiquement la fiche publiée.
 - **AC-05-11**: Given un Lodging Rewrite Draft est généré, When l'Owner l'accepte, Then le texte accepté remplit les champs MyStay (`short_description`, `description`, `seo_title`, `seo_description`) en brouillon et reste soumis à validation Admin avant publication.
-- **AC-05-12**: Given aucun provider de réécriture n'est autorisé ou configuré, When l'Owner demande une réécriture MyStay, Then l'API retourne `501` avec `code = REWRITE_PROVIDER_NOT_AVAILABLE` et conserve le texte source en brouillon.
+- **AC-05-12**: Given Gemini n'est pas configuré ou retourne une erreur, When l'Owner demande une réécriture MyStay, Then l'API retourne une erreur structurée et conserve le texte source en brouillon.
 
 ### US-06 — Contrôler la publication côté Super-admin
 
@@ -194,12 +197,13 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-12e**: Les textes collés depuis Airbnb sont stockés comme brouillon source Owner. Ils ne sont jamais publiés tels quels sans confirmation de droits et validation Admin.
 - **BR-12f**: L'Owner doit confirmer les droits contenus avant toute soumission en `review` si la fiche contient des photos téléversées, un texte source externe ou une réécriture dérivée.
 - **BR-12g**: La réécriture MyStay est une suggestion éditoriale. Elle ne peut pas inventer d'équipements, de capacité, de localisation, de prix, de disponibilité ou de règles non fournis par l'Owner.
-- **BR-12h**: Sous l'ADR-006 actuelle, Gemini ne doit pas être utilisé pour la réécriture de fiches logement. Si le Product Owner souhaite une réécriture IA générative, une ADR dédiée ou une modification d'ADR-006 doit être approuvée avant implémentation du provider.
-- **BR-12i**: Tant que cette ADR dédiée n'existe pas, l'implémentation peut stocker le texte source et préparer le flux UI, mais ne doit pas générer de réécriture IA en production.
+- **BR-12h**: Gemini est autorisé pour la réécriture éditoriale des fiches logement selon `ADR-009`, car ce métier est distinct de l'acquisition POI cadrée par `ADR-006`.
+- **BR-12i**: Le prompt Gemini doit recevoir uniquement le texte source fourni par l'Owner et les faits structurés déjà saisis ou validés dans MyStay. Il doit interdire toute invention de faits.
+- **BR-12j**: La réponse Gemini doit être validée avec Zod et sauvegardée comme brouillon. Elle ne peut jamais passer directement en `published`.
 - **BR-13**: La localisation publique affiche par défaut une zone approximative : City, quartier, hameau ou rayon textuel. L'adresse exacte n'est pas affichée publiquement par défaut.
 - **BR-14**: Les coordonnées précises (`public_latitude`, `public_longitude`) ne sont publiables que si `precise_location_public = true`, renseigné explicitement par un Admin.
 - **BR-15**: Les données géographiques mesurables viennent de Mapbox ou d'une source spécialisée. Gemini ne doit jamais générer coordonnées, distances ou métriques géographiques.
-- **BR-16**: Gemini n'est pas utilisé dans cette feature pour créer ou enrichir les fiches logement. Les textes proviennent de l'Owner ou de l'Admin.
+- **BR-16**: Gemini n'est pas utilisé pour créer des faits logement ni enrichir automatiquement depuis une plateforme externe. Il peut uniquement reformuler des textes Owner en brouillon éditorial selon `ADR-009`.
 - **BR-17**: Les recommandations Owner affichées sur une fiche logement réutilisent `LodgingFeaturedPoi` de la spec 012 ou une query compatible. Elles ne peuvent pas ajouter de POI inexistants.
 - **BR-18**: Un POI recommandé doit respecter les règles de périmètre des specs 003 et 008 : primary `≤ 15 km`, nearby `15–30 km`, rejet `> 30 km`.
 - **BR-19**: La liste logements City trie d'abord les fiches `is_featured = true`, puis par `published_at desc`, puis par `created_at desc`.
@@ -675,8 +679,8 @@ paths:
                   rewrite_suggestion: { type: string }
         "400":
           $ref: "#/components/responses/BadRequest"
-        "501":
-          description: Provider de réécriture non configuré ou non autorisé par ADR
+        "503":
+          description: Gemini indisponible ou non configuré
           content:
             application/json:
               schema:
@@ -977,7 +981,7 @@ Toutes les erreurs utilisent le format standard :
 | AC-05-09 | Photos téléversées manuellement, jamais téléchargées depuis Airbnb | integration |
 | AC-05-10 | Réécriture MyStay proposée depuis texte Owner | contract |
 | AC-05-11 | Acceptation du rewrite remplit les champs en brouillon | integration |
-| AC-05-12 | Provider rewrite absent/non autorisé → 501 structuré | contract |
+| AC-05-12 | Gemini absent/indisponible → erreur structurée sans perte du texte source | contract |
 | AC-06-01 | Admin liste et filtre les fiches | integration |
 | AC-06-02 | Admin publie une fiche | contract |
 | AC-06-03 | Admin demande correction | contract |
@@ -1008,7 +1012,7 @@ Toutes les erreurs utilisent le format standard :
 - Avis voyageurs et notes publiques.
 - Messagerie temps réel Tourist/Owner.
 - Géocodage automatique public précis des logements sans validation Admin.
-- Génération automatique des descriptions logement par Gemini.
+- Génération autonome des descriptions logement par Gemini sans texte source Owner.
 - Pages programmatiques par combinaison artificielle de filtres SEO.
 - Modification du fonctionnement privé `/le-logement`, sauf liens internes éventuels vers la fiche publique.
 
