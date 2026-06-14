@@ -1,16 +1,6 @@
 import Link from 'next/link'
-import * as LucideIcons from 'lucide-react'
 import type { CategorySummary } from '@/features/city-guide/types'
-import type { FC } from 'react'
-
-function CategoryIcon({ iconSlug }: { iconSlug: string }) {
-  const name = iconSlug
-    .split('-')
-    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-    .join('') as keyof typeof LucideIcons
-  const Icon = (LucideIcons[name] ?? LucideIcons.MapPin) as FC<{ className?: string }>
-  return <Icon className="w-6 h-6 text-gold" />
-}
+import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 
 export function CategoryGrid({
   categories,
@@ -32,7 +22,7 @@ export function CategoryGrid({
           className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white shadow-sm active:scale-95 transition-transform"
         >
           <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center">
-            <CategoryIcon iconSlug={cat.icon} />
+            <CategoryIcon iconSlug={cat.icon} className="w-6 h-6 text-gold" />
           </div>
           <span className="text-[9px] font-bold uppercase tracking-widest text-gold text-center leading-tight">
             {cat.name}

@@ -1,6 +1,10 @@
 const fr = {
-  'home.search.placeholder': 'Votre ville ou code postal…',
-  'home.search.no_results': 'Aucune ville trouvée pour « {q} »',
+  'home.title': "Trouvez ce qu'il vous faut.",
+  'home.intro':
+    'Choisissez votre destination et explorez les meilleures adresses locales, sélectionnées pour votre séjour.',
+  'home.select.placeholder': 'Sélectionner une ville',
+  'home.empty': 'Aucune catégorie disponible pour cette ville pour le moment.',
+  'home.error': 'Impossible de charger les catégories. Réessayez.',
   'guide.empty_state': 'Aucun contenu disponible pour cette ville pour le moment',
   'guide.error': 'Une erreur est survenue. Veuillez réessayer.',
   'guide.city_not_found': 'Ville introuvable',
