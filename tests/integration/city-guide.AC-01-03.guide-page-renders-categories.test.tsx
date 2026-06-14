@@ -48,9 +48,6 @@ jest.mock('@/features/weather/queries/open-meteo', () => ({
     daily: [],
   }),
 }))
-jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
-  listFeaturedLodgingsForCity: jest.fn().mockResolvedValue([]),
-}))
 // react-markdown est ESM → on stubbe MarkdownText (importé via la liste « Tous » → PoiCard).
 jest.mock('@/shared/components/MarkdownText', () => ({
   MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,

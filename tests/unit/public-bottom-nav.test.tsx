@@ -49,7 +49,34 @@ describe('PublicBottomNav', () => {
       'href',
       '/guide/saint-gervais-les-bains',
     )
+    expect(screen.getByRole('link', { name: /Vos favoris/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/mes-favoris',
+    )
+    expect(screen.getByRole('link', { name: /Contact/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/contact',
+    )
     expect(screen.getByRole('link', { name: /Bienvenue/i })).toHaveAttribute('href', '/')
+  })
+
+  it('keeps the guide context on contextual contact pages', () => {
+    mockUsePathname.mockReturnValue('/guide/saint-gervais-les-bains/contact')
+
+    render(<PublicBottomNav mode="anonymous" citySlug={null} />)
+
+    expect(screen.getByRole('link', { name: /Guide/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains',
+    )
+    expect(screen.getByRole('link', { name: /Vos favoris/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/mes-favoris',
+    )
+    expect(screen.getByRole('link', { name: /Contact/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/contact',
+    )
   })
 
   it('highlights the selected item with the approved gold color', () => {

@@ -51,6 +51,10 @@ const baseProfile = {
 }
 
 describe('028 lodging showcase owner form', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it('AC-05-11: applies the generated rewrite into draft fields before save', () => {
     render(<LodgingShowcaseForm lodgingId="lodging-1" initialProfile={baseProfile} />)
 
@@ -59,5 +63,34 @@ describe('028 lodging showcase owner form', () => {
     expect(screen.getByDisplayValue('Brouillon MyStay plus premium pour Annecy.')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Chalet Hygge a Annecy | MyStay')).toBeInTheDocument()
     expect(screen.getByText(/Le brouillon MyStay a ete applique localement/i)).toBeInTheDocument()
+  })
+
+  it('shows field-level validation guidance when draft save is rejected', async () => {
+    global.fetch = jest.fn().mockResolvedValue(
+      {
+        ok: false,
+        json: async () => ({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Parametre manquant ou invalide',
+            details: {
+              fieldErrors: {
+                title: ['Le titre doit contenir entre 5 et 90 caracteres.'],
+                short_description: ['La description courte doit contenir entre 40 et 180 caracteres.'],
+              },
+            },
+          },
+        }),
+      },
+    )
+
+    render(<LodgingShowcaseForm lodgingId="lodging-1" initialProfile={baseProfile} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Sauvegarder le brouillon/i }))
+
+    expect(await screen.findByText(/Titre - Le titre doit contenir entre 5 et 90 caracteres\./i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Description courte - La description courte doit contenir entre 40 et 180 caracteres\./i),
+    ).toBeInTheDocument()
   })
 })

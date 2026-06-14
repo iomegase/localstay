@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { ArrowLeft, MapPin, Compass, CalendarDays } from 'lucide-react'
+
 import { lodgingDetailMetadata } from '@/features/seo/lib/metadata'
 import {
   breadcrumbSchema,
@@ -14,6 +16,7 @@ import { LodgingFacts } from '@/features/lodging-showcase/components/LodgingFact
 import { AmenitiesGrid } from '@/features/lodging-showcase/components/AmenitiesGrid'
 import { OwnerRecommendationsBlock } from '@/features/lodging-showcase/components/OwnerRecommendationsBlock'
 import { ExternalBookingCta } from '@/features/lodging-showcase/components/ExternalBookingCta'
+import { contextualContactPath } from '@/features/city-guide/lib/public-paths'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'lodging-slug': string }>
@@ -79,68 +82,132 @@ export default async function LodgingDetailPage({ params }: Props) {
   return (
     <>
       <JsonLd data={[breadcrumb, rentalSchema ?? fallbackSchema]} />
-      <div className="space-y-8 px-4 pb-28 pt-6">
-        <header className="space-y-4">
-          <Link href={`/guide/${citySlug}/logements`} className="text-sm text-gray-500 underline underline-offset-4">
-            Retour aux logements
+      
+      <div className="mx-auto max-w-5xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 font-sans">
+        
+        {/* En-tête de page premium */}
+        <header className="mb-6 space-y-5">
+          <Link 
+            href={`/guide/${citySlug}/logements`} 
+            className="group inline-flex items-center text-[15px] font-medium text-gray-500 transition-colors hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" strokeWidth={2} />
+            Retour
           </Link>
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">{detail.property_type}</p>
-            <h1 className="text-3xl font-light text-charcoal">{detail.title}</h1>
-            {detail.public_area_label && <p className="text-sm text-gray-500">{detail.public_area_label}</p>}
+
+          <div>
+            {/* Badge type de propriété coloré */}
+            <span className="mb-3 inline-block rounded-md bg-[#e8decb] px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-[#8b6f4e]">
+              {detail.property_type}
+            </span>
+            
+            <h1 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-4xl">
+              {detail.title}
+            </h1>
+            
+            {detail.public_area_label && (
+              <div className="mt-3 flex items-center text-[15px] font-medium text-gray-500">
+                <MapPin className="mr-1.5 h-4 w-4 text-[#003A5D]" strokeWidth={2.5} />
+                {detail.public_area_label}
+              </div>
+            )}
           </div>
         </header>
 
-        <LodgingGallery title={detail.title} photos={detail.photos} />
+        {/* Section Galerie : Bords adoucis avec une ombre subtile */}
+        <div className="mb-10 overflow-hidden rounded-2xl bg-gray-100 shadow-md">
+          <LodgingGallery title={detail.title} photos={detail.photos} />
+        </div>
 
-        <LodgingFacts
-          maxGuests={detail.max_guests}
-          bedroomCount={detail.bedroom_count}
-          bathroomCount={detail.bathroom_count}
-          bedCount={detail.bed_count}
-          surfaceM2={detail.surface_m2}
-        />
-
-        <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-light text-charcoal">Presentation</h2>
-          <p className="mt-4 text-sm leading-7 text-gray-600">{detail.description}</p>
-        </section>
-
-        <AmenitiesGrid amenities={detail.amenities} />
-
-        <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-light text-charcoal">Autour du logement</h2>
-          <p className="mt-3 text-sm leading-7 text-gray-600">
-            Retrouvez les bonnes adresses, les activites et les idees de sortie dans le guide local MyStay de {detail.city_name}.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link href={`/guide/${citySlug}`} className="rounded-full bg-stone-100 px-4 py-2 text-sm text-charcoal">
-              Ouvrir le guide
-            </Link>
-            <Link href={`/guide/${citySlug}/agenda`} className="rounded-full bg-stone-100 px-4 py-2 text-sm text-charcoal">
-              Voir l'agenda
-            </Link>
+        {/* Colonne centrale épurée */}
+        <div className="mx-auto max-w-3xl space-y-10">
+          
+          {/* Ligne des caractéristiques (gérée par LodgingFacts, encadrée d'une ligne douce) */}
+          <div className="border-b border-gray-100 pb-8">
+            <LodgingFacts
+              maxGuests={detail.max_guests}
+              bedroomCount={detail.bedroom_count}
+              bathroomCount={detail.bathroom_count}
+              bedCount={detail.bed_count}
+              surfaceM2={detail.surface_m2}
+            />
           </div>
-        </section>
 
-        <OwnerRecommendationsBlock citySlug={citySlug} items={detail.owner_recommendations} />
-      </div>
+          {/* Section Présentation (Design typographique aéré) */}
+          <section>
+            <h2 className="mb-4 text-[22px] font-semibold text-gray-900">
+              À propos de ce logement
+            </h2>
+            <p className="whitespace-pre-line text-[15px] leading-relaxed text-gray-600">
+              {detail.description}
+            </p>
+          </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
-        <div className="flex gap-3">
-          <ExternalBookingCta
-            externalBookingUrl={detail.external_booking_url}
-            platform={detail.external_booking_platform}
-            className="flex-1 justify-center rounded-full bg-charcoal px-4 py-3 text-sm text-white"
-          />
-          {detail.public_contact_enabled && (
-            <Link
-              href={`/contact?lodging=${detail.id}`}
-              className="flex-1 rounded-full border border-charcoal px-4 py-3 text-center text-sm text-charcoal"
-            >
-              Contacter l'hote
-            </Link>
-          )}
+          {/* Section Équipements */}
+          <section className="border-t border-gray-100 pt-8">
+             <h2 className="mb-6 text-[22px] font-semibold text-gray-900">
+              Équipements
+            </h2>
+            <AmenitiesGrid amenities={detail.amenities} />
+          </section>
+
+          {/* Section Guide Local (Boutons repensés style "Cards") */}
+          <section className="border-t border-gray-100 pt-8">
+            <h2 className="mb-3 text-[22px] font-semibold text-gray-900">
+              Autour du logement
+            </h2>
+            <p className="mb-6 text-[15px] leading-relaxed text-gray-600">
+              Retrouvez les bonnes adresses, les activités et les idées de sortie dans le guide local MyStay de {detail.city_name}.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Link 
+                href={`/guide/${citySlug}`} 
+                className="group flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-4 text-[15px] font-semibold text-gray-900 shadow-sm transition-all hover:border-gray-900 hover:bg-gray-50"
+              >
+                <Compass className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-900" strokeWidth={2} />
+                Explorer le guide
+              </Link>
+              <Link 
+                href={`/guide/${citySlug}/agenda`} 
+                className="group flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-4 text-[15px] font-semibold text-gray-900 shadow-sm transition-all hover:border-gray-900 hover:bg-gray-50"
+              >
+                <CalendarDays className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-900" strokeWidth={2} />
+                Voir l'agenda
+              </Link>
+            </div>
+          </section>
+
+          <div className="border-t border-gray-100 pt-8">
+            <OwnerRecommendationsBlock citySlug={citySlug} items={detail.owner_recommendations} />
+          </div>
+
+          <section className="border-t border-gray-100 pt-8">
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="space-y-2">
+                <h2 className="text-[22px] font-semibold text-gray-900">Réserver ou contacter</h2>
+                <p className="text-[15px] leading-relaxed text-gray-600">
+                  Vérifiez les disponibilités ou posez vos questions directement depuis la fiche.
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3">
+                {detail.public_contact_enabled && (
+                  <Link
+                    href={`${contextualContactPath(citySlug)}?lodging=${detail.id}`}
+                    className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3.5 text-center text-[15px] font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
+                  >
+                    Contacter
+                  </Link>
+                )}
+
+                <ExternalBookingCta
+                  externalBookingUrl={detail.external_booking_url}
+                  platform={detail.external_booking_platform}
+                  className="w-full justify-center rounded-xl bg-[#003A5D] px-7 py-3.5 text-center text-[15px] font-semibold text-white shadow-md transition-all hover:bg-[#002a43]"
+                />
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </>

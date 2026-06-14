@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
 import { apiError } from '@/features/lodging-showcase/lib/http'
+import { revalidatePublicLodgingPaths } from '@/features/lodging-showcase/lib/revalidation'
 import { archiveLodgingProfile } from '@/features/lodging-showcase/queries/admin-public-profiles'
 
 const ParamsSchema = z.object({ profileId: z.string().uuid() })
@@ -22,6 +23,8 @@ export async function POST(
   if (!profile) {
     return apiError('NOT_FOUND', 'Fiche logement introuvable', 404)
   }
+
+  revalidatePublicLodgingPaths()
 
   return NextResponse.json(profile)
 }

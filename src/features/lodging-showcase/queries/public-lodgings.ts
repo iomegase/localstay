@@ -271,29 +271,3 @@ export async function getPublishedLodgingDetail(
     })),
   }
 }
-
-export async function listFeaturedLodgingsForCity(citySlug: string, limit = 3): Promise<PublicLodgingCardApi[]> {
-  const city = await getActiveCityBySlug(citySlug)
-  if (!city) return []
-
-  const rows = await prisma.lodgingPublicProfile.findMany({
-    where: buildPublishedWhere(city.id, citySlug),
-    orderBy: [{ is_featured: 'desc' }, { published_at: 'desc' }, { created_at: 'desc' }],
-    take: limit,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      short_description: true,
-      property_type: true,
-      max_guests: true,
-      bedroom_count: true,
-      public_area_label: true,
-      city: { select: { slug: true } },
-      photos: listPhotoArgs,
-      amenities: amenityArgs,
-    },
-  })
-
-  return rows.map(toCardApi)
-}

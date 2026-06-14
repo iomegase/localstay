@@ -5,9 +5,14 @@ const mockListAdminLodgingProfiles = jest.fn()
 const mockPublishLodgingProfile = jest.fn()
 const mockRequestChangesLodgingProfile = jest.fn()
 const mockArchiveLodgingProfile = jest.fn()
+const mockRevalidatePath = jest.fn()
 
 jest.mock('@/features/merchant/lib/session', () => ({
   getSessionAdmin: (...args: unknown[]) => mockGetSessionAdmin(...args),
+}))
+
+jest.mock('next/cache', () => ({
+  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }))
 
 jest.mock('@/features/lodging-showcase/queries/admin-public-profiles', () => ({
@@ -78,6 +83,9 @@ describe('028 admin lodging moderation API', () => {
       id: 'profile-1',
       publication_status: 'published',
     })
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements/[lodging-slug]', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
   it('AC-06-03: requests changes with an admin note', async () => {
@@ -101,6 +109,9 @@ describe('028 admin lodging moderation API', () => {
       publication_status: 'draft',
       admin_review_note: 'Ajouter des photos avec alt.',
     })
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements/[lodging-slug]', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
   it('returns 400 when the review note is too short', async () => {
@@ -132,6 +143,9 @@ describe('028 admin lodging moderation API', () => {
     await expect(res.json()).resolves.toMatchObject({
       publication_status: 'archived',
     })
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements/[lodging-slug]', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
   it('preserves admin auth errors', async () => {

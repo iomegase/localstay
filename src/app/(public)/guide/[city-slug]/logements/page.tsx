@@ -61,15 +61,15 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
       />
       <div className="space-y-8 px-4 pb-24 pt-6">
         <header className="space-y-3">
-          <Link href={`/guide/${citySlug}`} className="text-sm text-gray-500 underline underline-offset-4">
-            Retour au guide
+          <Link href={`/guide/${citySlug}`} className="text-sm text-gray-500 ">
+            Retour 
           </Link>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Ou dormir</p>
-            <h1 className="mt-2 text-3xl font-light text-charcoal">Logements a {city.name}</h1>
+            {/* <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Ou dormir</p> */}
+            <h1 className="mt-2 text-3xl uppercase font-thin text-charcoal/60">{city.name}</h1>
           </div>
-          <p className="max-w-2xl text-sm leading-6 text-gray-500">
-            Des logements presentes dans l'univers MyStay avec leurs equipements, leur ambiance et un acces direct au guide local.
+          <p className="text-[11px] text-justify leading-6 tracking-wide italictext-gray-500">
+            Découvrez les logements disponibles à {city.name} pour votre prochain voyage. Que vous recherchiez un appartement, une maison ou un hébergement unique, explorez nos biens et trouvez le lieu idéal pour votre voyage.
           </p>
         </header>
 
@@ -86,7 +86,7 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
             </div>
           </section>
         ) : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <section className="grid grid-cols-1 gap-4">
             {result.items.map(item => (
               <LodgingCard
                 key={item.id}

@@ -21,7 +21,6 @@ jest.mock('@/features/seo/queries/page-data', () => ({
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgingsForCity: jest.fn(),
   getPublishedLodgingDetail: jest.fn(),
-  listFeaturedLodgingsForCity: jest.fn(),
 }))
 
 jest.mock('@/shared/components/JsonLd', () => ({
@@ -31,7 +30,6 @@ jest.mock('@/shared/components/JsonLd', () => ({
 import { getCityForSeo } from '@/features/seo/queries/page-data'
 import {
   getPublishedLodgingDetail,
-  listFeaturedLodgingsForCity,
   listPublishedLodgingsForCity,
 } from '@/features/lodging-showcase/queries/public-lodgings'
 import LodgingListPage from '@/app/(public)/guide/[city-slug]/logements/page'
@@ -115,27 +113,33 @@ describe('lodging showcase public pages', () => {
     ;(getCityForSeo as jest.Mock).mockResolvedValue(city)
     ;(listPublishedLodgingsForCity as jest.Mock).mockResolvedValue(listResult)
     ;(getPublishedLodgingDetail as jest.Mock).mockResolvedValue(detailResult)
-    ;(listFeaturedLodgingsForCity as jest.Mock).mockResolvedValue(listResult.items)
   })
 
   it('renders the public city lodging list', async () => {
     const jsx = await LodgingListPage({ params: Promise.resolve({ 'city-slug': 'annecy' }) })
     render(jsx)
 
-    expect(screen.getByText('Logements a Annecy')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Annecy' })).toBeInTheDocument()
     expect(screen.getByText('Chalet Hygge')).toBeInTheDocument()
+
+    const card = screen.getByText('Chalet Hygge').closest('article')
+    expect(card).toHaveClass('w-full')
+    expect(card?.parentElement).toHaveClass('grid', 'grid-cols-1')
+    expect(card?.parentElement).not.toHaveClass('md:grid-cols-2')
+    expect(card?.parentElement).not.toHaveClass('xl:grid-cols-3')
   })
 
   it('renders the public lodging detail page', async () => {
     const jsx = await LodgingDetailPage({
       params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
     })
-    render(jsx)
+    const { container } = render(jsx)
 
     expect(screen.getAllByText('Chalet Hygge').length).toBeGreaterThan(0)
-    expect(screen.getByText('Equipements')).toBeInTheDocument()
+    expect(screen.getByText('Équipements')).toBeInTheDocument()
     expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Contacter l\'hote' })).toHaveAttribute('href', '/contact?lodging=profile-1')
+    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
+    expect(container.querySelector('.fixed.inset-x-0.bottom-0')).toBeNull()
   })
 
   it('hides external booking and contact CTAs when disabled', async () => {
@@ -151,13 +155,14 @@ describe('lodging showcase public pages', () => {
     render(jsx)
 
     expect(screen.queryByText('Reserver sur Airbnb')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Contacter l\'hote' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Contacter' })).not.toBeInTheDocument()
   })
 
-  it('renders the lodging city section on the guide page when featured lodgings exist', async () => {
+  it('keeps the guide page free of lodging cards in the main flow', async () => {
     const jsx = await GuidePage({ params: Promise.resolve({ 'city-slug': 'annecy' }) })
     render(jsx)
 
-    expect(screen.getByText('Sejourner a Annecy')).toBeInTheDocument()
+    expect(screen.queryByText('Sejourner a Annecy')).not.toBeInTheDocument()
+    expect(screen.queryByText('Voir tous les logements')).not.toBeInTheDocument()
   })
 })

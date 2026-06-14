@@ -5,7 +5,7 @@ export function AmenitiesGrid(props: { amenities: string[] }) {
 
   return (
     <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-      <h2 className="text-xl font-light text-charcoal">Equipements</h2>
+      {/* <h2 className="text-xl font-light text-charcoal">Equipements</h2> */}
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {props.amenities.map(amenity => (
           <li key={amenity} className="inline-flex items-center gap-3 text-sm text-gray-600">

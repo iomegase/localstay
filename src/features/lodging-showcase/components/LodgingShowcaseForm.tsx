@@ -8,6 +8,41 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import type { OwnerLodgingPublicProfileDto } from '../types'
 
+type ApiErrorPayload = {
+  error?: {
+    message?: string
+    details?: {
+      fieldErrors?: Record<string, string[]>
+      missingFields?: string[]
+    }
+  }
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  title: 'Titre',
+  short_description: 'Description courte',
+  description: 'Description principale',
+  property_type: 'Type de logement',
+  max_guests: 'Voyageurs max',
+  bedroom_count: 'Chambres',
+  bathroom_count: 'Salles de bain',
+  bed_count: 'Lits',
+  surface_m2: 'Surface m2',
+  public_area_label: 'Zone de localisation publique',
+  external_booking_url: 'URL de reservation',
+  seo_title: 'SEO title',
+  seo_description: 'SEO description',
+  source_description_text: 'Texte source Owner',
+  photos: 'Photos',
+  amenities: 'Equipements',
+}
+
+function formatFieldErrors(fieldErrors?: Record<string, string[]>) {
+  return Object.entries(fieldErrors ?? {})
+    .filter(([, errors]) => Array.isArray(errors) && errors.length > 0)
+    .map(([field, errors]) => `${FIELD_LABELS[field] ?? field} - ${errors.join(', ')}`)
+}
+
 function amenityCode(label: string): string {
   return label
     .normalize('NFD')
@@ -32,6 +67,7 @@ export function LodgingShowcaseForm(props: {
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const [missingFields, setMissingFields] = useState<string[]>([])
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoAlt, setPhotoAlt] = useState('')
   const [photoRoomType, setPhotoRoomType] = useState('common_area')
@@ -69,6 +105,7 @@ export function LodgingShowcaseForm(props: {
   async function saveSourceListing() {
     setStatus('saving')
     setMessage(null)
+    setValidationErrors([])
 
     const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/source-url`, {
       method: 'POST',
@@ -99,6 +136,7 @@ export function LodgingShowcaseForm(props: {
 
     setStatus('saving')
     setMessage(null)
+    setValidationErrors([])
 
     const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/rights-confirmation`, {
       method: 'POST',
@@ -127,6 +165,7 @@ export function LodgingShowcaseForm(props: {
 
     setStatus('saving')
     setMessage(null)
+    setValidationErrors([])
 
     const formData = new FormData()
     formData.set('file', photoFile)
@@ -170,6 +209,7 @@ export function LodgingShowcaseForm(props: {
     setStatus('saving')
     setMessage(null)
     setMissingFields([])
+    setValidationErrors([])
 
     const amenities = amenitiesText
       .split(',')
@@ -212,16 +252,26 @@ export function LodgingShowcaseForm(props: {
       }),
     })
 
-    const payload = await res.json().catch(() => null) as Record<string, unknown> | null
+    const payload = await res.json().catch(() => null) as ApiErrorPayload | OwnerLodgingPublicProfileDto | null
     if (!res.ok) {
+      const errorPayload = payload as ApiErrorPayload | null
+      const fieldErrors = formatFieldErrors(errorPayload?.error?.details?.fieldErrors)
+      setValidationErrors(fieldErrors)
       setStatus('error')
-      setMessage((payload?.error as { message?: string } | undefined)?.message ?? 'Sauvegarde impossible.')
+      setMessage(errorPayload?.error?.message ?? 'Sauvegarde impossible.')
       return
     }
 
-    setProfile(payload as unknown as OwnerLodgingPublicProfileDto)
+    if (!payload) {
+      setStatus('error')
+      setMessage('Reponse de sauvegarde invalide.')
+      return
+    }
+
+    const savedProfile = payload as OwnerLodgingPublicProfileDto
+    setProfile(savedProfile)
     setAmenitiesText(
-      ((payload?.amenities as Array<{ label: string }> | undefined) ?? [])
+      ((savedProfile.amenities as Array<{ label: string }> | undefined) ?? [])
         .map(amenity => amenity.label)
         .join(', '),
     )
@@ -233,6 +283,7 @@ export function LodgingShowcaseForm(props: {
     setStatus('saving')
     setMessage(null)
     setMissingFields([])
+    setValidationErrors([])
 
     const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/submit`, {
       method: 'POST',
@@ -264,6 +315,7 @@ export function LodgingShowcaseForm(props: {
 
     setStatus('saving')
     setMessage(null)
+    setValidationErrors([])
 
     const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/rewrite`, {
       method: 'POST',
@@ -543,6 +595,16 @@ export function LodgingShowcaseForm(props: {
                   <ul className="mt-2 list-disc pl-5">
                     {missingFields.map(field => (
                       <li key={field}>{field}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {validationErrors.length > 0 && (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  <p className="font-medium">Erreurs a corriger dans le brouillon</p>
+                  <ul className="mt-2 list-disc pl-5">
+                    {validationErrors.map(error => (
+                      <li key={error}>{error}</li>
                     ))}
                   </ul>
                 </div>

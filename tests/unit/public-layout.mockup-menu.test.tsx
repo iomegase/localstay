@@ -39,6 +39,10 @@ describe('PublicLayout mockup menu', () => {
 
     expect(screen.getByText('Navigation')).toBeInTheDocument()
     expect(screen.getByText('Le Logement')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Logements' })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais/logements',
+    )
     expect(screen.getByRole('link', { name: 'Les recommandations de Alice Martin' })).toHaveAttribute(
       'href',
       '/nos-recommandations',

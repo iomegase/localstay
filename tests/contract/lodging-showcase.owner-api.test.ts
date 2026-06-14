@@ -173,6 +173,30 @@ describe('028 owner lodging showcase API', () => {
     })
   })
 
+  it('returns readable validation details when the owner draft payload is invalid', async () => {
+    const res = await PUT(
+      jsonRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile', 'PUT', {
+        ...validPayload,
+        title: 'abc',
+        seo_description: 'trop court',
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toMatchObject({
+      error: {
+        code: 'VALIDATION_ERROR',
+        details: {
+          fieldErrors: {
+            title: ['Le titre doit contenir entre 5 et 90 caracteres.'],
+            seo_description: ['La meta description doit contenir entre 80 et 180 caracteres.'],
+          },
+        },
+      },
+    })
+  })
+
   it('AC-05-04: submits a complete profile for review', async () => {
     mockSubmitOwnerPublicProfile.mockResolvedValue({
       ok: true,
