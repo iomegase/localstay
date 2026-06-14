@@ -73,4 +73,30 @@ describe('CityCategoryExplorer', () => {
     expect(await screen.findByText('Boulangerie')).toBeInTheDocument()
     expect(screen.getByText('Mobilité')).toBeInTheDocument()
   })
+
+  it('uses a photo for a mapped slug and a fallback (icon, no img) for an unmapped slug', async () => {
+    const user = userEvent.setup()
+    render(<CityCategoryExplorer cities={CITIES} />)
+
+    await user.click(screen.getByRole('button', { name: /Sélectionner une ville/i }))
+    await user.click(screen.getByRole('option', { name: 'Saint-Gervais-les-Bains' }))
+
+    expect(await screen.findByAltText('Boulangerie')).toBeInTheDocument()
+    expect(screen.queryByAltText('Mobilité')).not.toBeInTheDocument()
+    expect(screen.getByText('Mobilité')).toBeInTheDocument()
+  })
+
+  it('links each category card to its guide route', async () => {
+    const user = userEvent.setup()
+    render(<CityCategoryExplorer cities={CITIES} />)
+
+    await user.click(screen.getByRole('button', { name: /Sélectionner une ville/i }))
+    await user.click(screen.getByRole('option', { name: 'Saint-Gervais-les-Bains' }))
+
+    await screen.findByText('Boulangerie')
+    expect(screen.getByText('Boulangerie').closest('a')).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/boulangerie',
+    )
+  })
 })
