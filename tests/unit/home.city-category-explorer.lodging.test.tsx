@@ -36,6 +36,7 @@ it('propagates ?lodging= to the fetch URL and category links', async () => {
   await waitFor(() =>
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/cities/saint-gervais-les-bains/categories?lodging=lodge-1',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     ),
   )
   await screen.findByText('Boulangerie')

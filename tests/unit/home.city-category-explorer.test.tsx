@@ -68,6 +68,7 @@ describe('CityCategoryExplorer', () => {
     await waitFor(() =>
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/cities/saint-gervais-les-bains/categories',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       ),
     )
     expect(await screen.findByText('Boulangerie')).toBeInTheDocument()
