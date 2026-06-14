@@ -181,3 +181,15 @@ export async function searchGuide(citySlug: string, q: string): Promise<GuideSea
     categories: categories.map(category => ({ name: category.name, slug: category.slug })),
   }
 }
+
+/**
+ * Liste les villes actives (pour le sélecteur de la home publique).
+ * Triées par nom, ordre alphabétique.
+ */
+export async function listActiveCities(): Promise<{ name: string; slug: string }[]> {
+  return prisma.city.findMany({
+    where: { is_active: true, deleted_at: null },
+    orderBy: { name: 'asc' },
+    select: { name: true, slug: true },
+  })
+}
