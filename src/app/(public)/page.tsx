@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CitySearchInput } from '@/features/city-guide/components/CitySearchInput'
-import { QrScannerButton } from '@/features/public-menu/components/QrScannerButton'
+import { CityCategoryExplorer } from '@/features/city-guide/components/CityCategoryExplorer'
+import { listActiveCities } from '@/features/city-guide/queries/cities'
+import { t } from '@/shared/lib/i18n'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { prisma } from '@/shared/lib/prisma'
 
@@ -32,145 +33,36 @@ export default async function HomePage() {
     )
   }
 
-  return <AnonymousLanding />
+  return await AnonymousLanding()
 }
 
-function AnonymousLanding() {
+async function AnonymousLanding() {
+  const cities = await listActiveCities()
+
   return (
     <AppShell>
       <BrandMotionStyles />
 
-      {/* <header className="relative z-20 flex items-center justify-between px-6 pt-6">
+      <header className="relative z-20 flex items-center justify-between px-6 pt-6">
         <BrandLogo />
+      </header>
 
-        <div className="rounded-full border border-white/70 bg-white/60 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6E6E73] shadow-[0_12px_40px_rgba(29,29,31,0.08)] backdrop-blur-2xl">
-          Stay OS
-        </div>
-      </header> */}
-
-      <main className="relative z-10 flex-1 px-5 pb-28 pt-6">
+      <main className="relative z-10 flex-1 px-6 pb-28 pt-10">
         <FloatingAura className="left-[-90px] top-24 h-64 w-64 bg-[#007AFF]/18" />
         <FloatingAura className="right-[-110px] top-20 h-72 w-72 bg-[#AF52DE]/16 delay-500" />
-        <FloatingAura className="bottom-20 left-8 h-56 w-56 bg-[#34C759]/14 delay-1000" />
 
-        <section className="mystay-card relative overflow-hidden rounded-[2.75rem] border border-white/70 bg-white/62 p-6 shadow-[0_30px_90px_rgba(29,29,31,0.10)] backdrop-blur-[34px]">
-          <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[radial-gradient(circle,#A7D7FF_0%,rgba(255,255,255,0.65)_50%,transparent_72%)]" />
-          <div className="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,#FFE1B8_0%,rgba(255,255,255,0.55)_52%,transparent_74%)]" />
+        <h1 className="max-w-[330px] text-[3.05rem] font-semibold leading-[0.92] tracking-[-0.06em] text-charcoal">
+          {t('home.title')}
+        </h1>
 
-          <div className="relative">
-            {/* <div className="mb-6 inline-flex rounded-full bg-[#F5F5F7]/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#007AFF]">
-              Guide intelligent
-            </div> */}
+        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-[#6E6E73]">
+          {t('home.intro')}
+        </p>
 
-            <h1 className="max-w-[330px] text-[3.65rem] font-semibold leading-[0.88] tracking-[-0.085em] text-[#1D1D1F]">
-              Votre séjour.
-              <span className="block bg-[linear-gradient(90deg,#007AFF,#AF52DE,#FF9500)] bg-clip-text text-transparent">
-                Simplement.
-              </span>
-            </h1>
-
-            <p className="mt-5 max-w-xs text-[15px] leading-relaxed text-[#6E6E73]">
-              Retrouvez votre ville, scannez votre QR code logement et accédez aux informations utiles de votre séjour.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              <ApplePill label="Restaurants" tone="blue" />
-              <ApplePill label="Randonnées" tone="green" />
-              <ApplePill label="Sorties" tone="pink" />
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-5 grid grid-cols-4 gap-4">
-          <div className="mystay-card col-span-4 rounded-[2.25rem] border border-white/75 bg-white/70 p-4 shadow-[0_18px_55px_rgba(29,29,31,0.08)] backdrop-blur-[30px]">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                {/* <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#007AFF]">
-                  Destination
-                </p> */}
-
-                <h2 className="mt-1 text-[1.7rem] font-semibold leading-none tracking-[-0.06em] text-[#1D1D1F]">
-                  Rechercher une ville
-                </h2>
-              </div>
-
-              <div className="flex h-12 w-12 items-center justify-center rounded-[1.35rem] bg-[#EAF4FF] text-xl text-[#007AFF] shadow-inner">
-                ⌕
-              </div>
-            </div>
-
-            <CitySearchInput />
-          </div>
-
-          <div className="mystay-card relative col-span-2 overflow-hidden rounded-[2.25rem] bg-[#1D1D1F] p-4 text-white shadow-[0_28px_70px_rgba(29,29,31,0.24)]">
-            <FloatingAura className="right-[-60px] top-[-60px] h-40 w-40 bg-[#007AFF]/65" />
-            <FloatingAura className="bottom-[-70px] left-[-65px] h-44 w-44 bg-[#AF52DE]/45 delay-700" />
-
-            <div className="relative flex min-h-52 flex-col justify-between">
-              <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[1.35rem] bg-white/14 text-sm font-semibold backdrop-blur-2xl">
-                  QR
-                </div>
-
-                <h2 className="text-2xl font-semibold leading-tight tracking-[-0.06em]">
-                  Accès logement
-                </h2>
-
-                <p className="mt-3 text-xs leading-relaxed text-white/68">
-                  Scannez le QR code transmis par votre hôte.
-                </p>
-              </div>
-
-              <div className="mt-5">
-                <QrScannerButton />
-              </div>
-            </div>
-          </div>
-
-          <div className="mystay-card relative col-span-2 overflow-hidden rounded-[2.25rem] bg-[#007AFF] p-4 text-white shadow-[0_28px_70px_rgba(0,122,255,0.22)]">
-            <FloatingAura className="right-[-48px] bottom-[-60px] h-44 w-44 bg-white/24 delay-300" />
-
-            <div className="relative flex min-h-52 flex-col justify-between">
-              <div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[1.35rem] bg-white/20 text-xl backdrop-blur-2xl">
-                  →
-                </div>
-
-                <h2 className="text-2xl font-semibold leading-tight tracking-[-0.06em]">
-                  Guide local
-                </h2>
-
-                <p className="mt-3 text-xs leading-relaxed text-white/75">
-                  Restaurants, sorties, randonnées et coups de cœur.
-                </p>
-              </div>
-
-              {/* TODO: ajouter un lien ici uniquement si une route publique de guide sans citySlug existe. */}
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/80">
-                Après recherche
-              </span>
-            </div>
-          </div>
-
-          <BentoInfoCard
-            className="col-span-2"
-            eyebrow="Hôte"
-            title="Infos logement"
-            text="Wi-Fi, accès, parking, consignes."
-            tone="green"
-          />
-
-          <BentoInfoCard
-            className="col-span-2"
-            eyebrow="Explorer"
-            title="Coups de cœur"
-            text="Les meilleures adresses locales."
-            tone="orange"
-          />
-        </section>
+        <div className="mt-8">
+          <CityCategoryExplorer cities={cities} />
+        </div>
       </main>
-
-      {/* <AnonymousBottomBar /> */}
     </AppShell>
   )
 }
@@ -413,65 +305,6 @@ function ShortcutCard({
   )
 }
 
-function BentoInfoCard({
-  eyebrow,
-  title,
-  text,
-  tone,
-  className = '',
-}: {
-  eyebrow: string
-  title: string
-  text: string
-  tone: 'green' | 'orange'
-  className?: string
-}) {
-  const toneClass = {
-    green: 'bg-[#34C759] shadow-[0_22px_65px_rgba(52,199,89,0.20)]',
-    orange: 'bg-[#FF9500] shadow-[0_22px_65px_rgba(255,149,0,0.20)]',
-  }[tone]
-
-  return (
-    <div
-      className={`mystay-card relative overflow-hidden rounded-[2.25rem] border border-white/40 p-4 text-white ${toneClass} ${className}`}
-    >
-      <FloatingAura className="right-[-55px] top-[-50px] h-36 w-36 bg-white/24" />
-
-      <div className="relative min-h-36">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.26em] text-white/72">
-          {eyebrow}
-        </p>
-
-        <h2 className="mt-3 text-xl font-semibold leading-tight tracking-[-0.06em]">
-          {title}
-        </h2>
-
-        <p className="mt-3 text-xs leading-relaxed text-white/74">{text}</p>
-      </div>
-    </div>
-  )
-}
-
-function ApplePill({
-  label,
-  tone,
-}: {
-  label: string
-  tone: 'blue' | 'green' | 'pink'
-}) {
-  const toneClass = {
-    blue: 'bg-[#EAF4FF] text-[#007AFF]',
-    green: 'bg-[#EAFBF0] text-[#34C759]',
-    pink: 'bg-[#FFEAF0] text-[#FF2D55]',
-  }[tone]
-
-  return (
-    <span className={`rounded-full px-3 py-2 text-[11px] font-semibold ${toneClass}`}>
-      {label}
-    </span>
-  )
-}
-
 function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(0,122,255,0.14)_0%,transparent_32%),radial-gradient(circle_at_95%_10%,rgba(175,82,222,0.12)_0%,transparent_34%),radial-gradient(circle_at_20%_92%,rgba(255,149,0,0.14)_0%,transparent_34%),linear-gradient(180deg,#FFFFFF_0%,#F5F5F7_52%,#FFFFFF_100%)]">
@@ -500,26 +333,6 @@ function FloatingAura({ className = '' }: { className?: string }) {
       aria-hidden="true"
       className={`mystay-elastic pointer-events-none absolute rounded-full blur-[18px] ${className}`}
     />
-  )
-}
-
-function AnonymousBottomBar() {
-  return (
-    <nav className="fixed bottom-5 left-1/2 z-30 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-full border border-white/72 bg-white/70 p-2 shadow-[0_18px_60px_rgba(29,29,31,0.16)] backdrop-blur-[32px]">
-      <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-[#6E6E73]">
-        <span className="flex items-center justify-center rounded-full bg-[#1D1D1F] px-3 py-3 text-white">
-          Accueil
-        </span>
-
-        <span className="flex items-center justify-center rounded-full px-3 py-3">
-          Ville
-        </span>
-
-        <span className="flex items-center justify-center rounded-full px-3 py-3">
-          QR
-        </span>
-      </div>
-    </nav>
   )
 }
 
