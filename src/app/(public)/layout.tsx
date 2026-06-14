@@ -15,8 +15,8 @@ export default async function PublicLayout({
   return (
     <div className="max-w-[430px] mx-auto min-h-screen relative border-x  shadow-2xl bg-white immersive-container">
       {/* Glassmorphism sticky header — masqué en mode immersif */}
-      <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 bg-white immersive-hide">
-        <Link href="/" className="flex items-center" aria-label="Accueil">
+      <header className="sticky top-0 z-[70] flex items-center px-6 py-5 bg-white immersive-hide">
+        {/* <Link href="/" className="flex items-center" aria-label="Accueil">
           <Image
             src="/logo.png"
             alt="my stay"
@@ -25,13 +25,15 @@ export default async function PublicLayout({
             priority
             className="h-7 w-auto"
           />
-        </Link>
-        <PublicMenu
-          mode={mode}
-          lodgingName={lodgingContext?.lodgingName ?? null}
-          ownerName={lodgingContext?.ownerName ?? null}
-          citySlug={lodgingContext?.citySlug ?? null}
-        />
+        </Link> */}
+        <div data-testid="public-header-menu-slot" className="ml-auto">
+          <PublicMenu
+            mode={mode}
+            lodgingName={lodgingContext?.lodgingName ?? null}
+            ownerName={lodgingContext?.ownerName ?? null}
+            citySlug={lodgingContext?.citySlug ?? null}
+          />
+        </div>
       </header>
 
       {/* Page content — bottom padding clears the fixed nav bar */}

@@ -61,4 +61,10 @@ describe('PublicLayout mockup menu', () => {
       '-translate-x-1/2',
     )
   })
+
+  it('keeps the burger menu anchored on the right side of the public header', async () => {
+    render(await PublicLayout({ children: <div>Contenu</div> }))
+
+    expect(screen.getByTestId('public-header-menu-slot')).toHaveClass('ml-auto')
+  })
 })
