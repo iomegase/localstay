@@ -44,7 +44,7 @@ async function AnonymousLanding() {
       <BrandMotionStyles />
 
       <header className="relative z-20 flex items-center justify-between px-6 pt-6">
-        <BrandLogo />
+        {/* <BrandLogo /> */}
       </header>
 
       <main className="relative z-10 flex-1 px-6 pb-28 pt-10">
@@ -91,7 +91,7 @@ function LodgingHome({
       <BrandMotionStyles />
 
       <header className="relative z-20 flex items-center justify-between px-6 pt-6">
-        <BrandLogo />
+        {/* <BrandLogo /> */}
 
         <Link
           href="/contact"
@@ -307,25 +307,25 @@ function ShortcutCard({
 
 function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_10%_0%,rgba(0,122,255,0.14)_0%,transparent_32%),radial-gradient(circle_at_95%_10%,rgba(175,82,222,0.12)_0%,transparent_34%),radial-gradient(circle_at_20%_92%,rgba(255,149,0,0.14)_0%,transparent_34%),linear-gradient(180deg,#FFFFFF_0%,#F5F5F7_52%,#FFFFFF_100%)]">
-      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col overflow-hidden bg-white/38 shadow-[0_30px_100px_rgba(29,29,31,0.10)] backdrop-blur-2xl">
+    <div className="min-h-screen ">
+      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col overflow-hidden bg-white">
         {children}
       </div>
     </div>
   )
 }
 
-function BrandLogo() {
-  return (
-    <div className="flex items-center gap-3">
-      {/* TODO: si tu ajoutes le logo réel dans /public, remplacer ce logo HTML par <Image src="/logo-mystay.svg" ... />. */}
-      <div className="flex items-baseline gap-2 text-[30px] font-semibold uppercase leading-none tracking-[-0.075em]">
-        <span className="text-[#1D1D1F]">My</span>
-        <span className="text-[#007AFF]">Stay</span>
-      </div>
-    </div>
-  )
-}
+// function BrandLogo() {
+//   return (
+//     <div className="flex items-center gap-3">
+//       {/* TODO: si tu ajoutes le logo réel dans /public, remplacer ce logo HTML par <Image src="/logo-mystay.svg" ... />. */}
+//       <div className="flex items-baseline gap-2 text-[30px] font-semibold uppercase leading-none tracking-[-0.075em]">
+//         <span className="text-[#1D1D1F]">My</span>
+//         <span className="text-[#007AFF]">Stay</span>
+//       </div>
+//     </div>
+//   )
+// }
 
 function FloatingAura({ className = '' }: { className?: string }) {
   return (
