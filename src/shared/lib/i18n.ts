@@ -1,5 +1,5 @@
 const fr = {
-  'home.title': 'Trouvez ce qu'il vous faut.',
+  'home.title': "Trouvez ce qu'il vous faut.",
   'home.intro':
     'Choisissez votre destination et explorez les meilleures adresses locales, sélectionnées pour votre séjour.',
   'home.select.placeholder': 'Sélectionner une ville',
