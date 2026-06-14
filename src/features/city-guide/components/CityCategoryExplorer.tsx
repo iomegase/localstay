@@ -103,7 +103,7 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
       {status === 'loading' && (
         <div className="mt-6 grid grid-cols-2 gap-3" aria-busy="true">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-3xl bg-gray-100" />
+            <div key={i} className="aspect-square animate-pulse rounded-3xl bg-gray-100" />
           ))}
         </div>
       )}
@@ -127,7 +127,7 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
               key={cat.id}
               category={cat}
               href={categoryHref(cat.slug)}
-              wide={index % 3 === 0}
+              wide={index % 4 === 0}
               reduce={!!reduce}
             />
           ))}
@@ -162,7 +162,9 @@ function CategoryBentoCard({
     >
       <Link
         href={href}
-        className="relative flex h-32 items-end overflow-hidden rounded-3xl shadow-sm"
+        className={`relative flex w-full items-end overflow-hidden rounded-3xl shadow-sm ${
+          wide ? 'aspect-[382/185]' : 'aspect-square'
+        }`}
       >
         {image ? (
           <>
