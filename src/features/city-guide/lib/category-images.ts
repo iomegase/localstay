@@ -9,6 +9,9 @@ export const CATEGORY_IMAGE_BY_SLUG: Record<string, string> = {
   culture: '/home/art.png',
   diner: '/home/resto.png',
   restaurants: '/home/resto.png',
+  mobilite: '/home/mobilite.png',
+  shopping: '/home/shopping.png',
+  'location-de-ski': '/home/location-de-skis.png',
 }
 
 export function getCategoryImage(slug: string): string | null {
