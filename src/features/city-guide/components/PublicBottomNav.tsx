@@ -121,7 +121,7 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
     : 'opacity-100'
   const surfaceClassName = isScrolling
     ? 'bg-transparent border-transparent shadow-none backdrop-blur-0'
-    : 'glass border-black/5 shadow-xl'
+    : 'bg-white border-black/5 shadow-xl'
 
   useEffect(() => {
     const handleScroll = () => {

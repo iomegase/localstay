@@ -162,7 +162,7 @@ function CategoryBentoCard({
     >
       <Link
         href={href}
-        className={`relative flex w-full items-end overflow-hidden rounded-3xl shadow-sm ${
+        className={`relative flex w-full items-end overflow-hidden rounded-3xl shadow-md ${
           wide ? 'aspect-[382/185]' : 'aspect-square'
         }`}
       >
@@ -176,7 +176,7 @@ function CategoryBentoCard({
               sizes="(max-width: 430px) 50vw, 215px"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+            {/* <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" /> */}
             <span className="relative z-10 m-3 rounded-md bg-white/90 px-2 py-1 text-xs font-bold uppercase tracking-wide text-charcoal">
               {category.name}
             </span>

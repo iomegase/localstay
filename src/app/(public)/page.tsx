@@ -43,19 +43,17 @@ async function AnonymousLanding() {
     <AppShell>
       <BrandMotionStyles />
 
-      <header className="relative z-20 flex items-center justify-between px-6 pt-6">
-        {/* <BrandLogo /> */}
-      </header>
+     
 
       <main className="relative z-10 flex-1 px-6 pb-28 pt-10">
         <FloatingAura className="left-[-90px] top-24 h-64 w-64 bg-[#007AFF]/18" />
         <FloatingAura className="right-[-110px] top-20 h-72 w-72 bg-[#AF52DE]/16 delay-500" />
 
-        <h1 className="max-w-[330px] text-[3.05rem] font-semibold leading-[0.92] tracking-[-0.06em] text-charcoal">
+        <h1 className="max-w-[330px] text-6xl font-semibold leading-[0.92] tracking-[-0.06em] text-charcoal">
           {t('home.title')}
         </h1>
 
-        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-[#6E6E73]">
+        <p className="mt-8 max-w-sm text-[12px] leading-relaxed text-[#6E6E73]">
           {t('home.intro')}
         </p>
 
@@ -90,8 +88,8 @@ function LodgingHome({
     <AppShell>
       <BrandMotionStyles />
 
-      <header className="relative z-20 flex items-center justify-between px-6 pt-6">
-        {/* <BrandLogo /> */}
+      {/* <header className="relative z-20 flex items-center justify-between px-6 pt-6">
+      <BrandLogo /> 
 
         <Link
           href="/contact"
@@ -99,7 +97,7 @@ function LodgingHome({
         >
           ?
         </Link>
-      </header>
+      </header> */}
 
       <main className="relative z-10 flex-1 px-5 pb-32 pt-6">
         <FloatingAura className="left-[-90px] top-14 h-64 w-64 bg-[#34C759]/16" />
