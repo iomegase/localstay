@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import Link from 'next/link'
-import * as LucideIcons from 'lucide-react'
+import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import type { CategorySummary } from '../types'
 
 interface CategoryRowProps {
@@ -8,19 +8,6 @@ interface CategoryRowProps {
   citySlug: string
   lodgingId?: string
   activeCategorySlug?: string
-}
-
-function CategoryIcon({ iconSlug }: { iconSlug: string }) {
-  // Convert kebab-case slug to PascalCase Lucide component name (e.g. "heart-pulse" → "HeartPulse")
-  const componentName = iconSlug
-    .split('-')
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join('') as keyof typeof LucideIcons
-
-  const Icon = (LucideIcons[componentName] ?? LucideIcons.MapPin) as React.FC<{
-    className?: string
-  }>
-  return <Icon className="w-5 h-5" />
 }
 
 /**
@@ -76,7 +63,7 @@ export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlu
                   : 'bg-white border-gray-100 text-gold'
               }`}
             >
-              <CategoryIcon iconSlug={cat.icon} />
+              <CategoryIcon iconSlug={cat.icon} className="w-5 h-5" />
               <span
                 className={`absolute -top-1 -right-1 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none ${
                   isActive ? 'bg-white text-gold' : 'bg-gold text-white'

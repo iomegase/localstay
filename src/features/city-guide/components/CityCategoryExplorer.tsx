@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
-import * as LucideIcons from 'lucide-react'
-import type { FC } from 'react'
 import type { CategorySummary } from '@/features/city-guide/types'
+import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import {
   getCategoryImage,
   getFallbackGradient,
@@ -20,15 +19,6 @@ type Status = 'idle' | 'loading' | 'error'
 
 const spring = { type: 'spring' as const, stiffness: 260, damping: 13 }
 
-function CategoryIcon({ iconSlug }: { iconSlug: string }) {
-  const name = iconSlug
-    .split('-')
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join('') as keyof typeof LucideIcons
-  const Icon = (LucideIcons[name] ?? LucideIcons.MapPin) as FC<{ className?: string }>
-  return <Icon className="h-7 w-7" />
-}
-
 export function CityCategoryExplorer({ cities }: { cities: City[] }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<City | null>(null)
@@ -37,19 +27,26 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
   const searchParams = useSearchParams()
   const lodgingId = searchParams.get('lodging')
   const reduce = useReducedMotion()
+  const abortRef = useRef<AbortController | null>(null)
 
   async function selectCity(city: City) {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     setSelected(city)
     setOpen(false)
     setStatus('loading')
     try {
-      const qs = lodgingId ? `?lodging=${lodgingId}` : ''
-      const res = await fetch(`/api/cities/${city.slug}/categories${qs}`)
+      const qs = lodgingId ? `?lodging=${encodeURIComponent(lodgingId)}` : ''
+      const res = await fetch(`/api/cities/${city.slug}/categories${qs}`, {
+        signal: controller.signal,
+      })
       if (!res.ok) throw new Error('request failed')
       const json = await res.json()
       setCategories(json.data ?? [])
       setStatus('idle')
-    } catch {
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return
       setCategories([])
       setStatus('error')
     }
@@ -57,7 +54,7 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
 
   function categoryHref(catSlug: string) {
     const base = `/guide/${selected?.slug}/${catSlug}`
-    return lodgingId ? `${base}?lodging=${lodgingId}` : base
+    return lodgingId ? `${base}?lodging=${encodeURIComponent(lodgingId)}` : base
   }
 
   return (
@@ -186,7 +183,7 @@ function CategoryBentoCard({
           <div
             className={`flex h-full w-full flex-col justify-between bg-gradient-to-br ${getFallbackGradient(category.slug)} p-3 text-white`}
           >
-            <CategoryIcon iconSlug={category.icon} />
+            <CategoryIcon iconSlug={category.icon} className="h-7 w-7" />
             <span className="text-xs font-bold uppercase tracking-wide">{category.name}</span>
           </div>
         )}
