@@ -53,14 +53,14 @@ describe('PublicBottomNav', () => {
       'href',
       '/guide/saint-gervais-les-bains/mes-favoris',
     )
-    expect(screen.getByRole('link', { name: /Contact/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Blog/i })).toHaveAttribute(
       'href',
-      '/guide/saint-gervais-les-bains/contact',
+      '/blog',
     )
     expect(screen.getByRole('link', { name: /Bienvenue/i })).toHaveAttribute('href', '/')
   })
 
-  it('keeps the guide context on contextual contact pages', () => {
+  it('keeps the guide context on contextual contact pages while exposing the global blog link', () => {
     mockUsePathname.mockReturnValue('/guide/saint-gervais-les-bains/contact')
 
     render(<PublicBottomNav mode="anonymous" citySlug={null} />)
@@ -73,9 +73,9 @@ describe('PublicBottomNav', () => {
       'href',
       '/guide/saint-gervais-les-bains/mes-favoris',
     )
-    expect(screen.getByRole('link', { name: /Contact/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Blog/i })).toHaveAttribute(
       'href',
-      '/guide/saint-gervais-les-bains/contact',
+      '/blog',
     )
   })
 

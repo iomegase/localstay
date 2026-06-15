@@ -123,6 +123,7 @@ Request → Check GeminiCache (expires_at > now)
 | ADR-007 | Scalabilité métier par bounded contexts | accepted |
 | ADR-008 | Google Places source primaire d'existence des POI généralistes | accepted |
 | ADR-009 | Gemini pour l'assistance éditoriale des fiches logement | accepted |
+| ADR-010 | Gemini pour l'assistance éditoriale blog | accepted |
 
 Voir `docs/DAT/adr/` pour le détail de chaque décision.
 
@@ -156,6 +157,7 @@ StayLocal doit pouvoir évoluer du guide touristique MVP vers plusieurs vertical
 - Toute donnée géographique mesurable vient de Mapbox, IGN, Overpass ou source spécialisée ; jamais de Gemini.
 - Pour les POI généralistes, Google Places est la source primaire d'existence ; Gemini ne découvre pas librement des établissements.
 - Pour les logements, Gemini peut uniquement assister la réécriture éditoriale d'un contenu fourni par l'Owner et validé avant publication, selon `ADR-009`.
+- Pour le blog, Gemini peut uniquement assister la rédaction d'un brouillon depuis un brief Admin et des faits vérifiés, selon `ADR-010`.
 - Toute donnée transactionnelle future utilise PostgreSQL + Prisma avec contraintes, transactions et soft delete.
 - Toute logique de commission, abonnement, annulation ou no-show doit être isolée dans une spec dédiée avant code.
 - Les intégrations externes sont appelées côté serveur, avec cache ou jobs quand la donnée n'a pas besoin d'être temps réel.
