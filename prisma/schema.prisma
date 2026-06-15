@@ -37,6 +37,7 @@ model City {
   trail_candidates TrailCandidate[]
   events           Event[]
   lodging_public_profiles LodgingPublicProfile[]
+  blog_articles    BlogArticle[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -314,6 +315,124 @@ model User {
   trail_candidates_reviewed TrailCandidate[] @relation("TrailCandidateReviewedBy")
   trail_audit_logs TrailAuditLog[]
   owned_contact_messages ContactMessage[] @relation("ContactMessageOwner")
+  authored_blog_articles BlogArticle[] @relation("BlogArticleAuthor")
+  blog_generation_drafts BlogGenerationDraft[] @relation("BlogGenerationDraftAdmin")
+}
+
+// ─── Spec 029 — Blog Editorial ─────────────────────────────────────────────
+
+enum BlogArticleStatus {
+  draft
+  review
+  published
+  archived
+}
+
+enum BlogArticleCategory {
+  local_guide
+  lodging
+  restaurants
+  activities
+  travel_tips
+}
+
+enum BlogArticlePhotoKind {
+  cover
+  gallery
+}
+
+enum BlogGenerationStatus {
+  requested
+  generated
+  accepted
+  rejected
+  failed
+}
+
+model BlogArticle {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  title            String
+  slug             String   @unique
+  excerpt          String
+  content_markdown String
+  category         BlogArticleCategory
+  tags             String[] @default([])
+
+  city_id String?
+  city    City?   @relation(fields: [city_id], references: [id], onDelete: SetNull)
+
+  author_admin_id String
+  author_admin    User   @relation("BlogArticleAuthor", fields: [author_admin_id], references: [id])
+
+  status                  BlogArticleStatus @default(draft)
+  submitted_for_review_at DateTime?
+  published_at            DateTime?
+  archived_at             DateTime?
+
+  seo_title       String?
+  seo_description String?
+
+  photos            BlogArticlePhoto[]
+  generation_drafts BlogGenerationDraft[]
+
+  @@index([status, deleted_at, published_at])
+  @@index([city_id, status, deleted_at, published_at])
+  @@index([category, status, deleted_at])
+}
+
+model BlogArticlePhoto {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  article_id String
+  article    BlogArticle @relation(fields: [article_id], references: [id])
+
+  kind       BlogArticlePhotoKind
+  url        String
+  alt        String
+  sort_order Int @default(0)
+
+  @@index([article_id, kind, deleted_at, sort_order])
+}
+
+model BlogGenerationDraft {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  article_id String
+  article    BlogArticle @relation(fields: [article_id], references: [id])
+
+  admin_id String
+  admin    User   @relation("BlogGenerationDraftAdmin", fields: [admin_id], references: [id])
+
+  provider       String
+  status         BlogGenerationStatus @default(requested)
+  source_hash    String
+  brief          String
+  verified_facts String
+  city_context   Json?
+
+  suggestion_title           String?
+  suggestion_excerpt         String?
+  suggestion_markdown        String?
+  suggestion_seo_title       String?
+  suggestion_seo_description String?
+
+  generated_at  DateTime?
+  error_code    String?
+  error_message String?
+
+  @@index([article_id, created_at])
+  @@index([admin_id, created_at])
+  @@index([status, created_at])
 }
 
 // ─── Spec 017 — Admin Taxonomy ──────────────────────────────────────────────

@@ -12,6 +12,10 @@ export type SitemapLodging = {
   city_slug: string
   updated_at: Date
 }
+export type SitemapBlogArticle = {
+  slug: string
+  updated_at: Date
+}
 
 /**
  * Construit toutes les entrées du sitemap public à partir des villes et POI.
@@ -23,9 +27,10 @@ export function buildSitemapEntries(input: {
   cities: SitemapCity[]
   pois: SitemapPoi[]
   lodgings: SitemapLodging[]
+  blogArticles?: SitemapBlogArticle[]
   staticPaths: string[]
 }): MetadataRoute.Sitemap {
-  const { baseUrl, cities, pois, lodgings, staticPaths } = input
+  const { baseUrl, cities, pois, lodgings, blogArticles = [], staticPaths } = input
   const url = (path: string) => `${baseUrl}${path}`
   const entries: MetadataRoute.Sitemap = []
 
@@ -74,6 +79,15 @@ export function buildSitemapEntries(input: {
     entries.push({
       url: url(`/guide/${lodging.city_slug}/logements/${lodging.slug}`),
       lastModified: lodging.updated_at,
+      changeFrequency: 'weekly',
+      priority: 0.65,
+    })
+  }
+
+  for (const article of blogArticles) {
+    entries.push({
+      url: url(`/blog/${article.slug}`),
+      lastModified: article.updated_at,
       changeFrequency: 'weekly',
       priority: 0.65,
     })

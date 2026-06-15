@@ -1,9 +1,9 @@
 import { prisma } from '@/shared/lib/prisma'
-import type { SitemapCity, SitemapLodging, SitemapPoi } from '../lib/sitemap'
+import type { SitemapBlogArticle, SitemapCity, SitemapLodging, SitemapPoi } from '../lib/sitemap'
 
 /** Données publiques indexables pour le sitemap : villes actives + POI actifs (avec slugs ville/catégorie). */
-export async function getSitemapData(): Promise<{ cities: SitemapCity[]; pois: SitemapPoi[]; lodgings: SitemapLodging[] }> {
-  const [cities, pois, lodgings] = await Promise.all([
+export async function getSitemapData(): Promise<{ cities: SitemapCity[]; pois: SitemapPoi[]; lodgings: SitemapLodging[]; blogArticles: SitemapBlogArticle[] }> {
+  const [cities, pois, lodgings, blogArticles] = await Promise.all([
     prisma.city.findMany({
       where: { is_active: true, deleted_at: null },
       select: { slug: true, updated_at: true },
@@ -35,6 +35,17 @@ export async function getSitemapData(): Promise<{ cities: SitemapCity[]; pois: S
         city: { select: { slug: true } },
       },
     }),
+    prisma.blogArticle.findMany({
+      where: {
+        status: 'published',
+        deleted_at: null,
+        NOT: { published_at: null },
+      },
+      select: {
+        slug: true,
+        updated_at: true,
+      },
+    }),
   ])
 
   return {
@@ -49,6 +60,10 @@ export async function getSitemapData(): Promise<{ cities: SitemapCity[]; pois: S
       slug: lodging.slug,
       city_slug: lodging.city.slug,
       updated_at: lodging.updated_at,
+    })),
+    blogArticles: blogArticles.map(article => ({
+      slug: article.slug,
+      updated_at: article.updated_at,
     })),
   }
 }

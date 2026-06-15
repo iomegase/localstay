@@ -31,6 +31,10 @@ describe('PublicMenu — weather link', () => {
       'href',
       '/guide/saint-gervais-les-bains/logements',
     )
+    expect(screen.getByRole('link', { name: 'Agenda' })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains/agenda',
+    )
     expect(screen.getByRole('link', { name: 'Météo' })).toHaveAttribute(
       'href',
       '/guide/saint-gervais-les-bains/meteo',

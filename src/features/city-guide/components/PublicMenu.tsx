@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { X } from 'lucide-react'
 import { contextualContactPath, contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
 
 type MenuItem = { href: string; label: string }
@@ -31,6 +33,7 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
     ? [
       { href: '/', label: 'Bienvenue' },
       { href: `/guide/${citySlug}/logements`, label: 'Logements' },
+      { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
       { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
       { href: contextualContactPath(citySlug), label: 'Contact' },
     ]
@@ -56,6 +59,7 @@ function lodgingItems(ownerName?: string | null, citySlug?: string | null): Menu
     items[0],
     items[1],
     { href: `/guide/${citySlug}/logements`, label: 'Logements' },
+    { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
     items[2],
     items[3],
     { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
@@ -73,11 +77,27 @@ export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
 
   return (
     <>
-      {isOpen && (
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        // Calque plein écran rendu via portal sur <body> : sort de l'en-tête
+        // (dont le `backdrop-filter` piège le z-index/contexte d'empilement de
+        // ses descendants `fixed`). Fond blanc opaque — aucune page ne transparaît.
         <div
-          data-testid="public-menu-overlay"
-          className="fixed inset-y-0 left-1/2 z-[60] flex w-full max-w-[430px] -translate-x-1/2 flex-col justify-between bg-white p-8"
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-[100] bg-white"
         >
+          <div
+            data-testid="public-menu-overlay"
+            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-y-0 left-1/2 z-[110] flex w-full max-w-[430px] -translate-x-1/2 flex-col justify-between border-x border-black/5 bg-white p-8 shadow-2xl"
+          >
+          <button
+            type="button"
+            aria-label="Fermer le menu"
+            onClick={() => setIsOpen(false)}
+            className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center text-charcoal transition-colors hover:text-gray-500"
+          >
+            <X className="h-6 w-6" />
+          </button>
           <div className="mt-20 space-y-8">
             <p className="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold">
               Navigation
@@ -110,7 +130,9 @@ export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
           <div className="border-t border-gray-100 pt-8">
             <p className="text-sm text-gray-400">MyStay</p>
           </div>
-        </div>
+          </div>
+        </div>,
+        document.body,
       )}
 
       <button
