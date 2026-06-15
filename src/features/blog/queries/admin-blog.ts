@@ -237,6 +237,18 @@ export async function archiveBlogArticle(id: string) {
   }
 }
 
+export async function deleteBlogArticle(id: string) {
+  try {
+    return await prisma.blogArticle.update({
+      where: { id },
+      data: { deleted_at: new Date() },
+      select: { id: true, slug: true },
+    })
+  } catch {
+    throw new ApiBlogError('NOT_FOUND', 404)
+  }
+}
+
 export async function createBlogPhoto(articleId: string, input: BlogPhotoUploadInput & { url: string }) {
   const article = await prisma.blogArticle.findFirst({
     where: { id: articleId, deleted_at: null },

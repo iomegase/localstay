@@ -38,6 +38,6 @@ describe('029 blog public list', () => {
       'href',
       '/blog/week-end-saint-gervais',
     )
-    expect(screen.getByText(/préparer un séjour alpin/i)).toBeInTheDocument()
+    expect(screen.getByText('Guide local')).toBeInTheDocument()
   })
 })

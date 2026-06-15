@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { listAdminBlogArticles, listBlogAdminCities } from '@/features/blog/queries/admin-blog'
 import { blogCategoryLabel } from '@/features/blog/lib/category-label'
+import { BlogDeleteButton } from '@/features/blog/components/BlogDeleteButton'
 import { BLOG_ARTICLE_CATEGORIES, BLOG_ARTICLE_STATUSES } from '@/features/blog/types'
 
 type PageProps = {
@@ -67,6 +68,7 @@ export default async function AdminBlogPage({ searchParams }: PageProps) {
                 <th className="px-6 py-3 font-medium">Statut</th>
                 <th className="px-6 py-3 font-medium">Catégorie</th>
                 <th className="px-6 py-3 font-medium">Ville</th>
+                <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -80,6 +82,9 @@ export default async function AdminBlogPage({ searchParams }: PageProps) {
                   <td className="px-6 py-4">{article.status}</td>
                   <td className="px-6 py-4">{blogCategoryLabel(article.category as typeof BLOG_ARTICLE_CATEGORIES[number])}</td>
                   <td className="px-6 py-4">{article.city_name ?? 'Global'}</td>
+                  <td className="px-6 py-4 text-right">
+                    <BlogDeleteButton id={article.id} title={article.title} />
+                  </td>
                 </tr>
               ))}
             </tbody>

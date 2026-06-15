@@ -7,6 +7,7 @@ import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
 import { HeroShareButton } from './HeroShareButton'
 import { PoiDetailHeroCarousel } from './PoiDetailHeroCarousel'
+import { PoiDetailTopBar } from './PoiDetailTopBar'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
 import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
@@ -39,42 +40,44 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
 
   return (
     <>
+      {/* Barre d'actions épinglée, masquée au scroll vers le bas */}
+      <PoiDetailTopBar>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="w-10 h-10 mt-4 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+        ) : (
+          <Link
+            href={`/guide/${citySlug}/${categorySlug}`}
+            className="w-10 h-10 mt-4 rounded-full bg-white/30 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        )}
+        <div className="flex mt-4 items-center gap-2">
+          <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
+          <FavoriteToggleButton
+            variant="icon"
+            poi={{
+              poi_id: poi.id,
+              name: poi.name,
+              city_slug: citySlug,
+              category_slug: categorySlug,
+              poi_slug: poi.slug,
+              photo: poi.photos?.[0] ?? null,
+              added_at: '',
+            }}
+          />
+        </div>
+      </PoiDetailTopBar>
+
       {/* Hero */}
       <PoiDetailHeroCarousel photos={poi.photos} name={poi.name} poiId={poi.id}>
-        <div className="absolute top-4 left-6 right-6 flex justify-between items-center z-10">
-          {onClose ? (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer"
-              className="w-10 h-10 rounded-full bg-white/30 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-          ) : (
-            <Link
-              href={`/guide/${citySlug}/${categorySlug}`}
-              className="w-10 h-10 rounded-full bg-white/30 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          )}
-          <div className="flex items-center gap-2">
-            <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
-            <FavoriteToggleButton
-              variant="icon"
-              poi={{
-                poi_id: poi.id,
-                name: poi.name,
-                city_slug: citySlug,
-                category_slug: categorySlug,
-                poi_slug: poi.slug,
-                photo: poi.photos?.[0] ?? null,
-                added_at: '',
-              }}
-            />
-          </div>
-        </div>
         {poi.is_open_now === true && (
           <div
             data-testid="poi-detail-hero-open-badge-wrapper"

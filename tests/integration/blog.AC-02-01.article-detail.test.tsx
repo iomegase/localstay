@@ -57,8 +57,12 @@ describe('029 blog article detail page', () => {
       '/guide/saint-gervais-les-bains',
     )
     expect(screen.getByRole('link', { name: 'Blog' })).toHaveAttribute('href', '/blog?city=saint-gervais-les-bains')
-    expect(screen.getByAltText('Vue sur Saint-Gervais')).toHaveAttribute('src', 'https://img.test/cover.jpg')
-    expect(screen.getByAltText('Rue du centre')).toHaveAttribute('src', 'https://img.test/gallery-1.jpg')
+    // Toutes les photos (couverture + galerie) alimentent le carousel du hero :
+    // la couverture est la première image affichée, et la navigation n'apparaît
+    // que lorsqu'il y a plusieurs photos.
+    expect(screen.getByTestId('poi-detail-hero-carousel')).toBeInTheDocument()
+    expect(screen.getByAltText('Un week-end à Saint-Gervais')).toHaveAttribute('src', 'https://img.test/cover.jpg')
+    expect(screen.getByRole('button', { name: 'Photo suivante' })).toBeInTheDocument()
     expect(screen.getByText(/Deux jours pour profiter du village/i)).toBeInTheDocument()
 
     const schema = container.querySelector('script[type="application/ld+json"]')

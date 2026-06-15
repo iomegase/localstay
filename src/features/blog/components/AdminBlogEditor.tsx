@@ -163,6 +163,7 @@ export function AdminBlogEditor({
     photos: initialArticle?.photos ?? [],
   })
   const [busy, setBusy] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [coverAlt, setCoverAlt] = useState('')
@@ -285,6 +286,24 @@ export function AdminBlogEditor({
         return
       }
       setArticle(current => ({ ...current, status: parseArticleStatus(json.status) ?? current.status }))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function deleteArticle() {
+    if (!article.id) return
+    setBusy('delete')
+    resetErrors()
+    try {
+      const response = await fetch(`/api/admin/blog/${article.id}`, { method: 'DELETE' })
+      if (!response.ok) {
+        const json = await response.json().catch(() => null) as ApiErrorPayload | null
+        applyApiError(json, 'Suppression impossible')
+        setConfirmDelete(false)
+        return
+      }
+      window.location.href = '/admin/blog'
     } finally {
       setBusy(null)
     }
@@ -619,9 +638,52 @@ export function AdminBlogEditor({
             <button type="button" onClick={() => transition('archive')} className={secondaryButtonClassName} disabled={busy !== null}>
               {busy === 'archive' ? 'Archivage…' : 'Archiver'}
             </button>
+            <button type="button" onClick={() => setConfirmDelete(true)} className={dangerButtonClassName} disabled={busy !== null}>
+              Effacer
+            </button>
           </>
         )}
       </div>
+
+      {confirmDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirmer la suppression"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => busy === null && setConfirmDelete(false)}
+        >
+          <div
+            className="w-full max-w-sm space-y-5 rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-slate-950">Effacer cet article ?</h2>
+              <p className="text-sm text-slate-600">
+                L’article « {article.title || 'Sans titre'} » sera retiré du blog et de la liste admin. Cette action est définitive depuis l’interface.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className={secondaryButtonClassName}
+                disabled={busy !== null}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={deleteArticle}
+                className={dangerButtonClassName}
+                disabled={busy !== null}
+              >
+                {busy === 'delete' ? 'Suppression…' : 'Effacer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -652,3 +714,4 @@ function textareaClassName(errors?: string[]) {
 
 const primaryButtonClassName = 'inline-flex items-center justify-center rounded-xl bg-[#0B1437] px-5 py-3 text-sm font-semibold text-white'
 const secondaryButtonClassName = 'inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900'
+const dangerButtonClassName = 'inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-600 disabled:opacity-60'
