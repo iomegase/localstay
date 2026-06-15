@@ -88,9 +88,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
           Points d&apos;intérêt
         </p> */}
-        <h1 className="text-4xl uppercase font-light tracking-tight    leading-none text-slate-500">
+        {/* <h1 className="text-4xl uppercase font-light tracking-tight    leading-none text-slate-500">
           {detail.name}
-        </h1>
+        </h1> */}
         {/* <p className="mt-4 text-xs leading-6 text-gray-500">
           {poiGroups.meta.total} adresse{poiGroups.meta.total > 1 ? 's' : ''} recommandée{poiGroups.meta.total > 1 ? 's' : ''} .
         </p> */}
