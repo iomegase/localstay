@@ -6,6 +6,15 @@ import '@testing-library/jest-dom'
 import AdminPathLayout from '@/app/admin/layout'
 import AdminTaxonomyPage from '@/app/admin/taxonomy/page'
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/admin/taxonomy',
+  useRouter: () => ({
+    replace: jest.fn(),
+    refresh: jest.fn(),
+    push: jest.fn(),
+  }),
+}))
+
 jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
 }))
@@ -58,10 +67,10 @@ describe('017 admin taxonomy page', () => {
     expect(screen.getByText('Dîner')).toBeInTheDocument()
     expect(screen.getByText('diner')).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()
-    expect(screen.getAllByText('slug locked')).toHaveLength(2)
+    expect(screen.getAllByText(/Slug Verrouillé/i)).toHaveLength(2)
     expect(screen.getByText('Restaurants')).toBeInTheDocument()
     expect(screen.getByText('Mobilité')).toBeInTheDocument()
-    expect(screen.getByText('inactive')).toBeInTheDocument()
+    expect(screen.getByText(/Inactif/i)).toBeInTheDocument()
   })
 
   it('UI behaviour: exposes taxonomy navigation and creation CTAs without delete buttons', () => {

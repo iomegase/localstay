@@ -7,6 +7,15 @@ import AdminPathLayout from '@/app/admin/layout'
 import AdminPoisPage from '@/app/admin/pois/page'
 import AdminPoiDetailPage from '@/app/admin/pois/[id]/page'
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/admin/pois',
+  useRouter: () => ({
+    replace: jest.fn(),
+    refresh: jest.fn(),
+    push: jest.fn(),
+  }),
+}))
+
 const mockListAdminPois = jest.fn()
 const mockGetAdminPoi = jest.fn()
 const mockGetAdminPoiOptions = jest.fn()
@@ -140,8 +149,8 @@ describe('022 admin POI pages', () => {
     expect(screen.getAllByText('Actifs').length).toBeGreaterThan(0)
     expect(screen.getByRole('textbox', { name: 'Recherche' })).toBeInTheDocument()
     expect(screen.getByText('Le Pile Pont Expo')).toBeInTheDocument()
-    expect(screen.getByText('Runs acquisition')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Revoir/i })).toHaveAttribute('href', '/admin/poi-acquisition/runs/run-1')
+    expect(screen.getByText("Derniers Runs d'acquisition")).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Ouvrir le run/i })).toHaveAttribute('href', '/admin/poi-acquisition/runs/run-1')
   })
 
   it('AC-01-04: renders an empty state with acquisition and creation CTAs', async () => {
@@ -160,8 +169,8 @@ describe('022 admin POI pages', () => {
 
     render(await AdminPoisPage({ searchParams: Promise.resolve({ city_id: cityId }) }))
 
-    expect(screen.getByText('Aucun POI publié pour cette ville')).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /Lancer acquisition/i })[0]).toHaveAttribute(
+    expect(screen.getByText('Aucun POI publié')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /^Acquisition$/i })[0]).toHaveAttribute(
       'href',
       `/admin/poi-acquisition?city_id=${cityId}`,
     )
@@ -177,23 +186,24 @@ describe('022 admin POI pages', () => {
     expect(selectOptions('Sous-catégorie')).not.toContain('Restaurants')
     fireEvent.change(screen.getByLabelText('Catégorie'), { target: { value: 'cat-2' } })
     expect(selectOptions('Sous-catégorie')).toEqual(['Aucune', 'Restaurants', 'Gastronomie locale', 'Ouvert maintenant'])
-    expect(screen.getByText(/Données parcours verrouillées ici/i)).toBeInTheDocument()
-    expect(screen.getByText('Merchant lié')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Recalculer coordonnées/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Tags du POI' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Tags du POI, un par ligne')).toHaveValue('culture\nexposition')
-    expect(screen.getByRole('heading', { name: 'Photos' })).toBeInTheDocument()
+    expect(screen.getByText(/Randonnée protégée/i)).toBeInTheDocument()
+    expect(screen.getByText(/Distance, dénivelé et difficulté restent verrouillés ici/i)).toBeInTheDocument()
+    expect(screen.getByText(/Revendication valide/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Recalculer$/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tags de recherche' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Un tag par ligne')).toHaveValue('culture\nexposition')
+    expect(screen.getByRole('heading', { name: 'Médias & Photos' })).toBeInTheDocument()
     expect(screen.getByRole('table', { name: /Photos du POI/i })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Photo 1' })).toHaveAttribute('src', 'https://example.com/photo.jpg')
     expect(screen.getByText('Photo 1')).toBeInTheDocument()
-    expect(screen.getByText('Hero actuelle')).toBeInTheDocument()
+    expect(screen.getByText('Hero Image')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /Définir Photo 2 comme hero/i }))
     expect(screen.getByRole('img', { name: 'Photo 1' })).toHaveAttribute('src', 'https://example.com/photo-2.jpg')
     expect(screen.getByRole('button', { name: /Effacer Photo 1/i })).toBeInTheDocument()
     expect(screen.queryByText('https://example.com/photo.jpg')).not.toBeInTheDocument()
     expect(screen.queryByText('Photos et tags')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Désactiver/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Archiver/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Effacer$/i })).toBeInTheDocument()
   })
 })
 

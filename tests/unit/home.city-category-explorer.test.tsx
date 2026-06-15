@@ -75,7 +75,7 @@ describe('CityCategoryExplorer', () => {
     expect(screen.getByText('Mobilité')).toBeInTheDocument()
   })
 
-  it('uses a photo for a mapped slug and a fallback (icon, no img) for an unmapped slug', async () => {
+  it('uses a photo for mapped slugs', async () => {
     const user = userEvent.setup()
     render(<CityCategoryExplorer cities={CITIES} />)
 
@@ -83,7 +83,7 @@ describe('CityCategoryExplorer', () => {
     await user.click(screen.getByRole('option', { name: 'Saint-Gervais-les-Bains' }))
 
     expect(await screen.findByAltText('Boulangerie')).toBeInTheDocument()
-    expect(screen.queryByAltText('Mobilité')).not.toBeInTheDocument()
+    expect(screen.getByAltText('Mobilité')).toBeInTheDocument()
     expect(screen.getByText('Mobilité')).toBeInTheDocument()
   })
 

@@ -10,6 +10,7 @@ const mockNotFound = jest.fn()
 
 jest.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
+  usePathname: () => '/guide/saint-gervais-les-bains/meteo',
 }))
 
 jest.mock('next/link', () => ({

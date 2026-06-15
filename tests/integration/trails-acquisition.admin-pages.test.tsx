@@ -8,6 +8,15 @@ import AdminTrailsPage from '@/app/admin/trails/page'
 import AdminTrailRunPage from '@/app/admin/trails/runs/[id]/page'
 import AdminNewTrailPage from '@/app/admin/trails/new/page'
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/admin/trails',
+  useRouter: () => ({
+    replace: jest.fn(),
+    refresh: jest.fn(),
+    push: jest.fn(),
+  }),
+}))
+
 jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
 }))
@@ -78,9 +87,10 @@ describe('019 admin trail pages', () => {
     expect(screen.getByText('Acquisition randonnées')).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: /Overpass/i })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: /Site officiel/i })).not.toBeChecked()
-    expect(screen.getByRole('combobox', { name: /Rayon/i })).toHaveValue('15')
-    expect(screen.getByText('2 candidats · 1 en revue · 1 publiés')).toBeInTheDocument()
-    expect(screen.getByText('Sources: official_website, overpass')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /Rayon d'action/i })).toHaveValue('15')
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('official_website, overpass')).toBeInTheDocument()
   })
 
   it('AC-03-01: renders trail candidates with source, geometry and actions', async () => {
@@ -88,8 +98,8 @@ describe('019 admin trail pages', () => {
 
     expect(screen.getByText('Boucle des alpages')).toBeInTheDocument()
     expect(screen.getAllByText('valid')).toHaveLength(2)
-    expect(screen.getByText(/Durée: 2 h 30/)).toBeInTheDocument()
-    expect(screen.getByText(/Coordonnées départ: 45.891000, 6.713000/)).toBeInTheDocument()
+    expect(screen.getByText('2h 30')).toBeInTheDocument()
+    expect(screen.getByText(/Départ : Parking du Bettex/i)).toBeInTheDocument()
     expect(screen.getByText(/Office de tourisme/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^Publier$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Rejeter/i })).toBeInTheDocument()

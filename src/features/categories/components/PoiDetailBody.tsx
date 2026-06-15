@@ -154,7 +154,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
           <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} />
         </div>
 
-           {/* {poi.photos.length > 0 && poi.website && photoAttributionHost && (
+        {poi.photos.length > 0 && poi.website && photoAttributionHost && (
           <div className="px-6">
             <a
               href={poi.website}
@@ -166,7 +166,7 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
               Photos : {photoAttributionHost}
             </a>
           </div>
-        )} */}
+        )}
 
         {/* Action buttons */}
         <div className="px-6">

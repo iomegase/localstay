@@ -67,7 +67,7 @@ describe('021 public trail detail', () => {
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=45.8731%2C6.673',
     )
-    expect(screen.getByText(/StayLocal ne remplace pas une carte officielle/i)).toBeInTheDocument()
+    expect(screen.getByText(/MyStay ne remplace pas une carte officielle/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /réserver/i })).not.toBeInTheDocument()
     expect(screen.queryByText(/^Itinéraire$/i)).not.toBeInTheDocument()
   })
@@ -104,6 +104,6 @@ describe('021 public trail detail', () => {
     render(<PoiDetailBody poi={incompleteTrail} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
 
     expect(screen.queryByRole('link', { name: /commencer la rando/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /rejoindre le départ/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /rejoindre le départ/i })).not.toBeInTheDocument()
   })
 })

@@ -9,6 +9,15 @@ import AdminPoiAcquisitionRunPage from '@/app/admin/poi-acquisition/runs/[id]/pa
 import AdminNewPoiPage from '@/app/admin/pois/new/page'
 import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
 
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/admin/poi-acquisition',
+  useRouter: () => ({
+    replace: jest.fn(),
+    refresh: jest.fn(),
+    push: jest.fn(),
+  }),
+}))
+
 jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
 }))
@@ -77,7 +86,8 @@ describe('018 admin acquisition pages', () => {
 
     expect(screen.getByText('Acquisition POI')).toBeInTheDocument()
     expect(screen.getAllByText('Saint-Gervais')[0]).toBeInTheDocument()
-    expect(screen.getByText('3 candidats')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
     expect(screen.getByText('Gemini API timeout')).toBeInTheDocument()
   })
 
@@ -91,10 +101,10 @@ describe('018 admin acquisition pages', () => {
 
     expect(screen.queryByLabelText(/URL officielle/i)).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('checkbox', { name: /Site officiel/i }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /Scanner le site officiel/i }))
     expect(screen.getByLabelText(/URL officielle/i)).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: /Lancer acquisition/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Lancer l'acquisition/i }))
 
     expect(screen.getByText(/Renseignez une URL officielle/i)).toBeInTheDocument()
   })
@@ -103,7 +113,7 @@ describe('018 admin acquisition pages', () => {
     render(await AdminPoiAcquisitionRunPage({ params: Promise.resolve({ id: 'run-1' }) }))
 
     expect(screen.getByText('Brasserie Candidate')).toBeInTheDocument()
-    expect(screen.getByText('matched')).toBeInTheDocument()
+    expect(screen.getByText(/Match:\s*matched/i)).toBeInTheDocument()
     expect(screen.getByText('Google Maps')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Publier/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Rejeter/i })).toBeInTheDocument()

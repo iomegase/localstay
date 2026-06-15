@@ -49,7 +49,7 @@ describe('Public lodging home', () => {
       'https://cdn.example.test/chalet.jpg',
     )
     expect(screen.getByText('Bienvenue dans votre chalet.', { exact: false })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Découvrir le guide' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Découvrir le guide/i })).toHaveAttribute(
       'href',
       '/guide/saint-gervais',
     )

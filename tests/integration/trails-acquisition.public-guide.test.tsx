@@ -51,8 +51,8 @@ describe('019 public guide trail detail', () => {
     render(<PoiDetailBody poi={trailPoi} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
 
     expect(screen.getByTestId('trail-detail-block')).toBeInTheDocument()
-    expect(screen.getByText('Randonnée')).toBeInTheDocument()
     expect(screen.getByText('7.5 km')).toBeInTheDocument()
     expect(screen.getByText(/Office de tourisme/)).toBeInTheDocument()
+    expect(screen.getByText(/Source principale : official_website/i)).toBeInTheDocument()
   })
 })

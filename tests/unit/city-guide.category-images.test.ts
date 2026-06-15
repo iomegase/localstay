@@ -13,9 +13,14 @@ describe('category-images', () => {
     expect(getCategoryImage('restaurants')).toBe('/home/resto.png')
   })
 
-  it('returns null for unmapped slugs', () => {
-    expect(getCategoryImage('mobilite')).toBeNull()
-    expect(getCategoryImage('location-de-ski')).toBeNull()
+  it('returns the mapped asset for newly illustrated slugs', () => {
+    expect(getCategoryImage('mobilite')).toBe('/home/mobilite.png')
+    expect(getCategoryImage('location-de-ski')).toBe('/home/location-de-skis.png')
+  })
+
+  it('returns null for still-unmapped slugs', () => {
+    expect(getCategoryImage('urgences')).toBeNull()
+    expect(getCategoryImage('famille')).toBeNull()
   })
 
   it('returns a deterministic gradient class for the same slug', () => {

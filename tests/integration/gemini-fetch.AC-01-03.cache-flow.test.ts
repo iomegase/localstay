@@ -48,10 +48,10 @@ beforeAll(async () => {
   testCityId = city.id
 
   const category = await prisma.category.findFirst({
-    where: { slug: 'restaurants' },
+    where: { slug: 'diner' },
     select: { id: true },
   })
-  if (!category) throw new Error('Seed category restaurants not found in DB')
+  if (!category) throw new Error('Seed category diner not found in DB')
   testCategoryId = category.id
 })
 

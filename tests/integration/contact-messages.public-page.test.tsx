@@ -53,7 +53,9 @@ describe('024 contact messages public page', () => {
   it('AC-01-01: renders the lodging contact form with destination choices', async () => {
     render(await ContactPage())
 
-    expect(screen.getByText('Chalet MyStay · Saint-Gervais-les-Bains')).toBeInTheDocument()
+    expect(
+      screen.getAllByText((_, node) => node?.textContent?.replace(/\s+/g, ' ').trim() === 'Chalet MyStay | Saint-Gervais-les-Bains'),
+    ).toHaveLength(2)
     expect(screen.getByLabelText('Nom')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Téléphone')).toBeInTheDocument()
