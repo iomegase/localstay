@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-06
+updated_at: 2026-06-13
 depends_on: [002-categories, 003-poi-list, 007-gemini-fetch]
 i18n: fr (MVP 1 monolingue français — versions EN, IT, ES, NL prévues ultérieurement)
 pilot_city: saint-gervais-les-bains
@@ -82,7 +82,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given au moins un favori stocké localement, When le Tourist ouvre `/mes-favoris`, Then chaque favori est affiché en card verticale compacte sans accordéon, avec image, badge catégorie, actions `Retirer` et `Ouvrir`, et l'action d'ouverture affiche la fiche dans un panneau modal mobile centré avec backdrop, sans navigation d'URL ; le footer d'actions du panneau affiche les actions disponibles (`Appeler`, `Site`, `Itinéraire`) en trois colonnes sur une surface arrondie inspirée de la bottom nav publique, en position fixe en bas d'écran avec une légère marge basse, masqué pendant le scroll puis visible à l'arrêt, sans bouton `Réserver` tant que la réservation n'est pas activée par une spec dédiée.
+- **AC-04-01**: Given au moins un favori stocké localement, When le Tourist ouvre `/mes-favoris` ou `/guide/[city-slug]/mes-favoris`, Then chaque favori est affiché en card verticale compacte sans accordéon, avec image, badge catégorie, actions `Retirer` et `Ouvrir`, et l'action d'ouverture affiche la fiche dans un panneau modal mobile centré avec backdrop, sans navigation d'URL ; le footer d'actions du panneau affiche les actions disponibles (`Appeler`, `Site`, `Itinéraire`) en trois colonnes sur une surface arrondie inspirée de la bottom nav publique, en position fixe en bas d'écran avec une légère marge basse, masqué pendant le scroll puis visible à l'arrêt, sans bouton `Réserver` tant que la réservation n'est pas activée par une spec dédiée.
 
 ---
 
@@ -96,7 +96,7 @@ Aucun compte n'est requis. Aucune géolocalisation GPS n'est déclenchée automa
 - **BR-06**: La recherche de ville est accent-insensitive, prefix match, limitée à 10 résultats, ordonnée par pertinence (nom en premier, puis CP)
 - **BR-07**: MVP 1 est monolingue français. Toutes les chaînes UI sont en français. Les versions EN, IT, ES, NL sont prévues dans les MVPs suivants — l'architecture i18n doit être préparée (clés de traduction) sans être implémentée
 - **BR-08**: Le `poi_count` retourné par l'API reflète les POI actifs en base au moment de la requête. Si le cache Gemini est vide ou en cours de fetch, `poi_count` peut être 0 — comportement défini dans spec `007-gemini-fetch`
-- **BR-09**: Le nom produit public est MyStay. Les libellés de navigation validés le 2026-06-05 sont : bottom nav `Explorer` → `Bienvenue`, `Favoris` → `Vos favoris`, bouton `Guide` visible uniquement dans le contexte `/guide/[city-slug]` et pointant vers la racine de cette ville ; menu burger `Home` → `Bienvenue`; menu burger `Services Privés` → `Les recommandations de {owner.name}` si le nom Owner est connu, sinon `Les recommandations de votre hôte`. L'item sélectionné du bottom nav public utilise la couleur `#bd9254`; les items inactifs utilisent un gris lisible `#6f7480` sur la surface glassmorphism ; le bottom nav complet (surface, textes et icônes) devient transparent pendant que l'utilisateur scrolle, puis revient visible en glassmorphism quand le scroll s'arrête.
+- **BR-09**: Le nom produit public est MyStay. Les libellés de navigation validés le 2026-06-05 sont : bottom nav `Explorer` → `Bienvenue`, `Favoris` → `Vos favoris`, bouton `Guide` visible uniquement dans le contexte `/guide/[city-slug]` et pointant vers la racine de cette ville ; quand une City est active dans l'URL publique, les entrées `Vos favoris` et `Contact` utilisent des routes contextualisées sous `/guide/[city-slug]/...` afin de conserver `Guide` et `Position` dans le footer ; menu burger `Home` → `Bienvenue`; menu burger `Services Privés` → `Les recommandations de {owner.name}` si le nom Owner est connu, sinon `Les recommandations de votre hôte`. L'item sélectionné du bottom nav public utilise la couleur `#bd9254`; les items inactifs utilisent un gris lisible `#6f7480` sur la surface glassmorphism ; le bottom nav complet (surface, textes et icônes) devient transparent pendant que l'utilisateur scrolle, puis revient visible en glassmorphism quand le scroll s'arrête.
 - **BR-10**: Sur mobile iOS/Android, le site utilise un mode immersif navigateur classique sur toutes les routes : viewport `cover`, safe areas, hauteur mobile dynamique et repli demandé des barres navigateur après chargement ou interaction tactile. Ce mode ne remplace pas une PWA installée : la disparition des barres d'adresse/bas reste soumise au comportement du navigateur.
 
 ---

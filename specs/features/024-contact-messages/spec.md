@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-04
-updated_at: 2026-06-04
+updated_at: 2026-06-13
 depends_on: [009-auth-owner, 010-dashboard-owner, 012-guide-customization, 016-dashboard-superadmin]
 ```
 
@@ -17,7 +17,7 @@ depends_on: [009-auth-owner, 010-dashboard-owner, 012-guide-customization, 016-d
 
 ## Context
 
-La page `/contact` doit devenir un formulaire exploitable pour les Tourists en séjour. Un Tourist peut envoyer une demande destinée au Propriétaire du logement ou à la Conciergerie. Tous les messages sont centralisés dans le dashboard Super-admin global afin que l'équipe MyStay garde une copie et puisse répondre, suivre ou archiver les demandes.
+La page `/contact` doit devenir un formulaire exploitable pour les Tourists en séjour. Un Tourist peut envoyer une demande destinée au Propriétaire du logement ou à la Conciergerie. Quand le Tourist navigue dans le contexte d'une City publique, une variante contextualisée `/guide/[city-slug]/contact` conserve la navigation du Guide sans changer le comportement métier du formulaire. Tous les messages sont centralisés dans le dashboard Super-admin global afin que l'équipe MyStay garde une copie et puisse répondre, suivre ou archiver les demandes.
 
 ---
 
@@ -42,7 +42,7 @@ La page `/contact` doit devenir un formulaire exploitable pour les Tourists en s
 
 #### Acceptance Criteria
 
-- **AC-01-01**: Given un séjour actif, When la page `/contact` s'affiche, Then un formulaire demande nom, email, téléphone optionnel, destination, sujet et message
+- **AC-01-01**: Given un séjour actif ou un contexte ville public, When la page `/contact` ou `/guide/[city-slug]/contact` s'affiche, Then un formulaire demande nom, email, téléphone optionnel, destination, sujet et message
 - **AC-01-02**: Given le Tourist choisit `Propriétaire`, When il envoie un formulaire valide, Then le message est stocké avec le Lodging, l'Owner du Lodging et la destination `owner`
 - **AC-01-03**: Given le Tourist choisit `Conciergerie`, When il envoie un formulaire valide, Then le message est stocké avec le Lodging si connu et la destination `concierge`
 - **AC-01-04**: Given un formulaire invalide, When le Tourist soumet, Then l'API retourne une erreur Zod structurée et aucun message n'est créé

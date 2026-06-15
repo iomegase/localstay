@@ -500,7 +500,7 @@ export function evaluateProfileCompleteness(profile: ProfileLike) {
   const missingFields: string[] = []
   if (!profile.title || profile.title.trim().length < 5) missingFields.push('title')
   if (!profile.short_description || profile.short_description.trim().length < 40) missingFields.push('short_description')
-  if (!profile.description || profile.description.trim().length < 200) missingFields.push('description')
+  if (!profile.description || profile.description.trim().length < 80) missingFields.push('description')
   if (!profile.property_type) missingFields.push('property_type')
   if (!profile.max_guests || profile.max_guests < 1) missingFields.push('max_guests')
   if (profile.photos.length < 1) missingFields.push('photos')
@@ -509,6 +509,7 @@ export function evaluateProfileCompleteness(profile: ProfileLike) {
   if (!profile.content_rights_confirmed_at) missingFields.push('content_rights_confirmation')
 
   const warnings: string[] = []
+  if (profile.description && profile.description.length < 200) warnings.push('editorial_description_length')
   if (profile.photos.length < 5) warnings.push('seo_photo_count')
   if (profile.description && profile.description.length < 400) warnings.push('seo_description_length')
 

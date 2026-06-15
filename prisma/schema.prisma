@@ -36,6 +36,7 @@ model City {
   trail_import_runs TrailImportRun[]
   trail_candidates TrailCandidate[]
   events           Event[]
+  lodging_public_profiles LodgingPublicProfile[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -643,6 +644,7 @@ model Lodging {
   customization LodgingCustomization?
   featured_pois LodgingFeaturedPoi[]
   contact_messages ContactMessage[]
+  public_profile LodgingPublicProfile?
 }
 
 // ─── Spec 012 — Guide Customization ─────────────────────────────────────────
@@ -688,6 +690,136 @@ model LodgingFeaturedPoi {
   @@unique([lodging_id, poi_id])
   @@index([lodging_id, deleted_at])
   @@index([poi_id])
+}
+
+enum LodgingPublicationStatus {
+  draft
+  review
+  published
+  archived
+}
+
+enum ExternalBookingPlatform {
+  airbnb
+  booking
+  other_verified
+}
+
+enum LodgingSourceMetadataStatus {
+  not_checked
+  url_only
+  unavailable
+  blocked
+}
+
+enum LodgingRewriteStatus {
+  not_requested
+  requested
+  generated
+  accepted
+  rejected
+  failed
+}
+
+model LodgingPublicProfile {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  lodging_id  String  @unique
+  lodging     Lodging @relation(fields: [lodging_id], references: [id])
+  city_id     String
+  city        City    @relation(fields: [city_id], references: [id])
+
+  slug                    String
+  publication_status      LodgingPublicationStatus @default(draft)
+  is_featured             Boolean @default(false)
+  published_at            DateTime?
+  submitted_for_review_at DateTime?
+  admin_review_note       String?
+
+  title             String
+  short_description String
+  description       String
+  property_type     String
+  max_guests        Int
+  bedroom_count     Int?
+  bathroom_count    Float?
+  bed_count         Int?
+  surface_m2        Int?
+
+  public_area_label       String?
+  precise_location_public Boolean @default(false)
+  public_latitude         Float?
+  public_longitude        Float?
+
+  external_booking_url      String?
+  external_booking_platform ExternalBookingPlatform?
+  public_contact_enabled    Boolean @default(true)
+
+  source_listing_url        String?
+  source_listing_platform   ExternalBookingPlatform?
+  source_listing_identifier String?
+  source_metadata_status    LodgingSourceMetadataStatus @default(not_checked)
+  source_metadata_detected  Json?
+  source_description_text   String?
+
+  content_rights_confirmed_at         DateTime?
+  content_rights_confirmed_by_user_id String?
+  content_rights_statement_version    String?
+
+  rewrite_status           LodgingRewriteStatus @default(not_requested)
+  rewrite_source_text_hash String?
+  rewrite_suggestion       String?
+  rewrite_generated_at     DateTime?
+  rewrite_provider         String?
+
+  seo_title       String?
+  seo_description String?
+
+  photos    LodgingPhoto[]
+  amenities LodgingAmenity[]
+
+  @@unique([city_id, slug])
+  @@index([publication_status, deleted_at])
+  @@index([city_id, publication_status, deleted_at])
+  @@index([published_at])
+}
+
+model LodgingPhoto {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  profile_id String
+  profile    LodgingPublicProfile @relation(fields: [profile_id], references: [id])
+
+  url        String
+  alt        String
+  room_type  String?
+  sort_order Int @default(0)
+  is_cover   Boolean @default(false)
+
+  @@index([profile_id, deleted_at])
+}
+
+model LodgingAmenity {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  profile_id String
+  profile    LodgingPublicProfile @relation(fields: [profile_id], references: [id])
+
+  code       String
+  label      String
+  sort_order Int @default(0)
+
+  @@unique([profile_id, code])
+  @@index([profile_id, deleted_at])
 }
 
 // ─── Spec 024 — Contact Messages ───────────────────────────────────────────

@@ -97,7 +97,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
         <GuideSearchInput citySlug={slug} lodgingId={lodging} />
       </section>
       */}
-           {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
+      {/* BR-01 + AC-03-04: valid city with no POIs → 200 + empty state */}
       {categories.length === 0 ? (
         <div className="flex flex-col items-center justify-center px-8 py-16 text-center gap-4">
           <p className="text-gray-500 text-sm leading-relaxed">

@@ -91,3 +91,39 @@ export function categoryMetadata(input: {
     twitter: { card: 'summary_large_image', title, description },
   }
 }
+
+export function lodgingListMetadata(input: { cityName: string; citySlug: string }): Metadata {
+  const title = `Logements à ${input.cityName} — MyStay`
+  const description = truncate(
+    `Découvrez les logements à ${input.cityName} avec photos, équipements, recommandations locales et lien de réservation.`,
+  )
+  const path = `/guide/${input.citySlug}/logements`
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path }),
+    twitter: { card: 'summary_large_image', title, description },
+  }
+}
+
+export function lodgingDetailMetadata(input: {
+  title: string
+  shortDescription: string
+  citySlug: string
+  lodgingSlug: string
+  coverPhoto: string | null
+}): Metadata {
+  const title = `${input.title} — Logement MyStay`
+  const description = truncate(input.shortDescription)
+  const path = `/guide/${input.citySlug}/logements/${input.lodgingSlug}`
+  const images = input.coverPhoto ? [input.coverPhoto] : undefined
+
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images, type: 'article' }),
+    twitter: { card: 'summary_large_image', title, description, ...(images ? { images } : {}) },
+  }
+}

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
-updated_at: 2026-06-12
+updated_at: 2026-06-13
 depends_on:
   - 001-city-guide
   - 003-poi-list
@@ -106,22 +106,22 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 #### Acceptance Criteria
 
 - **AC-03-01**: Given `external_booking_url` est configuré et validé, When le Tourist clique sur le CTA de réservation externe, Then le lien s'ouvre dans un nouvel onglet avec `rel="noopener noreferrer"` et un événement analytics `lodging_external_booking_click` est enregistré.
-- **AC-03-02**: Given `public_contact_enabled = true`, When le Tourist clique sur le CTA contact, Then il accède à un formulaire public prérempli avec `lodging_id` et destination `owner`.
+- **AC-03-02**: Given `public_contact_enabled = true`, When le Tourist clique sur le CTA contact, Then il accède à un formulaire public prérempli avec `lodging_id` et destination `owner`, en conservant le contexte `/guide/[city-slug]` quand la fiche logement est ouverte depuis ce périmètre.
 - **AC-03-03**: Given `public_contact_enabled = false`, When la fiche s'affiche, Then aucun CTA contact Owner n'est affiché.
 - **AC-03-04**: Given un formulaire de contact public valide depuis une fiche logement, When il est soumis, Then un `ContactMessage` est créé selon les règles de `024-contact-messages`.
 
-### US-04 — Mettre en avant les logements dans le Guide ville
+### US-04 — Découvrir les logements depuis le menu du Guide ville
 
 **As a** Tourist consultant un Guide ville  
-**I want to** voir une sélection de logements pertinents  
-**So that** je comprenne que MyStay peut aussi m'aider à préparer mon séjour complet
+**I want to** accéder à une page dédiée aux logements sans surcharger la page Guide ville  
+**So that** la découverte des logements reste claire et le SEO se concentre sur une route dédiée
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given une City avec au moins un logement publié, When `/guide/[city-slug]` s'affiche, Then un bloc "Séjourner à [City]" affiche jusqu'à 3 logements publiés.
-- **AC-04-02**: Given une City sans logement publié, When `/guide/[city-slug]` s'affiche, Then le bloc logements est absent et le Guide local conserve son rendu actuel.
-- **AC-04-03**: Given le bloc logements sur la page City, When le Tourist clique "Voir tous les logements", Then il est redirigé vers `/guide/[city-slug]/logements`.
-- **AC-04-04**: Given la page City contient événements, météo, catégories et logements, When elle s'affiche sur mobile 375px, Then aucun bloc ne chevauche un autre et aucun scroll horizontal n'apparaît.
+- **AC-04-01**: Given un Guide ville ou une route publique rattachée à une City, When le Tourist ouvre le menu burger, Then une entrée dédiée `Logements` permet d'accéder à `/guide/[city-slug]/logements`.
+- **AC-04-02**: Given `/guide/[city-slug]` s'affiche, When la page est rendue, Then aucun bloc logements n'est injecté dans le flux principal du Guide ville.
+- **AC-04-03**: Given le Tourist clique sur l'entrée `Logements` du menu burger, When la navigation se déclenche, Then il est redirigé vers `/guide/[city-slug]/logements`.
+- **AC-04-04**: Given la page City contient événements, météo et catégories, When elle s'affiche sur mobile 375px, Then aucun bloc ne chevauche un autre et aucun scroll horizontal n'apparaît.
 
 ### US-05 — Préparer une fiche publique depuis le dashboard Owner
 
@@ -207,10 +207,11 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-17**: Les recommandations Owner affichées sur une fiche logement réutilisent `LodgingFeaturedPoi` de la spec 012 ou une query compatible. Elles ne peuvent pas ajouter de POI inexistants.
 - **BR-18**: Un POI recommandé doit respecter les règles de périmètre des specs 003 et 008 : primary `≤ 15 km`, nearby `15–30 km`, rejet `> 30 km`.
 - **BR-19**: La liste logements City trie d'abord les fiches `is_featured = true`, puis par `published_at desc`, puis par `created_at desc`.
-- **BR-20**: Le bloc logements sur `/guide/[city-slug]` affiche au maximum 3 fiches publiées.
+- **BR-20**: La découverte des logements depuis le Guide ville passe par une entrée dédiée `Logements` dans le menu burger ; le flux principal de `/guide/[city-slug]` n'affiche aucun bloc logements.
 - **BR-21**: Les photos logement sont validées côté serveur, limitées à 5 Mo, converties si nécessaire via le service d'upload existant et stockées dans le bucket `guide-photos`.
 - **BR-22**: Chaque Lodging Photo doit avoir un `alt` public non vide avant publication.
-- **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` 40–180, `description` 200–4000, `seo_title` 30–70, `seo_description` 80–180.
+- **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` 40–180, `description` 80–4000, `seo_title` 30–70, `seo_description` 80–180.
+- **BR-23a**: Le passage en `review` n'exige pas 200 caractères minimum pour `description`. Une description entre 80 et 199 caractères est autorisée pour la revue, mais reste sous-optimale sur le plan éditorial et SEO.
 - **BR-24**: Aucune fiche `draft`, `review` ou `archived` ne doit être présente dans le sitemap, dans les listes publiques ou dans les JSON-LD publics.
 - **BR-25**: Les pages non publiées retournent 404 plutôt que `noindex` pour éviter l'exposition de contenu privé.
 - **BR-26**: Les données structurées JSON-LD doivent décrire uniquement des informations visibles sur la page.
@@ -905,16 +906,17 @@ Toutes les erreurs utilisent le format standard :
   - pas d'adresse exacte par défaut.
 - Bloc "Les recommandations de votre hôte" réutilisant les POI favoris de la spec 012.
 - Bloc "Autour du logement" avec liens internes vers Guide, restaurants, randonnées, météo et agenda quand disponibles.
-- CTA sticky mobile :
+- Bloc CTA dans le flux de la page :
   - "Réserver sur Airbnb" ou libellé plateforme configurée si lien externe présent ;
-  - "Contacter l'hôte" si contact public autorisé.
+  - "Contacter l'hôte" si contact public autorisé ;
+  - aucun bandeau `fixed` en bas d'écran ne doit chevaucher la navigation publique ou le contenu de la fiche.
 - JSON-LD placé via `JsonLd`, uniquement depuis les données visibles.
 
 ### Page publique : `/guide/[city-slug]`
 
-- Ajout d'une section "Séjourner à [City]" après les blocs de découverte principaux, sans masquer les catégories.
-- Affiche jusqu'à 3 logements publiés.
-- Masquée entièrement si aucun logement publié.
+- Aucun bloc logements injecté dans le flux principal du Guide ville.
+- Le menu burger expose une entrée `Logements` pointant vers `/guide/[city-slug]/logements` quand une City est résolue dans le contexte courant.
+- Le SEO lié aux logements est concentré sur la liste dédiée `/guide/[city-slug]/logements` et sur les fiches logement publiques, pas sur le contenu de `/guide/[city-slug]`.
 
 ### Dashboard Owner : `/dashboard/lodgings/[id]/showcase`
 
@@ -966,9 +968,9 @@ Toutes les erreurs utilisent le format standard :
 | AC-03-02 | CTA contact préremplit lodging_id | integration |
 | AC-03-03 | Contact désactivé → CTA absent | unit |
 | AC-03-04 | Contact fiche crée ContactMessage selon spec 024 | contract |
-| AC-04-01 | Bloc logements visible sur Guide City si logements publiés | integration |
-| AC-04-02 | Bloc logements absent sans logements publiés | unit |
-| AC-04-03 | "Voir tous les logements" redirige vers liste | e2e |
+| AC-04-01 | Entrée `Logements` visible dans le menu burger de la City | unit |
+| AC-04-02 | Guide City sans bloc logements dans le flux principal | integration |
+| AC-04-03 | Entrée `Logements` du menu redirige vers la liste dédiée | unit |
 | AC-04-04 | Rendu mobile 375px sans chevauchement ni scroll horizontal | e2e |
 | AC-05-01 | Owner accède à sa page showcase | integration |
 | AC-05-02 | Sauvegarde Owner validée Zod en draft | contract |

@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { contextualContactPath, contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
 
 type MenuItem = { href: string; label: string }
 
@@ -17,12 +19,20 @@ const ANONYMOUS_ITEMS: MenuItem[] = [
   { href: '/contact', label: 'Contact' },
 ]
 
+function extractCitySlug(pathname?: string | null): string | null {
+  if (!pathname) return null
+
+  const match = pathname.match(/^\/guide\/([^/]+)/)
+  return match?.[1] ?? null
+}
+
 function anonymousItems(citySlug?: string | null): MenuItem[] {
   return citySlug
     ? [
       { href: '/', label: 'Bienvenue' },
+      { href: `/guide/${citySlug}/logements`, label: 'Logements' },
       { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
-      { href: '/contact', label: 'Contact' },
+      { href: contextualContactPath(citySlug), label: 'Contact' },
     ]
     : ANONYMOUS_ITEMS
 }
@@ -36,22 +46,30 @@ function lodgingItems(ownerName?: string | null, citySlug?: string | null): Menu
     { href: '/', label: 'Bienvenue' },
     { href: '/le-logement', label: 'Le Logement' },
     { href: '/nos-recommandations', label: recommendationLabel },
-    { href: '/mes-favoris', label: 'Vos favoris' },
-    { href: '/contact', label: 'Nous Contacter' },
+    { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
+    { href: contextualContactPath(citySlug), label: 'Nous Contacter' },
   ]
 
-  return citySlug
-    ? [
-      ...items.slice(0, 4),
-      { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
-      ...items.slice(4),
-    ]
-    : items
+  if (!citySlug) return items
+
+  return [
+    items[0],
+    items[1],
+    { href: `/guide/${citySlug}/logements`, label: 'Logements' },
+    items[2],
+    items[3],
+    { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
+    items[4],
+  ]
 }
 
 export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
   const [isOpen, setIsOpen] = useState(false)
-  const items = mode === 'lodging' ? lodgingItems(ownerName, citySlug) : anonymousItems(citySlug)
+  const pathname = usePathname()
+  const resolvedCitySlug = citySlug ?? extractCitySlug(pathname)
+  const items = mode === 'lodging'
+    ? lodgingItems(ownerName, resolvedCitySlug)
+    : anonymousItems(resolvedCitySlug)
 
   return (
     <>

@@ -39,6 +39,10 @@ describe('PublicLayout mockup menu', () => {
 
     expect(screen.getByText('Navigation')).toBeInTheDocument()
     expect(screen.getByText('Le Logement')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Logements' })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais/logements',
+    )
     expect(screen.getByRole('link', { name: 'Les recommandations de Alice Martin' })).toHaveAttribute(
       'href',
       '/nos-recommandations',
@@ -55,6 +59,21 @@ describe('PublicLayout mockup menu', () => {
       'w-full',
       'max-w-[430px]',
       '-translate-x-1/2',
+    )
+  })
+
+  it('keeps the burger menu anchored on the right side of the public header', async () => {
+    render(await PublicLayout({ children: <div>Contenu</div> }))
+
+    expect(screen.getByTestId('public-header-menu-slot')).toHaveClass('ml-auto')
+  })
+
+  it('renders the public header with a transparent blurred surface', async () => {
+    render(await PublicLayout({ children: <div>Contenu</div> }))
+
+    expect(screen.getByTestId('public-header')).toHaveClass(
+      'bg-white/70',
+      'backdrop-blur-xl',
     )
   })
 })

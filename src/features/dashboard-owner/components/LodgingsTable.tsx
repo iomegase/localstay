@@ -202,6 +202,16 @@ export function LodgingsTable({ lodgings, cities }: Props) {
                           </button>
 
                           <button
+                            onClick={() =>
+                              router.push(`/dashboard/lodgings/${lodging.id}/showcase`)
+                            }
+                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
+                          >
+                            <Home size={12} />
+                            Vitrine
+                          </button>
+
+                          <button
                             onClick={() => openEdit(lodging)}
                             className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-white px-3 text-[11px] font-bold text-gray-600 transition-all duration-300 hover:border-gray-200 hover:text-[#0B1437]"
                           >

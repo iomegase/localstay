@@ -70,6 +70,18 @@ Proposition éditoriale générée ou préparée par MyStay à partir d'un texte
 ### Contact Message (Message de contact)
 Message envoyé par un Tourist depuis la page Contact d'un séjour. Il peut être destiné au Propriétaire ou à la Conciergerie, mais reste toujours visible dans l'inbox Super-admin globale.
 
+### Blog Article (Article de blog)
+Contenu éditorial public géré par un Admin. Peut être global ou rattaché à une City optionnelle. Il possède un statut de publication, une catégorie, des tags, une photo de couverture, un contenu Markdown et des champs SEO.
+
+### Blog Category (Catégorie blog)
+Catégorie simple obligatoire utilisée pour organiser un Blog Article, par exemple guide local, hébergement, restaurants, activités ou conseils voyage.
+
+### Blog Photo (Photo blog)
+Image associée à un Blog Article. Une photo de couverture est obligatoire avant publication ; les photos de galerie sont optionnelles.
+
+### Blog Generation Draft (Brouillon blog généré)
+Suggestion éditoriale produite par Gemini depuis un brief Admin et des faits vérifiés. Elle doit être relue, acceptée et publiée manuellement par un Admin.
+
 ### Owner (Hébergeur)
 Propriétaire ou gestionnaire d'un ou plusieurs Lodgings. Accède au dashboard hébergeur (MVP 2+).
 
@@ -109,6 +121,9 @@ Champ texte explicitement déclaré comme traduisible par une spec. Les champs n
 
 ### Content Translation
 Version traduite d'un Translatable Field pour une Locale cible. Elle conserve le hash du Source Content qui a servi à la produire afin de détecter les contenus obsolètes.
+
+### Markdown Content
+Contenu texte structuré en Markdown, stocké en base puis rendu publiquement après nettoyage afin d'empêcher l'exécution de HTML ou scripts dangereux.
 
 ### Source Hash
 Empreinte déterministe calculée à partir du texte source normalisé d'un Translatable Field. Elle permet de savoir si une traduction est encore synchronisée avec le contenu français.

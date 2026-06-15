@@ -19,6 +19,11 @@ type Status = 'idle' | 'loading' | 'error'
 
 const spring = { type: 'spring' as const, stiffness: 260, damping: 13 }
 
+// Cadrage de l'image par slug (object-position). Défaut : object-center.
+const CARD_IMAGE_POSITION: Record<string, string> = {
+  culture: 'object-cover',
+}
+
 export function CityCategoryExplorer({ cities }: { cities: City[] }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<City | null>(null)
@@ -67,7 +72,7 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
           aria-expanded={open}
           className="flex w-full items-center justify-between border-b border-charcoal/80 px-2 py-4 text-left"
         >
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-charcoal">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal">
             {selected ? selected.name : t('home.select.placeholder')}
           </span>
           <ChevronDown
@@ -103,7 +108,7 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
       {status === 'loading' && (
         <div className="mt-6 grid grid-cols-2 gap-3" aria-busy="true">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-3xl bg-gray-100" />
+            <div key={i} className="aspect-square animate-pulse rounded-3xl bg-gray-100" />
           ))}
         </div>
       )}
@@ -122,15 +127,22 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
           animate="show"
           variants={{ hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : 0.07 } } }}
         >
-          {categories.map((cat, index) => (
-            <CategoryBentoCard
-              key={cat.id}
-              category={cat}
-              href={categoryHref(cat.slug)}
-              wide={index % 3 === 0}
-              reduce={!!reduce}
-            />
-          ))}
+          {categories.flatMap((cat, index) => {
+            const card = (
+              <CategoryBentoCard
+                key={cat.id}
+                category={cat}
+                href={categoryHref(cat.slug)}
+                wide={index % 4 === 0}
+                reduce={!!reduce}
+              />
+            )
+            // Carte « Nos favoris » insérée à droite de Rando (logique à venir).
+            if (cat.slug === 'rando') {
+              return [card, <FavoritesCard key="nos-favoris" reduce={!!reduce} />]
+            }
+            return [card]
+          })}
         </motion.div>
       )}
     </div>
@@ -149,6 +161,7 @@ function CategoryBentoCard({
   reduce: boolean
 }) {
   const image = getCategoryImage(category.slug)
+  const objectPosition = CARD_IMAGE_POSITION[category.slug] ?? 'object-center'
 
   return (
     <motion.div
@@ -162,7 +175,9 @@ function CategoryBentoCard({
     >
       <Link
         href={href}
-        className="relative flex h-32 items-end overflow-hidden rounded-3xl shadow-sm"
+        className={`relative flex w-full items-end overflow-hidden rounded-3xl shadow-md ${
+          wide ? 'aspect-[382/185]' : 'aspect-square'
+        }`}
       >
         {image ? (
           <>
@@ -172,9 +187,9 @@ function CategoryBentoCard({
               fill
               unoptimized
               sizes="(max-width: 430px) 50vw, 215px"
-              className="object-cover"
+              className={`object-cover ${objectPosition}`}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+            {/* <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" /> */}
             <span className="relative z-10 m-3 rounded-md bg-white/90 px-2 py-1 text-xs font-bold uppercase tracking-wide text-charcoal">
               {category.name}
             </span>
@@ -188,6 +203,44 @@ function CategoryBentoCard({
           </div>
         )}
       </Link>
+    </motion.div>
+  )
+}
+
+function FavoritesCard({ reduce }: { reduce: boolean }) {
+  // TODO(favoris): brancher la logique de récupération des favoris admin.
+  // Pour l'instant la carte n'est pas navigante (pas de lien).
+  function handleClick() {
+    // À implémenter : ouvrir / charger les favoris.
+  }
+
+  return (
+    <motion.div
+      variants={{
+        hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.85 },
+        show: reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, transition: spring },
+      }}
+      whileHover={reduce ? undefined : { scale: 1.04 }}
+      whileTap={reduce ? undefined : { scale: 0.96 }}
+      className="col-span-1"
+    >
+      <button
+        type="button"
+        onClick={handleClick}
+        className="relative flex aspect-square w-full items-end overflow-hidden rounded-3xl shadow-md"
+      >
+        <Image
+          src="/home/nos-favoris.png"
+          alt="Nos favoris"
+          fill
+          unoptimized
+          sizes="(max-width: 430px) 50vw, 215px"
+          className="object-cover"
+        />
+        <span className="relative z-10 m-3 rounded-md bg-white/90 px-2 py-1 text-xs font-bold uppercase tracking-wide text-charcoal">
+          Nos favoris
+        </span>
+      </button>
     </motion.div>
   )
 }

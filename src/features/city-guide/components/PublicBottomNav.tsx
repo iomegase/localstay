@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Compass, Heart, Home, Map, LocateFixed } from 'lucide-react'
+import { Compass, Heart, Home, Map, LocateFixed, Newspaper } from 'lucide-react'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
+import { contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
 
 type Props = {
   mode: 'anonymous' | 'lodging'
@@ -36,6 +37,7 @@ function isPathActive(pathname: string | null, href: string): boolean {
 
 function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
   const guideCitySlug = getGuideCitySlug(pathname)
+  const favoritesHref = contextualFavoritesPath(guideCitySlug)
 
   const items: NavItemConfig[] = [
     {
@@ -58,16 +60,16 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 
   items.push(
     {
-      href: '/mes-favoris',
+      href: favoritesHref,
       label: 'Vos favoris',
       icon: <Heart className="w-5 h-5" />,
-      active: isPathActive(pathname, '/mes-favoris'),
+      active: isPathActive(pathname, favoritesHref),
     },
     {
-      href: '/contact',
-      label: 'Contact',
-      icon: <Home className="w-5 h-5" />,
-      active: isPathActive(pathname, '/contact'),
+      href: '/blog',
+      label: 'Blog',
+      icon: <Newspaper className="w-5 h-5" />,
+      active: isPathActive(pathname, '/blog'),
     },
   )
 
@@ -76,6 +78,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 
 function buildLodgingItems(pathname: string | null, citySlug?: string | null): NavItemConfig[] {
   const guideHref = citySlug ? `/guide/${citySlug}` : '/'
+  const favoritesHref = contextualFavoritesPath(citySlug)
 
   return [
     {
@@ -91,10 +94,10 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
       active: isPathActive(pathname, '/le-logement'),
     },
     {
-      href: '/mes-favoris',
+      href: favoritesHref,
       label: 'Vos favoris',
       icon: <Heart className="w-5 h-5" />,
-      active: isPathActive(pathname, '/mes-favoris'),
+      active: isPathActive(pathname, favoritesHref),
     },
     {
       href: guideHref,

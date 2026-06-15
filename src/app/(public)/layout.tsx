@@ -13,10 +13,13 @@ export default async function PublicLayout({
   const mode = lodgingContext ? 'lodging' : 'anonymous'
 
   return (
-    <div className="max-w-[430px] mx-auto min-h-screen relative border-x border-gray-100 shadow-2xl bg-slate-50 immersive-container">
+    <div className="max-w-[430px] mx-auto min-h-screen relative border-x  shadow-2xl bg-white immersive-container">
       {/* Glassmorphism sticky header — masqué en mode immersif */}
-      <header className="sticky top-0 z-[70] flex justify-between items-center px-6 py-5 glass border-b border-gray-50 immersive-hide">
-        <Link href="/" className="flex items-center" aria-label="Accueil">
+      <header
+        data-testid="public-header"
+        className="sticky top-0 z-[70] flex items-center border-b border-white/40 bg-white/70 px-6 py-5 backdrop-blur-xl immersive-hide"
+      >
+        {/* <Link href="/" className="flex items-center" aria-label="Accueil">
           <Image
             src="/logo.png"
             alt="my stay"
@@ -25,13 +28,15 @@ export default async function PublicLayout({
             priority
             className="h-7 w-auto"
           />
-        </Link>
-        <PublicMenu
-          mode={mode}
-          lodgingName={lodgingContext?.lodgingName ?? null}
-          ownerName={lodgingContext?.ownerName ?? null}
-          citySlug={lodgingContext?.citySlug ?? null}
-        />
+        </Link> */}
+        <div data-testid="public-header-menu-slot" className="ml-auto">
+          <PublicMenu
+            mode={mode}
+            lodgingName={lodgingContext?.lodgingName ?? null}
+            ownerName={lodgingContext?.ownerName ?? null}
+            citySlug={lodgingContext?.citySlug ?? null}
+          />
+        </div>
       </header>
 
       {/* Page content — bottom padding clears the fixed nav bar */}

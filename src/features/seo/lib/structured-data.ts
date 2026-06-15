@@ -1,4 +1,6 @@
 import { SITE, siteBaseUrl } from './site'
+import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
+import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
 
 const SCHEMA = 'https://schema.org'
 
@@ -137,5 +139,96 @@ export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
       addressCountry: 'FR',
     },
     geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
+  }
+}
+
+export type LodgingSchemaInput = {
+  id: string
+  title: string
+  shortDescription: string
+  description: string
+  cityName: string
+  cityRegion: string | null
+  citySlug: string
+  slug: string
+  propertyType: string
+  maxGuests: number
+  publicAreaLabel: string | null
+  preciseLocationPublic: boolean
+  publicLatitude: number | null
+  publicLongitude: number | null
+  photos: Array<{ url: string; alt: string; is_cover: boolean; room_type: string | null }>
+  amenities: Array<{ code: string; label: string }>
+}
+
+export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
+  const path = `/guide/${input.citySlug}/logements/${input.slug}`
+  return {
+    '@context': SCHEMA,
+    '@type': 'LodgingBusiness',
+    '@id': `${siteBaseUrl()}${path}#lodging`,
+    name: input.title,
+    description: input.shortDescription,
+    url: `${siteBaseUrl()}${path}`,
+    image: input.photos.map(photo => photo.url),
+    amenityFeature: input.amenities.map(amenity => ({
+      '@type': 'LocationFeatureSpecification',
+      name: amenity.label,
+      value: true,
+    })),
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: input.publicAreaLabel ?? input.cityName,
+      ...(input.cityRegion ? { addressRegion: input.cityRegion } : {}),
+      addressCountry: 'FR',
+    },
+    ...(input.preciseLocationPublic && input.publicLatitude != null && input.publicLongitude != null
+      ? { geo: { '@type': 'GeoCoordinates', latitude: input.publicLatitude, longitude: input.publicLongitude } }
+      : {}),
+  }
+}
+
+export function vacationRentalSchema(input: LodgingSchemaInput): JsonLdObject | null {
+  const canEmit = canEmitVacationRentalSchema({
+    title: input.title,
+    short_description: input.shortDescription,
+    description: input.description,
+    property_type: input.propertyType,
+    max_guests: input.maxGuests,
+    photos: input.photos,
+    amenities: input.amenities,
+    precise_location_public: input.preciseLocationPublic,
+    public_latitude: input.publicLatitude,
+    public_longitude: input.publicLongitude,
+  })
+
+  if (!canEmit) return null
+
+  return {
+    ...lodgingPlaceSchema(input),
+    '@type': 'VacationRental',
+    occupancy: {
+      '@type': 'QuantitativeValue',
+      maxValue: input.maxGuests,
+      unitText: 'personnes',
+    },
+  }
+}
+
+export function lodgingItemListSchema(input: {
+  cityName: string
+  citySlug: string
+  items: PublicLodgingCardDto[]
+}): JsonLdObject {
+  return {
+    '@context': SCHEMA,
+    '@type': 'ItemList',
+    name: `Logements à ${input.cityName}`,
+    itemListElement: input.items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `${siteBaseUrl()}${item.href}`,
+      name: item.title,
+    })),
   }
 }
