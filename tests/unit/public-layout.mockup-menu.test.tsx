@@ -67,4 +67,13 @@ describe('PublicLayout mockup menu', () => {
 
     expect(screen.getByTestId('public-header-menu-slot')).toHaveClass('ml-auto')
   })
+
+  it('renders the public header with a transparent blurred surface', async () => {
+    render(await PublicLayout({ children: <div>Contenu</div> }))
+
+    expect(screen.getByTestId('public-header')).toHaveClass(
+      'bg-white/70',
+      'backdrop-blur-xl',
+    )
+  })
 })
