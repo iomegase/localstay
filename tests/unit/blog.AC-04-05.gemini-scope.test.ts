@@ -19,4 +19,14 @@ describe('029 blog gemini scope', () => {
       }),
     ).not.toThrow()
   })
+
+  it('rejects personal data and unverified accusations', () => {
+    expect(() =>
+      assertBlogGeminiScope({
+        brief: 'Rédige un article sur les mauvais côtés du village.',
+        verifiedFacts:
+          'Une personne se nomme Elodie et aurait volé 5000 euros. Les habitants sont violents.',
+      }),
+    ).toThrow('FORBIDDEN_SCOPE')
+  })
 })

@@ -10,15 +10,20 @@ interface Props {
   name: string
   /** Si fourni, une photo qui échoue au chargement est signalée au serveur (lien-mort). */
   poiId?: string
+  /** Si true, flèches et pastilles restent masquées (opacity-0) et n'apparaissent qu'au survol du hero. */
+  revealControlsOnHover?: boolean
   children?: ReactNode
 }
 
-export function PoiDetailHeroCarousel({ photos, name, poiId, children }: Props) {
+export function PoiDetailHeroCarousel({ photos, name, poiId, revealControlsOnHover = false, children }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0)
   const [deadPhotos, setDeadPhotos] = useState<Set<string>>(new Set())
   const galleryPhotos = photos.filter(Boolean).filter(url => !deadPhotos.has(url))
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
+  const controlReveal = revealControlsOnHover
+    ? 'opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'
+    : ''
 
   function showPrevPhoto() {
     setPhotoIndex(index => (index - 1 + galleryPhotos.length) % galleryPhotos.length)
@@ -37,7 +42,7 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, children }: Props) 
 
   return (
     <div
-      className="relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-gold/20 to-gold/5"
+      className="group relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-gold/20 to-gold/5"
       data-testid="poi-detail-hero-carousel"
     >
       {currentPhoto ? (
@@ -78,7 +83,7 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, children }: Props) 
             type="button"
             onClick={showPrevPhoto}
             aria-label="Photo précédente"
-            className="absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60"
+            className={`absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60 ${controlReveal}`.trim()}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -86,11 +91,11 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, children }: Props) 
             type="button"
             onClick={showNextPhoto}
             aria-label="Photo suivante"
-            className="absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60"
+            className={`absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60 ${controlReveal}`.trim()}
           >
             <ChevronRight className="h-5 w-5" />
           </button>
-          <div className="absolute bottom-12 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5">
+          <div className={`absolute bottom-12 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 ${controlReveal}`.trim()}>
             {galleryPhotos.map((_, index) => (
               <span
                 key={index}

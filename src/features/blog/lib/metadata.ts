@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { SITE } from '@/features/seo/lib/site'
 import { truncate } from '@/features/seo/lib/metadata'
+import { buildBlogArticlePath } from './slug'
 
 function openGraph(input: {
   title: string
@@ -49,7 +50,7 @@ export function blogArticleMetadata(input: {
 }): Metadata {
   const title = input.seo_title?.trim() || input.title
   const description = truncate(input.seo_description?.trim() || input.excerpt)
-  const path = `/blog/${input.slug}`
+  const path = buildBlogArticlePath(input.slug)
   const images = input.coverUrl ? [input.coverUrl] : undefined
 
   return {

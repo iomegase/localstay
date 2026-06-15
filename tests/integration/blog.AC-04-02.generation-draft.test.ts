@@ -1,3 +1,5 @@
+import { ZodError } from 'zod'
+
 const mockBlogArticleFindFirst = jest.fn()
 const mockBlogArticleUpdate = jest.fn()
 const mockBlogGenerationDraftCreate = jest.fn()
@@ -19,7 +21,7 @@ jest.mock('@/features/blog/services/gemini-draft', () => ({
   generateBlogDraftWithGemini: (...args: unknown[]) => mockGenerateBlogDraftWithGemini(...args),
 }))
 
-import { generateBlogDraft } from '@/features/blog/queries/admin-blog'
+import { ApiBlogError, generateBlogDraft } from '@/features/blog/queries/admin-blog'
 
 describe('029 blog generation draft persistence', () => {
   beforeEach(() => {
@@ -72,5 +74,49 @@ describe('029 blog generation draft persistence', () => {
       status: 'generated',
       provider: 'gemini',
     })
+  })
+
+  it('maps an invalid Gemini payload to a structured API error', async () => {
+    mockBlogArticleFindFirst.mockResolvedValue({
+      id: 'article-1',
+      city: { name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains' },
+    })
+    mockGenerateBlogDraftWithGemini.mockRejectedValue(
+      new ZodError([
+        {
+          code: 'too_big',
+          maximum: 70,
+          type: 'string',
+          inclusive: true,
+          exact: false,
+          message: 'Le SEO title doit contenir entre 30 et 70 caractères.',
+          path: ['seo_title'],
+        },
+      ]),
+    )
+
+    await expect(
+      generateBlogDraft(
+        'article-1',
+        {
+          brief: 'Rédige un article chaleureux et utile pour organiser un week-end à Saint-Gervais.',
+          verified_facts:
+            'Les thermes, le centre du village et les sentiers publiés dans le guide sont des faits déjà validés.',
+        },
+        'admin-1',
+      ),
+    ).rejects.toMatchObject<ApiBlogError>({
+      code: 'GEMINI_INVALID_RESPONSE',
+      message: 'La proposition Gemini reçue est invalide.',
+      status: 502,
+      details: {
+        fieldErrors: {
+          seo_title: ['Le SEO title doit contenir entre 30 et 70 caractères.'],
+        },
+      },
+    })
+
+    expect(mockBlogGenerationDraftCreate).not.toHaveBeenCalled()
+    expect(mockBlogArticleUpdate).not.toHaveBeenCalled()
   })
 })

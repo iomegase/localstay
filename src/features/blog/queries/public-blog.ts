@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import { blogCategoryLabel } from '../lib/category-label'
+import { getBlogSlugCandidates } from '../lib/slug'
 import type { PublicBlogArticle, PublicBlogListResult } from '../types'
 
 const PUBLISHED_WHERE = {
@@ -64,9 +65,10 @@ export async function getPublishedBlogArticles(citySlug?: string): Promise<Publi
 }
 
 export async function getPublishedBlogArticleBySlug(slug: string): Promise<PublicBlogArticle | null> {
-  const article = await prisma.blogArticle.findFirst({
+  const slugCandidates = getBlogSlugCandidates(slug)
+  const articles = await prisma.blogArticle.findMany({
     where: {
-      slug,
+      OR: slugCandidates.map(candidate => ({ slug: candidate })),
       ...PUBLISHED_WHERE,
     },
     select: {
@@ -88,6 +90,10 @@ export async function getPublishedBlogArticleBySlug(slug: string): Promise<Publi
       },
     },
   })
+
+  const article = articles
+    .slice()
+    .sort((left, right) => slugCandidates.indexOf(left.slug) - slugCandidates.indexOf(right.slug))[0]
 
   if (!article || !article.published_at) return null
 

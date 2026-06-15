@@ -1,4 +1,5 @@
 import { prisma } from '@/shared/lib/prisma'
+import { ZodError } from 'zod'
 import { getBlogPublishValidationErrors } from '../lib/publish-validation'
 import { generateBlogDraftWithGemini } from '../services/gemini-draft'
 import type {
@@ -9,13 +10,16 @@ import type {
 } from '../schemas'
 
 export class ApiBlogError extends Error {
+  code: string
   status: number
   details: Record<string, unknown>
 
-  constructor(code: string, status: number, details: Record<string, unknown> = {}) {
-    super(code)
+  constructor(code: string, status: number, details: Record<string, unknown> = {}, message = code) {
+    super(message)
+    this.code = code
     this.status = status
     this.details = details
+    this.name = 'ApiBlogError'
   }
 }
 
@@ -311,9 +315,50 @@ export async function generateBlogDraft(articleId: string, input: BlogGenerateIn
       },
     })
   } catch (error) {
-    const code = error instanceof Error ? error.message : 'GEMINI_UNAVAILABLE'
-    const status = typeof (error as { status?: unknown })?.status === 'number' ? (error as { status: number }).status : 503
-    throw new ApiBlogError(code, status)
+    if (error instanceof ApiBlogError) throw error
+
+    if (error instanceof ZodError) {
+      throw new ApiBlogError(
+        'GEMINI_INVALID_RESPONSE',
+        502,
+        { fieldErrors: error.flatten().fieldErrors },
+        'La proposition Gemini reçue est invalide.',
+      )
+    }
+
+    const code =
+      typeof (error as { code?: unknown })?.code === 'string'
+        ? (error as { code: string }).code
+        : error instanceof Error
+          ? error.message
+          : 'GEMINI_UNAVAILABLE'
+    const status =
+      typeof (error as { status?: unknown })?.status === 'number'
+        ? (error as { status: number }).status
+        : code === 'FORBIDDEN_SCOPE'
+          ? 400
+          : 503
+
+    if (code === 'FORBIDDEN_SCOPE') {
+      throw new ApiBlogError(
+        'FORBIDDEN_SCOPE',
+        400,
+        {
+          fieldErrors: {
+            brief: ['Le brief ou les faits vérifiés sortent du périmètre Gemini autorisé.'],
+            verified_facts: ['Le brief ou les faits vérifiés sortent du périmètre Gemini autorisé.'],
+          },
+        },
+        'Le brief Gemini contient une demande hors périmètre.',
+      )
+    }
+
+    throw new ApiBlogError(
+      code,
+      status,
+      {},
+      code === 'GEMINI_UNAVAILABLE' ? 'Gemini indisponible' : 'Erreur Gemini',
+    )
   }
 }
 

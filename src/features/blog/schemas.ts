@@ -1,13 +1,21 @@
 import { z } from 'zod'
+import { normalizeBlogSlug } from './lib/slug'
 import { BLOG_ARTICLE_CATEGORIES } from './types'
 
 function normalizeTag(tag: string): string {
   return tag.trim().toLowerCase()
 }
 
+const BlogSlugSchema = z.string()
+  .trim()
+  .min(3)
+  .max(120)
+  .transform(normalizeBlogSlug)
+  .pipe(z.string().min(3).max(120))
+
 export const BlogArticleUpsertSchema = z.object({
   title: z.string().trim().min(5).max(90),
-  slug: z.string().trim().min(3).max(120),
+  slug: BlogSlugSchema,
   excerpt: z.string().trim().min(40).max(220),
   content_markdown: z.string().trim().min(0).max(20000),
   category: z.enum(BLOG_ARTICLE_CATEGORIES),
@@ -45,8 +53,15 @@ export const BlogAdminFiltersSchema = z.object({
 
 export const BlogPhotoUploadSchema = z.object({
   kind: z.enum(['cover', 'gallery']),
-  alt: z.string().trim().min(3).max(180),
-  sort_order: z.coerce.number().int().min(0).optional().default(0),
+  alt: z.string({ required_error: 'Le texte alternatif est requis.' })
+    .trim()
+    .min(3, 'Le texte alternatif doit contenir au moins 3 caractères.')
+    .max(180, 'Le texte alternatif doit contenir au maximum 180 caractères.'),
+  sort_order: z.coerce.number({ invalid_type_error: 'L’ordre de tri doit être numérique.' })
+    .int('L’ordre de tri doit être un entier.')
+    .min(0, 'L’ordre de tri doit être positif ou nul.')
+    .optional()
+    .default(0),
 })
 
 export type BlogArticleUpsertInput = z.infer<typeof BlogArticleUpsertSchema>

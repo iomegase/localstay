@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, context: Context): Promise<NextRes
     return NextResponse.json(data)
   } catch (error) {
     if (error instanceof ApiBlogError) {
-      return apiError(error.message, error.message, error.status, error.details)
+      return apiError(error.code, error.message, error.status, error.details)
     }
     return apiError('INTERNAL_ERROR', 'Erreur interne', 500)
   }

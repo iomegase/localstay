@@ -46,4 +46,38 @@ describe('029 blog gemini unavailable API', () => {
       error: { code: 'GEMINI_UNAVAILABLE' },
     })
   })
+
+  it('returns the structured Gemini validation error details', async () => {
+    const error = new Error('La proposition Gemini reçue est invalide.')
+    Reflect.set(error, 'code', 'GEMINI_INVALID_RESPONSE')
+    Reflect.set(error, 'status', 502)
+    Reflect.set(error, 'details', {
+      fieldErrors: {
+        seo_title: ['Le SEO title doit contenir entre 30 et 70 caractères.'],
+      },
+    })
+    mockGenerateBlogDraft.mockRejectedValue(error)
+
+    const response = await POST(
+      request({
+        brief: 'Rédige un article chaleureux sur un week-end à Saint-Gervais.',
+        verified_facts:
+          'Saint-Gervais dispose de thermes, de restaurants validés par MyStay et de sentiers déjà publiés dans le guide.',
+      }),
+      { params: Promise.resolve({ id: 'article-1' }) },
+    )
+
+    expect(response.status).toBe(502)
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'GEMINI_INVALID_RESPONSE',
+        message: 'La proposition Gemini reçue est invalide.',
+        details: {
+          fieldErrors: {
+            seo_title: ['Le SEO title doit contenir entre 30 et 70 caractères.'],
+          },
+        },
+      },
+    })
+  })
 })

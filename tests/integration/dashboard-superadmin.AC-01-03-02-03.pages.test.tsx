@@ -97,6 +97,7 @@ describe('016 superadmin pages', () => {
     expect(screen.getAllByRole('link', { name: /Vue globale/i })[0]).toHaveAttribute('href', '/admin')
     expect(screen.getAllByRole('link', { name: /Revendications/i })[0]).toHaveAttribute('href', '/admin/merchant-claims')
     expect(screen.getAllByRole('link', { name: /Villes/i })[0]).toHaveAttribute('href', '/admin/cities')
+    expect(screen.getAllByRole('link', { name: /Blog/i })[0]).toHaveAttribute('href', '/admin/blog')
     expect(screen.getAllByRole('link', { name: /Utilisateurs/i })[0]).toHaveAttribute('href', '/admin/users')
   })
 

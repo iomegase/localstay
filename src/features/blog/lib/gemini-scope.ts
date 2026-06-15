@@ -8,6 +8,9 @@ const FORBIDDEN_SCOPE_PATTERNS = [
   /temps r(?:e|é)el/i,
   /horaire/i,
   /statistique/i,
+  /\b(?:s['’]appelle|se nomme)\b/i,
+  /\b(?:personne|habitant(?:s)?|villageois(?:es)?)\b.*\b(?:violent(?:e|s)?|voleur(?:se)?s?|vol(?:e|é|er)?|agress(?:ion|if|ive|er)?|arnaque|escroquerie)\b/i,
+  /\baurait\b.*\b(?:vol(?:e|é|er)?|agress(?:ion|er)?|escroqu(?:é|er)?|arnaqu(?:é|er)?)\b/i,
 ] as const
 
 export function assertBlogGeminiScope(input: {

@@ -27,11 +27,12 @@ export async function POST(req: NextRequest, context: Context): Promise<NextResp
       typeof (error as { status?: unknown }).status === 'number'
     ) {
       const apiLikeError = error as unknown as Error & {
+        code?: string
         status: number
         details?: Record<string, unknown>
       }
       return apiError(
-        apiLikeError.message,
+        apiLikeError.code ?? apiLikeError.message,
         apiLikeError.message,
         apiLikeError.status,
         apiLikeError.details ?? {},

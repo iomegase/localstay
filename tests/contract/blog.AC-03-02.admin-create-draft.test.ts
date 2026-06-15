@@ -51,4 +51,30 @@ describe('029 blog admin create API', () => {
       category: 'local_guide',
     }), 'admin-1')
   })
+
+  it('normalizes the admin slug to a canonical public slug before persistence', async () => {
+    mockCreateBlogArticle.mockResolvedValue({ id: 'article-1', status: 'draft', slug: 'vivre-a-saint-nicolas' })
+
+    const response = await POST(request({
+      title: 'Vivre à Saint-Nicolas',
+      slug: 'Vivre à Saint Nicolas',
+      excerpt:
+        'Un guide éditorial complet pour préparer un séjour local avec des repères utiles, des conseils pratiques et une lecture claire.',
+      content_markdown: 'a'.repeat(320),
+      category: 'local_guide',
+      tags: ['saint-nicolas'],
+      city_id: null,
+      seo_title: 'Vivre à Saint-Nicolas — Guide local MyStay',
+      seo_description:
+        'Préparez un séjour à Saint-Nicolas avec les conseils MyStay, une lecture locale et des repères éditoriaux utiles.',
+    }))
+
+    expect(response.status).toBe(201)
+    expect(mockCreateBlogArticle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        slug: 'vivre-a-saint-nicolas',
+      }),
+      'admin-1',
+    )
+  })
 })

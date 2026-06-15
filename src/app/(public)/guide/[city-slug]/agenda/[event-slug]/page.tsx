@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { CalendarDays, MapPin, ExternalLink, ArrowLeft } from 'lucide-react'
+import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
+import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
 import { getEventBySlug } from '@/features/events-public/queries/agenda'
 import { typeLabel } from '@/features/events-public/lib/event-type-labels'
 
@@ -31,69 +33,67 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const agendaHref = lodging
     ? `/guide/${citySlug}/agenda?lodging=${encodeURIComponent(lodging)}`
     : `/guide/${citySlug}/agenda`
-  const hero = event.images[0] ?? null
+  const heroPhotos = event.images.filter(Boolean)
 
   return (
-    <article className="pb-12">
-      <div className="relative h-64 w-full overflow-hidden bg-gray-100">
-        {hero ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={hero} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-gray-300">
-            <CalendarDays className="h-12 w-12" />
+    <article className="-mt-6">
+      {/* Hero — galerie de toutes les photos */}
+      <PoiDetailHeroCarousel photos={heroPhotos} name={event.title} revealControlsOnHover>
+        <div className="absolute top-4 left-6 right-6 flex items-center justify-between z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+          <Link
+            href={agendaHref}
+            aria-label="Retour à l'agenda"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-charcoal/60 backdrop-blur transition-transform hover:bg-white/40 active:scale-95"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <HeroShareButton poiName={event.title} poiUrl={`/guide/${citySlug}/agenda/${eventSlug}`} />
           </div>
-        )}
-        <Link
-          href={agendaHref}
-          aria-label="Retour à l'agenda"
-          className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-charcoal shadow-lg backdrop-blur-md"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-      </div>
-
-      <div className="p-5">
-        <div className="flex flex-wrap gap-1">
-          {event.types.map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-pine/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-pine"
-            >
-              {typeLabel(t)}
-            </span>
-          ))}
         </div>
+      </PoiDetailHeroCarousel>
 
-        <h1 className="mt-2 text-2xl font-light text-charcoal">{event.title}</h1>
+      {/* Content sheet */}
+      <main className="relative z-20 -mt-8 space-y-6 rounded-t-[32px] bg-slate-50 pt-8 pb-16 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
+        {/* Header */}
+        <header className="px-6">
+          {event.types.length > 0 && (
+            <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+              {event.types.map(typeLabel).join(' · ')}
+            </span>
+          )}
+          <h1 className="mt-1 text-xl uppercase leading-tight text-charcoal">{event.title}</h1>
 
-        <p className="mt-3 flex items-center gap-2 text-sm text-gold">
-          <CalendarDays className="h-4 w-4" /> {event.dateLabel}
-        </p>
-        {(event.venueName || event.address) && (
-          <p className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-            <MapPin className="h-4 w-4 shrink-0" />
-            {[event.venueName, event.address, event.communeName].filter(Boolean).join(' · ')}
+          <p className="mt-3 flex items-center gap-2 text-sm text-gold">
+            <CalendarDays className="h-4 w-4" /> {event.dateLabel}
           </p>
-        )}
+          {(event.venueName || event.address) && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-charcoal/50">
+              <MapPin className="h-4 w-4 shrink-0" />
+              {[event.venueName, event.address, event.communeName].filter(Boolean).join(' · ')}
+            </p>
+          )}
+        </header>
 
         {event.description && (
-          <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-charcoal">{event.description}</p>
+          <p className="px-6 whitespace-pre-line text-sm leading-relaxed text-charcoal/70">{event.description}</p>
         )}
 
-        {event.priceInfo && <p className="mt-4 text-sm text-gray-500">Tarif : {event.priceInfo}</p>}
+        {event.priceInfo && <p className="px-6 text-sm text-charcoal/50">Tarif : {event.priceInfo}</p>}
 
         {event.website && (
-          <a
-            href={event.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-charcoal px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white"
-          >
-            Site officiel / billetterie <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+          <div className="px-6">
+            <a
+              href={event.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-charcoal px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white"
+            >
+              Site officiel / billetterie <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
         )}
-      </div>
+      </main>
     </article>
   )
 }

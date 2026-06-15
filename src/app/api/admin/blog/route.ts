@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
     if (error instanceof ApiBlogError) {
-      return apiError(error.message, error.message, error.status, error.details)
+      return apiError(error.code, error.message, error.status, error.details)
     }
     return apiError('INTERNAL_ERROR', 'Erreur interne', 500)
   }

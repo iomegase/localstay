@@ -1,4 +1,5 @@
 import { siteBaseUrl } from '@/features/seo/lib/site'
+import { buildBlogArticlePath } from './slug'
 
 export function blogPostingSchema(input: {
   slug: string
@@ -15,7 +16,7 @@ export function blogPostingSchema(input: {
     headline: input.title,
     description: input.excerpt,
     datePublished: input.publishedAt.toISOString(),
-    mainEntityOfPage: `${siteBaseUrl()}/blog/${input.slug}`,
+    mainEntityOfPage: `${siteBaseUrl()}${buildBlogArticlePath(input.slug)}`,
     ...(input.coverUrl ? { image: [input.coverUrl] } : {}),
     author: {
       '@type': 'Organization',

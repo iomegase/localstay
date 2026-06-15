@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { BlogArticleCategory, BlogArticleStatus } from '../types'
 import { blogCategoryLabel } from '../lib/category-label'
 
@@ -27,6 +27,19 @@ type DraftSuggestion = {
   suggestion_seo_description?: string | null
 } | null
 
+type ApiErrorPayload = {
+  error?: {
+    message?: string
+    details?: ApiErrorDetails
+  }
+}
+
+type ApiErrorDetails = {
+  fieldErrors?: Record<string, string[]>
+  fields?: string[]
+  [key: string]: unknown
+}
+
 type ArticleState = {
   id: string | null
   status: BlogArticleStatus
@@ -40,6 +53,79 @@ type ArticleState = {
   seo_title: string
   seo_description: string
   photos: Photo[]
+}
+
+function parseArticleStatus(value: unknown): BlogArticleStatus | null {
+  return value === 'draft' || value === 'review' || value === 'published' || value === 'archived'
+    ? value
+    : null
+}
+
+function parseStringValue(value: unknown): string | null {
+  return typeof value === 'string' ? value : null
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  title: 'Titre',
+  slug: 'Slug',
+  excerpt: 'Excerpt',
+  content_markdown: 'Markdown',
+  category: 'Catégorie',
+  tags: 'Tags',
+  city_id: 'Ville',
+  seo_title: 'SEO title',
+  seo_description: 'SEO description',
+  brief: 'Brief',
+  verified_facts: 'Faits vérifiés',
+  alt: 'Texte alternatif',
+  cover_alt: 'Alt couverture',
+  gallery_alt: 'Alt galerie',
+  cover_photo: 'Photo de couverture',
+  file: 'Fichier',
+  cover_file: 'Fichier couverture',
+  gallery_file: 'Fichiers galerie',
+}
+
+function normalizeFieldErrors(details?: ApiErrorDetails) {
+  const errors: Record<string, string[]> = {}
+  if (!details || typeof details !== 'object') return errors
+
+  const push = (field: string, messages: string[]) => {
+    if (messages.length === 0) return
+    errors[field] = [...(errors[field] ?? []), ...messages]
+  }
+
+  const detailEntries = Object.entries(details)
+  for (const [key, value] of detailEntries) {
+    if (key === 'fieldErrors' || key === 'fields') continue
+    if (Array.isArray(value) && value.every(item => typeof item === 'string')) {
+      push(key, value)
+    }
+  }
+
+  if (details.fieldErrors && typeof details.fieldErrors === 'object') {
+    for (const [field, messages] of Object.entries(details.fieldErrors)) {
+      if (Array.isArray(messages)) {
+        push(field, messages.filter((message): message is string => typeof message === 'string'))
+      }
+    }
+  }
+
+  if (Array.isArray(details.fields)) {
+    for (const field of details.fields) {
+      push(field, ['Champ requis avant publication.'])
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(errors).map(([field, messages]) => [field, Array.from(new Set(messages))]),
+  )
+}
+
+function formatFieldErrors(fieldErrors: Record<string, string[]>) {
+  return Object.entries(fieldErrors).flatMap(([field, messages]) =>
+    messages.map(message => `${FIELD_LABELS[field] ?? field} - ${message}`),
+  )
 }
 
 export function AdminBlogEditor({
@@ -78,16 +164,22 @@ export function AdminBlogEditor({
   })
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [coverAlt, setCoverAlt] = useState('')
   const [galleryAlt, setGalleryAlt] = useState('')
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
   const [brief, setBrief] = useState('')
   const [verifiedFacts, setVerifiedFacts] = useState('')
   const [draftSuggestion, setDraftSuggestion] = useState<DraftSuggestion>(null)
+  const coverFileInputRef = useRef<HTMLInputElement | null>(null)
+  const galleryFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const sortedPhotos = useMemo(
     () => [...article.photos].sort((a, b) => a.sort_order - b.sort_order),
     [article.photos],
   )
+  const validationSummary = useMemo(() => formatFieldErrors(fieldErrors), [fieldErrors])
 
   function payload() {
     return {
@@ -103,25 +195,79 @@ export function AdminBlogEditor({
     }
   }
 
+  function resetErrors() {
+    setError(null)
+    setFieldErrors({})
+  }
+
+  function applyApiError(payload: ApiErrorPayload | null, fallbackMessage: string) {
+    const nextFieldErrors = normalizeFieldErrors(payload?.error?.details)
+    setFieldErrors(nextFieldErrors)
+    setError(payload?.error?.message ?? fallbackMessage)
+  }
+
+  function applyPhotoApiError(kind: 'cover' | 'gallery', payload: ApiErrorPayload | null, fallbackMessage: string) {
+    const normalized = normalizeFieldErrors(payload?.error?.details)
+    const altKey = kind === 'cover' ? 'cover_alt' : 'gallery_alt'
+    const fileKey = kind === 'cover' ? 'cover_file' : 'gallery_file'
+
+    setFieldErrors(current => {
+      const next = { ...current }
+      delete next[altKey]
+      delete next[fileKey]
+
+      for (const [field, messages] of Object.entries(normalized)) {
+        if (field === 'alt') {
+          next[altKey] = messages
+          continue
+        }
+        if (field === 'file') {
+          next[fileKey] = messages
+          continue
+        }
+        next[field] = messages
+      }
+
+      return next
+    })
+
+    setError(payload?.error?.message ?? fallbackMessage)
+  }
+
+  function clearFieldErrors(keys: string[]) {
+    setFieldErrors(current => {
+      const next = { ...current }
+      for (const key of keys) {
+        delete next[key]
+      }
+
+      if (Object.keys(next).length === 0) {
+        setError(null)
+      }
+
+      return next
+    })
+  }
+
   async function saveArticle() {
     setBusy('save')
-    setError(null)
+    resetErrors()
     try {
       const response = await fetch(article.id ? `/api/admin/blog/${article.id}` : '/api/admin/blog', {
         method: article.id ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload()),
       })
-      const json = await response.json()
+      const json = await response.json() as ApiErrorPayload & Record<string, unknown>
       if (!response.ok) {
-        setError(json.error?.message ?? 'Enregistrement impossible')
+        applyApiError(json, 'Enregistrement impossible')
         return
       }
       if (!article.id && json.id) {
         window.location.href = `/admin/blog/${json.id}`
         return
       }
-      setArticle(current => ({ ...current, status: json.status ?? current.status }))
+      setArticle(current => ({ ...current, status: parseArticleStatus(json.status) ?? current.status }))
     } finally {
       setBusy(null)
     }
@@ -130,15 +276,15 @@ export function AdminBlogEditor({
   async function transition(route: 'submit-review' | 'publish' | 'archive') {
     if (!article.id) return
     setBusy(route)
-    setError(null)
+    resetErrors()
     try {
       const response = await fetch(`/api/admin/blog/${article.id}/${route}`, { method: 'POST' })
-      const json = await response.json()
+      const json = await response.json() as ApiErrorPayload & Record<string, unknown>
       if (!response.ok) {
-        setError(json.error?.message ?? 'Transition impossible')
+        applyApiError(json, 'Transition impossible')
         return
       }
-      setArticle(current => ({ ...current, status: json.status ?? current.status }))
+      setArticle(current => ({ ...current, status: parseArticleStatus(json.status) ?? current.status }))
     } finally {
       setBusy(null)
     }
@@ -150,16 +296,16 @@ export function AdminBlogEditor({
       return
     }
     setBusy('generate')
-    setError(null)
+    resetErrors()
     try {
       const response = await fetch(`/api/admin/blog/${article.id}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ brief, verified_facts: verifiedFacts }),
       })
-      const json = await response.json()
+      const json = await response.json() as ApiErrorPayload & DraftSuggestion
       if (!response.ok) {
-        setError(json.error?.message ?? 'Génération impossible')
+        applyApiError(json, 'Génération impossible')
         return
       }
       setDraftSuggestion(json)
@@ -171,25 +317,25 @@ export function AdminBlogEditor({
   async function applyDraft() {
     if (!article.id || !draftSuggestion?.id) return
     setBusy('apply')
-    setError(null)
+    resetErrors()
     try {
       const response = await fetch(`/api/admin/blog/${article.id}/apply-generation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ generation_id: draftSuggestion.id }),
       })
-      const json = await response.json()
+      const json = await response.json() as ApiErrorPayload & Record<string, unknown>
       if (!response.ok) {
-        setError(json.error?.message ?? 'Application impossible')
+        applyApiError(json, 'Application impossible')
         return
       }
       setArticle(current => ({
         ...current,
-        title: json.title ?? current.title,
-        excerpt: json.excerpt ?? current.excerpt,
-        content_markdown: json.content_markdown ?? current.content_markdown,
-        seo_title: json.seo_title ?? current.seo_title,
-        seo_description: json.seo_description ?? current.seo_description,
+        title: parseStringValue(json.title) ?? current.title,
+        excerpt: parseStringValue(json.excerpt) ?? current.excerpt,
+        content_markdown: parseStringValue(json.content_markdown) ?? current.content_markdown,
+        seo_title: parseStringValue(json.seo_title) ?? current.seo_title,
+        seo_description: parseStringValue(json.seo_description) ?? current.seo_description,
       }))
     } finally {
       setBusy(null)
@@ -199,7 +345,7 @@ export function AdminBlogEditor({
   async function uploadSinglePhoto(kind: 'cover' | 'gallery', file: File, alt: string, sortOrder = 0) {
     if (!article.id) {
       setError('Enregistrez d’abord le brouillon avant d’ajouter des photos.')
-      return
+      return null
     }
     const formData = new FormData()
     formData.set('file', file)
@@ -211,10 +357,10 @@ export function AdminBlogEditor({
       method: 'POST',
       body: formData,
     })
-    const json = await response.json()
+    const json = await response.json() as ApiErrorPayload & Photo
     if (!response.ok) {
-      setError(json.error?.message ?? 'Upload impossible')
-      return
+      applyPhotoApiError(kind, json, 'Upload impossible')
+      return null
     }
     setArticle(current => ({
       ...current,
@@ -222,65 +368,124 @@ export function AdminBlogEditor({
         ? [json, ...current.photos.filter(photo => photo.kind !== 'cover')]
         : [...current.photos, json],
     }))
+
+    if (kind === 'cover') {
+      clearFieldErrors(['cover_photo', 'cover_alt', 'cover_file'])
+    } else {
+      clearFieldErrors(['gallery_alt', 'gallery_file'])
+    }
+
+    return json
+  }
+
+  async function handleCoverUpload() {
+    if (!coverFile) return
+
+    setBusy('upload-cover')
+    clearFieldErrors(['cover_alt', 'cover_file'])
+    try {
+      const uploaded = await uploadSinglePhoto('cover', coverFile, coverAlt, 0)
+      if (!uploaded) return
+
+      setCoverAlt('')
+      setCoverFile(null)
+      if (coverFileInputRef.current) {
+        coverFileInputRef.current.value = ''
+      }
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function handleGalleryUpload() {
+    if (galleryFiles.length === 0) return
+
+    setBusy('upload-gallery')
+    clearFieldErrors(['gallery_alt', 'gallery_file'])
+    try {
+      const galleryCount = article.photos.filter(photo => photo.kind === 'gallery').length
+
+      for (const [index, file] of galleryFiles.entries()) {
+        const uploaded = await uploadSinglePhoto('gallery', file, galleryAlt, galleryCount + index)
+        if (!uploaded) return
+      }
+
+      setGalleryAlt('')
+      setGalleryFiles([])
+      if (galleryFileInputRef.current) {
+        galleryFileInputRef.current.value = ''
+      }
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
     <div className="space-y-8">
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
+          <p>{error}</p>
+          {validationSummary.length > 0 && (
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {validationSummary.map(message => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
       <section className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Contenu</h2>
-          <Field label="Titre">
-            <input value={article.title} onChange={event => setArticle({ ...article, title: event.target.value })} className={inputClassName} />
+          <Field label="Titre" errors={fieldErrors.title}>
+            <input value={article.title} onChange={event => setArticle({ ...article, title: event.target.value })} className={inputClassName(fieldErrors.title)} aria-invalid={fieldErrors.title?.length > 0} />
           </Field>
-          <Field label="Slug">
-            <input value={article.slug} onChange={event => setArticle({ ...article, slug: event.target.value })} className={inputClassName} />
+          <Field label="Slug" errors={fieldErrors.slug}>
+            <input value={article.slug} onChange={event => setArticle({ ...article, slug: event.target.value })} className={inputClassName(fieldErrors.slug)} aria-invalid={fieldErrors.slug?.length > 0} />
           </Field>
-          <Field label="Excerpt">
-            <textarea value={article.excerpt} onChange={event => setArticle({ ...article, excerpt: event.target.value })} rows={4} className={textareaClassName} />
+          <Field label="Excerpt" errors={fieldErrors.excerpt}>
+            <textarea value={article.excerpt} onChange={event => setArticle({ ...article, excerpt: event.target.value })} rows={4} className={textareaClassName(fieldErrors.excerpt)} aria-invalid={fieldErrors.excerpt?.length > 0} />
           </Field>
-          <Field label="Markdown">
+          <Field label="Markdown" errors={fieldErrors.content_markdown}>
             <textarea
               value={article.content_markdown}
               onChange={event => setArticle({ ...article, content_markdown: event.target.value })}
               rows={14}
-              className={textareaClassName}
+              className={textareaClassName(fieldErrors.content_markdown)}
+              aria-invalid={fieldErrors.content_markdown?.length > 0}
             />
           </Field>
         </div>
 
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Configuration</h2>
-          <Field label="Catégorie">
+          <Field label="Catégorie" errors={fieldErrors.category}>
             <select
               value={article.category}
               onChange={event => setArticle({ ...article, category: event.target.value as BlogArticleCategory })}
-              className={inputClassName}
+              className={inputClassName(fieldErrors.category)}
+              aria-invalid={fieldErrors.category?.length > 0}
             >
               {(['local_guide', 'lodging', 'restaurants', 'activities', 'travel_tips'] as BlogArticleCategory[]).map(category => (
                 <option key={category} value={category}>{blogCategoryLabel(category)}</option>
               ))}
             </select>
           </Field>
-          <Field label="Ville">
-            <select value={article.city_id} onChange={event => setArticle({ ...article, city_id: event.target.value })} className={inputClassName}>
+          <Field label="Ville" errors={fieldErrors.city_id}>
+            <select value={article.city_id} onChange={event => setArticle({ ...article, city_id: event.target.value })} className={inputClassName(fieldErrors.city_id)} aria-invalid={fieldErrors.city_id?.length > 0}>
               <option value="">Aucune ville</option>
               {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
             </select>
           </Field>
-          <Field label="Tags (virgules)">
-            <input value={article.tags} onChange={event => setArticle({ ...article, tags: event.target.value })} className={inputClassName} />
+          <Field label="Tags (virgules)" errors={fieldErrors.tags}>
+            <input value={article.tags} onChange={event => setArticle({ ...article, tags: event.target.value })} className={inputClassName(fieldErrors.tags)} aria-invalid={fieldErrors.tags?.length > 0} />
           </Field>
-          <Field label="SEO title">
-            <input value={article.seo_title} onChange={event => setArticle({ ...article, seo_title: event.target.value })} className={inputClassName} />
+          <Field label="SEO title" errors={fieldErrors.seo_title}>
+            <input value={article.seo_title} onChange={event => setArticle({ ...article, seo_title: event.target.value })} className={inputClassName(fieldErrors.seo_title)} aria-invalid={fieldErrors.seo_title?.length > 0} />
           </Field>
-          <Field label="SEO description">
-            <textarea value={article.seo_description} onChange={event => setArticle({ ...article, seo_description: event.target.value })} rows={5} className={textareaClassName} />
+          <Field label="SEO description" errors={fieldErrors.seo_description}>
+            <textarea value={article.seo_description} onChange={event => setArticle({ ...article, seo_description: event.target.value })} rows={5} className={textareaClassName(fieldErrors.seo_description)} aria-invalid={fieldErrors.seo_description?.length > 0} />
           </Field>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             Statut actuel: <span className="font-semibold text-slate-900">{article.status}</span>
@@ -291,31 +496,77 @@ export function AdminBlogEditor({
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Photos</h2>
-          <Field label="Alt couverture">
-            <input value={coverAlt} onChange={event => setCoverAlt(event.target.value)} className={inputClassName} />
+          <Field label="Alt couverture" errors={fieldErrors.cover_alt ?? fieldErrors.cover_photo}>
+            <input
+              value={coverAlt}
+              onChange={event => {
+                setCoverAlt(event.target.value)
+                clearFieldErrors(['cover_alt'])
+              }}
+              className={inputClassName(fieldErrors.cover_alt ?? fieldErrors.cover_photo)}
+              aria-invalid={(fieldErrors.cover_alt ?? fieldErrors.cover_photo)?.length > 0}
+            />
           </Field>
           <input
+            ref={coverFileInputRef}
             type="file"
             accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-            onChange={async event => {
-              const file = event.target.files?.[0]
-              if (file) await uploadSinglePhoto('cover', file, coverAlt)
+            onChange={event => {
+              setCoverFile(event.target.files?.[0] ?? null)
+              clearFieldErrors(['cover_file'])
             }}
           />
-          <Field label="Alt galerie">
-            <input value={galleryAlt} onChange={event => setGalleryAlt(event.target.value)} className={inputClassName} />
+          {fieldErrors.cover_file && fieldErrors.cover_file.length > 0 && (
+            <div className="space-y-1 text-xs text-rose-700">
+              {fieldErrors.cover_file.map(message => (
+                <p key={`cover-file-${message}`}>Fichier couverture - {message}</p>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleCoverUpload}
+            className={secondaryButtonClassName}
+            disabled={busy !== null || !coverFile || coverAlt.trim().length < 3}
+          >
+            {busy === 'upload-cover' ? 'Upload…' : 'Uploader la couverture'}
+          </button>
+          <Field label="Alt galerie" errors={fieldErrors.gallery_alt}>
+            <input
+              value={galleryAlt}
+              onChange={event => {
+                setGalleryAlt(event.target.value)
+                clearFieldErrors(['gallery_alt'])
+              }}
+              className={inputClassName(fieldErrors.gallery_alt)}
+              aria-invalid={fieldErrors.gallery_alt?.length > 0}
+            />
           </Field>
           <input
+            ref={galleryFileInputRef}
             type="file"
             multiple
             accept="image/png,image/jpeg,image/jpg,image/webp,image/avif"
-            onChange={async event => {
-              const files = Array.from(event.target.files ?? [])
-              for (const [index, file] of files.entries()) {
-                await uploadSinglePhoto('gallery', file, galleryAlt, index)
-              }
+            onChange={event => {
+              setGalleryFiles(Array.from(event.target.files ?? []))
+              clearFieldErrors(['gallery_file'])
             }}
           />
+          {fieldErrors.gallery_file && fieldErrors.gallery_file.length > 0 && (
+            <div className="space-y-1 text-xs text-rose-700">
+              {fieldErrors.gallery_file.map(message => (
+                <p key={`gallery-file-${message}`}>Fichiers galerie - {message}</p>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleGalleryUpload}
+            className={secondaryButtonClassName}
+            disabled={busy !== null || galleryFiles.length === 0 || galleryAlt.trim().length < 3}
+          >
+            {busy === 'upload-gallery' ? 'Upload…' : 'Uploader la galerie'}
+          </button>
           <div className="grid gap-3 sm:grid-cols-2">
             {sortedPhotos.map(photo => (
               <div key={photo.id} className="overflow-hidden rounded-xl border border-slate-200">
@@ -331,11 +582,11 @@ export function AdminBlogEditor({
 
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Gemini</h2>
-          <Field label="Brief">
-            <textarea value={brief} onChange={event => setBrief(event.target.value)} rows={5} className={textareaClassName} />
+          <Field label="Brief" errors={fieldErrors.brief}>
+            <textarea value={brief} onChange={event => setBrief(event.target.value)} rows={5} className={textareaClassName(fieldErrors.brief)} aria-invalid={fieldErrors.brief?.length > 0} />
           </Field>
-          <Field label="Faits vérifiés">
-            <textarea value={verifiedFacts} onChange={event => setVerifiedFacts(event.target.value)} rows={7} className={textareaClassName} />
+          <Field label="Faits vérifiés" errors={fieldErrors.verified_facts}>
+            <textarea value={verifiedFacts} onChange={event => setVerifiedFacts(event.target.value)} rows={7} className={textareaClassName(fieldErrors.verified_facts)} aria-invalid={fieldErrors.verified_facts?.length > 0} />
           </Field>
           <button type="button" onClick={generateDraft} className={primaryButtonClassName} disabled={busy !== null}>
             {busy === 'generate' ? 'Génération…' : 'Générer un brouillon'}
@@ -375,16 +626,29 @@ export function AdminBlogEditor({
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, errors }: { label: string; children: React.ReactNode; errors?: string[] }) {
   return (
     <label className="block space-y-2">
       <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</span>
       {children}
+      {errors && errors.length > 0 && (
+        <div className="space-y-1 text-xs text-rose-700">
+          {errors.map(message => (
+            <p key={`${label}-${message}`}>{label} - {message}</p>
+          ))}
+        </div>
+      )}
     </label>
   )
 }
 
-const inputClassName = 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none ring-0 focus:border-[#0B1437]'
-const textareaClassName = `${inputClassName} min-h-[120px]`
+function inputClassName(errors?: string[]) {
+  return `w-full rounded-xl border px-4 py-3 text-sm text-slate-900 outline-none ring-0 ${errors && errors.length > 0 ? 'border-rose-300 bg-rose-50/40 focus:border-rose-500' : 'border-slate-200 focus:border-[#0B1437]'}`
+}
+
+function textareaClassName(errors?: string[]) {
+  return `${inputClassName(errors)} min-h-[120px]`
+}
+
 const primaryButtonClassName = 'inline-flex items-center justify-center rounded-xl bg-[#0B1437] px-5 py-3 text-sm font-semibold text-white'
 const secondaryButtonClassName = 'inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900'

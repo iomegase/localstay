@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { buildBlogArticlePath } from '@/features/blog/lib/slug'
 
 export type SitemapCity = { slug: string; updated_at: Date }
 export type SitemapPoi = {
@@ -86,7 +87,7 @@ export function buildSitemapEntries(input: {
 
   for (const article of blogArticles) {
     entries.push({
-      url: url(`/blog/${article.slug}`),
+      url: url(buildBlogArticlePath(article.slug)),
       lastModified: article.updated_at,
       changeFrequency: 'weekly',
       priority: 0.65,
