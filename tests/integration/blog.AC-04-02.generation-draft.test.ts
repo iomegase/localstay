@@ -132,6 +132,35 @@ describe('029 blog generation draft persistence', () => {
     expect(mockBlogArticleUpdate).not.toHaveBeenCalled()
   })
 
+  it('maps a malformed Gemini JSON payload to a structured API error instead of a generic 503', async () => {
+    mockBlogArticleFindFirst.mockResolvedValue({
+      id: 'article-1',
+      city: { name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains' },
+    })
+    mockGenerateBlogDraftWithGemini.mockRejectedValue(
+      new SyntaxError('Unexpected token V in JSON at position 0'),
+    )
+
+    await expect(
+      generateBlogDraft(
+        'article-1',
+        {
+          brief: 'Rédige un article chaleureux et utile pour organiser un week-end à Saint-Gervais.',
+          verified_facts:
+            'Les thermes, le centre du village et les sentiers publiés dans le guide sont des faits déjà validés.',
+        },
+        'admin-1',
+      ),
+    ).rejects.toMatchObject<ApiBlogError>({
+      code: 'GEMINI_INVALID_RESPONSE',
+      message: 'La proposition Gemini reçue est invalide.',
+      status: 502,
+    })
+
+    expect(mockBlogGenerationDraftCreate).not.toHaveBeenCalled()
+    expect(mockBlogArticleUpdate).not.toHaveBeenCalled()
+  })
+
   it('stores an empty optional generation context when verified facts are omitted', async () => {
     mockBlogArticleFindFirst.mockResolvedValue({
       id: 'article-1',

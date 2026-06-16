@@ -24,6 +24,15 @@ export class ApiBlogError extends Error {
   }
 }
 
+function invalidGeminiResponse(details: Record<string, unknown> = {}) {
+  return new ApiBlogError(
+    'GEMINI_INVALID_RESPONSE',
+    502,
+    details,
+    'La proposition Gemini reçue est invalide.',
+  )
+}
+
 function toAdminListItem(article: {
   id: string
   title: string
@@ -374,12 +383,11 @@ export async function generateBlogDraft(articleId: string, input: BlogGenerateIn
     if (error instanceof ApiBlogError) throw error
 
     if (error instanceof ZodError) {
-      throw new ApiBlogError(
-        'GEMINI_INVALID_RESPONSE',
-        502,
-        { fieldErrors: error.flatten().fieldErrors },
-        'La proposition Gemini reçue est invalide.',
-      )
+      throw invalidGeminiResponse({ fieldErrors: error.flatten().fieldErrors })
+    }
+
+    if (error instanceof SyntaxError) {
+      throw invalidGeminiResponse()
     }
 
     const code =
@@ -408,6 +416,13 @@ export async function generateBlogDraft(articleId: string, input: BlogGenerateIn
         'Le brief Gemini contient une demande hors périmètre.',
       )
     }
+
+    console.error('[blog][gemini] unexpected generation failure', {
+      articleId,
+      adminId,
+      code,
+      message: error instanceof Error ? error.message : String(error),
+    })
 
     throw new ApiBlogError(
       code,

@@ -7,6 +7,10 @@ jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: mockGetGenerativeModel,
   })),
+  SchemaType: {
+    OBJECT: 'object',
+    STRING: 'string',
+  },
 }))
 
 import { generateBlogDraftWithGemini } from '@/features/blog/services/gemini-draft'
@@ -128,6 +132,13 @@ describe('029 blog gemini draft service', () => {
     expect(mockGetGenerativeModel).toHaveBeenCalledWith(
       expect.objectContaining({
         model: 'gemini-test-model',
+        generationConfig: expect.objectContaining({
+          responseMimeType: 'application/json',
+          responseSchema: expect.objectContaining({
+            type: 'object',
+            required: ['title', 'excerpt', 'content_markdown', 'seo_title', 'seo_description'],
+          }),
+        }),
         tools: [expect.objectContaining({ googleSearch: {} })],
       }),
     )
@@ -172,5 +183,82 @@ describe('029 blog gemini draft service', () => {
     expect(result.draft.seo_title.length).toBeLessThanOrEqual(70)
     expect(result.draft.seo_description.length).toBeGreaterThanOrEqual(80)
     expect(result.draft.seo_description.length).toBeLessThanOrEqual(180)
+  })
+
+  it('extracts the first JSON object when Gemini wraps the payload in prose', async () => {
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () => [
+          'Voici le brouillon demandé.',
+          '',
+          '{',
+          '  "title": "Vivre en Haute-Savoie en 1900",',
+          '  "excerpt": "Une proposition editoriale ancree dans le quotidien, les contraintes et les solidarites locales de la Haute-Savoie vers 1900.",',
+          '  "content_markdown": "' + 'mot '.repeat(90).trim() + '",',
+          '  "seo_title": "Vivre en Haute-Savoie en 1900 | Blog MyStay",',
+          '  "seo_description": "Une lecture editoriale de la Haute-Savoie vers 1900, entre climat rude, vie locale contrainte et adaptation quotidienne."',
+          '}',
+          '',
+          'Relis et adapte si besoin.',
+        ].join('\n'),
+      },
+    })
+
+    const result = await generateBlogDraftWithGemini({
+      brief: 'Rédige un article éditorial sur la vie en Haute-Savoie autour de 1900.',
+      verifiedFacts: '',
+      cityContext: null,
+    })
+
+    expect(result.draft.title).toBe('Vivre en Haute-Savoie en 1900')
+    expect(result.draft.seo_title).toBe('Vivre en Haute-Savoie en 1900 | Blog MyStay')
+  })
+
+  it('defaults to gemini-3.5-flash when no explicit Gemini model is configured', async () => {
+    delete process.env.GEMINI_MODEL
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () =>
+          JSON.stringify({
+            title: 'Week-end à Saint-Gervais',
+            excerpt:
+              'Une proposition editoriale locale pour organiser un week-end utile et lisible autour de Saint-Gervais.',
+            content_markdown: 'mot '.repeat(90).trim(),
+            seo_title: 'Week-end à Saint-Gervais | Blog MyStay',
+            seo_description:
+              'Une proposition editoriale locale pour Saint-Gervais, avec angle clair, sources grounded et lecture utile.',
+          }),
+      },
+    })
+
+    await generateBlogDraftWithGemini({
+      brief: 'Rédige un article sur un week-end à Saint-Gervais.',
+      verifiedFacts: '',
+      cityContext: { name: 'Saint-Gervais', slug: 'saint-gervais' },
+    })
+
+    expect(mockGetGenerativeModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'gemini-3.5-flash',
+      }),
+    )
+  })
+
+  it('translates a non-readable Gemini response into a syntax-level invalid response error', async () => {
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () => {
+          throw new Error('Candidate was blocked due to SAFETY')
+        },
+      },
+    })
+
+    await expect(
+      generateBlogDraftWithGemini({
+        brief: 'Rédige un article sur un week-end à Saint-Gervais.',
+        verifiedFacts: '',
+        cityContext: { name: 'Saint-Gervais', slug: 'saint-gervais' },
+      }),
+    ).rejects.toBeInstanceOf(SyntaxError)
   })
 })

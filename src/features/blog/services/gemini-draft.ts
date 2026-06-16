@@ -1,4 +1,9 @@
-import { GoogleGenerativeAI, type Tool } from '@google/generative-ai'
+import {
+  GoogleGenerativeAI,
+  type ResponseSchema,
+  SchemaType,
+  type Tool,
+} from '@google/generative-ai'
 import { z } from 'zod'
 import { assertBlogGeminiScope } from '../lib/gemini-scope'
 
@@ -28,6 +33,18 @@ const BlogGenerationLooseSchema = z.object({
   seo_title: z.string().optional(),
   seo_description: z.string().optional(),
 })
+
+const BlogGenerationResponseSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    title: { type: SchemaType.STRING },
+    excerpt: { type: SchemaType.STRING },
+    content_markdown: { type: SchemaType.STRING },
+    seo_title: { type: SchemaType.STRING },
+    seo_description: { type: SchemaType.STRING },
+  },
+  required: ['title', 'excerpt', 'content_markdown', 'seo_title', 'seo_description'],
+}
 
 export type BlogGenerationResult = z.infer<typeof BlogGenerationResultSchema>
 
@@ -238,11 +255,78 @@ function assertRequestedWordCount(contentMarkdown: string, requestedWordCount: n
 }
 
 function parseJsonResponse(rawText: string): string {
-  return rawText
+  const cleaned = rawText
     .trimStart()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/```\s*$/i, '')
     .trim()
+
+  if (cleaned === '') {
+    throw new SyntaxError('Gemini a renvoyé une réponse vide.')
+  }
+
+  try {
+    JSON.parse(cleaned)
+    return cleaned
+  } catch {
+    const extracted = extractFirstJsonObject(cleaned)
+    if (!extracted) {
+      throw new SyntaxError('Gemini n’a pas renvoyé un JSON exploitable.')
+    }
+
+    JSON.parse(extracted)
+    return extracted
+  }
+}
+
+function extractFirstJsonObject(input: string): string | null {
+  const start = input.indexOf('{')
+  if (start < 0) return null
+
+  let depth = 0
+  let inString = false
+  let escaping = false
+
+  for (let index = start; index < input.length; index += 1) {
+    const character = input[index]
+
+    if (inString) {
+      if (escaping) {
+        escaping = false
+        continue
+      }
+
+      if (character === '\\') {
+        escaping = true
+        continue
+      }
+
+      if (character === '"') {
+        inString = false
+      }
+      continue
+    }
+
+    if (character === '"') {
+      inString = true
+      continue
+    }
+
+    if (character === '{') {
+      depth += 1
+      continue
+    }
+
+    if (character === '}') {
+      depth -= 1
+
+      if (depth === 0) {
+        return input.slice(start, index + 1)
+      }
+    }
+  }
+
+  return null
 }
 
 function extractGroundedSources(response: GroundingResponse): BlogGroundedSource[] {
@@ -284,7 +368,11 @@ export async function generateBlogDraftWithGemini(input: {
 
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL ?? 'gemini-flash-latest',
+    model: process.env.GEMINI_MODEL ?? 'gemini-3.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: BlogGenerationResponseSchema,
+    },
     tools: [{ googleSearch: {} } as unknown as Tool],
   })
   const prompt = [
@@ -302,7 +390,19 @@ export async function generateBlogDraftWithGemini(input: {
   ].join('\n\n')
 
   const result = await model.generateContent(prompt)
-  const cleaned = parseJsonResponse(result.response.text())
+  let rawText: string
+
+  try {
+    rawText = result.response.text()
+  } catch (error) {
+    throw new SyntaxError(
+      error instanceof Error
+        ? error.message
+        : 'Gemini n’a pas renvoyé de contenu textuel exploitable.',
+    )
+  }
+
+  const cleaned = parseJsonResponse(rawText)
   const json = JSON.parse(cleaned) as unknown
   const draft = normalizeGeneratedDraft(json)
   assertRequestedWordCount(draft.content_markdown, requestedWordCount)
