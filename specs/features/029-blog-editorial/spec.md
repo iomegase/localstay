@@ -110,8 +110,8 @@ Cette spec introduit :
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given un article `draft` et un brief Admin valide, When l'Admin demande une generation Gemini, Then Gemini retourne une proposition Markdown, title, excerpt, SEO title et SEO description.
-- **AC-04-02**: Given la generation reussit, When la reponse est recue, Then elle est validee avec Zod et sauvegardee comme `BlogGenerationDraft` sans modifier automatiquement l'article publie.
+- **AC-04-01**: Given un article `draft` et un brief Admin valide, When l'Admin demande une generation Gemini, Then Gemini retourne une proposition Markdown, title, excerpt, SEO title, SEO description, ainsi qu'un payload `text` et `sources` issu du grounding Google Search quand disponible.
+- **AC-04-02**: Given la generation reussit, When la reponse est recue, Then elle est validee avec Zod et sauvegardee comme `BlogGenerationDraft` sans modifier automatiquement l'article publie, tandis que `sources` sont renvoyees au frontend sans persistance en base dans cette premiere passe.
 - **AC-04-03**: Given l'Admin accepte le brouillon, When il applique la suggestion, Then les champs de l'article sont remplis en `draft` ou `review` et restent soumis a publication Admin.
 - **AC-04-04**: Given Gemini est absent, non configure ou retourne une erreur, When l'Admin demande une generation, Then l'API retourne une erreur structuree et conserve le brief Admin.
 - **AC-04-05**: Given le brief demande des coordonnees, distances, temps reel, disponibilites, prix ou faits non verifies, When la generation est demandee, Then le prompt et la validation refusent ce perimetre.
@@ -163,9 +163,11 @@ Cette spec introduit :
 - **BR-14**: Les champs texte sont valides avec Zod : `title` 5-90 caracteres, `excerpt` 40-220, `content_markdown` 300-20000, `seo_title` 30-70, `seo_description` 80-180.
 - **BR-15**: Le contenu public est stocke en Markdown et rendu avec une pipeline controlee qui supprime HTML dangereux, scripts, handlers d'evenements et URLs non autorisees.
 - **BR-16**: Gemini est autorise uniquement comme assistance editoriale blog selon `ADR-010`.
-- **BR-17**: Gemini recoit uniquement le brief Admin, les faits verifies saisis par l'Admin et, si besoin, des donnees MyStay deja validees et publiques sur la City rattachee.
+- **BR-17**: Gemini recoit uniquement le brief Admin, les faits verifies saisis par l'Admin et, si besoin, des donnees MyStay deja validees et publiques sur la City rattachee. Le grounding Google Search peut etre active cote serveur pour recuperer des sources de travail et de citation.
 - **BR-18**: Gemini ne doit jamais inventer de faits, coordonnees, distances, durees, prix, disponibilites, horaires temps reel, statistiques ou donnees personnelles.
 - **BR-19**: La reponse Gemini est toujours un brouillon valide par Zod. Elle ne peut jamais passer directement un article en `published`.
+- **BR-19a**: Les sources issues du grounding Google Search sont renvoyees au frontend uniquement comme appui de generation. Elles ne valent pas validation produit et ne remplacent jamais la revue Admin.
+- **BR-19b**: Dans cette premiere passe, les sources grounded de la route `/api/admin/blog/{id}/generate` ne sont pas persistees en base. Seul le `BlogGenerationDraft` continue d'etre stocke.
 - **BR-20**: Toute generation Gemini doit stocker le provider, le brief, les faits verifies, le hash source, le statut, la date de generation et la suggestion.
 - **BR-21**: Les articles `draft`, `review`, `archived` ou soft-deleted ne doivent jamais etre inclus dans le sitemap, JSON-LD public ou listes publiques.
 - **BR-22**: Le JSON-LD `BlogPosting` decrit uniquement des informations visibles sur la page.
@@ -450,7 +452,7 @@ paths:
           description: Brouillon genere
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/BlogGenerationDraft" }
+              schema: { $ref: "#/components/schemas/BlogGenerationDraftResponse" }
         "400": { $ref: "#/components/responses/BadRequest" }
         "503": { $ref: "#/components/responses/ServiceUnavailable" }
 
@@ -598,6 +600,22 @@ components:
         suggestion_markdown: { type: string, nullable: true }
         suggestion_seo_title: { type: string, nullable: true }
         suggestion_seo_description: { type: string, nullable: true }
+    BlogGroundedSource:
+      type: object
+      required: [title, url]
+      properties:
+        title: { type: string }
+        url: { type: string, format: uri }
+    BlogGenerationDraftResponse:
+      allOf:
+        - $ref: "#/components/schemas/BlogGenerationDraft"
+        - type: object
+          required: [text, sources]
+          properties:
+            text: { type: string }
+            sources:
+              type: array
+              items: { $ref: "#/components/schemas/BlogGroundedSource" }
     Error:
       type: object
       required: [error]

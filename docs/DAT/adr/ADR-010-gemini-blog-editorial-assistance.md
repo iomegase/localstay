@@ -29,7 +29,8 @@ Usages autorises :
 2. reformuler, structurer et clarifier un brouillon fourni par l'Admin ;
 3. proposer `seo_title` et `seo_description` ;
 4. adapter l'angle editorial a une City rattachee en utilisant uniquement des informations MyStay deja validees ;
-5. suggerer des formulations plus utiles pour le SEO/GEO.
+5. suggerer des formulations plus utiles pour le SEO/GEO ;
+6. activer Google Search grounding cote serveur pour recuperer des sources web utilisees dans la generation d'un brouillon blog, tant que ces sources restent soumises a revue Admin.
 
 Usages interdits :
 
@@ -37,6 +38,9 @@ Usages interdits :
 - inventer des faits, adresses, prix, disponibilites, horaires, statistiques, coordonnees, distances, durees ou metriques geographiques ;
 - produire des informations temps reel ;
 - scraper des sources externes ;
+- publier automatiquement des faits issus de sources externes sans revue Admin ;
+- presenter une source grounded comme un fait valide MyStay sans verification humaine ;
+- stocker ou reutiliser des sources grounded comme verite produit hors du workflow editorial valide ;
 - importer, generer ou telecharger des images ;
 - traiter des donnees personnelles ou secrets ;
 - remplacer le systeme de traduction `027-multilingual-content`.
@@ -82,7 +86,10 @@ Cette decision reprend le principe de `ADR-009` : assistance editoriale oui, inv
 - Chaque generation doit stocker le brief, les faits verifies, le hash source, le provider, le statut, la date et la suggestion.
 - Le prompt Gemini doit interdire explicitement l'invention de faits et les demandes de donnees geographiques, temps reel ou transactionnelles.
 - La reponse Gemini doit etre validee avec Zod avant sauvegarde.
+- La route `POST /api/admin/blog/{id}/generate` peut retourner `text` et `sources` derives du grounding, en plus du `BlogGenerationDraft` persiste.
+- Les sources peuvent etre renvoyees au frontend sans etre stockees en base dans cette premiere passe.
 - La suggestion ne peut jamais passer directement en `published`.
+- La revue Admin reste obligatoire avant application du brouillon et publication.
 - Les photos restent televersees par l'Admin ; Gemini ne traite pas les images.
 - Toute extension vers traduction, import externe, generation d'images ou publication automatique exige une spec/ADR dediee.
 
