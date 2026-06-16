@@ -129,6 +129,7 @@ export async function generateBlogDraftWithGemini(input: {
     'N\'invente aucun fait. Refuse toute coordonnée, distance, durée, prix, disponibilité, horaire temps réel ou donnée personnelle.',
     'Utilise Google Search uniquement pour grounding et citations de travail ; les faits restent soumis à revue Admin.',
     'Retourne uniquement du JSON strict avec les clés: title, excerpt, content_markdown, seo_title, seo_description.',
+    'Respecte strictement ces longueurs: title 5-90 caractères, excerpt 40-220 caractères, seo_title 30-70 caractères, seo_description 80-180 caractères.',
     requestedWordCount
       ? `Le corps de l'article en Markdown doit viser environ ${requestedWordCount} mots.`
       : 'Le corps de l\'article en Markdown doit être développé et structuré en plusieurs paragraphes utiles.',

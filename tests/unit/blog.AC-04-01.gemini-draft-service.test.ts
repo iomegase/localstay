@@ -51,6 +51,9 @@ describe('029 blog gemini draft service', () => {
     expect(mockGenerateContent).toHaveBeenCalledWith(
       expect.stringContaining("Le corps de l'article en Markdown doit viser environ 100 mots."),
     )
+    expect(mockGenerateContent).toHaveBeenCalledWith(
+      expect.stringContaining('Respecte strictement ces longueurs: title 5-90 caractères, excerpt 40-220 caractères, seo_title 30-70 caractères, seo_description 80-180 caractères.'),
+    )
     expect(result.draft).toMatchObject({
       title: 'Saint-Nicolas-de-Veroce en 100 mots',
     })

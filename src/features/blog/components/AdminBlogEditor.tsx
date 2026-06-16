@@ -65,6 +65,16 @@ function parseStringValue(value: unknown): string | null {
   return typeof value === 'string' ? value : null
 }
 
+function countCharacters(value: string): number {
+  return value.trim().length
+}
+
+function countWords(value: string): number {
+  const trimmed = value.trim()
+  if (trimmed === '') return 0
+  return trimmed.split(/\s+/).length
+}
+
 const FIELD_LABELS: Record<string, string> = {
   title: 'Titre',
   slug: 'Slug',
@@ -249,6 +259,18 @@ export function AdminBlogEditor({
       return next
     })
   }
+
+  function setArticleField<K extends keyof ArticleState>(field: K, value: ArticleState[K], errorKeys: string[] = [String(field)]) {
+    setArticle(current => ({ ...current, [field]: value }))
+    clearFieldErrors(errorKeys)
+  }
+
+  const titleLength = useMemo(() => countCharacters(article.title), [article.title])
+  const excerptLength = useMemo(() => countCharacters(article.excerpt), [article.excerpt])
+  const markdownCharacterCount = useMemo(() => countCharacters(article.content_markdown), [article.content_markdown])
+  const markdownWordCount = useMemo(() => countWords(article.content_markdown), [article.content_markdown])
+  const seoTitleLength = useMemo(() => countCharacters(article.seo_title), [article.seo_title])
+  const seoDescriptionLength = useMemo(() => countCharacters(article.seo_description), [article.seo_description])
 
   async function saveArticle() {
     setBusy('save')
@@ -458,22 +480,31 @@ export function AdminBlogEditor({
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Contenu</h2>
           <Field label="Titre" errors={fieldErrors.title}>
-            <input value={article.title} onChange={event => setArticle({ ...article, title: event.target.value })} className={inputClassName(fieldErrors.title)} aria-invalid={fieldErrors.title?.length > 0} />
+            <>
+              <input value={article.title} onChange={event => setArticleField('title', event.target.value)} className={inputClassName(fieldErrors.title)} aria-invalid={fieldErrors.title?.length > 0} />
+              <CharacterCounter current={titleLength} min={5} max={90} />
+            </>
           </Field>
           <Field label="Slug" errors={fieldErrors.slug}>
-            <input value={article.slug} onChange={event => setArticle({ ...article, slug: event.target.value })} className={inputClassName(fieldErrors.slug)} aria-invalid={fieldErrors.slug?.length > 0} />
+            <input value={article.slug} onChange={event => setArticleField('slug', event.target.value)} className={inputClassName(fieldErrors.slug)} aria-invalid={fieldErrors.slug?.length > 0} />
           </Field>
           <Field label="Excerpt" errors={fieldErrors.excerpt}>
-            <textarea value={article.excerpt} onChange={event => setArticle({ ...article, excerpt: event.target.value })} rows={4} className={textareaClassName(fieldErrors.excerpt)} aria-invalid={fieldErrors.excerpt?.length > 0} />
+            <>
+              <textarea value={article.excerpt} onChange={event => setArticleField('excerpt', event.target.value)} rows={4} className={textareaClassName(fieldErrors.excerpt)} aria-invalid={fieldErrors.excerpt?.length > 0} />
+              <CharacterCounter current={excerptLength} min={40} max={220} />
+            </>
           </Field>
           <Field label="Markdown" errors={fieldErrors.content_markdown}>
-            <textarea
-              value={article.content_markdown}
-              onChange={event => setArticle({ ...article, content_markdown: event.target.value })}
-              rows={14}
-              className={textareaClassName(fieldErrors.content_markdown)}
-              aria-invalid={fieldErrors.content_markdown?.length > 0}
-            />
+            <>
+              <textarea
+                value={article.content_markdown}
+                onChange={event => setArticleField('content_markdown', event.target.value)}
+                rows={14}
+                className={textareaClassName(fieldErrors.content_markdown)}
+                aria-invalid={fieldErrors.content_markdown?.length > 0}
+              />
+              <MarkdownCounter wordCount={markdownWordCount} characterCount={markdownCharacterCount} />
+            </>
           </Field>
         </div>
 
@@ -482,7 +513,7 @@ export function AdminBlogEditor({
           <Field label="Catégorie" errors={fieldErrors.category}>
             <select
               value={article.category}
-              onChange={event => setArticle({ ...article, category: event.target.value as BlogArticleCategory })}
+              onChange={event => setArticleField('category', event.target.value as BlogArticleCategory)}
               className={inputClassName(fieldErrors.category)}
               aria-invalid={fieldErrors.category?.length > 0}
             >
@@ -492,19 +523,25 @@ export function AdminBlogEditor({
             </select>
           </Field>
           <Field label="Ville" errors={fieldErrors.city_id}>
-            <select value={article.city_id} onChange={event => setArticle({ ...article, city_id: event.target.value })} className={inputClassName(fieldErrors.city_id)} aria-invalid={fieldErrors.city_id?.length > 0}>
+            <select value={article.city_id} onChange={event => setArticleField('city_id', event.target.value)} className={inputClassName(fieldErrors.city_id)} aria-invalid={fieldErrors.city_id?.length > 0}>
               <option value="">Aucune ville</option>
               {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
             </select>
           </Field>
           <Field label="Tags (virgules)" errors={fieldErrors.tags}>
-            <input value={article.tags} onChange={event => setArticle({ ...article, tags: event.target.value })} className={inputClassName(fieldErrors.tags)} aria-invalid={fieldErrors.tags?.length > 0} />
+            <input value={article.tags} onChange={event => setArticleField('tags', event.target.value)} className={inputClassName(fieldErrors.tags)} aria-invalid={fieldErrors.tags?.length > 0} />
           </Field>
           <Field label="SEO title" errors={fieldErrors.seo_title}>
-            <input value={article.seo_title} onChange={event => setArticle({ ...article, seo_title: event.target.value })} className={inputClassName(fieldErrors.seo_title)} aria-invalid={fieldErrors.seo_title?.length > 0} />
+            <>
+              <input value={article.seo_title} onChange={event => setArticleField('seo_title', event.target.value)} className={inputClassName(fieldErrors.seo_title)} aria-invalid={fieldErrors.seo_title?.length > 0} />
+              <CharacterCounter current={seoTitleLength} min={30} max={70} />
+            </>
           </Field>
           <Field label="SEO description" errors={fieldErrors.seo_description}>
-            <textarea value={article.seo_description} onChange={event => setArticle({ ...article, seo_description: event.target.value })} rows={5} className={textareaClassName(fieldErrors.seo_description)} aria-invalid={fieldErrors.seo_description?.length > 0} />
+            <>
+              <textarea value={article.seo_description} onChange={event => setArticleField('seo_description', event.target.value)} rows={5} className={textareaClassName(fieldErrors.seo_description)} aria-invalid={fieldErrors.seo_description?.length > 0} />
+              <CharacterCounter current={seoDescriptionLength} min={80} max={180} />
+            </>
           </Field>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             Statut actuel: <span className="font-semibold text-slate-900">{article.status}</span>
@@ -609,10 +646,16 @@ export function AdminBlogEditor({
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Gemini</h2>
           <Field label="Brief" errors={fieldErrors.brief}>
-            <textarea value={brief} onChange={event => setBrief(event.target.value)} rows={5} className={textareaClassName(fieldErrors.brief)} aria-invalid={fieldErrors.brief?.length > 0} />
+            <textarea value={brief} onChange={event => {
+              setBrief(event.target.value)
+              clearFieldErrors(['brief'])
+            }} rows={5} className={textareaClassName(fieldErrors.brief)} aria-invalid={fieldErrors.brief?.length > 0} />
           </Field>
           <Field label="Faits vérifiés" errors={fieldErrors.verified_facts}>
-            <textarea value={verifiedFacts} onChange={event => setVerifiedFacts(event.target.value)} rows={7} className={textareaClassName(fieldErrors.verified_facts)} aria-invalid={fieldErrors.verified_facts?.length > 0} />
+            <textarea value={verifiedFacts} onChange={event => {
+              setVerifiedFacts(event.target.value)
+              clearFieldErrors(['verified_facts'])
+            }} rows={7} className={textareaClassName(fieldErrors.verified_facts)} aria-invalid={fieldErrors.verified_facts?.length > 0} />
           </Field>
           <button type="button" onClick={generateDraft} className={primaryButtonClassName} disabled={busy !== null}>
             {busy === 'generate' ? 'Génération…' : 'Générer un brouillon'}
@@ -717,6 +760,24 @@ function inputClassName(errors?: string[]) {
 
 function textareaClassName(errors?: string[]) {
   return `${inputClassName(errors)} min-h-[120px]`
+}
+
+function CharacterCounter({ current, min, max }: { current: number; min: number; max: number }) {
+  const isInvalid = (current > 0 && current < min) || current > max
+
+  return (
+    <p className={`text-right text-[11px] font-medium ${isInvalid ? 'text-rose-600' : 'text-slate-400'}`}>
+      {current} / {max} caractères
+    </p>
+  )
+}
+
+function MarkdownCounter({ wordCount, characterCount }: { wordCount: number; characterCount: number }) {
+  return (
+    <p className="text-right text-[11px] font-medium text-slate-400">
+      {wordCount} mots • {characterCount} caractères
+    </p>
+  )
 }
 
 const primaryButtonClassName = 'inline-flex items-center justify-center rounded-xl bg-[#0B1437] px-5 py-3 text-sm font-semibold text-white'

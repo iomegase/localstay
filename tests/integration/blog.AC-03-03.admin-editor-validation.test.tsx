@@ -5,6 +5,18 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { AdminBlogEditor } from '@/features/blog/components/AdminBlogEditor'
 
+function getInputFromField(label: string) {
+  const field = screen.getByText(label).closest('label')?.querySelector('input')
+  expect(field).not.toBeNull()
+  return field as HTMLInputElement
+}
+
+function getTextareaFromField(label: string) {
+  const field = screen.getByText(label).closest('label')?.querySelector('textarea')
+  expect(field).not.toBeNull()
+  return field as HTMLTextAreaElement
+}
+
 describe('029 blog admin editor validation feedback', () => {
   afterEach(() => {
     jest.restoreAllMocks()
@@ -29,8 +41,8 @@ describe('029 blog admin editor validation feedback', () => {
 
     render(<AdminBlogEditor cities={[]} />)
 
-    fireEvent.change(screen.getByLabelText('Titre'), { target: { value: 'abc' } })
-    fireEvent.change(screen.getByLabelText('Excerpt'), { target: { value: 'court' } })
+    fireEvent.change(getInputFromField('Titre'), { target: { value: 'abc' } })
+    fireEvent.change(getTextareaFromField('Excerpt'), { target: { value: 'court' } })
     fireEvent.click(screen.getByRole('button', { name: /Créer le brouillon/i }))
 
     expect((await screen.findAllByText(/Titre - Le titre doit contenir entre 5 et 90 caractères\./i)).length).toBeGreaterThan(0)
@@ -197,5 +209,92 @@ describe('029 blog admin editor validation feedback', () => {
     expect((await screen.findAllByText(/Photo de couverture - Champ requis avant publication\./i)).length).toBeGreaterThan(0)
     expect(screen.queryByText(/Alt couverture - Champ requis avant publication\./i)).not.toBeInTheDocument()
     expect(screen.getByLabelText('Alt couverture')).not.toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('clears stale text field validation errors when the user edits the field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: 'GEMINI_INVALID_RESPONSE',
+          message: 'La proposition Gemini reçue est invalide.',
+          details: {
+            fieldErrors: {
+              excerpt: ['L’extrait doit contenir entre 40 et 220 caractères.'],
+              seo_description: ['La meta description doit contenir entre 80 et 180 caractères.'],
+            },
+          },
+        },
+      }),
+    }) as jest.Mock
+
+    render(
+      <AdminBlogEditor
+        cities={[]}
+        initialArticle={{
+          id: 'article-1',
+          status: 'draft',
+          title: 'Guide local Saint-Nicolas',
+          slug: 'guide-local-saint-nicolas',
+          excerpt: 'a'.repeat(45),
+          content_markdown: 'mot '.repeat(80).trim(),
+          category: 'local_guide',
+          tags: [],
+          city_id: null,
+          seo_title: 'b'.repeat(35),
+          seo_description: 'c'.repeat(90),
+          photos: [],
+        }}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText('Brief'), {
+      target: { value: 'Rédige un article clair et utile sur la vie en Haute-Savoie en 1900.' },
+    })
+    fireEvent.change(screen.getByLabelText('Faits vérifiés'), {
+      target: { value: 'Le contenu doit rester factuel, local et ancré dans des éléments vérifiés fournis par l’admin.' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Générer un brouillon/i }))
+
+    expect((await screen.findAllByText(/Excerpt - L’extrait doit contenir entre 40 et 220 caractères\./i)).length).toBeGreaterThan(0)
+    expect(screen.queryAllByText(/SEO description - La meta description doit contenir entre 80 et 180 caractères\./i).length).toBeGreaterThan(0)
+
+    fireEvent.change(getTextareaFromField('Excerpt'), { target: { value: 'a'.repeat(46) } })
+    expect(screen.queryByText(/Excerpt - L’extrait doit contenir entre 40 et 220 caractères\./i)).not.toBeInTheDocument()
+    expect(screen.queryAllByText(/SEO description - La meta description doit contenir entre 80 et 180 caractères\./i).length).toBeGreaterThan(0)
+
+    fireEvent.change(getTextareaFromField('SEO description'), { target: { value: 'c'.repeat(91) } })
+    expect(screen.queryByText(/SEO description - La meta description doit contenir entre 80 et 180 caractères\./i)).not.toBeInTheDocument()
+  })
+
+  it('shows live character and word counters for constrained editorial fields', () => {
+    render(
+      <AdminBlogEditor
+        cities={[]}
+        initialArticle={{
+          id: 'article-1',
+          status: 'draft',
+          title: 'a'.repeat(12),
+          slug: 'guide-local-saint-nicolas',
+          excerpt: 'b'.repeat(45),
+          content_markdown: 'mot mot mot',
+          category: 'local_guide',
+          tags: [],
+          city_id: null,
+          seo_title: 'c'.repeat(35),
+          seo_description: 'd'.repeat(90),
+          photos: [],
+        }}
+      />,
+    )
+
+    expect(screen.getByText('12 / 90 caractères')).toBeInTheDocument()
+    expect(screen.getByText('45 / 220 caractères')).toBeInTheDocument()
+    expect(screen.getByText('35 / 70 caractères')).toBeInTheDocument()
+    expect(screen.getByText('90 / 180 caractères')).toBeInTheDocument()
+    expect(screen.getByText('3 mots • 11 caractères')).toBeInTheDocument()
+
+    fireEvent.change(getTextareaFromField('Excerpt'), { target: { value: 'e'.repeat(46) } })
+    expect(screen.getByText('46 / 220 caractères')).toBeInTheDocument()
   })
 })

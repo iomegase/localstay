@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-15
-updated_at: 2026-06-15
+updated_at: 2026-06-16
 depends_on:
   - 001-city-guide
   - 016-dashboard-superadmin
@@ -96,7 +96,7 @@ Cette spec introduit :
 
 - **AC-03-01**: Given un Admin authentifie, When il ouvre `/admin/blog`, Then il voit la liste des articles filtrable par statut, categorie et City.
 - **AC-03-02**: Given un Admin authentifie, When il cree un article depuis `/admin/blog/new`, Then l'article est sauvegarde en `draft`.
-- **AC-03-03**: Given un Admin modifie titre, slug, excerpt, contenu Markdown, categorie, tags, City, SEO ou photos, When il sauvegarde, Then les donnees sont validees avec Zod et persistees.
+- **AC-03-03**: Given un Admin modifie titre, slug, excerpt, contenu Markdown, categorie, tags, City, SEO ou photos, When il sauvegarde ou corrige un champ en erreur, Then les donnees sont validees avec Zod et persistees, les erreurs stale du champ corrige disparaissent, et l'editeur expose des compteurs de longueur pour les champs editoriaux contraints.
 - **AC-03-04**: Given un utilisateur non-admin, When il appelle une route admin blog, Then l'acces est refuse sans exposer de contenu prive.
 - **AC-03-05**: Given un article incomplet, When l'Admin tente de le publier, Then l'API refuse la transition avec une erreur structuree listant les champs manquants.
 - **AC-03-06**: Given un article complet en `review` ou `draft`, When l'Admin le publie, Then `status = published`, `published_at` est renseigne et la page publique devient visible.
@@ -688,8 +688,8 @@ components:
 
 - **Loading state**: formulaire desactive pendant sauvegarde, upload ou generation.
 - **Empty state**: formulaire initial en draft.
-- **Error state**: erreurs Zod par champ et erreurs globales pour upload/Gemini.
-- **Success state**: formulaire Markdown, selection City optionnelle, categorie, tags, SEO, cover, galerie, statut et panneau Gemini.
+- **Error state**: erreurs Zod par champ et erreurs globales pour upload/Gemini ; une erreur stale disparait des que le champ corrige est resaisi.
+- **Success state**: formulaire Markdown, selection City optionnelle, categorie, tags, SEO, cover, galerie, statut et panneau Gemini, avec compteurs live de caracteres pour les champs editoriaux contraints et compteur mots/caracteres pour le Markdown.
 - **Mobile behaviour**: champs empiles, actions principales visibles.
 
 ---
