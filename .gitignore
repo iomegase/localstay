@@ -25,6 +25,7 @@ Thumbs.db
 coverage/
 playwright-report/
 test-results/
+.worktrees/
 
 # Prisma
 # prisma/migrations/ — tracked in git (removed 009)
