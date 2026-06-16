@@ -1,6 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import { ZodError } from 'zod'
 import { getBlogPublishValidationErrors } from '../lib/publish-validation'
+import { normalizeBlogSlug } from '../lib/slug'
 import { generateBlogDraftWithGemini } from '../services/gemini-draft'
 import type {
   BlogAdminFiltersInput,
@@ -45,6 +46,26 @@ function toAdminListItem(article: {
   }
 }
 
+function buildGeneratedDraftSlug(): string {
+  return `article-${crypto.randomUUID().slice(0, 8)}`
+}
+
+function resolveArticleSlug(input: {
+  slug: string
+  title: string
+  fallbackSlug?: string
+}): string {
+  if (input.slug.trim().length > 0) {
+    return input.slug
+  }
+
+  if (input.title.trim().length >= 5) {
+    return normalizeBlogSlug(input.title)
+  }
+
+  return input.fallbackSlug ?? buildGeneratedDraftSlug()
+}
+
 export async function listAdminBlogArticles(filters: BlogAdminFiltersInput) {
   const articles = await prisma.blogArticle.findMany({
     where: {
@@ -81,6 +102,7 @@ export async function createBlogArticle(input: BlogArticleUpsertInput, adminId: 
   const article = await prisma.blogArticle.create({
     data: {
       ...input,
+      slug: resolveArticleSlug(input),
       author_admin_id: adminId,
       status: 'draft',
     },
@@ -122,10 +144,26 @@ export async function getAdminBlogArticle(id: string) {
 }
 
 export async function updateBlogArticle(id: string, input: BlogArticleUpsertInput) {
+  const existingArticle = await prisma.blogArticle.findFirst({
+    where: { id, deleted_at: null },
+    select: { slug: true },
+  })
+
+  if (!existingArticle) {
+    throw new ApiBlogError('NOT_FOUND', 404)
+  }
+
   try {
     const article = await prisma.blogArticle.update({
       where: { id },
-      data: input,
+      data: {
+        ...input,
+        slug: resolveArticleSlug({
+          slug: input.slug,
+          title: input.title,
+          fallbackSlug: existingArticle.slug,
+        }),
+      },
       select: {
         id: true,
         title: true,

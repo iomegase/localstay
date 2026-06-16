@@ -52,6 +52,27 @@ describe('029 blog admin create API', () => {
     }), 'admin-1')
   })
 
+  it('accepts a minimal draft payload for onboarding and fills server defaults later', async () => {
+    mockCreateBlogArticle.mockResolvedValue({ id: 'article-1', status: 'draft', slug: 'article-temporaire' })
+
+    const response = await POST(request({
+      category: 'local_guide',
+    }))
+
+    expect(response.status).toBe(201)
+    expect(mockCreateBlogArticle).toHaveBeenCalledWith({
+      title: '',
+      slug: '',
+      excerpt: '',
+      content_markdown: '',
+      category: 'local_guide',
+      tags: [],
+      city_id: null,
+      seo_title: null,
+      seo_description: null,
+    }, 'admin-1')
+  })
+
   it('normalizes the admin slug to a canonical public slug before persistence', async () => {
     mockCreateBlogArticle.mockResolvedValue({ id: 'article-1', status: 'draft', slug: 'vivre-a-saint-nicolas' })
 

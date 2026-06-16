@@ -31,10 +31,10 @@ describe('029 blog admin update API', () => {
   it('rejects an invalid payload before persistence', async () => {
     const response = await PATCH(
       request({
-        title: 'abc',
+        title: '',
         slug: 'ok',
-        excerpt: 'court',
-        content_markdown: 'short',
+        excerpt: '',
+        content_markdown: '',
         category: 'local_guide',
       }),
       { params: Promise.resolve({ id: 'article-1' }) },

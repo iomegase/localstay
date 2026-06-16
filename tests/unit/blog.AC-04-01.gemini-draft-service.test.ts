@@ -143,4 +143,34 @@ describe('029 blog gemini draft service', () => {
       ],
     })
   })
+
+  it('normalizes missing derived editorial fields before validating the Gemini draft', async () => {
+    mockGenerateContent.mockResolvedValue({
+      response: {
+        text: () =>
+          JSON.stringify({
+            title: 'Vivre en Haute-Savoie en 1900',
+            content_markdown: [
+              'Vivre en Haute-Savoie en 1900 signifiait composer chaque jour avec un climat rude, des deplacements lents et une economie locale tres contrainte.',
+              'Dans les vallees comme sur les hauteurs, les familles organisaient le travail, les ressources et les solidarites autour du rythme des saisons.',
+              'Cet equilibre fragile explique a la fois la durete du quotidien et l impression de tenacite qui marque encore les recits de cette epoque.',
+            ].join('\n\n'),
+          }),
+      },
+    })
+
+    const result = await generateBlogDraftWithGemini({
+      brief: 'Rédige un article éditorial sur la vie en Haute-Savoie autour de 1900.',
+      verifiedFacts: '',
+      cityContext: null,
+    })
+
+    expect(result.draft.title).toBe('Vivre en Haute-Savoie en 1900')
+    expect(result.draft.excerpt.length).toBeGreaterThanOrEqual(40)
+    expect(result.draft.excerpt.length).toBeLessThanOrEqual(220)
+    expect(result.draft.seo_title.length).toBeGreaterThanOrEqual(30)
+    expect(result.draft.seo_title.length).toBeLessThanOrEqual(70)
+    expect(result.draft.seo_description.length).toBeGreaterThanOrEqual(80)
+    expect(result.draft.seo_description.length).toBeLessThanOrEqual(180)
+  })
 })

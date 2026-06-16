@@ -272,25 +272,45 @@ export function AdminBlogEditor({
   const seoTitleLength = useMemo(() => countCharacters(article.seo_title), [article.seo_title])
   const seoDescriptionLength = useMemo(() => countCharacters(article.seo_description), [article.seo_description])
 
+  async function persistArticle(navigation: 'none' | 'redirect' | 'replace-state' = 'none') {
+    const response = await fetch(article.id ? `/api/admin/blog/${article.id}` : '/api/admin/blog', {
+      method: article.id ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload()),
+    })
+    const json = await response.json() as ApiErrorPayload & Record<string, unknown>
+    if (!response.ok) {
+      applyApiError(json, 'Enregistrement impossible')
+      return null
+    }
+
+    const nextId = parseStringValue(json.id)
+    const nextSlug = parseStringValue(json.slug)
+    const nextStatus = parseArticleStatus(json.status)
+
+    setArticle(current => ({
+      ...current,
+      id: nextId ?? current.id,
+      slug: nextSlug ?? current.slug,
+      status: nextStatus ?? current.status,
+    }))
+
+    if (!article.id && nextId) {
+      if (navigation === 'redirect') {
+        window.location.href = `/admin/blog/${nextId}`
+      } else if (navigation === 'replace-state') {
+        window.history.replaceState(null, '', `/admin/blog/${nextId}`)
+      }
+    }
+
+    return nextId ?? article.id
+  }
+
   async function saveArticle() {
     setBusy('save')
     resetErrors()
     try {
-      const response = await fetch(article.id ? `/api/admin/blog/${article.id}` : '/api/admin/blog', {
-        method: article.id ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload()),
-      })
-      const json = await response.json() as ApiErrorPayload & Record<string, unknown>
-      if (!response.ok) {
-        applyApiError(json, 'Enregistrement impossible')
-        return
-      }
-      if (!article.id && json.id) {
-        window.location.href = `/admin/blog/${json.id}`
-        return
-      }
-      setArticle(current => ({ ...current, status: parseArticleStatus(json.status) ?? current.status }))
+      await persistArticle(article.id ? 'none' : 'redirect')
     } finally {
       setBusy(null)
     }
@@ -332,14 +352,13 @@ export function AdminBlogEditor({
   }
 
   async function generateDraft() {
-    if (!article.id) {
-      setError('Enregistrez d’abord le brouillon avant de lancer Gemini.')
-      return
-    }
     setBusy('generate')
     resetErrors()
     try {
-      const response = await fetch(`/api/admin/blog/${article.id}/generate`, {
+      const articleId = article.id ?? await persistArticle('replace-state')
+      if (!articleId) return
+
+      const response = await fetch(`/api/admin/blog/${articleId}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ brief, verified_facts: verifiedFacts }),

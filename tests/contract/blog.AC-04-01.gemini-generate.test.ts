@@ -55,4 +55,33 @@ describe('029 blog gemini generate API', () => {
       sources: [{ title: 'Office de tourisme', url: 'https://www.saintgervais.com/article' }],
     })
   })
+
+  it('accepts generation without verified facts and defaults the optional context to an empty string', async () => {
+    mockGenerateBlogDraft.mockResolvedValue({
+      id: 'generation-2',
+      status: 'generated',
+      provider: 'gemini',
+      suggestion_title: 'Vivre en Haute-Savoie en 1900',
+      suggestion_markdown: 'a'.repeat(320),
+      text: 'a'.repeat(320),
+      sources: [],
+    })
+
+    const response = await POST(
+      request({
+        brief: 'Rédige un article éditorial sur la vie en Haute-Savoie autour de 1900.',
+      }),
+      { params: Promise.resolve({ id: 'article-1' }) },
+    )
+
+    expect(response.status).toBe(200)
+    expect(mockGenerateBlogDraft).toHaveBeenCalledWith(
+      'article-1',
+      {
+        brief: 'Rédige un article éditorial sur la vie en Haute-Savoie autour de 1900.',
+        verified_facts: '',
+      },
+      'admin-1',
+    )
+  })
 })

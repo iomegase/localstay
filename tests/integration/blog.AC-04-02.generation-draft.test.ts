@@ -131,4 +131,55 @@ describe('029 blog generation draft persistence', () => {
     expect(mockBlogGenerationDraftCreate).not.toHaveBeenCalled()
     expect(mockBlogArticleUpdate).not.toHaveBeenCalled()
   })
+
+  it('stores an empty optional generation context when verified facts are omitted', async () => {
+    mockBlogArticleFindFirst.mockResolvedValue({
+      id: 'article-1',
+      city: null,
+    })
+    mockGenerateBlogDraftWithGemini.mockResolvedValue({
+      draft: {
+        title: 'Vivre en Haute-Savoie en 1900',
+        excerpt: 'Une ouverture éditoriale solide sur le quotidien, les contraintes et les équilibres sociaux de la Haute-Savoie vers 1900.',
+        content_markdown: 'a'.repeat(320),
+        seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+        seo_description:
+          'Une lecture éditoriale de la Haute-Savoie vers 1900, entre climat rude, vie locale contrainte et adaptation quotidienne.',
+      },
+      sources: [],
+    })
+    mockBlogGenerationDraftCreate.mockResolvedValue({
+      id: 'generation-2',
+      status: 'generated',
+      provider: 'gemini',
+      suggestion_title: 'Vivre en Haute-Savoie en 1900',
+      suggestion_excerpt: 'Une ouverture éditoriale solide sur le quotidien, les contraintes et les équilibres sociaux de la Haute-Savoie vers 1900.',
+      suggestion_markdown: 'a'.repeat(320),
+      suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+      suggestion_seo_description:
+        'Une lecture éditoriale de la Haute-Savoie vers 1900, entre climat rude, vie locale contrainte et adaptation quotidienne.',
+    })
+
+    await generateBlogDraft(
+      'article-1',
+      {
+        brief: 'Rédige un article éditorial sur la vie en Haute-Savoie autour de 1900.',
+        verified_facts: '',
+      },
+      'admin-1',
+    )
+
+    expect(mockGenerateBlogDraftWithGemini).toHaveBeenCalledWith({
+      brief: 'Rédige un article éditorial sur la vie en Haute-Savoie autour de 1900.',
+      verifiedFacts: '',
+      cityContext: null,
+    })
+    expect(mockBlogGenerationDraftCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          verified_facts: '',
+        }),
+      }),
+    )
+  })
 })

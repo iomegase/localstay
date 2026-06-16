@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { AdminBlogEditor } from '@/features/blog/components/AdminBlogEditor'
 
@@ -296,5 +296,60 @@ describe('029 blog admin editor validation feedback', () => {
 
     fireEvent.change(getTextareaFromField('Excerpt'), { target: { value: 'e'.repeat(46) } })
     expect(screen.getByText('46 / 220 caractères')).toBeInTheDocument()
+  })
+
+  it('auto-creates the draft before Gemini generation when onboarding starts from the brief only', async () => {
+    const replaceStateSpy = jest.spyOn(window.history, 'replaceState')
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 'article-1',
+          status: 'draft',
+          slug: 'article-temporaire',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 'generation-1',
+          status: 'generated',
+          suggestion_title: 'Vivre en Haute-Savoie en 1900',
+          suggestion_excerpt: 'Une proposition éditoriale sur la rudesse du quotidien et les équilibres locaux vers 1900.',
+          suggestion_markdown: 'a'.repeat(320),
+          suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+          suggestion_seo_description:
+            'Une proposition éditoriale sur la Haute-Savoie vers 1900, entre climat rude, solidarités locales et adaptation quotidienne.',
+          text: 'a'.repeat(320),
+          sources: [],
+        }),
+      }) as jest.Mock
+
+    render(<AdminBlogEditor cities={[]} />)
+
+    fireEvent.change(screen.getByLabelText('Brief'), {
+      target: { value: 'Rédige un article de blog d’environ 400 mots sur la Haute-Savoie autour de l’année 1900.' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Générer un brouillon/i }))
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2))
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/admin/blog',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    )
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/admin/blog/article-1/generate',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    )
+    expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/admin/blog/article-1')
+    expect(await screen.findByText('Vivre en Haute-Savoie en 1900')).toBeInTheDocument()
   })
 })

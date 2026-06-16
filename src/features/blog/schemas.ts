@@ -6,18 +6,64 @@ function normalizeTag(tag: string): string {
   return tag.trim().toLowerCase()
 }
 
-const BlogSlugSchema = z.string()
+function normalizeOptionalBlogSlug(input: string): string {
+  const trimmed = input.trim()
+  if (trimmed === '') return ''
+
+  const normalized = normalizeBlogSlug(trimmed)
+  const alphanumericSource = trimmed
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+  if (normalized === 'article' && !/[a-z0-9]/i.test(alphanumericSource)) {
+    return ''
+  }
+
+  return normalized
+}
+
+function optionalDraftTextSchema(min: number, max: number, label: string) {
+  return z.string()
+    .trim()
+    .max(max, `${label} doit contenir entre ${min} et ${max} caractères.`)
+    .optional()
+    .default('')
+    .refine(
+      value => value.length === 0 || value.length >= min,
+      `${label} doit contenir entre ${min} et ${max} caractères.`,
+    )
+}
+
+function optionalNullableBoundedTextSchema(min: number, max: number, label: string) {
+  return z.union([z.string(), z.null(), z.undefined()])
+    .transform(value => {
+      if (typeof value !== 'string') return null
+
+      const trimmed = value.trim()
+      return trimmed === '' ? null : trimmed
+    })
+    .refine(
+      value => value === null || (value.length >= min && value.length <= max),
+      `${label} doit contenir entre ${min} et ${max} caractères.`,
+    )
+}
+
+const DraftBlogSlugSchema = z.string()
   .trim()
-  .min(3)
-  .max(120)
-  .transform(normalizeBlogSlug)
-  .pipe(z.string().min(3).max(120))
+  .max(120, 'Le slug doit contenir entre 3 et 120 caractères.')
+  .optional()
+  .default('')
+  .transform(normalizeOptionalBlogSlug)
+  .refine(
+    value => value === '' || (value.length >= 3 && value.length <= 120),
+    'Le slug doit contenir entre 3 et 120 caractères.',
+  )
 
 export const BlogArticleUpsertSchema = z.object({
-  title: z.string().trim().min(5).max(90),
-  slug: BlogSlugSchema,
-  excerpt: z.string().trim().min(40).max(220),
-  content_markdown: z.string().trim().min(0).max(20000),
+  title: optionalDraftTextSchema(5, 90, 'Le titre'),
+  slug: DraftBlogSlugSchema,
+  excerpt: optionalDraftTextSchema(40, 220, 'L’extrait'),
+  content_markdown: z.string().trim().max(20000).optional().default(''),
   category: z.enum(BLOG_ARTICLE_CATEGORIES),
   tags: z.array(z.string().trim().max(40)).max(10).default([]).transform(tags => {
     const seen = new Set<string>()
@@ -32,13 +78,13 @@ export const BlogArticleUpsertSchema = z.object({
       .slice(0, 10)
   }),
   city_id: z.string().uuid().nullable().optional().transform(value => value ?? null),
-  seo_title: z.string().trim().min(30).max(70).nullable().optional().transform(value => value ?? null),
-  seo_description: z.string().trim().min(80).max(180).nullable().optional().transform(value => value ?? null),
+  seo_title: optionalNullableBoundedTextSchema(30, 70, 'Le SEO title'),
+  seo_description: optionalNullableBoundedTextSchema(80, 180, 'La meta description'),
 })
 
 export const BlogGenerateSchema = z.object({
   brief: z.string().trim().min(20).max(4000),
-  verified_facts: z.string().trim().min(20).max(8000),
+  verified_facts: z.string().trim().max(8000).optional().default(''),
 })
 
 export const BlogApplyGenerationSchema = z.object({

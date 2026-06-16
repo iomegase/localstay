@@ -25,7 +25,7 @@ implementation_gate: "Code generation allowed only after status becomes approved
 
 MyStay doit disposer d'un blog public pour publier des contenus editoriaux SEO/GEO : guides locaux, conseils de sejour, idees d'activites, contenus hebergement et articles lies a une ville quand c'est pertinent.
 
-Le contenu est produit par le Super-admin. Gemini peut accelerer la redaction, mais uniquement comme assistance editoriale cadree : l'Admin fournit un brief, des faits verifies et, si besoin, une City rattachee. Gemini propose un brouillon Markdown relu et modifiable par l'Admin. La publication reste une action humaine.
+Le contenu est produit par le Super-admin. Gemini peut accelerer la redaction, mais uniquement comme assistance editoriale cadree : l'Admin fournit un brief, un contexte complementaire optionnel et, si besoin, une City rattachee. Gemini propose un brouillon Markdown relu et modifiable par l'Admin. La publication reste une action humaine.
 
 Cette spec introduit :
 
@@ -95,8 +95,8 @@ Cette spec introduit :
 #### Acceptance Criteria
 
 - **AC-03-01**: Given un Admin authentifie, When il ouvre `/admin/blog`, Then il voit la liste des articles filtrable par statut, categorie et City.
-- **AC-03-02**: Given un Admin authentifie, When il cree un article depuis `/admin/blog/new`, Then l'article est sauvegarde en `draft`.
-- **AC-03-03**: Given un Admin modifie titre, slug, excerpt, contenu Markdown, categorie, tags, City, SEO ou photos, When il sauvegarde ou corrige un champ en erreur, Then les donnees sont validees avec Zod et persistees, les erreurs stale du champ corrige disparaissent, et l'editeur expose des compteurs de longueur pour les champs editoriaux contraints.
+- **AC-03-02**: Given un Admin authentifie, When il cree un article depuis `/admin/blog/new`, Then l'article peut etre sauvegarde en `draft` avec un payload editorial minimal, les champs texte pouvant rester vides tant que la publication n'est pas demandee.
+- **AC-03-03**: Given un Admin modifie titre, slug, excerpt, contenu Markdown, categorie, tags, City, SEO ou photos, When il sauvegarde ou corrige un champ en erreur, Then les donnees sont validees avec Zod et persistees selon le statut du brouillon, les erreurs stale du champ corrige disparaissent, et l'editeur expose des compteurs de longueur pour les champs editoriaux contraints.
 - **AC-03-04**: Given un utilisateur non-admin, When il appelle une route admin blog, Then l'acces est refuse sans exposer de contenu prive.
 - **AC-03-05**: Given un article incomplet, When l'Admin tente de le publier, Then l'API refuse la transition avec une erreur structuree listant les champs manquants.
 - **AC-03-06**: Given un article complet en `review` ou `draft`, When l'Admin le publie, Then `status = published`, `published_at` est renseigne et la page publique devient visible.
@@ -110,8 +110,8 @@ Cette spec introduit :
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given un article `draft` et un brief Admin valide, When l'Admin demande une generation Gemini, Then Gemini retourne une proposition Markdown, title, excerpt, SEO title, SEO description, ainsi qu'un payload `text` et `sources` issu du grounding Google Search quand disponible.
-- **AC-04-02**: Given la generation reussit, When la reponse est recue, Then elle est validee avec Zod et sauvegardee comme `BlogGenerationDraft` sans modifier automatiquement l'article publie, tandis que `sources` sont renvoyees au frontend sans persistance en base dans cette premiere passe.
+- **AC-04-01**: Given un brief Admin valide et un article `draft` existant ou a creer, When l'Admin demande une generation Gemini, Then le serveur garantit l'existence du brouillon, Gemini retourne une proposition Markdown, title, excerpt, SEO title, SEO description, ainsi qu'un payload `text` et `sources` issu du grounding Google Search quand disponible.
+- **AC-04-02**: Given la generation reussit, When la reponse est recue, Then elle est normalisee cote serveur si Gemini omet un champ editorial derive simple, puis validee avec Zod et sauvegardee comme `BlogGenerationDraft` sans modifier automatiquement l'article publie, tandis que `sources` sont renvoyees au frontend sans persistance en base dans cette premiere passe.
 - **AC-04-03**: Given l'Admin accepte le brouillon, When il applique la suggestion, Then les champs de l'article sont remplis en `draft` ou `review` et restent soumis a publication Admin.
 - **AC-04-04**: Given Gemini est absent, non configure ou retourne une erreur, When l'Admin demande une generation, Then l'API retourne une erreur structuree et conserve le brief Admin.
 - **AC-04-05**: Given le brief demande des coordonnees, distances, temps reel, disponibilites, prix ou faits non verifies, When la generation est demandee, Then le prompt et la validation refusent ce perimetre.
@@ -160,12 +160,13 @@ Cette spec introduit :
 - **BR-11**: Les images sont validees cote serveur, limitees a 5 Mo, et stockees via le service d'upload existant dans le bucket `guide-photos`.
 - **BR-12**: La categorie est obligatoire et limitee aux valeurs `local_guide`, `lodging`, `restaurants`, `activities`, `travel_tips`.
 - **BR-13**: Les tags sont optionnels, normalises en minuscules, dedoublonnes et limites a 10 tags de 40 caracteres maximum.
-- **BR-14**: Les champs texte sont valides avec Zod : `title` 5-90 caracteres, `excerpt` 40-220, `content_markdown` 300-20000, `seo_title` 30-70, `seo_description` 80-180.
+- **BR-14**: Les champs texte editoriaux complets sont valides avec Zod : `title` 5-90 caracteres, `excerpt` 40-220, `content_markdown` 300-20000, `seo_title` 30-70, `seo_description` 80-180.
+- **BR-14a**: Un article `draft` peut etre cree et enregistre avec des champs editoriaux vides ou incomplets tant qu'aucune transition de publication n'est demandee.
 - **BR-15**: Le contenu public est stocke en Markdown et rendu avec une pipeline controlee qui supprime HTML dangereux, scripts, handlers d'evenements et URLs non autorisees.
 - **BR-16**: Gemini est autorise uniquement comme assistance editoriale blog selon `ADR-010`.
-- **BR-17**: Gemini recoit uniquement le brief Admin, les faits verifies saisis par l'Admin et, si besoin, des donnees MyStay deja validees et publiques sur la City rattachee. Le grounding Google Search peut etre active cote serveur pour recuperer des sources de travail et de citation.
+- **BR-17**: Gemini recoit uniquement le brief Admin, le contexte complementaire saisi par l'Admin quand il existe, et, si besoin, des donnees MyStay deja validees et publiques sur la City rattachee. Le grounding Google Search peut etre active cote serveur pour recuperer des sources de travail et de citation.
 - **BR-18**: Gemini ne doit jamais inventer de faits, coordonnees, distances, durees, prix, disponibilites, horaires temps reel, statistiques ou donnees personnelles.
-- **BR-19**: La reponse Gemini est toujours un brouillon valide par Zod. Elle ne peut jamais passer directement un article en `published`.
+- **BR-19**: La reponse Gemini est toujours traitee comme un brouillon editorial. Le serveur peut completer un champ derive manquant ou trop court a partir du titre ou du contenu avant validation Zod. Elle ne peut jamais passer directement un article en `published`.
 - **BR-19a**: Les sources issues du grounding Google Search sont renvoyees au frontend uniquement comme appui de generation. Elles ne valent pas validation produit et ne remplacent jamais la revue Admin.
 - **BR-19b**: Dans cette premiere passe, les sources grounded de la route `/api/admin/blog/{id}/generate` ne sont pas persistees en base. Seul le `BlogGenerationDraft` continue d'etre stocke.
 - **BR-20**: Toute generation Gemini doit stocker le provider, le brief, les faits verifies, le hash source, le statut, la date de generation et la suggestion.
