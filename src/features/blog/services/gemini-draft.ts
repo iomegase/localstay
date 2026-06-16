@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, type Tool } from '@google/generative-ai'
 import { z } from 'zod'
 import { assertBlogGeminiScope } from '../lib/gemini-scope'
 
@@ -11,6 +11,31 @@ const BlogGenerationResultSchema = z.object({
 })
 
 export type BlogGenerationResult = z.infer<typeof BlogGenerationResultSchema>
+
+export type BlogGroundedSource = {
+  title: string
+  url: string
+}
+
+export type BlogGenerationWithSources = {
+  draft: BlogGenerationResult
+  sources: BlogGroundedSource[]
+}
+
+type GroundingChunk = {
+  web?: {
+    uri?: string
+    title?: string
+  }
+}
+
+type GroundingResponse = {
+  candidates?: Array<{
+    groundingMetadata?: {
+      groundingChunks?: GroundingChunk[]
+    }
+  }>
+}
 
 function extractRequestedWordCount(brief: string): number | null {
   const match = brief.match(/\b(\d{2,4})\s*mots?\b/i)
@@ -49,11 +74,37 @@ function assertRequestedWordCount(contentMarkdown: string, requestedWordCount: n
   }
 }
 
+function parseJsonResponse(rawText: string): string {
+  return rawText
+    .trimStart()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+}
+
+function extractGroundedSources(response: GroundingResponse): BlogGroundedSource[] {
+  const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []
+  const deduped = new Map<string, BlogGroundedSource>()
+
+  for (const chunk of chunks) {
+    const url = chunk.web?.uri?.trim()
+    const title = chunk.web?.title?.trim()
+
+    if (!url || !title || deduped.has(url)) {
+      continue
+    }
+
+    deduped.set(url, { title, url })
+  }
+
+  return [...deduped.values()]
+}
+
 export async function generateBlogDraftWithGemini(input: {
   brief: string
   verifiedFacts: string
   cityContext?: { name: string; slug: string } | null
-}): Promise<BlogGenerationResult> {
+}): Promise<BlogGenerationWithSources> {
   assertBlogGeminiScope({
     brief: input.brief,
     verifiedFacts: input.verifiedFacts,
@@ -69,10 +120,14 @@ export async function generateBlogDraftWithGemini(input: {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL ?? 'gemini-flash-latest' })
+  const model = genAI.getGenerativeModel({
+    model: process.env.GEMINI_MODEL ?? 'gemini-flash-latest',
+    tools: [{ googleSearch: {} } as unknown as Tool],
+  })
   const prompt = [
     'Tu assistes la rédaction du blog MyStay.',
     'N\'invente aucun fait. Refuse toute coordonnée, distance, durée, prix, disponibilité, horaire temps réel ou donnée personnelle.',
+    'Utilise Google Search uniquement pour grounding et citations de travail ; les faits restent soumis à revue Admin.',
     'Retourne uniquement du JSON strict avec les clés: title, excerpt, content_markdown, seo_title, seo_description.',
     requestedWordCount
       ? `Le corps de l'article en Markdown doit viser environ ${requestedWordCount} mots.`
@@ -83,15 +138,13 @@ export async function generateBlogDraftWithGemini(input: {
   ].join('\n\n')
 
   const result = await model.generateContent(prompt)
-  const rawText = result.response.text()
-  const cleaned = rawText
-    .trimStart()
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim()
-
+  const cleaned = parseJsonResponse(result.response.text())
   const json = JSON.parse(cleaned) as unknown
-  const parsed = BlogGenerationResultSchema.parse(json)
-  assertRequestedWordCount(parsed.content_markdown, requestedWordCount)
-  return parsed
+  const draft = BlogGenerationResultSchema.parse(json)
+  assertRequestedWordCount(draft.content_markdown, requestedWordCount)
+
+  return {
+    draft,
+    sources: extractGroundedSources(result.response as unknown as GroundingResponse),
+  }
 }
