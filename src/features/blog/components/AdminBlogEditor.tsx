@@ -664,6 +664,9 @@ export function AdminBlogEditor({
 
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Gemini</h2>
+          <p className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+            Vous pouvez démarrer avec le brief seul. Titre, excerpt, SEO et faits vérifiés restent optionnels tant que vous n’êtes pas en publication.
+          </p>
           <Field label="Brief" errors={fieldErrors.brief}>
             <textarea value={brief} onChange={event => {
               setBrief(event.target.value)
@@ -676,8 +679,9 @@ export function AdminBlogEditor({
               clearFieldErrors(['verified_facts'])
             }} rows={7} className={textareaClassName(fieldErrors.verified_facts)} aria-invalid={fieldErrors.verified_facts?.length > 0} />
           </Field>
+          <p className="text-xs text-slate-500">Optionnel. Ajoutez seulement des repères factuels déjà vérifiés si vous en avez.</p>
           <button type="button" onClick={generateDraft} className={primaryButtonClassName} disabled={busy !== null}>
-            {busy === 'generate' ? 'Génération…' : 'Générer un brouillon'}
+            {busy === 'generate' ? 'Génération…' : article.id ? 'Générer un brouillon' : 'Créer et générer le brouillon'}
           </button>
 
           {draftSuggestion && (

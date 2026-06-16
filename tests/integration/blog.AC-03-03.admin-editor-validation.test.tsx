@@ -331,7 +331,7 @@ describe('029 blog admin editor validation feedback', () => {
     fireEvent.change(screen.getByLabelText('Brief'), {
       target: { value: 'Rédige un article de blog d’environ 400 mots sur la Haute-Savoie autour de l’année 1900.' },
     })
-    fireEvent.click(screen.getByRole('button', { name: /Générer un brouillon/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Créer et générer le brouillon/i }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2))
 
