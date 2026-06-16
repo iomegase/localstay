@@ -34,18 +34,28 @@ describe('029 blog generation draft persistence', () => {
       city: { name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains' },
     })
     mockGenerateBlogDraftWithGemini.mockResolvedValue({
-      title: 'Week-end à Saint-Gervais',
-      excerpt: 'Une proposition éditoriale pour préparer un séjour avec des repères utiles et fiables.',
-      content_markdown: 'a'.repeat(320),
-      seo_title: 'Week-end à Saint-Gervais — Guide local MyStay',
-      seo_description:
-        'Préparez un week-end à Saint-Gervais avec un angle éditorial local, des repères utiles et un parcours clair.',
+      draft: {
+        title: 'Week-end à Saint-Gervais',
+        excerpt: 'Une proposition éditoriale pour préparer un séjour avec des repères utiles et fiables.',
+        content_markdown: 'a'.repeat(320),
+        seo_title: 'Week-end à Saint-Gervais — Guide local MyStay',
+        seo_description:
+          'Préparez un week-end à Saint-Gervais avec un angle éditorial local, des repères utiles et un parcours clair.',
+      },
+      sources: [
+        { title: 'Office de tourisme', url: 'https://www.saintgervais.com/article' },
+      ],
     })
     mockBlogGenerationDraftCreate.mockResolvedValue({
       id: 'generation-1',
       status: 'generated',
       provider: 'gemini',
       suggestion_title: 'Week-end à Saint-Gervais',
+      suggestion_excerpt: 'Une proposition éditoriale pour préparer un séjour avec des repères utiles et fiables.',
+      suggestion_markdown: 'a'.repeat(320),
+      suggestion_seo_title: 'Week-end à Saint-Gervais — Guide local MyStay',
+      suggestion_seo_description:
+        'Préparez un week-end à Saint-Gervais avec un angle éditorial local, des repères utiles et un parcours clair.',
     })
 
     const result = await generateBlogDraft(
@@ -73,6 +83,8 @@ describe('029 blog generation draft persistence', () => {
       id: 'generation-1',
       status: 'generated',
       provider: 'gemini',
+      text: 'a'.repeat(320),
+      sources: [{ title: 'Office de tourisme', url: 'https://www.saintgervais.com/article' }],
     })
   })
 

@@ -298,7 +298,7 @@ export async function generateBlogDraft(articleId: string, input: BlogGenerateIn
       cityContext: article.city,
     })
 
-    return prisma.blogGenerationDraft.create({
+    const createdDraft = await prisma.blogGenerationDraft.create({
       data: {
         article_id: articleId,
         admin_id: adminId,
@@ -309,11 +309,11 @@ export async function generateBlogDraft(articleId: string, input: BlogGenerateIn
         verified_facts: input.verified_facts,
         city_context: article.city ?? undefined,
         generated_at: new Date(),
-        suggestion_title: suggestion.title,
-        suggestion_excerpt: suggestion.excerpt,
-        suggestion_markdown: suggestion.content_markdown,
-        suggestion_seo_title: suggestion.seo_title,
-        suggestion_seo_description: suggestion.seo_description,
+        suggestion_title: suggestion.draft.title,
+        suggestion_excerpt: suggestion.draft.excerpt,
+        suggestion_markdown: suggestion.draft.content_markdown,
+        suggestion_seo_title: suggestion.draft.seo_title,
+        suggestion_seo_description: suggestion.draft.seo_description,
       },
       select: {
         id: true,
@@ -326,6 +326,12 @@ export async function generateBlogDraft(articleId: string, input: BlogGenerateIn
         suggestion_seo_description: true,
       },
     })
+
+    return {
+      ...createdDraft,
+      text: createdDraft.suggestion_markdown ?? '',
+      sources: suggestion.sources,
+    }
   } catch (error) {
     if (error instanceof ApiBlogError) throw error
 

@@ -33,6 +33,9 @@ describe('029 blog gemini generate API', () => {
       status: 'generated',
       provider: 'gemini',
       suggestion_title: 'Week-end à Saint-Gervais',
+      suggestion_markdown: 'a'.repeat(320),
+      text: 'a'.repeat(320),
+      sources: [{ title: 'Office de tourisme', url: 'https://www.saintgervais.com/article' }],
     })
 
     const response = await POST(
@@ -48,6 +51,8 @@ describe('029 blog gemini generate API', () => {
     await expect(response.json()).resolves.toMatchObject({
       id: 'generation-1',
       status: 'generated',
+      text: 'a'.repeat(320),
+      sources: [{ title: 'Office de tourisme', url: 'https://www.saintgervais.com/article' }],
     })
   })
 })
