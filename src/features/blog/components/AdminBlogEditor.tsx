@@ -515,15 +515,15 @@ export function AdminBlogEditor({
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-950">Photos</h2>
-          <Field label="Alt couverture" errors={fieldErrors.cover_alt ?? fieldErrors.cover_photo}>
+          <Field label="Alt couverture" errors={fieldErrors.cover_alt}>
             <input
               value={coverAlt}
               onChange={event => {
                 setCoverAlt(event.target.value)
                 clearFieldErrors(['cover_alt'])
               }}
-              className={inputClassName(fieldErrors.cover_alt ?? fieldErrors.cover_photo)}
-              aria-invalid={(fieldErrors.cover_alt ?? fieldErrors.cover_photo)?.length > 0}
+              className={inputClassName(fieldErrors.cover_alt)}
+              aria-invalid={fieldErrors.cover_alt?.length > 0}
             />
           </Field>
           <input
@@ -539,6 +539,13 @@ export function AdminBlogEditor({
             <div className="space-y-1 text-xs text-rose-700">
               {fieldErrors.cover_file.map(message => (
                 <p key={`cover-file-${message}`}>Fichier couverture - {message}</p>
+              ))}
+            </div>
+          )}
+          {fieldErrors.cover_photo && fieldErrors.cover_photo.length > 0 && (
+            <div className="space-y-1 text-xs text-rose-700">
+              {fieldErrors.cover_photo.map(message => (
+                <p key={`cover-photo-${message}`}>Photo de couverture - {message}</p>
               ))}
             </div>
           )}

@@ -135,7 +135,7 @@ describe('029 blog admin editor validation feedback', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Publier/i }))
-    expect(await screen.findByText(/Photo de couverture - Champ requis avant publication\./i)).toBeInTheDocument()
+    expect((await screen.findAllByText(/Photo de couverture - Champ requis avant publication\./i)).length).toBeGreaterThan(0)
 
     const coverAltField = screen.getByText('Alt couverture').closest('label')?.querySelector('input')
     expect(coverAltField).not.toBeNull()
@@ -152,5 +152,50 @@ describe('029 blog admin editor validation feedback', () => {
 
     expect(await screen.findByAltText('Art à Saint-Nicolas')).toBeInTheDocument()
     expect(screen.queryByText(/Photo de couverture - Champ requis avant publication\./i)).not.toBeInTheDocument()
+  })
+
+  it('does not attach the cover photo publication error to the cover alt field', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({
+          error: {
+            code: 'PUBLISH_REQUIREMENTS',
+            message: 'PUBLISH_REQUIREMENTS',
+            details: {
+              fields: ['cover_photo'],
+            },
+          },
+        }),
+      }) as jest.Mock
+
+    render(
+      <AdminBlogEditor
+        cities={[]}
+        initialArticle={{
+          id: 'article-1',
+          status: 'draft',
+          title: 'Guide local Saint-Nicolas',
+          slug: 'guide-local-saint-nicolas',
+          excerpt:
+            'Un guide éditorial complet pour préparer un séjour à Saint-Nicolas avec des repères utiles et une lecture claire.',
+          content_markdown: 'a'.repeat(320),
+          category: 'local_guide',
+          tags: [],
+          city_id: null,
+          seo_title: 'Guide local Saint-Nicolas — Blog MyStay',
+          seo_description:
+            'Préparez un séjour à Saint-Nicolas avec un guide éditorial local, des repères utiles et une lecture claire.',
+          photos: [],
+        }}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Publier/i }))
+
+    expect((await screen.findAllByText(/Photo de couverture - Champ requis avant publication\./i)).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/Alt couverture - Champ requis avant publication\./i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Alt couverture')).not.toHaveAttribute('aria-invalid', 'true')
   })
 })
