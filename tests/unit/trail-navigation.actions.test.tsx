@@ -38,7 +38,7 @@ describe('021 trail access actions', () => {
     expect(screen.queryByTestId('mapbox-access-map')).not.toBeInTheDocument()
   })
 
-  it('AC-01-03: does not request StayLocal browser geolocation for Rejoindre le départ', () => {
+  it('AC-01-03: does not request MyStay browser geolocation for Rejoindre le départ', () => {
     const getCurrentPosition = jest.fn()
     Object.defineProperty(navigator, 'geolocation', {
       configurable: true,

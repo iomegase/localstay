@@ -4,7 +4,7 @@ const d1 = new Date('2026-06-01T00:00:00Z')
 const d2 = new Date('2026-06-02T00:00:00Z')
 
 describe('buildSitemapEntries', () => {
-  const base = 'https://staylocal.example.com'
+  const base = 'https://mystay.example.com'
   const result = buildSitemapEntries({
     baseUrl: base,
     staticPaths: ['/contact'],

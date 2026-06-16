@@ -22,8 +22,8 @@ export async function createManualTrailCandidate(input: ManualTrailInput, adminI
     ? input.source_refs
     : [{
         type: 'manual' as const,
-        name: 'Saisie Super-admin StayLocal',
-        attribution: 'StayLocal',
+        name: 'Saisie Super-admin MyStay',
+        attribution: 'MyStay',
         used_for: ['manual_review' as const],
       }]
 

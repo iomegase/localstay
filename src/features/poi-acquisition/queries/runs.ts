@@ -333,7 +333,7 @@ Extrait:
 ${params.candidateOfficialSourceContext.text}`
     : ''
 
-  return `Tu rédiges une description StayLocal réaliste en français pour un POI déjà vérifié.
+  return `Tu rédiges une description MyStay réaliste en français pour un POI déjà vérifié.
 
 Règles strictes:
 - Ne crée aucun nouveau POI.

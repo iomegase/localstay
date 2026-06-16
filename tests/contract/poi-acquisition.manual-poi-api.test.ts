@@ -37,7 +37,7 @@ describe('018 admin manual POI API', () => {
       category_id: 'cat-1',
       subcategory_id: null,
       website: 'https://example.com',
-      description: 'Description StayLocal',
+      description: 'Description MyStay',
     }))
 
     expect(res.status).toBe(201)

@@ -28,7 +28,7 @@ const poi: PoiDetail = {
     {
       id: 'offer-active',
       title: 'Dessert offert',
-      description: 'Sur présentation de StayLocal',
+      description: 'Sur présentation de MyStay',
       ends_at: '2026-06-01T12:00:00.000Z',
       status: 'active',
     },
@@ -47,7 +47,7 @@ describe('015 public POI merchant offers', () => {
     render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="diner" />)
 
     expect(screen.getByText('Dessert offert')).toBeInTheDocument()
-    expect(screen.getByText('Sur présentation de StayLocal')).toBeInTheDocument()
+    expect(screen.getByText('Sur présentation de MyStay')).toBeInTheDocument()
     expect(screen.queryByText('Ancienne offre')).not.toBeInTheDocument()
   })
 })

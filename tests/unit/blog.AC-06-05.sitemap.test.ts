@@ -3,7 +3,7 @@ import { buildSitemapEntries } from '@/features/seo/lib/sitemap'
 describe('029 blog sitemap entries', () => {
   it('includes only published blog article URLs', () => {
     const result = buildSitemapEntries({
-      baseUrl: 'https://staylocal.example.com',
+      baseUrl: 'https://mystay.example.com',
       staticPaths: ['/contact', '/blog'],
       cities: [],
       pois: [],
@@ -15,7 +15,7 @@ describe('029 blog sitemap entries', () => {
     })
 
     const urls = result.map(entry => entry.url)
-    expect(urls).toContain('https://staylocal.example.com/blog/week-end-saint-gervais')
-    expect(urls).toContain('https://staylocal.example.com/blog/adresses-megeve')
+    expect(urls).toContain('https://mystay.example.com/blog/week-end-saint-gervais')
+    expect(urls).toContain('https://mystay.example.com/blog/adresses-megeve')
   })
 })

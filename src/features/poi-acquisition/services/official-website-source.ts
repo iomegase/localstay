@@ -39,7 +39,7 @@ export async function fetchOfficialWebsiteSourceContext(
     const response = await fetch(url.toString(), {
       headers: {
         accept: 'text/html,application/xhtml+xml',
-        'user-agent': 'StayLocalBot/1.0 official-poi-acquisition',
+        'user-agent': 'MyStayBot/1.0 official-poi-acquisition',
       },
       signal: controller.signal,
     })

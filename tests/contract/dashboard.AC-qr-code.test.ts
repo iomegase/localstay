@@ -43,7 +43,7 @@ const QR_ROW = {
   id: 'qr-1',
   lodging_id: 'lodging-1',
   city_id: 'city-1',
-  url: 'https://staylocal.app/guide/saint-gervais?lodging=lodging-1',
+  url: 'https://mystay.app/guide/saint-gervais?lodging=lodging-1',
   storage_url: 'https://cdn.supabase.co/qr-codes/lodgings/lodging-1.png',
   created_at: new Date('2026-05-23T10:00:00Z'),
   is_active: true,
@@ -112,11 +112,11 @@ describe('POST /api/dashboard/lodgings/[id]/qr-code', () => {
 
   it('AC-01-02: encodes the lodging guide URL on the configured base domain (NEXT_PUBLIC_BASE_URL)', async () => {
     const previous = process.env.NEXT_PUBLIC_BASE_URL
-    process.env.NEXT_PUBLIC_BASE_URL = 'https://staylocal.example'
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://mystay.example'
     try {
       await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
       expect(mockGenerateQrPng).toHaveBeenCalledWith(
-        'https://staylocal.example/guide/saint-gervais?lodging=lodging-1',
+        'https://mystay.example/guide/saint-gervais?lodging=lodging-1',
       )
     } finally {
       process.env.NEXT_PUBLIC_BASE_URL = previous

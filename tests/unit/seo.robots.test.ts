@@ -16,9 +16,9 @@ describe('robots.txt', () => {
   })
 
   it('points to the sitemap on the configured base URL', () => {
-    process.env.NEXT_PUBLIC_BASE_URL = 'https://staylocal.example.com/'
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://mystay.example.com/'
     const result = robots()
-    expect(result.sitemap).toBe('https://staylocal.example.com/sitemap.xml')
-    expect(result.host).toBe('https://staylocal.example.com')
+    expect(result.sitemap).toBe('https://mystay.example.com/sitemap.xml')
+    expect(result.host).toBe('https://mystay.example.com')
   })
 })

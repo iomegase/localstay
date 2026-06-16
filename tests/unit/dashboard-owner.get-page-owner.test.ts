@@ -24,7 +24,7 @@ import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 const OWNER = {
   id: 'owner-1',
   supabase_id: 'supa-1',
-  email: 'owner@staylocal.dev',
+  email: 'owner@mystay.dev',
   role: 'owner',
   is_active: true,
   deleted_at: null,

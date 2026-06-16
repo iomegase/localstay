@@ -72,7 +72,7 @@ describe('021 public trail detail', () => {
     expect(screen.queryByText(/^Itinéraire$/i)).not.toBeInTheDocument()
   })
 
-  it('AC-01-05: uses Google Maps only for Rejoindre le départ and keeps Commencer la rando inside StayLocal', () => {
+  it('AC-01-05: uses Google Maps only for Rejoindre le départ and keeps Commencer la rando inside MyStay', () => {
     render(<PoiDetailBody poi={trailPoi} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
 
     expect(screen.getByRole('link', { name: /rejoindre le départ/i })).toHaveAttribute(

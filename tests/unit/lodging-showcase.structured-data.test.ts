@@ -4,7 +4,7 @@ import {
   vacationRentalSchema,
 } from '@/features/seo/lib/structured-data'
 
-const BASE = 'https://staylocal.example.com'
+const BASE = 'https://mystay.example.com'
 
 describe('lodging showcase structured data', () => {
   const realBase = process.env.NEXT_PUBLIC_BASE_URL

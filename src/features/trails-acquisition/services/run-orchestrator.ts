@@ -212,7 +212,7 @@ async function postOverpass(endpoint: string, query: string): Promise<OverpassPa
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'StayLocal/0.1 contact:dev@staylocal.dev',
+      'User-Agent': 'MyStay/0.1 contact:dev@mystay.city',
     },
     body: new URLSearchParams({ data: query }).toString(),
   })

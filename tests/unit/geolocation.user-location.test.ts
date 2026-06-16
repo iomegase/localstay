@@ -50,8 +50,19 @@ describe('stored location', () => {
   })
 
   it('returns null for malformed stored data', () => {
-    window.localStorage.setItem('staylocal:user-location', 'not-json')
+    window.localStorage.setItem('mystay:user-location', 'not-json')
     expect(readStoredLocation()).toBeNull()
+  })
+
+  it('migrates a location saved under the legacy staylocal key', () => {
+    window.localStorage.setItem('staylocal:user-location', JSON.stringify({ latitude: 45.78, longitude: 6.71 }))
+
+    expect(readStoredLocation()).toEqual({ latitude: 45.78, longitude: 6.71 })
+    // Recopiée vers la nouvelle clé et l'ancienne purgée.
+    expect(window.localStorage.getItem('mystay:user-location')).toBe(
+      JSON.stringify({ latitude: 45.78, longitude: 6.71 }),
+    )
+    expect(window.localStorage.getItem('staylocal:user-location')).toBeNull()
   })
 
   it('dispatches a sync event when a location is stored', () => {

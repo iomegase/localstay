@@ -124,14 +124,14 @@ describe('015 merchant stats and offers API', () => {
     mockCreateOffer.mockResolvedValue({
       id: 'offer-new',
       title: 'Dessert offert',
-      description: 'Sur présentation de StayLocal',
+      description: 'Sur présentation de MyStay',
       ends_at: new Date('2026-06-01T12:00:00Z'),
       is_active: true,
     })
 
     const created = await offersPOST(makeRequest('http://localhost/api/merchant/offers', 'POST', {
       title: 'Dessert offert',
-      description: 'Sur présentation de StayLocal',
+      description: 'Sur présentation de MyStay',
       ends_at: '2026-06-01T12:00:00.000Z',
     }))
 
@@ -141,7 +141,7 @@ describe('015 merchant stats and offers API', () => {
       data: {
         poi_id: 'poi-1',
         title: 'Dessert offert',
-        description: 'Sur présentation de StayLocal',
+        description: 'Sur présentation de MyStay',
         ends_at: new Date('2026-06-01T12:00:00.000Z'),
       },
     })

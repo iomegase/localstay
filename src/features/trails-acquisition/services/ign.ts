@@ -31,7 +31,7 @@ export async function fetchIgnElevationProfile(coordinates: Array<[number, numbe
   const response = await fetch(url.toString(), {
     headers: {
       Accept: 'application/json',
-      'User-Agent': 'StayLocal/0.1 contact:dev@staylocal.dev',
+      'User-Agent': 'MyStay/0.1 contact:dev@mystay.city',
     },
   })
 

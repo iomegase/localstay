@@ -63,11 +63,11 @@ describe('018 official website photo enrichment', () => {
   })
 
   it('AC-06-02/06-04: merges official photos without duplicates, caps at 12 and tolerates empty enrichment', () => {
-    const existing = ['https://cdn.staylocal.test/manual.webp']
+    const existing = ['https://cdn.mystay.test/manual.webp']
     const photos = Array.from({ length: 20 }, (_, index) => `https://static.apidae-tourisme.com/photo-${index}.jpg`)
 
     expect(mergeOfficialWebsitePhotos(existing, photos)).toEqual([
-      'https://cdn.staylocal.test/manual.webp',
+      'https://cdn.mystay.test/manual.webp',
       ...photos.slice(0, 11),
     ])
 

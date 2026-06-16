@@ -48,7 +48,7 @@ describe('019 Overpass trail normalization', () => {
     expect(candidates).toEqual([])
   })
 
-  it('calls Overpass with JSON accept and StayLocal user agent headers', async () => {
+  it('calls Overpass with JSON accept and MyStay user agent headers', async () => {
     const originalEndpoint = process.env.OVERPASS_API_URL
     process.env.OVERPASS_API_URL = 'https://overpass.example/api/interpreter'
     const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
@@ -86,7 +86,7 @@ describe('019 Overpass trail normalization', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             Accept: 'application/json',
-            'User-Agent': expect.stringContaining('StayLocal'),
+            'User-Agent': expect.stringContaining('MyStay'),
           }),
         }),
       )

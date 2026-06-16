@@ -8,7 +8,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteBaseUrl()),
-  title: { default: SITE.defaultTitle, template: '%s | StayLocal' },
+  title: { default: SITE.defaultTitle, template: '%s | MyStay' },
   description: SITE.defaultDescription,
   applicationName: SITE.name,
   // Pas de canonical global ici : il serait hérité par toutes les pages sans metadata propre

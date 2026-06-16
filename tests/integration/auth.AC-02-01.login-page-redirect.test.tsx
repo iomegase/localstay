@@ -41,8 +41,8 @@ describe('LoginPage redirect (AC-02-01)', () => {
     const user = userEvent.setup()
     render(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'owner@staylocal.dev')
-    await user.type(screen.getByLabelText('Mot de passe'), 'StayLocal2026!')
+    await user.type(screen.getByLabelText('Email'), 'owner@mystay.dev')
+    await user.type(screen.getByLabelText('Mot de passe'), 'MyStay2026!')
     await user.click(screen.getByRole('button', { name: 'Se connecter' }))
 
     await waitFor(() =>
@@ -50,8 +50,8 @@ describe('LoginPage redirect (AC-02-01)', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: 'owner@staylocal.dev',
-          password: 'StayLocal2026!',
+          email: 'owner@mystay.dev',
+          password: 'MyStay2026!',
         }),
       }),
     )

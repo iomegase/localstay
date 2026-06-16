@@ -6,7 +6,7 @@ import {
   touristAttractionSchema,
 } from '@/features/seo/lib/structured-data'
 
-const BASE = 'https://staylocal.example.com'
+const BASE = 'https://mystay.example.com'
 
 const poiInput = {
   name: 'Jannett Glisse',
@@ -38,7 +38,7 @@ describe('structured-data', () => {
     const s = organizationSchema()
     expect(s['@context']).toBe('https://schema.org')
     expect(s['@type']).toBe('Organization')
-    expect(s.name).toBe('StayLocal')
+    expect(s.name).toBe('MyStay')
     expect(s.url).toBe(BASE)
   })
 
