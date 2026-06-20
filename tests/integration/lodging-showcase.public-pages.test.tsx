@@ -3,6 +3,23 @@
  */
 import { render, screen } from '@testing-library/react'
 
+jest.mock('mapbox-gl', () => ({
+  __esModule: true,
+  default: {
+    accessToken: '',
+    Map: class {
+      on() {}
+      remove() {}
+      addControl() {}
+    },
+    Marker: class {
+      setLngLat() { return this }
+      addTo() { return this }
+    },
+    NavigationControl: class {},
+  },
+}))
+
 const mockNotFound = jest.fn()
 
 jest.mock('next/navigation', () => ({
@@ -117,6 +134,12 @@ const detailResult = {
   owner_recommendations: [
     { id: 'poi-1', name: 'Le Port', slug: 'le-port', category_slug: 'restaurants', photo_url: null },
   ],
+  amenities_included: ['Wi-Fi', 'Parking'],
+  amenities_on_request: [],
+  faq: [],
+  precise_location_public: false,
+  public_latitude: null,
+  public_longitude: null,
 }
 
 describe('lodging showcase public pages', () => {
@@ -145,10 +168,16 @@ describe('lodging showcase public pages', () => {
     const jsx = await LodgingDetailPage({
       params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
     })
-    const { container } = render(jsx)
+    render(jsx)
 
     expect(screen.getAllByText('Chalet Hygge').length).toBeGreaterThan(0)
-    expect(screen.getByText('Équipements')).toBeInTheDocument()
+    expect(screen.getByText('Un chalet lumineux pour decouvrir Annecy.')).toBeInTheDocument()
+    expect(screen.getByText('Une description detaillee du chalet Hygge pour la page publique.')).toBeInTheDocument()
+    expect(screen.getByText('Équipements & Services')).toBeInTheDocument()
+    expect(screen.getByText('compris dans le séjour')).toBeInTheDocument()
+    expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
+    expect(screen.getByText('Réserver ou contacter')).toBeInTheDocument()
+    expect(screen.getByText('Le Port')).toBeInTheDocument()
     expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
@@ -157,7 +186,6 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-event', 'lodging_external_booking_click')
     expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-city-slug', 'annecy')
     expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
-    expect(container.querySelector('.fixed.inset-x-0.bottom-0')).toBeNull()
   })
 
   it('hides external booking and contact CTAs when disabled', async () => {
