@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, MapPin, Compass, CalendarDays } from 'lucide-react'
+import { ArrowLeft, MapPin } from 'lucide-react'
 
 import { lodgingDetailMetadata } from '@/features/seo/lib/metadata'
 import {
@@ -11,12 +11,15 @@ import {
 } from '@/features/seo/lib/structured-data'
 import { getPublishedLodgingDetail } from '@/features/lodging-showcase/queries/public-lodgings'
 import { JsonLd } from '@/shared/components/JsonLd'
-import { LodgingGallery } from '@/features/lodging-showcase/components/LodgingGallery'
+import { LodgingHeroGallery } from '@/features/lodging-showcase/components/LodgingHeroGallery'
+import { LodgingExcerpt } from '@/features/lodging-showcase/components/LodgingExcerpt'
 import { LodgingFacts } from '@/features/lodging-showcase/components/LodgingFacts'
-import { AmenitiesGrid } from '@/features/lodging-showcase/components/AmenitiesGrid'
+import { LodgingAmenitiesGrid } from '@/features/lodging-showcase/components/LodgingAmenitiesGrid'
+import { LodgingRoomsGrid } from '@/features/lodging-showcase/components/LodgingRoomsGrid'
+import { LodgingLocationMap } from '@/features/lodging-showcase/components/LodgingLocationMap'
+import { LodgingFaq } from '@/features/lodging-showcase/components/LodgingFaq'
+import { LodgingBookingCta } from '@/features/lodging-showcase/components/LodgingBookingCta'
 import { OwnerRecommendationsBlock } from '@/features/lodging-showcase/components/OwnerRecommendationsBlock'
-import { ExternalBookingCta } from '@/features/lodging-showcase/components/ExternalBookingCta'
-import { contextualContactPath } from '@/features/city-guide/lib/public-paths'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'lodging-slug': string }>
@@ -64,9 +67,9 @@ export default async function LodgingDetailPage({ params }: Props) {
     propertyType: detail.property_type,
     maxGuests: detail.max_guests,
     publicAreaLabel: detail.public_area_label,
-    preciseLocationPublic: false,
-    publicLatitude: null,
-    publicLongitude: null,
+    preciseLocationPublic: detail.precise_location_public,
+    publicLatitude: detail.public_latitude,
+    publicLongitude: detail.public_longitude,
     photos: detail.photos.map(photo => ({
       url: photo.url,
       alt: photo.alt,
@@ -82,138 +85,73 @@ export default async function LodgingDetailPage({ params }: Props) {
   return (
     <>
       <JsonLd data={[breadcrumb, rentalSchema ?? fallbackSchema]} />
-      
-      <div className="mx-auto max-w-5xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 font-sans">
-        
-        {/* En-tête de page premium */}
-        <header className="mb-6 space-y-5">
-          <Link 
-            href={`/guide/${citySlug}/logements`} 
-            className="group inline-flex items-center text-[15px] font-medium text-gray-500 transition-colors hover:text-gray-900"
+
+      <div className="font-sans">
+        <LodgingHeroGallery title={detail.title} photos={detail.photos} />
+
+        <div className="mx-4 mt-4">
+          <Link
+            href={`/guide/${citySlug}/logements`}
+            className="group inline-flex items-center text-[13px] font-medium text-gray-500 transition-colors hover:text-charcoal"
           >
             <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" strokeWidth={2} />
             Retour
           </Link>
-
-          <div>
-            {/* Badge type de propriété coloré */}
-            <span className="mb-3 inline-block rounded-md bg-[#e8decb] px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-[#8b6f4e]">
-              {detail.property_type}
-            </span>
-            
-            <h1 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-4xl">
-              {detail.title}
-            </h1>
-            
-            {detail.public_area_label && (
-              <div className="mt-3 flex items-center text-[15px] font-medium text-gray-500">
-                <MapPin className="mr-1.5 h-4 w-4 text-[#003A5D]" strokeWidth={2.5} />
-                {detail.public_area_label}
-              </div>
-            )}
-          </div>
-        </header>
-
-        {/* Section Galerie : Bords adoucis avec une ombre subtile */}
-        <div className="mb-10 overflow-hidden rounded-2xl bg-gray-100 shadow-md">
-          <LodgingGallery title={detail.title} photos={detail.photos} />
+          <span className="mt-3 inline-block rounded-md bg-[#e8decb] px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-[#8b6f4e]">
+            {detail.property_type}
+          </span>
+          <h1 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-charcoal">{detail.title}</h1>
+          {detail.public_area_label && (
+            <div className="mt-2 flex items-center text-[13px] font-medium text-gray-500">
+              <MapPin className="mr-1.5 h-4 w-4 text-[#003A5D]" strokeWidth={2.5} />
+              {detail.public_area_label}
+            </div>
+          )}
         </div>
 
-        {/* Colonne centrale épurée */}
-        <div className="mx-auto max-w-3xl space-y-10">
-          
-          {/* Ligne des caractéristiques (gérée par LodgingFacts, encadrée d'une ligne douce) */}
-          <div className="border-b border-gray-100 pb-8">
-            <LodgingFacts
-              maxGuests={detail.max_guests}
-              bedroomCount={detail.bedroom_count}
-              bathroomCount={detail.bathroom_count}
-              bedCount={detail.bed_count}
-              surfaceM2={detail.surface_m2}
-            />
-          </div>
+        <LodgingExcerpt text={detail.short_description} />
 
-          {/* Section Présentation (Design typographique aéré) */}
-          <section>
-            <h2 className="mb-4 text-[22px] font-semibold text-gray-900">
-              À propos de ce logement
-            </h2>
-            <p className="whitespace-pre-line text-[15px] leading-relaxed text-gray-600">
-              {detail.description}
-            </p>
-          </section>
+        <section className="mx-4 mt-6">
+          <p className="mb-2 text-[11px] uppercase tracking-widest text-gold">À propos</p>
+          <p className="whitespace-pre-line text-[12px] font-light leading-[1.8] text-gray-600">{detail.description}</p>
+        </section>
 
-          {/* Section Équipements */}
-          <section className="border-t border-gray-100 pt-8">
-             <h2 className="mb-6 text-[22px] font-semibold text-gray-900">
-              Équipements
-            </h2>
-            <AmenitiesGrid amenities={detail.amenities} />
-          </section>
-
-          {/* Section Guide Local (Boutons repensés style "Cards") */}
-          <section className="border-t border-gray-100 pt-8">
-            <h2 className="mb-3 text-[22px] font-semibold text-gray-900">
-              Autour du logement
-            </h2>
-            <p className="mb-6 text-[15px] leading-relaxed text-gray-600">
-              Retrouvez les bonnes adresses, les activités et les idées de sortie dans le guide local MyStay de {detail.city_name}.
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <Link 
-                href={`/guide/${citySlug}`} 
-                className="group flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-4 text-[15px] font-semibold text-gray-900 shadow-sm transition-all hover:border-gray-900 hover:bg-gray-50"
-              >
-                <Compass className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-900" strokeWidth={2} />
-                Explorer le guide
-              </Link>
-              <Link 
-                href={`/guide/${citySlug}/agenda`} 
-                className="group flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-4 text-[15px] font-semibold text-gray-900 shadow-sm transition-all hover:border-gray-900 hover:bg-gray-50"
-              >
-                <CalendarDays className="h-5 w-5 text-gray-500 transition-colors group-hover:text-gray-900" strokeWidth={2} />
-                Voir l'agenda
-              </Link>
-            </div>
-          </section>
-
-          <div className="border-t border-gray-100 pt-8">
-            <OwnerRecommendationsBlock citySlug={citySlug} items={detail.owner_recommendations} />
-          </div>
-
-          <section className="border-t border-gray-100 pt-8">
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="space-y-2">
-                <h2 className="text-[22px] font-semibold text-gray-900">Réserver ou contacter</h2>
-                <p className="text-[15px] leading-relaxed text-gray-600">
-                  Vérifiez les disponibilités ou posez vos questions directement depuis la fiche.
-                </p>
-              </div>
-
-              <div className="mt-5 flex flex-col gap-3">
-                {detail.public_contact_enabled && (
-                  <Link
-                    href={`${contextualContactPath(citySlug)}?lodging=${detail.id}`}
-                    data-analytics-event="lodging_contact_click"
-                    data-analytics-city-slug={citySlug}
-                    data-analytics-lodging-id={detail.id}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3.5 text-center text-[15px] font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
-                  >
-                    Contacter
-                  </Link>
-                )}
-
-                <ExternalBookingCta
-                  externalBookingUrl={detail.external_booking_url}
-                  platform={detail.external_booking_platform}
-                  citySlug={citySlug}
-                  lodgingId={detail.id}
-                  className="w-full justify-center rounded-xl bg-[#003A5D] px-7 py-3.5 text-center text-[15px] font-semibold text-white shadow-md transition-all hover:bg-[#002a43]"
-                />
-              </div>
-            </div>
-          </section>
+        <div className="mx-4 mt-6">
+          <LodgingFacts
+            maxGuests={detail.max_guests}
+            bedroomCount={detail.bedroom_count}
+            bathroomCount={detail.bathroom_count}
+            bedCount={detail.bed_count}
+            surfaceM2={detail.surface_m2}
+          />
         </div>
+
+        <LodgingAmenitiesGrid title="Équipements & Services" subtitle="compris dans le séjour" items={detail.amenities_included} />
+        <LodgingAmenitiesGrid title="Services" subtitle="disponible sur demande" items={detail.amenities_on_request} />
+
+        <LodgingRoomsGrid photos={detail.photos} />
+
+        {detail.precise_location_public && detail.public_latitude != null && detail.public_longitude != null && (
+          <LodgingLocationMap
+            latitude={detail.public_latitude}
+            longitude={detail.public_longitude}
+            areaLabel={detail.public_area_label}
+          />
+        )}
+
+        <div className="mx-4 mt-6">
+          <OwnerRecommendationsBlock citySlug={citySlug} items={detail.owner_recommendations} />
+        </div>
+
+        <LodgingFaq items={detail.faq} />
+
+        <LodgingBookingCta
+          citySlug={citySlug}
+          lodgingId={detail.id}
+          publicContactEnabled={detail.public_contact_enabled}
+          externalBookingUrl={detail.external_booking_url}
+          externalBookingPlatform={detail.external_booking_platform}
+        />
       </div>
     </>
   )
