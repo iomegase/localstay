@@ -1,4 +1,4 @@
-import { selectRoomPhotos, partitionAmenities, mapsDirectionUrl, ROOM_TYPE_LABELS } from '@/features/lodging-showcase/lib/detail-view'
+import { selectRoomPhotos, mapsDirectionUrl, ROOM_TYPE_LABELS } from '@/features/lodging-showcase/lib/detail-view'
 
 describe('selectRoomPhotos', () => {
   const photos = [
@@ -16,14 +16,6 @@ describe('selectRoomPhotos', () => {
 
   it('ignores the "other" room type', () => {
     expect(selectRoomPhotos([{ id: '4', url: 'd', alt: 'D', room_type: 'other', sort_order: 0, is_cover: false }])).toHaveLength(0)
-  })
-})
-
-describe('partitionAmenities', () => {
-  it('returns included and on-request as given', () => {
-    const result = partitionAmenities(['Wifi', 'Parking'], ['Chef'])
-    expect(result.included).toEqual(['Wifi', 'Parking'])
-    expect(result.onRequest).toEqual(['Chef'])
   })
 })
 

@@ -22,10 +22,6 @@ export function selectRoomPhotos(photos: Photo[]): Array<{ id: string; url: stri
     .map(photo => ({ id: photo.id, url: photo.url, alt: photo.alt, label: ROOM_TYPE_LABELS[photo.room_type as string] }))
 }
 
-export function partitionAmenities(included: string[], onRequest: string[]): { included: string[]; onRequest: string[] } {
-  return { included, onRequest }
-}
-
 export function mapsDirectionUrl(latitude: number, longitude: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
 }

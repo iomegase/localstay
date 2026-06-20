@@ -239,7 +239,7 @@ export function LodgingShowcaseForm(props: {
       .map(label => label.trim())
       .filter(Boolean)
       .map((label, index) => ({
-        code: amenityCode(label) || `service-${index + 1}`,
+        code: `req-${amenityCode(label) || `service-${index + 1}`}`,
         label,
         sort_order: includedAmenities.length + index,
         availability: 'on_request' as const,

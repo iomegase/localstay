@@ -15,6 +15,8 @@ export function LodgingBookingCta({
   externalBookingUrl: string | null
   externalBookingPlatform: string | null
 }) {
+  if (!publicContactEnabled && !externalBookingUrl) return null
+
   return (
     <section className="mx-4 mt-6">
       <div
