@@ -6,6 +6,10 @@ import '@testing-library/jest-dom'
 import AdminPathLayout from '@/app/admin/layout'
 import AdminAnalyticsPage from '@/app/admin/analytics/page'
 
+jest.mock('@/features/admin-analytics/actions/run-admin-analytics-sync', () => ({
+  runAdminAnalyticsSyncAction: jest.fn(),
+}))
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -40,17 +44,17 @@ jest.mock('@/features/admin-analytics/queries/dashboard', () => ({
       qr_scans: 31,
     },
     freshness: [
-      { source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: null, error_message: null },
+      { source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: 'NO_DATA', error_message: 'Source connectée, aucune donnée sur la période synchronisée.' },
       { source: 'gsc', status: 'stale', last_success_at: '2026-06-17T08:00:00.000Z', error_code: 'SYNC_TIMEOUT', error_message: 'Google Search Console timeout' },
-      { source: 'vercel_analytics', status: 'not_configured', last_success_at: null, error_code: null, error_message: null },
-      { source: 'vercel_speed_insights', status: 'not_configured', last_success_at: null, error_code: null, error_message: null },
+      { source: 'vercel_analytics', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
+      { source: 'vercel_speed_insights', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
     ],
   })),
   getAdminAnalyticsSourceStatuses: jest.fn(async () => [
-    { source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: null, error_message: null },
+    { source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: 'NO_DATA', error_message: 'Source connectée, aucune donnée sur la période synchronisée.' },
     { source: 'gsc', status: 'stale', last_success_at: '2026-06-17T08:00:00.000Z', error_code: 'SYNC_TIMEOUT', error_message: 'Google Search Console timeout' },
-    { source: 'vercel_analytics', status: 'not_configured', last_success_at: null, error_code: null, error_message: null },
-    { source: 'vercel_speed_insights', status: 'not_configured', last_success_at: null, error_code: null, error_message: null },
+    { source: 'vercel_analytics', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
+    { source: 'vercel_speed_insights', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
   ]),
   getAdminAnalyticsLiveBlock: jest.fn(async () => ({
     status: 'not_configured',
@@ -92,6 +96,10 @@ describe('030 admin analytics page', () => {
     expect(screen.getByText('Google Search Console')).toBeInTheDocument()
     expect(screen.getByText('Vercel Analytics')).toBeInTheDocument()
     expect(screen.getByText('Vercel Speed Insights')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Relancer GA4' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Relancer GSC' })).toBeInTheDocument()
+    expect(screen.getByText('Connectée, sans données')).toBeInTheDocument()
+    expect(screen.getAllByText('Collecte activée').length).toBeGreaterThan(0)
     expect(screen.getByText('Impressions SEO')).toBeInTheDocument()
     expect(screen.getAllByText('Sessions').length).toBeGreaterThan(0)
     expect(screen.getAllByText('/guide/annecy').length).toBeGreaterThan(0)

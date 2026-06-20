@@ -1,5 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
+import { syncGoogleAnalyticsSource } from '@/features/admin-analytics/services/google-analytics'
 import { syncGoogleSearchConsoleSource } from '@/features/admin-analytics/services/google-search-console'
+import { syncVercelSource } from '@/features/admin-analytics/services/vercel'
 import type { AnalyticsSourceKind } from '@/features/admin-analytics/types'
 import type { AnalyticsSyncRequestInput } from '@/features/admin-analytics/schemas'
 
@@ -55,6 +57,26 @@ export async function runAdminAnalyticsSync(
     }
 
     try {
+      if (source === 'ga4') {
+        const details = await syncGoogleAnalyticsSource()
+
+        await prisma.analyticsSourceSync.create({
+          data: {
+            source,
+            status: 'success',
+            started_at: startedAt,
+            finished_at: new Date(),
+            period_start: new Date(`${details.period_start}T00:00:00.000Z`),
+            period_end: new Date(`${details.period_end}T00:00:00.000Z`),
+            last_success_at: new Date(),
+            details_json: details,
+          },
+        })
+
+        syncedSources.push(source)
+        continue
+      }
+
       if (source === 'gsc') {
         const details = await syncGoogleSearchConsoleSource()
 
@@ -75,19 +97,27 @@ export async function runAdminAnalyticsSync(
         continue
       }
 
-      await prisma.analyticsSourceSync.create({
-        data: {
-          source,
-          status: 'failed',
-          started_at: startedAt,
-          finished_at: new Date(),
-          error_code: 'NOT_IMPLEMENTED',
-          error_message: 'External analytics sync fetchers are not implemented yet.',
-          details_json: {
-            blocker: 'Fetcher implementation pending for external analytics sources.',
+      if (source === 'vercel_analytics' || source === 'vercel_speed_insights') {
+        const details = await syncVercelSource(source)
+
+        await prisma.analyticsSourceSync.create({
+          data: {
+            source,
+            status: 'success',
+            started_at: startedAt,
+            finished_at: new Date(),
+            period_start: new Date(`${details.period_start}T00:00:00.000Z`),
+            period_end: new Date(`${details.period_end}T00:00:00.000Z`),
+            last_success_at: new Date(),
+            error_code: null,
+            error_message: null,
+            details_json: details,
           },
-        },
-      })
+        })
+
+        syncedSources.push(source)
+        continue
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown analytics sync error.'
 

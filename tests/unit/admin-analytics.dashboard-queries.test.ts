@@ -239,12 +239,42 @@ describe('030 admin analytics dashboard queries', () => {
         source: 'vercel_analytics',
         status: 'partial',
         error_code: 'SYNC_PENDING',
+        error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.',
       }),
       expect.objectContaining({
         source: 'vercel_speed_insights',
         status: 'partial',
         error_code: 'SYNC_PENDING',
+        error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.',
       }),
     ])
+  })
+
+  it('marks a successful source with zero imported rows as connected without data', async () => {
+    mockFindSourceSyncs.mockResolvedValue([
+      {
+        source: 'ga4',
+        status: 'success',
+        last_success_at: new Date('2026-06-20T09:35:03.732Z'),
+        error_code: null,
+        error_message: null,
+        details_json: {
+          daily_rows: 0,
+          page_rows: 0,
+          city_rows: 0,
+        },
+      },
+    ])
+
+    const sources = await getAdminAnalyticsSourceStatuses()
+
+    expect(sources[0]).toEqual(
+      expect.objectContaining({
+        source: 'ga4',
+        status: 'connected',
+        error_code: 'NO_DATA',
+      }),
+    )
+    expect(sources[0].error_message).toContain('aucune donnée')
   })
 })

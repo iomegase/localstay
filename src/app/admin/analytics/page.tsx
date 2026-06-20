@@ -1,4 +1,5 @@
 import { Activity, BarChart3, LineChart, Search, TimerReset, Waves } from 'lucide-react'
+import { runAdminAnalyticsSyncAction } from '@/features/admin-analytics/actions/run-admin-analytics-sync'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import {
   getAdminAnalyticsLiveBlock,
@@ -59,6 +60,24 @@ export default async function AdminAnalyticsPage() {
         <p className="mt-4 inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
           Période: {overview.period.date_from} au {overview.period.date_to}
         </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <form action={runAdminAnalyticsSyncAction.bind(null, 'ga4')}>
+            <button
+              type="submit"
+              className="rounded-full bg-[#0B1437] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#16204a]"
+            >
+              Relancer GA4
+            </button>
+          </form>
+          <form action={runAdminAnalyticsSyncAction.bind(null, 'gsc')}>
+            <button
+              type="submit"
+              className="rounded-full border border-[#0B1437]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0B1437] transition hover:bg-[#F4F7FE]"
+            >
+              Relancer GSC
+            </button>
+          </form>
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-4">
@@ -163,7 +182,7 @@ function SourceStatusCard({ source }: { source: AdminAnalyticsSourceStatus }) {
         {SOURCE_LABELS[source.source]}
       </h2>
       <p className="mt-3 text-sm font-medium text-gray-700">
-        {STATUS_LABELS[source.status]}
+        {getSourceStatusLabel(source)}
       </p>
       <p className="mt-2 text-xs text-gray-500">
         Dernier succès: {source.last_success_at ?? 'Aucun'}
@@ -173,6 +192,22 @@ function SourceStatusCard({ source }: { source: AdminAnalyticsSourceStatus }) {
       ) : null}
     </article>
   )
+}
+
+function getSourceStatusLabel(source: AdminAnalyticsSourceStatus): string {
+  if (source.status === 'connected' && source.error_code === 'NO_DATA') {
+    return 'Connectée, sans données'
+  }
+
+  if (
+    source.status === 'partial' &&
+    source.error_code === 'SYNC_PENDING' &&
+    (source.source === 'vercel_analytics' || source.source === 'vercel_speed_insights')
+  ) {
+    return 'Collecte activée'
+  }
+
+  return STATUS_LABELS[source.status]
 }
 
 function MetricCard({

@@ -41,6 +41,7 @@ type SourceSyncRecord = {
   last_success_at: Date | null
   error_code: string | null
   error_message: string | null
+  details_json?: unknown
 }
 
 function startOfUtcDay(date: Date): Date {
@@ -143,7 +144,7 @@ function buildSourceStatus(source: AnalyticsSourceKind, record: SourceSyncRecord
         status: 'partial',
         last_success_at: null,
         error_code: 'SYNC_PENDING',
-        error_message: 'Source configurée, synchronisation initiale en attente.',
+        error_message: getConfiguredSourceMessage(source),
       }
     }
 
@@ -153,6 +154,16 @@ function buildSourceStatus(source: AnalyticsSourceKind, record: SourceSyncRecord
       last_success_at: null,
       error_code: null,
       error_message: null,
+    }
+  }
+
+  if (record.status === 'success' && sourceSyncHasNoRows(record.details_json)) {
+    return {
+      source,
+      status: 'connected',
+      last_success_at: toIsoOrNull(record.last_success_at),
+      error_code: 'NO_DATA',
+      error_message: 'Source connectée, aucune donnée sur la période synchronisée.',
     }
   }
 
@@ -167,6 +178,23 @@ function isSourceConfigured(source: AnalyticsSourceKind): boolean {
     const value = process.env[envName]
     return typeof value === 'string' && value.length > 0
   })
+}
+
+function sourceSyncHasNoRows(details: unknown): boolean {
+  if (!details || typeof details !== 'object' || Array.isArray(details)) {
+    return false
+  }
+
+  const rowEntries = Object.entries(details).filter(([key, value]) => key.endsWith('_rows') && typeof value === 'number')
+  return rowEntries.length > 0 && rowEntries.every(([, value]) => value === 0)
+}
+
+function getConfiguredSourceMessage(source: AnalyticsSourceKind): string {
+  if (source === 'vercel_analytics' || source === 'vercel_speed_insights') {
+    return 'Collecte activée sur le site, agrégation admin Vercel encore en attente.'
+  }
+
+  return 'Source configurée, synchronisation initiale en attente.'
 }
 
 function mapSourceStatusToBlockStatus(status: AnalyticsSourceStatus): AnalyticsBlockStatus {
@@ -186,6 +214,7 @@ export async function getAdminAnalyticsSourceStatuses(): Promise<AdminAnalyticsS
       last_success_at: true,
       error_code: true,
       error_message: true,
+      details_json: true,
     },
   })
 

@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { PublicMenu } from '@/features/city-guide/components/PublicMenu'
 import { PublicBottomNav } from '@/features/city-guide/components/PublicBottomNav'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
@@ -50,6 +52,8 @@ export default async function PublicLayout({
       <AnalyticsConsentBanner />
       <GoogleAnalyticsClient />
       <PublicAnalyticsTracker />
+      <VercelAnalytics />
+      <SpeedInsights />
     </div>
   )
 }

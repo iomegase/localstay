@@ -24,6 +24,14 @@ jest.mock('@/features/city-guide/components/PublicBottomNav', () => ({
   PublicBottomNav: () => <div>BottomNav</div>,
 }))
 
+jest.mock('@vercel/analytics/react', () => ({
+  Analytics: () => <div data-testid="vercel-analytics" />,
+}))
+
+jest.mock('@vercel/speed-insights/next', () => ({
+  SpeedInsights: () => <div data-testid="vercel-speed-insights" />,
+}))
+
 describe('030 public layout analytics wiring', () => {
   beforeEach(() => {
     fetchMock.mockReset()
@@ -50,6 +58,8 @@ describe('030 public layout analytics wiring', () => {
     )
 
     expect(await screen.findByRole('heading', { name: /mesure analytics/i })).toBeInTheDocument()
+    expect(screen.getByTestId('vercel-analytics')).toBeInTheDocument()
+    expect(screen.getByTestId('vercel-speed-insights')).toBeInTheDocument()
 
     window.localStorage.setItem(ANALYTICS_CONSENT_KEY, 'accepted')
     fetchMock.mockResolvedValue({ ok: true })
