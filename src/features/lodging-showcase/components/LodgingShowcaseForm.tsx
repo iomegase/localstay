@@ -62,7 +62,19 @@ export function LodgingShowcaseForm(props: {
   const [rightsConfirmed, setRightsConfirmed] = useState(Boolean(props.initialProfile.content_rights_confirmed_at))
   const [rightsVersion, setRightsVersion] = useState(props.initialProfile.content_rights_statement_version ?? 'v1')
   const [amenitiesText, setAmenitiesText] = useState(
-    props.initialProfile.amenities.map(amenity => amenity.label).join(', '),
+    props.initialProfile.amenities
+      .filter(amenity => amenity.availability !== 'on_request')
+      .map(amenity => amenity.label)
+      .join(', '),
+  )
+  const [onRequestText, setOnRequestText] = useState(
+    props.initialProfile.amenities
+      .filter(amenity => amenity.availability === 'on_request')
+      .map(amenity => amenity.label)
+      .join(', '),
+  )
+  const [faqRows, setFaqRows] = useState<Array<{ question: string; answer: string }>>(
+    props.initialProfile.faq.map(item => ({ question: item.question, answer: item.answer })),
   )
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
@@ -211,15 +223,33 @@ export function LodgingShowcaseForm(props: {
     setMissingFields([])
     setValidationErrors([])
 
-    const amenities = amenitiesText
+    const includedAmenities = amenitiesText
       .split(',')
-      .map(item => item.trim())
-      .filter(item => item.length > 0)
+      .map(label => label.trim())
+      .filter(Boolean)
       .map((label, index) => ({
         code: amenityCode(label) || `amenity-${index + 1}`,
         label,
         sort_order: index,
+        availability: 'included' as const,
       }))
+
+    const onRequestAmenities = onRequestText
+      .split(',')
+      .map(label => label.trim())
+      .filter(Boolean)
+      .map((label, index) => ({
+        code: amenityCode(label) || `service-${index + 1}`,
+        label,
+        sort_order: includedAmenities.length + index,
+        availability: 'on_request' as const,
+      }))
+
+    const amenities = [...includedAmenities, ...onRequestAmenities]
+
+    const faq = faqRows
+      .map((row, index) => ({ question: row.question.trim(), answer: row.answer.trim(), sort_order: index }))
+      .filter(row => row.question.length > 0 && row.answer.length > 0)
 
     const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile`, {
       method: 'PUT',
@@ -249,6 +279,7 @@ export function LodgingShowcaseForm(props: {
           is_cover: photo.is_cover,
         })),
         amenities,
+        faq,
       }),
     })
 
@@ -270,10 +301,24 @@ export function LodgingShowcaseForm(props: {
 
     const savedProfile = payload as OwnerLodgingPublicProfileDto
     setProfile(savedProfile)
+    const savedAmenities = (savedProfile.amenities as OwnerLodgingPublicProfileDto['amenities'] | undefined) ?? []
     setAmenitiesText(
-      ((savedProfile.amenities as Array<{ label: string }> | undefined) ?? [])
+      savedAmenities
+        .filter(amenity => amenity.availability !== 'on_request')
         .map(amenity => amenity.label)
         .join(', '),
+    )
+    setOnRequestText(
+      savedAmenities
+        .filter(amenity => amenity.availability === 'on_request')
+        .map(amenity => amenity.label)
+        .join(', '),
+    )
+    setFaqRows(
+      ((savedProfile.faq as OwnerLodgingPublicProfileDto['faq'] | undefined) ?? []).map(item => ({
+        question: item.question,
+        answer: item.answer,
+      })),
     )
     setStatus('saved')
     setMessage('Brouillon sauvegarde.')
@@ -513,6 +558,53 @@ export function LodgingShowcaseForm(props: {
                   rows={3}
                   placeholder="Wi-Fi, Parking, Cuisine"
                 />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="on-request-text">Services sur demande</Label>
+                <Textarea
+                  id="on-request-text"
+                  value={onRequestText}
+                  onChange={event => setOnRequestText(event.target.value)}
+                  rows={2}
+                  placeholder="Chef prive, Transfert aeroport, Massage..."
+                />
+                <p className="text-xs text-gray-500">Separez par des virgules. Affiches dans « disponible sur demande ».</p>
+              </div>
+              <div className="space-y-3 md:col-span-2">
+                <Label>FAQ</Label>
+                {faqRows.map((row, index) => (
+                  <div key={index} className="space-y-2 rounded-md border border-gray-200 p-3">
+                    <Input
+                      value={row.question}
+                      onChange={event =>
+                        setFaqRows(rows => rows.map((r, i) => (i === index ? { ...r, question: event.target.value } : r)))
+                      }
+                      placeholder="Question"
+                    />
+                    <Textarea
+                      value={row.answer}
+                      onChange={event =>
+                        setFaqRows(rows => rows.map((r, i) => (i === index ? { ...r, answer: event.target.value } : r)))
+                      }
+                      rows={2}
+                      placeholder="Reponse"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFaqRows(rows => rows.filter((_, i) => i !== index))}
+                      className="text-xs text-red-600"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setFaqRows(rows => [...rows, { question: '', answer: '' }])}
+                  className="text-sm font-medium text-[#003A5D]"
+                >
+                  + Ajouter une question
+                </button>
               </div>
               <label className="md:col-span-2 flex items-center gap-3 text-sm text-gray-600">
                 <input
