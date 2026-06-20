@@ -9,6 +9,7 @@ export const LodgingPublicationStatusSchema = z.enum(['draft', 'review', 'publis
 export const LodgingSourceMetadataStatusSchema = z.enum(['not_checked', 'url_only', 'unavailable', 'blocked'])
 export const LodgingRewriteStatusSchema = z.enum(['not_requested', 'requested', 'generated', 'accepted', 'rejected', 'failed'])
 export const LodgingPhotoRoomTypeSchema = z.enum(['bedroom', 'bathroom', 'common_area', 'exterior', 'kitchen', 'other'])
+export const LodgingAmenityAvailabilitySchema = z.enum(['included', 'on_request'])
 
 export const SourceUrlInputSchema = z.object({
   source_listing_url: z.string().trim().url().refine(value => value.startsWith('https://'), {
@@ -34,6 +35,14 @@ export const OwnerRightsConfirmationSchema = z.object({
 export const LodgingAmenityItemSchema = z.object({
   code: z.string().trim().min(1).max(64),
   label: z.string().trim().min(1).max(80),
+  sort_order: z.number().int().min(0).default(0),
+  availability: LodgingAmenityAvailabilitySchema.default('included'),
+})
+
+export const LodgingFaqItemSchema = z.object({
+  id: z.string().uuid().optional(),
+  question: z.string().trim().min(5).max(200),
+  answer: z.string().trim().min(10).max(2000),
   sort_order: z.number().int().min(0).default(0),
 })
 
@@ -82,6 +91,7 @@ export const LodgingPublicProfileInputSchema = z.object({
   public_contact_enabled: z.boolean(),
   amenities: z.array(LodgingAmenityItemSchema).max(100),
   photos: z.array(LodgingPhotoItemSchema).max(100),
+  faq: z.array(LodgingFaqItemSchema).max(20).default([]),
   content_rights_confirmed: z.boolean().optional(),
 })
 
@@ -102,7 +112,9 @@ export const LodgingListFiltersSchema = z.object({
 
 export type SourceUrlInput = z.infer<typeof SourceUrlInputSchema>
 export type OwnerRightsConfirmationInput = z.infer<typeof OwnerRightsConfirmationSchema>
+export type LodgingAmenityAvailability = z.infer<typeof LodgingAmenityAvailabilitySchema>
 export type LodgingAmenityItemInput = z.infer<typeof LodgingAmenityItemSchema>
+export type LodgingFaqItemInput = z.infer<typeof LodgingFaqItemSchema>
 export type LodgingPhotoItemInput = z.infer<typeof LodgingPhotoItemSchema>
 export type LodgingPublicProfileInput = z.infer<typeof LodgingPublicProfileInputSchema>
 export type LodgingRewriteRequestInput = z.infer<typeof LodgingRewriteRequestSchema>
