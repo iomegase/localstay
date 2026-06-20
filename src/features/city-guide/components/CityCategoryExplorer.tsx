@@ -62,6 +62,11 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
     return lodgingId ? `${base}?lodging=${encodeURIComponent(lodgingId)}` : base
   }
 
+  function cityHref(citySlug: string) {
+    const base = `/guide/${citySlug}`
+    return lodgingId ? `${base}?lodging=${encodeURIComponent(lodgingId)}` : base
+  }
+
   return (
     <div className="w-full">
       <div className="relative">
@@ -82,7 +87,7 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
 
         <AnimatePresence>
           {open && (
-            <motion.ul
+            <motion.div
               role="listbox"
               initial={reduce ? false : { opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -90,20 +95,53 @@ export function CityCategoryExplorer({ cities }: { cities: City[] }) {
               className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-2xl border border-black/5 bg-white py-2 shadow-xl"
             >
               {cities.map((city) => (
-                <li
+                <a
                   key={city.slug}
                   role="option"
                   aria-selected={selected?.slug === city.slug}
-                  onClick={() => selectCity(city)}
+                  href={cityHref(city.slug)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    selectCity(city)
+                  }}
                   className="block w-full cursor-pointer px-4 py-2.5 text-left text-sm text-charcoal hover:bg-gray-50"
                 >
                   {city.name}
-                </li>
+                </a>
               ))}
-            </motion.ul>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* Contenu par défaut référençable (SSR) : accroche + liens villes crawlables.
+          Disparaît dès qu'une ville est choisie (le bento de catégories prend le relais). */}
+      {status === 'idle' && !selected && (
+        <div className="mt-8 space-y-5">
+          <p className="text-sm leading-relaxed text-[#6E6E73]">{t('home.explore.lead')}</p>
+          <nav aria-label={t('home.explore.heading')}>
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal/50">
+              {t('home.explore.heading')}
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {cities.map((city) => (
+                <li key={city.slug}>
+                  <Link
+                    href={cityHref(city.slug)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      selectCity(city)
+                    }}
+                    className="inline-flex rounded-full border border-charcoal/15 bg-white px-4 py-2 text-sm text-charcoal transition-colors hover:border-charcoal/40"
+                  >
+                    {city.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      )}
 
       {status === 'loading' && (
         <div className="mt-6 grid grid-cols-2 gap-3" aria-busy="true">

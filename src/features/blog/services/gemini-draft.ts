@@ -73,6 +73,14 @@ type GroundingResponse = {
   }>
 }
 
+type GeminiTextResponse = GroundingResponse & {
+  text(): string
+}
+
+type GeminiGenerateContentResult = {
+  response: GeminiTextResponse
+}
+
 function extractRequestedWordCount(brief: string): number | null {
   const match = brief.match(/\b(\d{2,4})\s*mots?\b/i)
   if (!match) return null
@@ -347,35 +355,23 @@ function extractGroundedSources(response: GroundingResponse): BlogGroundedSource
   return [...deduped.values()]
 }
 
-export async function generateBlogDraftWithGemini(input: {
-  brief: string
-  verifiedFacts: string
-  cityContext?: { name: string; slug: string } | null
-}): Promise<BlogGenerationWithSources> {
-  assertBlogGeminiScope({
-    brief: input.brief,
-    verifiedFacts: input.verifiedFacts,
-  })
+function isUnsupportedStructuredOutputWithToolsError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
 
-  const requestedWordCount = extractRequestedWordCount(input.brief)
+  return /tool use with a response mime type:\s*'application\/json'\s+is unsupported/i.test(
+    error.message,
+  )
+}
 
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    const error = new Error('GEMINI_UNAVAILABLE')
-    Reflect.set(error, 'status', 503)
-    throw error
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL ?? 'gemini-3.5-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema: BlogGenerationResponseSchema,
-    },
-    tools: [{ googleSearch: {} } as unknown as Tool],
-  })
-  const prompt = [
+function buildPrompt(
+  input: {
+    brief: string
+    verifiedFacts: string
+    cityContext?: { name: string; slug: string } | null
+  },
+  requestedWordCount: number | null,
+): string {
+  return [
     'Tu assistes la rédaction du blog MyStay.',
     'N\'invente aucun fait. Refuse toute coordonnée, distance, durée, prix, disponibilité, horaire temps réel ou donnée personnelle.',
     'Utilise Google Search uniquement pour grounding et citations de travail ; les faits restent soumis à revue Admin.',
@@ -384,12 +380,39 @@ export async function generateBlogDraftWithGemini(input: {
     requestedWordCount
       ? `Le corps de l'article en Markdown doit viser environ ${requestedWordCount} mots.`
       : 'Le corps de l\'article en Markdown doit être développé et structuré en plusieurs paragraphes utiles.',
-    input.cityContext ? `Ville rattachée: ${input.cityContext.name} (${input.cityContext.slug})` : 'Aucune ville rattachée.',
+    input.cityContext
+      ? `Ville rattachée: ${input.cityContext.name} (${input.cityContext.slug})`
+      : 'Aucune ville rattachée.',
     `Brief admin:\n${input.brief}`,
     `Faits vérifiés:\n${input.verifiedFacts}`,
   ].join('\n\n')
+}
 
-  const result = await model.generateContent(prompt)
+function getBlogGenerativeModel(input: {
+  apiKey: string
+  modelName: string
+  useStructuredOutput: boolean
+}) {
+  const genAI = new GoogleGenerativeAI(input.apiKey)
+
+  return genAI.getGenerativeModel({
+    model: input.modelName,
+    ...(input.useStructuredOutput
+      ? {
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: BlogGenerationResponseSchema,
+          },
+        }
+      : {}),
+    tools: [{ googleSearch: {} } as unknown as Tool],
+  })
+}
+
+function parseGeminiDraftResponse(
+  result: GeminiGenerateContentResult,
+  requestedWordCount: number | null,
+): BlogGenerationWithSources {
   let rawText: string
 
   try {
@@ -409,6 +432,55 @@ export async function generateBlogDraftWithGemini(input: {
 
   return {
     draft,
-    sources: extractGroundedSources(result.response as unknown as GroundingResponse),
+    sources: extractGroundedSources(result.response),
+  }
+}
+
+export async function generateBlogDraftWithGemini(input: {
+  brief: string
+  verifiedFacts: string
+  cityContext?: { name: string; slug: string } | null
+}): Promise<BlogGenerationWithSources> {
+  assertBlogGeminiScope({
+    brief: input.brief,
+    verifiedFacts: input.verifiedFacts,
+  })
+
+  const requestedWordCount = extractRequestedWordCount(input.brief)
+
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    const error = new Error('GEMINI_UNAVAILABLE')
+    Reflect.set(error, 'status', 503)
+    throw error
+  }
+
+  const modelName = process.env.GEMINI_MODEL ?? 'gemini-3.5-flash'
+  const prompt = buildPrompt(input, requestedWordCount)
+
+  try {
+    const structuredModel = getBlogGenerativeModel({
+      apiKey,
+      modelName,
+      useStructuredOutput: true,
+    })
+    const structuredResult =
+      (await structuredModel.generateContent(prompt)) as unknown as GeminiGenerateContentResult
+
+    return parseGeminiDraftResponse(structuredResult, requestedWordCount)
+  } catch (error) {
+    if (!isUnsupportedStructuredOutputWithToolsError(error)) {
+      throw error
+    }
+
+    const fallbackModel = getBlogGenerativeModel({
+      apiKey,
+      modelName,
+      useStructuredOutput: false,
+    })
+    const fallbackResult =
+      (await fallbackModel.generateContent(prompt)) as unknown as GeminiGenerateContentResult
+
+    return parseGeminiDraftResponse(fallbackResult, requestedWordCount)
   }
 }

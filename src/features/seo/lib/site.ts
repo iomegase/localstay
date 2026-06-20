@@ -9,5 +9,5 @@ export const SITE = {
 
 /** URL de base sans slash final. Utilisée pour canonical, sitemap, OG, JSON-LD. */
 export function siteBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://mystay.city').replace(/\/+$/, '')
+  return (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.mystay.city').replace(/\/+$/, '')
 }

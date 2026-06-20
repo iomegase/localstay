@@ -66,4 +66,19 @@ describe('024 contact messages public page', () => {
     expect(screen.getByLabelText('Message')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer le message' })).toBeInTheDocument()
   })
+
+  it('AC-04-04: annotates owner and MyStay email CTAs for analytics tracking', async () => {
+    render(await ContactPage())
+
+    const ownerLink = screen.getByText('alice@example.test').closest('a')
+    const mystayLink = screen.getByRole('link', { name: 'hello@mystay.fr' })
+
+    expect(ownerLink).toHaveAttribute('data-analytics-event', 'owner_email_click')
+    expect(ownerLink).toHaveAttribute('data-analytics-city-slug', 'saint-gervais')
+    expect(ownerLink).toHaveAttribute('data-analytics-lodging-id', '11111111-1111-4111-8111-111111111111')
+
+    expect(mystayLink).toHaveAttribute('data-analytics-event', 'mystay_email_click')
+    expect(mystayLink).toHaveAttribute('data-analytics-city-slug', 'saint-gervais')
+    expect(mystayLink).toHaveAttribute('data-analytics-lodging-id', '11111111-1111-4111-8111-111111111111')
+  })
 })

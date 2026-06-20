@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  Activity,
   BarChart3,
   Building2,
   CalendarDays,
@@ -27,6 +28,7 @@ import { LogoutButton } from '@/shared/components/LogoutButton'
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Vue globale', icon: LayoutDashboard },
+  { href: '/admin/analytics', label: 'Analytics SEO/GEO', icon: Activity },
   { href: '/admin/merchant-claims', label: 'Revendications', icon: BarChart3 },
   { href: '/admin/cities', label: 'Villes', icon: Building2 },
   { href: '/admin/taxonomy', label: 'Taxonomie', icon: Tags },

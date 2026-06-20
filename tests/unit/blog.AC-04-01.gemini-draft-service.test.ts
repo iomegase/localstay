@@ -261,4 +261,58 @@ describe('029 blog gemini draft service', () => {
       }),
     ).rejects.toBeInstanceOf(SyntaxError)
   })
+
+  it('retries without structured output when the grounded model rejects responseMimeType json', async () => {
+    mockGenerateContent
+      .mockRejectedValueOnce(
+        new Error("[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [400 Bad Request] Tool use with a response mime type: 'application/json' is unsupported"),
+      )
+      .mockResolvedValueOnce({
+        response: {
+          text: () =>
+            JSON.stringify({
+              title: 'Week-end à Saint-Gervais',
+              excerpt:
+                'Une proposition editoriale locale pour organiser un week-end utile et lisible autour de Saint-Gervais.',
+              content_markdown: 'mot '.repeat(90).trim(),
+              seo_title: 'Week-end à Saint-Gervais | Blog MyStay',
+              seo_description:
+                'Une proposition editoriale locale pour Saint-Gervais, avec angle clair, sources grounded et lecture utile.',
+            }),
+          candidates: [
+            {
+              groundingMetadata: {
+                groundingChunks: [
+                  { web: { uri: 'https://www.saintgervais.com/article', title: 'Office de tourisme' } },
+                ],
+              },
+            },
+          ],
+        },
+      })
+
+    const result = await generateBlogDraftWithGemini({
+      brief: 'Rédige un article sur un week-end à Saint-Gervais.',
+      verifiedFacts: '',
+      cityContext: { name: 'Saint-Gervais', slug: 'saint-gervais' },
+    })
+
+    expect(mockGetGenerativeModel).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        generationConfig: expect.objectContaining({
+          responseMimeType: 'application/json',
+        }),
+      }),
+    )
+    expect(mockGetGenerativeModel).toHaveBeenNthCalledWith(
+      2,
+      expect.not.objectContaining({
+        generationConfig: expect.anything(),
+      }),
+    )
+    expect(result.sources).toEqual([
+      { title: 'Office de tourisme', url: 'https://www.saintgervais.com/article' },
+    ])
+  })
 })

@@ -11,7 +11,19 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string
+    children: React.ReactNode
+    [key: string]: unknown
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }))
 
 jest.mock('@/features/seo/queries/page-data', () => ({
@@ -139,6 +151,12 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByText('Équipements')).toBeInTheDocument()
     expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
+    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
+    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-city-slug', 'annecy')
+    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
+    expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-event', 'lodging_external_booking_click')
+    expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-city-slug', 'annecy')
+    expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
     expect(container.querySelector('.fixed.inset-x-0.bottom-0')).toBeNull()
   })
 

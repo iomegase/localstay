@@ -1,6 +1,8 @@
 export function ExternalBookingCta(props: {
   externalBookingUrl: string | null
   platform: string | null
+  citySlug?: string | null
+  lodgingId?: string | null
   className?: string
 }) {
   if (!props.externalBookingUrl) return null
@@ -17,6 +19,8 @@ export function ExternalBookingCta(props: {
       target="_blank"
       rel="noopener noreferrer"
       data-analytics-event="lodging_external_booking_click"
+      data-analytics-city-slug={props.citySlug ?? undefined}
+      data-analytics-lodging-id={props.lodgingId ?? undefined}
       className={props.className ?? 'inline-flex h-11 items-center justify-center rounded-full bg-charcoal px-5 text-sm font-medium text-white'}
     >
       {label}

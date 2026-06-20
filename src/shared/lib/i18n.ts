@@ -5,6 +5,9 @@ const fr = {
   'home.select.placeholder': 'Sélectionner une ville',
   'home.empty': 'Aucune catégorie disponible pour cette ville pour le moment.',
   'home.error': 'Impossible de charger les catégories. Réessayez.',
+  'home.explore.heading': 'Nos destinations',
+  'home.explore.lead':
+    'MyStay réunit les meilleures adresses, randonnées et activités locales, ville par ville : restaurants, commerces, sentiers et bons plans sélectionnés sur place. Choisissez votre destination pour explorer le guide.',
   'guide.empty_state': 'Aucun contenu disponible pour cette ville pour le moment',
   'guide.error': 'Une erreur est survenue. Veuillez réessayer.',
   'guide.city_not_found': 'Ville introuvable',

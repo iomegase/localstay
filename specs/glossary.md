@@ -70,6 +70,15 @@ Proposition éditoriale générée ou préparée par MyStay à partir d'un texte
 ### Contact Message (Message de contact)
 Message envoyé par un Tourist depuis la page Contact d'un séjour. Il peut être destiné au Propriétaire ou à la Conciergerie, mais reste toujours visible dans l'inbox Super-admin globale.
 
+### Analytics Snapshot
+Agrégat journalier normalisé utilisé comme source de vérité d'un cockpit analytics. Il résume des métriques de visibilité, trafic, engagement ou conversion sur une période donnée sans exposer les événements bruts source par source.
+
+### Analytics Source Sync
+Trace d'une synchronisation entre StayLocal et une source analytics externe ou interne. Elle conserve au minimum la source, la période importée, le statut, le dernier succès et l'erreur éventuelle.
+
+### Analytics Interaction Event
+Événement first-party append-only capturant une interaction publique mesurable côté produit, par exemple un clic email hôte, un clic contact logement ou un clic réservation externe.
+
 ### Blog Article (Article de blog)
 Contenu éditorial public géré par un Admin. Peut être global ou rattaché à une City optionnelle. Il possède un statut de publication, une catégorie, des tags, une photo de couverture, un contenu Markdown et des champs SEO.
 
@@ -134,6 +143,12 @@ Tâche serveur asynchrone qui traduit ou retraduit un Translatable Field pour un
 ### GEO (Generative Engine Optimization)
 Optimisation éditoriale et technique visant à rendre les pages publiques compréhensibles, citables et utiles dans les expériences de recherche générative. Dans MyStay, GEO reste une extension du SEO : contenu visible, factuel, structuré et indexable.
 
+### Google Analytics 4 (GA4)
+Source analytics orientée site et événements, utilisée dans StayLocal pour mesurer sessions, engagement et micro-conversions côté client, uniquement après consentement explicite quand la mesure dépend d'un script tiers dans le navigateur.
+
+### Google Search Console
+Source de métriques d'acquisition SEO depuis Google Search : impressions, clics, CTR, position moyenne, requêtes et pages d'atterrissage.
+
 ### VacationRental Structured Data
 Balisage JSON-LD basé sur Schema.org `VacationRental`, utilisé uniquement quand une fiche logement publique contient les champs requis et que les informations balisées sont visibles sur la page.
 
@@ -146,6 +161,9 @@ Durée de validité d'un résultat Gemini en base. Passé ce délai, un nouveau 
 ### Map Load
 Chargement d'une carte Mapbox dans le navigateur. Unité de facturation Mapbox (50 000 gratuits/mois).
 
+### Consent Banner
+Composant public qui demande au visiteur son choix analytics avant d'activer des scripts ou événements tiers côté client. Son état minimal est `unset`, `accepted` ou `refused`.
+
 ### Soft Delete
 Suppression logique : champ `deleted_at` renseigné. Aucune suppression physique dans ce projet.
 
@@ -157,6 +175,12 @@ Composant React rendu côté serveur (défaut App Router). Utilisé pour les pag
 
 ### Client Component
 Composant React rendu côté client (`"use client"`). Uniquement si la spec requiert de l'interactivité.
+
+### Vercel Analytics
+Source de trafic et d'usage web fournie par Vercel, utilisée pour des métriques comme visiteurs, pages vues, referrers et dimensions web récentes.
+
+### Vercel Speed Insights
+Source de performance web fournie par Vercel, basée notamment sur les Core Web Vitals, utilisée pour surveiller l'expérience réelle des visiteurs.
 
 ---
 

@@ -25,6 +25,7 @@ type DraftSuggestion = {
   suggestion_markdown?: string | null
   suggestion_seo_title?: string | null
   suggestion_seo_description?: string | null
+  text?: string | null
 } | null
 
 type ApiErrorPayload = {
@@ -138,6 +139,18 @@ function formatFieldErrors(fieldErrors: Record<string, string[]>) {
   )
 }
 
+function getDraftSuggestionMarkdown(suggestion: DraftSuggestion): string {
+  if (!suggestion) return ''
+
+  const markdown = typeof suggestion.suggestion_markdown === 'string'
+    ? suggestion.suggestion_markdown
+    : typeof suggestion.text === 'string'
+      ? suggestion.text
+      : ''
+
+  return markdown.trim()
+}
+
 export function AdminBlogEditor({
   initialArticle,
   cities,
@@ -183,6 +196,7 @@ export function AdminBlogEditor({
   const [brief, setBrief] = useState('')
   const [verifiedFacts, setVerifiedFacts] = useState('')
   const [draftSuggestion, setDraftSuggestion] = useState<DraftSuggestion>(null)
+  const [copyFeedback, setCopyFeedback] = useState<'idle' | 'success' | 'error'>('idle')
   const coverFileInputRef = useRef<HTMLInputElement | null>(null)
   const galleryFileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -271,6 +285,18 @@ export function AdminBlogEditor({
   const markdownWordCount = useMemo(() => countWords(article.content_markdown), [article.content_markdown])
   const seoTitleLength = useMemo(() => countCharacters(article.seo_title), [article.seo_title])
   const seoDescriptionLength = useMemo(() => countCharacters(article.seo_description), [article.seo_description])
+  const draftSuggestionMarkdown = useMemo(
+    () => getDraftSuggestionMarkdown(draftSuggestion),
+    [draftSuggestion],
+  )
+  const draftSuggestionCharacterCount = useMemo(
+    () => countCharacters(draftSuggestionMarkdown),
+    [draftSuggestionMarkdown],
+  )
+  const draftSuggestionWordCount = useMemo(
+    () => countWords(draftSuggestionMarkdown),
+    [draftSuggestionMarkdown],
+  )
 
   async function persistArticle(navigation: 'none' | 'redirect' | 'replace-state' = 'none') {
     const response = await fetch(article.id ? `/api/admin/blog/${article.id}` : '/api/admin/blog', {
@@ -369,6 +395,7 @@ export function AdminBlogEditor({
         return
       }
       setDraftSuggestion(json)
+      setCopyFeedback('idle')
     } finally {
       setBusy(null)
     }
@@ -399,6 +426,22 @@ export function AdminBlogEditor({
       }))
     } finally {
       setBusy(null)
+    }
+  }
+
+  async function copyDraftMarkdown() {
+    if (draftSuggestionMarkdown === '') return
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        setCopyFeedback('error')
+        return
+      }
+
+      await navigator.clipboard.writeText(draftSuggestionMarkdown)
+      setCopyFeedback('success')
+    } catch {
+      setCopyFeedback('error')
     }
   }
 
@@ -685,12 +728,47 @@ export function AdminBlogEditor({
           </button>
 
           {draftSuggestion && (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-              <p className="font-semibold text-slate-950">{draftSuggestion.suggestion_title}</p>
-              <p>{draftSuggestion.suggestion_excerpt}</p>
-              <button type="button" onClick={applyDraft} className={secondaryButtonClassName} disabled={busy !== null}>
-                {busy === 'apply' ? 'Application…' : 'Appliquer à l’article'}
-              </button>
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Brouillon Gemini</p>
+                <p className="font-semibold text-slate-950">{draftSuggestion.suggestion_title}</p>
+                <p>{draftSuggestion.suggestion_excerpt}</p>
+              </div>
+
+              {draftSuggestionMarkdown !== '' && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Markdown Gemini</p>
+                    <p className="text-[11px] font-medium text-slate-400">
+                      {draftSuggestionWordCount} mots • {draftSuggestionCharacterCount} caractères
+                    </p>
+                  </div>
+                  <pre className="max-h-80 overflow-auto rounded-xl border border-slate-200 bg-white p-4 font-mono text-xs leading-6 text-slate-800 whitespace-pre-wrap break-words">
+                    {draftSuggestionMarkdown}
+                  </pre>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <button type="button" onClick={applyDraft} className={secondaryButtonClassName} disabled={busy !== null}>
+                  {busy === 'apply' ? 'Application…' : 'Appliquer à l’article'}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyDraftMarkdown}
+                  className={secondaryButtonClassName}
+                  disabled={busy !== null || draftSuggestionMarkdown === ''}
+                >
+                  Copier le Markdown
+                </button>
+              </div>
+
+              {copyFeedback === 'success' && (
+                <p className="text-xs font-medium text-emerald-700">Markdown Gemini copié.</p>
+              )}
+              {copyFeedback === 'error' && (
+                <p className="text-xs font-medium text-rose-700">Copie impossible depuis ce navigateur.</p>
+              )}
             </div>
           )}
         </div>

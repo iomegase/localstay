@@ -194,6 +194,9 @@ export default async function LodgingDetailPage({ params }: Props) {
                 {detail.public_contact_enabled && (
                   <Link
                     href={`${contextualContactPath(citySlug)}?lodging=${detail.id}`}
+                    data-analytics-event="lodging_contact_click"
+                    data-analytics-city-slug={citySlug}
+                    data-analytics-lodging-id={detail.id}
                     className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3.5 text-center text-[15px] font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
                   >
                     Contacter
@@ -203,6 +206,8 @@ export default async function LodgingDetailPage({ params }: Props) {
                 <ExternalBookingCta
                   externalBookingUrl={detail.external_booking_url}
                   platform={detail.external_booking_platform}
+                  citySlug={citySlug}
+                  lodgingId={detail.id}
                   className="w-full justify-center rounded-xl bg-[#003A5D] px-7 py-3.5 text-center text-[15px] font-semibold text-white shadow-md transition-all hover:bg-[#002a43]"
                 />
               </div>

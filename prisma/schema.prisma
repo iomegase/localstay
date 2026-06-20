@@ -38,6 +38,11 @@ model City {
   events           Event[]
   lodging_public_profiles LodgingPublicProfile[]
   blog_articles    BlogArticle[]
+  analytics_page_daily_snapshots AnalyticsPageDailySnapshot[]
+  analytics_query_daily_snapshots AnalyticsQueryDailySnapshot[]
+  analytics_city_daily_snapshots AnalyticsCityDailySnapshot[]
+  analytics_perf_daily_snapshots AnalyticsPerfDailySnapshot[]
+  analytics_interaction_events AnalyticsInteractionEvent[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -760,6 +765,7 @@ model Lodging {
 
   qr_codes    QrCode[]
   analytics   Analytics[]
+  analytics_interaction_events AnalyticsInteractionEvent[]
   customization LodgingCustomization?
   featured_pois LodgingFeaturedPoi[]
   contact_messages ContactMessage[]
@@ -954,6 +960,33 @@ enum ContactMessageStatus {
   archived
 }
 
+enum AnalyticsSourceKind {
+  ga4
+  gsc
+  vercel_analytics
+  vercel_speed_insights
+}
+
+enum AnalyticsSourceSyncStatus {
+  success
+  partial
+  failed
+  stale
+  not_configured
+}
+
+enum AnalyticsInteractionEventType {
+  owner_email_click
+  mystay_email_click
+  lodging_contact_click
+  lodging_external_booking_click
+}
+
+enum AnalyticsConsentState {
+  accepted
+  refused
+}
+
 model ContactMessage {
   id                 String   @id @default(uuid())
   created_at         DateTime @default(now())
@@ -996,6 +1029,162 @@ model Analytics {
   event_type  String    // qr_scan | category_click | poi_click | phone_click | directions_click
   category_id String?
   poi_id      String?
+}
+
+model AnalyticsSourceSync {
+  id              String                    @id @default(uuid())
+  created_at      DateTime                  @default(now())
+  updated_at      DateTime                  @updatedAt
+  deleted_at      DateTime?
+
+  source          AnalyticsSourceKind
+  status          AnalyticsSourceSyncStatus
+  period_start    DateTime?
+  period_end      DateTime?
+  started_at      DateTime?
+  finished_at     DateTime?
+  last_success_at DateTime?
+  error_code      String?
+  error_message   String?
+  details_json    Json?
+
+  @@index([source, created_at])
+  @@index([status, created_at])
+}
+
+model AnalyticsDailySnapshot {
+  id                      String   @id @default(uuid())
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  deleted_at              DateTime?
+
+  snapshot_date           DateTime
+  sessions                Int      @default(0)
+  users                   Int      @default(0)
+  page_views              Int      @default(0)
+  engagement_rate         Float?
+  seo_impressions         Int      @default(0)
+  seo_clicks              Int      @default(0)
+  seo_ctr                 Float?
+  seo_avg_position        Float?
+  active_landing_pages    Int      @default(0)
+  contact_leads           Int      @default(0)
+  lodging_contact_clicks  Int      @default(0)
+  external_booking_clicks Int      @default(0)
+  owner_email_clicks      Int      @default(0)
+  mystay_email_clicks     Int      @default(0)
+  qr_scans                Int      @default(0)
+
+  @@unique([snapshot_date])
+  @@index([snapshot_date])
+}
+
+model AnalyticsPageDailySnapshot {
+  id            String   @id @default(uuid())
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  deleted_at    DateTime?
+
+  snapshot_date DateTime
+  page_path     String
+  page_type     String
+  city_id       String?
+  city          City?    @relation(fields: [city_id], references: [id])
+  sessions      Int      @default(0)
+  users         Int      @default(0)
+  page_views    Int      @default(0)
+  seo_impressions Int    @default(0)
+  seo_clicks    Int      @default(0)
+  seo_ctr       Float?
+  seo_avg_position Float?
+  contact_leads Int      @default(0)
+  conversions   Int      @default(0)
+
+  @@unique([snapshot_date, page_path])
+  @@index([snapshot_date, city_id])
+}
+
+model AnalyticsQueryDailySnapshot {
+  id            String   @id @default(uuid())
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  deleted_at    DateTime?
+
+  snapshot_date DateTime
+  query         String
+  page_path     String?
+  city_id       String?
+  city          City?    @relation(fields: [city_id], references: [id])
+  clicks        Int      @default(0)
+  impressions   Int      @default(0)
+  ctr           Float?
+  avg_position  Float?
+
+  @@unique([snapshot_date, query, page_path])
+  @@index([snapshot_date, city_id])
+}
+
+model AnalyticsCityDailySnapshot {
+  id                      String   @id @default(uuid())
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  deleted_at              DateTime?
+
+  snapshot_date           DateTime
+  city_id                 String
+  city                    City     @relation(fields: [city_id], references: [id])
+  sessions                Int      @default(0)
+  users                   Int      @default(0)
+  page_views              Int      @default(0)
+  seo_impressions         Int      @default(0)
+  seo_clicks              Int      @default(0)
+  seo_ctr                 Float?
+  seo_avg_position        Float?
+  contact_leads           Int      @default(0)
+  lodging_contact_clicks  Int      @default(0)
+  external_booking_clicks Int      @default(0)
+  qr_scans                Int      @default(0)
+
+  @@unique([snapshot_date, city_id])
+  @@index([city_id, snapshot_date])
+}
+
+model AnalyticsPerfDailySnapshot {
+  id                        String   @id @default(uuid())
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+  deleted_at                DateTime?
+
+  snapshot_date             DateTime
+  page_path                 String?
+  city_id                   String?
+  city                      City?    @relation(fields: [city_id], references: [id])
+  core_web_vitals_pass_rate Float?
+  lcp                       Float?
+  inp                       Float?
+  cls                       Float?
+
+  @@unique([snapshot_date, page_path])
+  @@index([snapshot_date, city_id])
+}
+
+model AnalyticsInteractionEvent {
+  id            String                        @id @default(uuid())
+  created_at    DateTime                      @default(now())
+  updated_at    DateTime                      @updatedAt
+  deleted_at    DateTime?
+
+  event_type    AnalyticsInteractionEventType
+  consent_state AnalyticsConsentState
+  page_path     String
+  city_id       String?
+  city          City?                         @relation(fields: [city_id], references: [id])
+  lodging_id    String?
+  lodging       Lodging?                      @relation(fields: [lodging_id], references: [id])
+
+  @@index([event_type, created_at])
+  @@index([city_id, created_at])
+  @@index([lodging_id, created_at])
 }
 
 // ─── Spec 026 — Événements DATAtourisme ─────────────────────────────────────

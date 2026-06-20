@@ -352,4 +352,65 @@ describe('029 blog admin editor validation feedback', () => {
     expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/admin/blog/article-1')
     expect(await screen.findByText('Vivre en Haute-Savoie en 1900')).toBeInTheDocument()
   })
+
+  it('shows the generated Gemini markdown in a dedicated preview and can copy it', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, {
+      clipboard: {
+        writeText,
+      },
+    })
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'generation-1',
+        status: 'generated',
+        suggestion_title: 'Vivre en Haute-Savoie en 1900',
+        suggestion_excerpt: 'Une proposition éditoriale sur la rudesse du quotidien et les équilibres locaux vers 1900.',
+        suggestion_markdown: '# Vivre en Haute-Savoie en 1900\n\nUn premier paragraphe.\n\n- Point 1\n- Point 2',
+        suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+        suggestion_seo_description:
+          'Une proposition éditoriale sur la Haute-Savoie vers 1900, entre climat rude, solidarités locales et adaptation quotidienne.',
+        text: '# Vivre en Haute-Savoie en 1900\n\nUn premier paragraphe.\n\n- Point 1\n- Point 2',
+        sources: [],
+      }),
+    }) as jest.Mock
+
+    render(
+      <AdminBlogEditor
+        cities={[]}
+        initialArticle={{
+          id: 'article-1',
+          status: 'draft',
+          title: 'Guide local Saint-Nicolas',
+          slug: 'guide-local-saint-nicolas',
+          excerpt: 'a'.repeat(45),
+          content_markdown: 'mot '.repeat(80).trim(),
+          category: 'local_guide',
+          tags: [],
+          city_id: null,
+          seo_title: 'b'.repeat(35),
+          seo_description: 'c'.repeat(90),
+          photos: [],
+        }}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText('Brief'), {
+      target: { value: 'Rédige un article clair et utile sur la vie en Haute-Savoie en 1900.' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Générer un brouillon/i }))
+
+    expect(await screen.findByText('Markdown Gemini')).toBeInTheDocument()
+    expect(screen.getByText('# Vivre en Haute-Savoie en 1900', { exact: false })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Copier le Markdown/i }))
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        '# Vivre en Haute-Savoie en 1900\n\nUn premier paragraphe.\n\n- Point 1\n- Point 2',
+      ),
+    )
+  })
 })

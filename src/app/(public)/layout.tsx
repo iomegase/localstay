@@ -3,6 +3,9 @@ import Image from 'next/image'
 import { PublicMenu } from '@/features/city-guide/components/PublicMenu'
 import { PublicBottomNav } from '@/features/city-guide/components/PublicBottomNav'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { AnalyticsConsentBanner } from '@/features/admin-analytics/components/AnalyticsConsentBanner'
+import { PublicAnalyticsTracker } from '@/features/admin-analytics/components/PublicAnalyticsTracker'
+import { GoogleAnalyticsClient } from '@/features/admin-analytics/components/GoogleAnalyticsClient'
 
 export default async function PublicLayout({
   children,
@@ -44,6 +47,9 @@ export default async function PublicLayout({
 
       {/* Floating bottom navigation bar — masqué en mode immersif */}
       <PublicBottomNav mode={mode} citySlug={lodgingContext?.citySlug ?? null} />
+      <AnalyticsConsentBanner />
+      <GoogleAnalyticsClient />
+      <PublicAnalyticsTracker />
     </div>
   )
 }

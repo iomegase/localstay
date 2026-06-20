@@ -113,6 +113,9 @@ function LodgingContact({
           subtitle="Contacter par email"
           href={`mailto:${ownerInfo.ownerEmail}`}
           cta={ownerInfo.ownerEmail}
+          analyticsEvent="owner_email_click"
+          analyticsCitySlug={lodgingContext.citySlug}
+          analyticsLodgingId={lodgingContext.lodgingId}
         />
       )}
 
@@ -140,7 +143,13 @@ function LodgingContact({
         <p className="font-medium text-[#111827] text-[15px] mb-1">Équipe MyStay</p>
         <p className="text-[13px] text-gray-500">
           Un souci technique avec l'application ?<br/>
-          <a className="text-[#5A6B5D] font-medium hover:underline mt-1 inline-block" href="mailto:hello@mystay.fr">
+          <a
+            className="text-[#5A6B5D] font-medium hover:underline mt-1 inline-block"
+            href="mailto:hello@mystay.fr"
+            data-analytics-event="mystay_email_click"
+            data-analytics-city-slug={lodgingContext.citySlug}
+            data-analytics-lodging-id={lodgingContext.lodgingId}
+          >
             hello@mystay.fr
           </a>
         </p>
@@ -160,16 +169,25 @@ function ContactCard({
   subtitle,
   href,
   cta,
+  analyticsEvent,
+  analyticsCitySlug,
+  analyticsLodgingId,
 }: {
   icon: React.ReactNode
   title: string
   subtitle: string
   href: string
   cta: string
+  analyticsEvent?: 'owner_email_click' | 'mystay_email_click'
+  analyticsCitySlug?: string | null
+  analyticsLodgingId?: string | null
 }) {
   return (
     <a
       href={href}
+      data-analytics-event={analyticsEvent}
+      data-analytics-city-slug={analyticsCitySlug ?? undefined}
+      data-analytics-lodging-id={analyticsLodgingId ?? undefined}
       className="group flex items-center gap-4 rounded-[24px] bg-white p-5 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:border-gray-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] active:scale-[0.98]"
     >
       <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gray-50 text-gray-400 transition-colors group-hover:bg-[#111827] group-hover:text-white">

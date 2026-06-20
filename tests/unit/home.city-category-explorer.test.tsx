@@ -58,6 +58,42 @@ describe('CityCategoryExplorer', () => {
     expect(screen.getByRole('option', { name: 'Saint-Gervais-les-Bains' })).toBeInTheDocument()
   })
 
+  it('renders crawlable city links by default (SSR, no city selected)', () => {
+    render(<CityCategoryExplorer cities={CITIES} />)
+
+    expect(screen.getByRole('link', { name: 'Chamonix-Mont-Blanc' })).toHaveAttribute(
+      'href',
+      '/guide/chamonix-mont-blanc',
+    )
+    expect(screen.getByRole('link', { name: 'Saint-Gervais-les-Bains' })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains',
+    )
+  })
+
+  it('exposes each dropdown city option as a real link', async () => {
+    const user = userEvent.setup()
+    render(<CityCategoryExplorer cities={CITIES} />)
+
+    await user.click(screen.getByRole('button', { name: /Sélectionner une ville/i }))
+
+    expect(screen.getByRole('option', { name: 'Saint-Gervais-les-Bains' })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais-les-bains',
+    )
+  })
+
+  it('hides the default destinations once a city is selected', async () => {
+    const user = userEvent.setup()
+    render(<CityCategoryExplorer cities={CITIES} />)
+
+    await user.click(screen.getByRole('button', { name: /Sélectionner une ville/i }))
+    await user.click(screen.getByRole('option', { name: 'Saint-Gervais-les-Bains' }))
+
+    await screen.findByText('Boulangerie')
+    expect(screen.queryByRole('link', { name: 'Chamonix-Mont-Blanc' })).not.toBeInTheDocument()
+  })
+
   it('fetches and renders categories of the selected city', async () => {
     const user = userEvent.setup()
     render(<CityCategoryExplorer cities={CITIES} />)

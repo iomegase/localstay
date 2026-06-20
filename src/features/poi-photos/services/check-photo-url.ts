@@ -1,6 +1,6 @@
 import { isDeadPhotoResponse } from '../lib/liveness'
 
-const USER_AGENT = 'Mozilla/5.0 (compatible; MyStayBot/1.0; +https://mystay.city)'
+const USER_AGENT = 'Mozilla/5.0 (compatible; MyStayBot/1.0; +https://www.mystay.city)'
 const TIMEOUT_MS = 5000
 
 function classify(res: Response): 'alive' | 'dead' {
