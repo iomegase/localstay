@@ -53,6 +53,14 @@ export type OwnerLodgingAmenityDto = {
   code: string
   label: string
   sort_order: number
+  availability: 'included' | 'on_request'
+}
+
+export type OwnerLodgingFaqItemDto = {
+  id: string | null
+  question: string
+  answer: string
+  sort_order: number
 }
 
 export type OwnerLodgingPhotoDto = {
@@ -102,6 +110,7 @@ export type OwnerLodgingPublicProfileDto = {
   seo_description: string | null
   photos: OwnerLodgingPhotoDto[]
   amenities: OwnerLodgingAmenityDto[]
+  faq: OwnerLodgingFaqItemDto[]
 }
 
 export type OwnerLodgingShowcasePageData = {

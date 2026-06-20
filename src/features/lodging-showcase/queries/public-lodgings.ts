@@ -41,6 +41,12 @@ export type PublicLodgingDetailQueryResult = PublicLodgingCardApi & {
     category_slug: string
     photo_url: string | null
   }>
+  precise_location_public: boolean
+  public_latitude: number | null
+  public_longitude: number | null
+  amenities_included: string[]
+  amenities_on_request: string[]
+  faq: Array<{ id: string; question: string; answer: string }>
 }
 
 export type PublicLodgingListResult = {
@@ -78,7 +84,7 @@ const detailPhotoArgs = {
 const amenityArgs = {
   where: { deleted_at: null },
   orderBy: [{ sort_order: 'asc' as const }, { created_at: 'asc' as const }],
-  select: { code: true, label: true },
+  select: { code: true, label: true, availability: true },
 }
 
 async function getActiveCityBySlug(citySlug: string) {
@@ -212,12 +218,20 @@ export async function getPublishedLodgingDetail(
       bed_count: true,
       surface_m2: true,
       public_area_label: true,
+      precise_location_public: true,
+      public_latitude: true,
+      public_longitude: true,
       external_booking_url: true,
       external_booking_platform: true,
       public_contact_enabled: true,
       city: { select: { slug: true, name: true, region: true } },
       photos: detailPhotoArgs,
       amenities: amenityArgs,
+      faq_items: {
+        where: { deleted_at: null },
+        orderBy: [{ sort_order: 'asc' as const }, { created_at: 'asc' as const }],
+        select: { id: true, question: true, answer: true },
+      },
       lodging: {
         select: {
           featured_pois: {
@@ -269,5 +283,11 @@ export async function getPublishedLodgingDetail(
       category_slug: featuredPoi.poi.category.slug,
       photo_url: selectPrimaryPoiPhoto(featuredPoi.poi.photos),
     })),
+    precise_location_public: row.precise_location_public,
+    public_latitude: row.public_latitude,
+    public_longitude: row.public_longitude,
+    amenities_included: row.amenities.filter(a => a.availability !== 'on_request').map(a => a.label),
+    amenities_on_request: row.amenities.filter(a => a.availability === 'on_request').map(a => a.label),
+    faq: row.faq_items.map(item => ({ id: item.id, question: item.question, answer: item.answer })),
   }
 }

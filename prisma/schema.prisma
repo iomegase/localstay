@@ -905,6 +905,7 @@ model LodgingPublicProfile {
 
   photos    LodgingPhoto[]
   amenities LodgingAmenity[]
+  faq_items LodgingFaqItem[]
 
   @@unique([city_id, slug])
   @@index([publication_status, deleted_at])
@@ -930,6 +931,11 @@ model LodgingPhoto {
   @@index([profile_id, deleted_at])
 }
 
+enum LodgingAmenityAvailability {
+  included
+  on_request
+}
+
 model LodgingAmenity {
   id          String   @id @default(uuid())
   created_at  DateTime @default(now())
@@ -942,8 +948,25 @@ model LodgingAmenity {
   code       String
   label      String
   sort_order Int @default(0)
+  availability LodgingAmenityAvailability @default(included)
 
   @@unique([profile_id, code])
+  @@index([profile_id, deleted_at])
+}
+
+model LodgingFaqItem {
+  id          String   @id @default(uuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  profile_id String
+  profile    LodgingPublicProfile @relation(fields: [profile_id], references: [id])
+
+  question   String
+  answer     String
+  sort_order Int @default(0)
+
   @@index([profile_id, deleted_at])
 }
 
