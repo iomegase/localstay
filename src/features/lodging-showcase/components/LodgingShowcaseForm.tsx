@@ -62,19 +62,19 @@ export function LodgingShowcaseForm(props: {
   const [rightsConfirmed, setRightsConfirmed] = useState(Boolean(props.initialProfile.content_rights_confirmed_at))
   const [rightsVersion, setRightsVersion] = useState(props.initialProfile.content_rights_statement_version ?? 'v1')
   const [amenitiesText, setAmenitiesText] = useState(
-    props.initialProfile.amenities
+    (props.initialProfile.amenities ?? [])
       .filter(amenity => amenity.availability !== 'on_request')
       .map(amenity => amenity.label)
       .join(', '),
   )
   const [onRequestText, setOnRequestText] = useState(
-    props.initialProfile.amenities
+    (props.initialProfile.amenities ?? [])
       .filter(amenity => amenity.availability === 'on_request')
       .map(amenity => amenity.label)
       .join(', '),
   )
   const [faqRows, setFaqRows] = useState<Array<{ question: string; answer: string }>>(
-    props.initialProfile.faq.map(item => ({ question: item.question, answer: item.answer })),
+    (props.initialProfile.faq ?? []).map(item => ({ question: item.question, answer: item.answer })),
   )
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)

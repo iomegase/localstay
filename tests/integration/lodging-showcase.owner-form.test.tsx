@@ -48,6 +48,7 @@ const baseProfile = {
   seo_description: null,
   photos: [],
   amenities: [],
+  faq: [],
 }
 
 describe('028 lodging showcase owner form', () => {

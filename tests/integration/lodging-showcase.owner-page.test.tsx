@@ -28,6 +28,7 @@ jest.mock('@/features/lodging-showcase/queries/owner-public-profile', () => ({
       max_guests: 4,
       photos: [],
       amenities: [],
+      faq: [],
       public_contact_enabled: true,
       source_listing_url: null,
       source_description_text: null,
