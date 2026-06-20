@@ -78,7 +78,13 @@ const ownerProfileSelect: Prisma.LodgingPublicProfileSelect = {
       code: true,
       label: true,
       sort_order: true,
+      availability: true,
     },
+  },
+  faq_items: {
+    where: { deleted_at: null },
+    orderBy: [{ sort_order: 'asc' as const }, { created_at: 'asc' as const }],
+    select: { id: true, question: true, answer: true, sort_order: true },
   },
 }
 
@@ -130,6 +136,13 @@ type OwnerProfileQueryRow = {
     id: string
     code: string
     label: string
+    sort_order: number
+    availability: OwnerLodgingPublicProfileDto['amenities'][number]['availability']
+  }>
+  faq_items: Array<{
+    id: string
+    question: string
+    answer: string
     sort_order: number
   }>
 }
@@ -190,6 +203,13 @@ function formatOwnerProfile(
       code: amenity.code,
       label: amenity.label,
       sort_order: amenity.sort_order,
+      availability: amenity.availability,
+    })),
+    faq: row.faq_items.map(item => ({
+      id: item.id,
+      question: item.question,
+      answer: item.answer,
+      sort_order: item.sort_order,
     })),
   }
 }
@@ -233,6 +253,7 @@ function emptyOwnerProfile(lodgingId: string, cityId: string): OwnerLodgingPubli
     seo_description: null,
     photos: [],
     amenities: [],
+    faq: [],
   }
 }
 
@@ -409,6 +430,23 @@ export async function saveOwnerPublicProfile(
         code: amenity.code,
         label: amenity.label,
         sort_order: amenity.sort_order ?? index,
+        availability: amenity.availability ?? 'included',
+      })),
+    })
+  }
+
+  await prisma.lodgingFaqItem.updateMany({
+    where: { profile_id: profile.id, deleted_at: null },
+    data: { deleted_at: new Date() },
+  })
+
+  if (input.faq.length > 0) {
+    await prisma.lodgingFaqItem.createMany({
+      data: input.faq.map((item, index) => ({
+        profile_id: profile.id,
+        question: item.question,
+        answer: item.answer,
+        sort_order: item.sort_order ?? index,
       })),
     })
   }
