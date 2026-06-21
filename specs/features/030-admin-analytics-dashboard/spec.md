@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-19
-updated_at: 2026-06-19
+updated_at: 2026-06-21
 depends_on:
   - 001-city-guide
   - 011-qr-code-owner
@@ -94,6 +94,7 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 - **AC-02-03**: Given des métriques récentes Vercel sont disponibles, When l'overview s'affiche, Then un bloc `live` séparé affiche le trafic récent sans fusionner ces chiffres avec les KPI consolidés journaliers.
 - **AC-02-04**: Given une source a échoué lors de la dernière synchro mais qu'un snapshot valide plus ancien existe, When l'overview s'affiche, Then le cockpit affiche le dernier snapshot valide avec un indicateur `stale` au lieu de masquer tout le dashboard.
 - **AC-02-05**: Given une source n'est pas configurée, When l'overview s'affiche, Then le cockpit reste utilisable et le bloc concerné affiche explicitement un état de configuration manquante plutôt qu'une fausse valeur `0`.
+- **AC-02-06**: Given des métriques GA4 du jour sont lisibles côté serveur, When l'Admin charge `/admin/analytics`, Then il voit un bloc `GA4 aujourd'hui` séparé avec `sessions`, `users`, `page_views` et `engagement_rate`, sans fusion avec les KPI consolidés journaliers ni avec le bloc `live` Vercel.
 
 ### US-03 — Analyser les pages, requêtes, villes et performances
 
@@ -137,6 +138,7 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 - **AC-05-03**: Given la synchro traite des URLs publiques, When elle consolide les métriques, Then le mapping ville utilise uniquement les patterns de routes approuvés : `/guide/[city-slug]`, `/guide/[city-slug]/contact`, `/guide/[city-slug]/logements/[lodging-slug]`.
 - **AC-05-04**: Given l'endpoint interne de synchro est appelé avec un secret invalide ou absent, When la requête arrive, Then l'API refuse l'exécution.
 - **AC-05-05**: Given le bloc `live` n'a pas de chemin de récupération supporté pour Vercel sur l'environnement courant, When le cockpit s'affiche, Then le bloc `live` se dégrade proprement en état de configuration ou indisponibilité sans casser le reste du dashboard.
+- **AC-05-06**: Given un chemin de lecture serveur supporté est disponible pour Vercel sur le projet courant, When le bloc `live` est chargé, Then il retourne les métriques récentes Vercel (`visitors`, `page_views`, top pages, top referrers) sans les fusionner avec les snapshots consolidés ni avec le bloc `GA4 aujourd'hui`.
 
 ---
 
@@ -165,6 +167,10 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 - **BR-21**: Les données de performance et de trafic recent Vercel ne bloquent pas l'overview global si leur accès n'est pas disponible ; seule leur section passe en état dégradé.
 - **BR-22**: Les futures métriques d'abonnement Stripe, de conversion payante ou de revenus sont hors scope. Cette spec ne doit pas inventer de KPI monétaires avant leur spec dédiée.
 - **BR-23**: Cette spec n'autorise aucun export public ni aucune exposition des credentials analytics au navigateur.
+- **BR-24**: Le bloc `GA4 aujourd'hui` est un direct-read intraday côté serveur. Il n'écrit pas dans les modèles `Analytics*Snapshot` en V1.
+- **BR-25**: Le bloc `GA4 aujourd'hui` est distinct du bloc `live` Vercel. Les deux ne doivent jamais être fusionnés dans une même carte ou un même total.
+- **BR-26**: `Google Search Console` reste une source différée SEO et ne participe pas au feedback intraday produit.
+- **BR-27**: Le bloc `live` Vercel ne peut utiliser qu'un chemin de lecture serveur supporté. Le scraping HTML du dashboard Vercel et les API privées non documentées sont interdits.
 
 ---
 
@@ -360,6 +366,7 @@ model AnalyticsInteractionEvent {
 
 - `AnalyticsInteractionEvent` est append-only ; aucune suppression physique n'est autorisée.
 - Les `Analytics*Snapshot` servent uniquement au reporting consolidé admin.
+- Les blocs intraday (`GA4 aujourd'hui`, `live` Vercel) sont lus à la demande et ne modifient pas les snapshots consolidés en V1.
 - Les credentials analytics restent dans les variables d'environnement ou la configuration Vercel ; ils ne sont pas stockés dans ces modèles.
 
 ---
@@ -414,6 +421,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminAnalyticsLiveBlock"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/admin/analytics/ga4-today:
+    get:
+      summary: "Bloc intraday GA4 du jour"
+      tags: [admin-analytics]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Métriques GA4 du jour ou état dégradé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnalyticsGa4TodayBlock"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -749,6 +774,29 @@ components:
               referrer: { type: string }
               visitors: { type: integer }
 
+    AdminAnalyticsGa4TodayBlock:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [connected, not_configured, failed, stale, no_data]
+        window_label:
+          type: string
+          nullable: true
+        sessions:
+          type: integer
+          nullable: true
+        users:
+          type: integer
+          nullable: true
+        page_views:
+          type: integer
+          nullable: true
+        engagement_rate:
+          type: number
+          nullable: true
+
     AdminAnalyticsPageRow:
       type: object
       required: [page_path, page_type, sessions, seo_clicks, conversions]
@@ -872,7 +920,7 @@ components:
 
 ### Page `/admin/analytics`
 
-- **Loading state**: skeletons pour la barre d'état sources, les cartes KPI, les tableaux et le bloc live.
+- **Loading state**: skeletons pour la barre d'état sources, les cartes KPI, le bloc `GA4 aujourd'hui`, le bloc `live`, et les tableaux.
 - **Empty state**: si aucune source n'est configurée et qu'aucun snapshot n'existe, la page affiche un état `Aucune source analytics configurée` avec la liste des variables attendues ou une consigne de configuration.
 - **Partial state**: si certaines sources sont configurées et d'autres non, chaque bloc expose son propre état ; la page ne masque pas les blocs exploitables.
 - **Error state**: si une route admin analytics retourne une erreur structurée, la section concernée affiche un composant d'alerte lisible sans stack trace brute.
@@ -880,12 +928,13 @@ components:
   - une barre d'état des sources ;
   - une rangée KPI acquisition ;
   - une rangée KPI engagement/conversion ;
+  - un bloc `GA4 aujourd'hui` séparé ;
   - un bloc `live` séparé ;
   - une table Pages ;
   - une table Requêtes ;
   - une table Villes ;
   - un bloc Performance.
-- **Mobile behaviour**: les cartes KPI s'empilent, les tableaux sont scrollables horizontalement dans leur conteneur, et le bloc `live` reste séparé visuellement.
+- **Mobile behaviour**: les cartes KPI s'empilent, les blocs `GA4 aujourd'hui` et `live` restent séparés visuellement, et les tableaux sont scrollables horizontalement dans leur conteneur.
 
 ### Consent Banner publique
 
@@ -910,6 +959,7 @@ components:
 | AC-02-03 | Bloc `live` séparé des snapshots consolidés | integration |
 | AC-02-04 | Dernier snapshot valide conservé en cas de source stale/failed | unit |
 | AC-02-05 | Source non configurée affichée explicitement sans faux zéro | integration |
+| AC-02-06 | Bloc `GA4 aujourd'hui` séparé des snapshots et du live Vercel | integration |
 | AC-03-01 | Table Pages filtrable par période et ville | contract |
 | AC-03-02 | Table Requêtes issue de Search Console | contract |
 | AC-03-03 | Agrégats Villes limités aux URLs déterministes | unit |
@@ -926,6 +976,7 @@ components:
 | AC-05-03 | Mapping ville limité aux patterns approuvés | unit |
 | AC-05-04 | Endpoint interne de synchro refuse secret invalide | contract |
 | AC-05-05 | Bloc `live` se dégrade proprement si Vercel n'est pas exploitable | integration |
+| AC-05-06 | Bloc `live` Vercel lit un flux récent supporté quand disponible | integration |
 
 ---
 
