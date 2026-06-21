@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { AMENITY_CATALOG, AMENITY_CATALOG_CODES } from '../lib/amenity-catalog'
 import { ROOM_TYPE_LABELS } from '../lib/detail-view'
 import { buildPhotoCategoryOptions, parsePhotoCategoryValue } from '../lib/photo-categories'
 import type { OwnerLodgingPublicProfileDto } from '../types'
@@ -67,16 +68,13 @@ export function LodgingShowcaseForm(props: {
   const [sourceUrl, setSourceUrl] = useState(props.initialProfile.source_listing_url ?? '')
   const [rightsConfirmed, setRightsConfirmed] = useState(Boolean(props.initialProfile.content_rights_confirmed_at))
   const [rightsVersion, setRightsVersion] = useState(props.initialProfile.content_rights_statement_version ?? 'v1')
-  const [amenitiesText, setAmenitiesText] = useState(
-    (props.initialProfile.amenities ?? [])
-      .filter(amenity => amenity.availability !== 'on_request')
-      .map(amenity => amenity.label)
-      .join(', '),
+  const [selectedAmenityCodes, setSelectedAmenityCodes] = useState<Set<string>>(
+    () => new Set((props.initialProfile.amenities ?? []).filter(a => AMENITY_CATALOG_CODES.has(a.code)).map(a => a.code)),
   )
-  const [onRequestText, setOnRequestText] = useState(
+  const [otherAmenitiesText, setOtherAmenitiesText] = useState(
     (props.initialProfile.amenities ?? [])
-      .filter(amenity => amenity.availability === 'on_request')
-      .map(amenity => amenity.label)
+      .filter(a => !AMENITY_CATALOG_CODES.has(a.code))
+      .map(a => a.label)
       .join(', '),
   )
   const [faqRows, setFaqRows] = useState<Array<{ question: string; answer: string }>>(
@@ -124,6 +122,15 @@ export function LodgingShowcaseForm(props: {
     value: OwnerLodgingPublicProfileDto[K],
   ) {
     setProfile(current => ({ ...current, [key]: value }))
+  }
+
+  function toggleAmenity(code: string) {
+    setSelectedAmenityCodes(prev => {
+      const next = new Set(prev)
+      if (next.has(code)) next.delete(code)
+      else next.add(code)
+      return next
+    })
   }
 
   async function saveSourceListing() {
@@ -286,29 +293,30 @@ export function LodgingShowcaseForm(props: {
     setMissingFields([])
     setValidationErrors([])
 
-    const includedAmenities = amenitiesText
+    const catalogAmenities = AMENITY_CATALOG.filter(item => selectedAmenityCodes.has(item.code)).map((item, index) => ({
+      code: item.code,
+      label: item.label,
+      sort_order: index,
+      availability: item.availability,
+    }))
+
+    const otherAmenities = otherAmenitiesText
       .split(',')
       .map(label => label.trim())
       .filter(Boolean)
       .map((label, index) => ({
-        code: amenityCode(label) || `amenity-${index + 1}`,
+        code: amenityCode(label) || `autre-${index + 1}`,
         label,
-        sort_order: index,
+        sort_order: catalogAmenities.length + index,
         availability: 'included' as const,
       }))
 
-    const onRequestAmenities = onRequestText
-      .split(',')
-      .map(label => label.trim())
-      .filter(Boolean)
-      .map((label, index) => ({
-        code: `req-${amenityCode(label) || `service-${index + 1}`}`,
-        label,
-        sort_order: includedAmenities.length + index,
-        availability: 'on_request' as const,
-      }))
-
-    const amenities = [...includedAmenities, ...onRequestAmenities]
+    const seenCodes = new Set<string>()
+    const amenities = [...catalogAmenities, ...otherAmenities].filter(item => {
+      if (seenCodes.has(item.code)) return false
+      seenCodes.add(item.code)
+      return true
+    })
 
     const faq = faqRows
       .map((row, index) => ({ question: row.question.trim(), answer: row.answer.trim(), sort_order: index }))
@@ -366,17 +374,9 @@ export function LodgingShowcaseForm(props: {
     const savedProfile = payload as OwnerLodgingPublicProfileDto
     setProfile(savedProfile)
     const savedAmenities = (savedProfile.amenities as OwnerLodgingPublicProfileDto['amenities'] | undefined) ?? []
-    setAmenitiesText(
-      savedAmenities
-        .filter(amenity => amenity.availability !== 'on_request')
-        .map(amenity => amenity.label)
-        .join(', '),
-    )
-    setOnRequestText(
-      savedAmenities
-        .filter(amenity => amenity.availability === 'on_request')
-        .map(amenity => amenity.label)
-        .join(', '),
+    setSelectedAmenityCodes(new Set(savedAmenities.filter(a => AMENITY_CATALOG_CODES.has(a.code)).map(a => a.code)))
+    setOtherAmenitiesText(
+      savedAmenities.filter(a => !AMENITY_CATALOG_CODES.has(a.code)).map(a => a.label).join(', '),
     )
     setFaqRows(
       ((savedProfile.faq as OwnerLodgingPublicProfileDto['faq'] | undefined) ?? []).map(item => ({
@@ -620,25 +620,46 @@ export function LodgingShowcaseForm(props: {
                 <Input id="public-area-label" value={profile.public_area_label ?? ''} onChange={event => setField('public_area_label', event.target.value)} placeholder="Annecy-le-Vieux, centre historique, hameau..." />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="amenities-text">Equipements</Label>
-                <Textarea
-                  id="amenities-text"
-                  value={amenitiesText}
-                  onChange={event => setAmenitiesText(event.target.value)}
-                  rows={3}
-                  placeholder="Wi-Fi, Parking, Cuisine"
-                />
+                <Label>Équipements (compris dans le séjour)</Label>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                  {AMENITY_CATALOG.filter(item => item.availability === 'included').map(item => (
+                    <label key={item.code} className="flex items-center gap-2 text-sm text-charcoal">
+                      <input
+                        type="checkbox"
+                        checked={selectedAmenityCodes.has(item.code)}
+                        onChange={() => toggleAmenity(item.code)}
+                        className="h-4 w-4 rounded border-gray-300 text-[#003A5D] focus:ring-[#003A5D]"
+                      />
+                      {item.label}
+                    </label>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="on-request-text">Services sur demande</Label>
+                <Label>Services (sur demande)</Label>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                  {AMENITY_CATALOG.filter(item => item.availability === 'on_request').map(item => (
+                    <label key={item.code} className="flex items-center gap-2 text-sm text-charcoal">
+                      <input
+                        type="checkbox"
+                        checked={selectedAmenityCodes.has(item.code)}
+                        onChange={() => toggleAmenity(item.code)}
+                        className="h-4 w-4 rounded border-gray-300 text-[#003A5D] focus:ring-[#003A5D]"
+                      />
+                      {item.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="other-amenities">Autres équipements</Label>
                 <Textarea
-                  id="on-request-text"
-                  value={onRequestText}
-                  onChange={event => setOnRequestText(event.target.value)}
+                  id="other-amenities"
+                  value={otherAmenitiesText}
+                  onChange={event => setOtherAmenitiesText(event.target.value)}
                   rows={2}
-                  placeholder="Chef prive, Transfert aeroport, Massage..."
+                  placeholder="Tout ce qui n'est pas dans la liste, séparé par des virgules"
                 />
-                <p className="text-xs text-gray-500">Separez par des virgules. Affiches dans « disponible sur demande ».</p>
               </div>
               <div className="space-y-3 md:col-span-2">
                 <Label>FAQ</Label>
