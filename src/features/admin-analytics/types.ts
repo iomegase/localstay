@@ -59,6 +59,15 @@ export type AdminAnalyticsOverview = {
   freshness: AdminAnalyticsSourceStatus[]
 }
 
+export type AdminAnalyticsGa4TodayBlock = {
+  status: AnalyticsBlockStatus
+  window_label: string | null
+  sessions: number | null
+  users: number | null
+  page_views: number | null
+  engagement_rate: number | null
+}
+
 export type AdminAnalyticsLiveBlock = {
   status: AnalyticsBlockStatus
   window_label: string | null

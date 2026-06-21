@@ -4,6 +4,8 @@ const mockFindPageSnapshots = jest.fn()
 const mockFindQuerySnapshots = jest.fn()
 const mockFindCitySnapshots = jest.fn()
 const mockFindPerfSnapshots = jest.fn()
+const mockFetchGa4Today = jest.fn()
+const mockFetchVercelLive = jest.fn()
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
@@ -28,7 +30,16 @@ jest.mock('@/shared/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/features/admin-analytics/services/google-analytics', () => ({
+  fetchGoogleAnalyticsTodayMetrics: (...args: unknown[]) => mockFetchGa4Today(...args),
+}))
+
+jest.mock('@/features/admin-analytics/services/vercel-live', () => ({
+  fetchVercelLiveMetrics: (...args: unknown[]) => mockFetchVercelLive(...args),
+}))
+
 import {
+  getAdminAnalyticsGa4TodayBlock,
   getAdminAnalyticsLiveBlock,
   getAdminAnalyticsOverview,
   getAdminAnalyticsPerformance,
@@ -42,6 +53,11 @@ describe('030 admin analytics dashboard queries', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     delete process.env.VERCEL_ANALYTICS_PROJECT_ID
+    delete process.env.VERCEL_ANALYTICS_LIVE_ENDPOINT
+    delete process.env.VERCEL_ANALYTICS_LIVE_TOKEN
+    delete process.env.GA4_PROPERTY_ID
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_KEY
 
     mockAggregateDaily.mockResolvedValue({
       _sum: {
@@ -128,6 +144,16 @@ describe('030 admin analytics dashboard queries', () => {
         cls: 0.04,
       },
     ])
+
+    mockFetchGa4Today.mockResolvedValue(null)
+    mockFetchVercelLive.mockResolvedValue({
+      status: 'not_configured',
+      window_label: null,
+      visitors: null,
+      page_views: null,
+      top_pages: [],
+      top_referrers: [],
+    })
   })
 
   it('AC-02-01/02-02/02-04: aggregates overview KPIs and maps source freshness states', async () => {
@@ -156,12 +182,13 @@ describe('030 admin analytics dashboard queries', () => {
     ])
   })
 
-  it('AC-03-01/03-02/03-03/03-05: returns normalized tables and a graceful live block', async () => {
-    const [pages, queries, cities, performance, live] = await Promise.all([
+  it('AC-02-06/03-01/03-02/03-03/03-05: returns normalized tables, a degraded GA4 today block and a graceful live block', async () => {
+    const [pages, queries, cities, performance, ga4Today, live] = await Promise.all([
       listAdminAnalyticsPages({ city_id: 'city-1', limit: 10 }),
       listAdminAnalyticsQueries({ city_id: 'city-1', limit: 10 }),
       listAdminAnalyticsCities({}),
       getAdminAnalyticsPerformance({}),
+      getAdminAnalyticsGa4TodayBlock(),
       getAdminAnalyticsLiveBlock(),
     ])
 
@@ -193,6 +220,14 @@ describe('030 admin analytics dashboard queries', () => {
         }),
       ],
     })
+    expect(ga4Today).toEqual({
+      status: 'not_configured',
+      window_label: "Aujourd'hui",
+      sessions: null,
+      users: null,
+      page_views: null,
+      engagement_rate: null,
+    })
     expect(live).toEqual({
       status: 'not_configured',
       window_label: null,
@@ -201,6 +236,8 @@ describe('030 admin analytics dashboard queries', () => {
       top_pages: [],
       top_referrers: [],
     })
+    expect(mockFetchGa4Today).not.toHaveBeenCalled()
+    expect(mockFetchVercelLive).toHaveBeenCalledTimes(1)
   })
 
   it('returns source statuses directly for the sources endpoint', async () => {
@@ -276,5 +313,48 @@ describe('030 admin analytics dashboard queries', () => {
       }),
     )
     expect(sources[0].error_message).toContain('aucune donnée')
+  })
+
+  it('returns a connected GA4 today block when direct-read metrics succeed', async () => {
+    process.env.GA4_PROPERTY_ID = '542429429'
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL = 'my-stay@checkin-467416.iam.gserviceaccount.com'
+    process.env.GOOGLE_SERVICE_ACCOUNT_KEY = '"-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----\\n"'
+    mockFetchGa4Today.mockResolvedValue({
+      window_label: "Aujourd'hui",
+      sessions: 42,
+      users: 31,
+      page_views: 88,
+      engagement_rate: 0.61,
+    })
+
+    const block = await getAdminAnalyticsGa4TodayBlock()
+
+    expect(block).toEqual({
+      status: 'connected',
+      window_label: "Aujourd'hui",
+      sessions: 42,
+      users: 31,
+      page_views: 88,
+      engagement_rate: 0.61,
+    })
+    expect(mockFetchGa4Today).toHaveBeenCalledTimes(1)
+  })
+
+  it('maps a configured GA4 today read failure to a failed block', async () => {
+    process.env.GA4_PROPERTY_ID = '542429429'
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL = 'my-stay@checkin-467416.iam.gserviceaccount.com'
+    process.env.GOOGLE_SERVICE_ACCOUNT_KEY = '"-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----\\n"'
+    mockFetchGa4Today.mockRejectedValue(new Error('GA4 upstream failed'))
+
+    const block = await getAdminAnalyticsGa4TodayBlock()
+
+    expect(block).toEqual({
+      status: 'failed',
+      window_label: "Aujourd'hui",
+      sessions: null,
+      users: null,
+      page_views: null,
+      engagement_rate: null,
+    })
   })
 })

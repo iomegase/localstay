@@ -56,6 +56,14 @@ jest.mock('@/features/admin-analytics/queries/dashboard', () => ({
     { source: 'vercel_analytics', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
     { source: 'vercel_speed_insights', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
   ]),
+  getAdminAnalyticsGa4TodayBlock: jest.fn(async () => ({
+    status: 'connected',
+    window_label: "Aujourd'hui",
+    sessions: 42,
+    users: 31,
+    page_views: 88,
+    engagement_rate: 0.61,
+  })),
   getAdminAnalyticsLiveBlock: jest.fn(async () => ({
     status: 'not_configured',
     window_label: null,
@@ -102,6 +110,8 @@ describe('030 admin analytics page', () => {
     expect(screen.getAllByText('Collecte activée').length).toBeGreaterThan(0)
     expect(screen.getByText('Impressions SEO')).toBeInTheDocument()
     expect(screen.getAllByText('Sessions').length).toBeGreaterThan(0)
+    expect(screen.getByText("GA4 aujourd'hui")).toBeInTheDocument()
+    expect(screen.getByText('61.0 %')).toBeInTheDocument()
     expect(screen.getAllByText('/guide/annecy').length).toBeGreaterThan(0)
     expect(screen.getByText('annecy chalet')).toBeInTheDocument()
     expect(screen.getAllByText('Annecy').length).toBeGreaterThan(0)

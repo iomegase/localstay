@@ -2,6 +2,7 @@ import { Activity, BarChart3, LineChart, Search, TimerReset, Waves } from 'lucid
 import { runAdminAnalyticsSyncAction } from '@/features/admin-analytics/actions/run-admin-analytics-sync'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import {
+  getAdminAnalyticsGa4TodayBlock,
   getAdminAnalyticsLiveBlock,
   getAdminAnalyticsOverview,
   getAdminAnalyticsPerformance,
@@ -11,6 +12,7 @@ import {
   listAdminAnalyticsQueries,
 } from '@/features/admin-analytics/queries/dashboard'
 import type {
+  AdminAnalyticsGa4TodayBlock,
   AdminAnalyticsLiveBlock,
   AdminAnalyticsSourceStatus,
   AnalyticsSourceKind,
@@ -35,9 +37,10 @@ const STATUS_LABELS = {
 export default async function AdminAnalyticsPage() {
   await getPageAdmin()
 
-  const [overview, sources, live, pages, queries, cities, performance] = await Promise.all([
+  const [overview, sources, ga4Today, live, pages, queries, cities, performance] = await Promise.all([
     getAdminAnalyticsOverview(),
     getAdminAnalyticsSourceStatuses(),
+    getAdminAnalyticsGa4TodayBlock(),
     getAdminAnalyticsLiveBlock(),
     listAdminAnalyticsPages(),
     listAdminAnalyticsQueries(),
@@ -107,7 +110,17 @@ export default async function AdminAnalyticsPage() {
 
       <section className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-neutral-900">Live</h2>
+          <h2 className="text-lg font-bold text-neutral-900">GA4 aujourd&apos;hui</h2>
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+            {STATUS_LABELS[ga4Today.status]}
+          </span>
+        </div>
+        <Ga4TodayBlock block={ga4Today} />
+      </section>
+
+      <section className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-neutral-900">Live Vercel</h2>
           <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
             {STATUS_LABELS[live.status]}
           </span>
@@ -167,6 +180,30 @@ export default async function AdminAnalyticsPage() {
           ])}
           emptyMessage={`Core Web Vitals: ${STATUS_LABELS[performance.status]}`}
         />
+      </div>
+    </div>
+  )
+}
+
+function Ga4TodayBlock({ block }: { block: AdminAnalyticsGa4TodayBlock }) {
+  if (block.status !== 'connected') {
+    return (
+      <p className="text-sm text-gray-500">
+        GA4 intraday indisponible
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {block.window_label ? (
+        <p className="text-sm text-gray-500">{block.window_label}</p>
+      ) : null}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard title="Sessions" value={formatNumber(block.sessions)} icon={Activity} />
+        <MetricCard title="Users" value={formatNumber(block.users)} icon={LineChart} />
+        <MetricCard title="Page views" value={formatNumber(block.page_views)} icon={BarChart3} />
+        <MetricCard title="Engagement rate" value={formatPercent(block.engagement_rate)} icon={Waves} />
       </div>
     </div>
   )

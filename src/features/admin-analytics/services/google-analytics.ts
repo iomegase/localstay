@@ -36,6 +36,14 @@ type CityMetricRow = {
   pageViews: number
 }
 
+type Ga4TodayMetrics = {
+  window_label: string
+  sessions: number
+  users: number
+  page_views: number
+  engagement_rate: number | null
+}
+
 export async function syncGoogleAnalyticsSource(): Promise<{
   period_start: string
   period_end: string
@@ -92,6 +100,26 @@ export async function syncGoogleAnalyticsSource(): Promise<{
     page_rows: normalizedPageRows.length,
     city_rows: normalizedCityRows.length,
   }
+}
+
+export async function fetchGoogleAnalyticsTodayMetrics(): Promise<Ga4TodayMetrics | null> {
+  const { propertyId, serviceAccountEmail, serviceAccountKey } = getGoogleAnalyticsConfig()
+  const accessToken = await requestGoogleAccessToken({
+    serviceAccountEmail,
+    serviceAccountKey,
+    scope: GOOGLE_ANALYTICS_SCOPE,
+  })
+
+  const rows = await runGa4Report({
+    accessToken,
+    propertyId,
+    startDate: 'today',
+    endDate: 'today',
+    dimensions: [],
+    metrics: ['sessions', 'totalUsers', 'screenPageViews', 'engagementRate'],
+  })
+
+  return normalizeTodayMetrics(rows)
 }
 
 function getGoogleAnalyticsConfig(): {
@@ -185,7 +213,9 @@ async function runGa4Report(input: {
       },
       body: JSON.stringify({
         dateRanges: [{ startDate: input.startDate, endDate: input.endDate }],
-        dimensions: input.dimensions.map(name => ({ name })),
+        ...(input.dimensions.length > 0
+          ? { dimensions: input.dimensions.map(name => ({ name })) }
+          : {}),
         metrics: input.metrics.map(name => ({ name })),
         keepEmptyRows: false,
         limit: 100000,
@@ -199,6 +229,19 @@ async function runGa4Report(input: {
 
   const data = await response.json() as { rows?: AnalyticsReportRow[] }
   return data.rows ?? []
+}
+
+function normalizeTodayMetrics(rows: AnalyticsReportRow[]): Ga4TodayMetrics | null {
+  const row = rows[0]
+  if (!row) return null
+
+  return {
+    window_label: "Aujourd'hui",
+    sessions: toInt(row.metricValues?.[0]?.value),
+    users: toInt(row.metricValues?.[1]?.value),
+    page_views: toInt(row.metricValues?.[2]?.value),
+    engagement_rate: toFloat(row.metricValues?.[3]?.value),
+  }
 }
 
 function normalizeDailyRows(rows: AnalyticsReportRow[]): DailyMetricRow[] {

@@ -1,9 +1,12 @@
 import { prisma } from '@/shared/lib/prisma'
+import { fetchGoogleAnalyticsTodayMetrics } from '@/features/admin-analytics/services/google-analytics'
+import { fetchVercelLiveMetrics } from '@/features/admin-analytics/services/vercel-live'
 import type {
   AnalyticsBlockStatus,
   AnalyticsSourceKind,
   AnalyticsSourceStatus,
   AdminAnalyticsCityRow,
+  AdminAnalyticsGa4TodayBlock,
   AdminAnalyticsLiveBlock,
   AdminAnalyticsOverview,
   AdminAnalyticsPageRow,
@@ -202,6 +205,17 @@ function mapSourceStatusToBlockStatus(status: AnalyticsSourceStatus): AnalyticsB
   if (status === 'stale') return 'stale'
   if (status === 'failed') return 'failed'
   return 'not_configured'
+}
+
+function buildEmptyGa4TodayBlock(status: AnalyticsBlockStatus): AdminAnalyticsGa4TodayBlock {
+  return {
+    status,
+    window_label: "Aujourd'hui",
+    sessions: null,
+    users: null,
+    page_views: null,
+    engagement_rate: null,
+  }
 }
 
 export async function getAdminAnalyticsSourceStatuses(): Promise<AdminAnalyticsSourceStatus[]> {
@@ -474,24 +488,26 @@ export async function getAdminAnalyticsPerformance(
   }
 }
 
-export async function getAdminAnalyticsLiveBlock(): Promise<AdminAnalyticsLiveBlock> {
-  if (!process.env.VERCEL_ANALYTICS_PROJECT_ID) {
-    return {
-      status: 'not_configured',
-      window_label: null,
-      visitors: null,
-      page_views: null,
-      top_pages: [],
-      top_referrers: [],
-    }
+export async function getAdminAnalyticsGa4TodayBlock(): Promise<AdminAnalyticsGa4TodayBlock> {
+  if (!isSourceConfigured('ga4')) {
+    return buildEmptyGa4TodayBlock('not_configured')
   }
 
-  return {
-    status: 'no_data',
-    window_label: null,
-    visitors: null,
-    page_views: null,
-    top_pages: [],
-    top_referrers: [],
+  try {
+    const metrics = await fetchGoogleAnalyticsTodayMetrics()
+    if (!metrics) {
+      return buildEmptyGa4TodayBlock('no_data')
+    }
+
+    return {
+      status: 'connected',
+      ...metrics,
+    }
+  } catch {
+    return buildEmptyGa4TodayBlock('failed')
   }
+}
+
+export async function getAdminAnalyticsLiveBlock(): Promise<AdminAnalyticsLiveBlock> {
+  return fetchVercelLiveMetrics()
 }

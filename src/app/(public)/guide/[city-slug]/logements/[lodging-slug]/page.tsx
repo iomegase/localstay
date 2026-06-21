@@ -89,24 +89,26 @@ export default async function LodgingDetailPage({ params }: Props) {
       <div className="font-sans">
         <LodgingHeroGallery title={detail.title} photos={detail.photos} />
 
-        <div className="mx-4 mt-4">
+        <div className="mx-4 mt-5 space-y-4">
           <Link
             href={`/guide/${citySlug}/logements`}
-            className="group inline-flex items-center text-[13px] font-medium text-gray-500 transition-colors hover:text-charcoal"
+            className="group flex w-fit items-center text-[13px] font-medium text-gray-500 transition-colors hover:text-charcoal"
           >
             <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" strokeWidth={2} />
             Retour
           </Link>
-          <span className="mt-3 inline-block rounded-md bg-[#e8decb] px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-[#8b6f4e]">
-            {detail.property_type}
-          </span>
-          <h1 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-charcoal">{detail.title}</h1>
-          {detail.public_area_label && (
-            <div className="mt-2 flex items-center text-[13px] font-medium text-gray-500">
-              <MapPin className="mr-1.5 h-4 w-4 text-[#003A5D]" strokeWidth={2.5} />
-              {detail.public_area_label}
-            </div>
-          )}
+          <div>
+            <span className="inline-block rounded-md bg-[#e8decb] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#8b6f4e]">
+              {detail.property_type}
+            </span>
+            <h1 className="mt-3 text-[26px] font-semibold leading-tight tracking-tight text-charcoal">{detail.title}</h1>
+            {detail.public_area_label && (
+              <div className="mt-2 flex items-center text-[13px] font-medium text-gray-500">
+                <MapPin className="mr-1.5 h-4 w-4 shrink-0 text-[#003A5D]" strokeWidth={2.5} />
+                {detail.public_area_label}
+              </div>
+            )}
+          </div>
         </div>
 
         <LodgingExcerpt text={detail.short_description} />

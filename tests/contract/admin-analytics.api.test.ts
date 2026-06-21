@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server'
 const mockGetSessionAdmin = jest.fn()
 const mockGetOverview = jest.fn()
 const mockGetSources = jest.fn()
+const mockGetGa4Today = jest.fn()
 const mockGetLive = jest.fn()
 const mockListPages = jest.fn()
 const mockListQueries = jest.fn()
@@ -21,6 +22,9 @@ jest.mock('@/features/admin-analytics/queries/dashboard', () => ({
   },
   getAdminAnalyticsSourceStatuses: function() {
     return mockGetSources.apply(this, arguments as never)
+  },
+  getAdminAnalyticsGa4TodayBlock: function() {
+    return mockGetGa4Today.apply(this, arguments as never)
   },
   getAdminAnalyticsLiveBlock: function() {
     return mockGetLive.apply(this, arguments as never)
@@ -41,6 +45,7 @@ jest.mock('@/features/admin-analytics/queries/dashboard', () => ({
 
 import { GET as overviewGET } from '@/app/api/admin/analytics/overview/route'
 import { GET as sourcesGET } from '@/app/api/admin/analytics/sources/route'
+import { GET as ga4TodayGET } from '@/app/api/admin/analytics/ga4-today/route'
 import { GET as liveGET } from '@/app/api/admin/analytics/live/route'
 import { GET as pagesGET } from '@/app/api/admin/analytics/pages/route'
 import { GET as queriesGET } from '@/app/api/admin/analytics/queries/route'
@@ -75,6 +80,14 @@ describe('030 admin analytics API', () => {
       freshness: [{ source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: null, error_message: null }],
     })
     mockGetSources.mockResolvedValue([{ source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: null, error_message: null }])
+    mockGetGa4Today.mockResolvedValue({
+      status: 'connected',
+      window_label: "Aujourd'hui",
+      sessions: 42,
+      users: 31,
+      page_views: 88,
+      engagement_rate: 0.61,
+    })
     mockGetLive.mockResolvedValue({ status: 'not_configured', window_label: null, visitors: null, page_views: null, top_pages: [], top_referrers: [] })
     mockListPages.mockResolvedValue([{ page_path: '/guide/annecy', page_type: 'city_guide', city_id: CITY_ID, city_name: 'Annecy', sessions: 220, seo_clicks: 18, conversions: 4 }])
     mockListQueries.mockResolvedValue([{ query: 'annecy chalet', page_path: '/guide/annecy/logements/chalet-hygge', city_id: CITY_ID, city_name: 'Annecy', clicks: 11, impressions: 120, ctr: 0.091, avg_position: 6.4 }])
@@ -95,6 +108,20 @@ describe('030 admin analytics API', () => {
     }))
     await expect(sourcesRes.json()).resolves.toEqual({
       data: [expect.objectContaining({ source: 'ga4' })],
+    })
+  })
+
+  it('AC-02-06: returns the GA4 today block', async () => {
+    const res = await ga4TodayGET()
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      status: 'connected',
+      window_label: "Aujourd'hui",
+      sessions: 42,
+      users: 31,
+      page_views: 88,
+      engagement_rate: 0.61,
     })
   })
 
