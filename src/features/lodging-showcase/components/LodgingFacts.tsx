@@ -1,4 +1,4 @@
-import { Bath, BedDouble, Expand, Users } from 'lucide-react'
+import { Bath, BedDouble, BedSingle, Maximize, Users } from 'lucide-react'
 
 export function LodgingFacts(props: {
   maxGuests: number
@@ -11,25 +11,28 @@ export function LodgingFacts(props: {
     { label: 'Voyageurs', value: props.maxGuests, icon: Users },
     { label: 'Chambres', value: props.bedroomCount, icon: BedDouble },
     { label: 'Salles de bain', value: props.bathroomCount, icon: Bath },
-    { label: 'Surface', value: props.surfaceM2 ? `${props.surfaceM2} m2` : null, icon: Expand },
+    { label: 'Couchages', value: props.bedCount, icon: BedSingle },
+    { label: 'Surface', value: props.surfaceM2 != null ? `${props.surfaceM2} m²` : null, icon: Maximize },
   ].filter(fact => fact.value != null)
 
+  if (facts.length === 0) return null
+
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section
+      aria-label="Caractéristiques du logement"
+      className="flex items-stretch divide-x divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+    >
       {facts.map(fact => (
-        <div key={fact.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <fact.icon className="mb-3 h-5 w-5 text-gold" />
-          <p className="text-sm text-gray-500">{fact.label}</p>
-          <p className="text-lg font-medium text-charcoal">{fact.value}</p>
+        <div
+          key={fact.label}
+          aria-label={`${fact.label} : ${fact.value}`}
+          title={`${fact.label} : ${fact.value}`}
+          className="flex flex-1 flex-col items-center justify-center gap-2 px-1.5 py-4"
+        >
+          <fact.icon className="h-[18px] w-[18px] text-gold" strokeWidth={1.75} aria-hidden="true" />
+          <span className="text-[15px] font-semibold leading-none text-charcoal">{fact.value}</span>
         </div>
       ))}
-      {props.bedCount != null && (
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <BedDouble className="mb-3 h-5 w-5 text-gold" />
-          <p className="text-sm text-gray-500">Couchages</p>
-          <p className="text-lg font-medium text-charcoal">{props.bedCount}</p>
-        </div>
-      )}
     </section>
   )
 }
