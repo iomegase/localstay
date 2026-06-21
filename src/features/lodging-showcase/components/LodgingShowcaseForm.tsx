@@ -89,6 +89,7 @@ export function LodgingShowcaseForm(props: {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoAlt, setPhotoAlt] = useState('')
   const [photoCategory, setPhotoCategory] = useState('common_area')
+  const [photoActionId, setPhotoActionId] = useState<string | null>(null)
 
   const photoCategoryOptions = buildPhotoCategoryOptions(profile.bedroom_count, profile.bathroom_count)
   const selectedPhotoCategory = photoCategoryOptions.some(option => option.value === photoCategory)
@@ -229,6 +230,54 @@ export function LodgingShowcaseForm(props: {
     setPhotoCategory('common_area')
     setStatus('saved')
     setMessage('Photo ajoutee au brouillon.')
+  }
+
+  async function deletePhoto(photoId: string) {
+    if (!window.confirm('Supprimer cette photo ?')) return
+    setPhotoActionId(photoId)
+    try {
+      const res = await fetch(`${apiBase}/public-profile/photos/${photoId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        setMessage('Suppression impossible.')
+        setStatus('error')
+        return
+      }
+      setProfile(prev => {
+        const wasCover = prev.photos.find(p => p.id === photoId)?.is_cover ?? false
+        let remaining = prev.photos.filter(p => p.id !== photoId)
+        // mirror server-side auto-promotion of a new cover
+        if (wasCover && remaining.length > 0 && !remaining.some(p => p.is_cover)) {
+          remaining = remaining.map((p, i) => (i === 0 ? { ...p, is_cover: true } : p))
+        }
+        return { ...prev, photos: remaining }
+      })
+    } catch {
+      setMessage('Suppression impossible.')
+      setStatus('error')
+    } finally {
+      setPhotoActionId(null)
+    }
+  }
+
+  async function setCoverPhoto(photoId: string) {
+    setPhotoActionId(photoId)
+    try {
+      const res = await fetch(`${apiBase}/public-profile/photos/${photoId}`, { method: 'PATCH' })
+      if (!res.ok) {
+        setMessage('Mise en couverture impossible.')
+        setStatus('error')
+        return
+      }
+      setProfile(prev => ({
+        ...prev,
+        photos: prev.photos.map(p => ({ ...p, is_cover: p.id === photoId })),
+      }))
+    } catch {
+      setMessage('Mise en couverture impossible.')
+      setStatus('error')
+    } finally {
+      setPhotoActionId(null)
+    }
   }
 
   async function saveDraft() {
@@ -671,13 +720,45 @@ export function LodgingShowcaseForm(props: {
               {profile.photos.length > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {profile.photos.map(photo => (
-                    <div key={photo.id ?? photo.url} className="overflow-hidden rounded-xl border border-gray-100 bg-white">
+                    <div
+                      key={photo.id ?? photo.url}
+                      className={`overflow-hidden rounded-xl border bg-white ${photo.is_cover ? 'border-gold ring-1 ring-gold' : 'border-gray-100'}`}
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full object-cover" />
                       <div className="space-y-1 p-3 text-xs text-gray-500">
                         <p className="font-medium text-charcoal">{photo.alt}</p>
                         <p>{photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type ?? 'other'] ?? 'Autre'}</p>
                       </div>
+                      {photo.id && (
+                        <div className="flex items-center justify-between gap-2 px-3 pb-3">
+                          {photo.is_cover ? (
+                            <span className="inline-flex items-center rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-semibold text-gold">
+                              Couverture
+                            </span>
+                          ) : (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={photoActionId === photo.id}
+                              onClick={() => photo.id && setCoverPhoto(photo.id)}
+                            >
+                              Definir couverture
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            disabled={photoActionId === photo.id}
+                            onClick={() => photo.id && deletePhoto(photo.id)}
+                          >
+                            Supprimer
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
