@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { ROOM_TYPE_LABELS } from '../lib/detail-view'
+import { buildPhotoCategoryOptions, parsePhotoCategoryValue } from '../lib/photo-categories'
 import type { OwnerLodgingPublicProfileDto } from '../types'
 
 type ApiErrorPayload = {
@@ -86,7 +88,12 @@ export function LodgingShowcaseForm(props: {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoAlt, setPhotoAlt] = useState('')
-  const [photoRoomType, setPhotoRoomType] = useState('common_area')
+  const [photoCategory, setPhotoCategory] = useState('common_area')
+
+  const photoCategoryOptions = buildPhotoCategoryOptions(profile.bedroom_count, profile.bathroom_count)
+  const selectedPhotoCategory = photoCategoryOptions.some(option => option.value === photoCategory)
+    ? photoCategory
+    : (photoCategoryOptions[0]?.value ?? 'other')
 
   function parsedRewriteSuggestion() {
     if (!profile.rewrite_suggestion) return null
@@ -183,10 +190,12 @@ export function LodgingShowcaseForm(props: {
     setMessage(null)
     setValidationErrors([])
 
+    const parsedCategory = parsePhotoCategoryValue(selectedPhotoCategory)
     const formData = new FormData()
     formData.set('file', photoFile)
     formData.set('alt', photoAlt)
-    formData.set('room_type', photoRoomType)
+    formData.set('room_type', parsedCategory.roomType)
+    if (parsedCategory.roomLabel) formData.set('room_label', parsedCategory.roomLabel)
 
     const res = await fetch(`${apiBase}/public-profile/photos`, {
       method: 'POST',
@@ -217,7 +226,7 @@ export function LodgingShowcaseForm(props: {
     }))
     setPhotoFile(null)
     setPhotoAlt('')
-    setPhotoRoomType('common_area')
+    setPhotoCategory('common_area')
     setStatus('saved')
     setMessage('Photo ajoutee au brouillon.')
   }
@@ -280,6 +289,7 @@ export function LodgingShowcaseForm(props: {
           url: photo.url,
           alt: photo.alt,
           room_type: photo.room_type,
+          room_label: photo.room_label,
           sort_order: photo.sort_order,
           is_cover: photo.is_cover,
         })),
@@ -644,16 +654,13 @@ export function LodgingShowcaseForm(props: {
                   <Label htmlFor="photo-room-type">Type de piece</Label>
                   <select
                     id="photo-room-type"
-                    value={photoRoomType}
-                    onChange={event => setPhotoRoomType(event.target.value)}
+                    value={selectedPhotoCategory}
+                    onChange={event => setPhotoCategory(event.target.value)}
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                   >
-                    <option value="bedroom">Chambre</option>
-                    <option value="bathroom">Salle de bain</option>
-                    <option value="common_area">Piece de vie</option>
-                    <option value="exterior">Exterieur</option>
-                    <option value="kitchen">Cuisine</option>
-                    <option value="other">Autre</option>
+                    {photoCategoryOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -669,7 +676,7 @@ export function LodgingShowcaseForm(props: {
                       <img src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full object-cover" />
                       <div className="space-y-1 p-3 text-xs text-gray-500">
                         <p className="font-medium text-charcoal">{photo.alt}</p>
-                        <p>{photo.room_type ?? 'other'}</p>
+                        <p>{photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type ?? 'other'] ?? 'Autre'}</p>
                       </div>
                     </div>
                   ))}

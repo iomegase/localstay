@@ -5,6 +5,7 @@ type Photo = {
   url: string
   alt: string
   room_type: string | null
+  room_label?: string | null
   sort_order: number
   is_cover: boolean
 }

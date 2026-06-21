@@ -17,6 +17,22 @@ describe('selectRoomPhotos', () => {
   it('ignores the "other" room type', () => {
     expect(selectRoomPhotos([{ id: '4', url: 'd', alt: 'D', room_type: 'other', sort_order: 0, is_cover: false }])).toHaveLength(0)
   })
+
+  it('uses the specific room_label when present', () => {
+    const result = selectRoomPhotos([
+      { id: '5', url: 'e', alt: 'E', room_type: 'bedroom', room_label: 'Chambre 2', sort_order: 0, is_cover: false },
+    ])
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ url: 'e', label: 'Chambre 2' })
+  })
+
+  it('falls back to the generic label when room_label is absent', () => {
+    const result = selectRoomPhotos([
+      { id: '6', url: 'f', alt: 'F', room_type: 'bedroom', room_label: null, sort_order: 0, is_cover: false },
+    ])
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ url: 'f', label: 'Chambre' })
+  })
 })
 
 describe('mapsDirectionUrl', () => {

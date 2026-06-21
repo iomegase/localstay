@@ -8,6 +8,7 @@ type Photo = {
   url: string
   alt: string
   room_type: string | null
+  room_label?: string | null
   sort_order: number
   is_cover: boolean
 }
@@ -46,7 +47,7 @@ export function LodgingHeroGallery({ title, photos }: { title: string; photos: P
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             {photo.room_type && ROOM_TYPE_LABELS[photo.room_type] && (
               <div className="absolute bottom-12 left-0 right-0 px-5">
-                <p className="text-[11px] uppercase tracking-widest text-white/70">{ROOM_TYPE_LABELS[photo.room_type]}</p>
+                <p className="text-[11px] uppercase tracking-widest text-white/70">{photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type]}</p>
               </div>
             )}
           </div>
