@@ -55,6 +55,7 @@ export const LodgingPhotoItemSchema = z.object({
     message: 'Le texte alternatif photo est obligatoire.',
   }),
   room_type: LodgingPhotoRoomTypeSchema.nullish(),
+  room_label: z.string().trim().max(40).nullish(),
   sort_order: z.number().int().min(0).default(0),
   is_cover: z.boolean(),
 })

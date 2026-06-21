@@ -209,6 +209,7 @@ export function LodgingShowcaseForm(props: {
           url: String(payload?.url ?? ''),
           alt: String(payload?.alt ?? ''),
           room_type: (payload?.room_type as OwnerLodgingPublicProfileDto['photos'][number]['room_type']) ?? null,
+          room_label: payload?.room_label != null ? String(payload.room_label) : null,
           sort_order: Number(payload?.sort_order ?? current.photos.length),
           is_cover: Boolean(payload?.is_cover),
         },

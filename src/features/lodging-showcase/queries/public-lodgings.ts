@@ -25,6 +25,7 @@ export type PublicLodgingDetailQueryResult = PublicLodgingCardApi & {
     url: string
     alt: string
     room_type: string | null
+    room_label: string | null
     sort_order: number
     is_cover: boolean
   }>
@@ -76,6 +77,7 @@ const detailPhotoArgs = {
     url: true,
     alt: true,
     room_type: true,
+    room_label: true,
     sort_order: true,
     is_cover: true,
   },

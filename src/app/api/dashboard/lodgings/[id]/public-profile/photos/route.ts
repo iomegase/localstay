@@ -17,6 +17,8 @@ export async function POST(
   const file = formData.get('file')
   const alt = String(formData.get('alt') ?? '').trim()
   const roomTypeRaw = formData.get('room_type')
+  const roomLabelRaw = String(formData.get('room_label') ?? '').trim()
+  const roomLabel = roomLabelRaw.length > 0 ? roomLabelRaw.slice(0, 40) : null
 
   if (!(file instanceof File)) {
     return apiError('VALIDATION_ERROR', 'Fichier manquant', 400)
@@ -53,6 +55,7 @@ export async function POST(
     url: upload.url,
     alt,
     room_type: roomType.data,
+    room_label: roomLabel,
   })
 
   if (!photo) {
