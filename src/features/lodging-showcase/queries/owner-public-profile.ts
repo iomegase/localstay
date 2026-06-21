@@ -66,6 +66,7 @@ const ownerProfileSelect: Prisma.LodgingPublicProfileSelect = {
       url: true,
       alt: true,
       room_type: true,
+      room_label: true,
       sort_order: true,
       is_cover: true,
     },
@@ -129,6 +130,7 @@ type OwnerProfileQueryRow = {
     url: string
     alt: string
     room_type: string | null
+    room_label: string | null
     sort_order: number
     is_cover: boolean
   }>
@@ -195,6 +197,7 @@ function formatOwnerProfile(
       url: photo.url,
       alt: photo.alt,
       room_type: photo.room_type as LodgingPhotoRoomType | null,
+      room_label: photo.room_label,
       sort_order: photo.sort_order,
       is_cover: photo.is_cover,
     })),
@@ -467,6 +470,7 @@ async function writePublicProfileForLodging(
       data: {
         alt: photo.alt,
         room_type: photo.room_type ?? null,
+        room_label: photo.room_label ?? null,
         sort_order: photo.sort_order,
         is_cover: photo.is_cover,
       },
@@ -603,6 +607,7 @@ async function createPhotoForLodging(
     url: string
     alt: string
     room_type: LodgingPhotoRoomType | null
+    room_label: string | null
   },
 ) {
   const owned = await ensureProfileRecordForLodging(lodging)
@@ -620,6 +625,7 @@ async function createPhotoForLodging(
       url: input.url,
       alt: input.alt,
       room_type: input.room_type,
+      room_label: input.room_label,
       sort_order: existingCount,
       is_cover: existingCount === 0,
     },
@@ -628,6 +634,7 @@ async function createPhotoForLodging(
       url: true,
       alt: true,
       room_type: true,
+      room_label: true,
       sort_order: true,
       is_cover: true,
     },
@@ -646,6 +653,7 @@ export async function createLodgingPhoto(
     url: string
     alt: string
     room_type: LodgingPhotoRoomType | null
+    room_label: string | null
   },
 ) {
   const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
@@ -781,6 +789,7 @@ export async function createAdminLodgingPhoto(
     url: string
     alt: string
     room_type: LodgingPhotoRoomType | null
+    room_label: string | null
   },
 ) {
   const lodging = await getLodgingForAdminShowcase(lodgingId)

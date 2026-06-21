@@ -3,6 +3,7 @@ type Photo = {
   url: string
   alt: string
   room_type: string | null
+  room_label?: string | null
   sort_order: number
   is_cover: boolean
 }
@@ -19,7 +20,7 @@ export const ROOM_TYPE_LABELS: Record<string, string> = {
 export function selectRoomPhotos(photos: Photo[]): Array<{ id: string; url: string; alt: string; label: string }> {
   return photos
     .filter(photo => photo.room_type != null && photo.room_type !== 'other' && ROOM_TYPE_LABELS[photo.room_type] != null)
-    .map(photo => ({ id: photo.id, url: photo.url, alt: photo.alt, label: ROOM_TYPE_LABELS[photo.room_type as string] }))
+    .map(photo => ({ id: photo.id, url: photo.url, alt: photo.alt, label: photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type as string] }))
 }
 
 export function mapsDirectionUrl(latitude: number, longitude: number): string {

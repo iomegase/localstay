@@ -925,6 +925,7 @@ model LodgingPhoto {
   url        String
   alt        String
   room_type  String?
+  room_label String?
   sort_order Int @default(0)
   is_cover   Boolean @default(false)
 

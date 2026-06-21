@@ -364,11 +364,50 @@ describe('028 owner lodging showcase API', () => {
       url: 'https://cdn.test/guide-photos/lodgings/lodging-1/photo.webp',
       alt: 'Salon principal',
       room_type: 'common_area',
+      room_label: null,
     })
     await expect(res.json()).resolves.toMatchObject({
       id: 'photo-1',
       alt: 'Salon principal',
       room_type: 'common_area',
+    })
+  })
+
+  it('AC-05-09: forwards a per-room room_label to the photo record', async () => {
+    mockUploadGuideImage.mockResolvedValue({
+      ok: true,
+      url: 'https://cdn.test/guide-photos/lodgings/lodging-1/chambre.webp',
+    })
+    mockCreateLodgingPhoto.mockResolvedValue({
+      id: 'photo-2',
+      url: 'https://cdn.test/guide-photos/lodgings/lodging-1/chambre.webp',
+      alt: 'Chambre parentale',
+      room_type: 'bedroom',
+      room_label: 'Chambre 2',
+      sort_order: 1,
+      is_cover: false,
+    })
+
+    const formData = new FormData()
+    formData.set('alt', 'Chambre parentale')
+    formData.set('room_type', 'bedroom')
+    formData.set('room_label', 'Chambre 2')
+    formData.set('file', new File(['fake-image'], 'chambre.webp', { type: 'image/webp' }))
+
+    const res = await PHOTOS_POST(
+      new NextRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile/photos', {
+        method: 'POST',
+        body: formData,
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(201)
+    expect(mockCreateLodgingPhoto).toHaveBeenCalledWith('owner-1', 'lodging-1', {
+      url: 'https://cdn.test/guide-photos/lodgings/lodging-1/chambre.webp',
+      alt: 'Chambre parentale',
+      room_type: 'bedroom',
+      room_label: 'Chambre 2',
     })
   })
 
