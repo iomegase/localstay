@@ -23,6 +23,33 @@ export function selectRoomPhotos(photos: Photo[]): Array<{ id: string; url: stri
     .map(photo => ({ id: photo.id, url: photo.url, alt: photo.alt, label: photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type as string] }))
 }
 
+export type RoomPhotoGroup = {
+  label: string
+  photos: Array<{ id: string; url: string; alt: string }>
+}
+
+/**
+ * Groups room photos by their display label so several photos of the same room
+ * (e.g. two "Extérieur" shots, or two photos of "Chambre 1") collapse into one
+ * card. First-seen order is preserved.
+ */
+export function groupRoomPhotos(photos: Photo[]): RoomPhotoGroup[] {
+  const order: string[] = []
+  const byLabel = new Map<string, RoomPhotoGroup['photos']>()
+
+  for (const room of selectRoomPhotos(photos)) {
+    let bucket = byLabel.get(room.label)
+    if (!bucket) {
+      bucket = []
+      byLabel.set(room.label, bucket)
+      order.push(room.label)
+    }
+    bucket.push({ id: room.id, url: room.url, alt: room.alt })
+  }
+
+  return order.map(label => ({ label, photos: byLabel.get(label) as RoomPhotoGroup['photos'] }))
+}
+
 export function mapsDirectionUrl(latitude: number, longitude: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
 }

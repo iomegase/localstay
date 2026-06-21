@@ -1,4 +1,4 @@
-import { selectRoomPhotos, mapsDirectionUrl, ROOM_TYPE_LABELS } from '@/features/lodging-showcase/lib/detail-view'
+import { selectRoomPhotos, groupRoomPhotos, mapsDirectionUrl, ROOM_TYPE_LABELS } from '@/features/lodging-showcase/lib/detail-view'
 
 describe('selectRoomPhotos', () => {
   const photos = [
@@ -32,6 +32,36 @@ describe('selectRoomPhotos', () => {
     ])
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({ url: 'f', label: 'Chambre' })
+  })
+})
+
+describe('groupRoomPhotos', () => {
+  it('groups several photos that share a label into one entry, preserving order', () => {
+    const groups = groupRoomPhotos([
+      { id: '1', url: 'living', alt: 'Salon', room_type: 'common_area', sort_order: 0, is_cover: true },
+      { id: '2', url: 'ext1', alt: 'Terrasse', room_type: 'exterior', sort_order: 1, is_cover: false },
+      { id: '3', url: 'ext2', alt: 'Piscine', room_type: 'exterior', sort_order: 2, is_cover: false },
+    ])
+
+    expect(groups).toHaveLength(2)
+    expect(groups[0]).toMatchObject({ label: 'Pièce de vie' })
+    expect(groups[0].photos).toHaveLength(1)
+    expect(groups[1].label).toBe('Extérieur')
+    expect(groups[1].photos.map(p => p.url)).toEqual(['ext1', 'ext2'])
+  })
+
+  it('keeps distinct numbered rooms separate', () => {
+    const groups = groupRoomPhotos([
+      { id: '1', url: 'c1', alt: 'Chambre 1', room_type: 'bedroom', room_label: 'Chambre 1', sort_order: 0, is_cover: false },
+      { id: '2', url: 'c2', alt: 'Chambre 2', room_type: 'bedroom', room_label: 'Chambre 2', sort_order: 1, is_cover: false },
+    ])
+
+    expect(groups.map(g => g.label)).toEqual(['Chambre 1', 'Chambre 2'])
+    expect(groups.every(g => g.photos.length === 1)).toBe(true)
+  })
+
+  it('returns an empty array when no photo has a known room type', () => {
+    expect(groupRoomPhotos([{ id: '1', url: 'x', alt: 'X', room_type: null, sort_order: 0, is_cover: false }])).toEqual([])
   })
 })
 

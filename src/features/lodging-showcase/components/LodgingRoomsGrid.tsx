@@ -1,4 +1,7 @@
-import { selectRoomPhotos } from '../lib/detail-view'
+'use client'
+
+import { useRef, useState } from 'react'
+import { groupRoomPhotos, type RoomPhotoGroup } from '../lib/detail-view'
 
 type Photo = {
   id: string
@@ -11,22 +14,83 @@ type Photo = {
 }
 
 export function LodgingRoomsGrid({ photos }: { photos: Photo[] }) {
-  const rooms = selectRoomPhotos(photos)
-  if (rooms.length === 0) return null
+  const groups = groupRoomPhotos(photos)
+  if (groups.length === 0) return null
 
   return (
     <section className="mt-6">
       <p className="mx-4 mb-4 text-[14px] font-bold uppercase tracking-wider text-charcoal">L&apos;espace de vie</p>
       <div className="mx-4 grid grid-cols-2 gap-3">
-        {rooms.map(room => (
-          <div key={room.id} className="relative aspect-square w-full overflow-hidden rounded-2xl shadow-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={room.url} alt={room.alt} className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-            <span className="absolute bottom-2 left-3 text-[12px] font-semibold text-white drop-shadow">{room.label}</span>
-          </div>
+        {groups.map(group => (
+          <RoomGroupCard key={group.label} group={group} />
         ))}
       </div>
     </section>
+  )
+}
+
+function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(0)
+  const multiple = group.photos.length > 1
+
+  const handleScroll = () => {
+    const el = trackRef.current
+    if (!el) return
+    setActive(Math.round(el.scrollLeft / el.clientWidth))
+  }
+
+  const goTo = (index: number) => {
+    const el = trackRef.current
+    if (!el) return
+    el.scrollTo({ left: index * el.clientWidth, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="relative aspect-square w-full overflow-hidden rounded-2xl shadow-sm">
+      <div
+        ref={trackRef}
+        onScroll={multiple ? handleScroll : undefined}
+        className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {group.photos.map(photo => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={photo.id}
+            src={photo.url}
+            alt={photo.alt}
+            className="h-full w-full shrink-0 snap-center object-cover"
+          />
+        ))}
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+      <span className="pointer-events-none absolute bottom-2 left-3 text-[12px] font-semibold text-white drop-shadow">
+        {group.label}
+      </span>
+
+      {multiple && (
+        <>
+          <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+            {group.photos.length}
+          </span>
+          <div className="absolute bottom-2.5 right-3 flex gap-1">
+            {group.photos.map((photo, index) => (
+              <button
+                key={photo.id}
+                type="button"
+                aria-label={`Voir la photo ${index + 1} de ${group.label}`}
+                onClick={() => goTo(index)}
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: active === index ? 14 : 6,
+                  background: active === index ? '#fff' : 'rgba(255,255,255,0.5)',
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
