@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/shared/components/ui/button'
 import type { AdminLodgingProfileRow } from '../queries/admin-public-profiles'
 
@@ -101,6 +102,9 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
+                        <Button asChild size="sm" variant="outline" disabled={isBusy}>
+                          <Link href={`/admin/lodgings/${row.lodging.id}/edit`}>Éditer</Link>
+                        </Button>
                         <Button
                           type="button"
                           size="sm"

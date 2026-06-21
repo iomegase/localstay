@@ -56,7 +56,11 @@ function amenityCode(label: string): string {
 export function LodgingShowcaseForm(props: {
   lodgingId: string
   initialProfile: OwnerLodgingPublicProfileDto
+  mode?: 'owner' | 'admin'
 }) {
+  const apiBase = props.mode === 'admin'
+    ? `/api/admin/lodgings/${props.lodgingId}`
+    : `/api/dashboard/lodgings/${props.lodgingId}`
   const [profile, setProfile] = useState(props.initialProfile)
   const [sourceUrl, setSourceUrl] = useState(props.initialProfile.source_listing_url ?? '')
   const [rightsConfirmed, setRightsConfirmed] = useState(Boolean(props.initialProfile.content_rights_confirmed_at))
@@ -184,7 +188,7 @@ export function LodgingShowcaseForm(props: {
     formData.set('alt', photoAlt)
     formData.set('room_type', photoRoomType)
 
-    const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/photos`, {
+    const res = await fetch(`${apiBase}/public-profile/photos`, {
       method: 'POST',
       body: formData,
     })
@@ -251,7 +255,7 @@ export function LodgingShowcaseForm(props: {
       .map((row, index) => ({ question: row.question.trim(), answer: row.answer.trim(), sort_order: index }))
       .filter(row => row.question.length > 0 && row.answer.length > 0)
 
-    const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile`, {
+    const res = await fetch(`${apiBase}/public-profile`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -410,59 +414,63 @@ export function LodgingShowcaseForm(props: {
     <div className="space-y-6 pb-20">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Annonce externe</CardTitle>
-              <CardDescription>
-                MyStay ne copie pas automatiquement les photos ou textes Airbnb. Importez uniquement des contenus dont vous possedez les droits.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="source-listing-url">URL Airbnb ou Booking</Label>
-                <Input
-                  id="source-listing-url"
-                  value={sourceUrl}
-                  onChange={event => setSourceUrl(event.target.value)}
-                  placeholder="https://www.airbnb.fr/rooms/123456789"
-                />
-              </div>
-              <Button type="button" variant="outline" onClick={saveSourceListing}>
-                Enregistrer l URL source
-              </Button>
-            </CardContent>
-          </Card>
+          {props.mode !== 'admin' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Annonce externe</CardTitle>
+                <CardDescription>
+                  MyStay ne copie pas automatiquement les photos ou textes Airbnb. Importez uniquement des contenus dont vous possedez les droits.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="source-listing-url">URL Airbnb ou Booking</Label>
+                  <Input
+                    id="source-listing-url"
+                    value={sourceUrl}
+                    onChange={event => setSourceUrl(event.target.value)}
+                    placeholder="https://www.airbnb.fr/rooms/123456789"
+                  />
+                </div>
+                <Button type="button" variant="outline" onClick={saveSourceListing}>
+                  Enregistrer l URL source
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Droits contenus</CardTitle>
-              <CardDescription>
-                La confirmation est obligatoire avant toute soumission en review si vous reutilisez des textes ou photos importes.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <label className="flex items-start gap-3 text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={rightsConfirmed}
-                  onChange={event => setRightsConfirmed(event.target.checked)}
-                  className="mt-1 h-4 w-4"
-                />
-                <span>Je confirme posseder les droits de diffusion sur les textes, photos et informations importes dans MyStay.</span>
-              </label>
-              <div className="space-y-2">
-                <Label htmlFor="rights-version">Version de declaration</Label>
-                <Input
-                  id="rights-version"
-                  value={rightsVersion}
-                  onChange={event => setRightsVersion(event.target.value)}
-                />
-              </div>
-              <Button type="button" variant="outline" onClick={confirmRights} disabled={!rightsConfirmed}>
-                Enregistrer la confirmation
-              </Button>
-            </CardContent>
-          </Card>
+          {props.mode !== 'admin' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Droits contenus</CardTitle>
+                <CardDescription>
+                  La confirmation est obligatoire avant toute soumission en review si vous reutilisez des textes ou photos importes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <label className="flex items-start gap-3 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={rightsConfirmed}
+                    onChange={event => setRightsConfirmed(event.target.checked)}
+                    className="mt-1 h-4 w-4"
+                  />
+                  <span>Je confirme posseder les droits de diffusion sur les textes, photos et informations importes dans MyStay.</span>
+                </label>
+                <div className="space-y-2">
+                  <Label htmlFor="rights-version">Version de declaration</Label>
+                  <Input
+                    id="rights-version"
+                    value={rightsVersion}
+                    onChange={event => setRightsVersion(event.target.value)}
+                  />
+                </div>
+                <Button type="button" variant="outline" onClick={confirmRights} disabled={!rightsConfirmed}>
+                  Enregistrer la confirmation
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -503,16 +511,18 @@ export function LodgingShowcaseForm(props: {
                   rows={6}
                 />
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Button type="button" variant="outline" onClick={requestRewrite}>
-                  Proposer une version MyStay
-                </Button>
-                {profile.rewrite_suggestion && (
-                  <Button type="button" variant="outline" onClick={applyRewriteSuggestion}>
-                    Appliquer le brouillon MyStay
+              {props.mode !== 'admin' && (
+                <div className="flex flex-wrap gap-3">
+                  <Button type="button" variant="outline" onClick={requestRewrite}>
+                    Proposer une version MyStay
                   </Button>
-                )}
-              </div>
+                  {profile.rewrite_suggestion && (
+                    <Button type="button" variant="outline" onClick={applyRewriteSuggestion}>
+                      Appliquer le brouillon MyStay
+                    </Button>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -678,10 +688,12 @@ export function LodgingShowcaseForm(props: {
               <Button type="button" className="w-full" onClick={saveDraft} disabled={status === 'saving'}>
                 Sauvegarder le brouillon
               </Button>
-              <Button type="button" variant="outline" className="w-full" onClick={submitForReview} disabled={status === 'saving'}>
-                Demander publication
-              </Button>
-              {missingFields.length > 0 && (
+              {props.mode !== 'admin' && (
+                <Button type="button" variant="outline" className="w-full" onClick={submitForReview} disabled={status === 'saving'}>
+                  Demander publication
+                </Button>
+              )}
+              {props.mode !== 'admin' && missingFields.length > 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                   <p className="font-medium">Champs a completer avant la review</p>
                   <ul className="mt-2 list-disc pl-5">
