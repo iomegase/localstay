@@ -7,6 +7,8 @@ const mockSubmitOwnerPublicProfile = jest.fn()
 const mockSaveSourceListingUrl = jest.fn()
 const mockConfirmContentRights = jest.fn()
 const mockCreateLodgingPhoto = jest.fn()
+const mockDeleteOwnerLodgingPhoto = jest.fn()
+const mockSetOwnerCoverPhoto = jest.fn()
 const mockUploadGuideImage = jest.fn()
 const mockGetRewriteContext = jest.fn()
 const mockSaveGeneratedRewrite = jest.fn()
@@ -23,6 +25,8 @@ jest.mock('@/features/lodging-showcase/queries/owner-public-profile', () => ({
   saveSourceListingUrl: (...args: unknown[]) => mockSaveSourceListingUrl(...args),
   confirmContentRights: (...args: unknown[]) => mockConfirmContentRights(...args),
   createLodgingPhoto: (...args: unknown[]) => mockCreateLodgingPhoto(...args),
+  deleteOwnerLodgingPhoto: (...args: unknown[]) => mockDeleteOwnerLodgingPhoto(...args),
+  setOwnerCoverPhoto: (...args: unknown[]) => mockSetOwnerCoverPhoto(...args),
   getOwnerRewriteContext: (...args: unknown[]) => mockGetRewriteContext(...args),
   saveGeneratedRewrite: (...args: unknown[]) => mockSaveGeneratedRewrite(...args),
 }))
@@ -40,6 +44,10 @@ import { POST as SUBMIT_POST } from '@/app/api/dashboard/lodgings/[id]/public-pr
 import { POST as SOURCE_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/source-url/route'
 import { POST as RIGHTS_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/rights-confirmation/route'
 import { POST as PHOTOS_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/photos/route'
+import {
+  DELETE as PHOTO_DELETE,
+  PATCH as PHOTO_PATCH,
+} from '@/app/api/dashboard/lodgings/[id]/public-profile/photos/[photoId]/route'
 import { POST as REWRITE_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/rewrite/route'
 
 const owner = { id: 'owner-1', role: 'owner' }
@@ -468,5 +476,51 @@ describe('028 owner lodging showcase API', () => {
     await expect(res.json()).resolves.toMatchObject({
       error: { code: 'GEMINI_REWRITE_UNAVAILABLE' },
     })
+  })
+
+  it('deletes an owner lodging photo', async () => {
+    mockDeleteOwnerLodgingPhoto.mockResolvedValue(true)
+
+    const res = await PHOTO_DELETE(
+      new NextRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile/photos/photo-1', {
+        method: 'DELETE',
+      }),
+      { params: Promise.resolve({ id: 'lodging-1', photoId: 'photo-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockDeleteOwnerLodgingPhoto).toHaveBeenCalledWith('owner-1', 'lodging-1', 'photo-1')
+    await expect(res.json()).resolves.toMatchObject({ ok: true })
+  })
+
+  it('returns 404 when deleting a photo that does not exist or is not owned', async () => {
+    mockDeleteOwnerLodgingPhoto.mockResolvedValue(false)
+
+    const res = await PHOTO_DELETE(
+      new NextRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile/photos/photo-1', {
+        method: 'DELETE',
+      }),
+      { params: Promise.resolve({ id: 'lodging-1', photoId: 'photo-1' }) },
+    )
+
+    expect(res.status).toBe(404)
+    await expect(res.json()).resolves.toMatchObject({
+      error: { code: 'PHOTO_NOT_FOUND' },
+    })
+  })
+
+  it('sets an owner lodging photo as cover', async () => {
+    mockSetOwnerCoverPhoto.mockResolvedValue(true)
+
+    const res = await PHOTO_PATCH(
+      new NextRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile/photos/photo-1', {
+        method: 'PATCH',
+      }),
+      { params: Promise.resolve({ id: 'lodging-1', photoId: 'photo-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockSetOwnerCoverPhoto).toHaveBeenCalledWith('owner-1', 'lodging-1', 'photo-1')
+    await expect(res.json()).resolves.toMatchObject({ ok: true })
   })
 })
