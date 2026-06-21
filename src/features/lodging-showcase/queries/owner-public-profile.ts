@@ -295,16 +295,20 @@ export async function getOwnedLodgingForShowcase(ownerId: string, lodgingId: str
   })
 }
 
-async function ensureOwnerProfileRecord(ownerId: string, lodgingId: string) {
-  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
-  if (!lodging) return null
+type ShowcaseLodging = {
+  id: string
+  name: string
+  city_id: string
+  city: { id: string; name: string; slug: string }
+}
 
+async function ensureProfileRecordForLodging(lodging: ShowcaseLodging) {
   const profile = await prisma.lodgingPublicProfile.upsert({
-    where: { lodging_id: lodgingId },
+    where: { lodging_id: lodging.id },
     create: {
-      lodging_id: lodgingId,
+      lodging_id: lodging.id,
       city_id: lodging.city_id,
-      slug: lodgingProfileSlug(`lodging-${lodgingId}`),
+      slug: lodgingProfileSlug(`lodging-${lodging.id}`),
       publication_status: 'draft',
       public_contact_enabled: true,
       ...EMPTY_DRAFT_VALUES,
@@ -316,6 +320,13 @@ async function ensureOwnerProfileRecord(ownerId: string, lodgingId: string) {
   })
 
   return { lodging, profile: formatOwnerProfile(profile) }
+}
+
+async function ensureOwnerProfileRecord(ownerId: string, lodgingId: string) {
+  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
+  if (!lodging) return null
+
+  return ensureProfileRecordForLodging(lodging)
 }
 
 export async function getOwnerPublicProfile(
@@ -353,21 +364,18 @@ export async function getOwnedLodgingShowcasePageData(
   }
 }
 
-export async function saveOwnerPublicProfile(
-  ownerId: string,
-  lodgingId: string,
+async function writePublicProfileForLodging(
+  lodging: { id: string; city_id: string },
   input: LodgingPublicProfileInput,
+  options: { resetToDraft: boolean },
 ): Promise<OwnerLodgingPublicProfileDto | null> {
-  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
-  if (!lodging) return null
-
   const slug = lodgingProfileSlug(input.title)
   const externalBookingPlatform = inferExternalBookingPlatform(input.external_booking_url ?? null)
 
   const profile = await prisma.lodgingPublicProfile.upsert({
-    where: { lodging_id: lodgingId },
+    where: { lodging_id: lodging.id },
     create: {
-      lodging_id: lodgingId,
+      lodging_id: lodging.id,
       city_id: lodging.city_id,
       slug,
       publication_status: 'draft',
@@ -394,7 +402,7 @@ export async function saveOwnerPublicProfile(
     update: {
       city_id: lodging.city_id,
       slug,
-      publication_status: 'draft',
+      ...(options.resetToDraft ? { publication_status: 'draft' as const } : {}),
       title: input.title,
       short_description: input.short_description,
       description: input.description,
@@ -471,6 +479,17 @@ export async function saveOwnerPublicProfile(
   })
 
   return fresh ? formatOwnerProfile(fresh) : null
+}
+
+export async function saveOwnerPublicProfile(
+  ownerId: string,
+  lodgingId: string,
+  input: LodgingPublicProfileInput,
+): Promise<OwnerLodgingPublicProfileDto | null> {
+  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
+  if (!lodging) return null
+
+  return writePublicProfileForLodging(lodging, input, { resetToDraft: true })
 }
 
 export async function submitOwnerPublicProfile(ownerId: string, lodgingId: string) {
@@ -578,17 +597,15 @@ export async function confirmContentRights(
   }
 }
 
-export async function createLodgingPhoto(
-  ownerId: string,
-  lodgingId: string,
+async function createPhotoForLodging(
+  lodging: ShowcaseLodging,
   input: {
     url: string
     alt: string
     room_type: LodgingPhotoRoomType | null
   },
 ) {
-  const owned = await ensureOwnerProfileRecord(ownerId, lodgingId)
-  if (!owned) return null
+  const owned = await ensureProfileRecordForLodging(lodging)
 
   const existingCount = await prisma.lodgingPhoto.count({
     where: {
@@ -620,6 +637,21 @@ export async function createLodgingPhoto(
     ...photo,
     room_type: photo.room_type as LodgingPhotoRoomType | null,
   }
+}
+
+export async function createLodgingPhoto(
+  ownerId: string,
+  lodgingId: string,
+  input: {
+    url: string
+    alt: string
+    room_type: LodgingPhotoRoomType | null
+  },
+) {
+  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
+  if (!lodging) return null
+
+  return createPhotoForLodging(lodging, input)
 }
 
 export async function getOwnerRewriteContext(ownerId: string, lodgingId: string) {
@@ -672,4 +704,87 @@ export async function saveGeneratedRewrite(
   })
 
   return updated
+}
+
+export async function getLodgingForAdminShowcase(lodgingId: string) {
+  return prisma.lodging.findFirst({
+    where: {
+      id: lodgingId,
+      deleted_at: null,
+      is_active: true,
+      city: {
+        deleted_at: null,
+        is_active: true,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      city_id: true,
+      city: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  })
+}
+
+export async function getAdminPublicProfile(
+  lodgingId: string,
+): Promise<OwnerLodgingPublicProfileDto | null> {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return null
+
+  const profile = await prisma.lodgingPublicProfile.findUnique({
+    where: { lodging_id: lodgingId },
+    select: ownerProfileSelect,
+  })
+
+  return profile ? formatOwnerProfile(profile) : emptyOwnerProfile(lodgingId, lodging.city_id)
+}
+
+export async function getAdminLodgingShowcasePageData(
+  lodgingId: string,
+): Promise<OwnerLodgingShowcasePageData | null> {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return null
+
+  const profile = await getAdminPublicProfile(lodgingId)
+  if (!profile) return null
+
+  return {
+    lodging: {
+      id: lodging.id,
+      name: lodging.name,
+      city: lodging.city,
+    },
+    profile,
+  }
+}
+
+export async function saveAdminPublicProfile(
+  lodgingId: string,
+  input: LodgingPublicProfileInput,
+): Promise<OwnerLodgingPublicProfileDto | null> {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return null
+
+  return writePublicProfileForLodging(lodging, input, { resetToDraft: false })
+}
+
+export async function createAdminLodgingPhoto(
+  lodgingId: string,
+  input: {
+    url: string
+    alt: string
+    room_type: LodgingPhotoRoomType | null
+  },
+) {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return null
+
+  return createPhotoForLodging(lodging, input)
 }

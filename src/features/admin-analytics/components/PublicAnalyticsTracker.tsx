@@ -45,11 +45,19 @@ export function PublicAnalyticsTracker() {
         })
       }
 
-      await window.fetch('/api/public/analytics/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      try {
+        // Best-effort beacon: keepalive lets it survive the navigation that the
+        // same click often triggers; failures (offline, aborted request) must
+        // never surface as an unhandled rejection.
+        await window.fetch('/api/public/analytics/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        })
+      } catch {
+        // Analytics is non-critical; swallow network/abort errors silently.
+      }
     }
 
     document.addEventListener('click', handleClick)
