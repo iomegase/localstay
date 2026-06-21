@@ -429,9 +429,11 @@ async function writePublicProfileForLodging(
     select: { id: true },
   })
 
-  await prisma.lodgingAmenity.updateMany({
-    where: { profile_id: profile.id, deleted_at: null },
-    data: { deleted_at: new Date() },
+  // Amenities are a fully-replaced child collection. Hard-delete (not soft-delete)
+  // so re-saving the same codes can't collide with leftover rows on the
+  // @@unique([profile_id, code]) index (which ignores deleted_at) → would 500.
+  await prisma.lodgingAmenity.deleteMany({
+    where: { profile_id: profile.id },
   })
 
   if (input.amenities.length > 0) {
@@ -446,9 +448,9 @@ async function writePublicProfileForLodging(
     })
   }
 
-  await prisma.lodgingFaqItem.updateMany({
-    where: { profile_id: profile.id, deleted_at: null },
-    data: { deleted_at: new Date() },
+  // FAQ items are also fully replaced on each save → hard-delete then recreate.
+  await prisma.lodgingFaqItem.deleteMany({
+    where: { profile_id: profile.id },
   })
 
   if (input.faq.length > 0) {
