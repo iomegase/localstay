@@ -797,3 +797,71 @@ export async function createAdminLodgingPhoto(
 
   return createPhotoForLodging(lodging, input)
 }
+
+async function deletePhotoForLodging(lodging: { id: string }, photoId: string): Promise<boolean> {
+  const deleted = await prisma.lodgingPhoto.updateMany({
+    where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
+    data: { deleted_at: new Date() },
+  })
+  if (deleted.count === 0) return false
+
+  const profile = await prisma.lodgingPublicProfile.findUnique({
+    where: { lodging_id: lodging.id },
+    select: { id: true },
+  })
+  if (profile) {
+    const remaining = await prisma.lodgingPhoto.findMany({
+      where: { profile_id: profile.id, deleted_at: null },
+      orderBy: [{ is_cover: 'desc' }, { sort_order: 'asc' }, { created_at: 'asc' }],
+      select: { id: true, is_cover: true },
+    })
+    if (remaining.length > 0 && !remaining.some(photo => photo.is_cover)) {
+      await prisma.lodgingPhoto.update({ where: { id: remaining[0].id }, data: { is_cover: true } })
+    }
+  }
+  return true
+}
+
+async function setCoverPhotoForLodging(lodging: { id: string }, photoId: string): Promise<boolean> {
+  const profile = await prisma.lodgingPublicProfile.findUnique({
+    where: { lodging_id: lodging.id },
+    select: { id: true },
+  })
+  if (!profile) return false
+
+  const target = await prisma.lodgingPhoto.findFirst({
+    where: { id: photoId, deleted_at: null, profile_id: profile.id },
+    select: { id: true },
+  })
+  if (!target) return false
+
+  await prisma.$transaction([
+    prisma.lodgingPhoto.updateMany({ where: { profile_id: profile.id, deleted_at: null }, data: { is_cover: false } }),
+    prisma.lodgingPhoto.update({ where: { id: photoId }, data: { is_cover: true } }),
+  ])
+  return true
+}
+
+export async function deleteOwnerLodgingPhoto(ownerId: string, lodgingId: string, photoId: string): Promise<boolean> {
+  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
+  if (!lodging) return false
+  return deletePhotoForLodging(lodging, photoId)
+}
+
+export async function setOwnerCoverPhoto(ownerId: string, lodgingId: string, photoId: string): Promise<boolean> {
+  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
+  if (!lodging) return false
+  return setCoverPhotoForLodging(lodging, photoId)
+}
+
+export async function deleteAdminLodgingPhoto(lodgingId: string, photoId: string): Promise<boolean> {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return false
+  return deletePhotoForLodging(lodging, photoId)
+}
+
+export async function setAdminCoverPhoto(lodgingId: string, photoId: string): Promise<boolean> {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return false
+  return setCoverPhotoForLodging(lodging, photoId)
+}
