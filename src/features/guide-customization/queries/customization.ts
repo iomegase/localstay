@@ -5,6 +5,7 @@ import {
   filterValidCategoryOrder,
   groupFeaturedPoisByCategory,
   isPoiWithinGuideScope,
+  normalizePracticalBlocks,
 } from '../lib/validation'
 import type {
   FeaturedPoiInput,
@@ -12,6 +13,7 @@ import type {
   GuideCustomizationErrorCode,
   LodgingCustomizationInput,
   LodgingCustomizationResponse,
+  PracticalBlockResponse,
   PracticalInfoFields,
 } from '../types'
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
@@ -206,6 +208,12 @@ export async function getLodgingCustomization(
     },
   })
 
+  const practicalBlocks = await prisma.lodgingPracticalBlock.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: { id: true, title: true, body: true, icon: true, photo_url: true, sort_order: true },
+  })
+
   return {
     lodging_id: lodgingId,
     welcome_message: customization?.welcome_message ?? null,
@@ -216,6 +224,7 @@ export async function getLodgingCustomization(
       sort_order: featuredPoi.sort_order,
     })),
     ignored_category_slugs: [],
+    practical_blocks: practicalBlocks,
     ...pickPracticalInfo(customization),
   }
 }
@@ -254,6 +263,7 @@ export async function saveLodgingCustomization(
   const categoryOrderResult = filterValidCategoryOrder(input.category_order, validCategorySlugs)
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
   const practicalInfo = pickPracticalInfo(input)
+  const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
 
   await prisma.$transaction(async tx => {
     await tx.lodgingCustomization.upsert({
@@ -291,6 +301,30 @@ export async function saveLodgingCustomization(
         },
       })
     }
+
+    await tx.lodgingPracticalBlock.updateMany({
+      where: { lodging_id: lodgingId, deleted_at: null },
+      data: { deleted_at: new Date() },
+    })
+
+    for (const block of practicalBlocks) {
+      await tx.lodgingPracticalBlock.create({
+        data: {
+          lodging_id: lodgingId,
+          title: block.title,
+          body: block.body,
+          icon: block.icon,
+          photo_url: block.photo_url,
+          sort_order: block.sort_order,
+        },
+      })
+    }
+  })
+
+  const savedBlocks = await prisma.lodgingPracticalBlock.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: { id: true, title: true, body: true, icon: true, photo_url: true, sort_order: true },
   })
 
   return {
@@ -299,6 +333,7 @@ export async function saveLodgingCustomization(
     category_order: categoryOrderResult.category_order,
     featured_pois: featuredPois,
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
+    practical_blocks: savedBlocks,
     ...practicalInfo,
   }
 }

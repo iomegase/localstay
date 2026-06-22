@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { MapPin, Wifi, Car, Settings, LogOut, Trash2, Scroll, PhoneCall, Sparkles } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 
 export default async function LeLogementPage() {
@@ -26,8 +28,14 @@ export default async function LeLogementPage() {
     },
   })
 
+  const practicalBlocks = await prisma.lodgingPracticalBlock.findMany({
+    where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: { id: true, title: true, body: true, icon: true, photo_url: true, sort_order: true },
+  })
+
   const sections = buildSections(customization)
-  const hasContent = sections.some(section => section.hasValue)
+  const hasContent = sections.some(section => section.hasValue) || practicalBlocks.length > 0
 
   return (
     <div className="px-5 pt-4">
@@ -53,6 +61,28 @@ export default async function LeLogementPage() {
         <div className="space-y-4 pb-8">
           {sections.filter(s => s.hasValue).map(section => (
             <PracticalCard key={section.key} section={section} />
+          ))}
+          {practicalBlocks.map(block => (
+            <section key={block.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-charcoal/5 text-charcoal">
+                  <CategoryIcon iconSlug={block.icon} className="h-5 w-5" />
+                </span>
+                <div className="flex-1 pt-1">
+                  <h2 className="font-serif italic text-lg text-charcoal">{block.title}</h2>
+                  {block.photo_url && (
+                    <div className="relative mt-3 aspect-[16/10] overflow-hidden rounded-xl">
+                      <Image src={block.photo_url} alt={block.title} fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
+                    </div>
+                  )}
+                  {block.body && (
+                    <div className="mt-2 text-sm leading-relaxed text-charcoal/70">
+                      <MarkdownText source={block.body} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
           ))}
         </div>
       )}

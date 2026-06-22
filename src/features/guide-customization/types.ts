@@ -9,6 +9,24 @@ export interface FeaturedPoiResponse {
   sort_order: number
 }
 
+export interface PracticalBlockInput {
+  id?: string
+  title: string
+  body: string | null
+  icon: string
+  photo_url: string | null
+  sort_order: number
+}
+
+export interface PracticalBlockResponse {
+  id: string
+  title: string
+  body: string | null
+  icon: string
+  photo_url: string | null
+  sort_order: number
+}
+
 export interface PracticalInfoFields {
   cover_photo_url: string | null
   lodging_address: string | null
@@ -45,6 +63,7 @@ export interface LodgingCustomizationInput extends PracticalInfoInput {
   welcome_message?: string | null
   category_order: string[]
   featured_pois: FeaturedPoiInput[]
+  practical_blocks?: PracticalBlockInput[]
 }
 
 export interface LodgingCustomizationResponse extends PracticalInfoFields {
@@ -53,6 +72,7 @@ export interface LodgingCustomizationResponse extends PracticalInfoFields {
   category_order: string[]
   featured_pois: FeaturedPoiResponse[]
   ignored_category_slugs: string[]
+  practical_blocks: PracticalBlockResponse[]
 }
 
 export type GuideCustomizationErrorCode =

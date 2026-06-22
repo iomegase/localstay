@@ -1,3 +1,5 @@
+import type { PracticalBlockInput } from '../types'
+
 const GUIDE_RADIUS_KM = 30
 const FEATURED_POI_LIMIT_PER_CATEGORY = 5
 
@@ -76,4 +78,51 @@ export function groupFeaturedPoisByCategory(
   }
 
   return grouped
+}
+
+export interface NormalizedPracticalBlock {
+  title: string
+  body: string | null
+  icon: string
+  photo_url: string | null
+  sort_order: number
+}
+
+/**
+ * Nettoie et réordonne les blocs « Infos pratiques » personnalisés.
+ * - rejette les blocs sans titre (après trim),
+ * - trim le titre, nulle body/photo_url vides,
+ * - réindexe sort_order par la position dans le tableau (l'ordre client fait foi).
+ */
+export function normalizePracticalBlocks(
+  blocks: PracticalBlockInput[] | undefined,
+): NormalizedPracticalBlock[] {
+  if (!blocks || blocks.length === 0) return []
+  const clean = (value: string | null | undefined): string | null =>
+    typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+
+  return blocks
+    .filter(block => clean(block.title) !== null)
+    .map((block, index) => ({
+      title: clean(block.title) as string,
+      body: clean(block.body),
+      icon: block.icon,
+      photo_url: clean(block.photo_url),
+      sort_order: index,
+    }))
+}
+
+/** Déplace l'élément `activeId` à la position de `overId` (immutable, identité préservée si no-op). */
+export function reorderById<T extends { id?: string }>(
+  items: T[],
+  activeId: string,
+  overId: string,
+): T[] {
+  const from = items.findIndex(item => item.id === activeId)
+  const to = items.findIndex(item => item.id === overId)
+  if (from === -1 || to === -1 || from === to) return items
+  const next = items.slice()
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
 }
