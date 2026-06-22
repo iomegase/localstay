@@ -46,6 +46,9 @@ Subdivision d'une Category (ex : sous Manger → Restaurant, Café, Marché).
 ### Lodging (Logement)
 Hébergement touristique associé à une City. Génère un QR code pointant vers le Guide de la ville.
 
+### Owner Recommendation Comment (Commentaire de recommandation Owner)
+Commentaire personnel facultatif qu'un Owner associe à un POI recommandé pour un Lodging précis. Il est visible uniquement dans les recommandations personnelles de ce logement.
+
 ### Lodging Public Profile (Profil public logement)
 Extension publiable d'un Lodging utilisée pour la vitrine SEO publique. Contient les textes, photos, équipements, capacité, lien de réservation externe et règles de publication visibles hors mode séjour.
 

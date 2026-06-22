@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-06-04
+updated_at: 2026-06-22
 depends_on: [010-dashboard-owner, 011-qr-code-owner, 002-categories, 003-poi-list]
 ```
 
@@ -26,6 +26,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **Guide** : ensemble des catégories et POI pour une City
 - **Lodging** : logement dont l'Owner personnalise le guide
 - **Featured POI** : POI mis en avant par l'Owner dans une catégorie
+- **Owner Recommendation Comment** : commentaire personnel facultatif ajouté par l'Owner à un Featured POI
 - **Welcome Message** : message personnalisé affiché en haut du guide
 - **Cover Photo** : photo du logement affichée sur la page d'accueil séjour
 - **Practical Info** : informations pratiques du logement visibles dans la page logement
@@ -54,8 +55,9 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 #### Acceptance Criteria
 
 - **AC-02-01**: Given la liste des POI d'une catégorie, When l'Owner en sélectionne jusqu'à 5 comme favoris, Then ces POI apparaissent dans la page `/nos-recommandations` pour les Tourists de ce logement
-- **AC-02-02**: Given un POI favori, When l'Owner l'enregistre, Then il apparaît dans la page recommandations de l'Owner sans note personnelle ni rating Owner
+- **AC-02-02**: Given un POI favori, When l'Owner saisit un commentaire personnel facultatif, Then le commentaire est sauvegardé avec la recommandation et affiché uniquement sur `/nos-recommandations` pour les Tourists de ce logement
 - **AC-02-03**: Given les recommandations, When un Tourist arrive sans `?lodging=[id]`, Then le guide standard s'affiche sans personnalisation
+- **AC-02-04**: Given l'Owner saisit un commentaire sur un POI favori, When il modifie le texte, Then un compteur de mots affiche la progression sur 300 mots et la sauvegarde est refusée au-delà de cette limite
 
 ### US-03 — Ordre des catégories
 
@@ -85,7 +87,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-01**: La personnalisation est par Lodging — pas par Owner global
 - **BR-02**: Sans `?lodging=[id]` dans l'URL, le guide standard s'affiche (pas de personnalisation)
 - **BR-03**: Maximum 5 POI favoris par catégorie par Lodging
-- **BR-04**: Aucun texte libre `owner_note` ni rating `owner_rating` n'est conservé sur les recommandations Owner. Un Featured POI est uniquement une sélection ordonnée.
+- **BR-04**: Un Featured POI peut conserver un commentaire personnel facultatif `owner_note`, limité à 300 mots. Aucun rating `owner_rating` n'est conservé.
 - **BR-05**: Le message d'accueil est limité à 400 mots
 - **BR-06**: La personnalisation n'ajoute pas de POI inexistants — elle filtre, réordonne et met en avant les POI déjà en base
 - **BR-07**: Un Owner ne peut lire ou modifier que la personnalisation de ses propres Lodgings
@@ -96,6 +98,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. La personnalisation publique du Guide se limite au message d'accueil éventuel et à l'ordre des catégories ; les `featured_pois` sont visibles dans `/nos-recommandations`.
 - **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`.
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
+- **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
 
 ---
 
@@ -136,6 +139,7 @@ model LodgingFeaturedPoi {
   lodging         Lodging         @relation(fields: [lodging_id], references: [id])
   poi_id          String
   poi             PointOfInterest @relation(fields: [poi_id], references: [id])
+  owner_note      String?
   sort_order      Int      @default(0)
 
   @@unique([lodging_id, poi_id])
@@ -210,6 +214,10 @@ paths:
                     required: [poi_id, sort_order]
                     properties:
                       poi_id: { type: string }
+                      owner_note:
+                        type: string
+                        nullable: true
+                        description: "Commentaire personnel facultatif, maximum 300 mots"
                       sort_order: { type: integer }
                 cover_photo_url:
                   type: string
@@ -347,12 +355,16 @@ components:
 
     FeaturedPoi:
       type: object
-      required: [poi_id, category_id, sort_order]
+      required: [poi_id, category_id, owner_note, sort_order]
       properties:
         poi_id:
           type: string
         category_id:
           type: string
+        owner_note:
+          type: string
+          nullable: true
+          description: "Commentaire personnel facultatif, maximum 300 mots"
         sort_order:
           type: integer
 
@@ -405,7 +417,9 @@ components:
 - Section "Infos pratiques" : adresse, Wi-Fi, parking, équipements, checkout, déchets, règles, contacts d'urgence, services utiles
 - Section "Mes recommandations" : liste des catégories, chaque catégorie expand pour voir/sélectionner les POI favoris
 - Les POI proposés à la sélection sont ceux du Guide de la City du Lodging, y compris la section "Aux alentours" si le POI reste dans le périmètre ≤ 30 km
-- Aucun champ note personnelle ni rating par POI sélectionné
+- Chaque POI sélectionné affiche un textarea "Votre mot pour les voyageurs" et un compteur `X / 300 mots`
+- Le commentaire est facultatif ; le bouton de sauvegarde est désactivé si au moins un commentaire dépasse 300 mots
+- Aucun rating Owner n'est proposé
 - Section "Ordre des catégories" : drag-and-drop (dnd-kit)
 - Bouton "Sauvegarder" sticky en bas
 - Preview : bouton "Voir le guide comme un Tourist" → ouvre `/guide/[city-slug]?lodging=[id]` dans un nouvel onglet
@@ -413,7 +427,8 @@ components:
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
 - `/le-logement` affiche les informations pratiques du logement
-- `/nos-recommandations` affiche les POI recommandés par l'Owner, groupés par catégorie, sans note personnelle ni rating Owner
+- `/nos-recommandations` affiche les POI recommandés par l'Owner, groupés par catégorie, avec le commentaire Owner lorsqu'il est renseigné
+- Le commentaire Owner n'est affiché sur aucune autre liste, fiche POI générale ou page SEO logement
 - `/guide/[city-slug]?lodging=[id]` affiche tous les POI disponibles du Guide de la City, avec message d'accueil et ordre personnalisé éventuels, sans filtrage exclusif sur les recommandations Owner
 - `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche tous les POI disponibles de cette catégorie dans le Guide de la City, sans filtrage exclusif sur les recommandations Owner
 - Si `lodging` est absent, inconnu, supprimé, inactif ou associé à une autre City, le guide standard s'affiche sans personnalisation
@@ -427,8 +442,9 @@ components:
 | AC-01-01 | Message d'accueil sauvegardé | integration |
 | AC-01-02 | Accueil séjour affiche photo, message et CTA guide | integration |
 | AC-02-01 | POI favoris affichés dans `/nos-recommandations` | integration |
-| AC-02-02 | Recommandation affichée sans note/rating Owner | integration |
+| AC-02-02 | Commentaire Owner sauvegardé et affiché uniquement dans `/nos-recommandations` | contract + integration |
 | AC-02-03 | Sans lodging param → guide standard | unit |
+| AC-02-04 | Compteur de mots et rejet au-delà de 300 mots | unit + contract |
 | AC-03-01 | Ordre catégories sauvegardé et appliqué | integration |
 | AC-04-01 | Infos pratiques sauvegardées et affichées | integration |
 | AC-04-02 | Upload photo logement sauvegardé et affiché | contract + unit |
@@ -443,7 +459,7 @@ components:
 
 - Ajout de POI custom non référencés par Gemini (MVP 3)
 - Personnalisation des photos des POI (MVP 3)
-- Note personnelle ou rating Owner sur une recommandation POI
+- Rating Owner sur une recommandation POI
 - Guide multilingue par logement (post-MVP)
 
 ---
