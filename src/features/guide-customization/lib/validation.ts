@@ -6,11 +6,20 @@ const FEATURED_POI_LIMIT_PER_CATEGORY = 5
 /** Limite du message d'accueil owner : 400 mots (et non caractères). */
 export const WELCOME_MESSAGE_MAX_WORDS = 400
 
+/** Limite d'un commentaire de recommandation owner : 300 mots. */
+export const OWNER_NOTE_MAX_WORDS = 300
+
 /** Compte les mots d'un texte (séquences séparées par n'importe quel blanc). */
 export function countWords(text: string): number {
   const trimmed = text.trim()
   if (trimmed === '') return 0
   return trimmed.split(/\s+/).length
+}
+
+export function normalizeOwnerNote(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed === '' ? null : trimmed
 }
 
 export interface CategoryOrderFilterResult {
