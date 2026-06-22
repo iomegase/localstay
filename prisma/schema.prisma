@@ -811,6 +811,7 @@ model LodgingFeaturedPoi {
   lodging    Lodging         @relation(fields: [lodging_id], references: [id])
   poi_id     String
   poi        PointOfInterest @relation(fields: [poi_id], references: [id])
+  owner_note String?
   sort_order Int             @default(0)
 
   @@unique([lodging_id, poi_id])
