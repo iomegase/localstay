@@ -111,3 +111,18 @@ export function normalizePracticalBlocks(
       sort_order: index,
     }))
 }
+
+/** Déplace l'élément `activeId` à la position de `overId` (immutable, identité préservée si no-op). */
+export function reorderById<T extends { id?: string }>(
+  items: T[],
+  activeId: string,
+  overId: string,
+): T[] {
+  const from = items.findIndex(item => item.id === activeId)
+  const to = items.findIndex(item => item.id === overId)
+  if (from === -1 || to === -1 || from === to) return items
+  const next = items.slice()
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
+}
