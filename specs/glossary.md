@@ -79,6 +79,9 @@ Trace d'une synchronisation entre StayLocal et une source analytics externe ou i
 ### Analytics Interaction Event
 Événement first-party append-only capturant une interaction publique mesurable côté produit, par exemple un clic email hôte, un clic contact logement ou un clic réservation externe.
 
+### Analytics Vercel Live Event
+Événement récent issu d'un flux supporté Vercel Web Analytics, stocké côté serveur dans StayLocal pour alimenter le bloc `live` admin sans modifier les snapshots journaliers.
+
 ### Blog Article (Article de blog)
 Contenu éditorial public géré par un Admin. Peut être global ou rattaché à une City optionnelle. Il possède un statut de publication, une catégorie, des tags, une photo de couverture, un contenu Markdown et des champs SEO.
 
@@ -181,6 +184,9 @@ Source de trafic et d'usage web fournie par Vercel, utilisée pour des métrique
 
 ### Vercel Speed Insights
 Source de performance web fournie par Vercel, basée notamment sur les Core Web Vitals, utilisée pour surveiller l'expérience réelle des visiteurs.
+
+### Vercel Drain
+Mécanisme supporté par Vercel pour envoyer des événements de logs, traces ou analytics vers une destination HTTP configurée côté projet ou équipe.
 
 ---
 

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-19
-updated_at: 2026-06-21
+updated_at: 2026-06-22
 depends_on:
   - 001-city-guide
   - 011-qr-code-owner
@@ -59,10 +59,12 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 - **Google Search Console** : source de métriques d'acquisition SEO depuis Google Search.
 - **Vercel Analytics** : source de trafic, visiteurs, pages vues et dimensions web récentes.
 - **Vercel Speed Insights** : source de métriques de performance basées sur les Core Web Vitals.
+- **Vercel Drain** : destination HTTP supportée recevant des événements analytics récents envoyés par Vercel.
 - **Consent Banner** : composant public demandant le consentement analytics avant toute mesure tierce côté client.
 - **Contact Message** : message de contact public créé depuis `/contact` ou une fiche logement.
 - **GEO** : optimisation pour les expériences de recherche générative.
 - **Soft Delete** : suppression logique via `deleted_at`.
+- **Analytics Vercel Live Event** : événement récent stocké côté serveur pour alimenter le bloc `live` admin.
 
 ---
 
@@ -139,6 +141,7 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 - **AC-05-04**: Given l'endpoint interne de synchro est appelé avec un secret invalide ou absent, When la requête arrive, Then l'API refuse l'exécution.
 - **AC-05-05**: Given le bloc `live` n'a pas de chemin de récupération supporté pour Vercel sur l'environnement courant, When le cockpit s'affiche, Then le bloc `live` se dégrade proprement en état de configuration ou indisponibilité sans casser le reste du dashboard.
 - **AC-05-06**: Given un chemin de lecture serveur supporté est disponible pour Vercel sur le projet courant, When le bloc `live` est chargé, Then il retourne les métriques récentes Vercel (`visitors`, `page_views`, top pages, top referrers) sans les fusionner avec les snapshots consolidés ni avec le bloc `GA4 aujourd'hui`.
+- **AC-05-07**: Given Vercel Web Analytics Drains envoie un événement valide vers StayLocal, When la route interne d'ingestion le reçoit avec le secret attendu, Then l'événement récent est persisté de façon idempotente comme `Analytics Vercel Live Event` et devient exploitable par l'agrégation `live`.
 
 ---
 
@@ -171,6 +174,11 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 - **BR-25**: Le bloc `GA4 aujourd'hui` est distinct du bloc `live` Vercel. Les deux ne doivent jamais être fusionnés dans une même carte ou un même total.
 - **BR-26**: `Google Search Console` reste une source différée SEO et ne participe pas au feedback intraday produit.
 - **BR-27**: Le bloc `live` Vercel ne peut utiliser qu'un chemin de lecture serveur supporté. Le scraping HTML du dashboard Vercel et les API privées non documentées sont interdits.
+- **BR-28**: Les événements récents Vercel utilisés pour le bloc `live` sont stockés dans un modèle dédié `AnalyticsVercelLiveEvent`, distinct du modèle métier `Analytics` et des snapshots journaliers.
+- **BR-29**: La route d'ingestion Vercel Drain est protégée par un secret explicite dans l'URL de destination ; une requête sans secret valide est refusée.
+- **BR-30**: La route interne `vercel-live` est protégée par un bearer token serveur distinct des credentials navigateur.
+- **BR-31**: L'ingestion Vercel Drain doit être idempotente : une même livraison ne doit jamais créer deux `AnalyticsVercelLiveEvent` identiques.
+- **BR-32**: Les `AnalyticsVercelLiveEvent` sont conservés en stockage actif pendant une fenêtre courte et soft-delete au-delà de 7 jours.
 
 ---
 
@@ -360,6 +368,31 @@ model AnalyticsInteractionEvent {
   @@index([city_id, created_at])
   @@index([lodging_id, created_at])
 }
+
+model AnalyticsVercelLiveEvent {
+  id              String   @id @default(uuid())
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  deleted_at      DateTime?
+
+  dedupe_key      String   @unique
+  schema_name     String
+  source_event_type String
+  event_name      String?
+  occurred_at     DateTime
+  project_id      String
+  owner_id        String?
+  session_id      String?
+  device_id       String?
+  origin          String?
+  page_path       String?
+  referrer        String?
+  payload_json    Json?
+
+  @@index([occurred_at])
+  @@index([source_event_type, occurred_at])
+  @@index([page_path, occurred_at])
+}
 ```
 
 ### Data Notes
@@ -368,6 +401,7 @@ model AnalyticsInteractionEvent {
 - Les `Analytics*Snapshot` servent uniquement au reporting consolidé admin.
 - Les blocs intraday (`GA4 aujourd'hui`, `live` Vercel) sont lus à la demande et ne modifient pas les snapshots consolidés en V1.
 - Les credentials analytics restent dans les variables d'environnement ou la configuration Vercel ; ils ne sont pas stockés dans ces modèles.
+- Les `AnalyticsVercelLiveEvent` servent uniquement au trafic récent Vercel ; ils ne remplacent pas les snapshots consolidés.
 
 ---
 
@@ -703,6 +737,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/internal/analytics/vercel-drain:
+    post:
+      summary: "Recevoir des événements récents depuis Vercel Web Analytics Drains"
+      tags: [admin-analytics-internal]
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/VercelAnalyticsDrainEvent"
+                - type: array
+                  items:
+                    $ref: "#/components/schemas/VercelAnalyticsDrainEvent"
+      responses:
+        "200":
+          description: Événements ingérés
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, ingested]
+                properties:
+                  status: { type: string, enum: [ok] }
+                  ingested: { type: integer }
+        "401":
+          description: Secret manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/internal/analytics/vercel-live:
+    get:
+      summary: "Agréger le trafic récent Vercel pour le bloc live admin"
+      tags: [admin-analytics-internal]
+      security:
+        - internalLiveToken: []
+      responses:
+        "200":
+          description: Bloc live Vercel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnalyticsLiveBlock"
+        "401":
+          description: Token manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
     AdminAnalyticsOverview:
@@ -875,6 +968,23 @@ components:
           type: string
           nullable: true
 
+    VercelAnalyticsDrainEvent:
+      type: object
+      required: [schema, eventType, timestamp, projectId]
+      properties:
+        schema: { type: string }
+        eventType: { type: string }
+        eventName: { type: string, nullable: true }
+        eventData: { nullable: true }
+        timestamp: { type: integer }
+        projectId: { type: string }
+        ownerId: { type: string, nullable: true }
+        sessionId: { oneOf: [{ type: integer }, { type: string }], nullable: true }
+        deviceId: { oneOf: [{ type: integer }, { type: string }], nullable: true }
+        origin: { type: string, nullable: true }
+        path: { type: string, nullable: true }
+        referrer: { type: string, nullable: true }
+
     Error:
       type: object
       required: [error]
@@ -906,6 +1016,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+
+  securitySchemes:
+    internalLiveToken:
+      type: http
+      scheme: bearer
 ```
 
 ---
@@ -977,6 +1092,7 @@ components:
 | AC-05-04 | Endpoint interne de synchro refuse secret invalide | contract |
 | AC-05-05 | Bloc `live` se dégrade proprement si Vercel n'est pas exploitable | integration |
 | AC-05-06 | Bloc `live` Vercel lit un flux récent supporté quand disponible | integration |
+| AC-05-07 | Vercel Drain ingère et déduplique des événements récents exploitables par le bloc `live` | contract |
 
 ---
 
