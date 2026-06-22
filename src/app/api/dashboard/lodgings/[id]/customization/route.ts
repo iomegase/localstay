@@ -6,11 +6,27 @@ import {
   saveLodgingCustomization,
 } from '@/features/guide-customization/queries/customization'
 import { GuideCustomizationError } from '@/features/guide-customization/types'
-import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '@/features/guide-customization/lib/validation'
+import {
+  countWords,
+  normalizeOwnerNote,
+  OWNER_NOTE_MAX_WORDS,
+  WELCOME_MESSAGE_MAX_WORDS,
+} from '@/features/guide-customization/lib/validation'
 import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
+
+const ownerNoteSchema = z
+  .string()
+  .transform(value => normalizeOwnerNote(value))
+  .refine(value => value === null || countWords(value) <= OWNER_NOTE_MAX_WORDS, {
+    message: `Le commentaire ne doit pas dépasser ${OWNER_NOTE_MAX_WORDS} mots`,
+  })
+  .nullable()
+  .optional()
+  .transform(value => normalizeOwnerNote(value))
 
 const featuredPoiSchema = z.object({
   poi_id: z.string().min(1),
+  owner_note: ownerNoteSchema,
   sort_order: z.number().int().min(0),
 })
 

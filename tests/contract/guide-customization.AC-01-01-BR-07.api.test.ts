@@ -88,22 +88,26 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(mockSaveCustomization).toHaveBeenCalled()
   })
 
-  it('AC-02-02: strips owner_note and owner_rating from featured POI payloads', async () => {
+  it('AC-02-02: accepts owner_note but strips owner_rating', async () => {
     mockSaveCustomization.mockResolvedValue({
       ...responseBody,
-      featured_pois: [{ poi_id: 'poi-1', category_id: 'cat-1', sort_order: 0 }],
+      featured_pois: [{
+        poi_id: 'poi-1',
+        category_id: 'cat-1',
+        owner_note: 'Notre terrasse préférée.',
+        sort_order: 0,
+      }],
     })
 
     const res = await PUT(
       makeRequest('PUT', {
-        welcome_message: 'Bienvenue',
         category_order: [],
         featured_pois: [
           {
             poi_id: 'poi-1',
-            sort_order: 0,
-            owner_note: 'Ancienne note a ignorer',
+            owner_note: '  Notre terrasse préférée.  ',
             owner_rating: 5,
+            sort_order: 0,
           },
         ],
       }),
@@ -111,12 +115,34 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     )
 
     expect(res.status).toBe(200)
-    expect(mockSaveCustomization).toHaveBeenCalledWith('owner-1', 'lodging-1', {
-      welcome_message: 'Bienvenue',
-      category_order: [],
-      featured_pois: [{ poi_id: 'poi-1', sort_order: 0 }],
-      practical_blocks: [],
-    })
+    expect(mockSaveCustomization).toHaveBeenCalledWith(
+      'owner-1',
+      'lodging-1',
+      expect.objectContaining({
+        featured_pois: [{
+          poi_id: 'poi-1',
+          owner_note: 'Notre terrasse préférée.',
+          sort_order: 0,
+        }],
+      }),
+    )
+  })
+
+  it('AC-02-04: rejects owner_note over 300 words', async () => {
+    const res = await PUT(
+      makeRequest('PUT', {
+        category_order: [],
+        featured_pois: [{
+          poi_id: 'poi-1',
+          owner_note: Array.from({ length: 301 }, () => 'mot').join(' '),
+          sort_order: 0,
+        }],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
+    expect(mockSaveCustomization).not.toHaveBeenCalled()
   })
 
   it('returns 400 when the welcome message exceeds 400 words', async () => {

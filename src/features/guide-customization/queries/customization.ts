@@ -5,6 +5,7 @@ import {
   filterValidCategoryOrder,
   groupFeaturedPoisByCategory,
   isPoiWithinGuideScope,
+  normalizeOwnerNote,
   normalizePracticalBlocks,
 } from '../lib/validation'
 import type {
@@ -203,6 +204,7 @@ export async function getLodgingCustomization(
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
       poi_id: true,
+      owner_note: true,
       sort_order: true,
       poi: { select: { category_id: true } },
     },
@@ -221,6 +223,7 @@ export async function getLodgingCustomization(
     featured_pois: featuredPois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
       category_id: featuredPoi.poi.category_id,
+      owner_note: featuredPoi.owner_note,
       sort_order: featuredPoi.sort_order,
     })),
     ignored_category_slugs: [],
@@ -291,12 +294,14 @@ export async function saveLodgingCustomization(
       await tx.lodgingFeaturedPoi.upsert({
         where: { lodging_id_poi_id: { lodging_id: lodgingId, poi_id: featuredPoi.poi_id } },
         update: {
+          owner_note: featuredPoi.owner_note,
           sort_order: featuredPoi.sort_order,
           deleted_at: null,
         },
         create: {
           lodging_id: lodgingId,
           poi_id: featuredPoi.poi_id,
+          owner_note: featuredPoi.owner_note,
           sort_order: featuredPoi.sort_order,
         },
       })
@@ -394,6 +399,7 @@ async function validateFeaturedPois(
     return {
       poi_id: row.id,
       category_id: row.category_id,
+      owner_note: normalizeOwnerNote(requested.owner_note),
       sort_order: requested.sort_order,
     }
   })

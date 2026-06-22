@@ -28,6 +28,18 @@ describe('saveLodgingCustomization — practical blocks', () => {
       city: { latitude: 45, longitude: 6 },
     } as never)
     jest.mocked(prisma.category.findMany).mockResolvedValue([] as never)
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      {
+        id: 'poi-1',
+        city_id: 'city-1',
+        category_id: 'cat-1',
+        latitude: 45,
+        longitude: 6,
+        is_active: true,
+        deleted_at: null,
+        geocode_status: 'success',
+      },
+    ] as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
       { id: 'b1', title: 'La plage', body: 'À 5 min', icon: 'star', photo_url: null, sort_order: 0 },
     ] as never)
@@ -61,5 +73,39 @@ describe('saveLodgingCustomization — practical blocks', () => {
     expect(result.practical_blocks).toEqual([
       { id: 'b1', title: 'La plage', body: 'À 5 min', icon: 'star', photo_url: null, sort_order: 0 },
     ])
+  })
+
+  it('normalizes and persists an owner note for a selected POI', async () => {
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+
+    const result = await saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [{
+        poi_id: 'poi-1',
+        owner_note: '  Notre terrasse préférée.  ',
+        sort_order: 0,
+      }],
+    })
+
+    expect(tx.lodgingFeaturedPoi.upsert).toHaveBeenCalledWith({
+      where: { lodging_id_poi_id: { lodging_id: 'lodging-1', poi_id: 'poi-1' } },
+      update: {
+        owner_note: 'Notre terrasse préférée.',
+        sort_order: 0,
+        deleted_at: null,
+      },
+      create: {
+        lodging_id: 'lodging-1',
+        poi_id: 'poi-1',
+        owner_note: 'Notre terrasse préférée.',
+        sort_order: 0,
+      },
+    })
+    expect(result.featured_pois).toEqual([{
+      poi_id: 'poi-1',
+      category_id: 'cat-1',
+      owner_note: 'Notre terrasse préférée.',
+      sort_order: 0,
+    }])
   })
 })
