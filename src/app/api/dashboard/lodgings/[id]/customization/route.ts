@@ -7,6 +7,7 @@ import {
 } from '@/features/guide-customization/queries/customization'
 import { GuideCustomizationError } from '@/features/guide-customization/types'
 import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '@/features/guide-customization/lib/validation'
+import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
 
 const featuredPoiSchema = z.object({
   poi_id: z.string().min(1),
@@ -15,6 +16,30 @@ const featuredPoiSchema = z.object({
 
 const practicalText = (max: number) =>
   z.string().max(max).nullable().optional()
+
+const practicalBlockSchema = z.object({
+  id: z.string().optional(), // identifiant client (dnd) — ignoré à la persistance
+  title: z.string().trim().min(1).max(120),
+  body: z
+    .string()
+    .max(4000)
+    .nullable()
+    .optional()
+    .transform(value => (value && value.trim().length > 0 ? value : null)),
+  icon: z
+    .string()
+    .trim()
+    .refine(value => PRACTICAL_BLOCK_ICON_SLUGS.includes(value), { message: 'Icône inconnue' }),
+  photo_url: z
+    .union([
+      z.string().trim().url(),
+      z.string().trim().length(0).transform(() => null),
+      z.null(),
+    ])
+    .optional()
+    .transform(value => value ?? null),
+  sort_order: z.number().int().min(0),
+})
 
 const customizationSchema = z.object({
   welcome_message: z
@@ -43,6 +68,7 @@ const customizationSchema = z.object({
   house_rules: practicalText(4000),
   emergency_contacts: practicalText(2000),
   useful_services: practicalText(4000),
+  practical_blocks: z.array(practicalBlockSchema).default([]),
 })
 
 function errorResponse(code: string, message: string, status: number, details?: unknown) {

@@ -27,9 +27,11 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '../lib/validation'
+import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
 import type {
   FeaturedPoiInput,
   LodgingCustomizationResponse,
+  PracticalBlockInput,
   PracticalInfoFields,
 } from '../types'
 import { PRACTICAL_INFO_KEYS } from '../types'
@@ -128,6 +130,9 @@ export function CustomizationForm({
     emergency_contacts: initialCustomization.emergency_contacts ?? null,
     useful_services: initialCustomization.useful_services ?? null,
   }))
+  const [practicalBlocks, setPracticalBlocks] = useState<PracticalBlockInput[]>(
+    initialCustomization.practical_blocks ?? [],
+  )
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
 
@@ -188,6 +193,10 @@ export function CustomizationForm({
           poi_id: featuredPoi.poi_id,
           sort_order: index,
         })),
+        practical_blocks: practicalBlocks.map((block, index) => ({
+          ...block,
+          sort_order: index,
+        })),
         ...practicalPayload,
       }),
     })
@@ -220,6 +229,7 @@ export function CustomizationForm({
       emergency_contacts: payload.emergency_contacts ?? null,
       useful_services: payload.useful_services ?? null,
     })
+    setPracticalBlocks(payload.practical_blocks ?? [])
     setStatus('saved')
     setMessage(
       payload.ignored_category_slugs.length > 0
@@ -286,6 +296,11 @@ export function CustomizationForm({
 
       {/* 2. Infos Pratiques (Sous-composant refondu plus bas) */}
       <PracticalInfoCard lodgingId={lodgingId} practicalInfo={practicalInfo} setPracticalField={setPracticalField} />
+
+      {/* 2b. Blocs personnalisés « Infos pratiques » */}
+      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
+        <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} />
+      </section>
 
       {/* 3. Ordre des catégories */}
       <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">

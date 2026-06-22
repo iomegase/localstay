@@ -55,6 +55,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       welcome_message: 'Bienvenue au chalet',
       category_order: ['restaurants'],
       featured_pois: [],
+      practical_blocks: [],
     })
     await expect(res.json()).resolves.toEqual(responseBody)
   })
@@ -114,6 +115,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       welcome_message: 'Bienvenue',
       category_order: [],
       featured_pois: [{ poi_id: 'poi-1', sort_order: 0 }],
+      practical_blocks: [],
     })
   })
 
@@ -137,5 +139,47 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
 
     expect(res.status).toBe(401)
     expect(mockGetCustomization).not.toHaveBeenCalled()
+  })
+
+  it('forwards valid practical_blocks to the save query', async () => {
+    mockSaveCustomization.mockResolvedValue(responseBody)
+
+    const res = await PUT(
+      makeRequest('PUT', {
+        category_order: [],
+        featured_pois: [],
+        practical_blocks: [
+          { title: 'La plage', body: 'À 5 min à pied', icon: 'star', photo_url: '', sort_order: 0 },
+        ],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    expect(mockSaveCustomization).toHaveBeenCalledWith(
+      'owner-1',
+      'lodging-1',
+      expect.objectContaining({
+        practical_blocks: [
+          { title: 'La plage', body: 'À 5 min à pied', icon: 'star', photo_url: null, sort_order: 0 },
+        ],
+      }),
+    )
+  })
+
+  it('rejects a practical block with an icon outside the catalog', async () => {
+    const res = await PUT(
+      makeRequest('PUT', {
+        category_order: [],
+        featured_pois: [],
+        practical_blocks: [
+          { title: 'X', body: null, icon: 'not-a-real-icon', photo_url: null, sort_order: 0 },
+        ],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
+    expect(mockSaveCustomization).not.toHaveBeenCalled()
   })
 })
