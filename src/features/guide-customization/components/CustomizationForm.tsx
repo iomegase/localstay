@@ -112,6 +112,7 @@ export function CustomizationForm({
     initialCustomization.featured_pois
       .map(featuredPoi => ({
         poi_id: featuredPoi.poi_id,
+        owner_note: featuredPoi.owner_note,
         sort_order: featuredPoi.sort_order,
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
@@ -191,6 +192,7 @@ export function CustomizationForm({
         category_order: categoryOrder,
         featured_pois: featuredPois.map((featuredPoi, index) => ({
           poi_id: featuredPoi.poi_id,
+          owner_note: featuredPoi.owner_note,
           sort_order: index,
         })),
         practical_blocks: practicalBlocks.map((block, index) => ({
@@ -213,6 +215,7 @@ export function CustomizationForm({
     setCategoryOrder(payload.category_order.length > 0 ? payload.category_order : categoryOrder)
     setFeaturedPois(payload.featured_pois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
+      owner_note: featuredPoi.owner_note,
       sort_order: featuredPoi.sort_order,
     })))
     setPracticalInfo({

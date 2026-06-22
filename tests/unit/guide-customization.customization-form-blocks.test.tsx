@@ -59,4 +59,50 @@ describe('CustomizationForm — practical blocks payload', () => {
       expect.objectContaining({ title: 'La plage', icon: 'info', sort_order: 0 }),
     ])
   })
+
+  it('preserves an existing owner note across save and response refresh', async () => {
+    const user = userEvent.setup()
+    const customizationWithNote = {
+      ...baseCustomization,
+      featured_pois: [{
+        poi_id: 'poi-1',
+        category_id: 'cat-1',
+        owner_note: 'Notre terrasse préférée.',
+        sort_order: 0,
+      }],
+    }
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => customizationWithNote,
+    }) as jest.Mock
+
+    render(
+      <CustomizationForm
+        lodgingId="lodging-1"
+        citySlug="saint-gervais"
+        categories={[]}
+        pois={[]}
+        initialCustomization={customizationWithNote}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /enregistrer/i }))
+    await screen.findByText('Personnalisation sauvegardée.')
+    await user.click(screen.getByRole('button', { name: /enregistrer/i }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2))
+
+    const payloads = (global.fetch as jest.Mock).mock.calls.map(([, init]) =>
+      JSON.parse((init as RequestInit).body as string),
+    )
+    expect(payloads[0].featured_pois).toEqual([{
+      poi_id: 'poi-1',
+      owner_note: 'Notre terrasse préférée.',
+      sort_order: 0,
+    }])
+    expect(payloads[1].featured_pois).toEqual([{
+      poi_id: 'poi-1',
+      owner_note: 'Notre terrasse préférée.',
+      sort_order: 0,
+    }])
+  })
 })

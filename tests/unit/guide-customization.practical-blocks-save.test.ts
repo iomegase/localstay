@@ -17,6 +17,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 
 import { prisma } from '@/shared/lib/prisma'
 import { saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
+import { GuideCustomizationError } from '@/features/guide-customization/types'
 
 describe('saveLodgingCustomization — practical blocks', () => {
   beforeEach(() => {
@@ -107,5 +108,23 @@ describe('saveLodgingCustomization — practical blocks', () => {
       owner_note: 'Notre terrasse préférée.',
       sort_order: 0,
     }])
+  })
+
+  it('rejects an owner note over 300 words before starting the transaction', async () => {
+    const save = saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [{
+        poi_id: 'poi-1',
+        owner_note: Array.from({ length: 301 }, () => 'mot').join(' '),
+        sort_order: 0,
+      }],
+    })
+
+    await expect(save).rejects.toEqual(
+      expect.objectContaining<Partial<GuideCustomizationError>>({
+        code: 'INVALID_FEATURED_POI',
+      }),
+    )
+    expect(prisma.$transaction).not.toHaveBeenCalled()
   })
 })

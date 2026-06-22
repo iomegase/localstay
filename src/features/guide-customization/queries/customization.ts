@@ -2,11 +2,13 @@ import { prisma } from '@/shared/lib/prisma'
 import type { CategorySummary } from '@/features/city-guide/types'
 import type { CategoryWithCount } from '@/features/categories/types'
 import {
+  countWords,
   filterValidCategoryOrder,
   groupFeaturedPoisByCategory,
   isPoiWithinGuideScope,
   normalizeOwnerNote,
   normalizePracticalBlocks,
+  OWNER_NOTE_MAX_WORDS,
 } from '../lib/validation'
 import type {
   FeaturedPoiInput,
@@ -396,10 +398,15 @@ async function validateFeaturedPois(
       raise('INVALID_FEATURED_POI', 'Un POI selectionne est hors perimetre du guide')
     }
 
+    const ownerNote = normalizeOwnerNote(requested.owner_note)
+    if (ownerNote !== null && countWords(ownerNote) > OWNER_NOTE_MAX_WORDS) {
+      raise('INVALID_FEATURED_POI', 'Le commentaire Owner depasse 300 mots')
+    }
+
     return {
       poi_id: row.id,
       category_id: row.category_id,
-      owner_note: normalizeOwnerNote(requested.owner_note),
+      owner_note: ownerNote,
       sort_order: requested.sort_order,
     }
   })
