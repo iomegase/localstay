@@ -1212,6 +1212,31 @@ model AnalyticsInteractionEvent {
   @@index([lodging_id, created_at])
 }
 
+model AnalyticsVercelLiveEvent {
+  id                String   @id @default(uuid())
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  deleted_at        DateTime?
+
+  dedupe_key        String   @unique
+  schema_name       String
+  source_event_type String
+  event_name        String?
+  occurred_at       DateTime
+  project_id        String
+  owner_id          String?
+  session_id        String?
+  device_id         String?
+  origin            String?
+  page_path         String?
+  referrer          String?
+  payload_json      Json?
+
+  @@index([occurred_at])
+  @@index([source_event_type, occurred_at])
+  @@index([page_path, occurred_at])
+}
+
 // ─── Spec 026 — Événements DATAtourisme ─────────────────────────────────────
 
 model Event {

@@ -34,8 +34,30 @@ export const analyticsInteractionEventSchema = z.object({
   lodging_id: z.string().uuid().optional().nullable(),
 })
 
+export const vercelAnalyticsDrainEventSchema = z.object({
+  schema: z.string().trim().min(1),
+  eventType: z.string().trim().min(1),
+  eventName: z.string().trim().min(1).optional().nullable(),
+  eventData: z.unknown().optional().nullable(),
+  timestamp: z.coerce.number().int().nonnegative(),
+  projectId: z.string().trim().min(1),
+  ownerId: z.string().trim().min(1).optional().nullable(),
+  sessionId: z.union([z.string().trim().min(1), z.coerce.number().int()]).optional().nullable(),
+  deviceId: z.union([z.string().trim().min(1), z.coerce.number().int()]).optional().nullable(),
+  origin: z.string().trim().min(1).optional().nullable(),
+  path: z.string().trim().min(1).optional().nullable(),
+  referrer: z.string().trim().min(1).optional().nullable(),
+})
+
+export const vercelAnalyticsDrainPayloadSchema = z.union([
+  vercelAnalyticsDrainEventSchema,
+  z.array(vercelAnalyticsDrainEventSchema),
+])
+
 export type AnalyticsDateRangeInput = z.infer<typeof analyticsDateRangeSchema>
 export type AnalyticsListFiltersInput = z.infer<typeof analyticsListFiltersSchema>
 export type AnalyticsPerformanceFiltersInput = z.infer<typeof analyticsPerformanceFiltersSchema>
 export type AnalyticsSyncRequestInput = z.infer<typeof analyticsSyncRequestSchema>
 export type AnalyticsInteractionEventInput = z.infer<typeof analyticsInteractionEventSchema>
+export type VercelAnalyticsDrainEventInput = z.infer<typeof vercelAnalyticsDrainEventSchema>
+export type VercelAnalyticsDrainPayloadInput = z.infer<typeof vercelAnalyticsDrainPayloadSchema>

@@ -93,4 +93,33 @@ describe('030 vercel live metrics', () => {
       top_referrers: [],
     })
   })
+
+  it('passes through a full internal live block payload unchanged', async () => {
+    process.env.VERCEL_ANALYTICS_PROJECT_ID = 'prj_test123'
+    process.env.VERCEL_ANALYTICS_LIVE_ENDPOINT = 'https://metrics.example.com/vercel/live'
+    process.env.VERCEL_ANALYTICS_LIVE_TOKEN = 'secret-123'
+
+    global.fetch = jest.fn(async () => new Response(
+      JSON.stringify({
+        status: 'no_data',
+        window_label: 'Last 30 minutes',
+        visitors: null,
+        page_views: null,
+        top_pages: [],
+        top_referrers: [],
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )) as typeof fetch
+
+    const result = await fetchVercelLiveMetrics()
+
+    expect(result).toEqual({
+      status: 'no_data',
+      window_label: 'Last 30 minutes',
+      visitors: null,
+      page_views: null,
+      top_pages: [],
+      top_referrers: [],
+    })
+  })
 })

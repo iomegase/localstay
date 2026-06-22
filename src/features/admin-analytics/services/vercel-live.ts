@@ -1,10 +1,25 @@
 import { z } from 'zod'
 import type { AdminAnalyticsLiveBlock } from '@/features/admin-analytics/types'
 
-const vercelLivePayloadSchema = z.object({
+const vercelLiveMetricsSchema = z.object({
   window_label: z.string().trim().min(1).nullable().optional(),
   visitors: z.coerce.number().int().nonnegative(),
   page_views: z.coerce.number().int().nonnegative(),
+  top_pages: z.array(z.object({
+    page_path: z.string().trim().min(1),
+    page_views: z.coerce.number().int().nonnegative(),
+  })).default([]),
+  top_referrers: z.array(z.object({
+    referrer: z.string().trim().min(1),
+    visitors: z.coerce.number().int().nonnegative(),
+  })).default([]),
+})
+
+const vercelLiveBlockSchema = z.object({
+  status: z.enum(['connected', 'not_configured', 'failed', 'stale', 'no_data']),
+  window_label: z.string().trim().min(1).nullable().optional(),
+  visitors: z.coerce.number().int().nonnegative().nullable(),
+  page_views: z.coerce.number().int().nonnegative().nullable(),
   top_pages: z.array(z.object({
     page_path: z.string().trim().min(1),
     page_views: z.coerce.number().int().nonnegative(),
@@ -50,30 +65,40 @@ export async function fetchVercelLiveMetrics(): Promise<AdminAnalyticsLiveBlock>
       return emptyLiveBlock('failed')
     }
 
-    const parsed = vercelLivePayloadSchema.safeParse(await response.json())
-    if (!parsed.success) {
+    const payload = await response.json()
+
+    const parsedBlock = vercelLiveBlockSchema.safeParse(payload)
+    if (parsedBlock.success) {
+      return {
+        ...parsedBlock.data,
+        window_label: parsedBlock.data.window_label ?? null,
+      }
+    }
+
+    const parsedMetrics = vercelLiveMetricsSchema.safeParse(payload)
+    if (!parsedMetrics.success) {
       return emptyLiveBlock('failed')
     }
 
     if (
-      parsed.data.visitors === 0 &&
-      parsed.data.page_views === 0 &&
-      parsed.data.top_pages.length === 0 &&
-      parsed.data.top_referrers.length === 0
+      parsedMetrics.data.visitors === 0 &&
+      parsedMetrics.data.page_views === 0 &&
+      parsedMetrics.data.top_pages.length === 0 &&
+      parsedMetrics.data.top_referrers.length === 0
     ) {
       return {
         ...emptyLiveBlock('no_data'),
-        window_label: parsed.data.window_label ?? null,
+        window_label: parsedMetrics.data.window_label ?? null,
       }
     }
 
     return {
       status: 'connected',
-      window_label: parsed.data.window_label ?? null,
-      visitors: parsed.data.visitors,
-      page_views: parsed.data.page_views,
-      top_pages: parsed.data.top_pages,
-      top_referrers: parsed.data.top_referrers,
+      window_label: parsedMetrics.data.window_label ?? null,
+      visitors: parsedMetrics.data.visitors,
+      page_views: parsedMetrics.data.page_views,
+      top_pages: parsedMetrics.data.top_pages,
+      top_referrers: parsedMetrics.data.top_referrers,
     }
   } catch {
     return emptyLiveBlock('failed')
