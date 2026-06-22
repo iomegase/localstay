@@ -5,6 +5,19 @@ import { render, screen } from '@testing-library/react'
 import LeLogementPage from '@/app/(public)/le-logement/page'
 import { prisma } from '@/shared/lib/prisma'
 
+beforeAll(() => {
+  class IOStub {
+    constructor(_cb: IntersectionObserverCallback) {}
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() { return [] }
+  }
+  // @ts-expect-error stub de test
+  global.IntersectionObserver = IOStub
+  Element.prototype.scrollIntoView = jest.fn()
+})
+
 jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: jest.fn(async () => ({
     lodgingId: 'lodging-1',
@@ -53,6 +66,11 @@ describe('/le-logement — blocs personnalisés', () => {
     expect(screen.getByText('La plage')).toBeInTheDocument()
     expect(screen.getByText(/5 min/)).toBeInTheDocument()
     expect(screen.getByAltText('La plage')).toHaveAttribute('src', 'https://cdn.test/plage.webp')
+    // Le pager n'affiche que le titre actif ('Infos pratiques'); 'À découvrir'
+    // n'est exposé que via l'aria-label du dot de la page 2.
+    expect(screen.getByText('Infos pratiques')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aller à à découvrir/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(2)
   })
 
   it('treats blocks as content (no empty state when only blocks exist)', async () => {
@@ -65,5 +83,21 @@ describe('/le-logement — blocs personnalisés', () => {
 
     expect(screen.getByText('Bons plans')).toBeInTheDocument()
     expect(screen.queryByText(/n'a pas encore renseigné/i)).not.toBeInTheDocument()
+  })
+
+  it('renders a single list without pager when there are no custom blocks', async () => {
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      lodging_address: '1 rue des Alpes',
+      wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
+      checkout_instructions: null, trash_info: null, trash_location: null,
+      house_rules: null, emergency_contacts: null, useful_services: null,
+    } as never)
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+
+    render(await LeLogementPage())
+
+    expect(screen.getByText('1 rue des Alpes')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /aller à/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('À découvrir')).not.toBeInTheDocument()
   })
 })

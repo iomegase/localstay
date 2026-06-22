@@ -6,6 +6,16 @@ import { prisma } from '@/shared/lib/prisma'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { LodgingPager } from '@/features/public-menu/components/LodgingPager'
+
+type PracticalBlock = {
+  id: string
+  title: string
+  body: string | null
+  icon: string
+  photo_url: string | null
+  sort_order: number
+}
 
 export default async function LeLogementPage() {
   const lodgingContext = await getActiveLodgingContext()
@@ -35,18 +45,20 @@ export default async function LeLogementPage() {
   })
 
   const sections = buildSections(customization)
-  const hasContent = sections.some(section => section.hasValue) || practicalBlocks.length > 0
+  const hasFixed = sections.some(section => section.hasValue)
+  const hasBlocks = practicalBlocks.length > 0
+  const hasContent = hasFixed || hasBlocks
 
   return (
-    <div className="px-5 pt-4">
-      <div className="mb-6">
+    <div className="pt-4">
+      <div className="mb-6 px-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Le logement</p>
         <h1 className="mt-1 font-serif italic text-3xl text-charcoal">{lodgingContext.lodgingName}</h1>
         <p className="mt-1 text-sm text-gray-500">{lodgingContext.cityName}</p>
       </div>
 
       {!hasContent ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+        <div className="mx-5 rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
           Votre hôte n&apos;a pas encore renseigné d&apos;informations pratiques.
           <div className="mt-4">
             <Link
@@ -57,36 +69,58 @@ export default async function LeLogementPage() {
             </Link>
           </div>
         </div>
-      ) : (
-        <div className="space-y-4 pb-8">
+      ) : !hasBlocks ? (
+        <div className="space-y-4 px-5 pb-8">
           {sections.filter(s => s.hasValue).map(section => (
             <PracticalCard key={section.key} section={section} />
           ))}
-          {practicalBlocks.map(block => (
-            <section key={block.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-charcoal/5 text-charcoal">
-                  <CategoryIcon iconSlug={block.icon} className="h-5 w-5" />
-                </span>
-                <div className="flex-1 pt-1">
-                  <h2 className="font-serif italic text-lg text-charcoal">{block.title}</h2>
-                  {block.photo_url && (
-                    <div className="relative mt-3 aspect-[16/10] overflow-hidden rounded-xl">
-                      <Image src={block.photo_url} alt={block.title} fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
-                    </div>
-                  )}
-                  {block.body && (
-                    <div className="mt-2 text-sm leading-relaxed text-charcoal/70">
-                      <MarkdownText source={block.body} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-          ))}
         </div>
+      ) : (
+        <LodgingPager titles={['Infos pratiques', 'À découvrir']}>
+          <div className="space-y-4 pb-8">
+            {hasFixed ? (
+              sections.filter(s => s.hasValue).map(section => (
+                <PracticalCard key={section.key} section={section} />
+              ))
+            ) : (
+              <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+                Aucune info pratique renseignée.
+              </p>
+            )}
+          </div>
+          <div className="space-y-4 pb-8">
+            {practicalBlocks.map(block => (
+              <PracticalBlockCard key={block.id} block={block} />
+            ))}
+          </div>
+        </LodgingPager>
       )}
     </div>
+  )
+}
+
+function PracticalBlockCard({ block }: { block: PracticalBlock }) {
+  return (
+    <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-charcoal/5 text-charcoal">
+          <CategoryIcon iconSlug={block.icon} className="h-5 w-5" />
+        </span>
+        <div className="flex-1 pt-1">
+          <h2 className="font-serif italic text-lg text-charcoal">{block.title}</h2>
+          {block.photo_url && (
+            <div className="relative mt-3 aspect-[16/10] overflow-hidden rounded-xl">
+              <Image src={block.photo_url} alt={block.title} fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
+            </div>
+          )}
+          {block.body && (
+            <div className="mt-2 text-sm leading-relaxed text-charcoal/70">
+              <MarkdownText source={block.body} />
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   )
 }
 
