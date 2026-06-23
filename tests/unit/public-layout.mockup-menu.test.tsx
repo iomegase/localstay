@@ -43,10 +43,9 @@ describe('PublicLayout mockup menu', () => {
       'href',
       '/guide/saint-gervais/logements',
     )
-    expect(screen.getByRole('link', { name: 'Les recommandations de Alice Martin' })).toHaveAttribute(
-      'href',
-      '/nos-recommandations',
-    )
+    // L'entrée « recommandations » est retirée du menu : la home (/) affiche
+    // déjà ce contenu en mode séjour.
+    expect(screen.queryByRole('link', { name: /recommandations/i })).not.toBeInTheDocument()
   })
 
   it('keeps the menu overlay constrained to the mobile app shell width', async () => {
