@@ -9,6 +9,7 @@ import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
+import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 
 function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
@@ -24,6 +25,7 @@ interface Props {
   categorySlug: string
   /** Si fourni, le bouton retour ferme la vue (mode modal) au lieu de naviguer vers la liste. */
   onClose?: () => void
+  ownerRecommendationNote?: string | null
 }
 
 const DIFFICULTY_LABELS: Record<TrailDetailData['difficulty'], string> = {
@@ -34,7 +36,13 @@ const DIFFICULTY_LABELS: Record<TrailDetailData['difficulty'], string> = {
   unknown: 'Non précisé',
 }
 
-export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Props) {
+export function TrailPoiDetailBody({
+  poi,
+  citySlug,
+  categorySlug,
+  onClose,
+  ownerRecommendationNote,
+}: Props) {
   const trail = poi.trail_detail
   if (!trail) return null
 
@@ -111,6 +119,8 @@ export function TrailPoiDetailBody({ poi, citySlug, categorySlug, onClose }: Pro
             />
           )}
         </section>
+
+        <OwnerRecommendationNote note={ownerRecommendationNote ?? null} />
 
         <section className="mb-8 mt-8 flex gap-3 px-6" data-testid="trail-quick-stats">
           <TrailStat icon={<Mountain className="h-5 w-5 text-gray-400" />} label="Dénivelé" value={trail.elevation_gain_m ? `D+ ${trail.elevation_gain_m}m` : 'n/a'} />

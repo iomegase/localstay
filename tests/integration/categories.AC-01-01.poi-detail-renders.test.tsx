@@ -99,6 +99,27 @@ describe('PoiDetailBody — AC-01-01 (all required fields rendered)', () => {
   })
 })
 
+describe('PoiDetailBody — AC-01-05/AC-01-06 (contextual Owner note)', () => {
+  it('renders the note after the description and before secondary blocks', () => {
+    render(
+      <PoiDetailBody
+        poi={poi}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+        ownerRecommendationNote="Notre choix pour dîner."
+      />,
+    )
+
+    const description = screen.getByText('Cuisine du terroir savoyard.')
+    const note = screen.getByRole('region', { name: 'Le mot de votre hôte' })
+    const miniMap = screen.getByTestId('mini-map')
+
+    expect(screen.getByText('Notre choix pour dîner.')).toBeInTheDocument()
+    expect(description.compareDocumentPosition(note)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(note.compareDocumentPosition(miniMap)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+})
+
 describe('PoiDetailBody — AC-03-01 (hiking block conditional)', () => {
   it('renders HikingBlock when hiking_detail is present', () => {
     render(<PoiDetailBody poi={hikingPoi} citySlug="saint-gervais-les-bains" categorySlug="randonnees" />)

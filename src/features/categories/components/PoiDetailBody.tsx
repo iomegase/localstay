@@ -6,6 +6,7 @@ import { HikingBlock } from './HikingBlock'
 import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
 import { HeroShareButton } from './HeroShareButton'
+import { OwnerRecommendationNote } from './OwnerRecommendationNote'
 import { PoiDetailHeroCarousel } from './PoiDetailHeroCarousel'
 import { PoiDetailTopBar } from './PoiDetailTopBar'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
@@ -21,11 +22,27 @@ interface Props {
   /** Si fourni, le bouton retour ferme la vue (mode modal) au lieu de naviguer vers la liste. */
   onClose?: () => void
   actionVariant?: ActionButtonsVariant
+  ownerRecommendationNote?: string | null
 }
 
-export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVariant = 'default' }: Props) {
+export function PoiDetailBody({
+  poi,
+  citySlug,
+  categorySlug,
+  onClose,
+  actionVariant = 'default',
+  ownerRecommendationNote,
+}: Props) {
   if (categorySlug === 'rando' && poi.trail_detail) {
-    return <TrailPoiDetailBody poi={poi} citySlug={citySlug} categorySlug={categorySlug} onClose={onClose} />
+    return (
+      <TrailPoiDetailBody
+        poi={poi}
+        citySlug={citySlug}
+        categorySlug={categorySlug}
+        onClose={onClose}
+        ownerRecommendationNote={ownerRecommendationNote}
+      />
+    )
   }
 
   const distanceLabel =
@@ -138,6 +155,8 @@ export function PoiDetailBody({ poi, citySlug, categorySlug, onClose, actionVari
             className="px-6 text-sm text-charcoal/70 leading-relaxed"
           />
         )}
+
+        <OwnerRecommendationNote note={ownerRecommendationNote ?? null} />
 
         <div className="px-6">
           <MerchantOffersBlock offers={poi.merchant_offers} />

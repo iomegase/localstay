@@ -56,6 +56,25 @@ const trailPoi = {
 } satisfies PoiDetail
 
 describe('021 public trail detail', () => {
+  it('AC-01-05/AC-01-06: renders the contextual Owner note before trail statistics', () => {
+    render(
+      <PoiDetailBody
+        poi={trailPoi}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="rando"
+        ownerRecommendationNote="Notre balade favorite."
+      />,
+    )
+
+    const description = screen.getByText(trailPoi.description)
+    const note = screen.getByRole('region', { name: 'Le mot de votre hôte' })
+    const stats = screen.getByTestId('trail-quick-stats')
+
+    expect(screen.getByText('Notre balade favorite.')).toBeInTheDocument()
+    expect(description.compareDocumentPosition(note)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(note.compareDocumentPosition(stats)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
   it('AC-01-01/AC-02-01/AC-04-03: renders trail CTAs and safety copy from the trail mockup', () => {
     render(<PoiDetailBody poi={trailPoi} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
 
