@@ -21,12 +21,17 @@ export default async function NosRecommendationsPage() {
           description: true,
           photos: true,
           category: { select: { name: true, slug: true } },
+          city: { select: { slug: true, name: true } },
         },
       },
     },
   })
 
-  const grouped = groupByCategory(featuredPois)
+  const localRows = featuredPois.filter(row => row.poi.city.slug === lodgingContext.citySlug)
+  const otherRows = featuredPois.filter(row => row.poi.city.slug !== lodgingContext.citySlug)
+  const grouped = groupByCategory(localRows)
+  const otherByCity = groupByCity(otherRows)
+  const hasAny = grouped.length > 0 || otherByCity.length > 0
   const title = lodgingContext.ownerName
     ? `Les recommandations de ${lodgingContext.ownerName}`
     : 'Les recommandations de votre hôte'
@@ -39,18 +44,37 @@ export default async function NosRecommendationsPage() {
         <p className="mt-1 text-sm text-gray-500">{lodgingContext.lodgingName} · {lodgingContext.cityName}</p>
       </div>
 
-      {grouped.length === 0 ? (
+      {!hasAny ? (
         <EmptyState citySlug={lodgingContext.citySlug} />
       ) : (
-        <div className="space-y-6 pb-8">
-          {grouped.map(group => (
-            <CategoryGroup
-              key={group.categorySlug}
-              categoryName={group.categoryName}
-              citySlug={lodgingContext.citySlug}
-              items={group.items}
-            />
-          ))}
+        <div className="space-y-8 pb-8">
+          {grouped.length > 0 && (
+            <div className="space-y-6">
+              {grouped.map(group => (
+                <CategoryGroup
+                  key={group.categorySlug}
+                  categoryName={group.categoryName}
+                  citySlug={lodgingContext.citySlug}
+                  items={group.items}
+                />
+              ))}
+            </div>
+          )}
+          {otherByCity.length > 0 && (
+            <div className="space-y-6">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold">À découvrir ailleurs</h2>
+              {otherByCity.map(group => (
+                <section key={group.citySlug}>
+                  <h3 className="mb-3 font-serif italic text-lg text-charcoal">À {group.cityName}</h3>
+                  <div className="space-y-3">
+                    {group.items.map(item => (
+                      <FeaturedCard key={item.poi.id} item={item} citySlug={item.poi.city.slug} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -66,6 +90,7 @@ type FeaturedRow = {
     description: string | null
     photos: string[]
     category: { name: string; slug: string }
+    city: { slug: string; name: string }
   }
 }
 
@@ -88,6 +113,26 @@ function groupByCategory(rows: FeaturedRow[]): Group[] {
         categoryName: row.poi.category.name,
         items: [row],
       })
+    }
+  }
+  return [...map.values()]
+}
+
+type CityGroup = {
+  citySlug: string
+  cityName: string
+  items: FeaturedRow[]
+}
+
+function groupByCity(rows: FeaturedRow[]): CityGroup[] {
+  const map = new Map<string, CityGroup>()
+  for (const row of rows) {
+    const slug = row.poi.city.slug
+    const existing = map.get(slug)
+    if (existing) {
+      existing.items.push(row)
+    } else {
+      map.set(slug, { citySlug: slug, cityName: row.poi.city.name, items: [row] })
     }
   }
   return [...map.values()]
@@ -135,7 +180,7 @@ function CategoryGroup({
 
 function FeaturedCard({ item, citySlug }: { item: FeaturedRow; citySlug: string }) {
   const heroPhoto = item.poi.photos?.[0] ?? null
-  const href = `/guide/${citySlug}/${item.poi.category.slug}/${item.poi.slug}`
+  const href = `/guide/${item.poi.city.slug}/${item.poi.category.slug}/${item.poi.slug}`
 
   return (
     <Link
