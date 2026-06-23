@@ -165,7 +165,7 @@ export function CustomizationForm({
     featuredPois.map(featuredPoi => [featuredPoi.poi_id, featuredPoi]),
   )
   const selectedPoiIds = new Set(featuredPois.map(featuredPoi => featuredPoi.poi_id))
-  const ownerNoteOverLimit = featuredPois.some(
+  const ownerNoteOverLimit = [...featuredPois, ...otherCityPois].some(
     featuredPoi => countWords(featuredPoi.owner_note ?? '') > OWNER_NOTE_MAX_WORDS,
   )
 
@@ -225,6 +225,7 @@ export function CustomizationForm({
           })),
           ...otherCityPois.map((poi, index) => ({
             poi_id: poi.poi_id,
+            owner_note: normalizeOwnerNote(poi.owner_note),
             sort_order: featuredPois.length + index,
           })),
         ],
@@ -246,10 +247,22 @@ export function CustomizationForm({
     const payload = await response.json() as LodgingCustomizationResponse
     setWelcomeMessage(payload.welcome_message ?? '')
     setCategoryOrder(payload.category_order.length > 0 ? payload.category_order : categoryOrder)
-    setFeaturedPois(payload.featured_pois.map(featuredPoi => ({
-      poi_id: featuredPoi.poi_id,
-      owner_note: featuredPoi.owner_note,
-      sort_order: featuredPoi.sort_order,
+    const otherCityPoiIds = new Set(otherCityPois.map(poi => poi.poi_id))
+    const savedByPoiId = new Map(
+      payload.featured_pois.map(featuredPoi => [featuredPoi.poi_id, featuredPoi]),
+    )
+    setFeaturedPois(
+      payload.featured_pois
+        .filter(featuredPoi => !otherCityPoiIds.has(featuredPoi.poi_id))
+        .map(featuredPoi => ({
+          poi_id: featuredPoi.poi_id,
+          owner_note: featuredPoi.owner_note,
+          sort_order: featuredPoi.sort_order,
+        })),
+    )
+    setOtherCityPois(current => current.map(poi => ({
+      ...poi,
+      owner_note: savedByPoiId.get(poi.poi_id)?.owner_note ?? null,
     })))
     setPracticalInfo({
       cover_photo_url: payload.cover_photo_url ?? null,

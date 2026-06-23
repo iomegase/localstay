@@ -17,6 +17,7 @@ export interface OtherCityPoiSelection {
   category_name: string
   city_slug: string
   city_name: string
+  owner_note: string | null
 }
 
 export interface PracticalBlockInput {
