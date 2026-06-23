@@ -1,14 +1,17 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { Hero } from './_components/Hero'
+import { BentoSection } from './_components/BentoSection'
+import type { RecRow } from './_components/variants'
 
 export default async function NosRecommendationsPage() {
   const lodgingContext = await getActiveLodgingContext()
   if (!lodgingContext) redirect('/')
 
-  const featuredPois = await prisma.lodgingFeaturedPoi.findMany({
+  const featuredPois = (await prisma.lodgingFeaturedPoi.findMany({
     where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
@@ -26,53 +29,67 @@ export default async function NosRecommendationsPage() {
         },
       },
     },
-  })
+  })) as RecRow[]
 
-  const localRows = featuredPois.filter(row => row.poi.city.slug === lodgingContext.citySlug)
-  const otherRows = featuredPois.filter(row => row.poi.city.slug !== lodgingContext.citySlug)
+  // Résolution défensive : un POI sans city rattaché est considéré local.
+  const cityOf = (row: RecRow) => row.poi.city?.slug ?? lodgingContext.citySlug
+
+  const localRows = featuredPois.filter(row => cityOf(row) === lodgingContext.citySlug)
+  const otherRows = featuredPois.filter(row => cityOf(row) !== lodgingContext.citySlug)
   const grouped = groupByCategory(localRows)
   const otherByCity = groupByCity(otherRows)
   const hasAny = grouped.length > 0 || otherByCity.length > 0
-  const title = lodgingContext.ownerName
-    ? `Les recommandations de ${lodgingContext.ownerName}`
-    : 'Les recommandations de votre hôte'
+
+  const stats = {
+    places: featuredPois.length,
+    categories: new Set(featuredPois.map(r => r.poi.category.slug)).size,
+    cities: new Set(featuredPois.map(cityOf)).size,
+  }
 
   return (
-    <div className="px-5 pt-4">
-      <div className="mb-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Recommandations</p>
-        <h1 className="mt-1 font-serif italic text-3xl text-charcoal">{title}</h1>
-        <p className="mt-1 text-sm text-gray-500">{lodgingContext.lodgingName} · {lodgingContext.cityName}</p>
-      </div>
+    <div className="bg-cream px-4 pt-2">
+      <header className="mb-6 flex items-center justify-between pt-2">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-gray-400">MyStay</p>
+          <p className="mt-1 text-xs text-gray-500">Mode séjour activé</p>
+        </div>
+      </header>
+
+      <Hero
+        ownerName={lodgingContext.ownerName}
+        lodgingName={lodgingContext.lodgingName}
+        cityName={lodgingContext.cityName}
+        citySlug={lodgingContext.citySlug}
+        stats={stats}
+      />
 
       {!hasAny ? (
         <EmptyState citySlug={lodgingContext.citySlug} />
       ) : (
-        <div className="space-y-8 pb-8">
-          {grouped.length > 0 && (
-            <div className="space-y-6">
-              {grouped.map(group => (
-                <CategoryGroup
-                  key={group.categorySlug}
-                  categoryName={group.categoryName}
-                  citySlug={lodgingContext.citySlug}
-                  items={group.items}
-                />
-              ))}
-            </div>
-          )}
+        <div className="pb-8">
+          {grouped.map((group, i) => (
+            <BentoSection
+              key={group.categorySlug}
+              eyebrow={i === 0 ? 'Sélection principale' : group.categoryName}
+              title={group.categoryName}
+              rows={group.items}
+              fallbackCitySlug={lodgingContext.citySlug}
+              showCardCategory={false}
+            />
+          ))}
+
           {otherByCity.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold">À découvrir ailleurs</h2>
+            <div className="mb-2">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+                À découvrir ailleurs
+              </p>
               {otherByCity.map(group => (
-                <section key={group.citySlug}>
-                  <h3 className="mb-3 font-serif italic text-lg text-charcoal">À {group.cityName}</h3>
-                  <div className="space-y-3">
-                    {group.items.map(item => (
-                      <FeaturedCard key={item.poi.id} item={item} citySlug={item.poi.city.slug} />
-                    ))}
-                  </div>
-                </section>
+                <BentoSection
+                  key={group.citySlug}
+                  title={`À ${group.cityName}`}
+                  rows={group.items}
+                  fallbackCitySlug={lodgingContext.citySlug}
+                />
               ))}
             </div>
           )}
@@ -82,27 +99,9 @@ export default async function NosRecommendationsPage() {
   )
 }
 
-type FeaturedRow = {
-  poi_id: string
-  owner_note: string | null
-  poi: {
-    id: string
-    name: string
-    slug: string
-    description: string | null
-    photos: string[]
-    category: { name: string; slug: string }
-    city: { slug: string; name: string }
-  }
-}
+type Group = { categorySlug: string; categoryName: string; items: RecRow[] }
 
-type Group = {
-  categorySlug: string
-  categoryName: string
-  items: FeaturedRow[]
-}
-
-function groupByCategory(rows: FeaturedRow[]): Group[] {
+function groupByCategory(rows: RecRow[]): Group[] {
   const map = new Map<string, Group>()
   for (const row of rows) {
     const slug = row.poi.category.slug
@@ -110,31 +109,24 @@ function groupByCategory(rows: FeaturedRow[]): Group[] {
     if (existing) {
       existing.items.push(row)
     } else {
-      map.set(slug, {
-        categorySlug: slug,
-        categoryName: row.poi.category.name,
-        items: [row],
-      })
+      map.set(slug, { categorySlug: slug, categoryName: row.poi.category.name, items: [row] })
     }
   }
   return [...map.values()]
 }
 
-type CityGroup = {
-  citySlug: string
-  cityName: string
-  items: FeaturedRow[]
-}
+type CityGroup = { citySlug: string; cityName: string; items: RecRow[] }
 
-function groupByCity(rows: FeaturedRow[]): CityGroup[] {
+function groupByCity(rows: RecRow[]): CityGroup[] {
   const map = new Map<string, CityGroup>()
   for (const row of rows) {
-    const slug = row.poi.city.slug
+    const slug = row.poi.city?.slug ?? ''
+    const name = row.poi.city?.name ?? ''
     const existing = map.get(slug)
     if (existing) {
       existing.items.push(row)
     } else {
-      map.set(slug, { citySlug: slug, cityName: row.poi.city.name, items: [row] })
+      map.set(slug, { citySlug: slug, cityName: name, items: [row] })
     }
   }
   return [...map.values()]
@@ -154,68 +146,5 @@ function EmptyState({ citySlug }: { citySlug: string }) {
         Voir le guide complet
       </Link>
     </div>
-  )
-}
-
-function CategoryGroup({
-  categoryName,
-  citySlug,
-  items,
-}: {
-  categoryName: string
-  citySlug: string
-  items: FeaturedRow[]
-}) {
-  return (
-    <section>
-      <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">
-        {categoryName}
-      </h2>
-      <div className="space-y-3">
-        {items.map(item => (
-          <FeaturedCard key={item.poi.id} item={item} citySlug={citySlug} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function FeaturedCard({ item, citySlug }: { item: FeaturedRow; citySlug: string }) {
-  const heroPhoto = item.poi.photos?.[0] ?? null
-  const href = `/guide/${item.poi.city.slug}/${item.poi.category.slug}/${item.poi.slug}`
-
-  return (
-    <Link
-      href={href}
-      className="group flex gap-4 overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-md"
-    >
-      {heroPhoto ? (
-        <img
-          src={heroPhoto}
-          alt={item.poi.name}
-          className="h-20 w-20 shrink-0 rounded-xl object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-300">
-          <Sparkles className="h-6 w-6" />
-        </div>
-      )}
-      <div className="flex flex-1 flex-col justify-center">
-        <h3 className="font-serif italic text-base text-charcoal">{item.poi.name}</h3>
-        {item.owner_note && (
-          <p
-            data-testid="owner-recommendation-comment"
-            className="mt-1 text-sm font-medium leading-relaxed text-charcoal"
-          >
-            {item.owner_note}
-          </p>
-        )}
-        {item.poi.description && (
-          <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.poi.description}</p>
-        )}
-      </div>
-      <ArrowRight className="my-auto h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-charcoal" />
-    </Link>
   )
 }
