@@ -5,12 +5,23 @@ import { listActiveCities, getCityGuide } from '@/features/city-guide/queries/ci
 import { CategoryBentoGrid } from '@/features/city-guide/components/CategoryBentoGrid'
 import { t } from '@/shared/lib/i18n'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
 }
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams?: Promise<{ lodging?: string }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps = {}) {
+  // QR séjour : le proxy redirige le scan vers /?lodging=:id. La présence du
+  // param marque un scan « frais » → on enregistre l'évènement qr_scan ici,
+  // comme le faisait la page guide auparavant.
+  const lodgingFromQuery = (await searchParams)?.lodging ?? null
+  void recordQrScanIfPresent(lodgingFromQuery)
+
   const lodgingContext = await getActiveLodgingContext()
 
   if (lodgingContext) {
