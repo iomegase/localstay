@@ -11,6 +11,14 @@ export interface FeaturedPoiResponse {
   sort_order: number
 }
 
+export interface OtherCityPoiSelection {
+  poi_id: string
+  name: string
+  category_name: string
+  city_slug: string
+  city_name: string
+}
+
 export interface PracticalBlockInput {
   id?: string
   title: string
