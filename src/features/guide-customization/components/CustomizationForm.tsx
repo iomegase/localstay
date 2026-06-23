@@ -26,7 +26,12 @@ import { Input } from '@/shared/components/ui/input'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { ImageUpload } from '@/shared/components/ImageUpload'
-import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '../lib/validation'
+import {
+  countWords,
+  normalizeOwnerNote,
+  OWNER_NOTE_MAX_WORDS,
+  WELCOME_MESSAGE_MAX_WORDS,
+} from '../lib/validation'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
 import type {
   FeaturedPoiInput,
@@ -149,7 +154,13 @@ export function CustomizationForm({
   const orderedCategories = categoryOrder
     .map(slug => categoriesBySlug.get(slug))
     .filter((category): category is CategoryOption => Boolean(category))
+  const featuredByPoiId = new Map(
+    featuredPois.map(featuredPoi => [featuredPoi.poi_id, featuredPoi]),
+  )
   const selectedPoiIds = new Set(featuredPois.map(featuredPoi => featuredPoi.poi_id))
+  const ownerNoteOverLimit = featuredPois.some(
+    featuredPoi => countWords(featuredPoi.owner_note ?? '') > OWNER_NOTE_MAX_WORDS,
+  )
 
   // Règle métier inchangée
   function onDragEnd(event: DragEndEvent) {
@@ -169,11 +180,20 @@ export function CustomizationForm({
     setFeaturedPois(current => {
       if (!checked) return current.filter(featuredPoi => featuredPoi.poi_id !== poiId)
       if (current.some(featuredPoi => featuredPoi.poi_id === poiId)) return current
-      return [...current, { poi_id: poiId, sort_order: current.length }]
+      return [...current, { poi_id: poiId, owner_note: null, sort_order: current.length }]
     })
   }
 
-  // Règle métier inchangée
+  function updateOwnerNote(poiId: string, ownerNote: string) {
+    setFeaturedPois(current =>
+      current.map(featuredPoi =>
+        featuredPoi.poi_id === poiId
+          ? { ...featuredPoi, owner_note: ownerNote }
+          : featuredPoi,
+      ),
+    )
+  }
+
   async function saveCustomization() {
     setStatus('saving')
     setMessage(null)
@@ -192,7 +212,7 @@ export function CustomizationForm({
         category_order: categoryOrder,
         featured_pois: featuredPois.map((featuredPoi, index) => ({
           poi_id: featuredPoi.poi_id,
-          owner_note: featuredPoi.owner_note,
+          owner_note: normalizeOwnerNote(featuredPoi.owner_note),
           sort_order: index,
         })),
         practical_blocks: practicalBlocks.map((block, index) => ({
@@ -362,6 +382,9 @@ export function CustomizationForm({
                 <div className="space-y-3 bg-gray-50/30 px-6 py-5">
                   {categoryPois.map(poi => {
                     const isSelected = selectedPoiIds.has(poi.id)
+                    const featuredPoi = featuredByPoiId.get(poi.id)
+                    const ownerNoteWordCount = countWords(featuredPoi?.owner_note ?? '')
+                    const ownerNoteIsOverLimit = ownerNoteWordCount > OWNER_NOTE_MAX_WORDS
                     return (
                       <div
                         key={poi.id}
@@ -378,6 +401,30 @@ export function CustomizationForm({
                           />
                           {poi.name}
                         </label>
+                        {featuredPoi && (
+                          <div className="mt-5 border-t border-gray-100 pt-5">
+                            <Label
+                              htmlFor={`owner-note-${poi.id}`}
+                              className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400"
+                            >
+                              Votre mot pour les voyageurs
+                            </Label>
+                            <Textarea
+                              id={`owner-note-${poi.id}`}
+                              value={featuredPoi.owner_note ?? ''}
+                              onChange={event => updateOwnerNote(poi.id, event.target.value)}
+                              placeholder="Pourquoi recommandez-vous cette adresse ?"
+                              className="mt-2 min-h-[88px] resize-none"
+                            />
+                            <p
+                              className={`mt-2 text-right text-[11px] font-medium ${
+                                ownerNoteIsOverLimit ? 'text-rose-500' : 'text-gray-400'
+                              }`}
+                            >
+                              {ownerNoteWordCount} / {OWNER_NOTE_MAX_WORDS} mots
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
@@ -412,8 +459,14 @@ export function CustomizationForm({
             <button
               type="button"
               onClick={saveCustomization}
-              disabled={status === 'saving' || welcomeOverLimit}
-              title={welcomeOverLimit ? `Message d'accueil limité à ${WELCOME_MESSAGE_MAX_WORDS} mots` : undefined}
+              disabled={status === 'saving' || welcomeOverLimit || ownerNoteOverLimit}
+              title={
+                welcomeOverLimit
+                  ? `Message d'accueil limité à ${WELCOME_MESSAGE_MAX_WORDS} mots`
+                  : ownerNoteOverLimit
+                    ? `Commentaire limité à ${OWNER_NOTE_MAX_WORDS} mots`
+                    : undefined
+              }
               className="group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Save size={14} className="transition-transform duration-300 group-hover:scale-110" />
