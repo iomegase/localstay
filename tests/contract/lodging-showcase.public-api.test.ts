@@ -48,7 +48,30 @@ const publishedProfile = {
   public_contact_enabled: true,
   faq_items: [{ id: 'faq-1', question: 'Question ?', answer: 'Reponse.' }],
   lodging: {
-    featured_pois: [],
+    featured_pois: [
+      {
+        owner_note: 'Ideal pour diner au bord de l eau.',
+        poi: {
+          id: 'poi-local',
+          name: 'Le Port',
+          slug: 'le-port',
+          photos: [],
+          category: { slug: 'restaurants' },
+          city: { slug: 'annecy', name: 'Annecy' },
+        },
+      },
+      {
+        owner_note: 'A reserver par temps clair.',
+        poi: {
+          id: 'poi-other',
+          name: 'Aiguille du Midi',
+          slug: 'aiguille-du-midi',
+          photos: [],
+          category: { slug: 'explorer' },
+          city: { slug: 'chamonix', name: 'Chamonix' },
+        },
+      },
+    ],
   },
 }
 
@@ -140,8 +163,31 @@ describe('GET /api/cities/[slug]/lodgings/[lodgingSlug]', () => {
     const json = await res.json()
     expect(json.slug).toBe('chalet-hygge')
     expect(json.external_booking_platform).toBe('airbnb')
+    expect(json.owner_recommendations).toEqual([
+      expect.objectContaining({
+        id: 'poi-local',
+        city_slug: 'annecy',
+        owner_note: 'Ideal pour diner au bord de l eau.',
+      }),
+      expect.objectContaining({
+        id: 'poi-other',
+        city_slug: 'chamonix',
+        owner_note: 'A reserver par temps clair.',
+      }),
+    ])
     expect(mockFindFirstProfile).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ city_id: 'city-1', slug: 'chalet-hygge', publication_status: 'published', deleted_at: null }),
+    }))
+    const detailCall = mockFindFirstProfile.mock.calls[0][0]
+    expect(
+      detailCall.select.lodging.select.featured_pois.select,
+    ).toEqual(expect.objectContaining({
+      owner_note: true,
+      poi: expect.objectContaining({
+        select: expect.objectContaining({
+          city: { select: { slug: true, name: true } },
+        }),
+      }),
     }))
   })
 

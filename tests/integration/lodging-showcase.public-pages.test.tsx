@@ -132,7 +132,26 @@ const detailResult = {
   external_booking_platform: 'airbnb',
   public_contact_enabled: true,
   owner_recommendations: [
-    { id: 'poi-1', name: 'Le Port', slug: 'le-port', category_slug: 'restaurants', photo_url: null },
+    {
+      id: 'poi-local',
+      name: 'Le Port',
+      slug: 'le-port',
+      category_slug: 'restaurants',
+      city_slug: 'annecy',
+      city_name: 'Annecy',
+      owner_note: 'Ideal pour diner au bord de l eau.',
+      photo_url: null,
+    },
+    {
+      id: 'poi-other',
+      name: 'Aiguille du Midi',
+      slug: 'aiguille-du-midi',
+      category_slug: 'explorer',
+      city_slug: 'chamonix',
+      city_name: 'Chamonix',
+      owner_note: 'A reserver par temps clair.',
+      photo_url: null,
+    },
   ],
   amenities_included: ['Wi-Fi', 'Parking'],
   amenities_on_request: [],
@@ -178,6 +197,19 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
     expect(screen.getByText('Réserver ou contacter')).toBeInTheDocument()
     expect(screen.getByText('Le Port')).toBeInTheDocument()
+    expect(screen.getByRole('region', {
+      name: 'Les recommandations de votre hôte',
+    })).toBeInTheDocument()
+    expect(screen.getByRole('region', {
+      name: 'À découvrir ailleurs',
+    })).toBeInTheDocument()
+    expect(screen.getByText('Chamonix')).toBeInTheDocument()
+    expect(screen.getByText('Ideal pour diner au bord de l eau.')).toBeInTheDocument()
+    expect(screen.getByText('A reserver par temps clair.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Aiguille du Midi/ })).toHaveAttribute(
+      'href',
+      '/guide/chamonix/explorer/aiguille-du-midi',
+    )
     expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-event', 'lodging_contact_click')

@@ -34,5 +34,6 @@ export async function GET(
     external_booking_url: result.external_booking_url,
     external_booking_platform: result.external_booking_platform,
     public_contact_enabled: result.public_contact_enabled,
+    owner_recommendations: result.owner_recommendations,
   })
 }
