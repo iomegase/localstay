@@ -39,6 +39,7 @@ describe('012 recommendations page', () => {
     jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
       {
         poi_id: 'poi-1',
+        owner_note: 'Notre choix pour un dîner calme en terrasse.',
         poi: {
           id: 'poi-1',
           name: 'Bistrot du Centre',
@@ -54,10 +55,34 @@ describe('012 recommendations page', () => {
 
     expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
     expect(screen.getByText('Restaurants')).toBeInTheDocument()
+    expect(
+      screen.getByText('Notre choix pour un dîner calme en terrasse.'),
+    ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Bistrot du Centre/i })).toHaveAttribute(
       'href',
       '/guide/saint-gervais/restaurants/bistrot-du-centre',
     )
+  })
+
+  it('AC-02-02: does not reserve comment space when the owner note is absent', async () => {
+    jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
+      {
+        poi_id: 'poi-1',
+        owner_note: null,
+        poi: {
+          id: 'poi-1',
+          name: 'Bistrot du Centre',
+          slug: 'bistrot-du-centre',
+          description: 'Cuisine locale.',
+          photos: [],
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+    ] as never)
+
+    render(await NosRecommendationsPage())
+
+    expect(screen.queryByTestId('owner-recommendation-comment')).not.toBeInTheDocument()
   })
 
   it('AC-02-01: shows an empty state linking back to the full guide when no recommendation exists', async () => {

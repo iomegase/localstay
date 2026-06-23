@@ -13,6 +13,7 @@ export default async function NosRecommendationsPage() {
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
       poi_id: true,
+      owner_note: true,
       poi: {
         select: {
           id: true,
@@ -59,6 +60,7 @@ export default async function NosRecommendationsPage() {
 
 type FeaturedRow = {
   poi_id: string
+  owner_note: string | null
   poi: {
     id: string
     name: string
@@ -156,6 +158,14 @@ function FeaturedCard({ item, citySlug }: { item: FeaturedRow; citySlug: string 
       )}
       <div className="flex flex-1 flex-col justify-center">
         <h3 className="font-serif italic text-base text-charcoal">{item.poi.name}</h3>
+        {item.owner_note && (
+          <p
+            data-testid="owner-recommendation-comment"
+            className="mt-1 text-sm font-medium leading-relaxed text-charcoal"
+          >
+            {item.owner_note}
+          </p>
+        )}
         {item.poi.description && (
           <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.poi.description}</p>
         )}
