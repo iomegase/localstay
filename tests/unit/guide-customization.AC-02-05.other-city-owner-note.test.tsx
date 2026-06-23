@@ -109,4 +109,28 @@ describe('AC-02-05: commentaire Owner inter-ville', () => {
     })
     expect(screen.getByTestId('state')).toHaveTextContent('"owner_note":null')
   })
+
+  it('keeps the comment editor available when the city POI reload fails', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    }) as jest.Mock
+
+    render(
+      <Harness
+        initialValue={[{
+          poi_id: 'poi-lac',
+          name: 'Le Lac',
+          category_name: 'Nature',
+          city_slug: 'annecy',
+          city_name: 'Annecy',
+          owner_note: null,
+        }]}
+      />,
+    )
+
+    expect(await screen.findByLabelText(
+      'Votre mot pour les voyageurs - Le Lac',
+    )).toBeInTheDocument()
+  })
 })

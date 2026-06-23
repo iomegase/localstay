@@ -23,10 +23,33 @@ interface CityHit { id: string; name: string; slug: string }
 interface CityPoi { id: string; name: string; category_slug: string; category_name: string }
 interface OpenCity { slug: string; name: string; pois: CityPoi[] }
 
+function citiesFromSelections(value: OtherCityPoiSelection[]): OpenCity[] {
+  const cities = new Map<string, OpenCity>()
+
+  value.forEach(selection => {
+    const city = cities.get(selection.city_slug) ?? {
+      slug: selection.city_slug,
+      name: selection.city_name,
+      pois: [],
+    }
+    city.pois.push({
+      id: selection.poi_id,
+      name: selection.name,
+      category_slug: '',
+      category_name: selection.category_name,
+    })
+    cities.set(selection.city_slug, city)
+  })
+
+  return [...cities.values()]
+}
+
 export function OtherCityRecommendations({ value, onChange, excludeCitySlug }: Props) {
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<CityHit[]>([])
-  const [openCities, setOpenCities] = useState<OpenCity[]>([])
+  const [openCities, setOpenCities] = useState<OpenCity[]>(
+    () => citiesFromSelections(value),
+  )
   const initialised = useRef(false)
 
   async function loadCity(slug: string) {
@@ -36,7 +59,27 @@ export function OtherCityRecommendations({ value, onChange, excludeCitySlug }: P
     const city = json.data?.city
     const pois: CityPoi[] = json.data?.pois ?? []
     if (!city) return
-    setOpenCities(prev => (prev.some(c => c.slug === slug) ? prev : [...prev, { slug: city.slug, name: city.name, pois }]))
+    setOpenCities(prev => {
+      const selectedPois = citiesFromSelections(
+        value.filter(selection => selection.city_slug === slug),
+      )[0]?.pois ?? []
+      const mergedPois = [...pois]
+
+      selectedPois.forEach(selectedPoi => {
+        if (!mergedPois.some(poi => poi.id === selectedPoi.id)) {
+          mergedPois.push(selectedPoi)
+        }
+      })
+
+      const nextCity = {
+        slug: city.slug,
+        name: city.name,
+        pois: mergedPois,
+      }
+      const existingIndex = prev.findIndex(openCity => openCity.slug === slug)
+      if (existingIndex === -1) return [...prev, nextCity]
+      return prev.map((openCity, index) => index === existingIndex ? nextCity : openCity)
+    })
   }
 
   // Réhydrate les villes des POI déjà sélectionnés (au montage).
