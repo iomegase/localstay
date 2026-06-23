@@ -149,50 +149,16 @@ export default async function GuidePage({ params, searchParams }: Props) {
             />
           </section>
 
-      {/* {guide.welcome_message && (
+      {guide.welcome_message && (
         <div className="mx-4 mb-5  py-4 text-sm leading-relaxed text-charcoal shadow-sm">
           <MarkdownText source={guide.welcome_message} breaks className="text-sm leading-relaxed text-charcoal" />
         </div>
-      )} */}
+      )}
 
     
  
 
-          {/* <section>
-            <h2 className="text-xl p-4 font-light uppercase text-charcoal">
-              Nos coups de coeur
-            </h2>
-            <Link
-              href={lodging ? `/guide/${slug}/${categories[0].slug}?lodging=${encodeURIComponent(lodging)}` : `/guide/${slug}/${categories[0].slug}`}
-              className="relative block h-[400px] overflow-hidden group shadow-2xl bg-charcoal"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1200&auto=format&fit=crop"
-                className="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-105"
-                alt=""
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-              <span className="absolute left-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center text-charcoal shadow-lg">
-                <ChevronLeft className="w-5 h-5" />
-              </span>
-              <span className="absolute right-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center text-charcoal shadow-lg">
-                <ChevronRight className="w-5 h-5" />
-              </span>
-              <div className="absolute bottom-8 left-8 right-8 text-white">
-                <h3 className="text-3xl font-light italic font-serif">
-                  {categories[0].name}
-                </h3>
-                <div className="flex items-center gap-4 mt-4">
-                  <span className="text-xs border-r border-white/50 pr-4 italic font-serif tracking-wider">
-                    {categories[0].poi_count} recommandations
-                  </span>
-                  <span className="text-xs font-light uppercase tracking-widest text-[#D4AF37]">
-                    Sélection locale
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </section> */}
+         
         </>
       )}
     </>
