@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-06-22
+updated_at: 2026-06-23
 depends_on: [010-dashboard-owner, 011-qr-code-owner, 002-categories, 003-poi-list]
 ```
 
@@ -55,9 +55,10 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 #### Acceptance Criteria
 
 - **AC-02-01**: Given la liste des POI d'une catégorie, When l'Owner en sélectionne jusqu'à 5 comme favoris, Then ces POI apparaissent dans la page `/nos-recommandations` pour les Tourists de ce logement
-- **AC-02-02**: Given un POI favori, When l'Owner saisit un commentaire personnel facultatif, Then le commentaire est sauvegardé avec la recommandation et affiché uniquement sur `/nos-recommandations` pour les Tourists de ce logement
+- **AC-02-02**: Given un POI favori local ou inter-ville, When l'Owner saisit un commentaire personnel facultatif, Then le commentaire est sauvegardé avec la recommandation et affiché sur `/nos-recommandations` ainsi que sur la fiche publique du logement
 - **AC-02-03**: Given les recommandations, When un Tourist arrive sans `?lodging=[id]`, Then le guide standard s'affiche sans personnalisation
 - **AC-02-04**: Given l'Owner saisit un commentaire sur un POI favori, When il modifie le texte, Then un compteur de mots affiche la progression sur 300 mots et la sauvegarde est refusée au-delà de cette limite
+- **AC-02-05**: Given un POI d'une autre City sélectionné dans "Recommandations ailleurs", When l'Owner consulte la sélection, Then il peut saisir et modifier le même commentaire facultatif de 300 mots que pour un POI local
 
 ### US-03 — Ordre des catégories
 
@@ -86,16 +87,16 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 
 - **BR-01**: La personnalisation est par Lodging — pas par Owner global
 - **BR-02**: Sans `?lodging=[id]` dans l'URL, le guide standard s'affiche (pas de personnalisation)
-- **BR-03**: Maximum 5 POI favoris par catégorie par Lodging
+- **BR-03**: Pour la City du Lodging, maximum 5 POI favoris par catégorie. Pour chaque autre City, maximum 5 POI favoris toutes catégories confondues.
 - **BR-04**: Un Featured POI peut conserver un commentaire personnel facultatif `owner_note`, limité à 300 mots. Aucun rating `owner_rating` n'est conservé.
 - **BR-05**: Le message d'accueil est limité à 400 mots
 - **BR-06**: La personnalisation n'ajoute pas de POI inexistants — elle filtre, réordonne et met en avant les POI déjà en base
 - **BR-07**: Un Owner ne peut lire ou modifier que la personnalisation de ses propres Lodgings
-- **BR-08**: Un POI favori doit appartenir au Guide de la City du Lodging : `poi.city_id = lodging.city_id`, `is_active = true`, `deleted_at = null`, `geocode_status != rejected`. Les POI de villages proches sont autorisés s'ils sont dans la zone du Guide (≤ 30 km du centre-ville selon les règles `003` / `008`).
-- **BR-09**: Les POI hors périmètre (> 30 km, `geocode_status = rejected`) ne peuvent pas être mis en avant
+- **BR-08**: Un POI favori local ou inter-ville doit exister, être actif et ne pas être soft-deleted. Son bucket est dérivé par `poi.city_id === lodging.city_id` : local si vrai, "ailleurs" sinon.
+- **BR-09**: Les recommandations inter-villes ne modifient jamais le périmètre géographique du Guide de la City. Elles sont exposées uniquement dans les surfaces dédiées aux recommandations Owner.
 - **BR-10**: Si `category_order` contient des slugs inconnus, inactifs ou sans POI visible, ces slugs sont isolés dans `ignored_category_slugs` et ne sont pas sauvegardés. Les catégories valides restantes sont sauvegardées ; aucun statut de Category n'est modifié par cette spec.
-- **BR-11**: `featured_pois` accepte au maximum 100 entrées par requête comme limite technique, tout en appliquant la limite métier de 5 favoris par catégorie
-- **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. La personnalisation publique du Guide se limite au message d'accueil éventuel et à l'ordre des catégories ; les `featured_pois` sont visibles dans `/nos-recommandations`.
+- **BR-11**: `featured_pois` accepte au maximum 100 entrées par requête comme limite technique, tout en appliquant les limites métier de 5 favoris par catégorie locale et de 5 favoris par autre City
+- **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. Les `featured_pois` sont visibles dans `/nos-recommandations` et sur la fiche publique du logement, sans être injectés dans les listes géographiques du Guide.
 - **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`.
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
 - **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
@@ -416,8 +417,10 @@ components:
 - Section "Photo du logement" : upload image Owner, validation serveur, URL publique sauvegardée
 - Section "Infos pratiques" : adresse, Wi-Fi, parking, équipements, checkout, déchets, règles, contacts d'urgence, services utiles
 - Section "Mes recommandations" : liste des catégories, chaque catégorie expand pour voir/sélectionner les POI favoris
-- Les POI proposés à la sélection sont ceux du Guide de la City du Lodging, y compris la section "Aux alentours" si le POI reste dans le périmètre ≤ 30 km
+- Les POI locaux proposés à la sélection appartiennent à la City du Lodging
 - Chaque POI sélectionné affiche un textarea "Votre mot pour les voyageurs" et un compteur `X / 300 mots`
+- Section "Recommandations ailleurs" : recherche d'autres villes et sélection de 5 POI maximum par City
+- Chaque POI inter-ville sélectionné affiche aussi le textarea "Votre mot pour les voyageurs" et le compteur `X / 300 mots`
 - Le commentaire est facultatif ; le bouton de sauvegarde est désactivé si au moins un commentaire dépasse 300 mots
 - Aucun rating Owner n'est proposé
 - Section "Ordre des catégories" : drag-and-drop (dnd-kit)
@@ -427,8 +430,10 @@ components:
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
 - `/le-logement` affiche les informations pratiques du logement
-- `/nos-recommandations` affiche les POI recommandés par l'Owner, groupés par catégorie, avec le commentaire Owner lorsqu'il est renseigné
-- Le commentaire Owner n'est affiché sur aucune autre liste, fiche POI générale ou page SEO logement
+- `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné
+- `/guide/[city-slug]/logements/[lodging-slug]` affiche les recommandations locales puis une section "À découvrir ailleurs" séparée et groupée par City, avec les commentaires Owner
+- Les liens d'une recommandation utilisent toujours le slug de la City réelle du POI
+- Le commentaire Owner n'est affiché sur aucune liste géographique ni fiche POI générale
 - `/guide/[city-slug]?lodging=[id]` affiche tous les POI disponibles du Guide de la City, avec message d'accueil et ordre personnalisé éventuels, sans filtrage exclusif sur les recommandations Owner
 - `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche tous les POI disponibles de cette catégorie dans le Guide de la City, sans filtrage exclusif sur les recommandations Owner
 - Si `lodging` est absent, inconnu, supprimé, inactif ou associé à une autre City, le guide standard s'affiche sans personnalisation
@@ -442,16 +447,17 @@ components:
 | AC-01-01 | Message d'accueil sauvegardé | integration |
 | AC-01-02 | Accueil séjour affiche photo, message et CTA guide | integration |
 | AC-02-01 | POI favoris affichés dans `/nos-recommandations` | integration |
-| AC-02-02 | Commentaire Owner sauvegardé et affiché uniquement dans `/nos-recommandations` | contract + integration |
+| AC-02-02 | Commentaire Owner sauvegardé et affiché dans les surfaces de recommandations | contract + integration |
 | AC-02-03 | Sans lodging param → guide standard | unit |
 | AC-02-04 | Compteur de mots et rejet au-delà de 300 mots | unit + contract |
+| AC-02-05 | Commentaire éditable sur les POI inter-villes | unit |
 | AC-03-01 | Ordre catégories sauvegardé et appliqué | integration |
 | AC-04-01 | Infos pratiques sauvegardées et affichées | integration |
 | AC-04-02 | Upload photo logement sauvegardé et affiché | contract + unit |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
-| BR-08/09 | POI favori limité au périmètre du Guide | unit |
+| BR-08/09 | Bucketing local/inter-ville sans étendre les listes du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |
-| BR-12 | Guide public complet conservé en mode lodging ; recommandations visibles sur `/nos-recommandations` | unit |
+| BR-12 | Guide public complet conservé en mode lodging ; recommandations visibles sur les surfaces Owner dédiées | unit |
 
 ---
 

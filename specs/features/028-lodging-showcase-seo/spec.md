@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
-updated_at: 2026-06-13
+updated_at: 2026-06-23
 depends_on:
   - 001-city-guide
   - 003-poi-list
@@ -95,7 +95,8 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-02-02**: Given une fiche sans lien de réservation externe, When la page s'affiche, Then le CTA externe est absent et le CTA contact reste disponible si `public_contact_enabled = true`.
 - **AC-02-03**: Given un slug logement inconnu ou non publié, When la route fiche est demandée, Then Next.js retourne 404 et aucun contenu privé du Lodging n'est exposé.
 - **AC-02-04**: Given une fiche publiée avec moins de 5 photos, When la page s'affiche, Then elle reste consultable mais le dashboard signale une qualité SEO insuffisante pour la publication optimale.
-- **AC-02-05**: Given une fiche publiée avec des recommandations Owner, When les recommandations s'affichent, Then elles réutilisent uniquement des POI actifs, non supprimés, non rejetés et situés dans le périmètre du Guide.
+- **AC-02-05**: Given une fiche publiée avec des recommandations Owner, When les recommandations s'affichent, Then les POI actifs et non supprimés de la City du Lodging apparaissent dans une section locale et les POI des autres Cities apparaissent dans une section séparée "À découvrir ailleurs", groupée par City.
+- **AC-02-06**: Given une recommandation Owner avec un commentaire, When la fiche logement s'affiche, Then le commentaire est visible sur la recommandation locale ou inter-ville concernée, et le lien de la card utilise le slug de la City réelle du POI.
 
 ### US-03 — Réserver ou demander des informations
 
@@ -204,8 +205,9 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-14**: Les coordonnées précises (`public_latitude`, `public_longitude`) ne sont publiables que si `precise_location_public = true`, renseigné explicitement par un Admin.
 - **BR-15**: Les données géographiques mesurables viennent de Mapbox ou d'une source spécialisée. Gemini ne doit jamais générer coordonnées, distances ou métriques géographiques.
 - **BR-16**: Gemini n'est pas utilisé pour créer des faits logement ni enrichir automatiquement depuis une plateforme externe. Il peut uniquement reformuler des textes Owner en brouillon éditorial selon `ADR-009`.
-- **BR-17**: Les recommandations Owner affichées sur une fiche logement réutilisent `LodgingFeaturedPoi` de la spec 012 ou une query compatible. Elles ne peuvent pas ajouter de POI inexistants.
-- **BR-18**: Un POI recommandé doit respecter les règles de périmètre des specs 003 et 008 : primary `≤ 15 km`, nearby `15–30 km`, rejet `> 30 km`.
+- **BR-17**: Les recommandations Owner affichées sur une fiche logement réutilisent `LodgingFeaturedPoi` de la spec 012 ou une query compatible. Elles ne peuvent pas ajouter de POI inexistants et transportent le commentaire Owner facultatif.
+- **BR-18**: Les recommandations de la City du Lodging forment le bloc local. Les recommandations dont `poi.city_id != lodging.city_id` forment le bloc "À découvrir ailleurs", groupé par City. Ce bloc n'étend pas le périmètre géographique du Guide de la City.
+- **BR-18a**: Le lien d'une recommandation utilise toujours `poi.city.slug`, `poi.category.slug` et `poi.slug`, y compris quand le POI appartient à une autre City.
 - **BR-19**: La liste logements City trie d'abord les fiches `is_featured = true`, puis par `published_at desc`, puis par `created_at desc`.
 - **BR-20**: La découverte des logements depuis le Guide ville passe par une entrée dédiée `Logements` dans le menu burger ; le flux principal de `/guide/[city-slug]` n'affiche aucun bloc logements.
 - **BR-21**: Les photos logement sont validées côté serveur, limitées à 5 Mo, converties si nécessaire via le service d'upload existant et stockées dans le bucket `guide-photos`.
@@ -963,7 +965,8 @@ Toutes les erreurs utilisent le format standard :
 | AC-02-02 | Absence lien externe → CTA externe absent | unit |
 | AC-02-03 | Fiche inconnue/non publiée → 404 | integration |
 | AC-02-04 | Moins de 5 photos → consultable avec signal qualité SEO dashboard | unit |
-| AC-02-05 | Recommandations Owner réutilisent POI valides du Guide | unit |
+| AC-02-05 | Recommandations locales et inter-villes séparées sur la fiche logement | unit + integration |
+| AC-02-06 | Commentaires Owner et liens basés sur la City réelle du POI | unit + integration |
 | AC-03-01 | Clic réservation externe ouvre nouvel onglet et analytics | e2e |
 | AC-03-02 | CTA contact préremplit lodging_id | integration |
 | AC-03-03 | Contact désactivé → CTA absent | unit |

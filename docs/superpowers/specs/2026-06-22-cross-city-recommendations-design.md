@@ -3,6 +3,12 @@
 **Date:** 2026-06-22
 **Statut:** approuvé (brainstorming), à planifier
 
+> Mise à jour du 2026-06-23 : la restriction d'affichage à
+> `/nos-recommandations` est partiellement remplacée par
+> `2026-06-23-cross-city-owner-comments-lodging-showcase-design.md`. Les POI
+> inter-villes restent exclus des listes géographiques du Guide, mais sont aussi
+> affichés sur la fiche publique du logement.
+
 ## Objectif
 
 Permettre à l'owner de recommander des POI situés dans d'**autres villes** que celle de son logement, et de les afficher dans ses recommandations. Aujourd'hui le formulaire ne propose que les POI de la ville du logement (rayon 30 km) et `validateFeaturedPois` rejette tout POI hors périmètre.
@@ -10,7 +16,7 @@ Permettre à l'owner de recommander des POI situés dans d'**autres villes** que
 ## Décisions de cadrage (issues du brainstorming)
 
 - **Périmètre de sélection** : l'owner choisit une ou plusieurs *villes d'intérêt*, puis pioche leurs POI.
-- **Surface d'affichage** : les POI cross-city apparaissent **uniquement** sur la page dédiée `/nos-recommandations`, PAS dans le guide géo-scopé `/guide/[ville]`.
+- **Surface d'affichage initiale** : les POI cross-city apparaissent sur la page dédiée `/nos-recommandations`, pas dans les listes géo-scopées `/guide/[ville]`. La fiche publique du logement a été ajoutée comme seconde surface par la décision du 2026-06-23.
 - **Regroupement** : recos locales groupées par catégorie (comme aujourd'hui) ; en dessous, une section **« À découvrir ailleurs »** groupée par ville.
 - **Limite** : max **5 POI par ville d'intérêt** (toutes catégories confondues) pour la section ailleurs ; les locaux gardent 5 par catégorie.
 - **Approche A retenue** : aucun changement de schéma ; le bucket local/ailleurs est **dérivé** de la ville du POI.
