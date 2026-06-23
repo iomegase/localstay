@@ -1,25 +1,32 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { CityCategoryExplorer } from '@/features/city-guide/components/CityCategoryExplorer'
-import { listActiveCities, getCityGuide } from '@/features/city-guide/queries/cities'
-import { CategoryBentoGrid } from '@/features/city-guide/components/CategoryBentoGrid'
+import { listActiveCities } from '@/features/city-guide/queries/cities'
 import { t } from '@/shared/lib/i18n'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
+import { RecommendationsView } from './nos-recommandations/_components/RecommendationsView'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
 }
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams?: Promise<{ lodging?: string }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps = {}) {
+  // QR séjour : le proxy redirige le scan vers /?lodging=:id. La présence du
+  // param marque un scan « frais » → on enregistre l'évènement qr_scan ici,
+  // comme le faisait la page guide auparavant.
+  const lodgingFromQuery = (await searchParams)?.lodging ?? null
+  void recordQrScanIfPresent(lodgingFromQuery)
+
   const lodgingContext = await getActiveLodgingContext()
 
+  // En mode séjour, la home affiche les recommandations de l'hôte.
   if (lodgingContext) {
-    return (
-      <LodgingHome
-        citySlug={lodgingContext.citySlug}
-        lodgingId={lodgingContext.lodgingId}
-      />
-    )
+    return await RecommendationsView({ lodgingContext })
   }
 
   return await AnonymousLanding()
@@ -48,48 +55,6 @@ async function AnonymousLanding() {
 
         <div className="mt-8">
           <CityCategoryExplorer cities={cities} />
-        </div>
-      </main>
-    </AppShell>
-  )
-}
-
-export async function LodgingHome({
-  citySlug,
-  lodgingId,
-}: {
-  citySlug: string
-  lodgingId: string
-}) {
-  const guide = await getCityGuide(citySlug, { lodgingId })
-  const categories = guide?.categories ?? []
-
-  return (
-    <AppShell>
-      <BrandMotionStyles />
-
-      <main className="relative z-10 flex-1 px-6 pb-28 pt-10">
-        <FloatingAura className="left-[-90px] top-24 h-64 w-64 bg-[#007AFF]/18" />
-        <FloatingAura className="right-[-110px] top-20 h-72 w-72 bg-[#AF52DE]/16 delay-500" />
-
-        <h1 className="max-w-[330px] text-6xl font-semibold leading-[0.92] tracking-[-0.06em] text-charcoal">
-          {t('home.title')}
-        </h1>
-
-        <p className="mt-8 max-w-sm text-[12px] leading-relaxed text-[#6E6E73]">
-          {t('home.intro')}
-        </p>
-
-        <div className="mt-8">
-          {categories.length > 0 ? (
-            <CategoryBentoGrid
-              categories={categories}
-              citySlug={citySlug}
-              lodgingId={lodgingId}
-            />
-          ) : (
-            <p className="mt-6 text-sm text-gray-500">{t('home.empty')}</p>
-          )}
         </div>
       </main>
     </AppShell>

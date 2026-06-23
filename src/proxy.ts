@@ -16,14 +16,31 @@ export async function proxy(request: NextRequest) {
   if (path.startsWith('/guide/')) {
     const lodgingFromQuery = request.nextUrl.searchParams.get('lodging')
     if (lodgingFromQuery && UUID_REGEX.test(lodgingFromQuery)) {
-      response.cookies.set({
+      const cookie = {
         name: LODGING_COOKIE_NAME,
         value: lodgingFromQuery,
         maxAge: LODGING_COOKIE_MAX_AGE_SECONDS,
-        sameSite: 'lax',
+        sameSite: 'lax' as const,
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-      })
+      }
+
+      // Atterrissage du QR séjour = /guide/{ville} (2 segments exactement).
+      // On dépose alors le guest sur la home « Bienvenue » (/) qui affiche
+      // LodgingHome grâce au cookie. ?lodging= est transporté pour que la home
+      // enregistre l'évènement qr_scan. La navigation interne plus profonde
+      // (/guide/{ville}/{categorie}…) porte aussi ?lodging= : on se contente
+      // alors de rafraîchir le cookie, sans rediriger.
+      const isCityLanding = path.split('/').filter(Boolean).length === 2
+      if (isCityLanding) {
+        const destination = new URL('/', request.url)
+        destination.searchParams.set('lodging', lodgingFromQuery)
+        const redirect = NextResponse.redirect(destination)
+        redirect.cookies.set(cookie)
+        return redirect
+      }
+
+      response.cookies.set(cookie)
     }
     return response
   }

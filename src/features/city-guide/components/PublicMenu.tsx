@@ -40,15 +40,10 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
     : ANONYMOUS_ITEMS
 }
 
-function lodgingItems(ownerName?: string | null, citySlug?: string | null): MenuItem[] {
-  const recommendationLabel = ownerName
-    ? `Les recommandations de ${ownerName}`
-    : 'Les recommandations de votre hôte'
-
+function lodgingItems(citySlug?: string | null): MenuItem[] {
   const items = [
     { href: '/', label: 'Bienvenue' },
     { href: '/le-logement', label: 'Le Logement' },
-    { href: '/nos-recommandations', label: recommendationLabel },
     { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
     { href: contextualContactPath(citySlug), label: 'Nous Contacter' },
   ]
@@ -60,19 +55,18 @@ function lodgingItems(ownerName?: string | null, citySlug?: string | null): Menu
     items[1],
     { href: `/guide/${citySlug}/logements`, label: 'Logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
-    items[2],
-    items[3],
+    items[2], // Vos favoris
     { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
-    items[4],
+    items[3], // Nous Contacter
   ]
 }
 
-export function PublicMenu({ mode, lodgingName, ownerName, citySlug }: Props) {
+export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
   const resolvedCitySlug = citySlug ?? extractCitySlug(pathname)
   const items = mode === 'lodging'
-    ? lodgingItems(ownerName, resolvedCitySlug)
+    ? lodgingItems(resolvedCitySlug)
     : anonymousItems(resolvedCitySlug)
 
   return (
