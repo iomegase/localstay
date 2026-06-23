@@ -9,8 +9,8 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-06
-depends_on: [001-city-guide, 002-categories, 003-poi-list]
+updated_at: 2026-06-23
+depends_on: [001-city-guide, 002-categories, 003-poi-list, 012-guide-customization]
 ```
 
 ---
@@ -26,6 +26,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **POI** : point d'intérêt avec toutes ses données
 - **Tourist** : utilisateur sans compte
 - **Reservation** : disponible pour certains POI (MVP 4) — hors rendu public en MVP 1 tant qu'une spec réservation dédiée ne l'active pas
+- **Owner Recommendation Comment** : commentaire facultatif lié à une recommandation d'un Lodging précis
 
 ---
 
@@ -43,6 +44,8 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **AC-01-02**: Given un POI sans téléphone, When la fiche s'affiche, Then le bouton "Appeler" est masqué
 - **AC-01-03**: Given un POI sans site web, When la fiche s'affiche, Then le bouton "Site web" est masqué
 - **AC-01-04**: Given un POI avec `is_open_now = true`, When la fiche s'affiche, Then une pastille verte "Ouvert" est visible dans le footer de l'image hero et l'heure de fermeture reste affichée dans la section horaires
+- **AC-01-05**: Given un séjour actif dont le Lodging recommande ce POI avec un commentaire Owner non vide, When la fiche POI s'affiche, Then un bloc "Le mot de votre hôte" affiche uniquement le commentaire de ce Lodging
+- **AC-01-06**: Given aucun séjour actif, un autre Lodging actif ou une recommandation sans commentaire, When la fiche POI s'affiche, Then aucun commentaire Owner n'est rendu
 
 ### US-02 — Agir depuis la fiche
 
@@ -77,6 +80,10 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **BR-03**: Les photos de la fiche sont affichées dans le hero sous forme de carousel plein largeur. La photo active réutilise la logique visuelle des `PoiCard` : fond flou `object-cover` pour remplir le cadre, image principale centrée en `object-contain` pour préserver le cadrage ; des flèches et indicateurs sont affichés uniquement si plusieurs photos sont disponibles.
 - **BR-04**: Si aucune photo n'est disponible, un placeholder avec l'icône de la catégorie est affiché
 - **BR-05**: Les horaires sont affichés jour par jour ; le jour courant est mis en évidence
+- **BR-06**: Le commentaire Owner est résolu séparément du `PoiDetail` global, à partir du cookie de séjour actif et de la paire exacte `(lodging_id, poi_id)`
+- **BR-07**: La recommandation, le Lodging et le POI doivent être actifs et non soft-deleted. Le commentaire vide ou composé uniquement d'espaces n'est jamais affiché.
+- **BR-08**: Le commentaire contextuel n'est inclus ni dans l'API POI publique, ni dans les metadata, ni dans le JSON-LD, ni dans le cache de la query POI globale
+- **BR-09**: Si plusieurs Lodgings recommandent le même POI, seul le commentaire du Lodging identifié par le séjour actif peut être affiché
 
 ---
 
@@ -291,6 +298,7 @@ components:
 - **Section horaires** : accordéon, jour courant en gras
 - **Section carte** : mini-carte Mapbox avec marker du POI (voir spec 005-map)
 - **Section randonnée** : bloc conditionnel visible si `hiking_detail` présent
+- **Section commentaire Owner** : bloc "Le mot de votre hôte" conforme au mockup, visible après les informations principales uniquement si le séjour actif recommande ce POI avec un commentaire non vide ; la règle s'applique aux fiches standard et randonnée
 - **Loading state** : skeleton full-page
 - **Error state** : "Ce lieu est introuvable" + retour liste
 
@@ -304,6 +312,8 @@ components:
 | AC-01-02 | Bouton Appeler masqué si pas de tel | unit |
 | AC-01-03 | Bouton Site masqué si pas de site | unit |
 | AC-01-04 | Pastille Ouvert dans le footer image + heure de fermeture dans la section horaires | unit + integration |
+| AC-01-05 | Séjour actif et recommandation commentée → commentaire du Lodging affiché | integration |
+| AC-01-06 | Aucun contexte, autre Lodging ou note vide → aucun commentaire Owner | unit + integration |
 | AC-02-01 | Bouton Appeler → `tel:` link | e2e |
 | AC-02-02 | Bouton Itinéraire → Google Maps avec adresse publique puis fallback coordonnées | e2e |
 | AC-02-03 | Bouton Site → nouvel onglet | e2e |

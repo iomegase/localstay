@@ -59,6 +59,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **AC-02-03**: Given les recommandations, When un Tourist arrive sans `?lodging=[id]`, Then le guide standard s'affiche sans personnalisation
 - **AC-02-04**: Given l'Owner saisit un commentaire sur un POI favori, When il modifie le texte, Then un compteur de mots affiche la progression sur 300 mots et la sauvegarde est refusée au-delà de cette limite
 - **AC-02-05**: Given un POI d'une autre City sélectionné dans "Recommandations ailleurs", When l'Owner consulte la sélection, Then il peut saisir et modifier le même commentaire facultatif de 300 mots que pour un POI local
+- **AC-02-06**: Given un Tourist en séjour actif, When il ouvre la fiche d'un POI recommandé avec un commentaire Owner, Then il voit uniquement le commentaire associé à son Lodging actif
 
 ### US-03 — Ordre des catégories
 
@@ -93,10 +94,10 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-06**: La personnalisation n'ajoute pas de POI inexistants — elle filtre, réordonne et met en avant les POI déjà en base
 - **BR-07**: Un Owner ne peut lire ou modifier que la personnalisation de ses propres Lodgings
 - **BR-08**: Un POI favori local ou inter-ville doit exister, être actif et ne pas être soft-deleted. Son bucket est dérivé par `poi.city_id === lodging.city_id` : local si vrai, "ailleurs" sinon.
-- **BR-09**: Les recommandations inter-villes ne modifient jamais le périmètre géographique du Guide de la City. Elles sont exposées uniquement dans les surfaces dédiées aux recommandations Owner.
+- **BR-09**: Les recommandations inter-villes ne modifient jamais le périmètre géographique du Guide de la City. Elles sont exposées uniquement dans les surfaces dédiées aux recommandations Owner, y compris le bloc contextuel de leur fiche POI quand le séjour actif correspond.
 - **BR-10**: Si `category_order` contient des slugs inconnus, inactifs ou sans POI visible, ces slugs sont isolés dans `ignored_category_slugs` et ne sont pas sauvegardés. Les catégories valides restantes sont sauvegardées ; aucun statut de Category n'est modifié par cette spec.
 - **BR-11**: `featured_pois` accepte au maximum 100 entrées par requête comme limite technique, tout en appliquant les limites métier de 5 favoris par catégorie locale et de 5 favoris par autre City
-- **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. Les `featured_pois` sont visibles dans `/nos-recommandations` et sur la fiche publique du logement, sans être injectés dans les listes géographiques du Guide.
+- **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. Les `featured_pois` sont visibles dans `/nos-recommandations`, sur la fiche publique du logement et, pour leur seul commentaire contextuel, sur leur fiche POI.
 - **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`.
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
 - **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
@@ -433,7 +434,8 @@ components:
 - `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné
 - `/guide/[city-slug]/logements/[lodging-slug]` affiche les recommandations locales puis une section "À découvrir ailleurs" séparée et groupée par City, avec les commentaires Owner
 - Les liens d'une recommandation utilisent toujours le slug de la City réelle du POI
-- Le commentaire Owner n'est affiché sur aucune liste géographique ni fiche POI générale
+- `/guide/[city-slug]/[category-slug]/[poi-slug]` affiche "Le mot de votre hôte" uniquement si le cookie de séjour identifie le Lodging qui recommande ce POI avec une note non vide
+- Le commentaire Owner n'est affiché sur aucune liste géographique. Une fiche POI sans contexte de séjour actif reste générale et n'affiche aucun commentaire Owner.
 - `/guide/[city-slug]?lodging=[id]` affiche tous les POI disponibles du Guide de la City, avec message d'accueil et ordre personnalisé éventuels, sans filtrage exclusif sur les recommandations Owner
 - `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche tous les POI disponibles de cette catégorie dans le Guide de la City, sans filtrage exclusif sur les recommandations Owner
 - Si `lodging` est absent, inconnu, supprimé, inactif ou associé à une autre City, le guide standard s'affiche sans personnalisation
@@ -451,6 +453,7 @@ components:
 | AC-02-03 | Sans lodging param → guide standard | unit |
 | AC-02-04 | Compteur de mots et rejet au-delà de 300 mots | unit + contract |
 | AC-02-05 | Commentaire éditable sur les POI inter-villes | unit |
+| AC-02-06 | Commentaire du seul Lodging actif affiché sur la fiche POI recommandée | unit + integration |
 | AC-03-01 | Ordre catégories sauvegardé et appliqué | integration |
 | AC-04-01 | Infos pratiques sauvegardées et affichées | integration |
 | AC-04-02 | Upload photo logement sauvegardé et affiché | contract + unit |
