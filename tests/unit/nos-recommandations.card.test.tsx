@@ -61,4 +61,14 @@ describe('RecommendationCard', () => {
     render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="x" />)
     expect(screen.queryByTestId('owner-recommendation-comment')).not.toBeInTheDocument()
   })
+
+  it('shows the category label by default', () => {
+    render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="x" />)
+    expect(screen.getByText('Restaurants')).toBeInTheDocument()
+  })
+
+  it('hides the category label when showCategory is false', () => {
+    render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="x" showCategory={false} />)
+    expect(screen.queryByText('Restaurants')).not.toBeInTheDocument()
+  })
 })

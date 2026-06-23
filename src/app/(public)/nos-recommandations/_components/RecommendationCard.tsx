@@ -6,9 +6,10 @@ type Props = {
   row: RecRow
   variant: CardVariant
   fallbackCitySlug: string
+  showCategory?: boolean
 }
 
-export function RecommendationCard({ row, variant, fallbackCitySlug }: Props) {
+export function RecommendationCard({ row, variant, fallbackCitySlug, showCategory = true }: Props) {
   const { poi, owner_note } = row
   const citySlug = poi.city?.slug ?? fallbackCitySlug
   const href = `/guide/${citySlug}/${poi.category.slug}/${poi.slug}`
@@ -39,9 +40,11 @@ export function RecommendationCard({ row, variant, fallbackCitySlug }: Props) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div className="relative flex h-full min-h-[360px] flex-col justify-end p-5 text-white">
-          <div className="mb-3 w-fit rounded-full bg-white/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.25em] backdrop-blur">
-            {poi.category.name}
-          </div>
+          {showCategory && (
+            <div className="mb-3 w-fit rounded-full bg-white/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.25em] backdrop-blur">
+              {poi.category.name}
+            </div>
+          )}
           <h3 className="font-serif text-3xl italic leading-none">{poi.name}</h3>
           {note && <div className="mt-4 max-w-lg text-white/90">{note}</div>}
           {poi.description && (
@@ -72,7 +75,9 @@ export function RecommendationCard({ row, variant, fallbackCitySlug }: Props) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
         <div className="relative flex h-full min-h-[180px] flex-col justify-end p-4 text-white">
-          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
+          {showCategory && (
+            <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
+          )}
           <h3 className="font-serif text-2xl italic leading-tight">{poi.name}</h3>
           {poi.description && (
             <p className="mt-2 text-xs leading-5 text-white/75 line-clamp-2">{poi.description}</p>
@@ -115,7 +120,9 @@ export function RecommendationCard({ row, variant, fallbackCitySlug }: Props) {
     >
       <div className="flex h-full flex-col justify-between">
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
+          {showCategory && (
+            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
+          )}
           <h3 className="mt-2 font-serif text-xl italic leading-tight text-charcoal">{poi.name}</h3>
           {note && <div className="mt-2 text-charcoal">{note}</div>}
           {poi.description && (
