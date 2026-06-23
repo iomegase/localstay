@@ -4,7 +4,6 @@ import type { CategoryWithCount } from '@/features/categories/types'
 import {
   filterValidCategoryOrder,
   groupFeaturedPoisByCategory,
-  isPoiWithinGuideScope,
   normalizePracticalBlocks,
 } from '../lib/validation'
 import type {
@@ -61,18 +60,6 @@ type PublicCustomization = {
 
 function raise(code: GuideCustomizationErrorCode, message: string): never {
   throw new GuideCustomizationError(code, message)
-}
-
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 async function getOwnedLodgingOrThrow(ownerId: string, lodgingId: string): Promise<CustomizableLodging> {
@@ -338,7 +325,9 @@ export async function saveLodgingCustomization(
   }
 }
 
-async function validateFeaturedPois(
+const FEATURED_POI_LIMIT_PER_OTHER_CITY = 5
+
+export async function validateFeaturedPois(
   lodging: CustomizableLodging,
   featuredPois: FeaturedPoiInput[],
 ): Promise<FeaturedPoiResponse[]> {
@@ -355,11 +344,8 @@ async function validateFeaturedPois(
       id: true,
       city_id: true,
       category_id: true,
-      latitude: true,
-      longitude: true,
       is_active: true,
       deleted_at: true,
-      geocode_status: true,
     },
   })
 
@@ -370,39 +356,39 @@ async function validateFeaturedPois(
   const validated = rows.map(row => {
     const requested = requestedByPoiId.get(row.id)
     if (!requested) raise('INVALID_FEATURED_POI', 'Un POI selectionne est invalide')
-
-    const distanceKm = haversineKm(
-      lodging.city.latitude,
-      lodging.city.longitude,
-      row.latitude,
-      row.longitude,
-    )
-
-    const withinScope = isPoiWithinGuideScope({
-      city_id: row.city_id,
-      lodging_city_id: lodging.city_id,
-      is_active: row.is_active,
-      deleted_at: row.deleted_at,
-      geocode_status: row.geocode_status,
-      distance_km: distanceKm,
-    })
-
-    if (!withinScope) {
-      raise('INVALID_FEATURED_POI', 'Un POI selectionne est hors perimetre du guide')
+    if (row.deleted_at !== null || !row.is_active) {
+      raise('INVALID_FEATURED_POI', 'Un POI selectionne est indisponible')
     }
-
     return {
       poi_id: row.id,
       category_id: row.category_id,
       sort_order: requested.sort_order,
+      city_id: row.city_id,
     }
   })
 
+  // Bucket local → max 5 par catégorie (règle inchangée).
+  const localForLimit = validated
+    .filter(item => item.city_id === lodging.city_id)
+    .map(({ city_id: _city_id, ...rest }) => rest)
   try {
-    groupFeaturedPoisByCategory(validated)
+    groupFeaturedPoisByCategory(localForLimit)
   } catch {
     raise('FEATURED_POI_LIMIT_EXCEEDED', 'Maximum 5 POI mis en avant par categorie')
   }
 
-  return validated.sort((a, b) => a.sort_order - b.sort_order)
+  // Bucket ailleurs → max 5 par ville (toutes catégories confondues).
+  const otherCityCount = new Map<string, number>()
+  for (const item of validated) {
+    if (item.city_id === lodging.city_id) continue
+    const next = (otherCityCount.get(item.city_id) ?? 0) + 1
+    otherCityCount.set(item.city_id, next)
+    if (next > FEATURED_POI_LIMIT_PER_OTHER_CITY) {
+      raise('FEATURED_POI_LIMIT_EXCEEDED', 'Maximum 5 POI recommandes par ville')
+    }
+  }
+
+  return validated
+    .map(({ city_id: _city_id, ...rest }) => rest)
+    .sort((a, b) => a.sort_order - b.sort_order)
 }
