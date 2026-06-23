@@ -28,9 +28,11 @@ import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 import { countWords, WELCOME_MESSAGE_MAX_WORDS } from '../lib/validation'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
+import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
 import type {
   FeaturedPoiInput,
   LodgingCustomizationResponse,
+  OtherCityPoiSelection,
   PracticalBlockInput,
   PracticalInfoFields,
 } from '../types'
@@ -57,6 +59,7 @@ interface Props {
   categories: CategoryOption[]
   pois: PoiOption[]
   initialCustomization: LodgingCustomizationResponse
+  initialOtherCityPois?: OtherCityPoiSelection[]
 }
 
 function SortableCategoryItem({ category }: { category: CategoryOption }) {
@@ -94,7 +97,9 @@ export function CustomizationForm({
   categories,
   pois,
   initialCustomization,
+  initialOtherCityPois = [],
 }: Props) {
+  const otherCityIds = new Set(initialOtherCityPois.map(poi => poi.poi_id))
   const [welcomeMessage, setWelcomeMessage] = useState(initialCustomization.welcome_message ?? '')
   const welcomeWordCount = countWords(welcomeMessage)
   const welcomeOverLimit = welcomeWordCount > WELCOME_MESSAGE_MAX_WORDS
@@ -110,6 +115,7 @@ export function CustomizationForm({
   })
   const [featuredPois, setFeaturedPois] = useState<FeaturedPoiInput[]>(
     initialCustomization.featured_pois
+      .filter(featuredPoi => !otherCityIds.has(featuredPoi.poi_id))
       .map(featuredPoi => ({
         poi_id: featuredPoi.poi_id,
         sort_order: featuredPoi.sort_order,
@@ -133,6 +139,7 @@ export function CustomizationForm({
   const [practicalBlocks, setPracticalBlocks] = useState<PracticalBlockInput[]>(
     initialCustomization.practical_blocks ?? [],
   )
+  const [otherCityPois, setOtherCityPois] = useState<OtherCityPoiSelection[]>(initialOtherCityPois)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
 
@@ -189,10 +196,16 @@ export function CustomizationForm({
       body: JSON.stringify({
         welcome_message: welcomeMessage.trim() === '' ? null : welcomeMessage.trim(),
         category_order: categoryOrder,
-        featured_pois: featuredPois.map((featuredPoi, index) => ({
-          poi_id: featuredPoi.poi_id,
-          sort_order: index,
-        })),
+        featured_pois: [
+          ...featuredPois.map((featuredPoi, index) => ({
+            poi_id: featuredPoi.poi_id,
+            sort_order: index,
+          })),
+          ...otherCityPois.map((poi, index) => ({
+            poi_id: poi.poi_id,
+            sort_order: featuredPois.length + index,
+          })),
+        ],
         practical_blocks: practicalBlocks.map((block, index) => ({
           ...block,
           sort_order: index,
@@ -300,6 +313,15 @@ export function CustomizationForm({
       {/* 2b. Blocs personnalisés « Infos pratiques » */}
       <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
         <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} />
+      </section>
+
+      {/* 2c. Recommandations dans d'autres villes */}
+      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
+        <OtherCityRecommendations
+          value={otherCityPois}
+          onChange={setOtherCityPois}
+          excludeCitySlug={citySlug}
+        />
       </section>
 
       {/* 3. Ordre des catégories */}

@@ -118,6 +118,31 @@ export default async function CustomizeLodgingPage({ params }: Props) {
       category_name: poi.category.name,
     }))
 
+  const featuredRows = await prisma.lodgingFeaturedPoi.findMany({
+    where: { lodging_id: lodging.id, deleted_at: null },
+    orderBy: [{ sort_order: 'asc' }],
+    select: {
+      poi: {
+        select: {
+          id: true,
+          name: true,
+          city: { select: { id: true, slug: true, name: true } },
+          category: { select: { name: true } },
+        },
+      },
+    },
+  })
+
+  const initialOtherCityPois = featuredRows
+    .filter(row => row.poi.city.id !== lodging.city.id)
+    .map(row => ({
+      poi_id: row.poi.id,
+      name: row.poi.name,
+      category_name: row.poi.category.name,
+      city_slug: row.poi.city.slug,
+      city_name: row.poi.city.name,
+    }))
+
   return (
     <div className="mx-auto w-full max-w-5xl animate-in fade-in space-y-6 duration-500">
       <Link
@@ -163,6 +188,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
         categories={categories}
         pois={visiblePois}
         initialCustomization={customization}
+        initialOtherCityPois={initialOtherCityPois}
       />
     </div>
   )
