@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPoiDetail } from '@/features/categories/queries/poi-detail'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
+import { getContextualOwnerNote } from '@/features/guide-customization/queries/contextual-owner-note'
+import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { poiMetadata } from '@/features/seo/lib/metadata'
 import { JsonLd } from '@/shared/components/JsonLd'
 import {
@@ -38,6 +40,11 @@ export default async function PoiDetailPage({ params }: Props) {
   const poi = await getPoiDetail(citySlug, categorySlug, poiSlug)
   if (!poi) { notFound(); return null }
 
+  const lodgingContext = await getActiveLodgingContext()
+  const ownerRecommendationNote = lodgingContext
+    ? await getContextualOwnerNote(lodgingContext.lodgingId, poi.id)
+    : null
+
   const path = `/guide/${citySlug}/${categorySlug}/${poiSlug}`
   const schemaInput: PoiSchemaInput = {
     name: poi.name,
@@ -67,7 +74,12 @@ export default async function PoiDetailPage({ params }: Props) {
   return (
     <>
       <JsonLd data={[primarySchema, breadcrumb]} />
-      <PoiDetailBody poi={poi} citySlug={citySlug} categorySlug={categorySlug} />
+      <PoiDetailBody
+        poi={poi}
+        citySlug={citySlug}
+        categorySlug={categorySlug}
+        ownerRecommendationNote={ownerRecommendationNote}
+      />
     </>
   )
 }
