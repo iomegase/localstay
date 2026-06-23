@@ -826,7 +826,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/PublicLodgingCard"
         - type: object
-          required: [description, photos, amenities, public_contact_enabled]
+          required: [description, photos, amenities, public_contact_enabled, owner_recommendations]
           properties:
             description: { type: string }
             photos:
@@ -839,6 +839,22 @@ components:
             external_booking_url: { type: string, nullable: true }
             external_booking_platform: { type: string, nullable: true }
             public_contact_enabled: { type: boolean }
+            owner_recommendations:
+              type: array
+              items:
+                $ref: "#/components/schemas/PublicOwnerRecommendation"
+    PublicOwnerRecommendation:
+      type: object
+      required: [id, name, slug, category_slug, city_slug, city_name, owner_note, photo_url]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        category_slug: { type: string }
+        city_slug: { type: string }
+        city_name: { type: string }
+        owner_note: { type: string, nullable: true }
+        photo_url: { type: string, nullable: true }
     LodgingPhoto:
       type: object
       required: [id, url, alt, sort_order, is_cover]

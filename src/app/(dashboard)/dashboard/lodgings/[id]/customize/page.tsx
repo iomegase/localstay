@@ -122,6 +122,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
     where: { lodging_id: lodging.id, deleted_at: null },
     orderBy: [{ sort_order: 'asc' }],
     select: {
+      owner_note: true,
       poi: {
         select: {
           id: true,
@@ -141,6 +142,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
       category_name: row.poi.category.name,
       city_slug: row.poi.city.slug,
       city_name: row.poi.city.name,
+      owner_note: row.owner_note,
     }))
 
   return (

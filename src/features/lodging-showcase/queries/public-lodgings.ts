@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import { selectPrimaryPoiPhoto } from '@/features/categories/lib/photo-url'
+import type { PublicOwnerRecommendationDto } from '@/features/lodging-showcase/types'
 
 type PublicLodgingCardApi = {
   id: string
@@ -35,13 +36,7 @@ export type PublicLodgingDetailQueryResult = PublicLodgingCardApi & {
   external_booking_url: string | null
   external_booking_platform: string | null
   public_contact_enabled: boolean
-  owner_recommendations: Array<{
-    id: string
-    name: string
-    slug: string
-    category_slug: string
-    photo_url: string | null
-  }>
+  owner_recommendations: PublicOwnerRecommendationDto[]
   precise_location_public: boolean
   public_latitude: number | null
   public_longitude: number | null
@@ -247,6 +242,7 @@ export async function getPublishedLodgingDetail(
             },
             orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
             select: {
+              owner_note: true,
               poi: {
                 select: {
                   id: true,
@@ -254,6 +250,7 @@ export async function getPublishedLodgingDetail(
                   slug: true,
                   photos: true,
                   category: { select: { slug: true } },
+                  city: { select: { slug: true, name: true } },
                 },
               },
             },
@@ -283,6 +280,9 @@ export async function getPublishedLodgingDetail(
       name: featuredPoi.poi.name,
       slug: featuredPoi.poi.slug,
       category_slug: featuredPoi.poi.category.slug,
+      city_slug: featuredPoi.poi.city.slug,
+      city_name: featuredPoi.poi.city.name,
+      owner_note: featuredPoi.owner_note,
       photo_url: selectPrimaryPoiPhoto(featuredPoi.poi.photos),
     })),
     precise_location_public: row.precise_location_public,

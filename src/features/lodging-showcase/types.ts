@@ -31,6 +31,17 @@ export type PublicLodgingCardDto = {
   href: string
 }
 
+export type PublicOwnerRecommendationDto = {
+  id: string
+  name: string
+  slug: string
+  category_slug: string
+  city_slug: string
+  city_name: string
+  owner_note: string | null
+  photo_url: string | null
+}
+
 export type PublicLodgingDetailDto = PublicLodgingCardDto & {
   city_name: string
   city_region: string | null
@@ -45,7 +56,7 @@ export type PublicLodgingDetailDto = PublicLodgingCardDto & {
   external_booking_platform: ExternalBookingPlatform | null
   public_contact_enabled: boolean
   photos: Array<{ id: string; url: string; alt: string; room_type: string | null; sort_order: number; is_cover: boolean }>
-  owner_recommendations: Array<{ id: string; name: string; slug: string; category_slug: string; photo_url: string | null }>
+  owner_recommendations: PublicOwnerRecommendationDto[]
 }
 
 export type OwnerLodgingAmenityDto = {

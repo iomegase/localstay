@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { Label } from '@/shared/components/ui/label'
 import { Input } from '@/shared/components/ui/input'
+import { Textarea } from '@/shared/components/ui/textarea'
+import {
+  countWords,
+  OWNER_NOTE_MAX_WORDS,
+} from '@/features/guide-customization/lib/validation'
 import type { OtherCityPoiSelection } from '@/features/guide-customization/types'
 
 const MAX_PER_CITY = 5
@@ -76,6 +81,7 @@ export function OtherCityRecommendations({ value, onChange, excludeCitySlug }: P
         category_name: poi.category_name,
         city_slug: city.slug,
         city_name: city.name,
+        owner_note: null,
       }])
     } else {
       onChange(value.filter(v => v.poi_id !== poi.id))
@@ -85,6 +91,14 @@ export function OtherCityRecommendations({ value, onChange, excludeCitySlug }: P
   function removeCity(slug: string) {
     setOpenCities(prev => prev.filter(city => city.slug !== slug))
     onChange(value.filter(poi => poi.city_slug !== slug))
+  }
+
+  function updateOwnerNote(poiId: string, ownerNote: string) {
+    onChange(value.map(selection =>
+      selection.poi_id === poiId
+        ? { ...selection, owner_note: ownerNote }
+        : selection,
+    ))
   }
 
   return (
@@ -140,20 +154,58 @@ export function OtherCityRecommendations({ value, onChange, excludeCitySlug }: P
             </div>
             <div className="space-y-1">
               {city.pois.map(poi => {
-                const checked = value.some(v => v.poi_id === poi.id)
+                const selected = value.find(selection => selection.poi_id === poi.id)
+                const checked = Boolean(selected)
                 const disabled = !checked && count >= MAX_PER_CITY
+                const wordCount = countWords(selected?.owner_note ?? '')
+                const overLimit = wordCount > OWNER_NOTE_MAX_WORDS
                 return (
-                  <label key={poi.id} className={`flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${disabled ? 'opacity-40' : 'hover:bg-gray-50'}`}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={event => togglePoi(city, poi, event.target.checked)}
-                      className="h-4 w-4 accent-charcoal"
-                    />
-                    <span className="text-charcoal">{poi.name}</span>
-                    <span className="ml-auto text-[10px] uppercase tracking-widest text-gray-400">{poi.category_name}</span>
-                  </label>
+                  <div
+                    key={poi.id}
+                    className={`rounded-xl border p-3 ${
+                      checked
+                        ? 'border-[#0B1437]/15 bg-white shadow-sm'
+                        : 'border-transparent'
+                    }`}
+                  >
+                    <label className={`flex items-center gap-3 text-sm ${disabled ? 'opacity-40' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={disabled}
+                        onChange={event => togglePoi(city, poi, event.target.checked)}
+                        className="h-4 w-4 accent-charcoal"
+                      />
+                      <span className="text-charcoal">{poi.name}</span>
+                      <span className="ml-auto text-[10px] uppercase tracking-widest text-gray-400">
+                        {poi.category_name}
+                      </span>
+                    </label>
+                    {selected && (
+                      <div className="mt-3 border-t border-gray-100 pt-3">
+                        <Label
+                          htmlFor={`other-city-owner-note-${poi.id}`}
+                          className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400"
+                        >
+                          Votre mot pour les voyageurs - {poi.name}
+                        </Label>
+                        <Textarea
+                          id={`other-city-owner-note-${poi.id}`}
+                          value={selected.owner_note ?? ''}
+                          onChange={event => updateOwnerNote(poi.id, event.target.value)}
+                          placeholder="Pourquoi recommandez-vous cette adresse ?"
+                          className="mt-2 min-h-[88px] resize-none"
+                        />
+                        <p
+                          className={`mt-2 text-right text-[11px] font-medium ${
+                            overLimit ? 'text-rose-500' : 'text-gray-400'
+                          }`}
+                        >
+                          {wordCount} / {OWNER_NOTE_MAX_WORDS} mots
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>
