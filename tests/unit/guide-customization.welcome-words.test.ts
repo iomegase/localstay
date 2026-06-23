@@ -49,5 +49,6 @@ describe('owner recommendation comment rules', () => {
   it('normalizes whitespace-only and null owner notes to null', () => {
     expect(normalizeOwnerNote('  \n\t  ')).toBeNull()
     expect(normalizeOwnerNote(null)).toBeNull()
+    expect(normalizeOwnerNote(undefined)).toBeNull()
   })
 })
