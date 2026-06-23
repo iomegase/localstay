@@ -19,4 +19,13 @@ describe('OwnerRecommendationNote', () => {
 
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('uses accessible contrast and mobile-safe wrapping styles', () => {
+    const longUnbrokenNote = 'NotreSelection'.repeat(24)
+
+    render(<OwnerRecommendationNote note={longUnbrokenNote} />)
+
+    expect(screen.getByRole('heading', { name: 'Le mot de votre hôte' })).toHaveClass('text-gray-600')
+    expect(screen.getByText(longUnbrokenNote)).toHaveClass('break-words')
+  })
 })
