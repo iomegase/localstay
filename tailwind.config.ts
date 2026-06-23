@@ -17,6 +17,9 @@ const config: Config = {
         charcoal: '#121212',
         gold: '#A68E69',
         forest: '#455E4C',
+        // Tokens éditoriaux (page recommandations bento)
+        cream: '#f7f3ed',
+        sand: '#ebe2d5',
         // Shadcn/ui CSS variable tokens
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -58,6 +61,9 @@ const config: Config = {
         serif: ['Playfair Display', 'serif'],
         lobster: ['Lobster', 'cursive'],
         quicksand: ['Quicksand', 'sans-serif'],
+      },
+      boxShadow: {
+        soft: '0 18px 60px rgba(36, 34, 32, 0.08)',
       },
     },
   },
