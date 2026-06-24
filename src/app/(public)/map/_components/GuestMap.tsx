@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import Map, { Marker, Popup, NavigationControl, Layer, type MapRef } from 'react-map-gl/mapbox'
+import Map, { Marker, NavigationControl, Layer, type MapRef } from 'react-map-gl/mapbox'
 import type { FillExtrusionLayerSpecification } from 'mapbox-gl'
 import * as LucideIcons from 'lucide-react'
 
@@ -159,49 +159,79 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
           )
         })}
 
-        {active && (
-          <Popup
-            longitude={active.longitude}
-            latitude={active.latitude}
-            anchor="bottom"
-            offset={28}
-            onClose={() => setActive(null)}
-            closeOnClick
-          >
-            <div className="w-52 space-y-1.5" data-testid="popup-content">
+      </Map>
+
+      {/* Modal fiche POI — apparaît au clic sur un marqueur */}
+      {active && (
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-center"
+          data-testid="poi-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={active.name}
+        >
+          {/* Fond cliquable pour fermer */}
+          <button
+            type="button"
+            aria-label="Fermer"
+            onClick={() => setActive(null)}
+            className="absolute inset-0 bg-charcoal/40 backdrop-blur-[2px]"
+          />
+
+          <div className="relative z-10 mx-3 w-full max-w-[364px]">
+            {/* Toute la carte est un lien vers la fiche POI */}
+            <Link
+              href={`/guide/${active.citySlug}/${active.categorySlug}/${active.slug}`}
+              className="block overflow-hidden rounded-3xl bg-white shadow-2xl transition-transform hover:scale-[1.01]"
+              data-testid="poi-modal-link"
+            >
               {active.photo_url && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={active.photo_url}
                   alt={active.name}
-                  className="h-24 w-full rounded-lg object-cover"
+                  className="h-40 w-full object-cover"
                 />
               )}
-              <p
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: active.categoryColor }}
-              >
-                {active.categoryName}
-              </p>
-              <p className="text-sm font-semibold leading-tight text-charcoal">{active.name}</p>
-              {typeof active.rating === 'number' && (
-                <p className="text-xs text-charcoal/60">★ {active.rating.toFixed(1)}</p>
-              )}
-              {active.owner_note && active.owner_note.trim().length > 0 && (
-                <p className="line-clamp-3 text-xs italic text-charcoal/70">
-                  “{active.owner_note.trim()}”
+
+              <div className="space-y-2 p-4">
+                <p
+                  className="text-[9px] font-bold uppercase tracking-widest"
+                  style={{ color: active.categoryColor }}
+                >
+                  {active.categoryName}
                 </p>
-              )}
-              <Link
-                href={`/guide/${active.citySlug}/${active.categorySlug}/${active.slug}`}
-                className="mt-1 block rounded-lg bg-pine py-1.5 text-center text-xs font-bold text-white"
-              >
-                Voir la fiche
-              </Link>
-            </div>
-          </Popup>
-        )}
-      </Map>
+                <h2 className="text-base font-semibold leading-tight text-charcoal">
+                  {active.name}
+                </h2>
+                {typeof active.rating === 'number' && (
+                  <p className="text-xs text-charcoal/60">★ {active.rating.toFixed(1)}</p>
+                )}
+                {active.owner_note && active.owner_note.trim().length > 0 && (
+                  <p className="line-clamp-4 text-xs italic text-charcoal/70">
+                    “{active.owner_note.trim()}”
+                  </p>
+                )}
+
+                <span className="mt-1 flex items-center justify-center gap-2 rounded-2xl bg-pine py-2.5 text-sm font-bold text-white">
+                  Voir la fiche
+                  <LucideIcons.ArrowRight className="h-4 w-4" />
+                </span>
+              </div>
+            </Link>
+
+            {/* Fermeture — hors du lien (un <button> ne peut être imbriqué dans un <a>) */}
+            <button
+              type="button"
+              aria-label="Fermer"
+              onClick={() => setActive(null)}
+              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-md backdrop-blur"
+            >
+              <LucideIcons.X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Compteur flottant */}
       <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
