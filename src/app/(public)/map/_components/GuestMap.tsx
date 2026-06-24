@@ -2,9 +2,47 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import Map, { Marker, NavigationControl, Layer, type MapRef } from 'react-map-gl/mapbox'
+import Map, { Marker, NavigationControl, Layer, Source, type MapRef } from 'react-map-gl/mapbox'
 import type { FillExtrusionLayerSpecification } from 'mapbox-gl'
 import * as LucideIcons from 'lucide-react'
+
+// Tuiles IGN libres (Géoplateforme, WMTS PseudoMercator, sans clé).
+const IGN_WMTS = 'https://data.geopf.fr/wmts'
+function ignTileUrl(layer: string, format: string): string {
+  const params = new URLSearchParams({
+    SERVICE: 'WMTS',
+    REQUEST: 'GetTile',
+    VERSION: '1.0.0',
+    LAYER: layer,
+    STYLE: 'normal',
+    TILEMATRIXSET: 'PM',
+    FORMAT: format,
+    TILEMATRIX: '{z}',
+    TILEROW: '{y}',
+    TILECOL: '{x}',
+  })
+  // Les accolades de gabarit ne doivent pas être encodées pour Mapbox.
+  return `${IGN_WMTS}?${params.toString()}`.replace(/%7B/g, '{').replace(/%7D/g, '}')
+}
+
+type BaseLayer = 'plan' | 'ign' | 'satellite'
+
+const IGN_SOURCES: Record<Exclude<BaseLayer, 'plan'>, { tiles: string; attribution: string }> = {
+  ign: {
+    tiles: ignTileUrl('GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'image/png'),
+    attribution: '© IGN — Géoplateforme',
+  },
+  satellite: {
+    tiles: ignTileUrl('ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg'),
+    attribution: '© IGN — Géoplateforme',
+  },
+}
+
+const LAYER_LABELS: Record<BaseLayer, string> = {
+  plan: 'Plan',
+  ign: 'IGN',
+  satellite: 'Satellite',
+}
 
 // Extrusion 3D des bâtiments (source `composite` incluse dans light-v11).
 // Apparaît à partir du zoom 14, monte progressivement jusqu'au zoom 15.
@@ -68,6 +106,7 @@ function resolveLucideIcon(iconSlug?: string): LucideIcons.LucideIcon {
 export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
   const mapRef = useRef<MapRef | null>(null)
   const [active, setActive] = useState<GuestMapPoi | null>(null)
+  const [baseLayer, setBaseLayer] = useState<BaseLayer>('plan')
 
   // Plein écran immersif : masque header + bottom-nav du layout public.
   useEffect(() => {
@@ -131,6 +170,20 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         mapStyle="mapbox://styles/mapbox/light-v11"
       >
         <NavigationControl position="top-right" visualizePitch />
+
+        {baseLayer !== 'plan' && (
+          <Source
+            key={baseLayer}
+            id="ign-base"
+            type="raster"
+            tiles={[IGN_SOURCES[baseLayer].tiles]}
+            tileSize={256}
+            attribution={IGN_SOURCES[baseLayer].attribution}
+          >
+            <Layer id="ign-base-layer" type="raster" beforeId="3d-buildings" />
+          </Source>
+        )}
+
         <Layer {...buildings3DLayer} />
 
         {pois.map(poi => {
@@ -232,6 +285,23 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
           </div>
         </div>
       )}
+
+      {/* Sélecteur de fond de carte */}
+      <div className="absolute bottom-6 left-4 z-10 flex gap-1 rounded-full bg-white/90 p-1 shadow-lg backdrop-blur">
+        {(Object.keys(LAYER_LABELS) as BaseLayer[]).map(layer => (
+          <button
+            key={layer}
+            type="button"
+            onClick={() => setBaseLayer(layer)}
+            aria-pressed={baseLayer === layer}
+            className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+              baseLayer === layer ? 'bg-pine text-white' : 'text-charcoal/70 hover:bg-black/5'
+            }`}
+          >
+            {LAYER_LABELS[layer]}
+          </button>
+        ))}
+      </div>
 
       {/* Compteur flottant */}
       <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
