@@ -42,7 +42,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
   const items: NavItemConfig[] = [
     {
       href: '/',
-      label: 'Bienvenue',
+      label: 'Home',
       icon: <Compass className="w-5 h-5" />,
       active: isPathActive(pathname, '/'),
     },
@@ -77,13 +77,12 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 }
 
 function buildLodgingItems(pathname: string | null, citySlug?: string | null): NavItemConfig[] {
-  const guideHref = citySlug ? `/guide/${citySlug}` : '/'
   const favoritesHref = contextualFavoritesPath(citySlug)
 
   return [
     {
       href: '/',
-      label: 'Bienvenue',
+      label: 'Home',
       icon: <Compass className="w-5 h-5" />,
       active: isPathActive(pathname, '/'),
     },
@@ -100,10 +99,10 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
       active: isPathActive(pathname, favoritesHref),
     },
     {
-      href: guideHref,
-      label: 'Guide',
+      href: '/map',
+      label: 'Carte',
       icon: <Map className="w-5 h-5" />,
-      active: guideHref !== '/' && isPathActive(pathname, guideHref),
+      active: isPathActive(pathname, '/map'),
     },
   ]
 }

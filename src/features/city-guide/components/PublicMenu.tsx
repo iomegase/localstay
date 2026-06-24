@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
-import { contextualContactPath, contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
+import { contextualContactPath } from '@/features/city-guide/lib/public-paths'
 
 type MenuItem = { href: string; label: string }
 
@@ -17,7 +17,7 @@ type Props = {
 }
 
 const ANONYMOUS_ITEMS: MenuItem[] = [
-  { href: '/', label: 'Bienvenue' },
+  { href: '/', label: 'Home' },
   { href: '/contact', label: 'Contact' },
 ]
 
@@ -31,7 +31,7 @@ function extractCitySlug(pathname?: string | null): string | null {
 function anonymousItems(citySlug?: string | null): MenuItem[] {
   return citySlug
     ? [
-      { href: '/', label: 'Bienvenue' },
+      { href: '/', label: 'Home' },
       { href: `/guide/${citySlug}/logements`, label: 'Logements' },
       { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
       { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
@@ -41,25 +41,16 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
 }
 
 function lodgingItems(citySlug?: string | null): MenuItem[] {
-  const items = [
-    { href: '/', label: 'Bienvenue' },
-    { href: '/le-logement', label: 'Le Logement' },
-    { href: '/map', label: 'Carte' },
-    { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
-    { href: contextualContactPath(citySlug), label: 'Nous Contacter' },
-  ]
+  const home = { href: '/', label: 'Home' }
+  const contact = { href: contextualContactPath(citySlug), label: 'Nous Contacter' }
 
-  if (!citySlug) return items
+  if (!citySlug) return [home, contact]
 
   return [
-    items[0],
-    items[1],
-    items[2], // Carte
+    home,
     { href: `/guide/${citySlug}/logements`, label: 'Logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
-    items[3], // Vos favoris
-    { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
-    items[4], // Nous Contacter
+    contact,
   ]
 }
 
