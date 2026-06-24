@@ -8,11 +8,16 @@ const LODGING_COOKIE_NAME = 'lodging_id'
 const LODGING_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 jours
 const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
+// Écran de blocage affiché quand on accède au site sans séjour actif.
+const GATE_PATH = '/acces-reserve'
+// Préfixes accessibles sans séjour actif (espace hôte + écran de blocage lui-même).
+const BYPASS_PREFIXES = ['/auth', GATE_PATH]
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
   const path = request.nextUrl.pathname
 
-  // === Branche publique : /guide/:path* — pas d'auth, juste le cookie séjour ===
+  // === Branche publique : /guide/:path* — point d'entrée séjour, jamais bloqué ===
   if (path.startsWith('/guide/')) {
     const lodgingFromQuery = request.nextUrl.searchParams.get('lodging')
     if (lodgingFromQuery && UUID_REGEX.test(lodgingFromQuery)) {
@@ -46,38 +51,59 @@ export async function proxy(request: NextRequest) {
   }
 
   // === Branche authentifiée : dashboard/merchant/admin ===
-  const supabase = createSupabaseMiddlewareClient(request, response)
-  const { data: { user } } = await supabase.auth.getUser()
+  const isDashboardArea =
+    path.startsWith('/dashboard') || path.startsWith('/merchant') || path.startsWith('/admin')
+  if (isDashboardArea) {
+    const supabase = createSupabaseMiddlewareClient(request, response)
+    const { data: { user } } = await supabase.auth.getUser()
 
-  function redirectWithCookies(destination: string) {
-    const redirect = NextResponse.redirect(new URL(destination, request.url), { status: 307 })
-    response.cookies.getAll().forEach(c => redirect.cookies.set(c.name, c.value))
-    return redirect
-  }
-
-  if (!user) {
-    return redirectWithCookies('/auth/login')
-  }
-
-  const role = (user.user_metadata?.role ?? 'tourist') as Role
-
-  if (role === 'tourist') {
-    return redirectWithCookies('/')
-  }
-
-  const ownDashboard = DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>]
-
-  // BR-04: block cross-role access
-  const otherPrefixes = Object.values(DASHBOARD_ROUTES).filter(p => p !== ownDashboard)
-  for (const prefix of otherPrefixes) {
-    if (path.startsWith(prefix)) {
-      return redirectWithCookies(ownDashboard)
+    function redirectWithCookies(destination: string) {
+      const redirect = NextResponse.redirect(new URL(destination, request.url), { status: 307 })
+      response.cookies.getAll().forEach(c => redirect.cookies.set(c.name, c.value))
+      return redirect
     }
+
+    if (!user) {
+      return redirectWithCookies('/auth/login')
+    }
+
+    const role = (user.user_metadata?.role ?? 'tourist') as Role
+
+    if (role === 'tourist') {
+      return redirectWithCookies('/auth/login')
+    }
+
+    const ownDashboard = DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>]
+
+    // BR-04: block cross-role access
+    const otherPrefixes = Object.values(DASHBOARD_ROUTES).filter(p => p !== ownDashboard)
+    for (const prefix of otherPrefixes) {
+      if (path.startsWith(prefix)) {
+        return redirectWithCookies(ownDashboard)
+      }
+    }
+
+    return response
+  }
+
+  // === Espace hôte (auth) + écran de blocage : toujours accessibles ===
+  if (BYPASS_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`))) {
+    return response
+  }
+
+  // === Pages invité (home, le-logement, recommandations, map, blog…) ===
+  // Accès réservé : il faut un séjour actif (cookie lodging valide), sinon on
+  // affiche l'écran « accès par lien » sans changer l'URL.
+  const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+  const hasActiveLodging = Boolean(lodgingCookie && UUID_REGEX.test(lodgingCookie))
+  if (!hasActiveLodging) {
+    return NextResponse.rewrite(new URL(GATE_PATH, request.url))
   }
 
   return response
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/merchant/:path*', '/admin/:path*', '/guide/:path*'],
+  // Tout le site sauf les fichiers statiques et les routes API.
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }
