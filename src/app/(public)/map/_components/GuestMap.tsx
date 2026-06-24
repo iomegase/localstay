@@ -148,7 +148,7 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
   }
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden bg-cream" data-testid="guest-map">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-white" data-testid="guest-map">
       <Map
         ref={mapRef}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
@@ -313,11 +313,8 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         ))}
       </div>
 
-      {/* Compteur flottant + bouton fermer */}
+      {/* Bouton fermer + compteur flottant */}
       <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
-        <div className="rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
-          {pois.length} {pois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
-        </div>
         <Link
           href="/nos-recommandations"
           aria-label="Fermer la carte"
@@ -325,6 +322,9 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         >
           <LucideIcons.X className="h-5 w-5" />
         </Link>
+        <div className="rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
+          {pois.length} {pois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
+        </div>
       </div>
 
       {pois.length === 0 && (

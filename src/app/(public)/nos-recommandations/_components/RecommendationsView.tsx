@@ -47,7 +47,7 @@ export async function RecommendationsView({
   }
 
   return (
-    <div className="bg-cream px-4 pt-2">
+    <div className="bg-white px-4 pt-2">
       {/* <header className="mb-6 flex items-center justify-between pt-2">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-gray-400">MyStay</p>

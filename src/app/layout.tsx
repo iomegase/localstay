@@ -67,7 +67,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet"/>
       </head>
       <body
-        className="bg-ivory text-charcoal font-sans antialiased"
+        className="bg-white text-charcoal font-sans antialiased"
         suppressHydrationWarning
       >
         <MobileBrowserChromeCollapser />
