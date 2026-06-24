@@ -313,19 +313,19 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         ))}
       </div>
 
-      {/* Compteur flottant */}
-      <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
-        {pois.length} {pois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
+      {/* Compteur flottant + bouton fermer */}
+      <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
+        <div className="rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
+          {pois.length} {pois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
+        </div>
+        <Link
+          href="/nos-recommandations"
+          aria-label="Fermer la carte"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg backdrop-blur"
+        >
+          <LucideIcons.X className="h-5 w-5" />
+        </Link>
       </div>
-
-      {/* Retour */}
-      <Link
-        href="/nos-recommandations"
-        aria-label="Retour"
-        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg backdrop-blur"
-      >
-        <LucideIcons.X className="h-5 w-5" />
-      </Link>
 
       {pois.length === 0 && (
         <div className="absolute inset-x-0 bottom-24 z-10 mx-auto w-[88%] rounded-2xl bg-white/95 p-5 text-center shadow-xl backdrop-blur">
