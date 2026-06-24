@@ -154,15 +154,16 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{ ...center, zoom: 12, pitch: 0 }}
         maxPitch={75}
+        terrain={{ source: 'mapbox-dem', exaggeration: 1.4 }}
         onLoad={fitToPois}
         onZoomEnd={event => {
-          // Bascule en vue 3D inclinée dès qu'on s'approche des bâtiments.
+          // Bascule en vue 3D inclinée dès qu'on s'approche (relief + bâtiments).
           const map = event.target
           const zoom = map.getZoom()
           const pitch = map.getPitch()
-          if (zoom >= 15 && pitch < 10) {
-            map.easeTo({ pitch: 55, duration: 600 })
-          } else if (zoom < 14 && pitch > 10) {
+          if (zoom >= 14 && pitch < 10) {
+            map.easeTo({ pitch: 60, duration: 600 })
+          } else if (zoom < 13 && pitch > 10) {
             map.easeTo({ pitch: 0, duration: 600 })
           }
         }}
@@ -170,6 +171,15 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         mapStyle="mapbox://styles/mapbox/light-v11"
       >
         <NavigationControl position="top-right" visualizePitch />
+
+        {/* Relief : draine les fonds (IGN/satellite inclus) sur l'élévation réelle */}
+        <Source
+          id="mapbox-dem"
+          type="raster-dem"
+          url="mapbox://mapbox.mapbox-terrain-dem-v1"
+          tileSize={512}
+          maxzoom={14}
+        />
 
         {baseLayer !== 'plan' && (
           <Source
