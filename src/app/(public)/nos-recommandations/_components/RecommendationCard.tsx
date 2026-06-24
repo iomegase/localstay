@@ -18,7 +18,7 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
   const note = owner_note ? (
     <p
       data-testid="owner-recommendation-comment"
-      className="text-sm font-medium leading-relaxed"
+      className="text-xs font-light leading-relaxed"
     >
       {owner_note}
     </p>
@@ -38,18 +38,18 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
             loading="lazy"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="relative flex h-full min-h-[360px] flex-col justify-end p-5 text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+        <div className="relative flex h-full min-h-[360px] flex-col justify-center p-5 text-white">
           {showCategory && (
             <div className="mb-3 w-fit rounded-full bg-white/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.25em] backdrop-blur">
               {poi.category.name}
             </div>
           )}
-          <h3 className="font-serif text-3xl italic leading-none">{poi.name}</h3>
+          <h3 className=" text-2xl uppercase  leading-none">{poi.name}</h3>
           {note && <div className="mt-4 max-w-lg text-white/90">{note}</div>}
-          {poi.description && (
+          {/* {poi.description && (
             <p className="mt-3 max-w-lg text-sm leading-6 text-white/65 line-clamp-2">{poi.description}</p>
-          )}
+          )} */}
           <span className="mt-5 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/80">
             Voir le lieu
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -63,7 +63,7 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     return (
       <Link
         href={href}
-        className="group relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal shadow-soft"
+        className="group flex flex-col justify-center relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal shadow-md"
       >
         {photo && (
           <img
@@ -74,14 +74,14 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-        <div className="relative flex h-full min-h-[180px] flex-col justify-end p-4 text-white">
+        <div className="relative flex h-full min-h-[180px] flex-col justify-center p-4 text-white">
           {showCategory && (
             <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
           )}
-          <h3 className="font-serif text-2xl italic leading-tight">{poi.name}</h3>
-          {poi.description && (
+          <h3 className="uppercase text-md  leading-tight">{poi.name}</h3>
+          {/* {poi.description && (
             <p className="mt-2 text-xs leading-5 text-white/75 line-clamp-2">{poi.description}</p>
-          )}
+          )} */}
         </div>
       </Link>
     )
@@ -91,15 +91,15 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     return (
       <Link
         href={href}
-        className="group relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal p-4 text-white shadow-soft"
+        className="group relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal p-4 text-white shadow-md"
       >
         <div className="flex h-full flex-col justify-between">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-gold">Note de l’hôte</p>
             {note ? (
-              <div className="mt-3 font-serif text-xl italic leading-tight">{owner_note}</div>
+              <div className="mt-3  text-md  leading-tight">{owner_note}</div>
             ) : (
-              <h3 className="mt-3 font-serif text-xl italic leading-tight">{poi.name}</h3>
+              <h3 className="mt-3  text-md  leading-tight">{poi.name}</h3>
             )}
           </div>
           <span className="mt-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/70">
@@ -116,15 +116,15 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
   return (
     <Link
       href={href}
-      className={`group relative min-h-[180px] overflow-hidden rounded-[1.75rem] ${bg} p-4 shadow-soft transition hover:-translate-y-0.5`}
+      className={`group relative min-h-[180px] overflow-hidden rounded-[1.75rem] ${bg} p-4 shadow-md transition hover:-translate-y-0.5`}
     >
-      <div className="flex h-full flex-col justify-between">
+      <div className="flex h-full flex-col justify-center text-center items-center">
         <div>
           {showCategory && (
             <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
           )}
-          <h3 className="mt-2 font-serif text-xl italic leading-tight text-charcoal">{poi.name}</h3>
-          {note && <div className="mt-2 text-charcoal">{note}</div>}
+          <h3 className="mt-2 uppercase text-sm leading-tight text-charcoal">{poi.name}</h3>
+          {note && <div className="mt-2 !text-pink-600 !text-xs italic ">{note}</div>}
           {poi.description && (
             <p className="mt-2 text-xs leading-5 text-gray-500 line-clamp-3">{poi.description}</p>
           )}

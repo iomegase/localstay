@@ -48,12 +48,12 @@ export async function RecommendationsView({
 
   return (
     <div className="bg-cream px-4 pt-2">
-      <header className="mb-6 flex items-center justify-between pt-2">
+      {/* <header className="mb-6 flex items-center justify-between pt-2">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-gray-400">MyStay</p>
           <p className="mt-1 text-xs text-gray-500">Mode séjour activé</p>
         </div>
-      </header>
+      </header> */}
 
       <Hero
         ownerName={lodgingContext.ownerName}
@@ -81,7 +81,7 @@ export async function RecommendationsView({
           {otherByCity.length > 0 && (
             <div className="mb-2">
               <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
-                À découvrir ailleurs
+                Un peu plus loin dans la vallée...
               </p>
               {otherByCity.map(group => (
                 <BentoSection

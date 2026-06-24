@@ -44,6 +44,7 @@ function lodgingItems(citySlug?: string | null): MenuItem[] {
   const items = [
     { href: '/', label: 'Bienvenue' },
     { href: '/le-logement', label: 'Le Logement' },
+    { href: '/map', label: 'Carte' },
     { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
     { href: contextualContactPath(citySlug), label: 'Nous Contacter' },
   ]
@@ -53,11 +54,12 @@ function lodgingItems(citySlug?: string | null): MenuItem[] {
   return [
     items[0],
     items[1],
+    items[2], // Carte
     { href: `/guide/${citySlug}/logements`, label: 'Logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
-    items[2], // Vos favoris
+    items[3], // Vos favoris
     { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
-    items[3], // Nous Contacter
+    items[4], // Nous Contacter
   ]
 }
 
