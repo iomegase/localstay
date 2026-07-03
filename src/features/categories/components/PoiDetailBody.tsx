@@ -71,7 +71,7 @@ export function PoiDetailBody({
         ) : (
           <PoiBackButton />
         )}
-        <div className="flex mt-4 items-center gap-2">
+        <div className="flex mt-4 mr-14 items-center gap-2">
           <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
           <FavoriteToggleButton
             variant="icon"
