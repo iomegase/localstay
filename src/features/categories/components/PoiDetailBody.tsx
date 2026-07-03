@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { ArrowLeft, Star, MapPin } from 'lucide-react'
 import { ActionButtons, type ActionButtonsVariant } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
@@ -9,6 +8,7 @@ import { HeroShareButton } from './HeroShareButton'
 import { OwnerRecommendationNote } from './OwnerRecommendationNote'
 import { PoiDetailHeroCarousel } from './PoiDetailHeroCarousel'
 import { PoiDetailTopBar } from './PoiDetailTopBar'
+import { PoiBackButton } from './PoiBackButton'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
 import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
@@ -69,12 +69,7 @@ export function PoiDetailBody({
             <ArrowLeft className="w-4 h-4" />
           </button>
         ) : (
-          <Link
-            href={`/guide/${citySlug}/${categorySlug}`}
-            className="w-10 h-10 mt-4 rounded-full bg-white/30 backdrop-blur flex items-center justify-center text-charcoal/60 active:scale-95 transition-transform hover:bg-white/40"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
+          <PoiBackButton />
         )}
         <div className="flex mt-4 items-center gap-2">
           <HeroShareButton poiName={poi.name} poiUrl={poiUrl} />
