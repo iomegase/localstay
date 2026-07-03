@@ -22,6 +22,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 import { MarkdownHint } from '@/shared/components/MarkdownHint'
+import { YouTubeUrlField } from './YouTubeUrlField'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import {
   PRACTICAL_BLOCK_ICONS,
@@ -51,7 +52,7 @@ export function PracticalBlocksEditor({ value, onChange, lodgingId }: Props) {
   function addBlock() {
     onChange([
       ...value,
-      { id: blockUid(), title: '', body: null, icon: DEFAULT_PRACTICAL_BLOCK_ICON, photo_url: null, sort_order: value.length },
+      { id: blockUid(), title: '', body: null, icon: DEFAULT_PRACTICAL_BLOCK_ICON, photo_url: null, video_url: null, sort_order: value.length },
     ])
   }
 
@@ -216,6 +217,13 @@ function SortableBlockRow({
           </div>
         )}
       </div>
+
+      <YouTubeUrlField
+        id={`block-video-${index}`}
+        label="Vidéo YouTube (optionnelle)"
+        value={block.video_url}
+        onChange={url => onUpdate(index, { video_url: url })}
+      />
     </div>
   )
 }

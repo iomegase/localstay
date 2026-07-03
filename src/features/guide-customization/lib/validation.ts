@@ -94,6 +94,7 @@ export interface NormalizedPracticalBlock {
   body: string | null
   icon: string
   photo_url: string | null
+  video_url: string | null
   sort_order: number
 }
 
@@ -117,6 +118,7 @@ export function normalizePracticalBlocks(
       body: clean(block.body),
       icon: block.icon,
       photo_url: clean(block.photo_url),
+      video_url: clean(block.video_url),
       sort_order: index,
     }))
 }

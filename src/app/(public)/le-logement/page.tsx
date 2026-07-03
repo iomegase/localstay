@@ -7,6 +7,7 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { LodgingPager } from '@/features/public-menu/components/LodgingPager'
+import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 
 type PracticalBlock = {
   id: string
@@ -14,6 +15,7 @@ type PracticalBlock = {
   body: string | null
   icon: string
   photo_url: string | null
+  video_url: string | null
   sort_order: number
 }
 
@@ -62,7 +64,9 @@ export default async function LeLogementPage() {
     prisma.lodgingCustomization.findFirst({
       where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
       select: {
-        lodging_address: true, wifi_ssid: true, wifi_password: true, parking_info: true,
+        cover_photo_url: true, presentation_video_url: true,
+        lodging_address: true, wifi_ssid: true, wifi_password: true,
+        parking_info: true, parking_photo_url: true, parking_video_url: true,
         equipment_info: true, checkout_instructions: true, trash_info: true, trash_location: true,
         house_rules: true, emergency_contacts: true, useful_services: true,
       },
@@ -70,7 +74,7 @@ export default async function LeLogementPage() {
     prisma.lodgingPracticalBlock.findMany({
       where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
       orderBy: { sort_order: 'asc' },
-      select: { id: true, title: true, body: true, icon: true, photo_url: true, sort_order: true },
+      select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
     })
   ])
 
@@ -78,6 +82,10 @@ export default async function LeLogementPage() {
   const hasFixed = sections.some(section => section.hasValue)
   const hasBlocks = practicalBlocks.length > 0
   const hasContent = hasFixed || hasBlocks
+
+  const presentationPhoto = customization?.cover_photo_url ?? null
+  const presentationVideo = customization?.presentation_video_url ?? null
+  const hasPresentation = Boolean(presentationPhoto || presentationVideo)
 
   return (
     <div className="pt-8 bg-[#F4F5F6] min-h-screen pb-20 flex flex-col">
@@ -89,6 +97,17 @@ export default async function LeLogementPage() {
           {lodgingContext.lodgingName}
         </h1>
       </div>
+
+      {hasPresentation && (
+        <section className="mb-10 flex flex-col gap-4 px-4">
+          {presentationPhoto && (
+            <div className="relative aspect-[2/1] w-full overflow-hidden rounded-[24px]">
+              <Image src={presentationPhoto} alt="Présentation du logement" fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
+            </div>
+          )}
+          {presentationVideo && <YouTubeEmbed url={presentationVideo} title="Présentation du logement" />}
+        </section>
+      )}
 
       {!hasContent ? (
         <div className="mx-6 flex flex-col items-center rounded-[40px] bg-white p-10 text-center shadow-sm">
@@ -154,6 +173,12 @@ function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Th
         </div>
       )}
 
+      {block.video_url && (
+        <div className="mb-6">
+          <YouTubeEmbed url={block.video_url} title={block.title} />
+        </div>
+      )}
+
       {/* 🚀 OPTIMISATION : Tailles de texte réduites pour plus d'élégance (14px / 15px) */}
       {block.body && (
         <div className={`text-[14px] sm:text-[15px] leading-relaxed mb-8 flex-1 ${getMarkdownTextStyles(theme.isDark)}`}>
@@ -195,7 +220,18 @@ function PracticalCard({ section }: { section: Section }) {
           </div>
         )}
       </div>
-      
+
+      {(section.photoUrl || section.videoUrl) && (
+        <div className="mb-6 flex flex-col gap-3">
+          {section.photoUrl && (
+            <div className="relative aspect-[2/1] w-full overflow-hidden rounded-[24px]">
+              <Image src={section.photoUrl} alt={section.title} fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
+            </div>
+          )}
+          {section.videoUrl && <YouTubeEmbed url={section.videoUrl} title={section.title} />}
+        </div>
+      )}
+
       {/* 🚀 OPTIMISATION : Tailles de texte harmonisées avec les grandes cartes */}
       <div className={`flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[14px] sm:text-[15px] leading-relaxed flex flex-col justify-end ${isSquare ? 'mb-3' : 'mb-6'} ${getMarkdownTextStyles(theme.isDark)}`}>
         {renderValue(section)}
@@ -231,6 +267,8 @@ type Section = {
   format: 'markdown' | 'plain' | 'address' | 'wifi'
   mapsLocation?: string | null
   isSquare?: boolean
+  photoUrl?: string | null
+  videoUrl?: string | null
   theme: Theme
 }
 
@@ -242,7 +280,7 @@ function buildSections(row: any): Section[] {
   return [
     { key: 'address', title: 'Adresse', icon: <MapPin className="h-7 w-7" />, value: row?.lodging_address ?? null, hasValue: has(row?.lodging_address), format: 'address', theme: themes.slate },
     { key: 'wifi', title: 'Réseau Wi-Fi', icon: <Wifi className="h-7 w-7" />, value: wifiCombined, hasValue: Boolean(wifiCombined), format: 'wifi', theme: themes.light },
-    { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info), format: 'markdown', theme: themes.slate },
+    { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.slate },
     { key: 'checkout', title: 'Départ', icon: <LogOut className="h-7 w-7" />, value: row?.checkout_instructions ?? null, hasValue: has(row?.checkout_instructions), format: 'markdown', theme: themes.light },
     { key: 'trash', title: 'Poubelles', icon: <Trash2 className="h-7 w-7" />, value: row?.trash_info ?? null, hasValue: has(row?.trash_info) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, theme: themes.slate },
     { key: 'equipment', title: 'Équipements', icon: <Settings className="h-7 w-7" />, value: row?.equipment_info ?? null, hasValue: has(row?.equipment_info), format: 'markdown', theme: themes.light },
