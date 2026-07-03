@@ -22,10 +22,13 @@ import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 
 const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   cover_photo_url: null,
+  presentation_video_url: null,
   lodging_address: null,
   wifi_ssid: null,
   wifi_password: null,
   parking_info: null,
+  parking_photo_url: null,
+  parking_video_url: null,
   equipment_info: null,
   checkout_instructions: null,
   trash_info: null,
@@ -174,10 +177,13 @@ export async function getLodgingCustomization(
       welcome_message: true,
       category_order: true,
       cover_photo_url: true,
+      presentation_video_url: true,
       lodging_address: true,
       wifi_ssid: true,
       wifi_password: true,
       parking_info: true,
+      parking_photo_url: true,
+      parking_video_url: true,
       equipment_info: true,
       checkout_instructions: true,
       trash_info: true,
@@ -202,7 +208,7 @@ export async function getLodgingCustomization(
   const practicalBlocks = await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, title: true, body: true, icon: true, photo_url: true, sort_order: true },
+    select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
   })
 
   return {
@@ -309,6 +315,7 @@ export async function saveLodgingCustomization(
           body: block.body,
           icon: block.icon,
           photo_url: block.photo_url,
+          video_url: block.video_url,
           sort_order: block.sort_order,
         },
       })
@@ -318,7 +325,7 @@ export async function saveLodgingCustomization(
   const savedBlocks = await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, title: true, body: true, icon: true, photo_url: true, sort_order: true },
+    select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
   })
 
   return {

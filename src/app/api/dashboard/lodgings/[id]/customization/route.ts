@@ -13,6 +13,27 @@ import {
   WELCOME_MESSAGE_MAX_WORDS,
 } from '@/features/guide-customization/lib/validation'
 import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
+import { extractYouTubeId } from '@/shared/lib/youtube'
+
+const imageUrlSchema = z
+  .union([
+    z.string().trim().url(),
+    z.string().trim().length(0).transform(() => null),
+    z.null(),
+  ])
+  .optional()
+
+const youtubeUrlSchema = z
+  .union([
+    z
+      .string()
+      .trim()
+      .refine(value => extractYouTubeId(value) !== null, { message: 'Lien YouTube invalide' }),
+    z.string().trim().length(0).transform(() => null),
+    z.null(),
+  ])
+  .optional()
+  .transform(value => value ?? null)
 
 const ownerNoteSchema = z
   .string()
@@ -54,6 +75,7 @@ const practicalBlockSchema = z.object({
     ])
     .optional()
     .transform(value => value ?? null),
+  video_url: youtubeUrlSchema,
   sort_order: z.number().int().min(0),
 })
 
@@ -68,15 +90,14 @@ const customizationSchema = z.object({
   category_order: z.array(z.string().min(1)).default([]),
   featured_pois: z.array(featuredPoiSchema).max(100).default([]),
   // Spec 012 — Infos pratiques et photo logement
-  cover_photo_url: z.union([
-    z.string().trim().url(),
-    z.string().trim().length(0).transform(() => null),
-    z.null(),
-  ]).optional(),
+  cover_photo_url: imageUrlSchema,
+  presentation_video_url: youtubeUrlSchema,
   lodging_address: practicalText(255),
   wifi_ssid: practicalText(120),
   wifi_password: practicalText(120),
   parking_info: practicalText(2000),
+  parking_photo_url: imageUrlSchema,
+  parking_video_url: youtubeUrlSchema,
   equipment_info: practicalText(4000),
   checkout_instructions: practicalText(4000),
   trash_info: practicalText(2000),

@@ -68,6 +68,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
         body: 'À 5 min',
         icon: 'star',
         photo_url: null,
+        video_url: null,
         sort_order: 0,
       },
     })

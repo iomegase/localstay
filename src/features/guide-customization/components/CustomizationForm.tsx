@@ -33,6 +33,7 @@ import {
   WELCOME_MESSAGE_MAX_WORDS,
 } from '../lib/validation'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
+import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
 import type {
   FeaturedPoiInput,
@@ -130,10 +131,13 @@ export function CustomizationForm({
   )
   const [practicalInfo, setPracticalInfo] = useState<PracticalInfoFields>(() => ({
     cover_photo_url: initialCustomization.cover_photo_url ?? null,
+    presentation_video_url: initialCustomization.presentation_video_url ?? null,
     lodging_address: initialCustomization.lodging_address ?? null,
     wifi_ssid: initialCustomization.wifi_ssid ?? null,
     wifi_password: initialCustomization.wifi_password ?? null,
     parking_info: initialCustomization.parking_info ?? null,
+    parking_photo_url: initialCustomization.parking_photo_url ?? null,
+    parking_video_url: initialCustomization.parking_video_url ?? null,
     equipment_info: initialCustomization.equipment_info ?? null,
     checkout_instructions: initialCustomization.checkout_instructions ?? null,
     trash_info: initialCustomization.trash_info ?? null,
@@ -266,10 +270,13 @@ export function CustomizationForm({
     })))
     setPracticalInfo({
       cover_photo_url: payload.cover_photo_url ?? null,
+      presentation_video_url: payload.presentation_video_url ?? null,
       lodging_address: payload.lodging_address ?? null,
       wifi_ssid: payload.wifi_ssid ?? null,
       wifi_password: payload.wifi_password ?? null,
       parking_info: payload.parking_info ?? null,
+      parking_photo_url: payload.parking_photo_url ?? null,
+      parking_video_url: payload.parking_video_url ?? null,
       equipment_info: payload.equipment_info ?? null,
       checkout_instructions: payload.checkout_instructions ?? null,
       trash_info: payload.trash_info ?? null,
@@ -683,6 +690,13 @@ function PracticalInfoCard({
           <p className="text-[10px] uppercase tracking-widest text-gray-300">
             Collez une URL d&apos;image, ou téléversez un fichier (PNG, JPEG, WebP, AVIF).
           </p>
+
+          <YouTubeUrlField
+            id="practical-presentation_video_url"
+            label="Vidéo de présentation (lien YouTube)"
+            value={practicalInfo.presentation_video_url}
+            onChange={url => setPracticalField('presentation_video_url', url ?? '')}
+          />
         </div>
 
         {PRACTICAL_SECTIONS.map(section => {
@@ -741,6 +755,43 @@ function PracticalInfoCard({
               <p className="text-right text-[11px] font-medium text-gray-400">
                 {value.length}/{section.maxLength}
               </p>
+
+              {section.key === 'parking_info' && (
+                <div className="space-y-3 rounded-2xl border border-gray-100 bg-gray-50/60 p-4">
+                  <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                    Photo du parking (optionnelle)
+                  </Label>
+                  <ImageUpload
+                    endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
+                    onUploaded={url => setPracticalField('parking_photo_url', url)}
+                    label="Téléverser une photo"
+                  />
+                  {practicalInfo.parking_photo_url && practicalInfo.parking_photo_url.trim() !== '' && (
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={practicalInfo.parking_photo_url}
+                        alt="Aperçu photo du parking"
+                        referrerPolicy="no-referrer"
+                        className="h-16 w-24 rounded-lg object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPracticalField('parking_photo_url', '')}
+                        className="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-red-500"
+                      >
+                        Retirer la photo
+                      </button>
+                    </div>
+                  )}
+                  <YouTubeUrlField
+                    id="practical-parking_video_url"
+                    label="Vidéo du parking (lien YouTube)"
+                    value={practicalInfo.parking_video_url}
+                    onChange={url => setPracticalField('parking_video_url', url ?? '')}
+                  />
+                </div>
+              )}
             </div>
           )
         })}

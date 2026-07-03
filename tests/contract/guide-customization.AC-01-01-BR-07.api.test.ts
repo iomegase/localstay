@@ -56,6 +56,8 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       category_order: ['restaurants'],
       featured_pois: [],
       practical_blocks: [],
+      presentation_video_url: null,
+      parking_video_url: null,
     })
     await expect(res.json()).resolves.toEqual(responseBody)
   })
@@ -187,7 +189,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       'lodging-1',
       expect.objectContaining({
         practical_blocks: [
-          { title: 'La plage', body: 'À 5 min à pied', icon: 'star', photo_url: null, sort_order: 0 },
+          { title: 'La plage', body: 'À 5 min à pied', icon: 'star', photo_url: null, video_url: null, sort_order: 0 },
         ],
       }),
     )

@@ -26,6 +26,7 @@ export interface PracticalBlockInput {
   body: string | null
   icon: string
   photo_url: string | null
+  video_url: string | null
   sort_order: number
 }
 
@@ -35,15 +36,19 @@ export interface PracticalBlockResponse {
   body: string | null
   icon: string
   photo_url: string | null
+  video_url: string | null
   sort_order: number
 }
 
 export interface PracticalInfoFields {
   cover_photo_url: string | null
+  presentation_video_url: string | null
   lodging_address: string | null
   wifi_ssid: string | null
   wifi_password: string | null
   parking_info: string | null
+  parking_photo_url: string | null
+  parking_video_url: string | null
   equipment_info: string | null
   checkout_instructions: string | null
   trash_info: string | null
@@ -55,10 +60,13 @@ export interface PracticalInfoFields {
 
 export const PRACTICAL_INFO_KEYS = [
   'cover_photo_url',
+  'presentation_video_url',
   'lodging_address',
   'wifi_ssid',
   'wifi_password',
   'parking_info',
+  'parking_photo_url',
+  'parking_video_url',
   'equipment_info',
   'checkout_instructions',
   'trash_info',

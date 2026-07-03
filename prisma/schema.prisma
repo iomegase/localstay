@@ -788,10 +788,13 @@ model LodgingCustomization {
 
   // Spec 012 — Infos pratiques logement
   cover_photo_url       String?
+  presentation_video_url String?
   lodging_address       String?
   wifi_ssid             String?
   wifi_password         String?
   parking_info          String?
+  parking_photo_url     String?
+  parking_video_url     String?
   equipment_info        String?
   checkout_instructions String?
   trash_info            String?
@@ -1299,6 +1302,7 @@ model LodgingPracticalBlock {
   body       String?
   icon       String
   photo_url  String?
+  video_url  String?
   sort_order Int     @default(0)
 
   @@index([lodging_id, deleted_at])
