@@ -58,8 +58,14 @@ export async function proxy(request: NextRequest) {
     // que les surfaces autorisées sous /guide/{ville} ; le reste redirige vers /.
     const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
     if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
-      const guideSegment = path.split('/').filter(Boolean)[2] ?? null
-      if (!guideSegment || !GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment)) {
+      const segments = path.split('/').filter(Boolean) // ['guide', ville, seg2?, seg3?…]
+      const guideSegment = segments[2] ?? null
+      // Fiche POI = /guide/{ville}/{categorie}/{poi} (≥ 4 segments) : autorisée
+      // (accessible depuis recommandations / favoris / carte). Sont bloqués la page
+      // ville (2 segments) et les listings de catégorie (3 segments non whitelistés).
+      const isPoiDetail = segments.length >= 4
+      const allowed = isPoiDetail || (guideSegment !== null && GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment))
+      if (!allowed) {
         return NextResponse.redirect(new URL('/', request.url))
       }
     }

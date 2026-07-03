@@ -35,6 +35,9 @@ describe('proxy — confinement du guest en séjour', () => {
     '/guide/paris/agenda',
     '/guide/paris/mes-favoris',
     '/guide/paris/contact',
+    // Fiche POI (4 segments) : accessible depuis recommandations / favoris / carte.
+    '/guide/paris/restaurants/le-port',
+    '/guide/chamonix/explorer/aiguille-du-midi',
   ])('laisse passer %s pour un guest', async path => {
     const res = await proxy(guestRequest(path))
     expect(redirectPathname(res)).toBeNull()
