@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import {
   closestCenter,
@@ -33,6 +33,8 @@ import {
   WELCOME_MESSAGE_MAX_WORDS,
 } from '../lib/validation'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
+import { TrashBinsEditor } from '@/features/guide-customization/components/TrashBinsEditor'
+import type { TrashBinInput } from '@/features/guide-customization/lib/trash-bins'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
 import type {
@@ -149,6 +151,9 @@ export function CustomizationForm({
   const [practicalBlocks, setPracticalBlocks] = useState<PracticalBlockInput[]>(
     initialCustomization.practical_blocks ?? [],
   )
+  const [trashBins, setTrashBins] = useState<TrashBinInput[]>(
+    initialCustomization.trash_bins ?? [],
+  )
   const [otherCityPois, setOtherCityPois] = useState<OtherCityPoiSelection[]>(initialOtherCityPois)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
@@ -237,6 +242,7 @@ export function CustomizationForm({
           ...block,
           sort_order: index,
         })),
+        trash_bins: trashBins,
         ...practicalPayload,
       }),
     })
@@ -286,6 +292,7 @@ export function CustomizationForm({
       useful_services: payload.useful_services ?? null,
     })
     setPracticalBlocks(payload.practical_blocks ?? [])
+    setTrashBins(payload.trash_bins ?? [])
     setStatus('saved')
     setMessage(
       payload.ignored_category_slugs.length > 0
@@ -351,7 +358,7 @@ export function CustomizationForm({
       </section>
 
       {/* 2. Infos Pratiques (Sous-composant refondu plus bas) */}
-      <PracticalInfoCard lodgingId={lodgingId} practicalInfo={practicalInfo} setPracticalField={setPracticalField} />
+      <PracticalInfoCard lodgingId={lodgingId} practicalInfo={practicalInfo} setPracticalField={setPracticalField} trashBins={trashBins} setTrashBins={setTrashBins} />
 
       {/* 2b. Blocs personnalisés « Infos pratiques » */}
       <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
@@ -581,15 +588,6 @@ const PRACTICAL_SECTIONS: PracticalSection[] = [
     markdown: true,
   },
   {
-    key: 'trash_info',
-    label: 'Poubelles',
-    placeholder: 'Tri sélectif : conteneurs bleu/jaune au bout de la rue.\nRamassage ordures ménagères : mardi et vendredi matin.',
-    type: 'textarea',
-    maxLength: 2000,
-    rows: 3,
-    markdown: true,
-  },
-  {
     key: 'trash_location',
     label: 'Localisation du point de tri (adresse ou lien Google Maps)',
     placeholder: '12 rue des Alpages, Saint-Gervais — ou https://maps.app.goo.gl/abcd',
@@ -629,10 +627,14 @@ function PracticalInfoCard({
   lodgingId,
   practicalInfo,
   setPracticalField,
+  trashBins,
+  setTrashBins,
 }: {
   lodgingId: string
   practicalInfo: PracticalInfoFields
   setPracticalField: <K extends keyof PracticalInfoFields>(key: K, value: string) => void
+  trashBins: TrashBinInput[]
+  setTrashBins: (next: TrashBinInput[]) => void
 }) {
   const [previewKey, setPreviewKey] = useState<keyof PracticalInfoFields | null>(null)
 
@@ -703,7 +705,13 @@ function PracticalInfoCard({
           const value = practicalInfo[section.key] ?? ''
           const isPreviewing = previewKey === section.key
           return (
-            <div key={section.key} className="space-y-2 pt-2">
+            <Fragment key={section.key}>
+            {section.key === 'trash_location' && (
+              <div className="pt-2">
+                <TrashBinsEditor value={trashBins} onChange={setTrashBins} />
+              </div>
+            )}
+            <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between gap-3">
                 <Label htmlFor={`practical-${section.key}`} className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                   {section.label}
@@ -793,6 +801,7 @@ function PracticalInfoCard({
                 </div>
               )}
             </div>
+            </Fragment>
           )
         })}
       </div>

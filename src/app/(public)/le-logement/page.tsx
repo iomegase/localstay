@@ -8,6 +8,7 @@ import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { LodgingPager } from '@/features/public-menu/components/LodgingPager'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
+import { getTrashBin, type TrashBin } from '@/features/guide-customization/lib/trash-bins'
 
 type PracticalBlock = {
   id: string
@@ -67,7 +68,7 @@ export default async function LeLogementPage() {
         cover_photo_url: true, presentation_video_url: true,
         lodging_address: true, wifi_ssid: true, wifi_password: true,
         parking_info: true, parking_photo_url: true, parking_video_url: true,
-        equipment_info: true, checkout_instructions: true, trash_info: true, trash_location: true,
+        equipment_info: true, checkout_instructions: true, trash_location: true, trash_bins: true,
         house_rules: true, emergency_contacts: true, useful_services: true,
       },
     }),
@@ -269,6 +270,7 @@ type Section = {
   isSquare?: boolean
   photoUrl?: string | null
   videoUrl?: string | null
+  bins?: TrashBin[]
   theme: Theme
 }
 
@@ -276,13 +278,14 @@ function buildSections(row: any): Section[] {
   const has = (v: string | null | undefined) => Boolean(v && v.trim().length > 0)
   const wifiCombined = row && (has(row.wifi_ssid) || has(row.wifi_password))
     ? `${row.wifi_ssid ?? '—'}|${row.wifi_password ?? '—'}` : null
+  const bins: TrashBin[] = Array.isArray(row?.trash_bins) ? row.trash_bins : []
 
   return [
     { key: 'address', title: 'Adresse', icon: <MapPin className="h-7 w-7" />, value: row?.lodging_address ?? null, hasValue: has(row?.lodging_address), format: 'address', theme: themes.slate },
     { key: 'wifi', title: 'Réseau Wi-Fi', icon: <Wifi className="h-7 w-7" />, value: wifiCombined, hasValue: Boolean(wifiCombined), format: 'wifi', theme: themes.light },
     { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.slate },
     { key: 'checkout', title: 'Départ', icon: <LogOut className="h-7 w-7" />, value: row?.checkout_instructions ?? null, hasValue: has(row?.checkout_instructions), format: 'markdown', theme: themes.light },
-    { key: 'trash', title: 'Poubelles', icon: <Trash2 className="h-7 w-7" />, value: row?.trash_info ?? null, hasValue: has(row?.trash_info) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, theme: themes.slate },
+    { key: 'trash', title: 'Poubelles', icon: <Trash2 className="h-7 w-7" />, value: null, hasValue: (bins.length > 0) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, bins, theme: themes.slate },
     { key: 'equipment', title: 'Équipements', icon: <Settings className="h-7 w-7" />, value: row?.equipment_info ?? null, hasValue: has(row?.equipment_info), format: 'markdown', theme: themes.light },
     { key: 'rules', title: 'Règlement', icon: <Scroll className="h-7 w-7" />, value: row?.house_rules ?? null, hasValue: has(row?.house_rules), format: 'markdown', theme: themes.slate },
     { key: 'services', title: 'Services', icon: <Sparkles className="h-7 w-7" />, value: row?.useful_services ?? null, hasValue: has(row?.useful_services), format: 'markdown', theme: themes.light },
@@ -297,6 +300,27 @@ function buildMapsUrl(value: string): string {
 }
 
 function renderValue(section: Section) {
+  if (section.key === 'trash') {
+    const bins = section.bins ?? []
+    if (bins.length === 0) return null
+    return (
+      <div className="flex flex-col gap-4">
+        {bins.map(bin => {
+          const preset = getTrashBin(bin.type)
+          return (
+            <div key={bin.type} className="flex items-start gap-3">
+              <Trash2 className={`h-9 w-9 shrink-0 ${preset?.colorClass ?? ''}`} />
+              <div>
+                <p className="text-[15px] sm:text-base font-bold leading-tight">{preset?.label ?? bin.type}</p>
+                <p className="text-[13px] sm:text-[14px] leading-snug">{bin.description}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   if (!section.value) return null
 
   if (section.key === 'emergency') {
