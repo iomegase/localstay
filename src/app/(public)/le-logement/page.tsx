@@ -285,7 +285,7 @@ function buildSections(row: any): Section[] {
     { key: 'wifi', title: 'Réseau Wi-Fi', icon: <Wifi className="h-7 w-7" />, value: wifiCombined, hasValue: Boolean(wifiCombined), format: 'wifi', theme: themes.light },
     { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.slate },
     { key: 'checkout', title: 'Départ', icon: <LogOut className="h-7 w-7" />, value: row?.checkout_instructions ?? null, hasValue: has(row?.checkout_instructions), format: 'markdown', theme: themes.light },
-    { key: 'trash', title: 'Poubelles', icon: <Trash2 className="h-7 w-7" />, value: null, hasValue: (bins.length > 0) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, bins, theme: themes.slate },
+    { key: 'trash', title: 'Poubelles', icon: null, value: null, hasValue: (bins.length > 0) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, bins, theme: themes.light },
     { key: 'equipment', title: 'Équipements', icon: <Settings className="h-7 w-7" />, value: row?.equipment_info ?? null, hasValue: has(row?.equipment_info), format: 'markdown', theme: themes.light },
     { key: 'rules', title: 'Règlement', icon: <Scroll className="h-7 w-7" />, value: row?.house_rules ?? null, hasValue: has(row?.house_rules), format: 'markdown', theme: themes.slate },
     { key: 'services', title: 'Services', icon: <Sparkles className="h-7 w-7" />, value: row?.useful_services ?? null, hasValue: has(row?.useful_services), format: 'markdown', theme: themes.light },
@@ -312,7 +312,7 @@ function renderValue(section: Section) {
               <Trash2 className={`h-9 w-9 shrink-0 ${preset?.colorClass ?? ''}`} />
               <div>
                 <p className="text-[15px] sm:text-base font-bold leading-tight">{preset?.label ?? bin.type}</p>
-                <p className="text-[13px] sm:text-[14px] leading-snug">{bin.description}</p>
+                <p className="text-[13px] sm:text-[14px] leading-snug opacity-70">{preset?.hint ?? ''}</p>
               </div>
             </div>
           )

@@ -33,14 +33,14 @@ describe('saveLodgingCustomization — trash bins', () => {
       category_order: [],
       featured_pois: [],
       trash_bins: [
-        { type: 'jaune', description: '  Cartons  ' },
-        { type: 'rose', description: 'Type inconnu' },
-        { type: 'verte', description: '   ' },
+        { type: 'jaune' },
+        { type: 'rose' },
+        { type: 'jaune' },
       ],
     })
 
     const upsertArg = jest.mocked(tx.lodgingCustomization.upsert).mock.calls[0][0]
-    expect(upsertArg.create.trash_bins).toEqual([{ type: 'jaune', description: 'Cartons' }])
-    expect(result.trash_bins).toEqual([{ type: 'jaune', description: 'Cartons' }])
+    expect(upsertArg.create.trash_bins).toEqual([{ type: 'jaune' }])
+    expect(result.trash_bins).toEqual([{ type: 'jaune' }])
   })
 })

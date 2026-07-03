@@ -6,7 +6,6 @@ const GUIDE_RADIUS_KM = 30
 /**
  * Nettoie la liste des bacs à poubelles :
  * - rejette les types inconnus,
- * - rejette les descriptions vides (après trim),
  * - dédoublonne par type (premier gardé), ordre préservé.
  */
 export function normalizeTrashBins(bins: TrashBinInput[] | undefined): TrashBin[] {
@@ -15,10 +14,8 @@ export function normalizeTrashBins(bins: TrashBinInput[] | undefined): TrashBin[
   const result: TrashBin[] = []
   for (const bin of bins) {
     if (!isTrashBinType(bin.type) || seen.has(bin.type)) continue
-    const description = typeof bin.description === 'string' ? bin.description.trim() : ''
-    if (description === '') continue
     seen.add(bin.type)
-    result.push({ type: bin.type, description })
+    result.push({ type: bin.type })
   }
   return result
 }

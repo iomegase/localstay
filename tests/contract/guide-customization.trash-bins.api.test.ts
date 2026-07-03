@@ -40,7 +40,7 @@ describe('PUT customization — trash_bins', () => {
       makeRequest({
         category_order: [],
         featured_pois: [],
-        trash_bins: [{ type: 'jaune', description: 'Cartons, papiers' }],
+        trash_bins: [{ type: 'jaune' }],
       }),
       { params: Promise.resolve({ id: 'lodging-1' }) },
     )
@@ -50,7 +50,7 @@ describe('PUT customization — trash_bins', () => {
       'owner-1',
       'lodging-1',
       expect.objectContaining({
-        trash_bins: [{ type: 'jaune', description: 'Cartons, papiers' }],
+        trash_bins: [{ type: 'jaune' }],
       }),
     )
   })

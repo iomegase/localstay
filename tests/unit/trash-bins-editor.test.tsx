@@ -13,29 +13,28 @@ function Harness({ initial = [] as TrashBinInput[] }) {
 }
 
 describe('TrashBinsEditor', () => {
-  it('shows a toggle per preset bin and no description field when none is enabled', () => {
+  it('shows a toggle per preset bin, unpressed by default', () => {
     render(<Harness />)
-    expect(screen.getByRole('button', { name: /poubelle jaune/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /poubelle jaune/i })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: /poubelle verte/i })).toBeInTheDocument()
-    expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  it('enabling a bin reveals a description field for it', async () => {
+  it('enabling a bin marks its toggle as pressed', async () => {
     const user = userEvent.setup()
     render(<Harness />)
 
     await user.click(screen.getByRole('button', { name: /poubelle jaune/i }))
 
-    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /poubelle jaune/i })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('disabling an enabled bin removes its description field', async () => {
+  it('disabling an enabled bin unmarks its toggle', async () => {
     const user = userEvent.setup()
-    render(<Harness initial={[{ type: 'jaune', description: 'Cartons' }]} />)
+    render(<Harness initial={[{ type: 'jaune' }]} />)
 
-    expect(screen.getByRole('textbox')).toHaveValue('Cartons')
+    expect(screen.getByRole('button', { name: /poubelle jaune/i })).toHaveAttribute('aria-pressed', 'true')
     await user.click(screen.getByRole('button', { name: /poubelle jaune/i }))
 
-    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.getByRole('button', { name: /poubelle jaune/i })).toHaveAttribute('aria-pressed', 'false')
   })
 })

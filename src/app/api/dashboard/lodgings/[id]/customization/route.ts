@@ -18,7 +18,6 @@ import { extractYouTubeId } from '@/shared/lib/youtube'
 
 const trashBinSchema = z.object({
   type: z.string().trim().refine(isTrashBinType, { message: 'Type de bac inconnu' }),
-  description: z.string().max(500).nullable().optional().transform(value => value ?? null),
 })
 
 const imageUrlSchema = z

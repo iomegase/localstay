@@ -7,16 +7,17 @@ export const TRASH_BIN_TYPES = ['jaune', 'verte', 'bordeaux', 'marron', 'bleue']
 
 export type TrashBinType = (typeof TRASH_BIN_TYPES)[number]
 
-/** Forme stockée / renvoyée : type validé + description non vide. */
+/**
+ * Forme stockée / renvoyée : uniquement le type. Le libellé et la description
+ * affichés proviennent du preset (label / hint) — pas de saisie owner.
+ */
 export interface TrashBin {
   type: TrashBinType
-  description: string
 }
 
-/** Forme saisie (avant normalisation) : type/description bruts. */
+/** Forme saisie (avant normalisation). */
 export interface TrashBinInput {
   type: string
-  description: string | null
 }
 
 export interface TrashBinPreset {

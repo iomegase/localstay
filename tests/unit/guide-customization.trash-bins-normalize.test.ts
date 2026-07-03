@@ -1,43 +1,22 @@
 import { normalizeTrashBins } from '@/features/guide-customization/lib/validation'
 
 describe('normalizeTrashBins', () => {
-  it('keeps valid bins in order and trims descriptions', () => {
+  it('keeps valid bin types in order (no description needed)', () => {
     expect(
-      normalizeTrashBins([
-        { type: 'jaune', description: '  Cartons, papiers  ' },
-        { type: 'verte', description: 'Bouteilles en verre' },
-      ]),
-    ).toEqual([
-      { type: 'jaune', description: 'Cartons, papiers' },
-      { type: 'verte', description: 'Bouteilles en verre' },
-    ])
+      normalizeTrashBins([{ type: 'jaune' }, { type: 'verte' }]),
+    ).toEqual([{ type: 'jaune' }, { type: 'verte' }])
   })
 
   it('drops bins with an unknown type', () => {
     expect(
-      normalizeTrashBins([
-        { type: 'rose', description: 'Inconnu' },
-        { type: 'bleue', description: 'Papier' },
-      ]),
-    ).toEqual([{ type: 'bleue', description: 'Papier' }])
-  })
-
-  it('drops bins whose description is empty or whitespace', () => {
-    expect(
-      normalizeTrashBins([
-        { type: 'jaune', description: '   ' },
-        { type: 'verte', description: 'Verre' },
-      ]),
-    ).toEqual([{ type: 'verte', description: 'Verre' }])
+      normalizeTrashBins([{ type: 'rose' }, { type: 'bleue' }]),
+    ).toEqual([{ type: 'bleue' }])
   })
 
   it('dedupes by type, keeping the first occurrence', () => {
     expect(
-      normalizeTrashBins([
-        { type: 'jaune', description: 'Première' },
-        { type: 'jaune', description: 'Doublon' },
-      ]),
-    ).toEqual([{ type: 'jaune', description: 'Première' }])
+      normalizeTrashBins([{ type: 'jaune' }, { type: 'jaune' }]),
+    ).toEqual([{ type: 'jaune' }])
   })
 
   it('returns [] for undefined or empty input', () => {
