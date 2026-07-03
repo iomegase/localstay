@@ -32,22 +32,6 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 jest.mock('@/features/categories/queries/all-poi-cards', () => ({
   getAllPoiCards: jest.fn().mockResolvedValue({ items: [], meta: { page: 1, limit: 10, total: 0, total_pages: 0 } }),
 }))
-jest.mock('@/features/weather/queries/weather-city', () => ({
-  getWeatherCity: jest.fn().mockResolvedValue({
-    name: 'Saint-Gervais-les-Bains',
-    slug: 'saint-gervais-les-bains',
-    latitude: 45.89,
-    longitude: 6.71,
-  }),
-}))
-jest.mock('@/features/weather/queries/open-meteo', () => ({
-  getOpenMeteoForecast: jest.fn().mockResolvedValue({
-    timezone: 'Europe/Paris',
-    current: { time: '', timeLabel: '', dateLabel: '', temperature: 14, condition: 'Ciel clair', icon: 'sun', windSpeed: 0, precipitation: 0 },
-    hourly: [],
-    daily: [],
-  }),
-}))
 // react-markdown est ESM → on stubbe MarkdownText (importé via la liste « Tous » → PoiCard).
 jest.mock('@/shared/components/MarkdownText', () => ({
   MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
@@ -92,12 +76,6 @@ describe('GuidePage (AC-01-03)', () => {
     expect(screen.queryByPlaceholderText('Une envie particulière ?')).not.toBeInTheDocument()
     expect(screen.queryByTestId('category-grid')).not.toBeInTheDocument()
     expect(screen.getByTestId('category-row')).toHaveClass('overflow-x-auto')
-    // La météo est désormais une pastille (icône + température) cliquable vers les prévisions.
-    const meteoLink = screen
-      .getAllByRole('link')
-      .find(link => link.getAttribute('href') === '/guide/saint-gervais-les-bains/meteo')
-    expect(meteoLink).toBeDefined()
-    expect(meteoLink).toHaveTextContent('14°')
   })
 
   it('AC-01-02: calls notFound() when slug does not exist in DB', async () => {

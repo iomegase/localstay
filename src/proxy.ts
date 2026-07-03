@@ -13,6 +13,11 @@ const GATE_PATH = '/acces-reserve'
 // Préfixes accessibles sans séjour actif (espace hôte + écran de blocage lui-même).
 const BYPASS_PREFIXES = ['/auth', GATE_PATH]
 
+// Confinement guest : sous /guide/{ville}, seuls ces 2ᵉ segments sont autorisés
+// pour un visiteur en séjour (hors entrée QR ?lodging=). Tout le reste (page ville,
+// catégories, météo…) est renvoyé vers l'accueil séjour.
+const GUEST_ALLOWED_GUIDE_SEGMENTS = new Set(['logements', 'agenda', 'mes-favoris', 'contact'])
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
   const path = request.nextUrl.pathname
@@ -46,6 +51,17 @@ export async function proxy(request: NextRequest) {
       }
 
       response.cookies.set(cookie)
+      return response
+    }
+
+    // Confinement : hors entrée QR (?lodging=), un guest en séjour ne peut ouvrir
+    // que les surfaces autorisées sous /guide/{ville} ; le reste redirige vers /.
+    const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+    if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
+      const guideSegment = path.split('/').filter(Boolean)[2] ?? null
+      if (!guideSegment || !GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment)) {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
     }
     return response
   }

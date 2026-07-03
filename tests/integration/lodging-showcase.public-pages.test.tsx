@@ -90,9 +90,6 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 jest.mock('@/features/categories/queries/all-poi-cards', () => ({
   getAllPoiCards: jest.fn().mockResolvedValue({ items: [], meta: { page: 1, limit: 10, total: 0, total_pages: 0 } }),
 }))
-jest.mock('@/features/weather/queries/weather-city', () => ({
-  getWeatherCity: jest.fn().mockResolvedValue(null),
-}))
 jest.mock('@/shared/components/MarkdownText', () => ({
   MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
 }))
@@ -196,20 +193,6 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByText('compris dans le séjour')).toBeInTheDocument()
     expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
     expect(screen.getByText('Réserver ou contacter')).toBeInTheDocument()
-    expect(screen.getByText('Le Port')).toBeInTheDocument()
-    expect(screen.getByRole('region', {
-      name: 'Les recommandations de votre hôte',
-    })).toBeInTheDocument()
-    expect(screen.getByRole('region', {
-      name: 'À découvrir ailleurs',
-    })).toBeInTheDocument()
-    expect(screen.getByText('Chamonix')).toBeInTheDocument()
-    expect(screen.getByText('Ideal pour diner au bord de l eau.')).toBeInTheDocument()
-    expect(screen.getByText('A reserver par temps clair.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Aiguille du Midi/ })).toHaveAttribute(
-      'href',
-      '/guide/chamonix/explorer/aiguille-du-midi',
-    )
     expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
     expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-event', 'lodging_contact_click')

@@ -8,6 +8,7 @@ import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema, lodgingItemListSchema } from '@/features/seo/lib/structured-data'
 import { LodgingCard } from '@/features/lodging-showcase/components/LodgingCard'
 import { listPublishedLodgingsForCity } from '@/features/lodging-showcase/queries/public-lodgings'
+import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -45,6 +46,12 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
     return null
   }
 
+  // En mode séjour, le guest ne doit pas rebondir vers la page ville publique :
+  // les liens visibles pointent alors vers l'accueil séjour (le proxy le confine
+  // de toute façon).
+  const inStay = Boolean(await getActiveLodgingContext())
+  const cityHref = inStay ? '/' : `/guide/${citySlug}`
+
   const breadcrumb = breadcrumbSchema([
     { name: 'Accueil', path: '/' },
     { name: city.name, path: `/guide/${citySlug}` },
@@ -61,8 +68,8 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
       />
       <div className="space-y-8 px-4 pb-24 pt-6">
         <header className="space-y-3">
-          <Link href={`/guide/${citySlug}`} className="text-sm text-gray-500 ">
-            Retour 
+          <Link href={cityHref} className="text-sm text-gray-500 ">
+            Retour
           </Link>
           <div>
             {/* <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Ou dormir</p> */}
@@ -80,7 +87,7 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
               Le guide MyStay reste accessible pour preparer votre sejour : adresses locales, sorties, randos et recommandations de ville.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link href={`/guide/${citySlug}`} className="rounded-full bg-charcoal px-4 py-2 text-sm text-white">
+              <Link href={cityHref} className="rounded-full bg-charcoal px-4 py-2 text-sm text-white">
                 Ouvrir le guide
               </Link>
             </div>
