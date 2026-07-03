@@ -88,7 +88,7 @@ export default async function LeLogementPage() {
   const hasPresentation = Boolean(presentationPhoto || presentationVideo)
 
   return (
-    <div className="pt-8 bg-[#F4F5F6] min-h-screen pb-20 flex flex-col">
+    <div className="pt-8 bg-white min-h-screen pb-20 flex flex-col">
       <div className="mb-10 px-4">
         <p className="text-[14px] font-medium tracking-tight text-[#6F767E] mb-1">
           Bienvenue au
@@ -128,8 +128,8 @@ export default async function LeLogementPage() {
           ))}
         </div>
       ) : (
-        <LodgingPager titles={['Quelques conseils & consignes', 'Quelques conseils & consignes']}>
-          <div className="flex flex-wrap gap-4  pb-10">
+        <LodgingPager titles={['Quelques conseils & consignes', 'Quelques recommandations']}>
+          <div className="flex flex-wrap gap-4  pb-10 mt-4">
             {hasFixed ? (
               sections.filter(s => s.hasValue).map((section) => (
                 <PracticalCard key={section.key} section={section} />
@@ -141,7 +141,7 @@ export default async function LeLogementPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4 pb-10 px-4">
+          <div className="flex flex-col gap-4 pb-10 ">
             {practicalBlocks.map((block, index) => {
               const theme = index % 2 === 0 ? themes.light : themes.slate
               return <PracticalBlockCard key={block.id} block={block} theme={theme} />
@@ -161,7 +161,7 @@ const getMarkdownTextStyles = (isDark: boolean) =>
 
 function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Theme }) {
   return (
-    <section className={`w-full rounded-[40px] p-6 sm:p-8 flex flex-col shadow-sm transition-transform hover:scale-[1.01] ${theme.bg} ${theme.text}`}>
+    <section className={`w-full rounded-[40px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.01] ${theme.bg} ${theme.text}`}>
       <div className="flex justify-between items-start mb-6">
         <CategoryIcon iconSlug={block.icon} className={`h-8 w-8 ${theme.muted}`} />
       </div>
@@ -203,7 +203,7 @@ function PracticalCard({ section }: { section: Section }) {
     ? 'w-[calc(50%-8px)] sm:w-48 aspect-square' 
     : 'w-full min-h-[160px] sm:min-h-[200px]'
 
-  const innerClasses = `relative group rounded-[32px] sm:rounded-[40px] p-6 sm:p-8 flex flex-col shadow-sm transition-transform hover:scale-[1.02] ${theme.bg} ${theme.text} h-full w-full`
+  const innerClasses = `relative group rounded-[32px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.02] ${theme.bg} ${theme.text} h-full w-full`
 
   const CardContent = (
     <section className={innerClasses}>
@@ -298,6 +298,10 @@ function buildMapsUrl(value: string): string {
 
 function renderValue(section: Section) {
   if (!section.value) return null
+
+  if (section.key === 'emergency') {
+    return <p className="text-4xl  font-extrabold leading-none tracking-tighter">{section.value}</p>
+  }
 
   if (section.format === 'address') {
     return <p className="font-medium text-[15px] sm:text-base leading-snug">{section.value}</p>
