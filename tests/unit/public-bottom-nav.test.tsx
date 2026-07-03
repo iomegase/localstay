@@ -106,7 +106,7 @@ describe('PublicBottomNav', () => {
     const nav = screen.getByTestId('public-bottom-nav')
     const surface = screen.getByTestId('public-bottom-nav-surface')
     expect(nav).toHaveClass('opacity-100')
-    expect(surface).toHaveClass('glass')
+    expect(surface).toHaveClass('bg-white')
 
     Object.defineProperty(window, 'scrollY', {
       configurable: true,
@@ -118,7 +118,7 @@ describe('PublicBottomNav', () => {
     expect(nav).toHaveClass('pointer-events-none')
     expect(surface).toHaveClass('bg-transparent')
     expect(surface).toHaveClass('shadow-none')
-    expect(surface).not.toHaveClass('glass')
+    expect(surface).not.toHaveClass('bg-white')
 
     act(() => {
       jest.advanceTimersByTime(120)
@@ -132,7 +132,7 @@ describe('PublicBottomNav', () => {
 
     expect(nav).toHaveClass('opacity-100')
     expect(nav).not.toHaveClass('pointer-events-none')
-    expect(surface).toHaveClass('glass')
+    expect(surface).toHaveClass('bg-white')
     expect(surface).toHaveClass('shadow-xl')
     expect(surface).not.toHaveClass('bg-transparent')
   })
