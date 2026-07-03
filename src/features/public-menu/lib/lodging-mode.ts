@@ -16,15 +16,24 @@ export async function getActiveLodgingContext(): Promise<LodgingModeContext | nu
   const lodgingId = store.get(LODGING_COOKIE_NAME)?.value
   if (!lodgingId || !/^[0-9a-fA-F-]{36}$/.test(lodgingId)) return null
 
-  const lodging = await prisma.lodging.findFirst({
-    where: { id: lodgingId, deleted_at: null, is_active: true },
-    select: {
-      id: true,
-      name: true,
-      city: { select: { slug: true, name: true } },
-      owner: { select: { first_name: true, last_name: true } },
-    },
-  })
+  let lodging
+  try {
+    lodging = await prisma.lodging.findFirst({
+      where: { id: lodgingId, deleted_at: null, is_active: true },
+      select: {
+        id: true,
+        name: true,
+        city: { select: { slug: true, name: true } },
+        owner: { select: { first_name: true, last_name: true } },
+      },
+    })
+  } catch (error) {
+    // The DB can be transiently unreachable (e.g. Supabase pooler waking from
+    // idle). This runs in the root public layout, so degrade gracefully to the
+    // "no lodging context" state rather than crashing every public page.
+    console.error('[lodging-mode] failed to resolve active lodging context', error)
+    return null
+  }
   if (!lodging) return null
 
   const ownerName = [lodging.owner.first_name, lodging.owner.last_name]
