@@ -128,8 +128,8 @@ export default async function LeLogementPage() {
           ))}
         </div>
       ) : (
-        <LodgingPager titles={['Quelques conseils & consignes', 'À découvrir']}>
-          <div className="flex flex-wrap gap-4 px-4 pb-10">
+        <LodgingPager titles={['Quelques conseils & consignes', 'Quelques conseils & consignes']}>
+          <div className="flex flex-wrap gap-4  pb-10">
             {hasFixed ? (
               sections.filter(s => s.hasValue).map((section) => (
                 <PracticalCard key={section.key} section={section} />
