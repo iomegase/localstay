@@ -152,7 +152,7 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
     >
       <div
         data-testid="public-bottom-nav-surface"
-        className={`border rounded-md px-8 py-4 flex justify-between items-center transition-all duration-300 ${surfaceClassName}`}
+        className={`border rounded-[28px] px-8 py-4 flex justify-between items-center transition-all duration-300 ${surfaceClassName}`}
       >
         {items.map(item => (
           <NavItem key={item.href} {...item} />
