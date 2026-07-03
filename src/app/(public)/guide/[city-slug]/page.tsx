@@ -16,9 +16,6 @@ import { cityMetadata } from '@/features/seo/lib/metadata'
 import { getCityForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
-import { getWeatherCity } from '@/features/weather/queries/weather-city'
-import { getOpenMeteoForecast } from '@/features/weather/queries/open-meteo'
-import { GuideWeatherBadge } from '@/features/weather/components/GuideWeatherBadge'
 import { GeolocationPrompt } from '@/features/geolocation/components/GeolocationPrompt'
 import { cityHasUpcomingEventsBySlug } from '@/features/events-public/queries/agenda'
 
@@ -42,10 +39,9 @@ export default async function GuidePage({ params, searchParams }: Props) {
   const lodgingFromCookie = await getActiveLodgingContext()
   const lodging = lodgingFromQuery ?? lodgingFromCookie?.lodgingId
   void recordQrScanIfPresent(lodgingFromQuery ?? null)
-  const [guide, allPois, weatherCity] = await Promise.all([
+  const [guide, allPois] = await Promise.all([
     getCityGuide(slug, { lodgingId: lodging }),
     getAllPoiCards(slug, { sort, page: 1, limit: 10, lodgingId: lodging }),
-    getWeatherCity(slug),
   ])
 
   // BR-01: slug not in DB → 404. notFound() throws in Next.js; guard keeps TS + tests safe.
@@ -55,9 +51,6 @@ export default async function GuidePage({ params, searchParams }: Props) {
   }
 
   const { city, categories } = guide
-  const forecast = weatherCity
-    ? await getForecastOrNull(weatherCity.latitude, weatherCity.longitude)
-    : null
   const hasEvents = await cityHasUpcomingEventsBySlug(slug)
   const agendaHref = lodging ? `/guide/${slug}/agenda?lodging=${encodeURIComponent(lodging)}` : `/guide/${slug}/agenda`
 
@@ -83,13 +76,6 @@ export default async function GuidePage({ params, searchParams }: Props) {
           </p>
         </div>
 
-        {forecast && (
-          <GuideWeatherBadge
-            citySlug={slug}
-            icon={forecast.current.icon}
-            temperature={forecast.current.temperature}
-          />
-        )}
       </div>
 
       {/* Recherche désactivée temporairement — à réoptimiser ultérieurement.
@@ -163,12 +149,4 @@ export default async function GuidePage({ params, searchParams }: Props) {
       )}
     </>
   )
-}
-
-async function getForecastOrNull(latitude: number, longitude: number) {
-  try {
-    return await getOpenMeteoForecast({ latitude, longitude })
-  } catch {
-    return null
-  }
 }

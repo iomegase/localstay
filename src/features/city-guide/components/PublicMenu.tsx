@@ -34,22 +34,21 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
       { href: '/', label: 'Home' },
       { href: `/guide/${citySlug}/logements`, label: 'Logements' },
       { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
-      { href: `/guide/${citySlug}/meteo`, label: 'Météo' },
       { href: contextualContactPath(citySlug), label: 'Contact' },
     ]
     : ANONYMOUS_ITEMS
 }
 
 function lodgingItems(citySlug?: string | null): MenuItem[] {
-  const home = { href: '/', label: 'Home' }
+  const blog = { href: '/blog', label: 'Blog' }
   const contact = { href: contextualContactPath(citySlug), label: 'Nous Contacter' }
 
-  if (!citySlug) return [home, contact]
+  if (!citySlug) return [blog, contact]
 
   return [
-    home,
     { href: `/guide/${citySlug}/logements`, label: 'Logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
+    blog,
     contact,
   ]
 }
@@ -93,7 +92,7 @@ export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
               <p className="text-sm text-gray-500">
                 Séjour en cours :{' '}
                 <Link
-                  href={citySlug ? `/guide/${citySlug}` : '/'}
+                  href="/"
                   className="font-medium text-charcoal underline-offset-4 hover:underline"
                   onClick={() => setIsOpen(false)}
                 >
