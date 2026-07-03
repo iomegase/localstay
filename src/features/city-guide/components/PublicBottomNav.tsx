@@ -119,7 +119,7 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
     : 'opacity-100'
   const surfaceClassName = isScrolling
     ? 'bg-transparent border-transparent shadow-none backdrop-blur-0'
-    : 'glass border-black/5 shadow-xl'
+    : 'bg-white border-black/5 shadow-xl'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -152,7 +152,7 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
     >
       <div
         data-testid="public-bottom-nav-surface"
-        className={`border rounded-full px-8 py-4 flex justify-between items-center transition-all duration-300 ${surfaceClassName}`}
+        className={`border rounded-md px-8 py-4 flex justify-between items-center transition-all duration-300 ${surfaceClassName}`}
       >
         {items.map(item => (
           <NavItem key={item.href} {...item} />
