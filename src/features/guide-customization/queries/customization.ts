@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import type { CategorySummary } from '@/features/city-guide/types'
 import type { CategoryWithCount } from '@/features/categories/types'
@@ -7,6 +8,7 @@ import {
   groupFeaturedPoisByCategory,
   normalizeOwnerNote,
   normalizePracticalBlocks,
+  normalizeTrashBins,
   OWNER_NOTE_MAX_WORDS,
 } from '../lib/validation'
 import type {
@@ -17,6 +19,7 @@ import type {
   LodgingCustomizationResponse,
   PracticalBlockResponse,
   PracticalInfoFields,
+  TrashBin,
 } from '../types'
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 
@@ -188,6 +191,7 @@ export async function getLodgingCustomization(
       checkout_instructions: true,
       trash_info: true,
       trash_location: true,
+      trash_bins: true,
       house_rules: true,
       emergency_contacts: true,
       useful_services: true,
@@ -223,6 +227,7 @@ export async function getLodgingCustomization(
     })),
     ignored_category_slugs: [],
     practical_blocks: practicalBlocks,
+    trash_bins: (customization?.trash_bins as unknown as TrashBin[] | null) ?? [],
     ...pickPracticalInfo(customization),
   }
 }
@@ -262,6 +267,8 @@ export async function saveLodgingCustomization(
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
   const practicalInfo = pickPracticalInfo(input)
   const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
+  const trashBins = normalizeTrashBins(input.trash_bins)
+  const trashBinsJson = trashBins as unknown as Prisma.InputJsonValue
 
   await prisma.$transaction(async tx => {
     await tx.lodgingCustomization.upsert({
@@ -270,12 +277,14 @@ export async function saveLodgingCustomization(
         welcome_message: input.welcome_message ?? null,
         category_order: categoryOrderResult.category_order,
         deleted_at: null,
+        trash_bins: trashBinsJson,
         ...practicalInfo,
       },
       create: {
         lodging_id: lodgingId,
         welcome_message: input.welcome_message ?? null,
         category_order: categoryOrderResult.category_order,
+        trash_bins: trashBinsJson,
         ...practicalInfo,
       },
     })
@@ -335,6 +344,7 @@ export async function saveLodgingCustomization(
     featured_pois: featuredPois,
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
     practical_blocks: savedBlocks,
+    trash_bins: trashBins,
     ...practicalInfo,
   }
 }

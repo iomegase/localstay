@@ -33,13 +33,13 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
   }
 
   return (
-    <div>
+    <div className="rounded-[32px] bg-white pt-4">
       <div className="mb-3 flex items-center justify-between px-5">
         <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">{titles[active]}</h2>
         <div className="flex items-center gap-2">
           {titles.map((title, index) => (
             <button
-              key={title}
+              key={index}
               type="button"
               aria-label={`Aller à ${title}`}
               aria-current={index === active}
@@ -64,7 +64,7 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
             ref={node => {
               panelRefs.current[index] = node
             }}
-            className="min-h-[50vh] w-full shrink-0 snap-start overflow-y-auto px-5"
+            className="min-h-[50vh] w-full shrink-0 snap-start overflow-y-auto px-4"
           >
             {panel}
           </div>

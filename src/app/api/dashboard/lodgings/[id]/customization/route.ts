@@ -13,7 +13,12 @@ import {
   WELCOME_MESSAGE_MAX_WORDS,
 } from '@/features/guide-customization/lib/validation'
 import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
+import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { extractYouTubeId } from '@/shared/lib/youtube'
+
+const trashBinSchema = z.object({
+  type: z.string().trim().refine(isTrashBinType, { message: 'Type de bac inconnu' }),
+})
 
 const imageUrlSchema = z
   .union([
@@ -106,6 +111,7 @@ const customizationSchema = z.object({
   emergency_contacts: practicalText(2000),
   useful_services: practicalText(4000),
   practical_blocks: z.array(practicalBlockSchema).default([]),
+  trash_bins: z.array(trashBinSchema).max(20).default([]),
 })
 
 function errorResponse(code: string, message: string, status: number, details?: unknown) {

@@ -799,6 +799,7 @@ model LodgingCustomization {
   checkout_instructions String?
   trash_info            String?
   trash_location        String?
+  trash_bins            Json?
   house_rules           String?
   emergency_contacts    String?
   useful_services       String?

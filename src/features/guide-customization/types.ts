@@ -1,3 +1,6 @@
+export type { TrashBin, TrashBinInput } from './lib/trash-bins'
+import type { TrashBin, TrashBinInput } from './lib/trash-bins'
+
 export interface FeaturedPoiInput {
   poi_id: string
   owner_note?: string | null
@@ -83,6 +86,7 @@ export interface LodgingCustomizationInput extends PracticalInfoInput {
   category_order: string[]
   featured_pois: FeaturedPoiInput[]
   practical_blocks?: PracticalBlockInput[]
+  trash_bins?: TrashBinInput[]
 }
 
 export interface LodgingCustomizationResponse extends PracticalInfoFields {
@@ -92,6 +96,7 @@ export interface LodgingCustomizationResponse extends PracticalInfoFields {
   featured_pois: FeaturedPoiResponse[]
   ignored_category_slugs: string[]
   practical_blocks: PracticalBlockResponse[]
+  trash_bins: TrashBin[]
 }
 
 export type GuideCustomizationErrorCode =

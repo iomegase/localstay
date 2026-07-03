@@ -8,6 +8,7 @@ import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { LodgingPager } from '@/features/public-menu/components/LodgingPager'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
+import { getTrashBin, type TrashBin } from '@/features/guide-customization/lib/trash-bins'
 
 type PracticalBlock = {
   id: string
@@ -67,7 +68,7 @@ export default async function LeLogementPage() {
         cover_photo_url: true, presentation_video_url: true,
         lodging_address: true, wifi_ssid: true, wifi_password: true,
         parking_info: true, parking_photo_url: true, parking_video_url: true,
-        equipment_info: true, checkout_instructions: true, trash_info: true, trash_location: true,
+        equipment_info: true, checkout_instructions: true, trash_location: true, trash_bins: true,
         house_rules: true, emergency_contacts: true, useful_services: true,
       },
     }),
@@ -88,7 +89,7 @@ export default async function LeLogementPage() {
   const hasPresentation = Boolean(presentationPhoto || presentationVideo)
 
   return (
-    <div className="pt-8 bg-[#F4F5F6] min-h-screen pb-20 flex flex-col">
+    <div className="pt-8 bg-white min-h-screen pb-20 flex flex-col">
       <div className="mb-10 px-4">
         <p className="text-[14px] font-medium tracking-tight text-[#6F767E] mb-1">
           Bienvenue au
@@ -128,8 +129,8 @@ export default async function LeLogementPage() {
           ))}
         </div>
       ) : (
-        <LodgingPager titles={['Quelques conseils & consignes', 'Quelques conseils & consignes']}>
-          <div className="flex flex-wrap gap-4  pb-10">
+        <LodgingPager titles={['Quelques conseils & consignes', 'Quelques recommandations']}>
+          <div className="flex flex-wrap gap-4  pb-10 mt-4">
             {hasFixed ? (
               sections.filter(s => s.hasValue).map((section) => (
                 <PracticalCard key={section.key} section={section} />
@@ -141,7 +142,7 @@ export default async function LeLogementPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4 pb-10 px-4">
+          <div className="flex flex-col gap-4 pb-10 ">
             {practicalBlocks.map((block, index) => {
               const theme = index % 2 === 0 ? themes.light : themes.slate
               return <PracticalBlockCard key={block.id} block={block} theme={theme} />
@@ -161,7 +162,7 @@ const getMarkdownTextStyles = (isDark: boolean) =>
 
 function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Theme }) {
   return (
-    <section className={`w-full rounded-[40px] p-6 sm:p-8 flex flex-col shadow-sm transition-transform hover:scale-[1.01] ${theme.bg} ${theme.text}`}>
+    <section className={`w-full rounded-[40px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.01] ${theme.bg} ${theme.text}`}>
       <div className="flex justify-between items-start mb-6">
         <CategoryIcon iconSlug={block.icon} className={`h-8 w-8 ${theme.muted}`} />
       </div>
@@ -203,7 +204,7 @@ function PracticalCard({ section }: { section: Section }) {
     ? 'w-[calc(50%-8px)] sm:w-48 aspect-square' 
     : 'w-full min-h-[160px] sm:min-h-[200px]'
 
-  const innerClasses = `relative group rounded-[32px] sm:rounded-[40px] p-6 sm:p-8 flex flex-col shadow-sm transition-transform hover:scale-[1.02] ${theme.bg} ${theme.text} h-full w-full`
+  const innerClasses = `relative group rounded-[32px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.02] ${theme.bg} ${theme.text} h-full w-full`
 
   const CardContent = (
     <section className={innerClasses}>
@@ -269,6 +270,7 @@ type Section = {
   isSquare?: boolean
   photoUrl?: string | null
   videoUrl?: string | null
+  bins?: TrashBin[]
   theme: Theme
 }
 
@@ -276,13 +278,14 @@ function buildSections(row: any): Section[] {
   const has = (v: string | null | undefined) => Boolean(v && v.trim().length > 0)
   const wifiCombined = row && (has(row.wifi_ssid) || has(row.wifi_password))
     ? `${row.wifi_ssid ?? '—'}|${row.wifi_password ?? '—'}` : null
+  const bins: TrashBin[] = Array.isArray(row?.trash_bins) ? row.trash_bins : []
 
   return [
     { key: 'address', title: 'Adresse', icon: <MapPin className="h-7 w-7" />, value: row?.lodging_address ?? null, hasValue: has(row?.lodging_address), format: 'address', theme: themes.slate },
     { key: 'wifi', title: 'Réseau Wi-Fi', icon: <Wifi className="h-7 w-7" />, value: wifiCombined, hasValue: Boolean(wifiCombined), format: 'wifi', theme: themes.light },
     { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.slate },
     { key: 'checkout', title: 'Départ', icon: <LogOut className="h-7 w-7" />, value: row?.checkout_instructions ?? null, hasValue: has(row?.checkout_instructions), format: 'markdown', theme: themes.light },
-    { key: 'trash', title: 'Poubelles', icon: <Trash2 className="h-7 w-7" />, value: row?.trash_info ?? null, hasValue: has(row?.trash_info) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, theme: themes.slate },
+    { key: 'trash', title: 'Poubelles', icon: null, value: null, hasValue: (bins.length > 0) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, bins, theme: themes.light },
     { key: 'equipment', title: 'Équipements', icon: <Settings className="h-7 w-7" />, value: row?.equipment_info ?? null, hasValue: has(row?.equipment_info), format: 'markdown', theme: themes.light },
     { key: 'rules', title: 'Règlement', icon: <Scroll className="h-7 w-7" />, value: row?.house_rules ?? null, hasValue: has(row?.house_rules), format: 'markdown', theme: themes.slate },
     { key: 'services', title: 'Services', icon: <Sparkles className="h-7 w-7" />, value: row?.useful_services ?? null, hasValue: has(row?.useful_services), format: 'markdown', theme: themes.light },
@@ -297,7 +300,32 @@ function buildMapsUrl(value: string): string {
 }
 
 function renderValue(section: Section) {
+  if (section.key === 'trash') {
+    const bins = section.bins ?? []
+    if (bins.length === 0) return null
+    return (
+      <div className="flex flex-col gap-4">
+        {bins.map(bin => {
+          const preset = getTrashBin(bin.type)
+          return (
+            <div key={bin.type} className="flex items-start gap-3">
+              <Trash2 className={`h-9 w-9 shrink-0 ${preset?.colorClass ?? ''}`} />
+              <div>
+                <p className="text-[15px] sm:text-base font-bold leading-tight">{preset?.label ?? bin.type}</p>
+                <p className="text-[13px] sm:text-[14px] leading-snug opacity-70">{preset?.hint ?? ''}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   if (!section.value) return null
+
+  if (section.key === 'emergency') {
+    return <p className="text-4xl  font-extrabold leading-none tracking-tighter">{section.value}</p>
+  }
 
   if (section.format === 'address') {
     return <p className="font-medium text-[15px] sm:text-base leading-snug">{section.value}</p>
