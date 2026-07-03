@@ -19,7 +19,6 @@ import { LodgingRoomsGrid } from '@/features/lodging-showcase/components/Lodging
 import { LodgingLocationMap } from '@/features/lodging-showcase/components/LodgingLocationMap'
 import { LodgingFaq } from '@/features/lodging-showcase/components/LodgingFaq'
 import { LodgingBookingCta } from '@/features/lodging-showcase/components/LodgingBookingCta'
-import { OwnerRecommendationsBlock } from '@/features/lodging-showcase/components/OwnerRecommendationsBlock'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'lodging-slug': string }>
@@ -140,10 +139,6 @@ export default async function LodgingDetailPage({ params }: Props) {
             areaLabel={detail.public_area_label}
           />
         )}
-
-        <div className="mx-4 mt-6">
-          <OwnerRecommendationsBlock citySlug={citySlug} items={detail.owner_recommendations} />
-        </div>
 
         <LodgingFaq items={detail.faq} />
 
