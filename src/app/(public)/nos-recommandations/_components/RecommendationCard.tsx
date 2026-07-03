@@ -28,7 +28,7 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     return (
       <Link
         href={href}
-        className="group relative col-span-2 min-h-[360px] overflow-hidden rounded-[2rem] bg-charcoal shadow-soft"
+        className="group relative col-span-2 min-h-[360px] overflow-hidden rounded-[2rem] bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)]"
       >
         {photo && (
           <img
@@ -63,7 +63,7 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     return (
       <Link
         href={href}
-        className="group flex flex-col justify-center relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal shadow-md"
+        className="group flex flex-col justify-center relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)]"
       >
         {photo && (
           <img
@@ -91,7 +91,7 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     return (
       <Link
         href={href}
-        className="group relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal p-4 text-white shadow-md"
+        className="group relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal p-4 text-white shadow-[0_10px_28px_rgba(0,0,0,0.10)]"
       >
         <div className="flex h-full flex-col justify-between">
           <div>
@@ -116,7 +116,7 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
   return (
     <Link
       href={href}
-      className={`group relative min-h-[180px] overflow-hidden rounded-[1.75rem] ${bg} p-4 shadow-md transition hover:-translate-y-0.5`}
+      className={`group relative min-h-[180px] overflow-hidden rounded-[1.75rem] ${bg} p-4 shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5`}
     >
       <div className="flex h-full flex-col justify-center text-center items-center">
         <div>
