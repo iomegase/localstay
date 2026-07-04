@@ -10,19 +10,10 @@ type Props = {
 }
 
 export function RecommendationCard({ row, variant, fallbackCitySlug, showCategory = true }: Props) {
-  const { poi, owner_note } = row
+  const { poi } = row
   const citySlug = poi.city?.slug ?? fallbackCitySlug
   const href = `/guide/${citySlug}/${poi.category.slug}/${poi.slug}`
   const photo = poi.photos?.[0] ?? null
-
-  const note = owner_note ? (
-    <p
-      data-testid="owner-recommendation-comment"
-      className="text-xs font-light leading-relaxed"
-    >
-      {owner_note}
-    </p>
-  ) : null
 
   if (variant === 'bigImage') {
     return (
@@ -46,7 +37,6 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
             </div>
           )}
           <h3 className=" text-2xl uppercase  leading-none">{poi.name}</h3>
-          {note && <div className="mt-4 max-w-lg text-white/90">{note}</div>}
           {/* {poi.description && (
             <p className="mt-3 max-w-lg text-sm leading-6 text-white/65 line-clamp-2">{poi.description}</p>
           )} */}
@@ -87,30 +77,6 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     )
   }
 
-  if (variant === 'note') {
-    return (
-      <Link
-        href={href}
-        className="group relative min-h-[180px] overflow-hidden rounded-[1.75rem] bg-charcoal p-4 text-white shadow-[0_10px_28px_rgba(0,0,0,0.10)]"
-      >
-        <div className="flex h-full flex-col justify-between">
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-gold">Note de l’hôte</p>
-            {note ? (
-              <div className="mt-3  text-md  leading-tight">{owner_note}</div>
-            ) : (
-              <h3 className="mt-3  text-md  leading-tight">{poi.name}</h3>
-            )}
-          </div>
-          <span className="mt-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/70">
-            {poi.name}
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </span>
-        </div>
-      </Link>
-    )
-  }
-
   // variant 'white' | 'sand'
   const bg = variant === 'sand' ? 'bg-sand' : 'bg-white'
   return (
@@ -124,7 +90,6 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
             <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-gold">{poi.category.name}</p>
           )}
           <h3 className="mt-2 uppercase text-sm leading-tight text-charcoal">{poi.name}</h3>
-          {note && <div className="mt-2 !text-pink-600 !text-xs italic ">{note}</div>}
           {poi.description && (
             <p className="mt-2 text-xs leading-5 text-gray-500 line-clamp-3">{poi.description}</p>
           )}
