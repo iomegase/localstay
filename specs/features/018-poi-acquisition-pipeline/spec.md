@@ -59,11 +59,11 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 #### Acceptance Criteria
 
 - **AC-01-01**: Given une City active et une Category active, When l'Admin lance une acquisition, Then un `PoiAcquisitionRun` est créé avec `status = running`.
-- **AC-01-02**: Given un run lancé, When Google Places retourne des établissements pour la City + Category, Then chaque établissement admissible devient un `PoiAcquisitionCandidate` avec `source = google_places`.
+- **AC-01-02**: Given un run lancé, When Google Places retourne des établissements pour la City + Category, les SubCategory utiles et l'URL officielle optionnelle, Then chaque établissement admissible dédupliqué par `google_place_id` devient un `PoiAcquisitionCandidate` avec `source = google_places`.
 - **AC-01-03**: Given un candidat Google Places avec données vérifiées, When Gemini est appelé, Then Gemini rédige uniquement une description éditoriale à partir de ces données et ne crée aucun nouveau POI.
 - **AC-01-04**: Given un candidat avec adresse, When Mapbox géocode l'adresse avec une confiance suffisante, Then le candidat reçoit `latitude`, `longitude`, `geocode_status = success`.
 - **AC-01-05**: Given un candidat ambigu ou doublon probable, When le run termine, Then le candidat reste en `review_status = needs_review` et n'est pas publié automatiquement.
-- **AC-01-06**: Given l'Admin coche "Site officiel" au lancement d'acquisition, When il renseigne une URL officielle valide, Then le serveur scrape cette page de façon non bloquante pour enrichir les candidats Google Places sans permettre à Gemini de découvrir librement des POI.
+- **AC-01-06**: Given l'Admin coche "Site officiel" au lancement d'acquisition, When il renseigne une URL officielle valide, Then le serveur l'utilise comme requête ciblée Google Places et scrape cette page de façon non bloquante pour enrichir les candidats, sans permettre à Gemini de découvrir librement des POI.
 
 ### US-02 — Validation admin des candidats
 
@@ -155,11 +155,11 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 - **BR-13**: Les actions admin sont auditées.
 - **BR-14**: Les POI publiés restent soumis au soft delete. Exception validée par le Product Owner le 2026-06-04 : les candidats d'acquisition non approuvés peuvent être purgés physiquement par les tâches de nettoyage dédiées afin de ne pas conserver de reliquats en base.
 - **BR-15**: Les routes internes d'acquisition ne sont jamais appelées depuis le client public.
-- **BR-16**: Les coûts API doivent être maîtrisés par déduplication, cache de run et rate limiting.
+- **BR-16**: Les coûts API doivent être maîtrisés par déduplication `google_place_id`, agrégation de requêtes limitée à Category + SubCategory utiles + URL officielle optionnelle, cache de run et rate limiting.
 - **BR-17**: Les photos issues d'un site officiel sont stockées comme URLs distantes uniquement ; StayLocal ne les télécharge pas et ne les re-héberge pas.
 - **BR-18**: L'URL canonique d'attribution est le champ `website` du POI quand les photos proviennent du site officiel.
 - **BR-19**: Le scraper officiel exclut les favicons, logos, placeholders, images de recherche générique et ressources non HTTP(S). Le terme `logo` est traité comme un token à exclure dans les chemins d'image (`header-logo`, `footer-logo`, `PPS+logo`, `/logo/`) sans bloquer les mots métier qui contiennent ces lettres sans séparateur.
-- **BR-20**: Une URL officielle fournie au lancement d'un run sert uniquement à enrichir le contexte des candidats Google Places ; un échec de scrape ne bloque pas l'acquisition Google Places + Mapbox + Gemini descriptif.
+- **BR-20**: Une URL officielle fournie au lancement d'un run peut servir de requête ciblée Google Places via son domaine canonique et enrichit le contexte des candidats ; un échec de scrape ne bloque pas l'acquisition Google Places + Mapbox + Gemini descriptif. Elle ne déclenche jamais de découverte libre par Gemini ni de crawl multi-pages profond.
 - **BR-21**: Les randonnées sont exclues de ce pipeline Google Places-first et restent couvertes par `019-trails-acquisition`.
 - **BR-22**: Le texte extrait d'un site officiel de candidat est transitoire : il sert uniquement au prompt Gemini descriptif, il est nettoyé des éléments de navigation/footer/scripts, limité en taille et n'est jamais stocké dans `PoiAcquisitionCandidate` ni `PointOfInterest`.
 
@@ -405,7 +405,7 @@ errors:
 - CTA "Lancer acquisition".
 - Le formulaire de lancement affiche une source optionnelle "Site officiel".
 - Si "Site officiel" est coché, une URL officielle devient obligatoire avant soumission.
-- L'URL officielle est transmise au serveur comme `source_url`; elle est scrapée pour enrichir les candidats Google Places et fournir du contexte descriptif sans changer la source géographique Mapbox.
+- L'URL officielle est transmise au serveur comme `source_url`; son domaine canonique est utilisé comme requête ciblée Google Places, puis la page est scrapée pour enrichir les candidats et fournir du contexte descriptif sans changer la source géographique Mapbox.
 
 ### `/admin/poi-acquisition/runs/{id}`
 
@@ -445,11 +445,11 @@ errors:
 | ID | Description | Test type |
 |---|---|---|
 | AC-01-01 | Run acquisition créé | integration |
-| AC-01-02 | Candidats Google Places créés | integration |
+| AC-01-02 | Candidats Google Places créés via Category, SubCategory utiles, URL officielle ciblée et déduplication `google_place_id` | unit + integration |
 | AC-01-03 | Gemini rédige depuis données vérifiées uniquement | integration |
 | AC-01-04 | Géocodage Mapbox candidat | integration |
 | AC-01-05 | Ambigus/doublons restent en review | integration |
-| AC-01-06 | Source site officiel optionnelle au lancement | integration + contract |
+| AC-01-06 | Source site officiel optionnelle au lancement, ciblage Google Places et enrichissement non bloquant | unit + integration + contract |
 | AC-02-01 | UI admin liste candidats et statuts | integration |
 | AC-02-02 | Publication candidat crée POI | integration |
 | AC-02-03 | Fusion candidat n'ajoute pas de doublon | integration |

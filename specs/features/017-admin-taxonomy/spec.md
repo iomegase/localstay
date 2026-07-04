@@ -145,7 +145,7 @@ Cette taxonomie sert de seed initial recommandé. Elle peut évoluer depuis le S
 
 | Sort | Category name | Suggested slug | Icon | SubCategories |
 |---:|---|---|---|---|
-| 1 | Dîner | `diner` | `utensils` | Restaurants, Gastronomie locale, Ouvert maintenant, Recommandé par l'hôte |
+| 1 | Restaurant | `diner` | `utensils` | Restaurants, Gastronomie locale, Ouvert maintenant, Recommandé par l'hôte |
 | 2 | Cafés | `cafes` | `coffee` | Petit-déjeuner, Café, Salon de thé |
 | 3 | Rando | `rando` | `mountain` | Toutes, Facile, Moyen, Difficile |
 | 4 | Soin | `soin` | `sparkles` | Spa, Massage, Bien-être |

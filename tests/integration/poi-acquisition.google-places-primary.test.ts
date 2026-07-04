@@ -69,7 +69,7 @@ describe('018 Google Places primary POI acquisition', () => {
       latitude: 45.8921,
       longitude: 6.7085,
     })
-    mockCategoryFindFirst.mockResolvedValue({ id: 'cat-1', name: 'Culture' })
+    mockCategoryFindFirst.mockResolvedValue({ id: 'cat-1', name: 'Culture', subcategories: [] })
     mockRunCreate.mockResolvedValue({ id: 'run-1' })
     mockRunUpdate.mockResolvedValue({ id: 'run-1' })
     mockPoiFindMany.mockResolvedValue([])
@@ -155,6 +155,32 @@ describe('018 Google Places primary POI acquisition', () => {
       data: expect.objectContaining({
         description: 'Description nourrie par le site officiel.',
       }),
+    })
+  })
+
+  it('AC-01-02: retries a transient Prisma pool timeout while storing a candidate', async () => {
+    mockCallGemini.mockResolvedValue([
+      {
+        name: 'Médiathèque Municipale de Saint-Gervais',
+        address: '450 avenue du Mont d’Arbois, 74170 Saint-Gervais-les-Bains',
+        phone: null,
+        website: null,
+        description: 'Description éditoriale.',
+        subcategory: null,
+        hours: null,
+        tags: [],
+      },
+    ])
+    mockCandidateCreate
+      .mockRejectedValueOnce(new Error('Timed out fetching a new connection from the connection pool'))
+      .mockResolvedValueOnce({ id: 'cand-1' })
+
+    await createAcquisitionRun({ city_id: 'city-1', category_id: 'cat-1' }, 'admin-1')
+
+    expect(mockCandidateCreate).toHaveBeenCalledTimes(2)
+    expect(mockRunUpdate).toHaveBeenLastCalledWith({
+      where: { id: 'run-1' },
+      data: { status: 'completed' },
     })
   })
 })

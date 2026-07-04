@@ -23,10 +23,14 @@ describe('017 recommended taxonomy and Gemini eligibility', () => {
 
     expect(RECOMMENDED_TAXONOMY).toHaveLength(11)
     expect(RECOMMENDED_TAXONOMY.some(category => category.slug === 'tous')).toBe(false)
+    expect(RECOMMENDED_TAXONOMY[0]).toEqual(expect.objectContaining({
+      name: 'Restaurant',
+      slug: 'diner',
+    }))
     expect(mockCategoryUpsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { slug: 'diner' },
       update: {},
-      create: expect.objectContaining({ slug: 'diner', is_active: true }),
+      create: expect.objectContaining({ name: 'Restaurant', slug: 'diner', is_active: true }),
     }))
     expect(mockSubCategoryUpsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { slug: 'restaurants' },

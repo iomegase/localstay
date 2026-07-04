@@ -16,7 +16,7 @@ export type RecommendedTaxonomyCategory = {
 
 export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
-    name: 'Dîner',
+    name: 'Restaurant',
     slug: 'diner',
     icon: 'utensils',
     sort_order: 1,

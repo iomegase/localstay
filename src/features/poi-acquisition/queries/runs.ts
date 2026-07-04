@@ -49,7 +49,14 @@ export async function createAcquisitionRun(
     }),
     prisma.category.findFirst({
       where: { id: input.category_id, is_active: true, deleted_at: null },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        subcategories: {
+          where: { is_active: true, deleted_at: null },
+          select: { id: true, name: true },
+        },
+      },
     }),
   ])
 
@@ -68,6 +75,10 @@ export async function createAcquisitionRun(
   })
 
   try {
+    const subcategories = category.subcategories ?? []
+    const subcategoryIdByName = new Map(
+      subcategories.map(subcategory => [normalizeNameKey(subcategory.name), subcategory.id]),
+    )
     const officialSourceContext = input.source_url
       ? await fetchOfficialWebsiteSourceContext(input.source_url)
       : null
@@ -75,36 +86,42 @@ export async function createAcquisitionRun(
       cityName: city.name,
       postalCode: city.postal_code,
       categoryName: category.name,
+      subcategoryNames: subcategories.map(subcategory => subcategory.name),
+      sourceUrl: input.source_url ?? null,
       latitude: city.latitude,
       longitude: city.longitude,
     })
     const websiteContextCache = new Map<string, Promise<OfficialWebsiteSourceContext | null>>()
+    const candidateErrors: string[] = []
 
     for (const candidate of googleCandidates) {
-      const candidateOfficialSourceContext = candidate.website
-        ? await getCachedOfficialWebsiteSourceContext(candidate.website, websiteContextCache)
-        : null
-      const description = await generateVerifiedDescription({
-        candidate,
-        cityName: city.name,
-        categoryName: category.name,
-        officialSourceContext,
-        candidateOfficialSourceContext,
-      })
-      const geocode = await geocodeForAcquisition(candidate.address, {
-        latitude: city.latitude,
-        longitude: city.longitude,
-      })
-      const duplicates = await findDuplicates({
-        name: candidate.name,
-        address: candidate.address,
-        google_place_id: candidate.google_place_id,
-        latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
-        longitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.longitude : null,
-      })
+      try {
+        const candidateOfficialSourceContext = candidate.website
+          ? await getCachedOfficialWebsiteSourceContext(candidate.website, websiteContextCache)
+          : null
+        const description = await generateVerifiedDescription({
+          candidate,
+          cityName: city.name,
+          categoryName: category.name,
+          officialSourceContext,
+          candidateOfficialSourceContext,
+        })
+        const geocode = await geocodeForAcquisition(candidate.address, {
+          latitude: city.latitude,
+          longitude: city.longitude,
+        })
+        const duplicates = await findDuplicates({
+          name: candidate.name,
+          address: candidate.address,
+          google_place_id: candidate.google_place_id,
+          latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
+          longitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.longitude : null,
+        })
+        const subcategoryId = candidate.query_subcategory_name
+          ? subcategoryIdByName.get(normalizeNameKey(candidate.query_subcategory_name)) ?? null
+          : null
 
-      await prisma.poiAcquisitionCandidate.create({
-        data: {
+        await createCandidateWithRetry({
           run_id: run.id,
           source: 'google_places',
           name: candidate.name,
@@ -113,6 +130,7 @@ export async function createAcquisitionRun(
           phone: candidate.phone,
           website: candidate.website,
           category_id: category.id,
+          subcategory_id: subcategoryId,
           google_place_id: candidate.google_place_id,
           google_review_payload: mergeHoursIntoReviewPayload(candidate.review_payload, candidate.hours),
           google_review_expires_at: candidate.google_review_expires_at,
@@ -124,13 +142,17 @@ export async function createAcquisitionRun(
           duplicate_poi_ids: duplicates,
           match_status: duplicates.length > 0 ? 'duplicate_candidate' : 'matched',
           review_status: 'needs_review',
-        },
-      })
+        })
+      } catch (error) {
+        candidateErrors.push(`${candidate.name}: ${messageFromError(error)}`)
+      }
     }
 
     await prisma.poiAcquisitionRun.update({
       where: { id: run.id },
-      data: { status: 'completed' },
+      data: candidateErrors.length > 0
+        ? { status: 'completed', error: `Acquisition partielle: ${candidateErrors.slice(0, 5).join(' | ')}` }
+        : { status: 'completed' },
     })
   } catch (error) {
     await prisma.poiAcquisitionRun.update({
@@ -290,6 +312,50 @@ async function findDuplicates(candidate: {
   })
 
   return findProbableDuplicates(candidate, pois).map(duplicate => duplicate.id)
+}
+
+type CandidateCreateData = Parameters<typeof prisma.poiAcquisitionCandidate.create>[0]['data']
+
+async function createCandidateWithRetry(data: CandidateCreateData): Promise<void> {
+  const maxAttempts = 3
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await prisma.poiAcquisitionCandidate.create({ data })
+      return
+    } catch (error) {
+      lastError = error
+      if (attempt === maxAttempts || !isTransientPrismaPoolError(error)) break
+      await sleep(25 * attempt)
+    }
+  }
+
+  throw lastError
+}
+
+function isTransientPrismaPoolError(error: unknown): boolean {
+  const code = Reflect.get(Object(error), 'code')
+  if (code === 'P2024') return true
+  return messageFromError(error).includes('Timed out fetching a new connection from the connection pool')
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function normalizeNameKey(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+function messageFromError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
 
 async function generateVerifiedDescription(params: {
