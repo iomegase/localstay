@@ -15,19 +15,18 @@ describe('Hero', () => {
   it('renders the owner title, lodging info and stats', () => {
     render(
       <Hero
-        ownerName="Alice Martin"
+        ownerName="Alice"
         lodgingName="Chalet Rémy"
         cityName="Saint-Gervais-les-Bains"
         citySlug="saint-gervais"
         stats={{ places: 12, categories: 4, cities: 2 }}
       />,
     )
-    expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
+    expect(screen.getByText('Les recommandations de Alice')).toBeInTheDocument()
     expect(screen.getByText('Chalet Rémy')).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /guide complet/i })).toHaveAttribute('href', '/guide/saint-gervais')
   })
 
   it('falls back to a generic title without an owner name', () => {

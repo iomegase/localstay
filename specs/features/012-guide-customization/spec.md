@@ -417,6 +417,7 @@ components:
 - Section "Message d'accueil" : textarea Shadcn, compteur mots
 - Section "Photo du logement" : upload image Owner, validation serveur, URL publique sauvegardée
 - Section "Infos pratiques" : adresse, Wi-Fi, parking, équipements, checkout, déchets, règles, contacts d'urgence, services utiles
+- Les erreurs de validation du payload de personnalisation sont affichées avec le champ concerné ; le dashboard ne doit pas se limiter au message générique "Payload invalide"
 - Section "Mes recommandations" : liste des catégories, chaque catégorie expand pour voir/sélectionner les POI favoris
 - Les POI locaux proposés à la sélection appartiennent à la City du Lodging
 - Chaque POI sélectionné affiche un textarea "Votre mot pour les voyageurs" et un compteur `X / 300 mots`
@@ -425,7 +426,7 @@ components:
 - Le commentaire est facultatif ; le bouton de sauvegarde est désactivé si au moins un commentaire dépasse 300 mots
 - Aucun rating Owner n'est proposé
 - Section "Ordre des catégories" : drag-and-drop (dnd-kit)
-- Bouton "Sauvegarder" sticky en bas
+- Bouton "Sauvegarder" sticky en bas ; désactivé tant qu'un bloc pratique personnalisé n'a pas de titre ou qu'une URL vidéo saisie n'est pas un lien YouTube valide
 - Preview : bouton "Voir le guide comme un Tourist" → ouvre `/guide/[city-slug]?lodging=[id]` dans un nouvel onglet
 
 ### Pages publiques

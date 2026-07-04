@@ -11,7 +11,7 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
     lodgingName: 'Chalet MyStay',
     citySlug: 'saint-gervais',
     cityName: 'Saint-Gervais-les-Bains',
-    ownerName: 'Alice Martin',
+    ownerName: 'Alice',
   })),
 }))
 
@@ -53,7 +53,7 @@ describe('012 recommendations page', () => {
 
     render(await NosRecommendationsPage())
 
-    expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
+    expect(screen.getByText('Les recommandations de Alice')).toBeInTheDocument()
     expect(screen.getByText('Restaurants')).toBeInTheDocument()
     // Les notes owner ne sont plus affichées sur les cartes (retirées pour alléger la mise en page).
     expect(

@@ -211,4 +211,30 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(res.status).toBe(400)
     expect(mockSaveCustomization).not.toHaveBeenCalled()
   })
+
+  it('returns a readable validation detail when a practical block title is missing', async () => {
+    const res = await PUT(
+      makeRequest('PUT', {
+        category_order: [],
+        featured_pois: [],
+        practical_blocks: [
+          { title: '   ', body: null, icon: 'info', photo_url: null, video_url: null, sort_order: 0 },
+        ],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toMatchObject({
+      error: {
+        code: 'INVALID_BODY',
+        details: {
+          fieldErrors: {
+            practical_blocks: ['Le titre du bloc est requis.'],
+          },
+        },
+      },
+    })
+    expect(mockSaveCustomization).not.toHaveBeenCalled()
+  })
 })

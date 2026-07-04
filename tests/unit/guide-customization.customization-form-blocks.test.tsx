@@ -21,7 +21,9 @@ const baseCustomization = {
   cover_photo_url: null, lodging_address: null, wifi_ssid: null, wifi_password: null,
   parking_info: null, equipment_info: null, checkout_instructions: null, trash_info: null,
   trash_location: null, house_rules: null, emergency_contacts: null, useful_services: null,
+  presentation_video_url: null, parking_photo_url: null, parking_video_url: null,
   practical_blocks: [],
+  trash_bins: [],
 }
 
 describe('CustomizationForm — practical blocks payload', () => {
@@ -58,6 +60,74 @@ describe('CustomizationForm — practical blocks payload', () => {
     expect(payload.practical_blocks).toEqual([
       expect.objectContaining({ title: 'La plage', icon: 'info', sort_order: 0 }),
     ])
+  })
+
+  it('disables save and explains when a custom practical block has no title', async () => {
+    const user = userEvent.setup()
+    render(
+      <CustomizationForm
+        lodgingId="lodging-1"
+        citySlug="saint-gervais"
+        categories={[]}
+        pois={[]}
+        initialCustomization={baseCustomization}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
+
+    expect(screen.getByRole('button', { name: /enregistrer/i })).toBeDisabled()
+    expect(screen.getByText(/un bloc personnalisé doit avoir un titre/i)).toBeInTheDocument()
+  })
+
+  it('shows API field validation details when customization save is rejected', async () => {
+    const user = userEvent.setup()
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: 'INVALID_BODY',
+          message: 'Payload invalide',
+          details: {
+            fieldErrors: {
+              presentation_video_url: ['Lien YouTube invalide'],
+            },
+          },
+        },
+      }),
+    }) as jest.Mock
+
+    render(
+      <CustomizationForm
+        lodgingId="lodging-1"
+        citySlug="saint-gervais"
+        categories={[]}
+        pois={[]}
+        initialCustomization={baseCustomization}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /enregistrer/i }))
+
+    expect(await screen.findByText(/Vidéo de présentation - Lien YouTube invalide/i)).toBeInTheDocument()
+  })
+
+  it('disables save when a presentation video URL is not a YouTube link', async () => {
+    const user = userEvent.setup()
+    render(
+      <CustomizationForm
+        lodgingId="lodging-1"
+        citySlug="saint-gervais"
+        categories={[]}
+        pois={[]}
+        initialCustomization={baseCustomization}
+      />,
+    )
+
+    await user.type(screen.getByLabelText(/vidéo de présentation/i), 'https://vimeo.com/123')
+
+    expect(screen.getByRole('button', { name: /enregistrer/i })).toBeDisabled()
+    expect(screen.getByText(/les liens vidéo doivent être des URL YouTube valides/i)).toBeInTheDocument()
   })
 
   it('preserves an existing owner note across save and response refresh', async () => {

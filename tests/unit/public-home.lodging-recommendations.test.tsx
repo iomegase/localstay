@@ -38,7 +38,7 @@ describe('HomePage — mode séjour', () => {
       lodgingName: 'Chalet Rémy',
       citySlug: 'saint-gervais',
       cityName: 'Saint-Gervais-les-Bains',
-      ownerName: 'Alice Martin',
+      ownerName: 'Alice',
     })
   })
 
@@ -61,7 +61,7 @@ describe('HomePage — mode séjour', () => {
 
     render(await HomePage())
 
-    expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
+    expect(screen.getByText('Les recommandations de Alice')).toBeInTheDocument()
     expect(screen.getByText('Bistrot du Centre')).toBeInTheDocument()
   })
 

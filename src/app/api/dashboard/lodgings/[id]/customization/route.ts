@@ -61,7 +61,11 @@ const practicalText = (max: number) =>
 
 const practicalBlockSchema = z.object({
   id: z.string().optional(), // identifiant client (dnd) — ignoré à la persistance
-  title: z.string().trim().min(1).max(120),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Le titre du bloc est requis.')
+    .max(120, 'Le titre du bloc doit faire 120 caracteres maximum.'),
   body: z
     .string()
     .max(4000)

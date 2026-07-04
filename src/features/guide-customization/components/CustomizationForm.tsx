@@ -37,6 +37,7 @@ import { TrashBinsEditor } from '@/features/guide-customization/components/Trash
 import type { TrashBinInput } from '@/features/guide-customization/lib/trash-bins'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
+import { extractYouTubeId } from '@/shared/lib/youtube'
 import type {
   FeaturedPoiInput,
   LodgingCustomizationResponse,
@@ -68,6 +69,64 @@ interface Props {
   pois: PoiOption[]
   initialCustomization: LodgingCustomizationResponse
   initialOtherCityPois?: OtherCityPoiSelection[]
+}
+
+type ApiErrorPayload = {
+  error?: {
+    message?: string
+    details?: {
+      fieldErrors?: Record<string, string[]>
+      formErrors?: string[]
+    }
+  }
+}
+
+const VALIDATION_FIELD_LABELS: Record<string, string> = {
+  welcome_message: "Message d'accueil",
+  category_order: 'Ordre des catégories',
+  featured_pois: 'Recommandations',
+  cover_photo_url: 'Photo du logement',
+  presentation_video_url: 'Vidéo de présentation',
+  lodging_address: 'Adresse du logement',
+  wifi_ssid: 'Wi-Fi - nom du réseau',
+  wifi_password: 'Wi-Fi - mot de passe',
+  parking_info: 'Parking',
+  parking_photo_url: 'Photo du parking',
+  parking_video_url: 'Vidéo du parking',
+  equipment_info: 'Équipements',
+  checkout_instructions: 'Consignes de départ',
+  trash_info: 'Déchets',
+  trash_location: 'Point de tri',
+  house_rules: 'Règlement intérieur',
+  emergency_contacts: 'Urgences',
+  useful_services: 'Services utiles',
+  practical_blocks: 'Blocs personnalisés',
+  trash_bins: 'Poubelles',
+}
+
+function validationLabel(field: string): string {
+  return VALIDATION_FIELD_LABELS[field] ?? field
+}
+
+function formatApiValidationError(payload: ApiErrorPayload | null): string | null {
+  const details = payload?.error?.details
+  const messages: string[] = []
+
+  for (const message of details?.formErrors ?? []) {
+    messages.push(message)
+  }
+
+  for (const [field, fieldMessages] of Object.entries(details?.fieldErrors ?? {})) {
+    for (const fieldMessage of fieldMessages) {
+      messages.push(`${validationLabel(field)} - ${fieldMessage}`)
+    }
+  }
+
+  return messages.length > 0 ? messages.join(' ') : null
+}
+
+function hasInvalidYouTubeUrl(value: string | null | undefined): boolean {
+  return typeof value === 'string' && value.trim().length > 0 && extractYouTubeId(value) === null
 }
 
 function SortableCategoryItem({ category }: { category: CategoryOption }) {
@@ -177,6 +236,21 @@ export function CustomizationForm({
   const ownerNoteOverLimit = [...featuredPois, ...otherCityPois].some(
     featuredPoi => countWords(featuredPoi.owner_note ?? '') > OWNER_NOTE_MAX_WORDS,
   )
+  const practicalBlockWithoutTitle = practicalBlocks.some(
+    block => block.title.trim().length === 0,
+  )
+  const invalidVideoUrl = hasInvalidYouTubeUrl(practicalInfo.presentation_video_url) ||
+    hasInvalidYouTubeUrl(practicalInfo.parking_video_url) ||
+    practicalBlocks.some(block => hasInvalidYouTubeUrl(block.video_url))
+  const clientValidationMessage = practicalBlockWithoutTitle
+    ? 'Un bloc personnalisé doit avoir un titre, ou être supprimé avant enregistrement.'
+    : invalidVideoUrl
+      ? 'Les liens vidéo doivent être des URL YouTube valides.'
+      : null
+  const saveDisabled = status === 'saving' ||
+    welcomeOverLimit ||
+    ownerNoteOverLimit ||
+    clientValidationMessage !== null
 
   // Règle métier inchangée
   function onDragEnd(event: DragEndEvent) {
@@ -211,6 +285,10 @@ export function CustomizationForm({
   }
 
   async function saveCustomization() {
+    if (clientValidationMessage) {
+      return
+    }
+
     setStatus('saving')
     setMessage(null)
 
@@ -248,9 +326,9 @@ export function CustomizationForm({
     })
 
     if (!response.ok) {
-      const payload = await response.json().catch(() => null) as { error?: { message?: string } } | null
+      const payload = await response.json().catch(() => null) as ApiErrorPayload | null
       setStatus('error')
-      setMessage(payload?.error?.message ?? 'Sauvegarde impossible.')
+      setMessage(formatApiValidationError(payload) ?? payload?.error?.message ?? 'Sauvegarde impossible.')
       return
     }
 
@@ -488,9 +566,9 @@ export function CustomizationForm({
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-[12px] text-gray-500">
-            {message ? (
-              <span className={status === 'error' ? 'font-semibold text-rose-500' : 'font-semibold text-emerald-600'}>
-                {message}
+            {clientValidationMessage || message ? (
+              <span className={clientValidationMessage || status === 'error' ? 'font-semibold text-rose-500' : 'font-semibold text-emerald-600'}>
+                {clientValidationMessage ?? message}
               </span>
             ) : (
               'Les changements sont appliqués uniquement à ce logement.'
@@ -508,13 +586,13 @@ export function CustomizationForm({
             <button
               type="button"
               onClick={saveCustomization}
-              disabled={status === 'saving' || welcomeOverLimit || ownerNoteOverLimit}
+              disabled={saveDisabled}
               title={
-                welcomeOverLimit
+                clientValidationMessage ?? (welcomeOverLimit
                   ? `Message d'accueil limité à ${WELCOME_MESSAGE_MAX_WORDS} mots`
                   : ownerNoteOverLimit
                     ? `Commentaire limité à ${OWNER_NOTE_MAX_WORDS} mots`
-                    : undefined
+                    : undefined)
               }
               className="group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
