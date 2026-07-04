@@ -52,13 +52,8 @@ describe('RecommendationCard', () => {
     )
   })
 
-  it('renders the owner note with its test id when present', () => {
+  it('never renders an owner note on cards (notes retirés des cartes)', () => {
     render(<RecommendationCard row={makeRow({}, 'Notre coup de cœur.')} variant="bigImage" fallbackCitySlug="x" />)
-    expect(screen.getByTestId('owner-recommendation-comment')).toHaveTextContent('Notre coup de cœur.')
-  })
-
-  it('does not render the owner note element when absent', () => {
-    render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="x" />)
     expect(screen.queryByTestId('owner-recommendation-comment')).not.toBeInTheDocument()
   })
 

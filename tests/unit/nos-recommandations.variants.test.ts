@@ -21,11 +21,8 @@ describe('assignVariants', () => {
     expect(assignVariants([row('a', { photo: true })]).map(c => c.variant)).toEqual(['bigImage'])
   })
 
-  it('returns note for a single photoless POI that has an owner note', () => {
-    expect(assignVariants([row('a', { note: true })]).map(c => c.variant)).toEqual(['note'])
-  })
-
-  it('returns white for a single photoless, noteless POI', () => {
+  it('returns white for a single photoless POI (notes no longer affect variants)', () => {
+    expect(assignVariants([row('a', { note: true })]).map(c => c.variant)).toEqual(['white'])
     expect(assignVariants([row('a')]).map(c => c.variant)).toEqual(['white'])
   })
 
@@ -34,13 +31,8 @@ describe('assignVariants', () => {
     expect(assignVariants(rows).map(c => c.variant)).toEqual(['bigImage', 'image', 'white', 'sand'])
   })
 
-  it('replaces an image slot with note when the POI has no photo but a note', () => {
+  it('replaces an image slot with white when the POI has no photo', () => {
     const rows = [row('a', { photo: true }), row('b', { note: true })]
-    expect(assignVariants(rows).map(c => c.variant)).toEqual(['bigImage', 'note'])
-  })
-
-  it('replaces an image slot with white when the POI has neither photo nor note', () => {
-    const rows = [row('a', { photo: true }), row('b')]
     expect(assignVariants(rows).map(c => c.variant)).toEqual(['bigImage', 'white'])
   })
 })

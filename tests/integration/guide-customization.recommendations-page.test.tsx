@@ -55,9 +55,10 @@ describe('012 recommendations page', () => {
 
     expect(screen.getByText('Les recommandations de Alice Martin')).toBeInTheDocument()
     expect(screen.getByText('Restaurants')).toBeInTheDocument()
+    // Les notes owner ne sont plus affichées sur les cartes (retirées pour alléger la mise en page).
     expect(
-      screen.getByText('Notre choix pour un dîner calme en terrasse.'),
-    ).toBeInTheDocument()
+      screen.queryByText('Notre choix pour un dîner calme en terrasse.'),
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Bistrot du Centre/i })).toHaveAttribute(
       'href',
       '/guide/saint-gervais/restaurants/bistrot-du-centre',

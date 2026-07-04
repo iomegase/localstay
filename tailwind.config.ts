@@ -61,6 +61,7 @@ const config: Config = {
         serif: ['Playfair Display', 'serif'],
         lobster: ['Lobster', 'cursive'],
         quicksand: ['Quicksand', 'sans-serif'],
+        hand: ['Caveat', 'cursive'],
       },
       boxShadow: {
         soft: '0 18px 60px rgba(36, 34, 32, 0.08)',
