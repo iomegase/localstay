@@ -5,6 +5,7 @@ import type { LodgingPublicationStatus } from '../types'
 
 export type AdminLodgingProfileRow = {
   id: string
+  profile_id: string | null
   publication_status: LodgingPublicationStatus
   title: string
   short_description: string
@@ -28,30 +29,12 @@ export type AdminLodgingProfileRow = {
 
 const adminProfileSelect: Prisma.LodgingPublicProfileSelect = {
   id: true,
+  deleted_at: true,
   publication_status: true,
   title: true,
   short_description: true,
   updated_at: true,
   content_rights_confirmed_at: true,
-  city: {
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-    },
-  },
-  lodging: {
-    select: {
-      id: true,
-      name: true,
-      owner: {
-        select: {
-          id: true,
-          email: true,
-        },
-      },
-    },
-  },
   photos: {
     where: { deleted_at: null },
     select: {
@@ -73,72 +56,110 @@ const adminProfileSelect: Prisma.LodgingPublicProfileSelect = {
   max_guests: true,
 }
 
-type AdminProfileQueryRow = {
-  id: string
-  publication_status: LodgingPublicationStatus
-  title: string
-  short_description: string
-  updated_at: Date
-  content_rights_confirmed_at: Date | null
+const adminLodgingSelect = {
+  id: true,
+  name: true,
+  updated_at: true,
+  owner: {
+    select: {
+      id: true,
+      email: true,
+    },
+  },
   city: {
-    id: string
-    name: string
-    slug: string
-  }
-  lodging: {
-    id: string
-    name: string
-    owner: {
-      id: string
-      email: string
-    }
-  }
-  photos: Array<{
-    url: string
-    alt: string
-    is_cover: boolean
-    room_type: string | null
-  }>
-  amenities: Array<{
-    code: string
-    label: string
-  }>
-  description: string
-  property_type: string
-  max_guests: number
-}
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  },
+  public_profile: {
+    select: adminProfileSelect,
+  },
+} satisfies Prisma.LodgingSelect
+
+type AdminLodgingQueryRow = Prisma.LodgingGetPayload<{ select: typeof adminLodgingSelect }>
+type AdminProfileQueryRow = NonNullable<AdminLodgingQueryRow['public_profile']>
 
 function toAdminRow(
-  row: AdminProfileQueryRow,
+  lodging: AdminLodgingQueryRow,
+  profile: AdminProfileQueryRow,
 ): AdminLodgingProfileRow {
   const seo = evaluateProfileCompleteness({
-    title: row.title,
-    short_description: row.short_description,
-    description: row.description,
-    property_type: row.property_type,
-    max_guests: row.max_guests,
-    photos: row.photos,
-    amenities: row.amenities,
-    content_rights_confirmed_at: row.content_rights_confirmed_at,
+    title: profile.title,
+    short_description: profile.short_description,
+    description: profile.description,
+    property_type: profile.property_type,
+    max_guests: profile.max_guests,
+    photos: profile.photos,
+    amenities: profile.amenities,
+    content_rights_confirmed_at: profile.content_rights_confirmed_at,
   })
 
   return {
-    id: row.id,
-    publication_status: row.publication_status,
-    title: row.title,
-    short_description: row.short_description,
+    id: profile.id,
+    profile_id: profile.id,
+    publication_status: profile.publication_status,
+    title: profile.title,
+    short_description: profile.short_description,
     lodging: {
-      id: row.lodging.id,
-      name: row.lodging.name,
+      id: lodging.id,
+      name: lodging.name,
       owner: {
-        id: row.lodging.owner.id,
-        email: row.lodging.owner.email,
+        id: lodging.owner.id,
+        email: lodging.owner.email,
       },
     },
-    city: row.city,
-    photos_count: row.photos.length,
+    city: lodging.city,
+    photos_count: profile.photos.length,
     seo_warnings: seo.warnings,
-    updated_at: row.updated_at.toISOString(),
+    updated_at: profile.updated_at.toISOString(),
+  }
+}
+
+function toMissingProfileAdminRow(lodging: AdminLodgingQueryRow): AdminLodgingProfileRow {
+  return {
+    id: lodging.id,
+    profile_id: null,
+    publication_status: 'draft',
+    title: lodging.name,
+    short_description: '',
+    lodging: {
+      id: lodging.id,
+      name: lodging.name,
+      owner: {
+        id: lodging.owner.id,
+        email: lodging.owner.email,
+      },
+    },
+    city: lodging.city,
+    photos_count: 0,
+    seo_warnings: ['public_profile_missing'],
+    updated_at: lodging.updated_at.toISOString(),
+  }
+}
+
+function buildPublicationStatusFilter(
+  publicationStatus?: LodgingPublicationStatus,
+): Prisma.LodgingWhereInput {
+  if (!publicationStatus) return {}
+
+  if (publicationStatus === 'draft') {
+    return {
+      OR: [
+        { public_profile: { is: null } },
+        { public_profile: { is: { deleted_at: null, publication_status: 'draft' } } },
+      ],
+    }
+  }
+
+  return {
+    public_profile: {
+      is: {
+        deleted_at: null,
+        publication_status: publicationStatus,
+      },
+    },
   }
 }
 
@@ -147,18 +168,28 @@ export async function listAdminLodgingProfiles(filters: {
   city_id?: string
   owner_id?: string
 } = {}): Promise<AdminLodgingProfileRow[]> {
-  const rows = await prisma.lodgingPublicProfile.findMany({
+  const rows = await prisma.lodging.findMany({
     where: {
       deleted_at: null,
-      ...(filters.publication_status ? { publication_status: filters.publication_status } : {}),
+      is_active: true,
+      city: {
+        deleted_at: null,
+        is_active: true,
+      },
       ...(filters.city_id ? { city_id: filters.city_id } : {}),
-      ...(filters.owner_id ? { lodging: { owner_id: filters.owner_id } } : {}),
+      ...(filters.owner_id ? { owner_id: filters.owner_id } : {}),
+      ...buildPublicationStatusFilter(filters.publication_status),
     },
     orderBy: [{ updated_at: 'desc' }],
-    select: adminProfileSelect,
+    select: adminLodgingSelect,
   })
 
-  return rows.map(row => toAdminRow(row as unknown as AdminProfileQueryRow))
+  return rows
+    .map(row => {
+      const profile = row.public_profile?.deleted_at === null ? row.public_profile : null
+      return profile ? toAdminRow(row, profile) : toMissingProfileAdminRow(row)
+    })
+    .sort((first, second) => Date.parse(second.updated_at) - Date.parse(first.updated_at))
 }
 
 async function getExistingProfile(profileId: string) {

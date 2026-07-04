@@ -6,6 +6,17 @@ import Link from 'next/link'
 import { Button } from '@/shared/components/ui/button'
 import type { AdminLodgingProfileRow } from '../queries/admin-public-profiles'
 
+const seoWarningLabels: Record<string, string> = {
+  public_profile_missing: 'Fiche publique absente',
+  seo_photo_count: 'Ajouter au moins 5 photos',
+  editorial_description_length: 'Description trop courte',
+  seo_description_length: 'Description SEO a renforcer',
+}
+
+function formatSeoWarning(warning: string) {
+  return seoWarningLabels[warning] ?? warning
+}
+
 export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[] }) {
   const router = useRouter()
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -74,12 +85,15 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
             <tbody>
               {props.rows.map(row => {
                 const isBusy = busyId === row.id
+                const profileId = row.profile_id
 
                 return (
                   <tr key={row.id} className="border-t border-gray-100 align-top">
                     <td className="px-4 py-4">
                       <div className="font-medium text-charcoal">{row.lodging.name}</div>
-                      <div className="mt-1 text-xs text-gray-500">{row.short_description}</div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        {row.short_description || 'Fiche publique a preparer'}
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-gray-600">{row.city.name}</td>
                     <td className="px-4 py-4 text-gray-600">{row.lodging.owner.email}</td>
@@ -95,7 +109,7 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                       ) : (
                         <ul className="space-y-1 text-xs text-amber-700">
                           {row.seo_warnings.map(warning => (
-                            <li key={warning}>{warning}</li>
+                            <li key={warning}>{formatSeoWarning(warning)}</li>
                           ))}
                         </ul>
                       )}
@@ -105,46 +119,50 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                         <Button asChild size="sm" variant="outline" disabled={isBusy}>
                           <Link href={`/admin/lodgings/${row.lodging.id}/edit`}>Éditer</Link>
                         </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={isBusy}
-                          onClick={() => void postAction(
-                            row.id,
-                            `/api/admin/lodgings/public-profiles/${row.id}/publish`,
-                            'Publication impossible.',
-                          )}
-                        >
-                          Publier
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={isBusy}
-                          onClick={() => void postAction(
-                            row.id,
-                            `/api/admin/lodgings/public-profiles/${row.id}/request-changes`,
-                            'Demande de correction impossible.',
-                            { admin_review_note: 'Ajouter des photos avec alt.' },
-                          )}
-                        >
-                          Corrections
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={isBusy}
-                          onClick={() => void postAction(
-                            row.id,
-                            `/api/admin/lodgings/public-profiles/${row.id}/archive`,
-                            'Archivage impossible.',
-                          )}
-                        >
-                          Archiver
-                        </Button>
+                        {profileId && (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={isBusy}
+                              onClick={() => void postAction(
+                                row.id,
+                                `/api/admin/lodgings/public-profiles/${profileId}/publish`,
+                                'Publication impossible.',
+                              )}
+                            >
+                              Publier
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={isBusy}
+                              onClick={() => void postAction(
+                                row.id,
+                                `/api/admin/lodgings/public-profiles/${profileId}/request-changes`,
+                                'Demande de correction impossible.',
+                                { admin_review_note: 'Ajouter des photos avec alt.' },
+                              )}
+                            >
+                              Corrections
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={isBusy}
+                              onClick={() => void postAction(
+                                row.id,
+                                `/api/admin/lodgings/public-profiles/${profileId}/archive`,
+                                'Archivage impossible.',
+                              )}
+                            >
+                              Archiver
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
