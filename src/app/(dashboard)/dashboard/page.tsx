@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <Building2 className="w-12 h-12 text-muted-foreground mb-4" />
-        <h1 className="font-serif italic text-2xl text-foreground mb-2">Bienvenue sur MyStay</h1>
+        <h1 className="text-2xl text-foreground mb-2">Bienvenue sur MyStay</h1>
         <p className="text-muted-foreground mb-6 max-w-sm">
           Vous n&apos;avez pas encore de logement. Créez-en un pour commencer à partager votre guide local.
         </p>
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif italic text-2xl text-foreground">Tableau de bord</h1>
+      <h1 className="text-2xl text-foreground">Tableau de bord</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>

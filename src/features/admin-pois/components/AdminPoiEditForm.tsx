@@ -203,7 +203,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                 <div className="rounded-[16px] border border-indigo-100 bg-indigo-50/40 p-4">
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-indigo-600">Aperçu</p>
                   {descriptionValue.trim() === '' ? (
-                    <p className="text-sm italic text-slate-400">Description vide.</p>
+                    <p className="text-sm text-slate-400">Description vide.</p>
                   ) : (
                     <MarkdownText source={descriptionValue} breaks className="text-[14px] leading-relaxed text-slate-700" />
                   )}

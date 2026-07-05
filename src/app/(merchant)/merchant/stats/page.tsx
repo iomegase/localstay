@@ -14,7 +14,7 @@ export default async function MerchantStatsPage() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Statistiques</p>
-        <h1 className="mt-2 font-serif text-4xl italic text-charcoal">Visibilité 30 jours</h1>
+        <h1 className="mt-2 text-4xl text-charcoal">Visibilité 30 jours</h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

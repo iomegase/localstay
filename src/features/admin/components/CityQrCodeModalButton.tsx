@@ -92,7 +92,7 @@ export function CityQrCodeModalButton({ citySlug, cityName }: Props) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-serif italic">QR code — {cityName}</DialogTitle>
+            <DialogTitle>QR code — {cityName}</DialogTitle>
           </DialogHeader>
 
           {loading && <p className="py-6 text-center text-sm text-muted-foreground">Chargement…</p>}

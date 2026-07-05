@@ -53,7 +53,7 @@ export function QrCodeCard({ lodgingId, qrCode, scanCount7d }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-serif italic text-lg">QR Code</CardTitle>
+          <CardTitle className="text-lg">QR Code</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4 py-8">
           <p className="text-sm text-muted-foreground text-center">
@@ -74,7 +74,7 @@ export function QrCodeCard({ lodgingId, qrCode, scanCount7d }: Props) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="font-serif italic text-lg">QR Code</CardTitle>
+          <CardTitle className="text-lg">QR Code</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-center">
@@ -119,7 +119,7 @@ export function QrCodeCard({ lodgingId, qrCode, scanCount7d }: Props) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-serif italic">Régénérer le QR code ?</DialogTitle>
+            <DialogTitle>Régénérer le QR code ?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             L&apos;ancien QR code sera archivé et ne fonctionnera plus. Cette action est irréversible.

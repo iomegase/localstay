@@ -14,7 +14,7 @@ export default async function MerchantOnboardingPage() {
     <div className="space-y-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Onboarding Merchant</p>
-        <h1 className="mt-2 font-serif text-4xl italic text-charcoal">Revendiquer mon établissement</h1>
+        <h1 className="mt-2 text-4xl text-charcoal">Revendiquer mon établissement</h1>
         <p className="mt-3 max-w-2xl text-charcoal/60">
           Recherchez votre fiche existante, puis envoyez une demande de validation à l'équipe MyStay.
         </p>

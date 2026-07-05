@@ -42,7 +42,7 @@ export default async function LodgingQrCodePage({ params }: Props) {
         </Link>
       </div>
 
-      <h1 className="font-serif italic text-2xl text-foreground">{lodging.name}</h1>
+      <h1 className="text-2xl text-foreground">{lodging.name}</h1>
 
       <QrCodeCard
         lodgingId={id}

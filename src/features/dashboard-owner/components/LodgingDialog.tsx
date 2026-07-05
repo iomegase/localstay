@@ -79,7 +79,7 @@ export function LodgingDialog({ open, onOpenChange, lodging, cities }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-serif italic">
+          <DialogTitle>
             {lodging ? 'Modifier le logement' : 'Ajouter un logement'}
           </DialogTitle>
         </DialogHeader>
