@@ -79,12 +79,12 @@ describe('PublicBottomNav', () => {
     )
   })
 
-  it('highlights the selected item with the approved gold color', () => {
+  it('highlights the selected item with the approved pink color', () => {
     mockUsePathname.mockReturnValue('/guide/saint-gervais-les-bains')
 
     render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
 
-    expect(screen.getByRole('link', { name: /Guide/i })).toHaveClass('text-[#bd9254]')
+    expect(screen.getByRole('link', { name: /Guide/i })).toHaveClass('text-pink-600')
   })
 
   it('keeps inactive items readable over the glass bottom menu', () => {

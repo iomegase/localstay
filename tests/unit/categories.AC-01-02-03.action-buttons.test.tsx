@@ -63,9 +63,9 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     render(<ActionButtons {...base} variant="modalFooter" />)
 
     expect(screen.getByTestId('favorite-modal-footer-actions')).toHaveClass('fixed', 'bottom-8', 'left-1/2', 'grid', 'grid-cols-3', 'rounded-full', 'border-black/5', 'shadow-xl')
-    expect(screen.getByTestId('btn-call')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-[#bd9254]')
-    expect(screen.getByTestId('btn-site')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-[#bd9254]')
-    expect(screen.getByTestId('btn-directions')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-[#bd9254]')
+    expect(screen.getByTestId('btn-call')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-pink-600')
+    expect(screen.getByTestId('btn-site')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-pink-600')
+    expect(screen.getByTestId('btn-directions')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-pink-600')
     expect(screen.getByText('Appeler')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
     expect(screen.getByText('Site')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
     expect(screen.getByText('Itinéraire')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
