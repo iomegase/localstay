@@ -65,6 +65,7 @@ export default async function LeLogementPage() {
     prisma.lodgingCustomization.findFirst({
       where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
       select: {
+        welcome_message: true,
         cover_photo_url: true, presentation_video_url: true,
         lodging_address: true, wifi_ssid: true, wifi_password: true,
         parking_info: true, parking_photo_url: true, parking_video_url: true,
@@ -91,23 +92,31 @@ export default async function LeLogementPage() {
   return (
     <div className="pt-8 bg-white min-h-screen pb-20 flex flex-col">
       <div className="mb-10 px-4">
-        <p className="text-[14px] font-medium tracking-tight text-[#6F767E] mb-1">
+        {/* <p className="text-[14px] font-medium tracking-tight text-[#6F767E] mb-1">
           Bienvenue au
-        </p>
+        </p> */}
         <h1 className="text-[36px] font-bold leading-none tracking-tighter text-[#1A1D1F]">
           {lodgingContext.lodgingName}
         </h1>
       </div>
 
+    
+
       {hasPresentation && (
-        <section className="mb-10 flex flex-col gap-4 px-4">
+        <section className="mb-10 flex flex-col gap-4 ">
           {presentationPhoto && (
-            <div className="relative aspect-[2/1] w-full overflow-hidden rounded-[24px]">
+            <div className="relative aspect-[2/1] w-full overflow-hidden ">
               <Image src={presentationPhoto} alt="Présentation du logement" fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
             </div>
           )}
           {presentationVideo && <YouTubeEmbed url={presentationVideo} title="Présentation du logement" />}
         </section>
+      )}
+
+        {customization?.welcome_message && (
+        <div className={`mb-10 px-4 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}>
+          <MarkdownText source={customization.welcome_message} breaks />
+        </div>
       )}
 
       {!hasContent ? (
@@ -163,8 +172,9 @@ const getMarkdownTextStyles = (isDark: boolean) =>
 function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Theme }) {
   return (
     <section className={`w-full rounded-[40px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.01] ${theme.bg} ${theme.text}`}>
-      <div className="flex justify-between items-start mb-6">
-        <CategoryIcon iconSlug={block.icon} className={`h-8 w-8 ${theme.muted}`} />
+      <div className="flex items-center gap-3 mb-6">
+        <CategoryIcon iconSlug={block.icon} className={`h-8 w-8 shrink-0 ${theme.muted}`} />
+        <h2 className="font-bold text-[28px] tracking-tight">{block.title}</h2>
       </div>
 
       {/* 🚀 OPTIMISATION : Aspect 2/1 pour éviter l'écrasement de l'image (comme sur vos maquettes) */}
@@ -182,14 +192,10 @@ function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Th
 
       {/* 🚀 OPTIMISATION : Tailles de texte réduites pour plus d'élégance (14px / 15px) */}
       {block.body && (
-        <div className={`text-[14px] sm:text-[15px] leading-relaxed mb-8 flex-1 ${getMarkdownTextStyles(theme.isDark)}`}>
+        <div className={`text-[14px] sm:text-[15px] leading-relaxed flex-1 ${getMarkdownTextStyles(theme.isDark)}`}>
           <MarkdownText source={block.body} />
         </div>
       )}
-
-      <div className="mt-auto pt-2">
-        <h2 className="font-bold text-[28px] tracking-tight">{block.title}</h2>
-      </div>
     </section>
   )
 }
@@ -208,9 +214,12 @@ function PracticalCard({ section }: { section: Section }) {
 
   const CardContent = (
     <section className={innerClasses}>
-      <div className={`flex justify-between items-start w-full ${isSquare ? 'mb-3' : 'mb-6'}`}>
-        <div className={theme.muted}>
-          {section.icon}
+      <div className={`flex justify-between items-center w-full ${isSquare ? 'mb-3' : 'mb-6'}`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`shrink-0 ${theme.muted}`}>
+            {section.icon}
+          </div>
+          <h2 className={`font-bold tracking-tight truncate ${isSquare ? 'text-lg leading-tight' : 'text-xl sm:text-2xl'}`}>{section.title}</h2>
         </div>
         {mapUrl && (
           <div className={`shrink-0 rounded-full flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 transition-colors ${theme.actionBg}`}>
@@ -234,12 +243,8 @@ function PracticalCard({ section }: { section: Section }) {
       )}
 
       {/* 🚀 OPTIMISATION : Tailles de texte harmonisées avec les grandes cartes */}
-      <div className={`flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[14px] sm:text-[15px] leading-relaxed flex flex-col justify-end ${isSquare ? 'mb-3' : 'mb-6'} ${getMarkdownTextStyles(theme.isDark)}`}>
+      <div className={`flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[14px] sm:text-[15px] leading-relaxed flex flex-col justify-end ${getMarkdownTextStyles(theme.isDark)}`}>
         {renderValue(section)}
-      </div>
-
-      <div className="mt-auto">
-        <h2 className={`font-bold tracking-tight ${isSquare ? 'text-lg leading-tight' : 'text-xl sm:text-2xl'}`}>{section.title}</h2>
       </div>
     </section>
   )

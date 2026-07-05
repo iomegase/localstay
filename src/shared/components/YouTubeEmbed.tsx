@@ -21,7 +21,7 @@ export function YouTubeEmbed({ url, title, className }: Props) {
   if (!videoId) return null
 
   return (
-    <div className={`relative aspect-video w-full overflow-hidden rounded-[24px] bg-black ${className ?? ''}`}>
+    <div className={`relative aspect-video w-full overflow-hidden bg-black ${className ?? ''}`}>
       {playing ? (
         <iframe
           className="absolute inset-0 h-full w-full"
