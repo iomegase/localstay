@@ -97,4 +97,66 @@ describe('012 recommendations page', () => {
       '/guide/saint-gervais',
     )
   })
+
+  it('AC-02-01: renders recommendation cards as square tiles with cover images', async () => {
+    jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
+      {
+        poi_id: 'poi-1',
+        owner_note: null,
+        poi: {
+          id: 'poi-1',
+          name: 'Bistrot du Centre',
+          slug: 'bistrot-du-centre',
+          description: 'Cuisine locale.',
+          photos: ['https://cdn.example.test/bistrot.jpg'],
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+      {
+        poi_id: 'poi-2',
+        owner_note: null,
+        poi: {
+          id: 'poi-2',
+          name: 'Café du Parc',
+          slug: 'cafe-du-parc',
+          description: 'Pause gourmande.',
+          photos: ['https://cdn.example.test/cafe.jpg'],
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+      {
+        poi_id: 'poi-3',
+        owner_note: null,
+        poi: {
+          id: 'poi-3',
+          name: 'Table de la Gare',
+          slug: 'table-de-la-gare',
+          description: 'Cuisine de saison.',
+          photos: [],
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+    ] as never)
+
+    const { container } = render(await NosRecommendationsPage())
+
+    const recommendationLinks = [
+      screen.getByRole('link', { name: /Bistrot du Centre/i }),
+      screen.getByRole('link', { name: /Café du Parc/i }),
+      screen.getByRole('link', { name: /Table de la Gare/i }),
+    ]
+
+    recommendationLinks.forEach(link => {
+      expect(link).toHaveClass('aspect-square')
+    })
+
+    const cardImages = container.querySelectorAll('a[href^="/guide/"] img')
+
+    expect(cardImages).toHaveLength(2)
+    cardImages.forEach(image => {
+      expect(image).toHaveClass('object-cover')
+    })
+
+    expect(screen.queryByText('Cuisine de saison.')).not.toBeInTheDocument()
+  })
 })
