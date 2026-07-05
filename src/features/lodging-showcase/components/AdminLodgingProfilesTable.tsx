@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/shared/components/ui/button'
+import { DeleteLodgingButton } from '@/features/admin/components/DeleteLodgingButton'
 import type { AdminLodgingProfileRow } from '../queries/admin-public-profiles'
 
 const seoWarningLabels: Record<string, string> = {
@@ -163,6 +164,7 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                             </Button>
                           </>
                         )}
+                        <DeleteLodgingButton lodgingId={row.lodging.id} name={row.lodging.name} />
                       </div>
                     </td>
                   </tr>

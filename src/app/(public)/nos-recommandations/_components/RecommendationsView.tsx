@@ -81,7 +81,7 @@ export async function RecommendationsView({
           {otherByCity.length > 0 && (
             <div className="mb-2">
               <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">
-                Un peu plus loin dans la vallée...
+                À découvrir ailleurs
               </p>
               {otherByCity.map(group => (
                 <BentoSection

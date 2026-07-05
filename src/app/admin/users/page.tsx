@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminUsers, type AdminUserRole } from '@/features/admin/queries/dashboard'
+import { DeleteUserButton } from '@/features/admin/components/DeleteUserButton'
 import { User, Shield, Store, CheckCircle2, XCircle } from 'lucide-react'
 
 type AdminUsersPageProps = {
@@ -83,6 +84,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                   <th className="px-6 py-4 text-[10px] font-semibold tracking-widest text-gray-400 uppercase">Statut</th>
                   <th className="px-6 py-4 text-[10px] font-semibold tracking-widest text-gray-400 uppercase">Abonnement</th>
                   <th className="px-6 py-4 text-right text-[10px] font-semibold tracking-widest text-gray-400 uppercase">Date de création</th>
+                  <th className="px-6 py-4 text-right text-[10px] font-semibold tracking-widest text-gray-400 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50/80 bg-white">
@@ -138,6 +140,16 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                           year: 'numeric'
                         })}
                       </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 text-right">
+                      <DeleteUserButton
+                        userId={user.id}
+                        email={user.email}
+                        role={user.role}
+                        lodgingCount={user.active_lodging_count}
+                      />
                     </td>
 
                   </tr>
