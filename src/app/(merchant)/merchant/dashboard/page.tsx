@@ -17,7 +17,7 @@ export default async function MerchantDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Dashboard Merchant</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Dashboard Merchant</p>
         <h1 className="mt-2 font-serif text-4xl italic text-charcoal">{profile.poi.name}</h1>
         <p className="mt-3 text-charcoal/60">
           Gérez votre fiche publique, vos offres et vos statistiques de visibilité.

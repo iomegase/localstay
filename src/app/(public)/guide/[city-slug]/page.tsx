@@ -67,7 +67,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
 
       <div className="flex justify-between items-start mb-4 p-4">
         <div>
-          <p className="text-[10px] font-bold text-gold uppercase tracking-widest">Le guide</p>
+          <p className="text-[10px] font-bold text-pink-600 uppercase tracking-widest">Le guide</p>
           <h1 className="text-2xl font-light uppercase text-charcoal">
             {city.name}
           </h1>
@@ -91,7 +91,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
           </p>
           <Link
             href="/"
-            className="text-xs font-bold uppercase tracking-widest text-gold underline underline-offset-4"
+            className="text-xs font-bold uppercase tracking-widest text-pink-600 underline underline-offset-4"
           >
             {t('guide.back_home')}
           </Link>
@@ -110,7 +110,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
                 className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition active:scale-[0.99]"
               >
                 <span className="flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-600/10 text-pink-600">
                     <CalendarDays className="h-6 w-6" />
                   </span>
                   <span>

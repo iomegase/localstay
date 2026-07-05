@@ -51,7 +51,7 @@ export function OwnerRecommendationsBlock({ citySlug, items }: Props) {
           aria-label="Les recommandations de votre hôte"
           className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm"
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">
             Guide local
           </p>
           <h2 className="mt-1 text-xl font-light text-charcoal">
@@ -70,7 +70,7 @@ export function OwnerRecommendationsBlock({ citySlug, items }: Props) {
           aria-label="À découvrir ailleurs"
           className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm"
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">
             Carnet d&apos;adresses
           </p>
           <h2 className="mt-1 text-xl font-light text-charcoal">

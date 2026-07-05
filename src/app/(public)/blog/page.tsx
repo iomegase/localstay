@@ -32,7 +32,7 @@ export default async function BlogListPage({ searchParams }: PageProps) {
   return (
     <>
       <div className="p-4">
-        {/* <p className="text-[10px] font-bold uppercase tracking-widest text-gold">Le guide</p> */}
+        {/* <p className="text-[10px] font-bold uppercase tracking-widest text-pink-600">Le guide</p> */}
         <h1 className="text-2xl font-light uppercase text-charcoal">{title}</h1>
       </div>
 
@@ -73,7 +73,7 @@ export default async function BlogListPage({ searchParams }: PageProps) {
                 <h3 className="mt-1 line-clamp-2 text-sm font-medium text-charcoal">{article.title}</h3>
                 {/* <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-400">{article.excerpt}</p> */}
                 {article.city && (
-                  <p className="mt-4 flex items-center gap-1 uppercase truncate text-[10px] text-gold">
+                  <p className="mt-4 flex items-center gap-1 uppercase truncate text-[10px] text-pink-600">
                     <MapPin className="h-3 w-3 shrink-0" /> {article.city.name}
                   </p>
                 )}

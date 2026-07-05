@@ -7,7 +7,7 @@ interface Props {
 
 export function PhotoCarousel({ photos, name }: Props) {
   if (photos.length === 0) {
-    return <div className="h-40 bg-gradient-to-br from-gold/20 to-gold/5 rounded-2xl mx-4" />
+    return <div className="h-40 bg-gradient-to-br from-pink-600/20 to-pink-600/5 rounded-2xl mx-4" />
   }
 
   return (

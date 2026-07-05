@@ -85,7 +85,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         ])}
       />
       <section className="px-5 pt-4">
-        {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+        {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">
           Points d&apos;intérêt
         </p> */}
         {/* <h1 className="text-4xl uppercase font-light tracking-tight    leading-none text-slate-500">

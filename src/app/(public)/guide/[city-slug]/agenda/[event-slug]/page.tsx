@@ -58,13 +58,13 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
         {/* Header */}
         <header className="px-6">
           {event.types.length > 0 && (
-            <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-pink-600">
               {event.types.map(typeLabel).join(' · ')}
             </span>
           )}
           <h1 className="mt-1 text-xl uppercase leading-tight text-charcoal">{event.title}</h1>
 
-          <p className="mt-3 flex items-center gap-2 text-sm text-gold">
+          <p className="mt-3 flex items-center gap-2 text-sm text-pink-600">
             <CalendarDays className="h-4 w-4" /> {event.dateLabel}
           </p>
           {(event.venueName || event.address) && (

@@ -111,7 +111,7 @@ export function PoiDetailBody({
         {/* Header */}
         <div className="px-6 flex justify-between items-start">
           <div className="flex-1 min-w-0">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-pink-600">
               {poi.subcategory?.name ?? poi.category.name}
             </span>
             <h1 className="text-xl uppercase leading-tight text-charcoal mt-1">{poi.name}</h1>
@@ -120,7 +120,7 @@ export function PoiDetailBody({
           {poi.rating !== null && (
             <div className="flex flex-row items-center justify-between ml-4 shrink-0">
               <div className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-2xl shadow-sm border border-gray-100">
-                <Star className="w-3.5 h-3.5 text-gold fill-gold" />
+                <Star className="w-3.5 h-3.5 text-pink-600 fill-pink-600" />
                 <span className="text-sm font-bold" data-testid="poi-detail-rating">
                   {poi.rating.toFixed(1)}
                 </span>

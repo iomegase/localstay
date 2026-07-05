@@ -29,7 +29,7 @@ export function LodgingFacts(props: {
           title={`${fact.label} : ${fact.value}`}
           className="flex flex-1 flex-col items-center justify-center gap-2 px-1.5 py-4"
         >
-          <fact.icon className="h-[18px] w-[18px] text-gold" strokeWidth={1.75} aria-hidden="true" />
+          <fact.icon className="h-[18px] w-[18px] text-pink-600" strokeWidth={1.75} aria-hidden="true" />
           <span className="text-[15px] font-semibold leading-none text-charcoal">{fact.value}</span>
         </div>
       ))}

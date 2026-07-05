@@ -743,7 +743,7 @@ export function LodgingShowcaseForm(props: {
                   {profile.photos.map(photo => (
                     <div
                       key={photo.id ?? photo.url}
-                      className={`overflow-hidden rounded-xl border bg-white ${photo.is_cover ? 'border-gold ring-1 ring-gold' : 'border-gray-100'}`}
+                      className={`overflow-hidden rounded-xl border bg-white ${photo.is_cover ? 'border-pink-600 ring-1 ring-pink-600' : 'border-gray-100'}`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full object-cover" />
@@ -754,7 +754,7 @@ export function LodgingShowcaseForm(props: {
                       {photo.id && (
                         <div className="flex items-center justify-between gap-2 px-3 pb-3">
                           {photo.is_cover ? (
-                            <span className="inline-flex items-center rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-semibold text-gold">
+                            <span className="inline-flex items-center rounded-full bg-pink-600/15 px-2 py-0.5 text-[11px] font-semibold text-pink-600">
                               Couverture
                             </span>
                           ) : (

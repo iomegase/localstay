@@ -17,7 +17,7 @@ export function BentoSection({ title, eyebrow, rows, fallbackCitySlug, showCardC
     <section className="mb-10">
       <div className="mb-4">
         {/* {eyebrow && (
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold">{eyebrow}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">{eyebrow}</p>
         )} */}
         <h2 className="mt-1 uppercase text-2xl font-thin   !text-slate-600">{title}</h2>
       </div>

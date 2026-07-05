@@ -9,7 +9,7 @@ export function LodgingAmenitiesGrid({ title, subtitle, items }: { title: string
       <ul className="grid grid-cols-4 gap-3">
         {items.map(label => (
           <li key={label} className="flex flex-col items-center gap-1.5 text-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-gold">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-pink-600">
               <Check className="h-[18px] w-[18px]" />
             </span>
             <span className="text-[10px] text-gray-600">{label}</span>

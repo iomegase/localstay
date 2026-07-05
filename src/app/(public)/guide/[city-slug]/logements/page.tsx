@@ -72,7 +72,7 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
             Retour
           </Link>
           <div>
-            {/* <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Ou dormir</p> */}
+            {/* <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">Ou dormir</p> */}
             <h1 className="mt-2 text-3xl uppercase font-thin text-charcoal/60">{city.name}</h1>
           </div>
           <p className="text-[11px] text-justify leading-6 tracking-wide italictext-gray-500">
@@ -81,7 +81,7 @@ export default async function LodgingListPage({ params, searchParams }: Props) {
         </header>
 
         {result.items.length === 0 ? (
-          <section className="rounded-3xl border border-dashed border-gold/40 bg-white p-6 text-sm leading-7 text-gray-600 shadow-sm">
+          <section className="rounded-3xl border border-dashed border-pink-600/40 bg-white p-6 text-sm leading-7 text-gray-600 shadow-sm">
             <p className="text-lg font-light text-charcoal">Aucun logement public n'est encore disponible pour cette destination.</p>
             <p className="mt-3">
               Le guide MyStay reste accessible pour preparer votre sejour : adresses locales, sorties, randos et recommandations de ville.

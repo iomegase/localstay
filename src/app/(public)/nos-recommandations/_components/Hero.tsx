@@ -26,11 +26,11 @@ export function Hero({ ownerName, lodgingName, cityName, stats }: Props) {
     <section className="mb-8 overflow-hidden rounded-[2rem] bg-charcoal p-5 text-white shadow-soft">
     
 
-      <h1 className="uppercase text-3xl  leading-[1.05]">{title}</h1>
+      <h1 className="uppercase text-2xl  leading-8 max-w-18">{title}</h1>
       <p className="mt-4 max-w-xl text-sm leading-6 text-white/65">{intro}</p>
 
       <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold">Votre logement</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">Votre logement</p>
         <h2 className="mt-2  text-2xl ">{lodgingName}</h2>
      
         <div className="mt-5 grid grid-cols-3 gap-3">
@@ -42,7 +42,7 @@ export function Hero({ ownerName, lodgingName, cityName, stats }: Props) {
 
       {/* <Link
         href={`/guide/${citySlug}`}
-        className="mt-5 inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white/80 transition hover:border-gold hover:text-gold"
+        className="mt-5 inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white/80 transition hover:border-pink-600 hover:text-pink-600"
       >
         Guide complet
       </Link> */}

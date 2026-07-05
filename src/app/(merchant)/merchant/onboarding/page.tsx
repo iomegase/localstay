@@ -13,7 +13,7 @@ export default async function MerchantOnboardingPage() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Onboarding Merchant</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Onboarding Merchant</p>
         <h1 className="mt-2 font-serif text-4xl italic text-charcoal">Revendiquer mon établissement</h1>
         <p className="mt-3 max-w-2xl text-charcoal/60">
           Recherchez votre fiche existante, puis envoyez une demande de validation à l'équipe MyStay.
@@ -21,7 +21,7 @@ export default async function MerchantOnboardingPage() {
       </div>
 
       {pendingClaim ? (
-        <div className="rounded-2xl border border-gold/30 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-pink-600/30 bg-white p-6 shadow-sm">
           <h2 className="font-semibold text-charcoal">Votre demande est en cours de validation</h2>
           <p className="mt-2 text-sm text-charcoal/60">
             Demande créée le {new Intl.DateTimeFormat('fr-FR').format(pendingClaim.created_at)}.

@@ -12,7 +12,7 @@ export default async function MerchantProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Ma fiche</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Ma fiche</p>
         <h1 className="mt-2 font-serif text-4xl italic text-charcoal">Informations publiques</h1>
       </div>
       <MerchantProfileForm profile={profile} />

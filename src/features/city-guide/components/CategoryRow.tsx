@@ -59,20 +59,20 @@ export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlu
             <div
               className={`relative w-14 h-14 rounded-full border flex items-center justify-center group-hover:shadow-md transition-shadow active:scale-95 ${
                 isActive
-                  ? 'bg-gold border-gold text-white shadow-md'
-                  : 'bg-white border-gray-100 text-gold'
+                  ? 'bg-pink-600 border-pink-600 text-white shadow-md'
+                  : 'bg-white border-gray-100 text-pink-600'
               }`}
             >
               <CategoryIcon iconSlug={cat.icon} className="w-5 h-5" />
               <span
                 className={`absolute -top-1 -right-1 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none ${
-                  isActive ? 'bg-white text-gold' : 'bg-gold text-white'
+                  isActive ? 'bg-white text-pink-600' : 'bg-pink-600 text-white'
                 }`}
               >
                 {cat.poi_count > 9 ? '9+' : cat.poi_count}
               </span>
             </div>
-            <span className="text-[9px] text-gold font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
+            <span className="text-[9px] text-pink-600 font-bold uppercase tracking-widest text-center max-w-[56px] leading-tight">
               {splitLongWords(cat.name)}
             </span>
           </Link>

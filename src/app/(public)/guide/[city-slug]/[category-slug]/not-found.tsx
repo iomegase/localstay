@@ -6,7 +6,7 @@ export default function CategoryNotFound() {
       <h1 className="font-serif italic text-2xl text-charcoal">Catégorie introuvable</h1>
       <Link
         href="/"
-        className="text-xs font-bold uppercase tracking-widest text-gold underline underline-offset-4"
+        className="text-xs font-bold uppercase tracking-widest text-pink-600 underline underline-offset-4"
       >
         Retour à l&apos;accueil
       </Link>

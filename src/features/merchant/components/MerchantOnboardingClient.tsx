@@ -148,7 +148,7 @@ export function MerchantOnboardingClient({ cities = [], categories = [] }: Merch
               <div>
                 <h3 className="font-semibold text-charcoal">{poi.name}</h3>
                 <p className="text-sm text-charcoal/60">{poi.address}</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-gold">
+                <p className="text-xs uppercase tracking-[0.18em] text-pink-600">
                   {[poi.city_name, poi.category_name, poi.subcategory_name].filter(Boolean).join(' · ')}
                 </p>
               </div>

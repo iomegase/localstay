@@ -89,7 +89,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
 
 {/*
       <div className="space-y-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Comment s&apos;y rendre</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#db2777]">Comment s&apos;y rendre</p>
         <InfoCard icon={<MapPin className="h-5 w-5" />} title="Départ conseillé">
           <p className="mt-1 text-[11px] uppercase tracking-wider text-[#455E4C]">{trail.start_label ?? address}</p>
           {hasStart && (
@@ -112,7 +112,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
 
       {hasPractical && (
         <div className="space-y-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">À savoir</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#db2777]">À savoir</p>
           {trail.parking_info && (
             <InfoCard icon={<ParkingCircle className="h-5 w-5" />} title="Parking">
               <p className="mt-1 text-[11px] uppercase tracking-wider text-[#455E4C]" data-testid="trail-parking">
@@ -156,7 +156,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
 
       {/* {(trail.primary_source_type || attribution) && (
         <div className="rounded-[28px] border border-charcoal/5 bg-white p-5 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#A68E69]">Randonnée</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#db2777]">Randonnée</p>
           <p className="mt-3 text-xs leading-5 text-charcoal/60">
             Source principale&nbsp;: {trail.primary_source_type}
             {attribution ? ` · ${attribution}` : ''}

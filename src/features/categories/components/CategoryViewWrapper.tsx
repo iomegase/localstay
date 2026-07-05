@@ -159,7 +159,7 @@ export function CategoryViewWrapper({
 
       {/* Liste des POI */}
       <section id="poi-list-section" className="mt-6 " data-testid="poi-list-view">
-        {/* <h2 className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+        {/* <h2 className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">
           Quelques recommandations 
         </h2> */}
 

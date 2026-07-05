@@ -113,7 +113,7 @@ export default async function LodgingDetailPage({ params }: Props) {
         <LodgingExcerpt text={detail.short_description} />
 
         <section className="mx-4 mt-6">
-          <p className="mb-2 text-[11px] uppercase tracking-widest text-gold">À propos</p>
+          <p className="mb-2 text-[11px] uppercase tracking-widest text-pink-600">À propos</p>
           <p className="whitespace-pre-line text-[12px] font-light leading-[1.8] text-gray-600">{detail.description}</p>
         </section>
 

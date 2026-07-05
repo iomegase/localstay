@@ -88,7 +88,7 @@ export function MerchantOffersClient({ initialOffers }: Props) {
           <Card key={offer.id}>
             <CardContent className="flex items-start justify-between gap-4 p-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600">
                   {offer.status === 'active' ? 'Active' : 'Expirée'}
                 </p>
                 <h2 className="mt-1 font-semibold text-charcoal">{offer.title}</h2>

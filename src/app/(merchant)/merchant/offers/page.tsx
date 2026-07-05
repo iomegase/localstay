@@ -12,7 +12,7 @@ export default async function MerchantOffersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Offres</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Offres</p>
         <h1 className="mt-2 font-serif text-4xl italic text-charcoal">Offres spéciales</h1>
       </div>
       <MerchantOffersClient initialOffers={offers} />

@@ -93,7 +93,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
 
         {/* Header */}
         <header className="px-6">
-          <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+          <span className="text-[9px] font-bold uppercase tracking-widest text-pink-600">
             {blogCategoryLabel(article.category)}
           </span>
           <h1 className="mt-1 text-xl uppercase leading-tight text-charcoal">{article.title}</h1>

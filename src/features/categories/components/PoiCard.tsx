@@ -186,7 +186,7 @@ export function PoiCard({
             />
           </>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#bd9254]/20 to-[#bd9254]/5" />
+          <div className="w-full h-full bg-gradient-to-br from-pink-600/20 to-pink-600/5" />
         )}
         {hasMultiplePhotos && (
           <>
@@ -267,7 +267,7 @@ export function PoiCard({
               {[1, 2, 3, 4, 5].map(n => (
                 <Star
                   key={n}
-                  className={`h-3 w-3 ${n <= Math.round(displayRating) ? 'fill-[#bd9254] text-[#bd9254]' : 'text-gray-300'}`}
+                  className={`h-3 w-3 ${n <= Math.round(displayRating) ? 'fill-pink-600 text-pink-600' : 'text-gray-300'}`}
                 />
               ))}
               <span className="ml-1 text-[10px] font-semibold text-gray-500">{displayRating.toFixed(1)}</span>

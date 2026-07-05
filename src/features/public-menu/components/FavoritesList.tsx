@@ -26,7 +26,7 @@ export function FavoritesList() {
   if (favorites.length === 0) {
     return (
       <div className="border border-dashed border-gray-200 bg-white p-8 text-center shadow-sm">
-        <Heart className="mx-auto h-8 w-8 text-[#A68E69]" />
+        <Heart className="mx-auto h-8 w-8 text-pink-600" />
         <p className="mt-3 text-sm text-gray-500">
           Aucun favori pour le moment.
         </p>
@@ -59,7 +59,7 @@ function FavoriteCard({ fav, onOpen }: { fav: FavoritePoi; onOpen: () => void })
     >
       <div
         data-testid={`favorite-card-hero-${fav.poi_id}`}
-        className="relative h-[220px] shrink-0 overflow-hidden bg-gradient-to-br from-[#bd9254]/20 to-[#bd9254]/5"
+        className="relative h-[220px] shrink-0 overflow-hidden bg-gradient-to-br from-pink-600/20 to-pink-600/5"
       >
         {fav.photo ? (
           <img
@@ -69,7 +69,7 @@ function FavoriteCard({ fav, onOpen }: { fav: FavoritePoi; onOpen: () => void })
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[#A68E69]">
+          <div className="flex h-full w-full items-center justify-center text-pink-600">
             <Heart className="h-8 w-8" />
           </div>
         )}

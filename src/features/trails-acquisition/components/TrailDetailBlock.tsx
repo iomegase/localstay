@@ -19,7 +19,7 @@ export function TrailDetailBlock({ trail }: Props) {
 
   return (
     <section className="rounded-[28px] bg-white p-5 shadow-sm border border-charcoal/5" data-testid="trail-detail-block">
-      <div className="flex items-center gap-2 text-gold">
+      <div className="flex items-center gap-2 text-pink-600">
         <Route className="h-5 w-5" />
         <h2 className="text-sm font-bold uppercase tracking-[0.18em]">Randonnée</h2>
       </div>
@@ -38,7 +38,7 @@ export function TrailDetailBlock({ trail }: Props) {
       )}
 
       <div className="mt-4 flex items-start gap-2 rounded-2xl bg-ivory px-4 py-3 text-xs text-charcoal/60">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-pink-600" />
         <p>
           Source principale : {trail.primary_source_type}
           {attribution ? ` · ${attribution}` : ''}

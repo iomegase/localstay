@@ -54,7 +54,7 @@ export function FavoritePoiModal({ fav, onClose }: { fav: FavoritePoi; onClose: 
       >
         {status === 'loading' && (
           <div className="flex h-full items-center justify-center" data-testid="favorite-poi-loading">
-            <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-gold/30 border-t-gold" />
+            <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-pink-600/30 border-t-pink-600" />
           </div>
         )}
 

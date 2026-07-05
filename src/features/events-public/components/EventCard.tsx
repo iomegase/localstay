@@ -49,7 +49,7 @@ export function EventCard({
           ))}
         </div>
         <h3 className="mt-1 line-clamp-2 text-sm font-medium text-charcoal">{event.title}</h3>
-        <p className="mt-1 flex items-center gap-1 text-xs text-gold">
+        <p className="mt-1 flex items-center gap-1 text-xs text-pink-600">
           <CalendarDays className="h-3 w-3" /> {event.dateLabel}
         </p>
         <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-gray-400">

@@ -14,7 +14,7 @@ export function LodgingFaq({ items }: { items: Array<{ id: string; question: str
           <details key={item.id} className="group overflow-hidden rounded-xl bg-white shadow-sm">
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3.5">
               <span className="text-[13px] font-semibold text-charcoal">{item.question}</span>
-              <ChevronDown className="h-4 w-4 shrink-0 text-gold transition-transform duration-300 group-open:rotate-180" />
+              <ChevronDown className="h-4 w-4 shrink-0 text-pink-600 transition-transform duration-300 group-open:rotate-180" />
             </summary>
             <p className="px-4 pb-4 text-[12px] font-light leading-relaxed text-gray-600">{item.answer}</p>
           </details>

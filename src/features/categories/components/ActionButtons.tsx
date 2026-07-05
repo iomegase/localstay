@@ -123,7 +123,7 @@ function ModalFooterActions({
         <a
           href={telHref}
           data-testid="btn-call"
-          className="group col-start-1 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-[#bd9254] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
+          className="group col-start-1 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
           aria-label="Appeler"
         >
           <Phone className="h-5 w-5 shrink-0" />
@@ -139,7 +139,7 @@ function ModalFooterActions({
           target="_blank"
           rel="noopener noreferrer"
           data-testid="btn-site"
-          className="group col-start-2 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-[#bd9254] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
+          className="group col-start-2 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
           aria-label="Site"
         >
           <Globe className="h-5 w-5 shrink-0" />
@@ -154,7 +154,7 @@ function ModalFooterActions({
         target="_blank"
         rel="noopener noreferrer"
         data-testid="btn-directions"
-        className="group col-start-3 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-[#bd9254] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
+        className="group col-start-3 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
       >
         <Navigation className="h-5 w-5 shrink-0" />
         <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">

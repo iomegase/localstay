@@ -82,7 +82,7 @@ export function GeolocationPrompt() {
 
             <div className="flex flex-col items-center px-8 pb-8 pt-10 text-center">
               <motion.div
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-gold/12 text-gold"
+                className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-600/12 text-pink-600"
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.1, type: 'spring', stiffness: 260, damping: 18 }}
@@ -90,7 +90,7 @@ export function GeolocationPrompt() {
                 <LocateFixed className="h-7 w-7" />
               </motion.div>
 
-              <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+              <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">
                 Autour de vous
               </p>
               <h2

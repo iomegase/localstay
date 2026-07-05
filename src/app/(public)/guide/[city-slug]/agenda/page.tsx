@@ -33,7 +33,7 @@ export default async function AgendaPage({ params, searchParams }: Props) {
   return (
     <>
       <div className="p-4">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gold">Le guide</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-pink-600">Le guide</p>
         <h1 className="text-2xl font-light uppercase text-charcoal">Sorties &amp; manifestations</h1>
       </div>
 
@@ -44,7 +44,7 @@ export default async function AgendaPage({ params, searchParams }: Props) {
           <p className="text-sm leading-relaxed text-gray-500">Aucune sortie à venir pour le moment.</p>
           <Link
             href={`/guide/${slug}`}
-            className="text-xs font-bold uppercase tracking-widest text-gold underline underline-offset-4"
+            className="text-xs font-bold uppercase tracking-widest text-pink-600 underline underline-offset-4"
           >
             Retour au guide
           </Link>

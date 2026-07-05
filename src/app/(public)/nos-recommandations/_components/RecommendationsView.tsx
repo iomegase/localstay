@@ -80,7 +80,7 @@ export async function RecommendationsView({
 
           {otherByCity.length > 0 && (
             <div className="mb-2">
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">
                 Un peu plus loin dans la vallée...
               </p>
               {otherByCity.map(group => (

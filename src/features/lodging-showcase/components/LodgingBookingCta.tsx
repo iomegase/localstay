@@ -23,7 +23,7 @@ export function LodgingBookingCta({
         className="relative overflow-hidden rounded-2xl px-5 py-6"
         style={{ background: 'linear-gradient(135deg, #003A5D 0%, #002a43 100%)' }}
       >
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gold opacity-10" />
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-pink-600 opacity-10" />
         <p className="mb-1 text-[18px] font-light leading-snug text-white">Réserver ou contacter</p>
         <p className="mb-4 text-[11px] font-light leading-relaxed text-white/70">
           Vérifiez les disponibilités ou posez vos questions directement depuis la fiche.
@@ -45,7 +45,7 @@ export function LodgingBookingCta({
             platform={externalBookingPlatform}
             citySlug={citySlug}
             lodgingId={lodgingId}
-            className="w-full justify-center rounded-xl bg-gold px-7 py-3 text-center text-[14px] font-semibold text-white shadow-md transition-all hover:opacity-90"
+            className="w-full justify-center rounded-xl bg-pink-600 px-7 py-3 text-center text-[14px] font-semibold text-white shadow-md transition-all hover:opacity-90"
           />
         </div>
       </div>

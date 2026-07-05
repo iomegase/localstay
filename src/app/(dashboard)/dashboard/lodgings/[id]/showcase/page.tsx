@@ -31,7 +31,7 @@ export default async function LodgingShowcasePage({ params }: Props) {
 
       <header className="flex flex-col justify-between gap-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm md:flex-row md:items-center">
         <div className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Vitrine publique</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">Vitrine publique</p>
           <div>
             <h1 className="text-3xl font-light text-charcoal">{data.lodging.name}</h1>
             <p className="mt-2 text-sm text-gray-500">
@@ -51,9 +51,9 @@ export default async function LodgingShowcasePage({ params }: Props) {
         </Link>
       </header>
 
-      <div className="rounded-2xl border border-gold/20 bg-gold/5 p-4 text-sm leading-6 text-charcoal">
+      <div className="rounded-2xl border border-pink-600/20 bg-pink-600/5 p-4 text-sm leading-6 text-charcoal">
         <div className="flex items-start gap-3">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-pink-600" />
           <p>
             Cette fiche publique reste distincte de <code>/le-logement</code> : ici, l&apos;objectif est l&apos;acquisition SEO et la mise en valeur publique du logement.
           </p>

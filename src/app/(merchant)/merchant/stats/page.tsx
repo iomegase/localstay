@@ -13,7 +13,7 @@ export default async function MerchantStatsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Statistiques</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-600">Statistiques</p>
         <h1 className="mt-2 font-serif text-4xl italic text-charcoal">Visibilité 30 jours</h1>
       </div>
 

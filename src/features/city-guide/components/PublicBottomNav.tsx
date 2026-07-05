@@ -173,7 +173,7 @@ function NavItem({
     <Link
       href={href}
       className={`group flex flex-col items-center gap-1 transition-colors ${
-        active ? 'text-[#bd9254]' : 'text-[#6f7480] hover:text-[#bd9254]'
+        active ? 'text-pink-600' : 'text-[#6f7480] hover:text-pink-600'
       }`}
     >
       {icon}

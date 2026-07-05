@@ -45,7 +45,7 @@ export function LodgingLocationMap({
             href={mapsDirectionUrl(latitude, longitude)}
             target="_blank"
             rel="noopener noreferrer"
-            className="pointer-events-auto text-[10px] font-semibold text-gold"
+            className="pointer-events-auto text-[10px] font-semibold text-pink-600"
           >
             Itinéraire →
           </a>

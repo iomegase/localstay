@@ -5,7 +5,7 @@ export default function CityNotFound() {
   return (
     <div className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 overflow-hidden">
       {/* Élément décoratif en arrière-plan (Cercle subtil) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gold/5 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-600/5 rounded-full blur-3xl -z-10" />
 
       <div className="max-w-md w-full text-center space-y-8">
         
@@ -15,7 +15,7 @@ export default function CityNotFound() {
             <svg 
               viewBox="0 0 24 24" 
               fill="none" 
-              className="w-16 h-16 text-gold/40 stroke-[1px]" 
+              className="w-16 h-16 text-pink-600/40 stroke-[1px]" 
               stroke="currentColor"
             >
               <path d="M12 21s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 7.2c0 7.3-8 11.8-8 11.8z" />
@@ -34,7 +34,7 @@ export default function CityNotFound() {
           </h2>
           
           <div className="flex justify-center">
-            <div className="h-[1px] w-12 bg-gold/50" />
+            <div className="h-[1px] w-12 bg-pink-600/50" />
           </div>
 
           <p className="text-base text-gray-500 font-light max-w-[280px] mx-auto leading-relaxed">
@@ -48,12 +48,12 @@ export default function CityNotFound() {
             href="/"
             className="group relative inline-flex flex-col items-center gap-2 transition-all duration-300"
           >
-            <span className="text-xs font-bold uppercase tracking-[0.3em] text-gold group-hover:text-charcoal transition-colors">
+            <span className="text-xs font-bold uppercase tracking-[0.3em] text-pink-600 group-hover:text-charcoal transition-colors">
               {t('guide.back_home')}
             </span>
             {/* Ligne animée sous le lien */}
-            <span className="h-[1px] w-full bg-gold/30 overflow-hidden">
-              <span className="block h-full w-full bg-gold -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
+            <span className="h-[1px] w-full bg-pink-600/30 overflow-hidden">
+              <span className="block h-full w-full bg-pink-600 -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
             </span>
           </Link>
         </div>

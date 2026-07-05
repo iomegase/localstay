@@ -42,7 +42,7 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, revealControlsOnHov
 
   return (
     <div
-      className="group relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-gold/20 to-gold/5"
+      className="group relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-pink-600/20 to-pink-600/5"
       data-testid="poi-detail-hero-carousel"
     >
       {currentPhoto ? (
@@ -70,7 +70,7 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, revealControlsOnHov
           />
         </>
       ) : (
-        <div className="h-full w-full bg-gradient-to-br from-gold/20 to-gold/5" />
+        <div className="h-full w-full bg-gradient-to-br from-pink-600/20 to-pink-600/5" />
       )}
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />

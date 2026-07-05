@@ -102,7 +102,7 @@ export function TrailPoiDetailBody({
           {/* En-tête — style standard POI */}
           <div className="flex items-start justify-between px-6">
             <div className="min-w-0 flex-1">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-pink-600">
                 {DIFFICULTY_LABELS[trail.difficulty]} · {poi.category.name}
               </span>
               <h1 className="mt-1 text-xl uppercase leading-tight text-charcoal">{poi.name}</h1>
@@ -138,7 +138,7 @@ export function TrailPoiDetailBody({
         />
 
         <section className="px-4 pt-8">
-          {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#A68E69]">Comment s’y rendre</p> */}
+          {/* <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#db2777]">Comment s’y rendre</p> */}
           <div className="space-y-3">
             <InfoCard icon={<MapPin className="h-5 w-5" />} title="Départ conseillé">
               <p className="mt-1 text-[11px] uppercase tracking-wider text-[#455E4C]">{trail.start_label ?? poi.address}</p>
@@ -175,7 +175,7 @@ export function TrailPoiDetailBody({
 
         <section className="px-4" data-testid="trail-detail-block">
           <div className="p-5 ">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#A68E69]">Datas</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#db2777]">Datas</p>
             <p className="mt-3 text-[10px] leading-5 text-charcoal/60">
               Source principale : {trail.primary_source_type}
               {attribution ? ` · ${attribution}` : ''}
