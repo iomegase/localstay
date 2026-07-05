@@ -50,6 +50,7 @@ export type AdminUserRow = {
   is_active: boolean
   created_at: string
   subscription_status: string | null
+  active_lodging_count: number
 }
 
 const BILLING_NOTICE = 'Facturation non activée en MVP 2'
@@ -200,6 +201,9 @@ export async function getAdminUsers(role?: AdminUserRole): Promise<AdminUserRow[
         take: 1,
         select: { status: true },
       },
+      _count: {
+        select: { lodgings: { where: { deleted_at: null } } },
+      },
     },
   })
 
@@ -210,5 +214,6 @@ export async function getAdminUsers(role?: AdminUserRole): Promise<AdminUserRow[
     is_active: user.is_active,
     created_at: user.created_at.toISOString(),
     subscription_status: user.subscriptions[0]?.status ?? null,
+    active_lodging_count: user._count.lodgings,
   }))
 }
