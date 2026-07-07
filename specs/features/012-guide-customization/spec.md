@@ -433,6 +433,7 @@ components:
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
 - `/le-logement` affiche les informations pratiques du logement
 - `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné
+- Sur `/nos-recommandations`, chaque recommandation Owner non-randonnée affiche le statut horaire public déjà utilisé par les cards POI quand les données horaires existent : badge "Ouvert" ou "Fermé", puis "Ferme à <heure>" si ouvert ou "Ouvre <jour/heure>" si fermé. Si `is_open_now` et `hours` ne permettent pas de déterminer le statut, aucun badge horaire n'est rendu. Les cards de recommandation n'affichent jamais le nom de catégorie en texte ; elles affichent uniquement l'icône Lucide de la Category, avec fallback d'icône si nécessaire.
 - `/guide/[city-slug]/logements/[lodging-slug]` affiche les recommandations locales puis une section "À découvrir ailleurs" séparée et groupée par City, avec les commentaires Owner
 - Les liens d'une recommandation utilisent toujours le slug de la City réelle du POI
 - `/guide/[city-slug]/[category-slug]/[poi-slug]` affiche "Le mot de votre hôte" uniquement si le cookie de séjour identifie le Lodging qui recommande ce POI avec une note non vide

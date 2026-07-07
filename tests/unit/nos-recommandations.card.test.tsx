@@ -22,7 +22,7 @@ function makeRow(over: Partial<RecRow['poi']> = {}, note: string | null = null):
       slug: 'bistrot-du-centre',
       description: 'Cuisine locale.',
       photos: ['https://cdn.test/x.jpg'],
-      category: { name: 'Restaurants', slug: 'restaurants' },
+      category: { name: 'Restaurants', slug: 'restaurants', icon: 'utensils' },
       city: null,
       ...over,
     },
@@ -57,13 +57,14 @@ describe('RecommendationCard', () => {
     expect(screen.queryByTestId('owner-recommendation-comment')).not.toBeInTheDocument()
   })
 
-  it('shows the category label by default', () => {
+  it('shows the category icon by default instead of the category label', () => {
     render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="x" />)
-    expect(screen.getByText('Restaurants')).toBeInTheDocument()
+    expect(screen.queryByText('Restaurants')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Restaurants')).toBeInTheDocument()
   })
 
-  it('hides the category label when showCategory is false', () => {
+  it('hides the category icon when showCategory is false', () => {
     render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="x" showCategory={false} />)
-    expect(screen.queryByText('Restaurants')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Restaurants')).not.toBeInTheDocument()
   })
 })

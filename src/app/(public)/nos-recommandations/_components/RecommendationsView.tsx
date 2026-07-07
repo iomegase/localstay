@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
 import type { LodgingModeContext } from '@/features/public-menu/lib/lodging-mode'
+import type { PoiHours } from '@/features/categories/types'
+import { computeIsOpenNow, getNextOpenLabel, getTodayCloseLabel } from '@/features/categories/lib/is-open-now'
 import { Hero } from './Hero'
 import { BentoSection } from './BentoSection'
 import type { RecRow } from './variants'
@@ -11,7 +13,7 @@ export async function RecommendationsView({
 }: {
   lodgingContext: LodgingModeContext
 }) {
-  const featuredPois = (await prisma.lodgingFeaturedPoi.findMany({
+  const featuredRows = await prisma.lodgingFeaturedPoi.findMany({
     where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
@@ -24,12 +26,28 @@ export async function RecommendationsView({
           slug: true,
           description: true,
           photos: true,
-          category: { select: { name: true, slug: true } },
+          is_open_now: true,
+          hours: true,
+          category: { select: { name: true, slug: true, icon: true } },
           city: { select: { slug: true, name: true } },
         },
       },
     },
-  })) as RecRow[]
+  })
+
+  const featuredPois: RecRow[] = featuredRows.map(row => {
+    const hours = row.poi.hours as PoiHours | null
+    return {
+      ...row,
+      poi: {
+        ...row.poi,
+        hours,
+        is_open_now: computeIsOpenNow(hours) ?? row.poi.is_open_now,
+        closes_at_label: getTodayCloseLabel(hours),
+        next_open_label: getNextOpenLabel(hours),
+      },
+    }
+  })
 
   // Résolution défensive : un POI sans city rattaché est considéré local.
   const cityOf = (row: RecRow) => row.poi.city?.slug ?? lodgingContext.citySlug

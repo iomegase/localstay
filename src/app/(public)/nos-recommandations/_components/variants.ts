@@ -1,3 +1,5 @@
+import type { PoiHours } from '@/features/categories/types'
+
 export type RecRow = {
   poi_id: string
   owner_note: string | null
@@ -7,7 +9,11 @@ export type RecRow = {
     slug: string
     description: string | null
     photos: string[]
-    category: { name: string; slug: string }
+    is_open_now?: boolean | null
+    hours?: PoiHours | null
+    closes_at_label?: string | null
+    next_open_label?: string | null
+    category: { name: string; slug: string; icon?: string | null }
     city?: { slug: string; name: string } | null
   }
 }

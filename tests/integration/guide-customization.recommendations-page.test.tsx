@@ -33,6 +33,7 @@ jest.mock('next/link', () => ({
 describe('012 recommendations page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    jest.useRealTimers()
   })
 
   it('AC-02-01/AC-02-02: shows owner recommendations on /nos-recommandations', async () => {
@@ -158,5 +159,47 @@ describe('012 recommendations page', () => {
     })
 
     expect(screen.queryByText('Cuisine de saison.')).not.toBeInTheDocument()
+  })
+
+  it('AC-02-01: shows opening status and next timing on owner recommendation cards', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-06T12:00:00+02:00'))
+    jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
+      {
+        poi_id: 'poi-open',
+        owner_note: null,
+        poi: {
+          id: 'poi-open',
+          name: 'Table Ouverte',
+          slug: 'table-ouverte',
+          description: 'Service continu.',
+          photos: [],
+          is_open_now: true,
+          hours: { '1': { open: '09:00', close: '23:00' } },
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+      {
+        poi_id: 'poi-closed',
+        owner_note: null,
+        poi: {
+          id: 'poi-closed',
+          name: 'Café Fermé',
+          slug: 'cafe-ferme',
+          description: 'Pause café.',
+          photos: [],
+          is_open_now: false,
+          hours: { '1': { open: '16:00', close: '20:00' } },
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+    ] as never)
+
+    render(await NosRecommendationsPage())
+
+    expect(screen.getByTestId('recommendation-status-poi-open')).toHaveTextContent('Ouvert')
+    expect(screen.getByTestId('recommendation-timing-poi-open')).toHaveTextContent('Ferme à 23h')
+    expect(screen.getByTestId('recommendation-status-poi-closed')).toHaveTextContent('Fermé')
+    expect(screen.getByTestId('recommendation-timing-poi-closed')).toHaveTextContent("Ouvre aujourd'hui à 16h")
+    jest.useRealTimers()
   })
 })
