@@ -24,36 +24,41 @@ type Theme = {
   bg: string
   text: string
   muted: string
+  border: string
+  shadow: string
+  iconTileBg: string
+  iconColor: string
   actionBg: string
   actionIcon: string
   isDark: boolean
 }
 
-const themes: Record<'slate' | 'light' | 'red', Theme> = {
-  slate: { 
-    bg: 'bg-[#8FA3B5]', 
-    text: 'text-white', 
-    muted: 'text-white/70', 
-    actionBg: 'bg-white', 
-    actionIcon: 'text-[#8FA3B5]',
-    isDark: true 
-  },
-  light: { 
-    bg: 'bg-white', 
-    text: 'text-[#1A1D1F]', 
-    muted: 'text-[#6F767E]', 
-    actionBg: 'bg-[#F4F5F6]', 
-    actionIcon: 'text-[#1A1D1F]',
-    isDark: false 
+const themes: Record<'light' | 'red', Theme> = {
+  // Thème « Airbnb » : carte blanche, bord fin, ombre discrète, tuile d'icône gris clair
+  light: {
+    bg: 'bg-white',
+    text: 'text-[#222222]',
+    muted: 'text-[#717171]',
+    border: 'border border-[#EBEBEB]',
+    shadow: 'shadow-[0_1px_2px_rgba(0,0,0,0.06)]',
+    iconTileBg: 'bg-[#F7F7F7]',
+    iconColor: 'text-[#222222]',
+    actionBg: 'bg-[#F7F7F7]',
+    actionIcon: 'text-[#222222]',
+    isDark: false,
   },
   red: {
-    bg: 'bg-red-500', 
-    text: 'text-white', 
-    muted: 'text-white/80', 
-    actionBg: 'bg-white', 
+    bg: 'bg-red-500',
+    text: 'text-white',
+    muted: 'text-white/80',
+    border: '',
+    shadow: 'shadow-[0_1px_2px_rgba(0,0,0,0.06)]',
+    iconTileBg: 'bg-white/15',
+    iconColor: 'text-white',
+    actionBg: 'bg-white',
     actionIcon: 'text-red-500',
-    isDark: true 
-  }
+    isDark: true,
+  },
 }
 
 export default async function LeLogementPage() {
@@ -114,7 +119,7 @@ export default async function LeLogementPage() {
       )}
 
         {customization?.welcome_message && (
-        <div className={`mb-10 px-4 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}>
+        <div className={`mb-10 px-6 py-4 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}>
           <MarkdownText source={customization.welcome_message} breaks />
         </div>
       )}
@@ -152,10 +157,9 @@ export default async function LeLogementPage() {
           </div>
 
           <div className="flex flex-col gap-4 pb-10 ">
-            {practicalBlocks.map((block, index) => {
-              const theme = index % 2 === 0 ? themes.light : themes.slate
-              return <PracticalBlockCard key={block.id} block={block} theme={theme} />
-            })}
+            {practicalBlocks.map((block) => (
+              <PracticalBlockCard key={block.id} block={block} theme={themes.light} />
+            ))}
           </div>
         </LodgingPager>
       )}
@@ -171,10 +175,12 @@ const getMarkdownTextStyles = (isDark: boolean) =>
 
 function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Theme }) {
   return (
-    <section className={`w-full rounded-[40px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.01] ${theme.bg} ${theme.text}`}>
+    <section className={`w-full rounded-[24px] p-6 sm:p-8 flex flex-col transition-colors hover:border-[#DDDDDD] ${theme.bg} ${theme.text} ${theme.border} ${theme.shadow}`}>
       <div className="flex items-center gap-3 mb-6">
-        <CategoryIcon iconSlug={block.icon} className={`h-8 w-8 shrink-0 ${theme.muted}`} />
-        <h2 className="font-bold text-[28px] tracking-tight">{block.title}</h2>
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${theme.iconTileBg}`}>
+          <CategoryIcon iconSlug={block.icon} className={`h-6 w-6 ${theme.iconColor}`} />
+        </div>
+        <h2 className="font-semibold text-[26px] tracking-tight">{block.title}</h2>
       </div>
 
       {/* 🚀 OPTIMISATION : Aspect 2/1 pour éviter l'écrasement de l'image (comme sur vos maquettes) */}
@@ -210,16 +216,18 @@ function PracticalCard({ section }: { section: Section }) {
     ? 'w-[calc(50%-8px)] sm:w-48 aspect-square' 
     : 'w-full min-h-[160px] sm:min-h-[200px]'
 
-  const innerClasses = `relative group rounded-[32px] p-6 sm:p-8 flex flex-col shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition-transform hover:scale-[1.02] ${theme.bg} ${theme.text} h-full w-full`
+  const innerClasses = `relative group rounded-[24px] p-6 sm:p-8 flex flex-col transition-colors hover:border-[#DDDDDD] ${theme.bg} ${theme.text} ${theme.border} ${theme.shadow} h-full w-full`
 
   const CardContent = (
     <section className={innerClasses}>
       <div className={`flex justify-between items-center w-full ${isSquare ? 'mb-3' : 'mb-6'}`}>
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`shrink-0 ${theme.muted}`}>
-            {section.icon}
-          </div>
-          <h2 className={`font-bold tracking-tight truncate ${isSquare ? 'text-lg leading-tight' : 'text-xl sm:text-2xl'}`}>{section.title}</h2>
+          {section.icon && (
+            <div className={`flex shrink-0 items-center justify-center rounded-xl ${theme.iconTileBg} ${isSquare ? 'h-10 w-10' : 'h-12 w-12'} ${theme.iconColor}`}>
+              {section.icon}
+            </div>
+          )}
+          <h2 className={`font-semibold tracking-tight truncate ${isSquare ? 'text-lg leading-tight' : 'text-xl sm:text-2xl'}`}>{section.title}</h2>
         </div>
         {mapUrl && (
           <div className={`shrink-0 rounded-full flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 transition-colors ${theme.actionBg}`}>
@@ -286,13 +294,13 @@ function buildSections(row: any): Section[] {
   const bins: TrashBin[] = Array.isArray(row?.trash_bins) ? row.trash_bins : []
 
   return [
-    { key: 'address', title: 'Adresse', icon: <MapPin className="h-7 w-7" />, value: row?.lodging_address ?? null, hasValue: has(row?.lodging_address), format: 'address', theme: themes.slate },
+    { key: 'address', title: 'Adresse', icon: <MapPin className="h-7 w-7" />, value: row?.lodging_address ?? null, hasValue: has(row?.lodging_address), format: 'address', theme: themes.light },
     { key: 'wifi', title: 'Réseau Wi-Fi', icon: <Wifi className="h-7 w-7" />, value: wifiCombined, hasValue: Boolean(wifiCombined), format: 'wifi', theme: themes.light },
-    { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.slate },
+    { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.light },
     { key: 'checkout', title: 'Départ', icon: <LogOut className="h-7 w-7" />, value: row?.checkout_instructions ?? null, hasValue: has(row?.checkout_instructions), format: 'markdown', theme: themes.light },
     { key: 'trash', title: 'Poubelles', icon: null, value: null, hasValue: (bins.length > 0) || has(row?.trash_location), format: 'markdown', mapsLocation: row?.trash_location ?? null, bins, theme: themes.light },
     { key: 'equipment', title: 'Équipements', icon: <Settings className="h-7 w-7" />, value: row?.equipment_info ?? null, hasValue: has(row?.equipment_info), format: 'markdown', theme: themes.light },
-    { key: 'rules', title: 'Règlement', icon: <Scroll className="h-7 w-7" />, value: row?.house_rules ?? null, hasValue: has(row?.house_rules), format: 'markdown', theme: themes.slate },
+    { key: 'rules', title: 'Règlement', icon: <Scroll className="h-7 w-7" />, value: row?.house_rules ?? null, hasValue: has(row?.house_rules), format: 'markdown', theme: themes.light },
     { key: 'services', title: 'Services', icon: <Sparkles className="h-7 w-7" />, value: row?.useful_services ?? null, hasValue: has(row?.useful_services), format: 'markdown', theme: themes.light },
     { key: 'emergency', title: 'Urgences', icon: <PhoneCall className="h-7 w-7" />, value: row?.emergency_contacts ?? null, hasValue: has(row?.emergency_contacts), format: 'markdown', theme: themes.red, isSquare: true },
   ]
