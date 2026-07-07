@@ -104,7 +104,7 @@ export async function RecommendationsView({
               {otherByCity.map(group => (
                 <BentoSection
                   key={group.citySlug}
-                  title={`À ${group.cityName}`}
+                  title={formatOtherCityTitle(group.cityName)}
                   rows={group.items}
                   fallbackCitySlug={lodgingContext.citySlug}
                 />
@@ -148,6 +148,15 @@ function groupByCity(rows: RecRow[]): CityGroup[] {
     }
   }
   return [...map.values()]
+}
+
+function formatOtherCityTitle(cityName: string) {
+  const trimmedCityName = cityName.trim()
+  if (trimmedCityName.toLocaleLowerCase('fr-FR').startsWith('les ')) {
+    return `Aux ${trimmedCityName.slice(4)}`
+  }
+
+  return `À ${trimmedCityName}`
 }
 
 function EmptyState({ citySlug }: { citySlug: string }) {

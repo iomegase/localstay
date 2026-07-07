@@ -54,7 +54,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 
 #### Acceptance Criteria
 
-- **AC-02-01**: Given la liste des POI d'une catégorie, When l'Owner en sélectionne jusqu'à 5 comme favoris, Then ces POI apparaissent dans la page `/nos-recommandations` pour les Tourists de ce logement
+- **AC-02-01**: Given la liste des POI d'une catégorie, When l'Owner en sélectionne jusqu'à 5 comme favoris, Then ces POI apparaissent dans la page `/nos-recommandations` pour les Tourists de ce logement, et les groupes inter-villes dont la City commence par "Les" affichent un titre contracté en "Aux" (ex. "Aux Contamines-Montjoie")
 - **AC-02-02**: Given un POI favori local ou inter-ville, When l'Owner saisit un commentaire personnel facultatif, Then le commentaire est sauvegardé avec la recommandation et affiché sur `/nos-recommandations` ainsi que sur la fiche publique du logement
 - **AC-02-03**: Given les recommandations, When un Tourist arrive sans `?lodging=[id]`, Then le guide standard s'affiche sans personnalisation
 - **AC-02-04**: Given l'Owner saisit un commentaire sur un POI favori, When il modifie le texte, Then un compteur de mots affiche la progression sur 300 mots et la sauvegarde est refusée au-delà de cette limite
@@ -432,7 +432,7 @@ components:
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
 - `/le-logement` affiche les informations pratiques du logement. Quand la page utilise le pager en deux panneaux, la section fixe "Départ" issue de `checkout_instructions` est rendue en page 2, avant les blocs pratiques personnalisés.
-- `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné
+- `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné. Les titres de City de cette section contractent le préfixe "À" avec les noms commençant par "Les" : "Les Contamines-Montjoie" devient "Aux Contamines-Montjoie".
 - Les textes personnalisés Owner affichés publiquement (titre de `/nos-recommandations`, message d'accueil sur `/guide/[city-slug]` et `/le-logement`, commentaire Owner contextualisé sur fiche POI) utilisent la font Story Script via l'alias Tailwind `font-hand`
 - Sur `/nos-recommandations`, chaque recommandation Owner non-randonnée affiche le statut horaire public déjà utilisé par les cards POI quand les données horaires existent : badge "Ouvert" ou "Fermé", puis "Ferme à <heure>" si ouvert ou "Ouvre <jour/heure>" si fermé. Si `is_open_now` et `hours` ne permettent pas de déterminer le statut, aucun badge horaire n'est rendu. Les cards de recommandation n'affichent jamais le nom de catégorie en texte ; elles affichent uniquement l'icône Lucide de la Category, avec fallback d'icône si nécessaire.
 - `/guide/[city-slug]/logements/[lodging-slug]` affiche les recommandations locales puis une section "À découvrir ailleurs" séparée et groupée par City, avec les commentaires Owner

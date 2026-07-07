@@ -52,4 +52,15 @@ describe('/nos-recommandations — cross-city', () => {
     const farLink = screen.getByText('Le Lac').closest('a')
     expect(farLink).toHaveAttribute('href', '/guide/annecy/nature/far1')
   })
+
+  it('contracts plural city names in the "À découvrir ailleurs" title', async () => {
+    jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
+      row('far1', 'Le Chalet', 'les-contamines-montjoie', 'Les Contamines-Montjoie'),
+    ] as never)
+
+    render(await NosRecommendationsPage())
+
+    expect(screen.getByText(/aux contamines-montjoie/i)).toBeInTheDocument()
+    expect(screen.queryByText(/à les contamines-montjoie/i)).not.toBeInTheDocument()
+  })
 })
