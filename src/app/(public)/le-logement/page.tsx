@@ -86,9 +86,11 @@ export default async function LeLogementPage() {
   ])
 
   const sections = buildSections(customization)
-  const hasFixed = sections.some(section => section.hasValue)
-  const hasBlocks = practicalBlocks.length > 0
-  const hasContent = hasFixed || hasBlocks
+  const primarySections = sections.filter(section => section.hasValue && section.key !== 'checkout')
+  const checkoutSections = sections.filter(section => section.hasValue && section.key === 'checkout')
+  const hasPrimaryFixed = primarySections.length > 0
+  const hasSecondaryContent = checkoutSections.length > 0 || practicalBlocks.length > 0
+  const hasContent = hasPrimaryFixed || hasSecondaryContent
 
   const presentationPhoto = customization?.cover_photo_url ?? null
   const presentationVideo = customization?.presentation_video_url ?? null
@@ -139,17 +141,17 @@ export default async function LeLogementPage() {
             Explorer le guide
           </Link>
         </div>
-      ) : !hasBlocks ? (
+      ) : !hasSecondaryContent ? (
         <div className="flex flex-wrap gap-4 px-4 pb-10">
-          {sections.filter(s => s.hasValue).map((section) => (
+          {primarySections.map((section) => (
             <PracticalCard key={section.key} section={section} />
           ))}
         </div>
       ) : (
         <LodgingPager titles={['Quelques conseils & consignes', 'Quelques recommandations']}>
           <div className="flex flex-wrap gap-4  pb-10 mt-4">
-            {hasFixed ? (
-              sections.filter(s => s.hasValue).map((section) => (
+            {hasPrimaryFixed ? (
+              primarySections.map((section) => (
                 <PracticalCard key={section.key} section={section} />
               ))
             ) : (
@@ -160,6 +162,9 @@ export default async function LeLogementPage() {
           </div>
 
           <div className="flex flex-col gap-4 pb-10 ">
+            {checkoutSections.map((section) => (
+              <PracticalCard key={section.key} section={section} />
+            ))}
             {practicalBlocks.map((block) => (
               <PracticalBlockCard key={block.id} block={block} theme={themes.light} />
             ))}

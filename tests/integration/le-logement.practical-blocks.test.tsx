@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import LeLogementPage from '@/app/(public)/le-logement/page'
 import { prisma } from '@/shared/lib/prisma'
 
@@ -83,6 +83,34 @@ describe('/le-logement — blocs personnalisés', () => {
 
     expect(screen.getByText('Bons plans')).toBeInTheDocument()
     expect(screen.queryByText(/n'a pas encore renseigné/i)).not.toBeInTheDocument()
+  })
+
+  it('moves the fixed checkout section to the second lodging page before custom blocks', async () => {
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      lodging_address: '1 rue des Alpes',
+      wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
+      checkout_instructions: 'Merci de vider le frigo.',
+      trash_info: null, trash_location: null,
+      house_rules: null, emergency_contacts: null, useful_services: null,
+    } as never)
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
+      { id: 'b1', title: 'Poubelles', body: 'Local en bas du bâtiment.', icon: 'trash', photo_url: null, sort_order: 0 },
+    ] as never)
+
+    const { container } = render(await LeLogementPage())
+    const panels = container.querySelectorAll('[aria-roledescription="carrousel"] > div')
+
+    expect(panels).toHaveLength(2)
+    expect(panels[0]).not.toHaveTextContent('Départ')
+    expect(panels[1]).toHaveTextContent('Départ')
+
+    const secondPage = within(panels[1] as HTMLElement)
+    const checkoutHeading = secondPage.getByRole('heading', { name: 'Départ' })
+    const customBlockHeading = secondPage.getByRole('heading', { name: 'Poubelles' })
+
+    expect(checkoutHeading.compareDocumentPosition(customBlockHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
   })
 
   it('renders a single list without pager when there are no custom blocks', async () => {
