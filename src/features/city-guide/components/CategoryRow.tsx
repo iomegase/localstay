@@ -60,7 +60,7 @@ export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlu
               className={`relative w-14 h-14 rounded-full border flex items-center justify-center group-hover:shadow-md transition-shadow active:scale-95 ${
                 isActive
                   ? 'bg-pink-600 border-pink-600 text-white shadow-md'
-                  : 'bg-white border-gray-100 text-pink-600'
+                  : 'bg-white border-gray-100 text-[#222222]'
               }`}
             >
               <CategoryIcon iconSlug={cat.icon} className="w-5 h-5" />
