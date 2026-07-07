@@ -136,8 +136,15 @@ export default async function GuidePage({ params, searchParams }: Props) {
           </section>
 
       {guide.welcome_message && (
-        <div className="mx-4 mb-5  py-4 text-sm leading-relaxed text-charcoal shadow-sm">
-          <MarkdownText source={guide.welcome_message} breaks className="text-sm leading-relaxed text-charcoal" />
+        <div
+          data-testid="guide-welcome-message"
+          className="mx-4 mb-5 py-4 text-charcoal shadow-sm"
+        >
+          <MarkdownText
+            source={guide.welcome_message}
+            breaks
+            className="font-hand text-charcoal [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left"
+          />
         </div>
       )}
 

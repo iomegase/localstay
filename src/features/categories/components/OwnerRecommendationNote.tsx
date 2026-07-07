@@ -9,7 +9,10 @@ export function OwnerRecommendationNote({ note }: { note: string | null }) {
       <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">
         Le mot de votre hôte
       </h2>
-      <p className="mt-2 break-words whitespace-pre-line font-hand text-xl text-justify leading-snug text-pink-600">
+      <p
+        data-testid="owner-recommendation-note-text"
+        className="mt-2 break-words whitespace-pre-line font-hand text-xl text-justify leading-snug text-pink-600"
+      >
         {note}
       </p>
     </section>

@@ -118,8 +118,11 @@ export default async function LeLogementPage() {
         </section>
       )}
 
-        {customization?.welcome_message && (
-        <div className={`mb-10 px-6 py-4 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}>
+      {customization?.welcome_message && (
+        <div
+          data-testid="lodging-welcome-message"
+          className={`mb-10 px-6 py-4 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}
+        >
           <MarkdownText source={customization.welcome_message} breaks />
         </div>
       )}

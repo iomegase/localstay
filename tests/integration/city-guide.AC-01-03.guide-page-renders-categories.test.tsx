@@ -34,7 +34,9 @@ jest.mock('@/features/categories/queries/all-poi-cards', () => ({
 }))
 // react-markdown est ESM → on stubbe MarkdownText (importé via la liste « Tous » → PoiCard).
 jest.mock('@/shared/components/MarkdownText', () => ({
-  MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
+  MarkdownText: ({ source, className }: { source?: string | null; className?: string }) => (
+    <div className={className}>{source}</div>
+  ),
 }))
 
 import { getCityGuide } from '@/features/city-guide/queries/cities'
@@ -92,5 +94,17 @@ describe('GuidePage (AC-01-03)', () => {
     expect(
       screen.getByText('Aucun contenu disponible pour cette ville pour le moment')
     ).toBeInTheDocument()
+  })
+
+  it('AC-01-02: renders the lodging welcome message with the owner script font', async () => {
+    ;(getCityGuide as jest.Mock).mockResolvedValue({
+      ...mockGuide,
+      welcome_message: 'Bienvenue au chalet',
+    })
+    const jsx = await GuidePage({ params: { 'city-slug': 'saint-gervais-les-bains' } })
+    render(jsx)
+
+    expect(screen.getByTestId('guide-welcome-message')).toBeInTheDocument()
+    expect(screen.getByText('Bienvenue au chalet')).toHaveClass('font-hand')
   })
 })

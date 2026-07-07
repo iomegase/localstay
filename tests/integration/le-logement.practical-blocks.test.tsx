@@ -66,10 +66,10 @@ describe('/le-logement — blocs personnalisés', () => {
     expect(screen.getByText('La plage')).toBeInTheDocument()
     expect(screen.getByText(/5 min/)).toBeInTheDocument()
     expect(screen.getByAltText('La plage')).toHaveAttribute('src', 'https://cdn.test/plage.webp')
-    // Le pager n'affiche que le titre actif ('Infos pratiques'); 'À découvrir'
-    // n'est exposé que via l'aria-label du dot de la page 2.
-    expect(screen.getByText('Infos pratiques')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /aller à à découvrir/i })).toBeInTheDocument()
+    // Le pager n'affiche que le titre actif ; le second titre est exposé
+    // uniquement via l'aria-label du dot de la page 2.
+    expect(screen.getByText('Quelques conseils & consignes')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aller à quelques recommandations/i })).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(2)
   })
 
@@ -99,5 +99,23 @@ describe('/le-logement — blocs personnalisés', () => {
     expect(screen.getByText('1 rue des Alpes')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /aller à/i })).not.toBeInTheDocument()
     expect(screen.queryByText('À découvrir')).not.toBeInTheDocument()
+  })
+
+  it('renders the lodging welcome message with the owner script font', async () => {
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      welcome_message: 'Bienvenue au chalet',
+      cover_photo_url: null,
+      presentation_video_url: null,
+      lodging_address: null,
+      wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
+      checkout_instructions: null, trash_info: null, trash_location: null,
+      house_rules: null, emergency_contacts: null, useful_services: null,
+    } as never)
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+
+    render(await LeLogementPage())
+
+    expect(screen.getByTestId('lodging-welcome-message')).toHaveClass('font-hand')
+    expect(screen.getByText('Bienvenue au chalet')).toBeInTheDocument()
   })
 })

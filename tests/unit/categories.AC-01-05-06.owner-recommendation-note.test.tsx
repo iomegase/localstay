@@ -10,7 +10,7 @@ describe('OwnerRecommendationNote', () => {
 
     expect(screen.getByRole('region', { name: 'Le mot de votre hôte' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Le mot de votre hôte' })).toBeInTheDocument()
-    expect(screen.getByText('<strong>Notre choix</strong>')).toBeInTheDocument()
+    expect(screen.getByText('<strong>Notre choix</strong>')).toHaveClass('font-hand')
     expect(document.querySelector('strong')).toBeNull()
   })
 
