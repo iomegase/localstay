@@ -100,7 +100,11 @@ describe('GuestMap category filter', () => {
     expect(screen.getByRole('button', { name: 'Le Chalet' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Alpage de Miage' })).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: /filtrer les catégories/i }))
+    const filterButton = screen.getByRole('button', { name: /filtrer les catégories/i })
+    expect(filterButton).toHaveClass('left-0', 'top-36', 'rounded-r-2xl', 'bg-white')
+    expect(filterButton).not.toHaveClass('right-4', 'rounded-full')
+
+    await userEvent.click(filterButton)
 
     const menu = screen.getByRole('dialog', { name: /filtrer les catégories/i })
     expect(within(menu).getByRole('button', { name: /tous les lieux/i })).toBeInTheDocument()

@@ -150,7 +150,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 ### Composant : Category Side Menu (`/map` recommandations Owner)
 
-- Bouton filtre flottant en overlay, accessible au clavier, sans masquer le bouton fermer.
+- Bouton filtre flottant en overlay, accessible au clavier, affiché comme une languette blanche ancrée au bord gauche de la carte avec coins droits arrondis et ombre légère, sans masquer le bouton fermer.
 - Ouverture d'un panneau latéral gauche mobile-first avec backdrop.
 - Entrée "Tous" en premier, puis une entrée par Category présente dans les POI recommandés affichables.
 - Chaque entrée Category affiche l'icône, la couleur, le nom et le nombre de POI.

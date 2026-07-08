@@ -353,7 +353,7 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         type="button"
         aria-label="Filtrer les catégories"
         onClick={() => setIsFilterOpen(true)}
-        className="absolute right-4 top-32 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg backdrop-blur"
+        className="absolute left-0 top-36 z-10 flex h-20 w-16 items-center justify-center rounded-r-2xl bg-white text-charcoal shadow-[0_10px_24px_rgba(18,18,18,0.16)]"
       >
         <LucideIcons.SlidersHorizontal className="h-5 w-5" />
       </button>
