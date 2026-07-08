@@ -95,7 +95,7 @@ describe('GuestMap category filter', () => {
   it('filters recommendation markers by category from the side menu and restores all POIs', async () => {
     render(<GuestMap pois={pois} />)
 
-    expect(screen.getByText('3 lieux recommandés')).toBeInTheDocument()
+    expect(screen.queryByText(/lieux? recommandé/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Biche' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Le Chalet' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Alpage de Miage' })).toBeInTheDocument()
@@ -111,20 +111,20 @@ describe('GuestMap category filter', () => {
     await userEvent.click(within(menu).getByRole('button', { name: /restaurant/i }))
 
     await waitFor(() => {
-      expect(screen.getByText('2 lieux recommandés')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Alpage de Miage' })).not.toBeInTheDocument()
     })
+    expect(screen.queryByText(/lieux? recommandé/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Biche' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Le Chalet' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Alpage de Miage' })).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /filtrer les catégories/i }))
     await userEvent.click(screen.getByRole('button', { name: /tous les lieux/i }))
 
     await waitFor(() => {
-      expect(screen.getByText('3 lieux recommandés')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Alpage de Miage' })).toBeInTheDocument()
     })
+    expect(screen.queryByText(/lieux? recommandé/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Biche' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Le Chalet' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Alpage de Miage' })).toBeInTheDocument()
   })
 })

@@ -439,8 +439,8 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         ))}
       </div>
 
-      {/* Bouton fermer + compteur flottant */}
-      <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
+      {/* Bouton fermer flottant */}
+      <div className="absolute left-4 top-4 z-10 flex items-center">
         <Link
           href="/nos-recommandations"
           aria-label="Fermer la carte"
@@ -448,9 +448,6 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         >
           <LucideIcons.X className="h-5 w-5" />
         </Link>
-        <div className="rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
-          {visiblePois.length} {visiblePois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
-        </div>
       </div>
 
       {pois.length === 0 && (

@@ -75,7 +75,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 #### Acceptance Criteria
 
 - **AC-04-01**: Given la carte `/map` des recommandations Owner, When le Tourist ouvre le menu filtre, Then un side menu liste "Tous" puis chaque Category présente dans les POI visibles avec icône, couleur et compteur.
-- **AC-04-02**: Given une Category du side menu, When le Tourist la sélectionne, Then seuls les markers de cette Category restent affichés, le compteur reflète les POI filtrés et la carte se recentre sur ces POI.
+- **AC-04-02**: Given une Category du side menu, When le Tourist la sélectionne, Then seuls les markers de cette Category restent affichés et la carte se recentre sur ces POI, sans afficher de compteur flottant de lieux recommandés sur la carte.
 - **AC-04-03**: Given un filtre Category actif, When le Tourist sélectionne "Tous" ou ferme le menu, Then tous les markers recommandés sont de nouveau disponibles sans nouveau chargement Mapbox.
 
 ---
@@ -150,12 +150,12 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 ### Composant : Category Side Menu (`/map` recommandations Owner)
 
-- Bouton filtre flottant en overlay, accessible au clavier, sans masquer le bouton fermer ni le compteur.
+- Bouton filtre flottant en overlay, accessible au clavier, sans masquer le bouton fermer.
 - Ouverture d'un panneau latéral gauche mobile-first avec backdrop.
 - Entrée "Tous" en premier, puis une entrée par Category présente dans les POI recommandés affichables.
 - Chaque entrée Category affiche l'icône, la couleur, le nom et le nombre de POI.
 - Sélection unique : une seule Category peut être active à la fois.
-- Le compteur de la carte reflète le nombre de POI filtrés.
+- Aucun compteur flottant de lieux recommandés n'est affiché sur la carte, y compris quand un filtre Category est actif.
 - Les markers hors Category active sont retirés de la carte ; au retour sur "Tous", tous les markers reviennent.
 - La carte se recentre sur les POI visibles quand le filtre change.
 
@@ -174,7 +174,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 | AC-03-01 | Mini-carte visible dans fiche POI | integration |
 | AC-03-02 | Mini-carte non-interactive avec zoom statique rapproché | unit |
 | AC-04-01 | Side menu catégories sur `/map` avec "Tous", icône, couleur et compteur | unit |
-| AC-04-02 | Sélection Category filtre markers, compteur et recentrage | unit |
+| AC-04-02 | Sélection Category filtre markers et recentrage sans compteur flottant | unit |
 | AC-04-03 | Retour à "Tous" restaure tous les markers sans fetch | unit |
 
 ---
