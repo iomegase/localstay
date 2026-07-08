@@ -66,6 +66,18 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 - **AC-03-01**: Given une fiche POI, When elle s'affiche, Then une mini-carte Mapbox affiche le marker du POI
 - **AC-03-02**: Given une mini-carte, When elle est affichée, Then elle est non-interactive (pas de zoom, pas de drag) et utilise un zoom statique rapproché par défaut (`zoom = 16`) pour mieux situer le POI.
 
+### US-04 — Filtrer la carte par catégorie
+
+**As a** Tourist en séjour actif
+**I want to** filtrer les POI recommandés sur la carte par Category
+**So that** je repère rapidement les restaurants, randonnées ou services qui m'intéressent
+
+#### Acceptance Criteria
+
+- **AC-04-01**: Given la carte `/map` des recommandations Owner, When le Tourist ouvre le menu filtre, Then un side menu liste "Tous" puis chaque Category présente dans les POI visibles avec icône, couleur et compteur.
+- **AC-04-02**: Given une Category du side menu, When le Tourist la sélectionne, Then seuls les markers de cette Category restent affichés, le compteur reflète les POI filtrés et la carte se recentre sur ces POI.
+- **AC-04-03**: Given un filtre Category actif, When le Tourist sélectionne "Tous" ou ferme le menu, Then tous les markers recommandés sont de nouveau disponibles sans nouveau chargement Mapbox.
+
 ---
 
 ## Business Rules
@@ -75,6 +87,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 - **BR-03**: Le token Mapbox est exposé côté client via `NEXT_PUBLIC_MAPBOX_TOKEN` — il doit être restreint aux domaines autorisés dans le dashboard Mapbox
 - **BR-04**: La mini-carte de la fiche POI est un canvas statique (snapshot Mapbox Static Images API) — pas un Map Load complet
 - **BR-05**: Le clustering est activé pour les vues avec plus de 10 markers
+- **BR-06**: Le filtrage par Category de `/map` est un état client local : il ne déclenche pas de nouvelle query serveur ni de nouveau chargement Mapbox.
 
 ---
 
@@ -135,6 +148,17 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 - Bouton "Voir la fiche" → navigation vers fiche POI
 - Animation slide-up sur mobile
 
+### Composant : Category Side Menu (`/map` recommandations Owner)
+
+- Bouton filtre flottant en overlay, accessible au clavier, sans masquer le bouton fermer ni le compteur.
+- Ouverture d'un panneau latéral gauche mobile-first avec backdrop.
+- Entrée "Tous" en premier, puis une entrée par Category présente dans les POI recommandés affichables.
+- Chaque entrée Category affiche l'icône, la couleur, le nom et le nombre de POI.
+- Sélection unique : une seule Category peut être active à la fois.
+- Le compteur de la carte reflète le nombre de POI filtrés.
+- Les markers hors Category active sont retirés de la carte ; au retour sur "Tous", tous les markers reviennent.
+- La carte se recentre sur les POI visibles quand le filtre change.
+
 ---
 
 ## Acceptance Criteria Summary
@@ -149,6 +173,9 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 | AC-02-03 | Clic hors popup → fermeture | e2e |
 | AC-03-01 | Mini-carte visible dans fiche POI | integration |
 | AC-03-02 | Mini-carte non-interactive avec zoom statique rapproché | unit |
+| AC-04-01 | Side menu catégories sur `/map` avec "Tous", icône, couleur et compteur | unit |
+| AC-04-02 | Sélection Category filtre markers, compteur et recentrage | unit |
+| AC-04-03 | Retour à "Tous" restaure tous les markers sans fetch | unit |
 
 ---
 
@@ -156,7 +183,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 
 - Géolocalisation GPS du Tourist (consentement requis)
 - Tracé d'itinéraire sur la carte plein écran (uniquement fiche randonnée)
-- Filtres sur la carte (MVP 2+)
+- Filtres avancés sur la carte : multi-sélection, recherche texte, distance, horaires ou favoris
 
 ---
 

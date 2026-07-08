@@ -103,6 +103,9 @@
 | AC-02-03 | Clic hors popup → fermeture | `src/features/categories/components/FullMap.tsx` | `tests/e2e/categories.AC-map.test.ts` | ✅ done |
 | AC-03-01 | Mini-carte visible dans fiche | `src/features/categories/components/MiniMap.tsx`<br>`src/features/categories/components/PoiDetailBody.tsx` | `tests/integration/categories.AC-03-01.mini-map-in-detail.test.tsx` | ✅ done |
 | AC-03-02 | Mini-carte non-interactive avec zoom statique rapproché, style monochrome et pin rouge | `src/features/categories/components/MiniMap.tsx` | `tests/unit/categories.AC-03-02.mini-map.test.tsx` | ✅ done |
+| AC-04-01 | Side menu catégories sur `/map` avec "Tous", icône, couleur et compteur | `src/app/(public)/map/_components/GuestMap.tsx` | `tests/unit/guest-map.category-filter.test.tsx` | ✅ done |
+| AC-04-02 | Sélection catégorie filtre les markers, compteur et recentrage carte | `src/app/(public)/map/_components/GuestMap.tsx` | `tests/unit/guest-map.category-filter.test.tsx` | ✅ done |
+| AC-04-03 | Retour à "Tous" restaure tous les markers sans nouveau fetch | `src/app/(public)/map/_components/GuestMap.tsx` | `tests/unit/guest-map.category-filter.test.tsx` | ✅ done |
 
 ---
 

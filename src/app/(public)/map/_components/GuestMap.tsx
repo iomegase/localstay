@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Map, { Marker, NavigationControl, Layer, Source, type MapRef } from 'react-map-gl/mapbox'
 import type { FillExtrusionLayerSpecification } from 'mapbox-gl'
@@ -93,6 +93,14 @@ export type GuestMapPoi = {
   citySlug: string
 }
 
+type CategoryFilter = {
+  slug: string
+  name: string
+  icon: string
+  color: string
+  count: number
+}
+
 function resolveLucideIcon(iconSlug?: string): LucideIcons.LucideIcon {
   if (!iconSlug) return LucideIcons.MapPin
   const componentName = iconSlug
@@ -107,6 +115,9 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
   const mapRef = useRef<MapRef | null>(null)
   const [active, setActive] = useState<GuestMapPoi | null>(null)
   const [baseLayer, setBaseLayer] = useState<BaseLayer>('plan')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
+  const [hasLoadedMap, setHasLoadedMap] = useState(false)
 
   // Plein écran immersif : masque header + bottom-nav du layout public.
   useEffect(() => {
@@ -121,18 +132,46 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
     return { latitude: lat, longitude: lng }
   }, [pois])
 
-  const fitToPois = () => {
+  const categoryFilters = useMemo(() => {
+    const map = new globalThis.Map<string, CategoryFilter>()
+    for (const poi of pois) {
+      const existing = map.get(poi.categorySlug)
+      if (existing) {
+        existing.count += 1
+      } else {
+        map.set(poi.categorySlug, {
+          slug: poi.categorySlug,
+          name: poi.categoryName,
+          icon: poi.categoryIcon,
+          color: poi.categoryColor,
+          count: 1,
+        })
+      }
+    }
+    return [...map.values()]
+  }, [pois])
+
+  const visiblePois = useMemo(() => {
+    if (!selectedCategorySlug) return pois
+    return pois.filter(poi => poi.categorySlug === selectedCategorySlug)
+  }, [pois, selectedCategorySlug])
+
+  const fitToPois = useCallback((targetPois: GuestMapPoi[], duration = 0) => {
     const map = mapRef.current
-    if (!map || pois.length === 0) return
-    if (pois.length === 1) {
-      map.flyTo({ center: [pois[0].longitude, pois[0].latitude], zoom: 14, duration: 0 })
+    if (!map || targetPois.length === 0) return
+    if (targetPois.length === 1) {
+      map.flyTo({
+        center: [targetPois[0].longitude, targetPois[0].latitude],
+        zoom: 14,
+        duration,
+      })
       return
     }
     let minLng = Infinity
     let minLat = Infinity
     let maxLng = -Infinity
     let maxLat = -Infinity
-    for (const p of pois) {
+    for (const p of targetPois) {
       minLng = Math.min(minLng, p.longitude)
       maxLng = Math.max(maxLng, p.longitude)
       minLat = Math.min(minLat, p.latitude)
@@ -143,9 +182,19 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         [minLng, minLat],
         [maxLng, maxLat],
       ],
-      { padding: { top: 90, bottom: 120, left: 60, right: 60 }, maxZoom: 15, duration: 0 },
+      { padding: { top: 90, bottom: 120, left: 60, right: 60 }, maxZoom: 15, duration },
     )
-  }
+  }, [])
+
+  useEffect(() => {
+    if (hasLoadedMap) fitToPois(visiblePois, 300)
+  }, [fitToPois, hasLoadedMap, visiblePois])
+
+  useEffect(() => {
+    if (active && !visiblePois.some(poi => poi.id === active.id)) {
+      setActive(null)
+    }
+  }, [active, visiblePois])
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-white" data-testid="guest-map">
@@ -155,7 +204,10 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         initialViewState={{ ...center, zoom: 12, pitch: 0 }}
         maxPitch={75}
         terrain={{ source: 'mapbox-dem', exaggeration: 1.4 }}
-        onLoad={fitToPois}
+        onLoad={() => {
+          setHasLoadedMap(true)
+          fitToPois(visiblePois)
+        }}
         onZoomEnd={event => {
           // Bascule en vue 3D inclinée dès qu'on s'approche (relief + bâtiments).
           const map = event.target
@@ -196,7 +248,7 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
 
         <Layer {...buildings3DLayer} />
 
-        {pois.map(poi => {
+        {visiblePois.map(poi => {
           const Icon = resolveLucideIcon(poi.categoryIcon)
           return (
             <Marker
@@ -296,6 +348,80 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         </div>
       )}
 
+      {/* Filtre catégories */}
+      <button
+        type="button"
+        aria-label="Filtrer les catégories"
+        onClick={() => setIsFilterOpen(true)}
+        className="absolute right-4 top-32 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg backdrop-blur"
+      >
+        <LucideIcons.SlidersHorizontal className="h-5 w-5" />
+      </button>
+
+      {isFilterOpen && (
+        <div className="absolute inset-0 z-20">
+          <button
+            type="button"
+            aria-label="Fermer les filtres"
+            onClick={() => setIsFilterOpen(false)}
+            className="absolute inset-0 bg-charcoal/30 backdrop-blur-[1px]"
+          />
+
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filtrer les catégories"
+            className="absolute inset-y-0 left-0 w-[82%] max-w-[320px] rounded-r-[2rem] bg-white p-5 shadow-2xl"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">
+                  Catégories
+                </p>
+                <h2 className="mt-1 text-xl font-semibold text-charcoal">Filtrer</h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Fermer les filtres"
+                onClick={() => setIsFilterOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-charcoal"
+              >
+                <LucideIcons.X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <CategoryFilterButton
+                label="Tous les lieux"
+                count={pois.length}
+                color="#121212"
+                Icon={LucideIcons.Map}
+                isActive={selectedCategorySlug === null}
+                onClick={() => {
+                  setSelectedCategorySlug(null)
+                  setIsFilterOpen(false)
+                }}
+              />
+
+              {categoryFilters.map(filter => (
+                <CategoryFilterButton
+                  key={filter.slug}
+                  label={filter.name}
+                  count={filter.count}
+                  color={filter.color}
+                  Icon={resolveLucideIcon(filter.icon)}
+                  isActive={selectedCategorySlug === filter.slug}
+                  onClick={() => {
+                    setSelectedCategorySlug(filter.slug)
+                    setIsFilterOpen(false)
+                  }}
+                />
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Sélecteur de fond de carte */}
       <div className="absolute bottom-6 left-4 z-10 flex gap-1 rounded-full bg-white/90 p-1 shadow-lg backdrop-blur">
         {(Object.keys(LAYER_LABELS) as BaseLayer[]).map(layer => (
@@ -323,7 +449,7 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
           <LucideIcons.X className="h-5 w-5" />
         </Link>
         <div className="rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-charcoal shadow-lg backdrop-blur">
-          {pois.length} {pois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
+          {visiblePois.length} {visiblePois.length > 1 ? 'lieux recommandés' : 'lieu recommandé'}
         </div>
       </div>
 
@@ -360,5 +486,45 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         }
       `}</style>
     </div>
+  )
+}
+
+function CategoryFilterButton({
+  label,
+  count,
+  color,
+  Icon,
+  isActive,
+  onClick,
+}: {
+  label: string
+  count: number
+  color: string
+  Icon: LucideIcons.LucideIcon
+  isActive: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={isActive}
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
+        isActive ? 'border-charcoal bg-charcoal text-white' : 'border-black/5 bg-black/[0.03] text-charcoal'
+      }`}
+    >
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white"
+        style={{ backgroundColor: color }}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{label}</span>
+      </span>
+      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isActive ? 'bg-white/15' : 'bg-white'}`}>
+        {count}
+      </span>
+    </button>
   )
 }
