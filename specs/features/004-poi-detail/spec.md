@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-23
+updated_at: 2026-07-09
 depends_on: [001-city-guide, 002-categories, 003-poi-list, 012-guide-customization]
 ```
 
@@ -84,6 +84,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **BR-07**: La recommandation, le Lodging et le POI doivent être actifs et non soft-deleted. Le commentaire vide ou composé uniquement d'espaces n'est jamais affiché.
 - **BR-08**: Le commentaire contextuel n'est inclus ni dans l'API POI publique, ni dans les metadata, ni dans le JSON-LD, ni dans le cache de la query POI globale
 - **BR-09**: Si plusieurs Lodgings recommandent le même POI, seul le commentaire du Lodging identifié par le séjour actif peut être affiché
+- **BR-10**: En mode séjour actif avec coordonnées logement disponibles, la distance de fiche POI affiche `Situé à X m/km du logement`. Si le Tourist a activé son GPS, la fiche recalcule localement la distance et affiche `Situé à X m/km de votre position actuelle`. La position GPS du Tourist reste locale et n'est jamais persistée.
 
 ---
 
@@ -299,6 +300,7 @@ components:
 - **Section carte** : mini-carte Mapbox avec marker du POI (voir spec 005-map)
 - **Section randonnée** : bloc conditionnel visible si `hiking_detail` présent
 - **Section commentaire Owner** : bloc "Le mot de votre hôte" conforme au mockup, visible après les informations principales uniquement si le séjour actif recommande ce POI avec un commentaire non vide ; la règle s'applique aux fiches standard et randonnée
+- **Distance** : libellé explicite `Situé à ...`; en mode séjour, source logement par défaut, remplacée côté client par la position GPS consentie quand disponible
 - **Loading state** : skeleton full-page
 - **Error state** : "Ce lieu est introuvable" + retour liste
 
@@ -320,6 +322,7 @@ components:
 | AC-02-04 | Bouton Partager → Web Share API | e2e |
 | AC-03-01 | Bloc randonnée visible si hiking_detail | integration |
 | AC-03-02 | Tracé Mapbox affiché si gpx_url | integration |
+| BR-10 | Distance fiche POI depuis logement puis GPS local | unit + integration |
 
 ---
 

@@ -15,6 +15,7 @@ import type { PoiCard as PoiCardType } from '../types'
 import { TrailCardDetails } from './TrailCardDetails'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
+import { formatContextualDistance } from '../lib/distance-label'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Facile',
@@ -68,16 +69,7 @@ export function PoiCard({
     return subscribeToFavorites(() => setIsFav(readIsFavorite(poi.id)))
   }, [poi.id])
 
-  const distanceLabel =
-    poi.distance_km < 1
-      ? `${Math.round(poi.distance_km * 1000)} m`
-      : `${poi.distance_km.toFixed(1)} km`
-  const distanceContext =
-    poi.distance_source === 'lodging'
-      ? " de l'appartement"
-      : poi.distance_source === 'user_location'
-        ? ' de votre position actuelle'
-        : ''
+  const distanceLabel = formatContextualDistance(poi.distance_km, poi.distance_source)
 
   const description = poi.description
   // Galerie classique en en-tête : 1 photo visible à la fois, navigation par flèches.
@@ -292,7 +284,7 @@ export function PoiCard({
               <span className="font-thin text-gray-800 text-[11px]">{poi.subcategory_name}</span>
             )}
             <span className="text-gray-400 text-[11px] font-thin" data-testid="poi-distance">
-              à {distanceLabel}{distanceContext}
+              {distanceLabel}
             </span>
           </div>
         </div>

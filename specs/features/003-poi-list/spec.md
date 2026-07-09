@@ -325,7 +325,7 @@ components:
 - Photo principale en header visuel : première URL exploitable hors logo/placeholder, position centrée ; rendu `object-cover` pour les photos portrait ou carrées, rendu `object-contain` pour les photos paysage.
 - Badge "Fermé" si `is_open_now = false`
 - Badge "Sponsorisé" si POI mis en avant (logique métier présente, inactive MVP 1)
-- Distance en km depuis le centre ville par défaut, depuis le logement en mode séjour quand ses coordonnées sont connues, ou depuis la position GPS du Tourist après consentement explicite
+- Distance en km depuis le centre ville par défaut, depuis le logement en mode séjour quand ses coordonnées sont connues, ou depuis la position GPS du Tourist après consentement explicite. Le libellé explicite utilise `Situé à ... du logement` ou `Situé à ... de votre position actuelle` quand une source contextuelle est connue.
 - Note avec étoile et nombre d'avis
 - Le panneau détaillé de la card fonctionne en accordéon : une seule card POI peut être ouverte à la fois dans une même liste (catégorie ou vue "Tous les POI")
 - Dans le panneau détaillé des POI non-randonnée, les boutons d'action restent sur une même rangée mobile-first : grille 1 colonne si seul l'itinéraire est disponible, 2 colonnes avec site ou téléphone, 3 colonnes si itinéraire + site + téléphone sont disponibles. Le bouton "ITINÉRAIRE" est noir plein ; les autres actions sont blanches avec contour noir.

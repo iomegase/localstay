@@ -1,4 +1,4 @@
-import { ArrowLeft, Star, MapPin } from 'lucide-react'
+import { ArrowLeft, Star } from 'lucide-react'
 import { ActionButtons, type ActionButtonsVariant } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
@@ -7,6 +7,7 @@ import { MerchantOffersBlock } from './MerchantOffersBlock'
 import { HeroShareButton } from './HeroShareButton'
 import { OwnerRecommendationNote } from './OwnerRecommendationNote'
 import { PoiDetailHeroCarousel } from './PoiDetailHeroCarousel'
+import { PoiDetailDistance } from './PoiDetailDistance'
 import { PoiDetailTopBar } from './PoiDetailTopBar'
 import { PoiBackButton } from './PoiBackButton'
 import { TrailDetailBlock } from '@/features/trails-acquisition/components/TrailDetailBlock'
@@ -44,13 +45,6 @@ export function PoiDetailBody({
       />
     )
   }
-
-  const distanceLabel =
-    poi.distance_km === null
-      ? null
-      : poi.distance_km < 1
-      ? `${Math.round(poi.distance_km * 1000)} m`
-      : `${poi.distance_km.toFixed(1)} km`
 
   const poiUrl = `/guide/${citySlug}/${categorySlug}/${poi.slug}`
   const photoAttributionHost = getWebsiteHost(poi.website)
@@ -133,14 +127,12 @@ export function PoiDetailBody({
         </div>
 
         {/* Distance */}
-        {distanceLabel && (
-          <div className="px-6">
-            <span className="inline-flex items-center gap-1.5 text-sm text-charcoal/60">
-              <MapPin className="w-4 h-4" />
-              <span data-testid="poi-detail-distance">{distanceLabel}</span>
-            </span>
-          </div>
-        )}
+        <PoiDetailDistance
+          distanceKm={poi.distance_km}
+          distanceSource={poi.distance_source}
+          latitude={poi.latitude}
+          longitude={poi.longitude}
+        />
 
         {/* Description */}
         {poi.description && (

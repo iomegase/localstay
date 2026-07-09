@@ -5,6 +5,18 @@ import { render, screen } from '@testing-library/react'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import type { PoiDetail } from '@/features/categories/types'
 
+let mockUserLocation: { latitude: number; longitude: number } | null = null
+
+jest.mock('@/features/geolocation/hooks/useUserLocation', () => ({
+  useUserLocation: () => ({
+    location: mockUserLocation,
+    status: mockUserLocation ? 'ready' : 'idle',
+    requestLocation: jest.fn(),
+    clearLocation: jest.fn(),
+    dismiss: jest.fn(),
+  }),
+}))
+
 jest.mock('@/shared/components/MarkdownText', () => ({
   MarkdownText: ({ source }: { source: string }) => <div>{source}</div>,
 }))
@@ -54,6 +66,7 @@ const hikingPoi: PoiDetail = {
 
 describe('PoiDetailBody — AC-01-01 (all required fields rendered)', () => {
   beforeEach(() => {
+    mockUserLocation = null
     render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
   })
 
@@ -96,6 +109,40 @@ describe('PoiDetailBody — AC-01-01 (all required fields rendered)', () => {
   it('renders photo attribution when photos and website are present', () => {
     expect(screen.getByTestId('photo-attribution')).toHaveTextContent('Photos : bistrot-mont-blanc.fr')
     expect(screen.getByTestId('photo-attribution')).toHaveAttribute('href', 'https://bistrot-mont-blanc.fr')
+  })
+})
+
+describe('PoiDetailBody — BR-10 contextual distance', () => {
+  beforeEach(() => {
+    mockUserLocation = null
+  })
+
+  it('labels the lodging distance explicitly when a stay context provides it', () => {
+    render(
+      <PoiDetailBody
+        poi={{ ...poi, distance_km: 0.238, distance_source: 'lodging' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+
+    expect(screen.getByTestId('poi-detail-distance')).toHaveTextContent('Situé à 238 m du logement')
+  })
+
+  it('recalculates and labels the distance from the current GPS position when active', () => {
+    mockUserLocation = { latitude: poi.latitude, longitude: poi.longitude }
+
+    render(
+      <PoiDetailBody
+        poi={{ ...poi, distance_km: 0.238, distance_source: 'lodging' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+
+    expect(screen.getByTestId('poi-detail-distance')).toHaveTextContent(
+      'Situé à 0 m de votre position actuelle',
+    )
   })
 })
 

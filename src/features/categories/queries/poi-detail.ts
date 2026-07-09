@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiDetail, PoiHours, HikingDetailData, TrailDetailData } from '../types'
 import { computeIsOpenNow } from '../lib/is-open-now'
+import { getLodgingDistanceOrigin } from './lodging-distance-origin'
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371
@@ -22,6 +23,7 @@ async function getPoiDetailUncached(
   citySlug: string,
   categorySlug: string,
   poiSlug: string,
+  lodgingId?: string | null,
 ): Promise<PoiDetail | null> {
   const city = await prisma.city.findFirst({
     where: { slug: citySlug, is_active: true, deleted_at: null },
@@ -121,6 +123,11 @@ async function getPoiDetailUncached(
         source_refs: toTrailSourceRefs(row.trail_detail.source_refs),
       }
     : null
+  const lodgingOrigin = await getLodgingDistanceOrigin(city.id, lodgingId)
+  const cityDistanceKm = haversineKm(city.latitude, city.longitude, row.latitude, row.longitude)
+  const displayDistanceKm = lodgingOrigin
+    ? haversineKm(lodgingOrigin.latitude, lodgingOrigin.longitude, row.latitude, row.longitude)
+    : cityDistanceKm
 
   return {
     id: row.id,
@@ -137,7 +144,8 @@ async function getPoiDetailUncached(
     is_open_now: computeIsOpenNow(row.hours as PoiHours | null) ?? row.is_open_now,
     hours: row.hours as PoiHours | null,
     photos: row.photos,
-    distance_km: haversineKm(city.latitude, city.longitude, row.latitude, row.longitude),
+    distance_km: displayDistanceKm,
+    distance_source: lodgingOrigin ? 'lodging' : 'city_center',
     city: { name: city.name, slug: city.slug, region: city.region, postal_code: city.postal_code },
     category: row.category,
     subcategory: row.subcategory,

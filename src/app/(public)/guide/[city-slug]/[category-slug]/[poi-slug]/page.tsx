@@ -37,10 +37,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PoiDetailPage({ params }: Props) {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
 
-  const poi = await getPoiDetail(citySlug, categorySlug, poiSlug)
+  const lodgingContext = await getActiveLodgingContext()
+  const poi = await getPoiDetail(citySlug, categorySlug, poiSlug, lodgingContext?.lodgingId ?? null)
   if (!poi) { notFound(); return null }
 
-  const lodgingContext = await getActiveLodgingContext()
   const ownerRecommendationNote = lodgingContext
     ? await getContextualOwnerNote(lodgingContext.lodgingId, poi.id)
     : null

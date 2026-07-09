@@ -135,7 +135,7 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
     })
 
     // La position coïncide avec le POI → 0 m.
-    expect(screen.getByTestId('poi-distance')).toHaveTextContent('0 m de votre position actuelle')
+    expect(screen.getByTestId('poi-distance')).toHaveTextContent('Situé à 0 m de votre position actuelle')
   })
 
   it('keeps the apartment distance context before GPS opt-in in lodging mode', () => {
@@ -150,7 +150,7 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
       />,
     )
 
-    expect(screen.getByTestId('poi-distance')).toHaveTextContent("390 m de l'appartement")
+    expect(screen.getByTestId('poi-distance')).toHaveTextContent('Situé à 390 m du logement')
   })
 
   it('loads the next page through the POI API when more results are available', async () => {

@@ -1,6 +1,7 @@
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     city: { findFirst: jest.fn() },
+    lodging: { findFirst: jest.fn() },
     pointOfInterest: { findFirst: jest.fn() },
   },
 }))
@@ -22,6 +23,10 @@ const mockRow = {
 }
 
 describe('getPoiDetail', () => {
+  beforeEach(() => {
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue(null)
+  })
+
   afterEach(() => jest.clearAllMocks())
 
   it('returns null when city not found', async () => {
@@ -46,6 +51,32 @@ describe('getPoiDetail', () => {
     expect(result!.name).toBe('Le Bistrot')
     expect(result!.distance_km).toBeCloseTo(0, 1)
     expect(result!.hiking_detail).toBeNull()
+  })
+
+  it('uses lodging coordinates as the displayed distance source when a lodging context is active', async () => {
+    jest.mocked(prisma.city.findFirst).mockResolvedValue(mockCity as any)
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue({
+      customization: {
+        lodging_latitude: 46.05,
+        lodging_longitude: 6.71,
+      },
+    } as any)
+    jest.mocked(prisma.pointOfInterest.findFirst).mockResolvedValue({
+      ...mockRow,
+      latitude: 46.05,
+      longitude: 6.71,
+    } as any)
+
+    const result = await getPoiDetail(
+      'saint-gervais-les-bains',
+      'restaurants',
+      'restaurants-gastro-demo',
+      'lodging-1',
+    )
+
+    expect(result).not.toBeNull()
+    expect(result!.distance_km).toBeCloseTo(0, 5)
+    expect(result!.distance_source).toBe('lodging')
   })
 
   it('maps hiking_detail fields when present', async () => {

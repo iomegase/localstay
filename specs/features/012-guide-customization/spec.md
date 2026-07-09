@@ -103,7 +103,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
 - **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
 - **BR-16**: Les coordonnées du logement dérivées de `lodging_address` sont calculées uniquement côté serveur via Mapbox Geocoding avec proximité City. Gemini ne doit jamais géocoder l'adresse du logement ni calculer de distance.
-- **BR-17**: En mode séjour actif, les cards POI affichent la distance depuis les coordonnées du logement quand elles existent. Si le Tourist active sa position GPS, cette distance affichée est remplacée côté client par la distance depuis sa position actuelle. Les zones `primary` / `nearby` et le tri serveur restent calculés depuis le centre de la City.
+- **BR-17**: En mode séjour actif, les cards POI et fiches POI affichent la distance depuis les coordonnées du logement quand elles existent. Si le Tourist active sa position GPS, cette distance affichée est remplacée côté client par la distance depuis sa position actuelle. Les zones `primary` / `nearby` et le tri serveur restent calculés depuis le centre de la City.
 
 ---
 
@@ -446,7 +446,7 @@ components:
 - Le commentaire Owner n'est affiché sur aucune liste géographique. Une fiche POI sans contexte de séjour actif reste générale et n'affiche aucun commentaire Owner.
 - `/guide/[city-slug]?lodging=[id]` affiche tous les POI disponibles du Guide de la City, avec message d'accueil et ordre personnalisé éventuels, sans filtrage exclusif sur les recommandations Owner
 - `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche tous les POI disponibles de cette catégorie dans le Guide de la City, sans filtrage exclusif sur les recommandations Owner
-- En mode séjour actif avec coordonnées logement disponibles, les cards POI affichent `à X m/km de l'appartement`; si le GPS du Tourist est activé, elles affichent `à X m/km de votre position actuelle`.
+- En mode séjour actif avec coordonnées logement disponibles, les cards POI et fiches POI affichent `Situé à X m/km du logement`; si le GPS du Tourist est activé, elles affichent `Situé à X m/km de votre position actuelle`.
 - Si `lodging` est absent, inconnu, supprimé, inactif ou associé à une autre City, le guide standard s'affiche sans personnalisation
 
 ---

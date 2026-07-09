@@ -101,6 +101,12 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
 
     render(await PoiDetailPage({ params }))
 
+    expect(mockGetPoiDetail).toHaveBeenCalledWith(
+      'les-contamines-montjoie',
+      'diner',
+      'la-vieille-auberge',
+      'lodging-1',
+    )
     expect(mockGetContextualOwnerNote).toHaveBeenCalledWith('lodging-1', 'poi-1')
     expect(screen.getByTestId('poi-detail-body')).toHaveAttribute(
       'data-owner-note',
@@ -113,6 +119,12 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
 
     render(await PoiDetailPage({ params }))
 
+    expect(mockGetPoiDetail).toHaveBeenCalledWith(
+      'les-contamines-montjoie',
+      'diner',
+      'la-vieille-auberge',
+      null,
+    )
     expect(mockGetContextualOwnerNote).not.toHaveBeenCalled()
     expect(screen.getByTestId('poi-detail-body')).toHaveAttribute('data-owner-note', '')
   })

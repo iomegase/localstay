@@ -1,4 +1,5 @@
 // src/features/categories/types.ts
+import type { DistanceSource } from './lib/distance-label'
 
 export interface CategoryWithCount {
   id: string
@@ -40,7 +41,7 @@ export interface PoiCard {
   rating_count: number
   is_open_now: boolean | null
   distance_km: number
-  distance_source?: 'city_center' | 'lodging' | 'user_location'
+  distance_source?: DistanceSource
   photo_url: string | null
   photos: string[]
   phone: string | null
@@ -142,6 +143,7 @@ export interface PoiDetail {
   hours: PoiHours | null
   photos: string[]
   distance_km: number | null
+  distance_source?: DistanceSource | null
   city: { name: string; slug: string; region: string | null; postal_code: string }
   category: { id: string; name: string; slug: string; icon: string }
   subcategory: { id: string; name: string; slug: string } | null

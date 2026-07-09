@@ -119,7 +119,7 @@ describe('PoiCard — accordion behaviour', () => {
       />,
     )
     const distanceEls = screen.getAllByTestId('poi-distance')
-    expect(distanceEls[distanceEls.length - 1]).toHaveTextContent("à 390 m de l'appartement")
+    expect(distanceEls[distanceEls.length - 1]).toHaveTextContent('Situé à 390 m du logement')
   })
 
   it('renders the current position distance context after GPS opt-in', () => {
@@ -131,7 +131,7 @@ describe('PoiCard — accordion behaviour', () => {
       />,
     )
     const distanceEls = screen.getAllByTestId('poi-distance')
-    expect(distanceEls[distanceEls.length - 1]).toHaveTextContent('à 420 m de votre position actuelle')
+    expect(distanceEls[distanceEls.length - 1]).toHaveTextContent('Situé à 420 m de votre position actuelle')
   })
 
   it('hides the APPELER button when no phone is set', () => {
