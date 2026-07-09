@@ -23,7 +23,6 @@ const DEFAULT_MESSAGE = {
 
 export function ContactMessageForm({
   lodgingId,
-  lodgingName,
   allowOwnerDestination = true,
 }: ContactMessageFormProps) {
   const [form, setForm] = useState({
@@ -71,12 +70,6 @@ export function ContactMessageForm({
 
   return (
     <form onSubmit={submit} className="p-1">
-      <div className="mb-6">
-        {lodgingName && (
-          <p className="mt-1 text-sm text-gray-500">Votre demande sera liée à <span className="font-medium text-charcoal">{lodgingName}</span>.</p>
-        )}
-      </div>
-
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="contact-sender-name" className={labelClass}>Nom</label>
