@@ -85,28 +85,66 @@ describe('/le-logement — blocs personnalisés', () => {
     expect(screen.queryByText(/n'a pas encore renseigné/i)).not.toBeInTheDocument()
   })
 
-  it('moves the fixed checkout section to the second lodging page before custom blocks', async () => {
+  it('renders the lodging video card between address and parking', async () => {
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      cover_photo_url: null,
+      presentation_video_url: 'https://youtu.be/dQw4w9WgXcQ',
+      lodging_address: '1 rue des Alpes',
+      wifi_ssid: null, wifi_password: null, parking_info: 'Place 12 dans la cour.', equipment_info: null,
+      checkout_instructions: null, trash_info: null, trash_location: null,
+      house_rules: null, emergency_contacts: null, useful_services: null,
+    } as never)
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+
+    render(await LeLogementPage())
+
+    const addressHeading = screen.getByRole('heading', { name: 'Adresse' })
+    const videoButton = screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' })
+    const parkingHeading = screen.getByRole('heading', { name: 'Parking' })
+
+    expect(addressHeading.compareDocumentPosition(videoButton)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(videoButton.compareDocumentPosition(parkingHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+  })
+
+  it('moves fixed wifi, trash and checkout sections to the second lodging page before custom blocks', async () => {
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       lodging_address: '1 rue des Alpes',
-      wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
+      wifi_ssid: 'Livebox-75E0', wifi_password: 'secret-wifi', parking_info: null, equipment_info: null,
       checkout_instructions: 'Merci de vider le frigo.',
-      trash_info: null, trash_location: null,
+      trash_info: null, trash_location: 'Point tri en bas du bâtiment', trash_bins: [{ type: 'jaune' }],
       house_rules: null, emergency_contacts: null, useful_services: null,
     } as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
-      { id: 'b1', title: 'Poubelles', body: 'Local en bas du bâtiment.', icon: 'trash', photo_url: null, sort_order: 0 },
+      { id: 'b1', title: 'Infos locales', body: 'Local en bas du bâtiment.', icon: 'info', photo_url: null, sort_order: 0 },
     ] as never)
 
     const { container } = render(await LeLogementPage())
     const panels = container.querySelectorAll('[aria-roledescription="carrousel"] > div')
 
     expect(panels).toHaveLength(2)
+    expect(panels[0]).not.toHaveTextContent('Réseau Wi-Fi')
+    expect(panels[0]).not.toHaveTextContent('Poubelles')
     expect(panels[0]).not.toHaveTextContent('Départ')
+    expect(panels[1]).toHaveTextContent('Réseau Wi-Fi')
+    expect(panels[1]).toHaveTextContent('Poubelles')
     expect(panels[1]).toHaveTextContent('Départ')
 
     const secondPage = within(panels[1] as HTMLElement)
+    const wifiHeading = secondPage.getByRole('heading', { name: 'Réseau Wi-Fi' })
+    const trashHeading = secondPage.getByRole('heading', { name: 'Poubelles' })
     const checkoutHeading = secondPage.getByRole('heading', { name: 'Départ' })
-    const customBlockHeading = secondPage.getByRole('heading', { name: 'Poubelles' })
+    const customBlockHeading = secondPage.getByRole('heading', { name: 'Infos locales' })
+
+    expect(wifiHeading.compareDocumentPosition(trashHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(trashHeading.compareDocumentPosition(checkoutHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
 
     expect(checkoutHeading.compareDocumentPosition(customBlockHeading)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,

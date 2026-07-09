@@ -1,6 +1,6 @@
 
 type Props = {
-  ownerName: string | null
+    ownerName: string | null
   lodgingName: string
   cityName: string
   citySlug: string
@@ -16,22 +16,27 @@ function Stat({ value, label }: { value: number; label: string }) {
   )
 }
 
+function capitalize(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1)
+}
+
 export function Hero({ ownerName, lodgingName, cityName, stats }: Props) {
-  const title = ownerName ? `Les recommandations de ${ownerName}` : 'Les recommandations de votre hôte'
-  const intro = ownerName
-    ? `Une sélection personnelle de ${ownerName} pour profiter de ${cityName}.`
+  const displayOwner = ownerName ? capitalize(ownerName) : null
+  const title = displayOwner ? `Les recommandations de ${displayOwner}` : 'Les recommandations de votre hôte'
+  const intro = displayOwner
+    ? `Une sélection personnelle de ${displayOwner} pour profiter de ${cityName}.`
     : `Une sélection personnelle de votre hôte pour profiter de ${cityName}.`
 
   return (
     <section className="mb-8 overflow-hidden rounded-[2rem] bg-charcoal p-5 text-white shadow-soft">
     
 
-      <h1 className="max-w-[20rem] font-hand text-4xl leading-10">{title}</h1>
+      <h1 className="max-w-[20rem]  text-4xl leading-10">{title}</h1>
       <p className="mt-4 max-w-xl text-sm leading-6 text-white/65">{intro}</p>
 
       <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">Votre logement</p>
-        <h2 className="mt-2 font-hand text-3xl leading-8">{lodgingName}</h2>
+        <p className="text-[10px] font-bold uppercase  tracking-[0.3em] text-pink-600">Votre logement</p>
+        <h2 className="mt-2 text-3xl leading-8">{lodgingName}</h2>
      
         <div className="mt-5 grid grid-cols-3 gap-3">
           <Stat value={stats.places} label="lieux" />

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Wifi, Car, Settings, LogOut, Trash2, Scroll, PhoneCall, Sparkles, ArrowUpRight } from 'lucide-react'
+import { MapPin, Wifi, Car, Settings, LogOut, Trash2, Scroll, PhoneCall, Sparkles, ArrowUpRight, Video } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
@@ -61,6 +61,8 @@ const themes: Record<'light' | 'red', Theme> = {
   },
 }
 
+const SECONDARY_FIXED_SECTION_ORDER = ['wifi', 'trash', 'checkout']
+
 export default async function LeLogementPage() {
   const lodgingContext = await getActiveLodgingContext()
   if (!lodgingContext) redirect('/')
@@ -86,15 +88,18 @@ export default async function LeLogementPage() {
   ])
 
   const sections = buildSections(customization)
-  const primarySections = sections.filter(section => section.hasValue && section.key !== 'checkout')
-  const checkoutSections = sections.filter(section => section.hasValue && section.key === 'checkout')
+  const primarySections = sections.filter(
+    section => section.hasValue && !SECONDARY_FIXED_SECTION_ORDER.includes(section.key),
+  )
+  const secondaryFixedSections = SECONDARY_FIXED_SECTION_ORDER
+    .map(key => sections.find(section => section.key === key && section.hasValue))
+    .filter((section): section is Section => Boolean(section))
   const hasPrimaryFixed = primarySections.length > 0
-  const hasSecondaryContent = checkoutSections.length > 0 || practicalBlocks.length > 0
+  const hasSecondaryContent = secondaryFixedSections.length > 0 || practicalBlocks.length > 0
   const hasContent = hasPrimaryFixed || hasSecondaryContent
 
   const presentationPhoto = customization?.cover_photo_url ?? null
-  const presentationVideo = customization?.presentation_video_url ?? null
-  const hasPresentation = Boolean(presentationPhoto || presentationVideo)
+  const hasPresentation = Boolean(presentationPhoto)
 
   return (
     <div className="pt-8 bg-white min-h-screen pb-20 flex flex-col">
@@ -116,7 +121,6 @@ export default async function LeLogementPage() {
               <Image src={presentationPhoto} alt="Présentation du logement" fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
             </div>
           )}
-          {presentationVideo && <YouTubeEmbed url={presentationVideo} title="Présentation du logement" />}
         </section>
       )}
 
@@ -162,7 +166,7 @@ export default async function LeLogementPage() {
           </div>
 
           <div className="flex flex-col gap-4 pb-10 ">
-            {checkoutSections.map((section) => (
+            {secondaryFixedSections.map((section) => (
               <PracticalCard key={section.key} section={section} />
             ))}
             {practicalBlocks.map((block) => (
@@ -303,6 +307,7 @@ function buildSections(row: any): Section[] {
 
   return [
     { key: 'address', title: 'Adresse', icon: <MapPin className="h-7 w-7" />, value: row?.lodging_address ?? null, hasValue: has(row?.lodging_address), format: 'address', theme: themes.light },
+    { key: 'presentation-video', title: 'Vidéo du logement', icon: <Video className="h-7 w-7" />, value: null, hasValue: has(row?.presentation_video_url), format: 'plain', videoUrl: row?.presentation_video_url ?? null, theme: themes.light },
     { key: 'wifi', title: 'Réseau Wi-Fi', icon: <Wifi className="h-7 w-7" />, value: wifiCombined, hasValue: Boolean(wifiCombined), format: 'wifi', theme: themes.light },
     { key: 'parking', title: 'Parking', icon: <Car className="h-7 w-7" />, value: row?.parking_info ?? null, hasValue: has(row?.parking_info) || has(row?.parking_photo_url) || has(row?.parking_video_url), format: 'markdown', photoUrl: row?.parking_photo_url ?? null, videoUrl: row?.parking_video_url ?? null, theme: themes.light },
     { key: 'checkout', title: 'Départ', icon: <LogOut className="h-7 w-7" />, value: row?.checkout_instructions ?? null, hasValue: has(row?.checkout_instructions), format: 'markdown', theme: themes.light },

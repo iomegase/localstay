@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-07-07
+updated_at: 2026-07-09
 depends_on: [010-dashboard-owner, 011-qr-code-owner, 002-categories, 003-poi-list]
 ```
 
@@ -431,7 +431,7 @@ components:
 
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
-- `/le-logement` affiche les informations pratiques du logement. Quand la page utilise le pager en deux panneaux, la section fixe "Départ" issue de `checkout_instructions` est rendue en page 2, avant les blocs pratiques personnalisés.
+- `/le-logement` affiche les informations pratiques du logement. La vidéo de présentation du logement, lorsqu'elle existe, est rendue comme une carte pratique en page 1 entre "Adresse" et "Parking". Quand la page utilise le pager en deux panneaux, les sections fixes "Wi-Fi", "Poubelles" et "Départ" sont rendues en page 2, dans cet ordre, avant les blocs pratiques personnalisés.
 - `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné. Les titres de City de cette section contractent le préfixe "À" avec les noms commençant par "Les" : "Les Contamines-Montjoie" devient "Aux Contamines-Montjoie".
 - Les textes personnalisés Owner affichés publiquement (titre de `/nos-recommandations`, message d'accueil sur `/guide/[city-slug]` et `/le-logement`, commentaire Owner contextualisé sur fiche POI) utilisent la font Story Script via l'alias Tailwind `font-hand`
 - Sur `/nos-recommandations`, chaque recommandation Owner non-randonnée affiche le statut horaire public déjà utilisé par les cards POI quand les données horaires existent : badge "Ouvert" ou "Fermé", puis "Ferme à <heure>" si ouvert ou "Ouvre <jour/heure>" si fermé. Si `is_open_now` et `hours` ne permettent pas de déterminer le statut, aucun badge horaire n'est rendu. Les cards de recommandation n'affichent jamais le nom de catégorie en texte ; elles affichent uniquement l'icône Lucide de la Category, avec fallback d'icône si nécessaire.
