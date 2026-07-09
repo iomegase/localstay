@@ -1,5 +1,6 @@
 'use client'
 
+import { useId } from 'react'
 import { Plus, Trash2, GripVertical } from 'lucide-react'
 import {
   closestCenter,
@@ -44,6 +45,9 @@ function blockUid(): string {
 }
 
 export function PracticalBlocksEditor({ value, onChange, lodgingId }: Props) {
+  // id stable pour DndContext : évite le mismatch d'hydratation SSR/client sur
+  // l'aria-describedby généré par le compteur global de dnd-kit.
+  const dndId = useId()
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -86,7 +90,7 @@ export function PracticalBlocksEditor({ value, onChange, lodgingId }: Props) {
         </button>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={value.map(block => block.id ?? '')} strategy={verticalListSortingStrategy}>
           <div className="space-y-4">
             {value.map((block, index) => (
