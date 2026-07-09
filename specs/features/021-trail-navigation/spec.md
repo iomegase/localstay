@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-25
-updated_at: 2026-05-26
+updated_at: 2026-07-09
 depends_on:
   - 004-poi-detail
   - 005-map
@@ -130,9 +130,10 @@ Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire 
 - **BR-13**: Les erreurs Mapbox, GPS refusé, GPS indisponible ou tracé absent doivent produire des états UI explicites sans page blanche.
 - **BR-14**: L'interface doit prévenir le Tourist des limites sécurité et batterie avant ou au moment du démarrage du guidage.
 - **BR-15**: Le mode "Commencer la rando" ne lance jamais `watchPosition` au chargement initial ; il attend une action explicite "Activer le suivi GPS".
-- **BR-16**: Le bouton "Recentrer" du mode randonnée recentre sur la dernière position GPS connue. S'il n'existe pas encore de position, il ne déclenche pas de tracking implicite.
+- **BR-16**: En mode marche actif avec GPS lancé, la caméra Mapbox garde toujours la position du Tourist au centre de la carte, y compris après un déplacement manuel de carte. Le bouton "Recentrer" recentre sur la dernière position GPS connue. S'il n'existe pas encore de position, il ne déclenche pas de tracking implicite.
 - **BR-17**: Une position GPS éloignée du départ au premier calcul est un état pré-départ, pas un état `off_track`.
 - **BR-18**: "Rejoindre le départ" ne déclenche jamais `navigator.geolocation` côté StayLocal ; Google Maps gère l'origine de navigation si l'utilisateur l'autorise dans Google.
+- **BR-19**: La liaison visuelle d'approche entre la position GPS et le tracé est affichable seulement avant le démarrage depuis la position courante. Dès que le Tourist choisit "Démarrer depuis ici", cette liaison est retirée de la carte.
 
 ---
 
@@ -347,6 +348,8 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 - marker arrivée si le tracé permet de l'inférer ;
 - bouton "Activer le suivi GPS" visible en état `ready` ;
 - marker position utilisateur après activation du suivi et consentement ;
+- caméra centrée en continu sur la position utilisateur pendant la marche active ;
+- liaison d'approche vers le tracé retirée après l'action "Démarrer depuis ici" ;
 - bouton recentrer sur position ;
 - panneau bas avec titre randonnée, distance/durée/dénivelé, état GPS et état de suivi ;
 - bouton "Terminer" ou "Quitter la rando" ;
@@ -387,6 +390,8 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | AC-03-04 | Progression indicative affichée | unit |
 | AC-03-05 | Précision GPS faible affichée explicitement | unit |
 | AC-03-06 | Alerte off-track affichée au-delà du seuil après démarrage effectif | unit |
+| BR-16 | Caméra centrée en continu sur le Tourist pendant la marche active | unit |
+| BR-19 | Liaison d'approche retirée après "Démarrer depuis ici" | unit |
 | AC-04-01 | Consentement navigateur requis avant position | e2e |
 | AC-04-02 | Position non persistée en base/API | contract |
 | AC-04-03 | Avertissement sécurité visible | integration |

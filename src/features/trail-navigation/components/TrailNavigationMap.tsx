@@ -66,8 +66,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const [isHudExpanded, setIsHudExpanded] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
   const [northLocked, setNorthLocked] = useState(true)
-  // Suivi caméra : la carte se recentre sur la position tant que true. Repasse à false
-  // dès que l'utilisateur déplace la carte à la main ; re-activé au tap sur « recentrer ».
+  // Suivi caméra : en mode marche actif, la position utilisateur reste au centre.
+  // Le bouton recentrer force aussi un retour immédiat sur la dernière position GPS.
   const [isFollowing, setIsFollowing] = useState(true)
   const trackingStartedAtRef = useRef<number | null>(null)
 
@@ -126,7 +126,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   }
 
   // Suivi caméra continu : recentre la carte sur la position à chaque update GPS,
-  // en conservant zoom / pitch / bearing courants. Désactivé si l'utilisateur a paddé.
+  // en conservant zoom / pitch / bearing courants.
   useEffect(() => {
     if (!position) return
     if (!shouldAutoFollowCamera(gpsState, isFollowing)) return
@@ -256,10 +256,11 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     return getPositionProgress(position, geometry)
   }, [geometry, gpsState, position])
 
-  // Cible : point le plus proche du tracé pour l'approche
+  // Cible : point le plus proche du tracé avant démarrage effectif.
+  // Après "Démarrer depuis ici", on retire la liaison visuelle pour garder la carte lisible.
   const approachTarget = useMemo(() => {
     if (!position || !geometry) return null
-    if (gpsState !== 'approaching' && gpsState !== 'ready_to_join' && gpsState !== 'pre_start') return null
+    if (gpsState !== 'ready_to_join' && gpsState !== 'pre_start') return null
     return getClosestPointOnTrail(position, geometry)
   }, [geometry, gpsState, position])
 
@@ -407,14 +408,6 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         touchPitch={true}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         style={{ width: '100%', height: '100%' }}
-        onMoveStart={evt => {
-          // Geste utilisateur réel (drag/pinch) → on coupe le suivi pour ne pas
-          // « tirer » la carte sous ses doigts. Les moves programmatiques (easeTo/flyTo)
-          // n'ont pas d'originalEvent et ne désactivent donc pas le suivi.
-          // `originalEvent` est présent à l'exécution mais absent du type ViewStateChangeEvent.
-          const userGesture = (evt as unknown as { originalEvent?: Event | null }).originalEvent
-          if (userGesture) setIsFollowing(false)
-        }}
       >
         {/* Décalé vers le bas pour passer sous la rangée de boutons du haut (compass/lock). */}
         <NavigationControl position="top-right" style={{ marginTop: '5.5rem', marginRight: '1.5rem' }} />
@@ -596,9 +589,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             }`}
             aria-label={
               position
-                ? isFollowing
-                  ? 'Suivi GPS activé — recentrer'
-                  : 'Recentrer et réactiver le suivi GPS'
+                ? 'Recentrer sur ma position'
                 : 'Activer la localisation'
             }
           >

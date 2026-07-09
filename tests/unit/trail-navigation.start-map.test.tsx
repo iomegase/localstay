@@ -1,13 +1,44 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 
+const mockEaseTo = jest.fn()
+const mockFlyTo = jest.fn()
+const mockDragRotateDisable = jest.fn()
+const mockDragRotateEnable = jest.fn()
+const mockTouchRotationDisable = jest.fn()
+const mockTouchRotationEnable = jest.fn()
+let mockOnMoveStart: ((evt: unknown) => void) | null = null
+
 jest.mock('react-map-gl/mapbox', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <div data-testid="mapbox-outdoors">{children}</div>,
+  default: jest.requireActual('react').forwardRef(
+    (
+      { children, onMoveStart }: { children: React.ReactNode; onMoveStart?: (evt: unknown) => void },
+      ref: React.Ref<unknown>,
+    ) => {
+      const React = jest.requireActual('react') as typeof import('react')
+      mockOnMoveStart = onMoveStart ?? null
+      React.useImperativeHandle(ref, () => ({
+        getMap: () => ({
+          easeTo: mockEaseTo,
+          dragRotate: {
+            disable: mockDragRotateDisable,
+            enable: mockDragRotateEnable,
+          },
+          touchZoomRotate: {
+            disableRotation: mockTouchRotationDisable,
+            enableRotation: mockTouchRotationEnable,
+          },
+        }),
+        flyTo: mockFlyTo,
+      }))
+      return <div data-testid="mapbox-outdoors">{children}</div>
+    },
+  ),
   Source: ({ children }: { children: React.ReactNode }) => <div data-testid="map-source">{children}</div>,
   Layer: ({ id }: { id: string }) => <div data-testid={`map-layer-${id}`} />,
   Marker: ({ children }: { children: React.ReactNode }) => <div data-testid="map-marker">{children}</div>,
@@ -40,6 +71,13 @@ const trail = {
 describe('021 trail navigation start mode', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
+    mockEaseTo.mockClear()
+    mockFlyTo.mockClear()
+    mockDragRotateDisable.mockClear()
+    mockDragRotateEnable.mockClear()
+    mockTouchRotationDisable.mockClear()
+    mockTouchRotationEnable.mockClear()
+    mockOnMoveStart = null
   })
 
   it('AC-02-03/AC-04-01: renders ready mode without starting GPS tracking automatically', () => {
@@ -120,6 +158,102 @@ describe('021 trail navigation start mode', () => {
     unmount()
 
     expect(clearWatch).toHaveBeenCalledWith(42)
+  })
+
+  it('keeps the user centered after a map drag while GPS tracking continues', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      gpsSuccess = success
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+
+    await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
+    act(() => {
+      gpsSuccess?.({
+        coords: {
+          latitude: 45.8732,
+          longitude: 6.6731,
+          accuracy: 8,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+        timestamp: 1,
+      } satisfies GeolocationPosition)
+    })
+
+    await waitFor(() =>
+      expect(mockEaseTo).toHaveBeenCalledWith(expect.objectContaining({
+        center: [6.6731, 45.8732],
+      })),
+    )
+
+    mockEaseTo.mockClear()
+    act(() => {
+      mockOnMoveStart?.({ originalEvent: new Event('pointerdown') })
+    })
+    act(() => {
+      gpsSuccess?.({
+        coords: {
+          latitude: 45.8733,
+          longitude: 6.6732,
+          accuracy: 8,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+        timestamp: 4_500,
+      } satisfies GeolocationPosition)
+    })
+
+    await waitFor(() =>
+      expect(mockEaseTo).toHaveBeenCalledWith(expect.objectContaining({
+        center: [6.6732, 45.8733],
+      })),
+    )
+  })
+
+  it('hides the red-white approach line after the user starts from here', async () => {
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      success({
+        coords: {
+          latitude: 45.8737,
+          longitude: 6.673,
+          accuracy: 8,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+        timestamp: 1,
+      } satisfies GeolocationPosition)
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+
+    await screen.findByRole('button', { name: /démarrer depuis ici/i })
+    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
+    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /démarrer depuis ici/i }))
+
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
   })
 
   it('AC-02-04/AC-03-05: keeps trail visible when GPS is denied or inaccurate', async () => {

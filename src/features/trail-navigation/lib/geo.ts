@@ -26,8 +26,8 @@ const CAMERA_FOLLOW_STATES: ReadonlySet<TrailGpsState> = new Set([
 
 /**
  * Décide si la caméra Mapbox doit se recentrer automatiquement sur la position GPS.
- * `isFollowing` repasse à false dès que l'utilisateur déplace la carte à la main,
- * et à true quand il tape le bouton de recentrage.
+ * `isFollowing` permet de forcer le suivi GPS actif sans relancer implicitement
+ * la géolocalisation quand aucune position n'existe encore.
  */
 export function shouldAutoFollowCamera(gpsState: TrailGpsState, isFollowing: boolean): boolean {
   return isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
