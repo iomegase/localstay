@@ -20,6 +20,9 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodgingFeaturedPoi: {
       findMany: jest.fn(),
     },
+    lodgingCustomization: {
+      findFirst: jest.fn(),
+    },
   },
 }))
 
@@ -64,6 +67,48 @@ describe('012 recommendations page', () => {
       'href',
       '/guide/saint-gervais/restaurants/bistrot-du-centre',
     )
+  })
+
+  it('affiche les sections dans l\'ordre de category_order, pas dans l\'ordre des POIs', async () => {
+    // Les POIs arrivent dans l'ordre Boulangerie puis Restaurants…
+    jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
+      {
+        poi_id: 'poi-b',
+        owner_note: null,
+        poi: {
+          id: 'poi-b',
+          name: 'Aux Petits Gourmands',
+          slug: 'aux-petits-gourmands',
+          description: 'Chocolatier.',
+          photos: [],
+          category: { name: 'Boulangerie', slug: 'boulangerie' },
+        },
+      },
+      {
+        poi_id: 'poi-r',
+        owner_note: null,
+        poi: {
+          id: 'poi-r',
+          name: 'Bistrot du Centre',
+          slug: 'bistrot-du-centre',
+          description: 'Cuisine locale.',
+          photos: [],
+          category: { name: 'Restaurants', slug: 'restaurants' },
+        },
+      },
+    ] as never)
+    // …mais l'hôte a défini Restaurants avant Boulangerie.
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      category_order: ['restaurants', 'boulangerie'],
+    } as never)
+
+    render(await NosRecommendationsPage())
+
+    const restaurants = screen.getAllByText('Restaurants')[0]
+    const boulangerie = screen.getAllByText('Boulangerie')[0]
+    expect(
+      restaurants.compareDocumentPosition(boulangerie) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 
   it('AC-02-02: does not reserve comment space when the owner note is absent', async () => {

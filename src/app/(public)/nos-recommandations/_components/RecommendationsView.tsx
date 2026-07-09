@@ -6,6 +6,7 @@ import type { PoiHours } from '@/features/categories/types'
 import { computeIsOpenNow, getNextOpenLabel, getTodayCloseLabel } from '@/features/categories/lib/is-open-now'
 import { Hero } from './Hero'
 import { BentoSection } from './BentoSection'
+import { orderGroupsByCategoryOrder } from './order-groups'
 import type { RecRow } from './variants'
 
 export async function RecommendationsView({
@@ -13,27 +14,34 @@ export async function RecommendationsView({
 }: {
   lodgingContext: LodgingModeContext
 }) {
-  const featuredRows = await prisma.lodgingFeaturedPoi.findMany({
-    where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
-    orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
-    select: {
-      poi_id: true,
-      owner_note: true,
-      poi: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          photos: true,
-          is_open_now: true,
-          hours: true,
-          category: { select: { name: true, slug: true, icon: true } },
-          city: { select: { slug: true, name: true } },
+  const [featuredRows, customization] = await Promise.all([
+    prisma.lodgingFeaturedPoi.findMany({
+      where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
+      orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
+      select: {
+        poi_id: true,
+        owner_note: true,
+        poi: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            photos: true,
+            is_open_now: true,
+            hours: true,
+            category: { select: { name: true, slug: true, icon: true } },
+            city: { select: { slug: true, name: true } },
+          },
         },
       },
-    },
-  })
+    }),
+    prisma.lodgingCustomization.findFirst({
+      where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
+      select: { category_order: true },
+    }),
+  ])
+  const categoryOrder = customization?.category_order ?? []
 
   const featuredPois: RecRow[] = featuredRows.map(row => {
     const hours = row.poi.hours as PoiHours | null
@@ -54,7 +62,7 @@ export async function RecommendationsView({
 
   const localRows = featuredPois.filter(row => cityOf(row) === lodgingContext.citySlug)
   const otherRows = featuredPois.filter(row => cityOf(row) !== lodgingContext.citySlug)
-  const grouped = groupByCategory(localRows)
+  const grouped = orderGroupsByCategoryOrder(groupByCategory(localRows), categoryOrder)
   const otherByCity = groupByCity(otherRows)
   const hasAny = grouped.length > 0 || otherByCity.length > 0
 

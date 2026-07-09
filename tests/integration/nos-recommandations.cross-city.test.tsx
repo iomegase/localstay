@@ -16,7 +16,10 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 }))
 
 jest.mock('@/shared/lib/prisma', () => ({
-  prisma: { lodgingFeaturedPoi: { findMany: jest.fn() } },
+  prisma: {
+    lodgingFeaturedPoi: { findMany: jest.fn() },
+    lodgingCustomization: { findFirst: jest.fn() },
+  },
 }))
 
 jest.mock('next/link', () => ({
