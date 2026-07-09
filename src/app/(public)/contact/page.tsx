@@ -1,17 +1,13 @@
 import Link from 'next/link'
-import { Mail, MessageCircle, PhoneCall, ArrowRight } from 'lucide-react'
-import { prisma } from '@/shared/lib/prisma'
-import { MarkdownText } from '@/shared/components/MarkdownText'
+import { ArrowRight } from 'lucide-react'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
-import { LeaveStayButton } from '@/features/public-menu/components/LeaveStayButton'
 import { ContactMessageForm } from '@/features/contact-messages/components/ContactMessageForm'
 
 export default async function ContactPage() {
   const lodgingContext = await getActiveLodgingContext()
 
   if (lodgingContext) {
-    const ownerInfo = await getOwnerContactInfo(lodgingContext.lodgingId)
-    return <LodgingContact lodgingContext={lodgingContext} ownerInfo={ownerInfo} />
+    return <LodgingContact lodgingContext={lodgingContext} />
   }
 
   return <PublicContact />
@@ -33,12 +29,12 @@ function PublicContact() {
         </p>
       </div>
 
-    
+
       <div className="mb-12">
-        <ContactMessageForm 
-          lodgingId={null} 
-          lodgingName={null} 
-          allowOwnerDestination={false} 
+        <ContactMessageForm
+          lodgingId={null}
+          lodgingName={null}
+          allowOwnerDestination={false}
         />
       </div>
 
@@ -64,18 +60,10 @@ function PublicContact() {
   )
 }
 
-type OwnerInfo = {
-  emergency_contacts: string | null
-  ownerName: string | null
-  ownerEmail: string | null
-} | null
-
 function LodgingContact({
   lodgingContext,
-  ownerInfo,
 }: {
   lodgingContext: { lodgingId: string; lodgingName: string; cityName: string; citySlug: string }
-  ownerInfo: OwnerInfo
 }) {
   return (
     <div className="px-6 pt-8 pb-24 max-w-md mx-auto space-y-8">
@@ -104,124 +92,6 @@ function LodgingContact({
           allowOwnerDestination
         />
       </div>
-
-      {/* Bouton Email direct (Card Modernisée) */}
-      {ownerInfo?.ownerEmail && (
-        <ContactCard
-          icon={<Mail className="h-5 w-5" />}
-          title={ownerInfo.ownerName ?? 'Votre hôte'}
-          subtitle="Contacter par email"
-          href={`mailto:${ownerInfo.ownerEmail}`}
-          cta={ownerInfo.ownerEmail}
-          analyticsEvent="owner_email_click"
-          analyticsCitySlug={lodgingContext.citySlug}
-          analyticsLodgingId={lodgingContext.lodgingId}
-        />
-      )}
-
-      {/* Bloc Urgences (Refonte avec couleurs douces mais distinctives) */}
-      {ownerInfo?.emergency_contacts && (
-        <section className="rounded-[24px] bg-rose-50/50 border border-rose-100 p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-              <PhoneCall className="h-5 w-5" />
-            </span>
-            <h2 className="font-serif text-[20px] font-medium text-gray-900">Urgences</h2>
-          </div>
-          {/* Prose ajouté pour forcer un style élégant au markdown */}
-          <div className="prose prose-sm prose-rose text-[14px] leading-relaxed text-gray-700">
-            <MarkdownText source={ownerInfo.emergency_contacts} />
-          </div>
-        </section>
-      )}
-
-      {/* Support MyStay (Bloc minimaliste) */}
-      <section className="rounded-[24px] bg-gray-50 border border-gray-100 p-6 text-center flex flex-col items-center">
-        <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center shadow-sm mb-3 text-gray-400">
-          <MessageCircle className="h-5 w-5" />
-        </div>
-        <p className="font-medium text-[#111827] text-[15px] mb-1">Équipe MyStay</p>
-        <p className="text-[13px] text-gray-500">
-          Un souci technique avec l'application ?<br/>
-          <a
-            className="text-[#5A6B5D] font-medium hover:underline mt-1 inline-block"
-            href="mailto:hello@mystay.fr"
-            data-analytics-event="mystay_email_click"
-            data-analytics-city-slug={lodgingContext.citySlug}
-            data-analytics-lodging-id={lodgingContext.lodgingId}
-          >
-            hello@mystay.fr
-          </a>
-        </p>
-      </section>
-
-      {/* Bouton Quitter (Aéré et centré) */}
-      <div className="pt-4 flex justify-center opacity-80 hover:opacity-100 transition-opacity">
-        <LeaveStayButton />
-      </div>
     </div>
   )
-}
-
-function ContactCard({
-  icon,
-  title,
-  subtitle,
-  href,
-  cta,
-  analyticsEvent,
-  analyticsCitySlug,
-  analyticsLodgingId,
-}: {
-  icon: React.ReactNode
-  title: string
-  subtitle: string
-  href: string
-  cta: string
-  analyticsEvent?: 'owner_email_click' | 'mystay_email_click'
-  analyticsCitySlug?: string | null
-  analyticsLodgingId?: string | null
-}) {
-  return (
-    <a
-      href={href}
-      data-analytics-event={analyticsEvent}
-      data-analytics-city-slug={analyticsCitySlug ?? undefined}
-      data-analytics-lodging-id={analyticsLodgingId ?? undefined}
-      className="group flex items-center gap-4 rounded-[24px] bg-white p-5 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:border-gray-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] active:scale-[0.98]"
-    >
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gray-50 text-gray-400 transition-colors group-hover:bg-[#111827] group-hover:text-white">
-        {icon}
-      </span>
-      <div className="flex-1 overflow-hidden">
-        <p className="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-0.5">
-          {subtitle}
-        </p>
-        <p className="font-serif text-[18px] font-medium text-[#111827] truncate">
-          {title}
-        </p>
-        <p className="mt-1 text-[13px] text-gray-500 truncate group-hover:text-[#5A6B5D] transition-colors">
-          {cta}
-        </p>
-      </div>
-    </a>
-  )
-}
-
-// LOGIQUE DATA INTACTE
-async function getOwnerContactInfo(lodgingId: string): Promise<OwnerInfo> {
-  const lodging = await prisma.lodging.findFirst({
-    where: { id: lodgingId, deleted_at: null },
-    select: {
-      owner: { select: { first_name: true, last_name: true, email: true } },
-      customization: { select: { emergency_contacts: true } },
-    },
-  })
-  if (!lodging) return null
-  const parts = [lodging.owner.first_name, lodging.owner.last_name].filter((p): p is string => Boolean(p))
-  return {
-    emergency_contacts: lodging.customization?.emergency_contacts ?? null,
-    ownerName: parts.length > 0 ? parts.join(' ') : null,
-    ownerEmail: lodging.owner.email,
-  }
 }
