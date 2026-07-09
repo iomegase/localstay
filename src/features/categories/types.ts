@@ -40,6 +40,7 @@ export interface PoiCard {
   rating_count: number
   is_open_now: boolean | null
   distance_km: number
+  distance_source?: 'city_center' | 'lodging' | 'user_location'
   photo_url: string | null
   photos: string[]
   phone: string | null

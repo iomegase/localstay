@@ -4,15 +4,22 @@ const tx = {
   lodgingPracticalBlock: { updateMany: jest.fn(), create: jest.fn() },
 }
 
+const mockGeocodeAddress = jest.fn()
+
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     lodging: { findFirst: jest.fn() },
+    lodgingCustomization: { findFirst: jest.fn() },
     category: { findMany: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
     lodgingPracticalBlock: { findMany: jest.fn() },
     $transaction: jest.fn(async (cb: (t: typeof tx) => unknown) => cb(tx)),
   },
+}))
+
+jest.mock('@/features/geocoding/services/mapbox-client', () => ({
+  geocodeAddress: (...args: unknown[]) => mockGeocodeAddress(...args),
 }))
 
 import { prisma } from '@/shared/lib/prisma'
@@ -28,6 +35,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
       city_id: 'city-1',
       city: { latitude: 45, longitude: 6 },
     } as never)
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue(null)
     jest.mocked(prisma.category.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       {
@@ -109,6 +117,38 @@ describe('saveLodgingCustomization — practical blocks', () => {
       owner_note: 'Notre terrasse préférée.',
       sort_order: 0,
     }])
+  })
+
+  it('AC-04-03: geocodes the lodging address via Mapbox and stores coordinates on customization', async () => {
+    mockGeocodeAddress.mockResolvedValue({
+      latitude: 45.001,
+      longitude: 6.002,
+      relevance: 0.98,
+      place_name: '22 Rue de la Comtesse, 74170 Saint-Gervais-les-Bains',
+    })
+
+    await saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [],
+      lodging_address: ' 22 Rue de la Comtesse ',
+    })
+
+    expect(mockGeocodeAddress).toHaveBeenCalledWith('22 Rue de la Comtesse', {
+      latitude: 45,
+      longitude: 6,
+    })
+    expect(tx.lodgingCustomization.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      update: expect.objectContaining({
+        lodging_address: '22 Rue de la Comtesse',
+        lodging_latitude: 45.001,
+        lodging_longitude: 6.002,
+      }),
+      create: expect.objectContaining({
+        lodging_address: '22 Rue de la Comtesse',
+        lodging_latitude: 45.001,
+        lodging_longitude: 6.002,
+      }),
+    }))
   })
 
   it('rejects an owner note over 300 words before starting the transaction', async () => {

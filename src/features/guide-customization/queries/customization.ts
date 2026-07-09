@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import type { CategorySummary } from '@/features/city-guide/types'
 import type { CategoryWithCount } from '@/features/categories/types'
+import { geocodeAddress } from '@/features/geocoding/services/mapbox-client'
+import { validateGeocode } from '@/features/geocoding/services/geo-validator'
 import {
   countWords,
   filterValidCategoryOrder,
@@ -45,7 +47,12 @@ function pickPracticalInfo(source: Partial<PracticalInfoFields> | null | undefin
   if (!source) return { ...EMPTY_PRACTICAL_INFO }
   return PRACTICAL_INFO_KEYS.reduce<PracticalInfoFields>((acc, key) => {
     const value = source[key]
-    acc[key] = typeof value === 'string' && value.trim().length > 0 ? value : null
+    if (typeof value !== 'string') {
+      acc[key] = null
+      return acc
+    }
+    const trimmed = value.trim()
+    acc[key] = trimmed.length > 0 ? trimmed : null
     return acc
   }, { ...EMPTY_PRACTICAL_INFO })
 }
@@ -55,6 +62,17 @@ type CustomizableLodging = {
   owner_id: string
   city_id: string
   city: { latitude: number; longitude: number }
+}
+
+type StoredLodgingAddressCoordinates = {
+  lodging_address: string | null
+  lodging_latitude: number | null
+  lodging_longitude: number | null
+}
+
+type LodgingAddressCoordinates = {
+  lodging_latitude: number | null
+  lodging_longitude: number | null
 }
 
 type PublicCustomization = {
@@ -69,6 +87,49 @@ type PublicCustomization = {
 
 function raise(code: GuideCustomizationErrorCode, message: string): never {
   throw new GuideCustomizationError(code, message)
+}
+
+async function resolveLodgingAddressCoordinates(
+  address: string | null,
+  existing: StoredLodgingAddressCoordinates | null,
+  cityCenter: { latitude: number; longitude: number },
+): Promise<LodgingAddressCoordinates> {
+  if (!address) {
+    return { lodging_latitude: null, lodging_longitude: null }
+  }
+
+  if (
+    existing?.lodging_address === address &&
+    typeof existing.lodging_latitude === 'number' &&
+    typeof existing.lodging_longitude === 'number'
+  ) {
+    return {
+      lodging_latitude: existing.lodging_latitude,
+      lodging_longitude: existing.lodging_longitude,
+    }
+  }
+
+  try {
+    const result = await geocodeAddress(address, {
+      latitude: cityCenter.latitude,
+      longitude: cityCenter.longitude,
+    })
+    if (!result) {
+      return { lodging_latitude: null, lodging_longitude: null }
+    }
+
+    const validation = validateGeocode(result, cityCenter)
+    if (!validation.valid) {
+      return { lodging_latitude: null, lodging_longitude: null }
+    }
+
+    return {
+      lodging_latitude: result.latitude,
+      lodging_longitude: result.longitude,
+    }
+  } catch {
+    return { lodging_latitude: null, lodging_longitude: null }
+  }
 }
 
 async function getOwnedLodgingOrThrow(ownerId: string, lodgingId: string): Promise<CustomizableLodging> {
@@ -239,24 +300,34 @@ export async function saveLodgingCustomization(
 ): Promise<LodgingCustomizationResponse> {
   const lodging = await getOwnedLodgingOrThrow(ownerId, lodgingId)
 
-  const validCategories = await prisma.category.findMany({
-    where: { deleted_at: null, is_active: true },
-    orderBy: { sort_order: 'asc' },
-    select: {
-      slug: true,
-      _count: {
-        select: {
-          pois: {
-            where: {
-              city_id: lodging.city_id,
-              deleted_at: null,
-              is_active: true,
+  const [validCategories, existingCustomization] = await Promise.all([
+    prisma.category.findMany({
+      where: { deleted_at: null, is_active: true },
+      orderBy: { sort_order: 'asc' },
+      select: {
+        slug: true,
+        _count: {
+          select: {
+            pois: {
+              where: {
+                city_id: lodging.city_id,
+                deleted_at: null,
+                is_active: true,
+              },
             },
           },
         },
       },
-    },
-  })
+    }),
+    prisma.lodgingCustomization.findFirst({
+      where: { lodging_id: lodgingId, deleted_at: null },
+      select: {
+        lodging_address: true,
+        lodging_latitude: true,
+        lodging_longitude: true,
+      },
+    }),
+  ])
 
   const validCategorySlugs = new Set(
     validCategories
@@ -266,6 +337,11 @@ export async function saveLodgingCustomization(
   const categoryOrderResult = filterValidCategoryOrder(input.category_order, validCategorySlugs)
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
   const practicalInfo = pickPracticalInfo(input)
+  const lodgingAddressCoordinates = await resolveLodgingAddressCoordinates(
+    practicalInfo.lodging_address,
+    existingCustomization,
+    lodging.city,
+  )
   const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
   const trashBins = normalizeTrashBins(input.trash_bins)
   const trashBinsJson = trashBins as unknown as Prisma.InputJsonValue
@@ -279,6 +355,7 @@ export async function saveLodgingCustomization(
         deleted_at: null,
         trash_bins: trashBinsJson,
         ...practicalInfo,
+        ...lodgingAddressCoordinates,
       },
       create: {
         lodging_id: lodgingId,
@@ -286,6 +363,7 @@ export async function saveLodgingCustomization(
         category_order: categoryOrderResult.category_order,
         trash_bins: trashBinsJson,
         ...practicalInfo,
+        ...lodgingAddressCoordinates,
       },
     })
 

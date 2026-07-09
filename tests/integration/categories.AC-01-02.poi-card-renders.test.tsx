@@ -110,6 +110,30 @@ describe('PoiCard — accordion behaviour', () => {
     expect(distanceEls[distanceEls.length - 1]).toHaveTextContent('350 m')
   })
 
+  it('renders the lodging distance context when the guide is opened from an apartment', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, distance_km: 0.39, distance_source: 'lodging' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    const distanceEls = screen.getAllByTestId('poi-distance')
+    expect(distanceEls[distanceEls.length - 1]).toHaveTextContent("à 390 m de l'appartement")
+  })
+
+  it('renders the current position distance context after GPS opt-in', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, distance_km: 0.42, distance_source: 'user_location' }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+    const distanceEls = screen.getAllByTestId('poi-distance')
+    expect(distanceEls[distanceEls.length - 1]).toHaveTextContent('à 420 m de votre position actuelle')
+  })
+
   it('hides the APPELER button when no phone is set', () => {
     render(<PoiCard poi={{ ...poi, phone: null }} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
     expect(screen.queryByText('APPELER')).not.toBeInTheDocument()

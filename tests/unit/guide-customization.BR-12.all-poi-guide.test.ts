@@ -1,6 +1,7 @@
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     city: { findFirst: jest.fn() },
+    lodging: { findFirst: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
   },
 }))
@@ -43,6 +44,7 @@ describe('012 all-POI guide in lodging mode', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     jest.mocked(prisma.city.findFirst).mockResolvedValue(mockCity as never)
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue(null)
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       makePoi('near', 'near', 45.89),
       makePoi('featured', 'featured', 46.1),
@@ -81,5 +83,25 @@ describe('012 all-POI guide in lodging mode', () => {
     expect(result!.items[0].photo_url).toBe(
       'https://location-ski-saint-nicolas-de-veroce.fr/upload/Mont-Blanc-ete.jpg',
     )
+  })
+
+  it('uses lodging coordinates as the displayed distance source when they are available', async () => {
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue({
+      id: 'lodging-1',
+      customization: {
+        lodging_latitude: 46.05,
+        lodging_longitude: 6.71,
+      },
+    } as never)
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      { ...makePoi('nearby', 'nearby-from-city', 46.05), geocode_status: 'success' },
+    ] as never)
+
+    const result = await getAllPoiCards('saint-gervais', { lodgingId: 'lodging-1' })
+
+    expect(result).not.toBeNull()
+    expect(result!.items).toHaveLength(1)
+    expect(result!.items[0].distance_km).toBeCloseTo(0, 5)
+    expect(result!.items[0].distance_source).toBe('lodging')
   })
 })

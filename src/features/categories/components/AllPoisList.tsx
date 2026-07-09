@@ -42,6 +42,7 @@ export function AllPoisList({ citySlug, initialItems, initialMeta, sort = 'dista
     ? items.map(poi => ({
         ...poi,
         distance_km: haversineKm(location.latitude, location.longitude, poi.latitude, poi.longitude),
+        distance_source: 'user_location' as const,
       }))
     : items
 

@@ -790,6 +790,8 @@ model LodgingCustomization {
   cover_photo_url       String?
   presentation_video_url String?
   lodging_address       String?
+  lodging_latitude      Float?
+  lodging_longitude     Float?
   wifi_ssid             String?
   wifi_password         String?
   parking_info          String?

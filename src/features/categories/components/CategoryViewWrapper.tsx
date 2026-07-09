@@ -31,6 +31,7 @@ function withDisplayedDistance(
   return pois.map(poi => ({
     ...poi,
     distance_km: haversineKm(userLocation.latitude, userLocation.longitude, poi.latitude, poi.longitude),
+    distance_source: 'user_location' as const,
   }))
 }
 

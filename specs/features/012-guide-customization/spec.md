@@ -81,6 +81,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 
 - **AC-04-01**: Given le dashboard de personnalisation, When l'Owner renseigne les informations pratiques, Then elles sont sauvegardées et affichées sur `/le-logement`
 - **AC-04-02**: Given le dashboard de personnalisation, When l'Owner importe une image valide, Then elle est convertie si nécessaire, stockée dans Supabase Storage et affichée en haut de la page d'accueil séjour
+- **AC-04-03**: Given l'Owner renseigne une adresse de logement, When elle est sauvegardée, Then le serveur tente de la géocoder via Mapbox depuis le centre de la City et stocke les coordonnées du logement si le résultat est valide
 
 ---
 
@@ -101,6 +102,8 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`.
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
 - **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
+- **BR-16**: Les coordonnées du logement dérivées de `lodging_address` sont calculées uniquement côté serveur via Mapbox Geocoding avec proximité City. Gemini ne doit jamais géocoder l'adresse du logement ni calculer de distance.
+- **BR-17**: En mode séjour actif, les cards POI affichent la distance depuis les coordonnées du logement quand elles existent. Si le Tourist active sa position GPS, cette distance affichée est remplacée côté client par la distance depuis sa position actuelle. Les zones `primary` / `nearby` et le tri serveur restent calculés depuis le centre de la City.
 
 ---
 
@@ -119,6 +122,8 @@ model LodgingCustomization {
   category_order  String[] # slugs des catégories dans l'ordre Owner
   cover_photo_url String?
   lodging_address String?
+  lodging_latitude Float?
+  lodging_longitude Float?
   wifi_ssid String?
   wifi_password String?
   parking_info String?
@@ -441,6 +446,7 @@ components:
 - Le commentaire Owner n'est affiché sur aucune liste géographique. Une fiche POI sans contexte de séjour actif reste générale et n'affiche aucun commentaire Owner.
 - `/guide/[city-slug]?lodging=[id]` affiche tous les POI disponibles du Guide de la City, avec message d'accueil et ordre personnalisé éventuels, sans filtrage exclusif sur les recommandations Owner
 - `/guide/[city-slug]/[category-slug]?lodging=[id]` affiche tous les POI disponibles de cette catégorie dans le Guide de la City, sans filtrage exclusif sur les recommandations Owner
+- En mode séjour actif avec coordonnées logement disponibles, les cards POI affichent `à X m/km de l'appartement`; si le GPS du Tourist est activé, elles affichent `à X m/km de votre position actuelle`.
 - Si `lodging` est absent, inconnu, supprimé, inactif ou associé à une autre City, le guide standard s'affiche sans personnalisation
 
 ---
@@ -460,6 +466,7 @@ components:
 | AC-03-01 | Ordre catégories sauvegardé et appliqué | integration |
 | AC-04-01 | Infos pratiques sauvegardées et affichées | integration |
 | AC-04-02 | Upload photo logement sauvegardé et affiché | contract + unit |
+| AC-04-03 / BR-16 / BR-17 | Adresse logement géocodée via Mapbox et distance POI affichée depuis appartement puis GPS | unit + integration |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
 | BR-08/09 | Bucketing local/inter-ville sans étendre les listes du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |

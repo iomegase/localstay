@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-06
+updated_at: 2026-07-09
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -71,7 +71,7 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 ## Business Rules
 
 - **BR-01**: Les zones géographiques (`primary` / `nearby`) et le tri serveur par défaut sont calculés depuis le centre géographique de la City.
-- **BR-01a**: La distance affichée dans les cards est recalculée depuis la position GPS du Tourist uniquement après consentement explicite via le navigateur. Si le Tourist refuse, si le navigateur ne supporte pas la géolocalisation, ou si la récupération échoue, l'interface conserve la distance depuis le centre-ville.
+- **BR-01a**: La distance affichée dans les cards est recalculée depuis la position GPS du Tourist uniquement après consentement explicite via le navigateur. Si le Tourist refuse, si le navigateur ne supporte pas la géolocalisation, ou si la récupération échoue, l'interface conserve la distance depuis le logement en mode séjour quand ses coordonnées sont connues, sinon depuis le centre-ville.
 - **BR-01b**: La position GPS du Tourist n'est jamais persistée en base, jamais envoyée à Gemini, et n'est utilisée que côté client pour l'affichage de distance.
 - **BR-02**: Un POI avec `is_active = false` n'apparaît jamais dans la liste
 - **BR-03**: Un POI `deleted_at non null` n'apparaît jamais dans la liste
@@ -262,6 +262,11 @@ components:
         distance_km:
           type: number
           nullable: true
+        distance_source:
+          type: string
+          enum: [city_center, lodging, user_location]
+          nullable: true
+          description: "Origine de la distance affichée : centre-ville, logement actif ou position GPS locale"
         photo_url:
           type: string
           nullable: true
@@ -320,7 +325,7 @@ components:
 - Photo principale en header visuel : première URL exploitable hors logo/placeholder, position centrée ; rendu `object-cover` pour les photos portrait ou carrées, rendu `object-contain` pour les photos paysage.
 - Badge "Fermé" si `is_open_now = false`
 - Badge "Sponsorisé" si POI mis en avant (logique métier présente, inactive MVP 1)
-- Distance en km depuis le centre ville par défaut, ou depuis la position GPS du Tourist après consentement explicite
+- Distance en km depuis le centre ville par défaut, depuis le logement en mode séjour quand ses coordonnées sont connues, ou depuis la position GPS du Tourist après consentement explicite
 - Note avec étoile et nombre d'avis
 - Le panneau détaillé de la card fonctionne en accordéon : une seule card POI peut être ouverte à la fois dans une même liste (catégorie ou vue "Tous les POI")
 - Dans le panneau détaillé des POI non-randonnée, les boutons d'action restent sur une même rangée mobile-first : grille 1 colonne si seul l'itinéraire est disponible, 2 colonnes avec site ou téléphone, 3 colonnes si itinéraire + site + téléphone sont disponibles. Le bouton "ITINÉRAIRE" est noir plein ; les autres actions sont blanches avec contour noir.
@@ -338,7 +343,7 @@ components:
 | AC-02-02 | Filtre sous-catégorie fonctionne | integration |
 | AC-02-03 | Suppression filtre → reset liste | unit |
 | AC-03-01 | Clic card → redirection fiche POI | e2e |
-| BR-01a | Distance affichée depuis GPS après opt-in, fallback centre-ville | unit |
+| BR-01a | Distance affichée depuis GPS après opt-in, fallback logement en mode séjour puis centre-ville | unit |
 | BR-01b | Une seule card POI ouverte à la fois par liste | unit |
 | BR-05 | Pagination progressive "Charger plus" avec limite max 50 | contract + unit |
 | BR-05a | Infinite scroll home Guide "Tous les POI" par lots de 10 | contract + unit |
@@ -359,4 +364,4 @@ components:
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
 | OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-24 / 2026-06-04 | Catégories : pagination progressive via bouton "Charger plus". Home Guide "Tous les POI" : infinite scroll par lots de 10. |
-| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-24 | Zones et tri serveur depuis centre-ville ; distance affichée depuis GPS après opt-in, fallback centre-ville |
+| OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-24 / 2026-07-09 | Zones et tri serveur depuis centre-ville ; distance affichée depuis GPS après opt-in, fallback logement en mode séjour si coordonnées connues, sinon centre-ville |

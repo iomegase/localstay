@@ -2,6 +2,7 @@ import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiHours } from '../types'
 import { computeIsOpenNow, getTodayCloseLabel, getNextOpenLabel } from '../lib/is-open-now'
 import { selectPrimaryPoiPhoto } from '../lib/photo-url'
+import { getLodgingDistanceOrigin } from './lodging-distance-origin'
 
 const NEARBY_RADIUS_KM = 30
 const DEFAULT_LIMIT = 10
@@ -46,6 +47,8 @@ export async function getAllPoiCards(
   })
   if (!city) return null
 
+  const lodgingOrigin = await getLodgingDistanceOrigin(city.id, options.lodgingId)
+
   const rows = await prisma.pointOfInterest.findMany({
     where: {
       city_id: city.id,
@@ -86,52 +89,62 @@ export async function getAllPoiCards(
 
   type RawRow = (typeof rows)[number]
 
-  const cards: AllPoisCard[] = rows
-    .map((p: RawRow) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    category_slug: p.category.slug,
-    address: p.address,
-    subcategory_name: p.subcategory?.name ?? null,
-    rating: p.rating,
-    rating_count: p.rating_count,
-    is_open_now: computeIsOpenNow(p.hours as PoiHours | null) ?? p.is_open_now,
-    distance_km: haversineKm(city.latitude, city.longitude, p.latitude, p.longitude),
-    photo_url: selectPrimaryPoiPhoto(p.photos),
-    photos: p.photos,
-    phone: p.phone,
-    website: p.website,
-    description: p.description,
-    closes_at_label: getTodayCloseLabel(p.hours as PoiHours | null),
-    next_open_label: getNextOpenLabel(p.hours as PoiHours | null),
-    latitude: p.latitude,
-    longitude: p.longitude,
-    trail_detail:
-      p.trail_detail && p.trail_detail.is_active && !p.trail_detail.deleted_at
-        ? {
-            difficulty: p.trail_detail.difficulty as NonNullable<PoiCard['trail_detail']>['difficulty'],
-            estimated_duration_min: p.trail_detail.estimated_duration_min,
-            distance_km: p.trail_detail.distance_km,
-            elevation_gain_m: p.trail_detail.elevation_gain_m,
-          }
-        : null,
-    _geocoded: p.geocode_status === 'success',
-  })) as Array<AllPoisCard & { _geocoded: boolean }>
+  const cards = rows
+    .map((p: RawRow) => {
+      const cityDistanceKm = haversineKm(city.latitude, city.longitude, p.latitude, p.longitude)
+      const displayDistanceKm = lodgingOrigin
+        ? haversineKm(lodgingOrigin.latitude, lodgingOrigin.longitude, p.latitude, p.longitude)
+        : cityDistanceKm
+
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        category_slug: p.category.slug,
+        address: p.address,
+        subcategory_name: p.subcategory?.name ?? null,
+        rating: p.rating,
+        rating_count: p.rating_count,
+        is_open_now: computeIsOpenNow(p.hours as PoiHours | null) ?? p.is_open_now,
+        distance_km: displayDistanceKm,
+        distance_source: lodgingOrigin ? 'lodging' : 'city_center',
+        photo_url: selectPrimaryPoiPhoto(p.photos),
+        photos: p.photos,
+        phone: p.phone,
+        website: p.website,
+        description: p.description,
+        closes_at_label: getTodayCloseLabel(p.hours as PoiHours | null),
+        next_open_label: getNextOpenLabel(p.hours as PoiHours | null),
+        latitude: p.latitude,
+        longitude: p.longitude,
+        trail_detail:
+          p.trail_detail && p.trail_detail.is_active && !p.trail_detail.deleted_at
+            ? {
+                difficulty: p.trail_detail.difficulty as NonNullable<PoiCard['trail_detail']>['difficulty'],
+                estimated_duration_min: p.trail_detail.estimated_duration_min,
+                distance_km: p.trail_detail.distance_km,
+                elevation_gain_m: p.trail_detail.elevation_gain_m,
+              }
+            : null,
+        _city_distance_km: cityDistanceKm,
+        _geocoded: p.geocode_status === 'success',
+      }
+    }) satisfies Array<AllPoisCard & { _city_distance_km: number; _geocoded: boolean }>
 
   // Exclure les POI géocodés au-delà de 30 km (mais garder les pending/failed à distance ≈ 0).
-  const visible = (cards as Array<AllPoisCard & { _geocoded: boolean }>)
-    .filter(card => !(card._geocoded && card.distance_km > NEARBY_RADIUS_KM))
-    .map(({ _geocoded: _ignored, ...card }) => card)
+  const visible = cards
+    .filter(card => !(card._geocoded && card._city_distance_km > NEARBY_RADIUS_KM))
 
   const sorted = visible.sort((a, b) =>
-    sort === 'rating' ? (b.rating ?? 0) - (a.rating ?? 0) : a.distance_km - b.distance_km,
+    sort === 'rating' ? (b.rating ?? 0) - (a.rating ?? 0) : a._city_distance_km - b._city_distance_km,
   )
 
   const total = sorted.length
   const start = (page - 1) * limit
   return {
-    items: sorted.slice(start, start + limit),
+    items: sorted
+      .slice(start, start + limit)
+      .map(({ _city_distance_km: _cityDistanceKm, _geocoded: _geocoded, ...card }) => card),
     meta: { page, limit, total, total_pages: Math.ceil(total / limit) },
   }
 }

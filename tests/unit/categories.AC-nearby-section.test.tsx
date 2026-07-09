@@ -135,7 +135,22 @@ describe('CategoryViewWrapper — nearby section (BR-06)', () => {
     })
 
     // La position coïncide avec le POI → 0 m.
-    expect(screen.getByTestId('poi-distance')).toHaveTextContent('0 m')
+    expect(screen.getByTestId('poi-distance')).toHaveTextContent('0 m de votre position actuelle')
+  })
+
+  it('keeps the apartment distance context before GPS opt-in in lodging mode', () => {
+    render(
+      <CategoryViewWrapper
+        primary={[{ ...primaryPoi, distance_km: 0.39, distance_source: 'lodging' }]}
+        nearby={[]}
+        citySlug="saint-gervais"
+        categorySlug="restaurants"
+        cityCenter={CITY_CENTER}
+        lodgingId="lodging-1"
+      />,
+    )
+
+    expect(screen.getByTestId('poi-distance')).toHaveTextContent("390 m de l'appartement")
   })
 
   it('loads the next page through the POI API when more results are available', async () => {

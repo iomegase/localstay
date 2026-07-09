@@ -8,6 +8,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     city: { findFirst: jest.fn() },
     category: { findFirst: jest.fn() },
     subCategory: { findFirst: jest.fn() },
+    lodging: { findFirst: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
   },
 }))
@@ -32,9 +33,14 @@ function makePoi(overrides: {
     rating: overrides.rating ?? null,
     rating_count: 0,
     is_open_now: overrides.is_open_now ?? null,
+    hours: null,
     photos: [],
+    phone: null,
+    website: null,
+    description: null,
     geocode_status: overrides.geocode_status ?? 'pending',
     subcategory: null,
+    trail_detail: null,
   }
 }
 
@@ -42,6 +48,7 @@ describe('getPoiCards', () => {
   beforeEach(() => {
     jest.mocked(prisma.city.findFirst).mockResolvedValue(mockCity as never)
     jest.mocked(prisma.category.findFirst).mockResolvedValue(mockCategory as never)
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue(null)
   })
 
   afterEach(() => jest.clearAllMocks())
@@ -144,5 +151,27 @@ describe('getPoiCards', () => {
       primary_total_pages: 2,
       nearby_total_pages: 2,
     })
+  })
+
+  it('BR-17: uses lodging coordinates for displayed distance without changing city-based zones', async () => {
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue({
+      id: 'lodging-1',
+      customization: {
+        lodging_latitude: 46.05,
+        lodging_longitude: 6.71,
+      },
+    } as never)
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      makePoi({ id: 'n1', slug: 'nearby-from-city', latitude: 46.05, longitude: 6.71, geocode_status: 'success' }),
+    ] as never)
+
+    const result = await getPoiCards('saint-gervais', 'restaurants', { lodgingId: 'lodging-1' })
+
+    expect(result).not.toBeNull()
+    expect(result!.primary).toHaveLength(0)
+    expect(result!.nearby).toHaveLength(1)
+    expect(result!.nearby[0].slug).toBe('nearby-from-city')
+    expect(result!.nearby[0].distance_km).toBeCloseTo(0, 5)
+    expect(result!.nearby[0].distance_source).toBe('lodging')
   })
 })
