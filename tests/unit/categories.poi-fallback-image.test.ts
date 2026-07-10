@@ -24,4 +24,9 @@ describe('getPoiFallbackImage', () => {
     expect(getPoiFallbackImage('agenda', 'Concerts')).toBe('/fallback/fallback-concert.png')
     expect(getPoiFallbackImage('services', 'Mobilité')).toBe('/fallback/fallback-transport.png')
   })
+
+  it('uses the cinema fallback instead of the culture fallback for cinema labels', () => {
+    expect(getPoiFallbackImage('culture', 'Cinéma')).toBe('/fallback/fallback-cinema.png')
+    expect(getPoiFallbackImage('cinema', null)).toBe('/fallback/fallback-cinema.png')
+  })
 })
