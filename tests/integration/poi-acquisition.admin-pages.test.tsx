@@ -8,6 +8,7 @@ import AdminPoiAcquisitionPage from '@/app/admin/poi-acquisition/page'
 import AdminPoiAcquisitionRunPage from '@/app/admin/poi-acquisition/runs/[id]/page'
 import AdminNewPoiPage from '@/app/admin/pois/new/page'
 import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
+import { AdminManualPoiForm } from '@/features/poi-acquisition/components/AdminManualPoiForm'
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/admin/poi-acquisition',
@@ -123,7 +124,40 @@ describe('018 admin acquisition pages', () => {
     render(await AdminNewPoiPage())
 
     expect(screen.getByText('Créer un POI')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Importer depuis une URL officielle/i)).toBeInTheDocument()
     expect(screen.getByLabelText('Nom')).toBeInTheDocument()
     expect(screen.getByLabelText('Adresse')).toBeInTheDocument()
+  })
+
+  it('AC-04-01: pre-fills manual POI fields from an official URL import', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          source_url: 'https://www.saintgervais.com/je-minforme/mobilite/montenvelo/',
+          website: 'https://www.saintgervais.com/je-minforme/mobilite/montenvelo/',
+          name: 'Montenvelo',
+          address: '50 impasse des Lupins, 74170 Saint-Gervais-les-Bains',
+          phone: '04 50 00 00 00',
+          description: 'Montenvelo propose une offre de mobilité douce à Saint-Gervais.',
+        },
+      }),
+    }) as jest.Mock
+
+    render(
+      <AdminManualPoiForm
+        cities={[{ id: 'city-1', name: 'Saint-Gervais-les-Bains' }]}
+        categories={[{ id: 'cat-1', name: 'Mobilité', subcategories: [] }]}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText(/Importer depuis une URL officielle/i), {
+      target: { value: 'https://www.saintgervais.com/je-minforme/mobilite/montenvelo/' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Importer/i }))
+
+    expect(await screen.findByDisplayValue('Montenvelo')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('50 impasse des Lupins, 74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
+    expect(screen.getAllByDisplayValue('https://www.saintgervais.com/je-minforme/mobilite/montenvelo/')).toHaveLength(2)
   })
 })

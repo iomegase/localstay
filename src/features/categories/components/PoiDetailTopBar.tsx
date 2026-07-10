@@ -34,11 +34,12 @@ export function PoiDetailTopBar({ children }: { children: ReactNode }) {
   return (
     <div
       ref={ref}
-      className={`fixed left-1/2 top-0 z-[90] w-full max-w-[430px] -translate-x-1/2 px-6 py-3 transition-transform duration-300 ${
+      data-testid="poi-detail-top-bar"
+      className={`pointer-events-none fixed left-1/2 top-0 z-[90] w-full max-w-[430px] -translate-x-1/2 px-6 py-3 transition-transform duration-300 ${
         hidden ? '-translate-y-full' : 'translate-y-0'
       }`}
     >
-      <div className="flex items-center justify-between">{children}</div>
+      <div className="flex items-center justify-between [&_a]:pointer-events-auto [&_button]:pointer-events-auto">{children}</div>
     </div>
   )
 }

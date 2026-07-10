@@ -101,7 +101,7 @@ Cette spec remplace le mode d'acquisition POI généraliste Gemini-first par un 
 
 #### Acceptance Criteria
 
-- **AC-04-01**: Given `/admin/pois/new`, When l'Admin renseigne nom, adresse, City, Category et optionnellement SubCategory, Then le formulaire est validé côté serveur avec Zod.
+- **AC-04-01**: Given `/admin/pois/new`, When l'Admin renseigne nom, adresse, City, Category et optionnellement SubCategory ou importe une URL officielle pour préremplir ces champs, Then le formulaire est validé côté serveur avec Zod avant création.
 - **AC-04-02**: Given une adresse valide, When l'Admin sauvegarde, Then Mapbox géocode l'adresse côté serveur avant création.
 - **AC-04-03**: Given un résultat Mapbox fiable, When la création réussit, Then un `PointOfInterest` est créé avec `geocode_status = success`.
 - **AC-04-04**: Given un résultat Mapbox ambigu, When la confiance est insuffisante, Then la création est bloquée ou créée en `geocode_status = pending_review` selon choix admin explicite.
@@ -288,7 +288,7 @@ Notes :
 - `PointOfInterest.google_place_id` sert à éviter les doublons et à réconcilier les données.
 - `PointOfInterest.photos` peut contenir des URLs distantes de site officiel. L'attribution publique utilise `PointOfInterest.website` comme URL canonique.
 - Gemini peut alimenter `description` seulement après construction d'un candidat depuis Google Places, site officiel ou saisie admin.
-- Le contexte texte extrait du site officiel d'un candidat n'est pas modélisé en base ; seule la description éditoriale issue de Gemini peut alimenter `description`.
+- Le contexte texte extrait du site officiel d'un candidat ou d'une URL importée dans `/admin/pois/new` n'est pas modélisé en base ; seules les suggestions validées par l'Admin puis persistées dans les champs POI publics peuvent alimenter `PointOfInterest`.
 
 ---
 
@@ -339,6 +339,39 @@ paths:
       tags: [poi-acquisition]
       security:
         - bearerAuth: []
+
+  /api/admin/pois/source-url:
+    post:
+      summary: "Importer une URL officielle pour préremplir la création manuelle d'un POI"
+      tags: [poi-acquisition]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_url]
+              properties:
+                source_url: { type: string, format: uri }
+      responses:
+        "200":
+          description: "Suggestion transitoire extraite du site officiel"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      source_url: { type: string }
+                      website: { type: string }
+                      name: { type: string, nullable: true }
+                      address: { type: string, nullable: true }
+                      phone: { type: string, nullable: true }
+                      description: { type: string, nullable: true }
 
   /api/admin/poi-acquisition/candidates/{id}/reject:
     post:
@@ -423,6 +456,7 @@ errors:
 ### `/admin/pois/new`
 
 - Formulaire manuel : nom, adresse, ville, catégorie, sous-catégorie, téléphone, site web, description.
+- Bloc "Importer depuis une URL officielle" : l'Admin colle une URL (ex. `https://www.saintgervais.com/...`), le serveur scrape la page officielle, retourne une suggestion transitoire (`name`, `address`, `phone`, `website`, `description`) et préremplit le formulaire. La création reste explicite et passe ensuite par l'API manuelle Zod + Mapbox + anti-doublon.
 - Preview Mapbox du résultat géocodé.
 - Alerte doublons probables avant création.
 - Confirmation explicite si l'Admin veut créer malgré un doublon probable.
@@ -460,7 +494,7 @@ errors:
 | AC-03-03 | Matching Google demande manquante | integration |
 | AC-03-04 | Géocodage Mapbox demande manquante | integration |
 | AC-03-05 | Validation admin crée/rattache POI | integration |
-| AC-04-01 | Formulaire admin POI validé Zod | contract |
+| AC-04-01 | Formulaire admin POI avec import URL officielle transitoire, puis validation Zod | contract + integration |
 | AC-04-02 | Création admin appelle Mapbox | integration |
 | AC-04-03 | POI créé si géocodage fiable | integration |
 | AC-04-04 | Géocodage ambigu bloqué ou pending_review | integration |

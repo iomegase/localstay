@@ -165,51 +165,39 @@ function ModalFooterActions({
   return (
     <div
       ref={rootRef}
-      className={`glass fixed bottom-8 left-1/2 z-[120] grid w-[calc(100%-2rem)] max-w-[390px] -translate-x-1/2 grid-cols-3 items-center rounded-full border border-black/5 px-6 py-4 shadow-xl transition-[opacity,transform] duration-200 ${visibilityClassName}`}
+      className={`fixed bottom-8 left-1/2 z-[120] flex w-[calc(100%-2rem)] max-w-[390px] -translate-x-1/2 items-center gap-2 px-1 transition-[opacity,transform] duration-200 ${visibilityClassName}`}
       data-testid="favorite-modal-footer-actions"
     >
       {telHref && (
-        <a
+        <DetailActionButton
           href={telHref}
-          data-testid="btn-call"
-          className="group col-start-1 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
-          aria-label="Appeler"
-        >
-          <Phone className="h-5 w-5 shrink-0" />
-          <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">
-            Appeler
-          </span>
-        </a>
+          tone="call"
+          testId="btn-call"
+          icon={<Phone className="h-3.5 w-3.5" />}
+          label="Appeler"
+          ariaLabel="Appeler"
+        />
       )}
 
       {website && (
-        <a
+        <DetailActionButton
           href={website}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="btn-site"
-          className="group col-start-2 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
-          aria-label="Site"
-        >
-          <Globe className="h-5 w-5 shrink-0" />
-          <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">
-            Site
-          </span>
-        </a>
+          tone="website"
+          testId="btn-site"
+          icon={<Globe className="h-3.5 w-3.5" />}
+          label="Site web"
+          external
+        />
       )}
 
-      <a
+      <DetailActionButton
         href={directionsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-testid="btn-directions"
-        className="group col-start-3 flex min-w-0 flex-col items-center gap-1 text-[#6f7480] transition-colors duration-200 hover:text-pink-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]"
-      >
-        <Navigation className="h-5 w-5 shrink-0" />
-        <span className="min-w-0 max-w-full truncate text-[9px] font-bold uppercase tracking-widest">
-          Itinéraire
-        </span>
-      </a>
+        tone="directions"
+        testId="btn-directions"
+        icon={<Navigation className="h-3.5 w-3.5" />}
+        label="Itinéraire"
+        external
+      />
     </div>
   )
 }

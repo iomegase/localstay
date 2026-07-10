@@ -102,16 +102,19 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.queryByTestId('btn-reserve')).not.toBeInTheDocument()
   })
 
-  it('renders favorite modal footer actions with the public bottom nav visual style', () => {
+  it('renders favorite modal footer actions with the POI card-inspired pill design', () => {
     render(<ActionButtons {...base} variant="modalFooter" />)
 
-    expect(screen.getByTestId('favorite-modal-footer-actions')).toHaveClass('fixed', 'bottom-8', 'left-1/2', 'grid', 'grid-cols-3', 'rounded-full', 'border-black/5', 'shadow-xl')
-    expect(screen.getByTestId('btn-call')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-pink-600')
-    expect(screen.getByTestId('btn-site')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-pink-600')
-    expect(screen.getByTestId('btn-directions')).toHaveClass('flex-col', 'items-center', 'gap-1', 'text-[#6f7480]', 'hover:text-pink-600')
-    expect(screen.getByText('Appeler')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
-    expect(screen.getByText('Site')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
-    expect(screen.getByText('Itinéraire')).toHaveClass('text-[9px]', 'font-bold', 'uppercase', 'tracking-widest')
+    expect(screen.getByTestId('favorite-modal-footer-actions')).toHaveClass('fixed', 'bottom-8', 'left-1/2', 'flex', 'gap-2')
+    expect(screen.getByTestId('btn-call')).toHaveClass('min-h-[42px]', 'flex-1', 'rounded-full', 'bg-white', 'text-[9px]')
+    expect(screen.getByTestId('btn-site')).toHaveClass('min-h-[42px]', 'flex-1', 'rounded-full', 'bg-white', 'text-[9px]')
+    expect(screen.getByTestId('btn-directions')).toHaveClass('min-h-[42px]', 'flex-1', 'rounded-full', 'bg-white', 'text-[9px]')
+    expect(screen.getByTestId('btn-call').querySelector('span')).toHaveClass('bg-[#31B95D]')
+    expect(screen.getByTestId('btn-site').querySelector('span')).toHaveClass('bg-[#218F9D]')
+    expect(screen.getByTestId('btn-directions').querySelector('span')).toHaveClass('bg-[#EF5148]')
+    expect(screen.getByText('Appeler')).toHaveClass('text-[#31B95D]')
+    expect(screen.getByText('Site web')).toHaveClass('text-[#218F9D]')
+    expect(screen.getByText('Itinéraire')).toHaveClass('text-[#EF5148]')
     expect(screen.queryByText('Téléphone')).not.toBeInTheDocument()
     expect(screen.queryByText('Web')).not.toBeInTheDocument()
     expect(screen.queryByText('Maps')).not.toBeInTheDocument()

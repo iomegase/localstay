@@ -34,6 +34,10 @@ export const ManualPoiCreateSchema = z.object({
   confirm_geocode_pending_review: z.boolean().default(false),
 })
 
+export const ManualPoiSourceUrlSchema = z.object({
+  source_url: z.string().url(),
+})
+
 export const MissingPoiCreateSchema = z.object({
   name: z.string().min(1).max(160),
   address: z.string().min(5).max(255),

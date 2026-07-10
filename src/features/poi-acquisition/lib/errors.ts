@@ -22,6 +22,7 @@ export function messageForPoiAcquisitionCode(code: string): string {
   if (code === 'POI_NOT_DELETED') return 'POI non effacé'
   if (code === 'POI_ALREADY_DELETED') return 'POI déjà effacé'
   if (code === 'POI_DELETED') return 'POI effacé : restaurer avant réactivation'
+  if (code === 'SOURCE_URL_UNREADABLE') return 'URL officielle impossible à lire'
   if (code === 'NOT_FOUND') return 'Ressource introuvable'
   return 'Erreur acquisition POI'
 }
