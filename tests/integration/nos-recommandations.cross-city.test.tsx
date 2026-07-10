@@ -27,12 +27,12 @@ jest.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
 }))
 
-function row(id: string, name: string, citySlug: string, cityName: string) {
+function row(id: string, name: string, citySlug: string, cityName: string, categoryName = 'Nature') {
   return {
     poi_id: id,
     poi: {
       id, name, slug: id, description: null, photos: [],
-      category: { name: 'Nature', slug: 'nature' },
+      category: { name: categoryName, slug: categoryName.toLowerCase() },
       city: { slug: citySlug, name: cityName },
     },
   }
@@ -54,6 +54,17 @@ describe('/nos-recommandations — cross-city', () => {
     expect(screen.getByText(/à annecy/i)).toBeInTheDocument()
     const farLink = screen.getByText('Le Lac').closest('a')
     expect(farLink).toHaveAttribute('href', '/guide/annecy/nature/far1')
+  })
+
+  it('does not render category icons on "À découvrir ailleurs" cards', async () => {
+    jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([
+      row('far1', 'Le Lac', 'annecy', 'Annecy', 'Nature'),
+    ] as never)
+
+    render(await NosRecommendationsPage())
+
+    expect(screen.getByText('Le Lac')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Nature')).not.toBeInTheDocument()
   })
 
   it('contracts plural city names in the "À découvrir ailleurs" title', async () => {

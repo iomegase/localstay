@@ -115,6 +115,7 @@ export async function RecommendationsView({
                   title={formatOtherCityTitle(group.cityName)}
                   rows={group.items}
                   fallbackCitySlug={lodgingContext.citySlug}
+                  showCardCategory={false}
                 />
               ))}
             </div>

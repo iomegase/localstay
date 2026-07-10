@@ -52,6 +52,16 @@ describe('RecommendationCard', () => {
     )
   })
 
+  it('does not render a Voir button on small cards because the whole card is already clickable', () => {
+    render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="saint-gervais" />)
+
+    expect(screen.getByRole('link', { name: /Bistrot du Centre/i })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais/restaurants/bistrot-du-centre',
+    )
+    expect(screen.queryByText(/^Voir$/i)).not.toBeInTheDocument()
+  })
+
   it('never renders an owner note on cards (notes retirés des cartes)', () => {
     render(<RecommendationCard row={makeRow({}, 'Notre coup de cœur.')} variant="bigImage" fallbackCitySlug="x" />)
     expect(screen.queryByTestId('owner-recommendation-comment')).not.toBeInTheDocument()

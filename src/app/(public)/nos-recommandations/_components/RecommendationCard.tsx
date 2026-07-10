@@ -142,10 +142,6 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
           )}
           <h3 className="mt-2 uppercase text-sm leading-tight text-charcoal">{poi.name}</h3>
         </div>
-        <span className="mt-4 inline-flex self-center items-center gap-2 text-[10px] font-bold rounded-full p-2 uppercase tracking-widest bg-black text-white/80 w-auto shadow-md transition hover:bg-white hover:text-charcoal">
-          Voir
-          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-        </span>
       </div>
     </Link>
   )
