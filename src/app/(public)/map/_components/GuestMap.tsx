@@ -359,7 +359,7 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
       </button>
 
       {isFilterOpen && (
-        <div className="absolute inset-0 z-20">
+        <div className="absolute inset-0 z-[60]">
           <button
             type="button"
             aria-label="Fermer les filtres"
