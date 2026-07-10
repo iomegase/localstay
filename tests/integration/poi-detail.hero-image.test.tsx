@@ -64,6 +64,22 @@ describe('PoiDetailBody — hero image (LCP)', () => {
     expect(hero).not.toHaveClass('object-cover')
   })
 
+  it('uses the category fallback hero when the POI has no photos', () => {
+    render(
+      <PoiDetailBody
+        poi={{ ...poi, photos: [] }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+
+    const hero = screen.getByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
+    expect(hero.getAttribute('src')).toContain('/fallback/fallback-restaurant.png')
+    expect(screen.getByTestId('poi-detail-hero-backdrop').getAttribute('src')).toContain(
+      '/fallback/fallback-restaurant.png',
+    )
+  })
+
   it('loads the hero eagerly (priority) instead of lazily, since it is above the fold', () => {
     render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
 

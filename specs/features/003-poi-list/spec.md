@@ -41,7 +41,7 @@ Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI 
 #### Acceptance Criteria
 
 - **AC-01-01**: Given une catégorie avec POI, When la liste s'affiche, Then les POI sont triés par distance croissante par défaut
-- **AC-01-02**: Given une liste de POI, When elle s'affiche, Then chaque card affiche : nom, sous-catégorie, adresse courte, note, distance, photo principale. La photo principale publique est la première URL exploitable de `photos`, en ignorant logos, favicons, placeholders et images vides ; elle reste centrée dans le header visuel. Les photos portrait ou carrées sont rendues en `object-cover`; les photos paysage sont rendues en `object-contain` pour préserver leur cadrage. Dans le panneau détaillé d'une card non-randonnée, les actions affichent des boutons rectangulaires alignés sur une ligne : "ITINÉRAIRE" en fond noir, "SITE" en fond blanc bordé si `website` existe, et "APPELER" en fond blanc bordé si `phone` existe.
+- **AC-01-02**: Given une liste de POI, When elle s'affiche, Then chaque card affiche : nom, sous-catégorie, adresse courte, note, distance, photo principale. La photo principale publique est la première URL exploitable de `photos`, en ignorant logos, favicons, placeholders et images vides ; si aucune photo exploitable n'existe, une image fallback publique issue de `/fallback/fallback-<catégorie>.png` est utilisée selon la catégorie ou sous-catégorie du POI. Elle reste centrée dans le header visuel. Les photos portrait ou carrées sont rendues en `object-cover`; les photos paysage et les fallbacks sont rendus en `object-contain` pour préserver leur cadrage. Dans le panneau détaillé d'une card non-randonnée, les actions affichent des boutons rectangulaires alignés sur une ligne : "ITINÉRAIRE" en fond noir, "SITE" en fond blanc bordé si `website` existe, et "APPELER" en fond blanc bordé si `phone` existe.
 - **AC-01-03**: Given une liste de POI, When elle s'affiche, Then les POI fermés actuellement sont visuellement différenciés (badge "Fermé")
 
 ### US-02 — Filtrer et trier les POI
@@ -322,7 +322,7 @@ components:
 
 ### Composant : PoiCard
 
-- Photo principale en header visuel : première URL exploitable hors logo/placeholder, position centrée ; rendu `object-cover` pour les photos portrait ou carrées, rendu `object-contain` pour les photos paysage.
+- Photo principale en header visuel : première URL exploitable hors logo/placeholder, ou image fallback de `/public/fallback` selon catégorie/sous-catégorie si aucune photo exploitable n'existe ; position centrée ; rendu `object-cover` pour les photos portrait ou carrées, rendu `object-contain` pour les photos paysage et les fallbacks.
 - Badge "Fermé" si `is_open_now = false`
 - Badge "Sponsorisé" si POI mis en avant (logique métier présente, inactive MVP 1)
 - Distance en km depuis le centre ville par défaut, depuis le logement en mode séjour quand ses coordonnées sont connues, ou depuis la position GPS du Tourist après consentement explicite. Le libellé explicite utilise `Situé à ... du logement` ou `Situé à ... de votre position actuelle` quand une source contextuelle est connue.
@@ -337,7 +337,7 @@ components:
 | ID | Description | Test type |
 |---|---|---|
 | AC-01-01 | Tri par distance par défaut | unit |
-| AC-01-02 | Card affiche nom, sous-cat, adresse, note, distance, photo exploitable centrée, avec cover en portrait/carré et contain en paysage, et actions rectangulaires alignées dans le panneau détaillé | integration |
+| AC-01-02 | Card affiche nom, sous-cat, adresse, note, distance, photo exploitable ou fallback catégorie centrée, avec cover en portrait/carré et contain en paysage/fallback, et actions rectangulaires alignées dans le panneau détaillé | integration |
 | AC-01-03 | POI fermé visuellement différencié | unit |
 | AC-02-01 | Tri par note fonctionne | unit |
 | AC-02-02 | Filtre sous-catégorie fonctionne | integration |

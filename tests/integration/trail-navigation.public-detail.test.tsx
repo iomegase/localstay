@@ -91,6 +91,19 @@ describe('021 public trail detail', () => {
     expect(screen.queryByText(/^Itinéraire$/i)).not.toBeInTheDocument()
   })
 
+  it('uses the rando fallback hero when a trail POI has no photos', () => {
+    render(
+      <PoiDetailBody
+        poi={{ ...trailPoi, photos: [] }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="rando"
+      />,
+    )
+
+    const hero = screen.getByRole('img', { name: trailPoi.name })
+    expect(hero.getAttribute('src')).toContain('/fallback/fallback-rando.png')
+  })
+
   it('AC-01-05: uses Google Maps only for Rejoindre le départ and keeps Commencer la rando inside MyStay', () => {
     render(<PoiDetailBody poi={trailPoi} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
 

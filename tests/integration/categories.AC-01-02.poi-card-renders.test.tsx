@@ -59,6 +59,19 @@ describe('PoiCard — AC-01-02 (SpaCard redesign)', () => {
     expect(img).not.toHaveClass('object-cover')
   })
 
+  it('uses the category fallback image when the POI has no usable photo', () => {
+    render(
+      <PoiCard
+        poi={{ ...poi, photo_url: null, photos: [] }}
+        citySlug="saint-gervais-les-bains"
+        categorySlug="restaurants"
+      />,
+    )
+
+    const images = screen.getAllByRole('img', { name: 'Le Bistrot du Mont-Blanc' })
+    expect(images[images.length - 1].getAttribute('src')).toContain('/fallback/fallback-restaurant.png')
+  })
+
   it('fills the header with a blurred backdrop of the same photo (no empty background)', () => {
     const backdrop = screen.getByTestId('poi-photo-backdrop')
     expect(backdrop).toHaveAttribute('src', 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400')

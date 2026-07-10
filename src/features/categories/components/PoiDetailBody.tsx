@@ -15,6 +15,7 @@ import { TrailPoiDetailBody } from '@/features/trail-navigation/components/Trail
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import type { PoiDetail } from '../types'
+import { getPoiFallbackImage } from '../lib/poi-fallback-image'
 
 interface Props {
   poi: PoiDetail
@@ -48,6 +49,8 @@ export function PoiDetailBody({
 
   const poiUrl = `/guide/${citySlug}/${categorySlug}/${poi.slug}`
   const photoAttributionHost = getWebsiteHost(poi.website)
+  const fallbackPhoto = getPoiFallbackImage(poi.category.slug, poi.subcategory?.slug ?? poi.subcategory?.name)
+  const heroPhotos = poi.photos.length > 0 ? poi.photos : fallbackPhoto ? [fallbackPhoto] : []
 
   return (
     <>
@@ -83,7 +86,7 @@ export function PoiDetailBody({
       </PoiDetailTopBar>
 
       {/* Hero */}
-      <PoiDetailHeroCarousel photos={poi.photos} name={poi.name} poiId={poi.id}>
+      <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name} poiId={poi.id}>
         {poi.is_open_now === true && (
           <div
             data-testid="poi-detail-hero-open-badge-wrapper"

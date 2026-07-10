@@ -40,7 +40,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 #### Acceptance Criteria
 
-- **AC-01-01**: Given un POI valide, When la fiche s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos, distance ; le hero affiche les photos dans un carousel plein largeur, avec flèches seulement si plusieurs photos sont disponibles
+- **AC-01-01**: Given un POI valide, When la fiche s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos ou fallback catégorie, distance ; le hero affiche les photos dans un carousel plein largeur, avec flèches seulement si plusieurs photos sont disponibles ; si aucune photo n'est disponible, il affiche une image fallback publique issue de `/fallback/fallback-<catégorie>.png` selon la catégorie ou sous-catégorie du POI
 - **AC-01-02**: Given un POI sans téléphone, When la fiche s'affiche, Then le bouton "Appeler" est masqué
 - **AC-01-03**: Given un POI sans site web, When la fiche s'affiche, Then le bouton "Site web" est masqué
 - **AC-01-04**: Given un POI avec `is_open_now = true`, When la fiche s'affiche, Then une pastille verte "Ouvert" est visible dans le footer de l'image hero et l'heure de fermeture reste affichée dans la section horaires
@@ -78,7 +78,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **BR-01**: Les boutons d'action (appeler, itinéraire, site) n'apparaissent que si la donnée correspondante existe ; l'itinéraire est toujours disponible via adresse publique ou coordonnées en fallback
 - **BR-02**: Le bouton "Réserver" n'est pas rendu en MVP 1 ; il sera introduit uniquement par une spec réservation approuvée
 - **BR-03**: Les photos de la fiche sont affichées dans le hero sous forme de carousel plein largeur. La photo active réutilise la logique visuelle des `PoiCard` : fond flou `object-cover` pour remplir le cadre, image principale centrée en `object-contain` pour préserver le cadrage ; des flèches et indicateurs sont affichés uniquement si plusieurs photos sont disponibles.
-- **BR-04**: Si aucune photo n'est disponible, un placeholder avec l'icône de la catégorie est affiché
+- **BR-04**: Si aucune photo n'est disponible, une image fallback de `/public/fallback` est affichée selon la catégorie ou sous-catégorie du POI. Le placeholder gradient ne reste qu'un dernier recours si aucune correspondance fallback n'existe.
 - **BR-05**: Les horaires sont affichés jour par jour ; le jour courant est mis en évidence
 - **BR-06**: Le commentaire Owner est résolu séparément du `PoiDetail` global, à partir du cookie de séjour actif et de la paire exacte `(lodging_id, poi_id)`
 - **BR-07**: La recommandation, le Lodging et le POI doivent être actifs et non soft-deleted. Le commentaire vide ou composé uniquement d'espaces n'est jamais affiché.
@@ -293,7 +293,7 @@ components:
 
 ### Page : `/guide/[city-slug]/[category-slug]/[poi-slug]`
 
-- **Header** : carousel photo plein écran (hero), avec back button overlay et pastille "Ouvert" en footer d'image si le POI est ouvert
+- **Header** : carousel photo plein écran (hero), ou image fallback catégorie si aucune photo POI n'existe, avec back button overlay et pastille "Ouvert" en footer d'image si le POI est ouvert
 - **Carousel** : une photo active visible à la fois dans le hero ; flèches gauche/droite et indicateurs si `photos.length > 1`
 - **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager ; aucun bouton Réserver en MVP 1
 - **Section horaires** : accordéon, jour courant en gras
@@ -310,7 +310,7 @@ components:
 
 | ID | Description | Test type |
 |---|---|---|
-| AC-01-01 | Tous les champs visibles si présents + hero photo carousel avec flèches si plusieurs photos | integration |
+| AC-01-01 | Tous les champs visibles si présents + hero photo carousel ou fallback catégorie avec flèches si plusieurs photos | integration |
 | AC-01-02 | Bouton Appeler masqué si pas de tel | unit |
 | AC-01-03 | Bouton Site masqué si pas de site | unit |
 | AC-01-04 | Pastille Ouvert dans le footer image + heure de fermeture dans la section horaires | unit + integration |

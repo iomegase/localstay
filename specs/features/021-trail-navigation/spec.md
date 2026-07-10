@@ -319,6 +319,7 @@ La fiche randonnée suit le mockup `docs/DAT/diagrams/mockups/004-poi-detail/ran
 Éléments attendus :
 
 - hero image plein écran mobile avec actions flottantes ;
+- image fallback `/fallback/fallback-rando.png` dans le hero si la randonnée n'a aucune photo POI ;
 - sheet arrondie `rounded-t-[56px]` sur fond `#FAF9F6` ;
 - badge difficulté, badge ville, titre serif italic, description ;
 - stats rapides : dénivelé, durée, niveau ou distance selon données disponibles ;
