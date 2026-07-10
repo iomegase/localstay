@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import LeLogementPage from '@/app/(public)/le-logement/page'
 import { prisma } from '@/shared/lib/prisma'
 
@@ -51,6 +52,7 @@ describe('/le-logement — blocs personnalisés', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('renders custom blocks after the fixed sections, with markdown and photo', async () => {
+    const user = userEvent.setup()
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       lodging_address: '1 rue des Alpes',
       wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
@@ -62,31 +64,34 @@ describe('/le-logement — blocs personnalisés', () => {
     ] as never)
 
     render(await LeLogementPage())
+    await user.click(screen.getByRole('button', { name: /aller à bon à savoir/i }))
 
     expect(screen.getByText('La plage')).toBeInTheDocument()
     expect(screen.getByText(/5 min/)).toBeInTheDocument()
     expect(screen.getByAltText('La plage')).toHaveAttribute('src', 'https://cdn.test/plage.webp')
-    // Le pager n'affiche que le titre actif ; les autres titres sont exposés
-    // uniquement via l'aria-label des dots.
-    expect(screen.getByText('Bienvenue')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aller à bienvenue/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /aller à infos pratiques/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aller à bon à savoir/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /aller à départ & consignes/i })).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(4)
   })
 
   it('treats blocks as content (no empty state when only blocks exist)', async () => {
+    const user = userEvent.setup()
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue(null as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
       { id: 'b1', title: 'Bons plans', body: null, icon: 'info', photo_url: null, sort_order: 0 },
     ] as never)
 
     render(await LeLogementPage())
+    await user.click(screen.getByRole('button', { name: /aller à bon à savoir/i }))
 
     expect(screen.getByText('Bons plans')).toBeInTheDocument()
     expect(screen.queryByText(/n'a pas encore renseigné/i)).not.toBeInTheDocument()
   })
 
   it('renders the lodging video card between address and parking', async () => {
+    const user = userEvent.setup()
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       cover_photo_url: null,
       presentation_video_url: 'https://youtu.be/dQw4w9WgXcQ',
@@ -98,6 +103,7 @@ describe('/le-logement — blocs personnalisés', () => {
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
 
     render(await LeLogementPage())
+    await user.click(screen.getByRole('button', { name: /aller à infos pratiques/i }))
 
     const addressHeading = screen.getByRole('heading', { name: 'Adresse' })
     const videoButton = screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' })
@@ -111,7 +117,8 @@ describe('/le-logement — blocs personnalisés', () => {
     )
   })
 
-  it('renders welcome on page 1, practical sections on page 2 and departure sections on page 3', async () => {
+  it('renders welcome on page 1, practical on page 2, owner blocks on page 3 and departure on page 4', async () => {
+    const user = userEvent.setup()
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       welcome_message: 'Bienvenue au chalet',
       cover_photo_url: 'https://cdn.test/chalet.webp',
@@ -127,24 +134,24 @@ describe('/le-logement — blocs personnalisés', () => {
     ] as never)
 
     const { container } = render(await LeLogementPage())
-    const panels = container.querySelectorAll('[aria-roledescription="carrousel"] > div')
+    const activePanel = () => screen.getByTestId('lodging-pager-panel')
 
-    expect(panels).toHaveLength(3)
-    expect(panels[0]).toHaveTextContent('Chalet MyStay')
-    expect(panels[0]).toHaveTextContent('Bienvenue au chalet')
-    expect(within(panels[0] as HTMLElement).getByAltText('Présentation du logement')).toHaveAttribute('src', 'https://cdn.test/chalet.webp')
-    expect(panels[0]).not.toHaveTextContent('Réseau Wi-Fi')
-    expect(panels[0]).not.toHaveTextContent('Poubelles')
-    expect(panels[0]).not.toHaveTextContent('Départ')
-    expect(panels[1]).toHaveTextContent('Adresse')
-    expect(panels[1]).toHaveTextContent('Réseau Wi-Fi')
-    expect(panels[1]).not.toHaveTextContent('Poubelles')
-    expect(panels[1]).not.toHaveTextContent('Départ')
-    expect(panels[2]).toHaveTextContent('Départ')
-    expect(panels[2]).toHaveTextContent('Poubelles')
-    expect(panels[2]).toHaveTextContent('Infos locales')
+    expect(container.querySelectorAll('[data-testid="lodging-pager-panel"]')).toHaveLength(1)
+    expect(activePanel()).toHaveTextContent('Chalet MyStay')
+    expect(activePanel()).toHaveTextContent('Bienvenue au chalet')
+    expect(within(activePanel()).getByAltText('Présentation du logement')).toHaveAttribute('src', 'https://cdn.test/chalet.webp')
+    expect(activePanel()).not.toHaveTextContent('Réseau Wi-Fi')
+    expect(activePanel()).not.toHaveTextContent('Poubelles')
+    expect(activePanel()).not.toHaveTextContent('Départ')
 
-    const secondPage = within(panels[1] as HTMLElement)
+    await user.click(screen.getByRole('button', { name: /aller à infos pratiques/i }))
+
+    expect(activePanel()).toHaveTextContent('Adresse')
+    expect(activePanel()).toHaveTextContent('Réseau Wi-Fi')
+    expect(activePanel()).not.toHaveTextContent('Poubelles')
+    expect(activePanel()).not.toHaveTextContent('Départ')
+
+    const secondPage = within(activePanel())
     const addressHeading = secondPage.getByRole('heading', { name: 'Adresse' })
     const wifiHeading = secondPage.getByRole('heading', { name: 'Réseau Wi-Fi' })
 
@@ -152,20 +159,29 @@ describe('/le-logement — blocs personnalisés', () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
 
-    const thirdPage = within(panels[2] as HTMLElement)
-    const checkoutHeading = thirdPage.getByRole('heading', { name: 'Départ' })
-    const trashHeading = thirdPage.getByRole('heading', { name: 'Poubelles' })
-    const customBlockHeading = thirdPage.getByRole('heading', { name: 'Infos locales' })
+    await user.click(screen.getByRole('button', { name: /aller à bon à savoir/i }))
+
+    expect(activePanel()).toHaveTextContent('Infos locales')
+    expect(activePanel()).not.toHaveTextContent('Départ')
+    expect(activePanel()).not.toHaveTextContent('Poubelles')
+
+    await user.click(screen.getByRole('button', { name: /aller à départ & consignes/i }))
+
+    expect(activePanel()).toHaveTextContent('Départ')
+    expect(activePanel()).toHaveTextContent('Poubelles')
+    expect(activePanel()).not.toHaveTextContent('Infos locales')
+
+    const departurePage = within(activePanel())
+    const checkoutHeading = departurePage.getByRole('heading', { name: 'Départ' })
+    const trashHeading = departurePage.getByRole('heading', { name: 'Poubelles' })
 
     expect(checkoutHeading.compareDocumentPosition(trashHeading)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
-    expect(trashHeading.compareDocumentPosition(customBlockHeading)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    )
   })
 
-  it('keeps the three-page lodging guide even when only practical fixed sections exist', async () => {
+  it('keeps the four-page lodging guide even when only practical fixed sections exist', async () => {
+    const user = userEvent.setup()
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       lodging_address: '1 rue des Alpes',
       wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
@@ -175,12 +191,12 @@ describe('/le-logement — blocs personnalisés', () => {
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
 
     const { container } = render(await LeLogementPage())
-    const panels = container.querySelectorAll('[aria-roledescription="carrousel"] > div')
 
-    expect(panels).toHaveLength(3)
-    expect(panels[1]).toHaveTextContent('1 rue des Alpes')
+    expect(container.querySelectorAll('[data-testid="lodging-pager-panel"]')).toHaveLength(1)
+    await user.click(screen.getByRole('button', { name: /aller à infos pratiques/i }))
+    expect(screen.getByTestId('lodging-pager-panel')).toHaveTextContent('1 rue des Alpes')
     expect(screen.getByText('1 rue des Alpes')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(4)
     expect(screen.queryByText('À découvrir')).not.toBeInTheDocument()
   })
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Children, useState, type ReactNode } from 'react'
 
 interface LodgingPagerProps {
   titles: string[]
@@ -10,30 +10,14 @@ interface LodgingPagerProps {
 export function LodgingPager({ titles, children }: LodgingPagerProps) {
   const panels = Children.toArray(children)
   const [active, setActive] = useState(0)
-  const scrollerRef = useRef<HTMLDivElement>(null)
-  const panelRefs = useRef<Array<HTMLDivElement | null>>([])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return
-          const index = panelRefs.current.findIndex(panel => panel === entry.target)
-          if (index !== -1) setActive(index)
-        })
-      },
-      { root: scrollerRef.current, threshold: 0.5 },
-    )
-    panelRefs.current.forEach(panel => panel && observer.observe(panel))
-    return () => observer.disconnect()
-  }, [])
+  const activePanel = panels[active] ?? panels[0] ?? null
 
   function goTo(index: number) {
-    panelRefs.current[index]?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
+    setActive(index)
   }
 
   return (
-    <div className="rounded-[32px] bg-white pt-4">
+    <div className="rounded-[32px] bg-white pt-4 pb-6">
       <div className="mb-3 flex items-center justify-between px-5">
         <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">{titles[active]}</h2>
         <div className="flex items-center gap-2">
@@ -53,22 +37,13 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
       </div>
 
       <div
-        ref={scrollerRef}
         role="group"
         aria-roledescription="carrousel"
-        className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="px-4"
       >
-        {panels.map((panel, index) => (
-          <div
-            key={index}
-            ref={node => {
-              panelRefs.current[index] = node
-            }}
-            className="min-h-[50vh] w-full shrink-0 snap-start overflow-y-auto px-4"
-          >
-            {panel}
-          </div>
-        ))}
+        <div key={active} data-testid="lodging-pager-panel" className="w-full">
+          {activePanel}
+        </div>
       </div>
     </div>
   )

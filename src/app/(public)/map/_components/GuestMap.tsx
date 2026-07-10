@@ -422,32 +422,31 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
         </div>
       )}
 
-      {/* Sélecteur de fond de carte */}
-      <div className="absolute bottom-6 left-4 z-10 flex gap-1 rounded-full bg-white/90 p-1 shadow-lg backdrop-blur">
-        {(Object.keys(LAYER_LABELS) as BaseLayer[]).map(layer => (
-          <button
-            key={layer}
-            type="button"
-            onClick={() => setBaseLayer(layer)}
-            aria-pressed={baseLayer === layer}
-            className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-              baseLayer === layer ? 'bg-pine text-white' : 'text-charcoal/70 hover:bg-black/5'
-            }`}
-          >
-            {LAYER_LABELS[layer]}
-          </button>
-        ))}
-      </div>
-
-      {/* Bouton fermer flottant */}
-      <div className="absolute left-4 top-4 z-10 flex items-center">
+      {/* Bouton fermer + sélecteur de fond de carte (haut de page) */}
+      <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
         <Link
           href="/nos-recommandations"
           aria-label="Fermer la carte"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg backdrop-blur"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/90 text-charcoal shadow-lg backdrop-blur"
         >
           <LucideIcons.X className="h-5 w-5" />
         </Link>
+
+        <div className="flex gap-1 rounded-full bg-white/90 p-1 shadow-lg backdrop-blur">
+          {(Object.keys(LAYER_LABELS) as BaseLayer[]).map(layer => (
+            <button
+              key={layer}
+              type="button"
+              onClick={() => setBaseLayer(layer)}
+              aria-pressed={baseLayer === layer}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                baseLayer === layer ? 'bg-pine text-white' : 'text-charcoal/70 hover:bg-black/5'
+              }`}
+            >
+              {LAYER_LABELS[layer]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {pois.length === 0 && (

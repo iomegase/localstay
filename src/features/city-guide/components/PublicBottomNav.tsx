@@ -41,7 +41,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
     {
       href: '/',
       label: 'Coup de\ncoeur',
-      icon: <Heart className="w-5 h-5 text-red-500 fill-red-500" />,
+      icon: <Heart className="w-6 h-6" />,
       active: isPathActive(pathname, '/'),
     },
   ]
@@ -51,7 +51,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
     items.push({
       href: guideHref,
       label: 'Guide',
-      icon: <Map className="w-5 h-5" />,
+      icon: <Map className="w-6 h-6" />,
       active: isPathActive(pathname, guideHref),
     })
   }
@@ -60,7 +60,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
     {
       href: '/blog',
       label: 'Blog',
-      icon: <Newspaper className="w-5 h-5" />,
+      icon: <Newspaper className="w-6 h-6" />,
       active: isPathActive(pathname, '/blog'),
     },
   )
@@ -73,19 +73,19 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
     {
       href: '/',
       label: 'Coup de\ncoeur',
-      icon: <Heart className="w-5 h-5 text-red-500 fill-red-500" />,
+      icon: <Heart className="w-6 h-6" />,
       active: isPathActive(pathname, '/'),
     },
     {
       href: '/le-logement',
       label: 'Guide\nlogement',
-      icon: <Home className="w-5 h-5" />,
+      icon: <Home className="w-6 h-6" />,
       active: isPathActive(pathname, '/le-logement'),
     },
     {
       href: '/map',
       label: 'Carte',
-      icon: <Map className="w-5 h-5" />,
+      icon: <Map className="w-6 h-6" />,
       active: isPathActive(pathname, '/map'),
     },
   ]
@@ -98,6 +98,9 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
   const items = mode === 'lodging'
     ? buildLodgingItems(pathname, citySlug)
     : buildAnonymousItems(pathname)
+  // Sur la carte plein écran (/map), on garde le nav visible malgré le mode
+  // immersif ; les autres vues immersives (navigation rando) restent masquées.
+  const isMapPage = isPathActive(pathname, '/map')
   const navVisibilityClassName = isScrolling
     ? 'opacity-0 pointer-events-none'
     : 'opacity-100'
@@ -132,11 +135,11 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
   return (
     <nav
       data-testid="public-bottom-nav"
-      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] immersive-hide transition-opacity duration-200 ${navVisibilityClassName}`}
+      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] ${isMapPage ? '' : 'immersive-hide'} transition-opacity duration-200 ${navVisibilityClassName}`}
     >
       <div
         data-testid="public-bottom-nav-surface"
-        className={`border rounded-[28px] px-8 py-4 flex justify-between items-center transition-all duration-300 ${surfaceClassName}`}
+        className={`border rounded-full px-3 py-2.5 flex justify-around items-center gap-1 transition-all duration-300 ${surfaceClassName}`}
       >
         {items.map(item => (
           <NavItem key={item.href} {...item} />
@@ -159,12 +162,14 @@ function NavItem({
     <Link
       href={href}
       aria-label={labelLines.join(' ')}
-      className={`group flex flex-col items-center gap-1 transition-colors ${
-        active ? 'text-pink-600' : 'text-[#6f7480] hover:text-[#9ca3af]'
+      className={`group flex flex-col items-center justify-center gap-1.5 rounded-full transition-colors ${
+        active
+          ? 'bg-slate-800 text-white px-8 py-2.5'
+          : 'text-[#6f7480] hover:text-[#4b5563] px-3 py-2'
       }`}
     >
       {icon}
-      <span className="text-center text-[8px] sm:text-[9px] font-bold uppercase tracking-widest leading-[1.05]">
+      <span className="text-center text-[9px] font-bold uppercase tracking-wider leading-[1.1]">
         {labelLines.map(line => (
           <span key={line} className="block">
             {line}
@@ -199,10 +204,10 @@ function GeoNavButton() {
       disabled={isLoading}
       aria-pressed={isActive}
       aria-label={isActive ? 'Désactiver la géolocalisation' : 'Activer la géolocalisation'}
-      className={`flex flex-col items-center gap-1 transition-colors ${colorClassName}`}
+      className={`flex flex-col items-center justify-center gap-1.5 rounded-full px-3 py-2 transition-colors ${colorClassName}`}
     >
-      <LocateFixed className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
-      <span className="text-[9px] font-bold uppercase tracking-widest">{label}</span>
+      <LocateFixed className={`w-6 h-6 ${isLoading ? 'animate-pulse' : ''}`} />
+      <span className="text-[9px] font-bold uppercase tracking-wider leading-[1.1]">{label}</span>
     </button>
   )
 }

@@ -60,7 +60,8 @@ describe('PublicBottomNav', () => {
 
     const homeLink = screen.getByRole('link', { name: /Coup de coeur/i })
     expect(homeLink).toHaveAttribute('href', '/')
-    expect(homeLink.querySelector('svg')).toHaveClass('text-red-500', 'fill-red-500')
+    // Le cœur n'est plus rouge plein : il suit la couleur de l'item.
+    expect(homeLink.querySelector('svg')).not.toHaveClass('fill-red-500')
     expect(screen.queryByRole('link', { name: /Guide/i })).not.toBeInTheDocument()
   })
 
@@ -114,7 +115,10 @@ describe('PublicBottomNav', () => {
       'href',
       '/le-logement',
     )
-    expect(screen.getByRole('link', { name: /Guide logement/i })).toHaveClass('text-pink-600')
+    // Item actif = pilule sombre slate-800 à texte blanc.
+    const activeLink = screen.getByRole('link', { name: /Guide logement/i })
+    expect(activeLink).toHaveClass('bg-slate-800')
+    expect(activeLink).toHaveClass('text-white')
   })
 
   it('keeps inactive items readable over the glass bottom menu', () => {
@@ -124,9 +128,9 @@ describe('PublicBottomNav', () => {
 
     const inactiveLink = screen.getByRole('link', { name: /Coup de coeur/i })
     expect(inactiveLink).toHaveClass('text-[#6f7480]')
-    expect(inactiveLink).toHaveClass('hover:text-[#9ca3af]')
+    expect(inactiveLink).toHaveClass('hover:text-[#4b5563]')
     expect(inactiveLink).not.toHaveClass('hover:text-pink-600')
-    expect(inactiveLink).not.toHaveClass('text-gray-300')
+    expect(inactiveLink).not.toHaveClass('bg-slate-800')
   })
 
   it('colors the GPS nav item red by default, orange while loading and green when active', () => {
@@ -154,6 +158,22 @@ describe('PublicBottomNav', () => {
     })
     rerender(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
     expect(screen.getByRole('button', { name: /Désactiver la géolocalisation/i })).toHaveClass('text-green-600')
+  })
+
+  it('stays visible on the fullscreen map page (no immersive-hide)', () => {
+    mockUsePathname.mockReturnValue('/map')
+
+    render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
+
+    expect(screen.getByTestId('public-bottom-nav')).not.toHaveClass('immersive-hide')
+  })
+
+  it('keeps immersive-hide on other immersive views (e.g. lodging guide)', () => {
+    mockUsePathname.mockReturnValue('/le-logement')
+
+    render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
+
+    expect(screen.getByTestId('public-bottom-nav')).toHaveClass('immersive-hide')
   })
 
   it('makes the bottom menu surface transparent only while the user is scrolling', () => {
