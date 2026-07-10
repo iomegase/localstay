@@ -61,7 +61,8 @@ const themes: Record<'light' | 'red', Theme> = {
   },
 }
 
-const SECONDARY_FIXED_SECTION_ORDER = ['wifi', 'trash', 'checkout']
+const PRACTICAL_SECTION_ORDER = ['address', 'presentation-video', 'wifi', 'parking', 'equipment', 'rules', 'services', 'emergency']
+const DEPARTURE_SECTION_ORDER = ['checkout', 'trash']
 
 export default async function LeLogementPage() {
   const lodgingContext = await getActiveLodgingContext()
@@ -88,51 +89,21 @@ export default async function LeLogementPage() {
   ])
 
   const sections = buildSections(customization)
-  const primarySections = sections.filter(
-    section => section.hasValue && !SECONDARY_FIXED_SECTION_ORDER.includes(section.key),
-  )
-  const secondaryFixedSections = SECONDARY_FIXED_SECTION_ORDER
+  const practicalSections = PRACTICAL_SECTION_ORDER
     .map(key => sections.find(section => section.key === key && section.hasValue))
     .filter((section): section is Section => Boolean(section))
-  const hasPrimaryFixed = primarySections.length > 0
-  const hasSecondaryContent = secondaryFixedSections.length > 0 || practicalBlocks.length > 0
-  const hasContent = hasPrimaryFixed || hasSecondaryContent
+  const departureSections = DEPARTURE_SECTION_ORDER
+    .map(key => sections.find(section => section.key === key && section.hasValue))
+    .filter((section): section is Section => Boolean(section))
 
   const presentationPhoto = customization?.cover_photo_url ?? null
-  const hasPresentation = Boolean(presentationPhoto)
+  const hasPresentationContent = Boolean(presentationPhoto || customization?.welcome_message)
+  const hasPracticalContent = practicalSections.length > 0
+  const hasDepartureContent = departureSections.length > 0 || practicalBlocks.length > 0
+  const hasContent = hasPresentationContent || hasPracticalContent || hasDepartureContent
 
   return (
     <div className="pt-8 bg-white min-h-screen pb-20 flex flex-col">
-      <div className="mb-10 px-4">
-        {/* <p className="text-[14px] font-medium tracking-tight text-[#6F767E] mb-1">
-          Bienvenue au
-        </p> */}
-        <h1 className="text-[36px] font-bold leading-none tracking-tighter text-[#1A1D1F]">
-          {lodgingContext.lodgingName}
-        </h1>
-      </div>
-
-    
-
-      {hasPresentation && (
-        <section className="mb-10 flex flex-col gap-4 ">
-          {presentationPhoto && (
-            <div className="relative aspect-[2/1] w-full overflow-hidden ">
-              <Image src={presentationPhoto} alt="Présentation du logement" fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
-            </div>
-          )}
-        </section>
-      )}
-
-      {customization?.welcome_message && (
-        <div
-          data-testid="lodging-welcome-message"
-          className={`mb-10 px-6 py-4 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}
-        >
-          <MarkdownText source={customization.welcome_message} breaks />
-        </div>
-      )}
-
       {!hasContent ? (
         <div className="mx-6 flex flex-col items-center rounded-[40px] bg-white p-10 text-center shadow-sm">
           <p className="text-sm font-medium text-[#6F767E]">
@@ -145,17 +116,40 @@ export default async function LeLogementPage() {
             Explorer le guide
           </Link>
         </div>
-      ) : !hasSecondaryContent ? (
-        <div className="flex flex-wrap gap-4 px-4 pb-10">
-          {primarySections.map((section) => (
-            <PracticalCard key={section.key} section={section} />
-          ))}
-        </div>
       ) : (
-        <LodgingPager titles={['Quelques conseils & consignes', 'Quelques recommandations']}>
-          <div className="flex flex-wrap gap-4  pb-10 mt-4">
-            {hasPrimaryFixed ? (
-              primarySections.map((section) => (
+        <LodgingPager titles={['Bienvenue', 'Infos pratiques', 'Départ & consignes']}>
+          <div className="flex flex-col gap-8 pb-10 mt-4">
+            <div className="px-2">
+              <h1 className="text-[36px] font-bold leading-none tracking-tighter text-[#1A1D1F]">
+                {lodgingContext.lodgingName}
+              </h1>
+            </div>
+
+            {presentationPhoto && (
+              <section className="flex flex-col gap-4 -mx-4">
+                <div className="relative aspect-[2/1] w-full overflow-hidden">
+                  <Image src={presentationPhoto} alt="Présentation du logement" fill unoptimized sizes="(max-width: 430px) 100vw, 430px" className="object-cover" />
+                </div>
+              </section>
+            )}
+
+            {customization?.welcome_message ? (
+              <div
+                data-testid="lodging-welcome-message"
+                className={`px-2 py-2 font-hand [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left  [&_h3]:!text-4xl [&_h3]:!normal-case ${getMarkdownTextStyles(false)}`}
+              >
+                <MarkdownText source={customization.welcome_message} breaks />
+              </div>
+            ) : (
+              <p className="px-2 text-sm font-medium text-[#6F767E]">
+                Bienvenue dans votre guide logement.
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-4 pb-10 mt-4">
+            {hasPracticalContent ? (
+              practicalSections.map((section) => (
                 <PracticalCard key={section.key} section={section} />
               ))
             ) : (
@@ -166,12 +160,20 @@ export default async function LeLogementPage() {
           </div>
 
           <div className="flex flex-col gap-4 pb-10 ">
-            {secondaryFixedSections.map((section) => (
-              <PracticalCard key={section.key} section={section} />
-            ))}
-            {practicalBlocks.map((block) => (
-              <PracticalBlockCard key={block.id} block={block} theme={themes.light} />
-            ))}
+            {hasDepartureContent ? (
+              <>
+                {departureSections.map((section) => (
+                  <PracticalCard key={section.key} section={section} />
+                ))}
+                {practicalBlocks.map((block) => (
+                  <PracticalBlockCard key={block.id} block={block} theme={themes.light} />
+                ))}
+              </>
+            ) : (
+              <div className="w-full flex items-center justify-center rounded-[40px] bg-white p-10 text-center text-sm font-medium text-[#6F767E]">
+                Aucune consigne renseignée.
+              </div>
+            )}
           </div>
         </LodgingPager>
       )}

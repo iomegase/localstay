@@ -3,7 +3,7 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
 
 interface LodgingPagerProps {
-  titles: [string, string]
+  titles: string[]
   children: ReactNode
 }
 

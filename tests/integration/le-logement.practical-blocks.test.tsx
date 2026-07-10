@@ -66,11 +66,12 @@ describe('/le-logement — blocs personnalisés', () => {
     expect(screen.getByText('La plage')).toBeInTheDocument()
     expect(screen.getByText(/5 min/)).toBeInTheDocument()
     expect(screen.getByAltText('La plage')).toHaveAttribute('src', 'https://cdn.test/plage.webp')
-    // Le pager n'affiche que le titre actif ; le second titre est exposé
-    // uniquement via l'aria-label du dot de la page 2.
-    expect(screen.getByText('Quelques conseils & consignes')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /aller à quelques recommandations/i })).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(2)
+    // Le pager n'affiche que le titre actif ; les autres titres sont exposés
+    // uniquement via l'aria-label des dots.
+    expect(screen.getByText('Bienvenue')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aller à infos pratiques/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aller à départ & consignes/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(3)
   })
 
   it('treats blocks as content (no empty state when only blocks exist)', async () => {
@@ -110,8 +111,11 @@ describe('/le-logement — blocs personnalisés', () => {
     )
   })
 
-  it('moves fixed wifi, trash and checkout sections to the second lodging page before custom blocks', async () => {
+  it('renders welcome on page 1, practical sections on page 2 and departure sections on page 3', async () => {
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      welcome_message: 'Bienvenue au chalet',
+      cover_photo_url: 'https://cdn.test/chalet.webp',
+      presentation_video_url: null,
       lodging_address: '1 rue des Alpes',
       wifi_ssid: 'Livebox-75E0', wifi_password: 'secret-wifi', parking_info: null, equipment_info: null,
       checkout_instructions: 'Merci de vider le frigo.',
@@ -125,33 +129,43 @@ describe('/le-logement — blocs personnalisés', () => {
     const { container } = render(await LeLogementPage())
     const panels = container.querySelectorAll('[aria-roledescription="carrousel"] > div')
 
-    expect(panels).toHaveLength(2)
+    expect(panels).toHaveLength(3)
+    expect(panels[0]).toHaveTextContent('Chalet MyStay')
+    expect(panels[0]).toHaveTextContent('Bienvenue au chalet')
+    expect(within(panels[0] as HTMLElement).getByAltText('Présentation du logement')).toHaveAttribute('src', 'https://cdn.test/chalet.webp')
     expect(panels[0]).not.toHaveTextContent('Réseau Wi-Fi')
     expect(panels[0]).not.toHaveTextContent('Poubelles')
     expect(panels[0]).not.toHaveTextContent('Départ')
+    expect(panels[1]).toHaveTextContent('Adresse')
     expect(panels[1]).toHaveTextContent('Réseau Wi-Fi')
-    expect(panels[1]).toHaveTextContent('Poubelles')
-    expect(panels[1]).toHaveTextContent('Départ')
+    expect(panels[1]).not.toHaveTextContent('Poubelles')
+    expect(panels[1]).not.toHaveTextContent('Départ')
+    expect(panels[2]).toHaveTextContent('Départ')
+    expect(panels[2]).toHaveTextContent('Poubelles')
+    expect(panels[2]).toHaveTextContent('Infos locales')
 
     const secondPage = within(panels[1] as HTMLElement)
+    const addressHeading = secondPage.getByRole('heading', { name: 'Adresse' })
     const wifiHeading = secondPage.getByRole('heading', { name: 'Réseau Wi-Fi' })
-    const trashHeading = secondPage.getByRole('heading', { name: 'Poubelles' })
-    const checkoutHeading = secondPage.getByRole('heading', { name: 'Départ' })
-    const customBlockHeading = secondPage.getByRole('heading', { name: 'Infos locales' })
 
-    expect(wifiHeading.compareDocumentPosition(trashHeading)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    )
-    expect(trashHeading.compareDocumentPosition(checkoutHeading)).toBe(
+    expect(addressHeading.compareDocumentPosition(wifiHeading)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
 
-    expect(checkoutHeading.compareDocumentPosition(customBlockHeading)).toBe(
+    const thirdPage = within(panels[2] as HTMLElement)
+    const checkoutHeading = thirdPage.getByRole('heading', { name: 'Départ' })
+    const trashHeading = thirdPage.getByRole('heading', { name: 'Poubelles' })
+    const customBlockHeading = thirdPage.getByRole('heading', { name: 'Infos locales' })
+
+    expect(checkoutHeading.compareDocumentPosition(trashHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(trashHeading.compareDocumentPosition(customBlockHeading)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
   })
 
-  it('renders a single list without pager when there are no custom blocks', async () => {
+  it('keeps the three-page lodging guide even when only practical fixed sections exist', async () => {
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       lodging_address: '1 rue des Alpes',
       wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
@@ -160,10 +174,13 @@ describe('/le-logement — blocs personnalisés', () => {
     } as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
 
-    render(await LeLogementPage())
+    const { container } = render(await LeLogementPage())
+    const panels = container.querySelectorAll('[aria-roledescription="carrousel"] > div')
 
+    expect(panels).toHaveLength(3)
+    expect(panels[1]).toHaveTextContent('1 rue des Alpes')
     expect(screen.getByText('1 rue des Alpes')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /aller à/i })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /aller à/i })).toHaveLength(3)
     expect(screen.queryByText('À découvrir')).not.toBeInTheDocument()
   })
 
