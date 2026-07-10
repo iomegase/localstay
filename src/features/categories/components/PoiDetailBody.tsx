@@ -155,7 +155,7 @@ export function PoiDetailBody({
 
         {/* Hours */}
         {poi.hours && (
-          <div className="px-4">
+          <div className="px-6 pb-4">
             <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} showOpenBadge={false} />
           </div>
         )}
