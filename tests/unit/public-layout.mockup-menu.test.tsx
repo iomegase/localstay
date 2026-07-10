@@ -2,9 +2,17 @@
  * 001 mockup contract — public header exposes the burger menu overlay.
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PublicLayout from '@/app/(public)/layout'
+
+jest.mock('@vercel/analytics/react', () => ({
+  Analytics: () => null,
+}))
+
+jest.mock('@vercel/speed-insights/next', () => ({
+  SpeedInsights: () => null,
+}))
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/',
@@ -22,8 +30,18 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
-    <a href={href} className={className}>{children}</a>
+  default: ({
+    href,
+    children,
+    className,
+    'aria-label': ariaLabel,
+  }: {
+    href: string
+    children: React.ReactNode
+    className?: string
+    'aria-label'?: string
+  }) => (
+    <a href={href} className={className} aria-label={ariaLabel}>{children}</a>
   ),
 }))
 
@@ -32,20 +50,23 @@ describe('PublicLayout mockup menu', () => {
     render(await PublicLayout({ children: <div>Contenu</div> }))
 
     expect(screen.queryByText('Navigation')).not.toBeInTheDocument()
-    expect(screen.getByText('Bienvenue')).toBeInTheDocument()
-    expect(screen.getByText('Vos favoris')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Nos recommandations/i })).toBeInTheDocument()
+    expect(screen.queryByText('Vos favoris')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
 
     expect(screen.getByText('Navigation')).toBeInTheDocument()
-    expect(screen.getByText('Le Logement')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Vos favoris' })).toHaveAttribute(
+      'href',
+      '/guide/saint-gervais/mes-favoris',
+    )
     expect(screen.getByRole('link', { name: 'Logements' })).toHaveAttribute(
       'href',
       '/guide/saint-gervais/logements',
     )
     // L'entrée « recommandations » est retirée du menu : la home (/) affiche
     // déjà ce contenu en mode séjour.
-    expect(screen.queryByRole('link', { name: /recommandations/i })).not.toBeInTheDocument()
+    expect(within(screen.getByTestId('public-menu-overlay')).queryByRole('link', { name: /recommandations/i })).not.toBeInTheDocument()
   })
 
   it('keeps the menu overlay constrained to the mobile app shell width', async () => {

@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Compass, Heart, Home, Map, LocateFixed, Newspaper } from 'lucide-react'
+import { Compass, Home, Map, LocateFixed, Newspaper } from 'lucide-react'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
-import { contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
 
 type Props = {
   mode: 'anonymous' | 'lodging'
@@ -37,12 +36,11 @@ function isPathActive(pathname: string | null, href: string): boolean {
 
 function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
   const guideCitySlug = getGuideCitySlug(pathname)
-  const favoritesHref = contextualFavoritesPath(guideCitySlug)
 
   const items: NavItemConfig[] = [
     {
       href: '/',
-      label: 'Home',
+      label: 'Nos\nrecommandations',
       icon: <Compass className="w-5 h-5" />,
       active: isPathActive(pathname, '/'),
     },
@@ -60,12 +58,6 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 
   items.push(
     {
-      href: favoritesHref,
-      label: 'Vos favoris',
-      icon: <Heart className="w-5 h-5" />,
-      active: isPathActive(pathname, favoritesHref),
-    },
-    {
       href: '/blog',
       label: 'Blog',
       icon: <Newspaper className="w-5 h-5" />,
@@ -77,27 +69,27 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 }
 
 function buildLodgingItems(pathname: string | null, citySlug?: string | null): NavItemConfig[] {
-  const favoritesHref = contextualFavoritesPath(citySlug)
-
   return [
     {
       href: '/',
-      label: 'Home',
+      label: 'Nos\nrecommandations',
       icon: <Compass className="w-5 h-5" />,
       active: isPathActive(pathname, '/'),
     },
     {
       href: '/le-logement',
-      label: 'Logement',
+      label: 'Guide\nlogement',
       icon: <Home className="w-5 h-5" />,
       active: isPathActive(pathname, '/le-logement'),
     },
-    {
-      href: favoritesHref,
-      label: 'Vos favoris',
-      icon: <Heart className="w-5 h-5" />,
-      active: isPathActive(pathname, favoritesHref),
-    },
+    ...(citySlug
+      ? [{
+        href: `/guide/${citySlug}`,
+        label: 'Guide',
+        icon: <Map className="w-5 h-5" />,
+        active: isPathActive(pathname, `/guide/${citySlug}`),
+      }]
+      : []),
     {
       href: '/map',
       label: 'Carte',
@@ -169,16 +161,23 @@ function NavItem({
   href,
   active,
 }: NavItemConfig) {
+  const labelLines = label.split('\n')
+
   return (
     <Link
       href={href}
+      aria-label={labelLines.join(' ')}
       className={`group flex flex-col items-center gap-1 transition-colors ${
         active ? 'text-pink-600' : 'text-[#6f7480] hover:text-pink-600'
       }`}
     >
       {icon}
-      <span className="text-[9px] font-bold uppercase tracking-widest">
-        {label}
+      <span className="text-center text-[8px] sm:text-[9px] font-bold uppercase tracking-widest leading-[1.05]">
+        {labelLines.map(line => (
+          <span key={line} className="block">
+            {line}
+          </span>
+        ))}
       </span>
     </Link>
   )
@@ -193,9 +192,11 @@ function GeoNavButton() {
   const isActive = status === 'ready' && location !== null
   const isLoading = status === 'loading'
 
-  const colorClassName = isActive
-    ? 'text-charcoal'
-    : 'text-[#6f7480] hover:text-charcoal'
+  const colorClassName = isLoading
+    ? 'text-orange-500'
+    : isActive
+      ? 'text-green-600 hover:text-green-700'
+      : 'text-red-500 hover:text-red-600'
 
   const label = isLoading ? 'GPS…' : isActive ? 'Activée' : 'Position'
 
@@ -206,9 +207,7 @@ function GeoNavButton() {
       disabled={isLoading}
       aria-pressed={isActive}
       aria-label={isActive ? 'Désactiver la géolocalisation' : 'Activer la géolocalisation'}
-      className={`flex flex-col items-center gap-1 transition-colors ${colorClassName} ${
-        isLoading ? 'opacity-60' : ''
-      }`}
+      className={`flex flex-col items-center gap-1 transition-colors ${colorClassName}`}
     >
       <LocateFixed className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
       <span className="text-[9px] font-bold uppercase tracking-widest">{label}</span>

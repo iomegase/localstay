@@ -22,9 +22,10 @@ async function openLodgingMenu() {
 }
 
 describe('PublicMenu — mode séjour', () => {
-  it('lists Logements, Agenda, Blog and Contact', async () => {
+  it('lists Favorites, Logements, Agenda, Blog and Contact', async () => {
     await openLodgingMenu()
 
+    expect(screen.getByRole('link', { name: /vos favoris/i })).toHaveAttribute('href', '/guide/saint-gervais/mes-favoris')
     expect(screen.getByRole('link', { name: /logements/i })).toHaveAttribute('href', '/guide/saint-gervais/logements')
     expect(screen.getByRole('link', { name: /agenda/i })).toHaveAttribute('href', '/guide/saint-gervais/agenda')
     expect(screen.getByRole('link', { name: /blog/i })).toHaveAttribute('href', '/blog')

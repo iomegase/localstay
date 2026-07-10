@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
-import { contextualContactPath } from '@/features/city-guide/lib/public-paths'
+import { contextualContactPath, contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
 
 type MenuItem = { href: string; label: string }
 
@@ -17,7 +17,8 @@ type Props = {
 }
 
 const ANONYMOUS_ITEMS: MenuItem[] = [
-  { href: '/', label: 'Home' },
+  { href: '/', label: 'Bienvenue' },
+  { href: contextualFavoritesPath(null), label: 'Vos favoris' },
   { href: '/contact', label: 'Contact' },
 ]
 
@@ -31,7 +32,8 @@ function extractCitySlug(pathname?: string | null): string | null {
 function anonymousItems(citySlug?: string | null): MenuItem[] {
   return citySlug
     ? [
-      { href: '/', label: 'Home' },
+      { href: '/', label: 'Bienvenue' },
+      { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
       { href: `/guide/${citySlug}/logements`, label: 'Logements' },
       { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
       { href: contextualContactPath(citySlug), label: 'Contact' },
@@ -46,6 +48,7 @@ function lodgingItems(citySlug?: string | null): MenuItem[] {
   if (!citySlug) return [blog, contact]
 
   return [
+    { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
     { href: `/guide/${citySlug}/logements`, label: 'Logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
     blog,

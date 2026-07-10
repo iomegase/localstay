@@ -4,6 +4,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
 const mockUsePathname = jest.fn()
+const mockUseUserLocation = jest.fn()
 
 jest.mock('next/navigation', () => ({
   usePathname: () => mockUsePathname(),
@@ -11,9 +12,23 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
-    <a href={href} className={className}>{children}</a>
+  default: ({
+    href,
+    children,
+    className,
+    'aria-label': ariaLabel,
+  }: {
+    href: string
+    children: React.ReactNode
+    className?: string
+    'aria-label'?: string
+  }) => (
+    <a href={href} className={className} aria-label={ariaLabel}>{children}</a>
   ),
+}))
+
+jest.mock('@/features/geolocation/hooks/useUserLocation', () => ({
+  useUserLocation: () => mockUseUserLocation(),
 }))
 
 import { PublicBottomNav } from '@/features/city-guide/components/PublicBottomNav'
@@ -21,6 +36,13 @@ import { PublicBottomNav } from '@/features/city-guide/components/PublicBottomNa
 describe('PublicBottomNav', () => {
   beforeEach(() => {
     mockUsePathname.mockReset()
+    mockUseUserLocation.mockReturnValue({
+      location: null,
+      status: 'idle',
+      requestLocation: jest.fn(),
+      clearLocation: jest.fn(),
+      dismiss: jest.fn(),
+    })
     Object.defineProperty(window, 'scrollY', {
       configurable: true,
       value: 0,
@@ -36,7 +58,7 @@ describe('PublicBottomNav', () => {
 
     render(<PublicBottomNav mode="anonymous" citySlug={null} />)
 
-    expect(screen.getByRole('link', { name: /Bienvenue/i })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: /Nos recommandations/i })).toHaveAttribute('href', '/')
     expect(screen.queryByRole('link', { name: /Guide/i })).not.toBeInTheDocument()
   })
 
@@ -49,15 +71,12 @@ describe('PublicBottomNav', () => {
       'href',
       '/guide/saint-gervais-les-bains',
     )
-    expect(screen.getByRole('link', { name: /Vos favoris/i })).toHaveAttribute(
-      'href',
-      '/guide/saint-gervais-les-bains/mes-favoris',
-    )
+    expect(screen.queryByRole('link', { name: /Vos favoris/i })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Blog/i })).toHaveAttribute(
       'href',
       '/blog',
     )
-    expect(screen.getByRole('link', { name: /Bienvenue/i })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: /Nos recommandations/i })).toHaveAttribute('href', '/')
   })
 
   it('keeps the guide context on contextual contact pages while exposing the global blog link', () => {
@@ -69,10 +88,7 @@ describe('PublicBottomNav', () => {
       'href',
       '/guide/saint-gervais-les-bains',
     )
-    expect(screen.getByRole('link', { name: /Vos favoris/i })).toHaveAttribute(
-      'href',
-      '/guide/saint-gervais-les-bains/mes-favoris',
-    )
+    expect(screen.queryByRole('link', { name: /Vos favoris/i })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Blog/i })).toHaveAttribute(
       'href',
       '/blog',
@@ -84,7 +100,19 @@ describe('PublicBottomNav', () => {
 
     render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
 
-    expect(screen.getByRole('link', { name: /Guide/i })).toHaveClass('text-pink-600')
+    expect(screen.getByRole('link', { name: /^Guide$/i })).toHaveClass('text-pink-600')
+  })
+
+  it('renders the lodging guide label on the lodging bottom nav', () => {
+    mockUsePathname.mockReturnValue('/le-logement')
+
+    render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
+
+    expect(screen.getByRole('link', { name: /Guide logement/i })).toHaveAttribute(
+      'href',
+      '/le-logement',
+    )
+    expect(screen.getByRole('link', { name: /Guide logement/i })).toHaveClass('text-pink-600')
   })
 
   it('keeps inactive items readable over the glass bottom menu', () => {
@@ -92,9 +120,36 @@ describe('PublicBottomNav', () => {
 
     render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
 
-    const inactiveLink = screen.getByRole('link', { name: /Bienvenue/i })
+    const inactiveLink = screen.getByRole('link', { name: /Nos recommandations/i })
     expect(inactiveLink).toHaveClass('text-[#6f7480]')
     expect(inactiveLink).not.toHaveClass('text-gray-300')
+  })
+
+  it('colors the GPS nav item red by default, orange while loading and green when active', () => {
+    mockUsePathname.mockReturnValue('/guide/saint-gervais-les-bains')
+
+    const { rerender } = render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
+    expect(screen.getByRole('button', { name: /Activer la géolocalisation/i })).toHaveClass('text-red-500')
+
+    mockUseUserLocation.mockReturnValue({
+      location: null,
+      status: 'loading',
+      requestLocation: jest.fn(),
+      clearLocation: jest.fn(),
+      dismiss: jest.fn(),
+    })
+    rerender(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
+    expect(screen.getByRole('button', { name: /Activer la géolocalisation/i })).toHaveClass('text-orange-500')
+
+    mockUseUserLocation.mockReturnValue({
+      location: { latitude: 45.892, longitude: 6.713 },
+      status: 'ready',
+      requestLocation: jest.fn(),
+      clearLocation: jest.fn(),
+      dismiss: jest.fn(),
+    })
+    rerender(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
+    expect(screen.getByRole('button', { name: /Désactiver la géolocalisation/i })).toHaveClass('text-green-600')
   })
 
   it('makes the bottom menu surface transparent only while the user is scrolling', () => {
