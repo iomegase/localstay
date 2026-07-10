@@ -45,36 +45,47 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.getByTestId('btn-directions')).toBeInTheDocument()
   })
 
-  it('renders POI detail actions with the contact page pill button design', () => {
+  it('renders POI detail actions with the POI card-inspired pill button design', () => {
     render(<ActionButtons {...base} />)
 
     expect(screen.getByTestId('btn-call')).toHaveClass(
-      'min-h-[58px]',
-      'rounded-[28px]',
-      'border-transparent',
+      'min-h-[42px]',
+      'min-w-0',
+      'flex-1',
+      'rounded-full',
       'bg-white',
-      'shadow-[0_8px_18px_rgba(17,24,39,0.08)]',
-      'tracking-[0.18em]',
-      'text-[#1f1f1f]',
+      'text-[9px]',
+      'shadow-[0_7px_16px_rgba(17,24,39,0.07)]',
     )
+    expect(screen.getByTestId('btn-call')).toHaveTextContent('Appeler')
+    expect(screen.getByTestId('btn-call')).not.toHaveTextContent('+33 4 50 78 24 90')
+    expect(screen.getByTestId('btn-call').querySelector('span')).toHaveClass('bg-[#31B95D]')
+
     expect(screen.getByTestId('btn-directions')).toHaveClass(
-      'min-h-[58px]',
-      'rounded-[28px]',
-      'border-transparent',
+      'min-h-[42px]',
+      'min-w-0',
+      'flex-1',
+      'rounded-full',
       'bg-white',
-      'shadow-[0_8px_18px_rgba(17,24,39,0.08)]',
-      'tracking-[0.18em]',
-      'text-[#1f1f1f]',
+      'text-[9px]',
+      'shadow-[0_7px_16px_rgba(17,24,39,0.07)]',
     )
+    expect(screen.getByTestId('btn-directions')).toHaveTextContent('Itinéraire')
+    expect(screen.getByTestId('btn-directions')).not.toHaveTextContent('GPS')
+    expect(screen.getByTestId('btn-directions').querySelector('span')).toHaveClass('bg-[#EF5148]')
+
     expect(screen.getByTestId('btn-site')).toHaveClass(
-      'min-h-[58px]',
-      'rounded-[28px]',
-      'border-transparent',
+      'min-h-[42px]',
+      'min-w-0',
+      'flex-1',
+      'rounded-full',
       'bg-white',
-      'shadow-[0_8px_18px_rgba(17,24,39,0.08)]',
-      'tracking-[0.18em]',
-      'text-[#1f1f1f]',
+      'text-[9px]',
+      'shadow-[0_7px_16px_rgba(17,24,39,0.07)]',
     )
+    expect(screen.getByTestId('btn-site')).toHaveTextContent('Site web')
+    expect(screen.getByTestId('btn-site')).not.toHaveTextContent('Voir le site')
+    expect(screen.getByTestId('btn-site').querySelector('span')).toHaveClass('bg-[#218F9D]')
   })
 
   it('uses the public POI address for Google Maps directions before falling back to coordinates', () => {

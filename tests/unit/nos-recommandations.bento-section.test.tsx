@@ -25,7 +25,7 @@ function row(id: string, name: string): RecRow {
 }
 
 describe('BentoSection', () => {
-  it('renders the eyebrow, title and a card per row', () => {
+  it('renders a semibold category title and a card per row', () => {
     render(
       <BentoSection
         eyebrow="Sélection principale"
@@ -35,13 +35,13 @@ describe('BentoSection', () => {
         showCardCategory={false}
       />,
     )
-    expect(screen.getByText('Sélection principale')).toBeInTheDocument()
-    expect(screen.getByText('Restaurants')).toBeInTheDocument()
+    const title = screen.getByRole('heading', { level: 2, name: 'Restaurants' })
+    expect(title).toHaveClass('font-semibold')
     expect(screen.getByText('Chez A')).toBeInTheDocument()
     expect(screen.getByText('Chez B')).toBeInTheDocument()
   })
 
-  it('forwards the category label to cards by default', () => {
+  it('forwards the category label to card icons by default', () => {
     render(
       <BentoSection
         title="À Annecy"
@@ -49,8 +49,7 @@ describe('BentoSection', () => {
         fallbackCitySlug="sg"
       />,
     )
-    // Both cards show their category label.
-    expect(screen.getAllByText('Restaurants')).toHaveLength(2)
+    expect(screen.getAllByRole('img', { name: 'Restaurants' })).toHaveLength(2)
   })
 
   it('returns null when there are no rows', () => {

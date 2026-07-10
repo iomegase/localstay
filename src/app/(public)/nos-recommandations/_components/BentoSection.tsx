@@ -19,7 +19,7 @@ export function BentoSection({ title, eyebrow, rows, fallbackCitySlug, showCardC
         {/* {eyebrow && (
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-pink-600">{eyebrow}</p>
         )} */}
-        <h2 className="mt-1 uppercase text-2xl font-thin   !text-slate-600">{title}</h2>
+        <h2 className="mt-1 uppercase text-2xl font-semibold !text-slate-600">{title}</h2>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {cards.map(({ row, variant }) => (

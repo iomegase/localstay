@@ -85,7 +85,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **BR-08**: Le commentaire contextuel n'est inclus ni dans l'API POI publique, ni dans les metadata, ni dans le JSON-LD, ni dans le cache de la query POI globale
 - **BR-09**: Si plusieurs Lodgings recommandent le même POI, seul le commentaire du Lodging identifié par le séjour actif peut être affiché
 - **BR-10**: En mode séjour actif avec coordonnées logement disponibles, la distance de fiche POI affiche `Situé à X m/km du logement`. Si le Tourist a activé son GPS, la fiche recalcule localement la distance et affiche `Situé à X m/km de votre position actuelle`. La position GPS du Tourist reste locale et n'est jamais persistée.
-- **BR-11**: Les actions principales de fiche POI (`Appeler`, `Itinéraire`, `Site`) utilisent le style de bouton pilule de la page contact : fond blanc, sans bordure visible, ombre portée douce, coins très arrondis, icône + libellé uppercase espacé ; le bouton téléphone peut rester icône seule.
+- **BR-11**: Les actions principales de fiche POI (`Appeler`, `Itinéraire`, `Site web`) utilisent un style de bouton pilule compact inspiré des POI cards : fond blanc sans bordure visible, ombre portée douce, pastille icône colorée et libellé uppercase coloré en 9px, sans numéro de téléphone ni texte secondaire visible, et tiennent sur une seule ligne sans scroll horizontal.
 - **BR-12**: La mini-carte statique de fiche POI utilise un zoom rapproché par défaut afin de mieux situer le bâtiment et les rues immédiates autour du POI.
 
 ---

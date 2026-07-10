@@ -1,11 +1,25 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Phone, Navigation, Globe } from 'lucide-react'
 
 export type ActionButtonsVariant = 'default' | 'modalFooter'
 
 const SCROLL_IDLE_MS = 180
-const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[58px] flex-1 rounded-[28px] border border-transparent bg-white px-4 py-4 flex items-center justify-center gap-2.5 text-[13px] font-bold uppercase tracking-[0.18em] text-[#1f1f1f] shadow-[0_8px_18px_rgba(17,24,39,0.08)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_10px_22px_rgba(17,24,39,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
+const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[42px] min-w-0 flex-1 rounded-full bg-white py-1 pl-1 pr-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
+const DETAIL_ACTION_TONES = {
+  call: {
+    bubble: 'bg-[#31B95D]',
+    label: 'text-[#31B95D]',
+  },
+  directions: {
+    bubble: 'bg-[#EF5148]',
+    label: 'text-[#EF5148]',
+  },
+  website: {
+    bubble: 'bg-[#218F9D]',
+    label: 'text-[#218F9D]',
+  },
+} as const
 
 interface Props {
   phone: string | null
@@ -19,7 +33,8 @@ interface Props {
 export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default' }: Props) {
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
-  const telHref = phone ? `tel:${phone.replace(/\s/g, '')}` : null
+  const phoneLabel = phone?.trim() || null
+  const telHref = phoneLabel ? `tel:${phoneLabel.replace(/\s/g, '')}` : null
 
   if (variant === 'modalFooter') {
     return (
@@ -28,42 +43,74 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
   }
 
   return (
-    <div className="flex gap-2 pt-2">
-      {telHref && (
-        <a
+    <div className="flex w-full gap-2 px-1 pt-2 pb-3">
+      {telHref && phoneLabel && (
+        <DetailActionButton
           href={telHref}
-          data-testid="btn-call"
-          className={DETAIL_ACTION_BUTTON_CLASS}
-          aria-label="Appeler"
-        >
-          <Phone className="h-5 w-5 shrink-0" />
-        </a>
+          testId="btn-call"
+          tone="call"
+          icon={<Phone className="h-3.5 w-3.5" />}
+          label="Appeler"
+          ariaLabel={`Appeler ${phoneLabel}`}
+        />
       )}
 
-      <a
+      <DetailActionButton
         href={directionsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-testid="btn-directions"
-        className={DETAIL_ACTION_BUTTON_CLASS}
-      >
-        <Navigation className="h-5 w-5 shrink-0" />
-        Itinéraire
-      </a>
+        testId="btn-directions"
+        tone="directions"
+        icon={<Navigation className="h-3.5 w-3.5" />}
+        label="Itinéraire"
+        external
+      />
 
       {website && (
-        <a
+        <DetailActionButton
           href={website}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="btn-site"
-          className={DETAIL_ACTION_BUTTON_CLASS}
-        >
-          <Globe className="h-5 w-5 shrink-0" />
-          Site
-        </a>
+          testId="btn-site"
+          tone="website"
+          icon={<Globe className="h-3.5 w-3.5" />}
+          label="Site web"
+          external
+        />
       )}
     </div>
+  )
+}
+
+function DetailActionButton({
+  href,
+  testId,
+  tone,
+  icon,
+  label,
+  external = false,
+  ariaLabel,
+}: {
+  href: string
+  testId: string
+  tone: keyof typeof DETAIL_ACTION_TONES
+  icon: ReactNode
+  label: string
+  external?: boolean
+  ariaLabel?: string
+}) {
+  const toneClasses = DETAIL_ACTION_TONES[tone]
+
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      data-testid={testId}
+      className={DETAIL_ACTION_BUTTON_CLASS}
+      aria-label={ariaLabel}
+    >
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${toneClasses.bubble}`}>
+        {icon}
+      </span>
+      <span className={`shrink-0 ${toneClasses.label}`}>{label}</span>
+    </a>
   )
 }
 
