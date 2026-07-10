@@ -50,7 +50,7 @@ describe('PublicLayout mockup menu', () => {
     render(await PublicLayout({ children: <div>Contenu</div> }))
 
     expect(screen.queryByText('Navigation')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Nos recommandations/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Coup de coeur/i })).toBeInTheDocument()
     expect(screen.queryByText('Vos favoris')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
@@ -60,7 +60,7 @@ describe('PublicLayout mockup menu', () => {
       'href',
       '/guide/saint-gervais/mes-favoris',
     )
-    expect(screen.getByRole('link', { name: 'Logements' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Tous nos logements' })).toHaveAttribute(
       'href',
       '/guide/saint-gervais/logements',
     )

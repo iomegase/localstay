@@ -7,7 +7,7 @@ interface Props {
   zoom?: number
 }
 
-export function MiniMap({ latitude, longitude, poiName, width = 600, height = 360, zoom = 16 }: Props) {
+export function MiniMap({ latitude, longitude, poiName, width = 600, height = 360, zoom = 17 }: Props) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
   const marker = `pin-s+ef4444(${longitude},${latitude})`
   const center = `${longitude},${latitude},${zoom}`

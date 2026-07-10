@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Compass, Home, Map, LocateFixed, Newspaper } from 'lucide-react'
+import { Heart, Home, Map, LocateFixed, Newspaper } from 'lucide-react'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 
 type Props = {
@@ -40,8 +40,8 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
   const items: NavItemConfig[] = [
     {
       href: '/',
-      label: 'Nos\nrecommandations',
-      icon: <Compass className="w-5 h-5" />,
+      label: 'Coup de\ncoeur',
+      icon: <Heart className="w-5 h-5 text-red-500 fill-red-500" />,
       active: isPathActive(pathname, '/'),
     },
   ]
@@ -72,8 +72,8 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
   return [
     {
       href: '/',
-      label: 'Nos\nrecommandations',
-      icon: <Compass className="w-5 h-5" />,
+      label: 'Coup de\ncoeur',
+      icon: <Heart className="w-5 h-5 text-red-500 fill-red-500" />,
       active: isPathActive(pathname, '/'),
     },
     {
@@ -82,14 +82,6 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
       icon: <Home className="w-5 h-5" />,
       active: isPathActive(pathname, '/le-logement'),
     },
-    ...(citySlug
-      ? [{
-        href: `/guide/${citySlug}`,
-        label: 'Guide',
-        icon: <Map className="w-5 h-5" />,
-        active: isPathActive(pathname, `/guide/${citySlug}`),
-      }]
-      : []),
     {
       href: '/map',
       label: 'Carte',
@@ -168,7 +160,7 @@ function NavItem({
       href={href}
       aria-label={labelLines.join(' ')}
       className={`group flex flex-col items-center gap-1 transition-colors ${
-        active ? 'text-pink-600' : 'text-[#6f7480] hover:text-pink-600'
+        active ? 'text-pink-600' : 'text-[#6f7480] hover:text-[#9ca3af]'
       }`}
     >
       {icon}

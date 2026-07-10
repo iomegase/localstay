@@ -5,6 +5,7 @@ import { Phone, Navigation, Globe } from 'lucide-react'
 export type ActionButtonsVariant = 'default' | 'modalFooter'
 
 const SCROLL_IDLE_MS = 180
+const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[58px] flex-1 rounded-[28px] border border-transparent bg-white px-4 py-4 flex items-center justify-center gap-2.5 text-[13px] font-bold uppercase tracking-[0.18em] text-[#1f1f1f] shadow-[0_8px_18px_rgba(17,24,39,0.08)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_10px_22px_rgba(17,24,39,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
 
 interface Props {
   phone: string | null
@@ -27,14 +28,15 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
   }
 
   return (
-    <div className="flex flex-wrap gap-2 pt-2">
+    <div className="flex gap-2 pt-2">
       {telHref && (
         <a
           href={telHref}
           data-testid="btn-call"
-          className="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
+          className={DETAIL_ACTION_BUTTON_CLASS}
+          aria-label="Appeler"
         >
-          <Phone className="w-4 h-4" />
+          <Phone className="h-5 w-5 shrink-0" />
         </a>
       )}
 
@@ -43,9 +45,9 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
         target="_blank"
         rel="noopener noreferrer"
         data-testid="btn-directions"
-        className="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
+        className={DETAIL_ACTION_BUTTON_CLASS}
       >
-        <Navigation className="w-4 h-4" />
+        <Navigation className="h-5 w-5 shrink-0" />
         Itinéraire
       </a>
 
@@ -55,9 +57,9 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
           target="_blank"
           rel="noopener noreferrer"
           data-testid="btn-site"
-          className="flex-1 py-3 rounded-2xl border border-gray-200 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-widest active:scale-95 transition-transform"
+          className={DETAIL_ACTION_BUTTON_CLASS}
         >
-          <Globe className="w-4 h-4" />
+          <Globe className="h-5 w-5 shrink-0" />
           Site
         </a>
       )}

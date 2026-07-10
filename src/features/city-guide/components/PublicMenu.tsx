@@ -34,7 +34,7 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
     ? [
       { href: '/', label: 'Bienvenue' },
       { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
-      { href: `/guide/${citySlug}/logements`, label: 'Logements' },
+      { href: `/guide/${citySlug}/logements`, label: 'Tous nos logements' },
       { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
       { href: contextualContactPath(citySlug), label: 'Contact' },
     ]
@@ -49,7 +49,7 @@ function lodgingItems(citySlug?: string | null): MenuItem[] {
 
   return [
     { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
-    { href: `/guide/${citySlug}/logements`, label: 'Logements' },
+    { href: `/guide/${citySlug}/logements`, label: 'Tous nos logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
     blog,
     contact,

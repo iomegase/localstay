@@ -45,6 +45,38 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.getByTestId('btn-directions')).toBeInTheDocument()
   })
 
+  it('renders POI detail actions with the contact page pill button design', () => {
+    render(<ActionButtons {...base} />)
+
+    expect(screen.getByTestId('btn-call')).toHaveClass(
+      'min-h-[58px]',
+      'rounded-[28px]',
+      'border-transparent',
+      'bg-white',
+      'shadow-[0_8px_18px_rgba(17,24,39,0.08)]',
+      'tracking-[0.18em]',
+      'text-[#1f1f1f]',
+    )
+    expect(screen.getByTestId('btn-directions')).toHaveClass(
+      'min-h-[58px]',
+      'rounded-[28px]',
+      'border-transparent',
+      'bg-white',
+      'shadow-[0_8px_18px_rgba(17,24,39,0.08)]',
+      'tracking-[0.18em]',
+      'text-[#1f1f1f]',
+    )
+    expect(screen.getByTestId('btn-site')).toHaveClass(
+      'min-h-[58px]',
+      'rounded-[28px]',
+      'border-transparent',
+      'bg-white',
+      'shadow-[0_8px_18px_rgba(17,24,39,0.08)]',
+      'tracking-[0.18em]',
+      'text-[#1f1f1f]',
+    )
+  })
+
   it('uses the public POI address for Google Maps directions before falling back to coordinates', () => {
     render(<ActionButtons {...base} />)
     const href = screen.getByTestId('btn-directions').getAttribute('href') ?? ''

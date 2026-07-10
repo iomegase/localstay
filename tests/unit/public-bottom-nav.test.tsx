@@ -58,7 +58,9 @@ describe('PublicBottomNav', () => {
 
     render(<PublicBottomNav mode="anonymous" citySlug={null} />)
 
-    expect(screen.getByRole('link', { name: /Nos recommandations/i })).toHaveAttribute('href', '/')
+    const homeLink = screen.getByRole('link', { name: /Coup de coeur/i })
+    expect(homeLink).toHaveAttribute('href', '/')
+    expect(homeLink.querySelector('svg')).toHaveClass('text-red-500', 'fill-red-500')
     expect(screen.queryByRole('link', { name: /Guide/i })).not.toBeInTheDocument()
   })
 
@@ -76,7 +78,7 @@ describe('PublicBottomNav', () => {
       'href',
       '/blog',
     )
-    expect(screen.getByRole('link', { name: /Nos recommandations/i })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: /Coup de coeur/i })).toHaveAttribute('href', '/')
   })
 
   it('keeps the guide context on contextual contact pages while exposing the global blog link', () => {
@@ -95,12 +97,12 @@ describe('PublicBottomNav', () => {
     )
   })
 
-  it('highlights the selected item with the approved pink color', () => {
-    mockUsePathname.mockReturnValue('/guide/saint-gervais-les-bains')
+  it('does not render the redundant city guide link in lodging mode', () => {
+    mockUsePathname.mockReturnValue('/le-logement')
 
     render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
 
-    expect(screen.getByRole('link', { name: /^Guide$/i })).toHaveClass('text-pink-600')
+    expect(screen.queryByRole('link', { name: /^Guide$/i })).not.toBeInTheDocument()
   })
 
   it('renders the lodging guide label on the lodging bottom nav', () => {
@@ -120,8 +122,10 @@ describe('PublicBottomNav', () => {
 
     render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
 
-    const inactiveLink = screen.getByRole('link', { name: /Nos recommandations/i })
+    const inactiveLink = screen.getByRole('link', { name: /Coup de coeur/i })
     expect(inactiveLink).toHaveClass('text-[#6f7480]')
+    expect(inactiveLink).toHaveClass('hover:text-[#9ca3af]')
+    expect(inactiveLink).not.toHaveClass('hover:text-pink-600')
     expect(inactiveLink).not.toHaveClass('text-gray-300')
   })
 
