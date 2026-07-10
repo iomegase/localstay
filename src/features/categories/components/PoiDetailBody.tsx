@@ -2,7 +2,6 @@ import { ArrowLeft, Star } from 'lucide-react'
 import { ActionButtons, type ActionButtonsVariant } from './ActionButtons'
 import { HoursBlock } from './HoursBlock'
 import { HikingBlock } from './HikingBlock'
-import { MiniMap } from './MiniMap'
 import { MerchantOffersBlock } from './MerchantOffersBlock'
 import { HeroShareButton } from './HeroShareButton'
 import { OwnerRecommendationNote } from './OwnerRecommendationNote'
@@ -160,11 +159,6 @@ export function PoiDetailBody({
             <HoursBlock is_open_now={poi.is_open_now} hours={poi.hours} showOpenBadge={false} />
           </div>
         )}
-
-        {/* Mini map */}
-        <div className="">
-          <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} />
-        </div>
 
         {poi.photos.length > 0 && poi.website && photoAttributionHost && (
           <div className="px-6">

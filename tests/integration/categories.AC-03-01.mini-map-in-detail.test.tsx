@@ -21,18 +21,13 @@ const poi: PoiDetail = {
   subcategory: null,
   hiking_detail: null,
   merchant_offers: [],
+  city: { name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains', region: null, postal_code: '74170' },
 }
 
-describe('PoiDetailBody — AC-03-01 (MiniMap visible)', () => {
-  it('renders the mini-map image', () => {
+// La mini-map a été retirée définitivement des fiches POI (et donc des favoris).
+describe('PoiDetailBody — la mini-map n\'est plus rendue', () => {
+  it('ne rend aucune mini-map', () => {
     render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
-    expect(screen.getByTestId('mini-map')).toBeInTheDocument()
-  })
-
-  it('mini-map src contains POI coordinates', () => {
-    render(<PoiDetailBody poi={poi} citySlug="saint-gervais-les-bains" categorySlug="restaurants" />)
-    const src = screen.getByTestId('mini-map').getAttribute('src') ?? ''
-    expect(src).toContain('45.8921')
-    expect(src).toContain('6.7085')
+    expect(screen.queryByTestId('mini-map')).not.toBeInTheDocument()
   })
 })

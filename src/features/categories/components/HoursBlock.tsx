@@ -1,6 +1,3 @@
-'use client'
-import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { PoiHours } from '../types'
 
 const DAY_LABELS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
@@ -13,8 +10,6 @@ interface Props {
 }
 
 export function HoursBlock({ is_open_now, hours, today = new Date().getDay(), showOpenBadge = true }: Props) {
-  const [expanded, setExpanded] = useState(false)
-
   if (!hours) return null
 
   const todayHours = hours[today.toString() as keyof PoiHours] ?? null
@@ -45,32 +40,22 @@ export function HoursBlock({ is_open_now, hours, today = new Date().getDay(), sh
         </div>
       )}
 
-      <button
-        onClick={() => setExpanded(e => !e)}
-        className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold text-charcoal/50"
-      >
-        {expanded ? 'Masquer les horaires' : 'Tous les horaires'}
-        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-      </button>
-
-      {expanded && (
-        <div className="space-y-1.5">
-          {days.map(day => {
-            const dayHours = hours[day.toString() as keyof PoiHours] ?? null
-            const isToday = day === today
-            return (
-              <div
-                key={day}
-                data-testid={`hours-row-${day}`}
-                className={`flex justify-between text-[11px] ${isToday ? 'font-bold text-charcoal' : 'text-charcoal/60'}`}
-              >
-                <span>{DAY_LABELS[day]}</span>
-                <span>{dayHours ? `${dayHours.open} – ${dayHours.close}` : 'Fermé'}</span>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <div className="space-y-1.5">
+        {days.map(day => {
+          const dayHours = hours[day.toString() as keyof PoiHours] ?? null
+          const isToday = day === today
+          return (
+            <div
+              key={day}
+              data-testid={`hours-row-${day}`}
+              className={`flex justify-between text-[11px] ${isToday ? 'font-bold text-charcoal' : 'text-charcoal/60'}`}
+            >
+              <span>{DAY_LABELS[day]}</span>
+              <span>{dayHours ? `${dayHours.open} – ${dayHours.close}` : 'Fermé'}</span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

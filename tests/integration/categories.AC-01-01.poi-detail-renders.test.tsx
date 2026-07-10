@@ -159,11 +159,11 @@ describe('PoiDetailBody — AC-01-05/AC-01-06 (contextual Owner note)', () => {
 
     const description = screen.getByText('Cuisine du terroir savoyard.')
     const note = screen.getByRole('region', { name: 'Le mot de votre hôte' })
-    const miniMap = screen.getByTestId('mini-map')
 
     expect(screen.getByText('Notre choix pour dîner.')).toBeInTheDocument()
     expect(description.compareDocumentPosition(note)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(note.compareDocumentPosition(miniMap)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    // La mini-map a été retirée définitivement des fiches POI.
+    expect(screen.queryByTestId('mini-map')).not.toBeInTheDocument()
   })
 })
 

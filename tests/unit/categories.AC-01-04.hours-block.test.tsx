@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { HoursBlock } from '@/features/categories/components/HoursBlock'
 import type { PoiHours } from '@/features/categories/types'
 
@@ -39,9 +39,8 @@ describe('HoursBlock — AC-01-04 (open badge)', () => {
     expect(screen.queryByTestId('badge-open')).not.toBeInTheDocument()
   })
 
-  it('renders "Fermé" for days with null hours (Sunday=0) when expanded', () => {
+  it('renders "Fermé" for days with null hours (Sunday=0), toujours affiché', () => {
     render(<HoursBlock is_open_now={false} hours={hours} today={1} />)
-    fireEvent.click(screen.getByRole('button'))
     expect(screen.getByTestId('hours-row-0')).toHaveTextContent('Fermé')
   })
 
@@ -50,9 +49,13 @@ describe('HoursBlock — AC-01-04 (open badge)', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('shows today row in bold when expanded (today=2)', () => {
+  it('shows today row in bold (today=2), sans accordéon', () => {
     render(<HoursBlock is_open_now={true} hours={hours} today={2} />)
-    fireEvent.click(screen.getByRole('button'))
     expect(screen.getByTestId('hours-row-2')).toHaveClass('font-bold')
+  })
+
+  it("n'affiche plus de bouton accordéon", () => {
+    render(<HoursBlock is_open_now={true} hours={hours} today={2} />)
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
