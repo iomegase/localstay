@@ -236,7 +236,7 @@ function PracticalBlockCard({ block, theme }: { block: PracticalBlock, theme: Th
 
       {/* 🚀 OPTIMISATION : Tailles de texte réduites pour plus d'élégance (14px / 15px) */}
       {block.body && (
-        <div className={`text-[16px] sm:text-[17px] leading-relaxed flex-1 ${getMarkdownTextStyles(theme.isDark)}`}>
+        <div className={`text-[13px] leading-relaxed flex-1 [&_p]:!text-[13px] ${getMarkdownTextStyles(theme.isDark)}`}>
           <MarkdownText source={block.body} />
         </div>
       )}
@@ -300,7 +300,7 @@ function PracticalCard({ section }: { section: Section }) {
         </div>
       )}
 
-      <div className={`relative z-10 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[16px] sm:text-[17px] leading-relaxed flex flex-col justify-end ${section.format === 'wifi' ? '' : getMarkdownTextStyles(theme.isDark)}`}>
+      <div className={`relative z-10 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[13px] leading-relaxed flex flex-col justify-end ${section.format === 'wifi' ? '' : `[&_p]:!text-[13px] ${getMarkdownTextStyles(theme.isDark)}`}`}>
         {renderValue(section)}
       </div>
     </section>
