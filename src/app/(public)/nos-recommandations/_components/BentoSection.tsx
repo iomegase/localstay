@@ -32,7 +32,7 @@ export function BentoSection({
         <h2 className="mt-1 inline-flex items-center gap-3 uppercase text-2xl font-light !text-slate-600">
           {showTitleCategoryIcon && titleCategory && (
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pink-50 text-pink-600 shadow-sm ring-1 ring-pink-100"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-800 shadow-sm ring-1 ring-slate-200"
               aria-hidden="true"
             >
               <CategoryIcon

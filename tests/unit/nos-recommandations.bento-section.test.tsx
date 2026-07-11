@@ -43,7 +43,7 @@ describe('BentoSection', () => {
     expect(title).toHaveClass('font-light')
     expect(title).not.toHaveClass('font-semibold')
     const iconWrapper = title.querySelector('span[aria-hidden="true"]')
-    expect(iconWrapper).toHaveClass('h-11', 'w-11', 'bg-pink-50', 'text-pink-600')
+    expect(iconWrapper).toHaveClass('h-11', 'w-11', 'bg-slate-100', 'text-slate-800')
     expect(title.querySelector('svg')).toHaveClass('h-6', 'w-6')
     expect(screen.getByText('Chez A')).toBeInTheDocument()
     expect(screen.getByText('Chez B')).toBeInTheDocument()
