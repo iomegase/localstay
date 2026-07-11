@@ -19,6 +19,17 @@ describe('LodgingPager', () => {
     )
   }
 
+  function renderFourPagePager() {
+    return render(
+      <LodgingPager titles={['Bienvenue', 'Infos pratiques', 'Bon à savoir', 'Départ']}>
+        <div>PAGE ONE</div>
+        <div>PAGE TWO</div>
+        <div>PAGE THREE</div>
+        <div>PAGE FOUR</div>
+      </LodgingPager>,
+    )
+  }
+
   it('renders only the active panel, the active title and two pagination dots (first active)', () => {
     renderPager()
     expect(screen.getByText('PANEL ONE')).toBeInTheDocument()
@@ -59,6 +70,22 @@ describe('LodgingPager', () => {
     expect(screen.queryByText('PANEL TWO')).not.toBeInTheDocument()
   })
 
+  it('can reach the fourth page with a continuous touch gesture', () => {
+    renderFourPagePager()
+    const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
+
+    fireEvent.touchStart(carousel, { touches: [{ clientX: 360, clientY: 120 }] })
+    fireEvent.touchMove(carousel, { touches: [{ clientX: 270, clientY: 124 }] })
+    fireEvent.touchMove(carousel, { touches: [{ clientX: 180, clientY: 124 }] })
+    fireEvent.touchMove(carousel, { touches: [{ clientX: 90, clientY: 124 }] })
+    fireEvent.touchEnd(carousel, { changedTouches: [{ clientX: 90, clientY: 124 }] })
+
+    expect(screen.queryByText('PAGE ONE')).not.toBeInTheDocument()
+    expect(screen.queryByText('PAGE TWO')).not.toBeInTheDocument()
+    expect(screen.queryByText('PAGE THREE')).not.toBeInTheDocument()
+    expect(screen.getByText('PAGE FOUR')).toBeInTheDocument()
+  })
+
   it('switches pages with a horizontal trackpad wheel gesture', () => {
     renderPager()
     const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
@@ -67,6 +94,20 @@ describe('LodgingPager', () => {
 
     expect(screen.queryByText('PANEL ONE')).not.toBeInTheDocument()
     expect(screen.getByText('PANEL TWO')).toBeInTheDocument()
+  })
+
+  it('can reach the fourth page with continuous horizontal trackpad movement', () => {
+    renderFourPagePager()
+    const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
+
+    fireEvent.wheel(carousel, { deltaX: 90, deltaY: 4 })
+    fireEvent.wheel(carousel, { deltaX: 90, deltaY: 4 })
+    fireEvent.wheel(carousel, { deltaX: 90, deltaY: 4 })
+
+    expect(screen.queryByText('PAGE ONE')).not.toBeInTheDocument()
+    expect(screen.queryByText('PAGE TWO')).not.toBeInTheDocument()
+    expect(screen.queryByText('PAGE THREE')).not.toBeInTheDocument()
+    expect(screen.getByText('PAGE FOUR')).toBeInTheDocument()
   })
 
   it('ignores mostly vertical wheel gestures so normal scrolling still works', () => {

@@ -11,10 +11,9 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
   const panels = Children.toArray(children)
   const [active, setActive] = useState(0)
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null)
-  const gestureHandledRef = useRef(false)
-  const lastWheelNavigationAtRef = useRef(0)
+  const wheelDeltaRef = useRef(0)
   const activePanel = panels[active] ?? panels[0] ?? null
-  const horizontalThreshold = 44
+  const horizontalThreshold = 72
 
   function goTo(index: number) {
     setActive(index)
@@ -30,25 +29,28 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
 
   function startGesture(x: number, y: number) {
     pointerStartRef.current = { x, y }
-    gestureHandledRef.current = false
   }
 
-  function navigateFromDelta(deltaX: number, deltaY: number) {
+  function getSwipeDirection(deltaX: number, deltaY: number) {
     const absX = Math.abs(deltaX)
     const absY = Math.abs(deltaY)
 
-    if (absX < horizontalThreshold || absX <= absY * 1.2) return false
-    if (deltaX < 0) goToNext()
+    if (absX < horizontalThreshold || absX <= absY * 1.2) return null
+    return deltaX < 0 ? 1 : -1
+  }
+
+  function navigateByDirection(direction: 1 | -1) {
+    if (direction > 0) goToNext()
     else goToPrevious()
-    return true
   }
 
   function endGesture(x: number, y: number) {
     const start = pointerStartRef.current
     pointerStartRef.current = null
-    if (!start || gestureHandledRef.current) return
+    if (!start) return
 
-    navigateFromDelta(x - start.x, y - start.y)
+    const direction = getSwipeDirection(x - start.x, y - start.y)
+    if (direction) navigateByDirection(direction)
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -61,10 +63,12 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
 
   function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
     const start = pointerStartRef.current
-    if (!start || gestureHandledRef.current) return
-    if (!navigateFromDelta(event.clientX - start.x, event.clientY - start.y)) return
-    gestureHandledRef.current = true
-    pointerStartRef.current = null
+    if (!start) return
+    const direction = getSwipeDirection(event.clientX - start.x, event.clientY - start.y)
+    if (!direction) return
+
+    navigateByDirection(direction)
+    pointerStartRef.current = { x: event.clientX, y: event.clientY }
   }
 
   function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
@@ -76,14 +80,15 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
   function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
     const start = pointerStartRef.current
     const touch = event.touches[0]
-    if (!start || !touch || gestureHandledRef.current) return
+    if (!start || !touch) return
 
     const deltaX = touch.clientX - start.x
     const deltaY = touch.clientY - start.y
-    if (!navigateFromDelta(deltaX, deltaY)) return
+    const direction = getSwipeDirection(deltaX, deltaY)
+    if (!direction) return
 
-    gestureHandledRef.current = true
-    pointerStartRef.current = null
+    navigateByDirection(direction)
+    pointerStartRef.current = { x: touch.clientX, y: touch.clientY }
     event.preventDefault()
   }
 
@@ -96,20 +101,25 @@ export function LodgingPager({ titles, children }: LodgingPagerProps) {
   function handleWheel(event: WheelEvent<HTMLDivElement>) {
     const absX = Math.abs(event.deltaX)
     const absY = Math.abs(event.deltaY)
-    if (absX < 36 || absX <= absY * 1.2) return
-
-    const now = Date.now()
-    if (now - lastWheelNavigationAtRef.current < 420) return
+    if (absX < 18 || absX <= absY * 1.2) {
+      wheelDeltaRef.current = 0
+      return
+    }
 
     event.preventDefault()
-    lastWheelNavigationAtRef.current = now
-    if (event.deltaX > 0) goToNext()
-    else goToPrevious()
+    wheelDeltaRef.current += event.deltaX
+
+    let steps = 0
+    while (Math.abs(wheelDeltaRef.current) >= horizontalThreshold && steps < panels.length) {
+      const direction = wheelDeltaRef.current > 0 ? 1 : -1
+      navigateByDirection(direction)
+      wheelDeltaRef.current -= direction * horizontalThreshold
+      steps += 1
+    }
   }
 
   function handlePointerCancel() {
     pointerStartRef.current = null
-    gestureHandledRef.current = false
   }
 
   return (
