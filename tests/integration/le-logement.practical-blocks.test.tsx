@@ -217,4 +217,26 @@ describe('/le-logement — blocs personnalisés', () => {
     expect(screen.getByTestId('lodging-welcome-message')).toHaveClass('font-hand')
     expect(screen.getByText('Bienvenue au chalet')).toBeInTheDocument()
   })
+
+  it('renders the emergency number as a large visual element', async () => {
+    const user = userEvent.setup()
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      welcome_message: null,
+      cover_photo_url: null,
+      presentation_video_url: null,
+      lodging_address: null,
+      wifi_ssid: null, wifi_password: null, parking_info: null, equipment_info: null,
+      checkout_instructions: null, trash_info: null, trash_location: null,
+      house_rules: null, emergency_contacts: '112', useful_services: null,
+    } as never)
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+
+    render(await LeLogementPage())
+    await user.click(screen.getByRole('button', { name: /aller à infos pratiques/i }))
+
+    const emergencyNumber = screen.getByText('112')
+    expect(emergencyNumber).toHaveAttribute('data-testid', 'lodging-emergency-number')
+    expect(emergencyNumber).toHaveClass('text-[64px]')
+    expect(emergencyNumber.parentElement?.className).not.toContain('[&_p]:!text-[13px]')
+  })
 })

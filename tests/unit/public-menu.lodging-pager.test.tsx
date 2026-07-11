@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LodgingPager } from '@/features/public-menu/components/LodgingPager'
 
@@ -38,6 +38,56 @@ describe('LodgingPager', () => {
     expect(screen.getByText('PANEL TWO')).toBeInTheDocument()
     expect(screen.getByText('À découvrir')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /aller à/i })[1]).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('switches pages with a horizontal swipe gesture', () => {
+    renderPager()
+    const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
+
+    fireEvent.touchStart(carousel, { touches: [{ clientX: 280, clientY: 120 }] })
+    fireEvent.touchMove(carousel, { touches: [{ clientX: 120, clientY: 126 }] })
+    fireEvent.touchEnd(carousel, { changedTouches: [{ clientX: 120, clientY: 126 }] })
+
+    expect(screen.queryByText('PANEL ONE')).not.toBeInTheDocument()
+    expect(screen.getByText('PANEL TWO')).toBeInTheDocument()
+
+    fireEvent.touchStart(carousel, { touches: [{ clientX: 120, clientY: 120 }] })
+    fireEvent.touchMove(carousel, { touches: [{ clientX: 280, clientY: 126 }] })
+    fireEvent.touchEnd(carousel, { changedTouches: [{ clientX: 280, clientY: 126 }] })
+
+    expect(screen.getByText('PANEL ONE')).toBeInTheDocument()
+    expect(screen.queryByText('PANEL TWO')).not.toBeInTheDocument()
+  })
+
+  it('switches pages with a horizontal trackpad wheel gesture', () => {
+    renderPager()
+    const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
+
+    fireEvent.wheel(carousel, { deltaX: 120, deltaY: 8 })
+
+    expect(screen.queryByText('PANEL ONE')).not.toBeInTheDocument()
+    expect(screen.getByText('PANEL TWO')).toBeInTheDocument()
+  })
+
+  it('ignores mostly vertical wheel gestures so normal scrolling still works', () => {
+    renderPager()
+    const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
+
+    fireEvent.wheel(carousel, { deltaX: 18, deltaY: 120 })
+
+    expect(screen.getByText('PANEL ONE')).toBeInTheDocument()
+    expect(screen.queryByText('PANEL TWO')).not.toBeInTheDocument()
+  })
+
+  it('ignores mostly vertical gestures so page scroll remains natural', () => {
+    renderPager()
+    const carousel = screen.getByRole('group', { name: /navigation du guide logement/i })
+
+    fireEvent.touchStart(carousel, { touches: [{ clientX: 250, clientY: 100 }] })
+    fireEvent.touchEnd(carousel, { changedTouches: [{ clientX: 200, clientY: 230 }] })
+
+    expect(screen.getByText('PANEL ONE')).toBeInTheDocument()
+    expect(screen.queryByText('PANEL TWO')).not.toBeInTheDocument()
   })
 
   it('keeps the active page height content-driven with controlled bottom padding', () => {

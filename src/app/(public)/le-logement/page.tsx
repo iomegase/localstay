@@ -300,7 +300,7 @@ function PracticalCard({ section }: { section: Section }) {
         </div>
       )}
 
-      <div className={`relative z-10 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[13px] leading-relaxed flex flex-col justify-end ${section.format === 'wifi' ? '' : `[&_p]:!text-[13px] ${getMarkdownTextStyles(theme.isDark)}`}`}>
+      <div className={`relative z-10 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-[13px] leading-relaxed flex flex-col justify-end ${section.format === 'wifi' || section.key === 'emergency' ? '' : `[&_p]:!text-[13px] ${getMarkdownTextStyles(theme.isDark)}`}`}>
         {renderValue(section)}
       </div>
     </section>
@@ -392,7 +392,14 @@ function renderValue(section: Section) {
   if (!section.value) return null
 
   if (section.key === 'emergency') {
-    return <p className="text-4xl  font-extrabold leading-none tracking-tighter">{section.value}</p>
+    return (
+      <p
+        data-testid="lodging-emergency-number"
+        className="text-[64px] sm:text-[76px] font-extrabold leading-none tracking-tight"
+      >
+        {section.value}
+      </p>
+    )
   }
 
   if (section.format === 'address') {
