@@ -13,14 +13,12 @@ export type TrailGpsState =
   | 'low_accuracy'
   | 'gps_denied'
 
-// États pendant lesquels la caméra doit suivre la position en continu : on a un fix GPS
-// vivant et l'utilisateur navigue. On exclut l'attente ('ready', 'gps_prompt') et le refus.
+// États pendant lesquels la caméra peut suivre la position en continu, uniquement après
+// démarrage explicite de la marche. Les états pré-départ restent explorables à la main.
 const CAMERA_FOLLOW_STATES: ReadonlySet<TrailGpsState> = new Set([
   'tracking',
   'approaching',
   'off_track',
-  'ready_to_join',
-  'pre_start',
   'low_accuracy',
 ])
 
@@ -29,8 +27,12 @@ const CAMERA_FOLLOW_STATES: ReadonlySet<TrailGpsState> = new Set([
  * `isFollowing` permet de forcer le suivi GPS actif sans relancer implicitement
  * la géolocalisation quand aucune position n'existe encore.
  */
-export function shouldAutoFollowCamera(gpsState: TrailGpsState, isFollowing: boolean): boolean {
-  return isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
+export function shouldAutoFollowCamera(
+  gpsState: TrailGpsState,
+  isFollowing: boolean,
+  hasStartedWalking = true,
+): boolean {
+  return hasStartedWalking && isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
 }
 
 /** Seuils par défaut du tracé réellement parcouru (« breadcrumb » filtré, façon AllTrails). */

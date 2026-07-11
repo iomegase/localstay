@@ -130,7 +130,7 @@ Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire 
 - **BR-13**: Les erreurs Mapbox, GPS refusé, GPS indisponible ou tracé absent doivent produire des états UI explicites sans page blanche.
 - **BR-14**: L'interface doit prévenir le Tourist des limites sécurité et batterie avant ou au moment du démarrage du guidage.
 - **BR-15**: Le mode "Commencer la rando" ne lance jamais `watchPosition` au chargement initial ; il attend une action explicite "Activer le suivi GPS".
-- **BR-16**: En mode marche actif avec GPS lancé, la caméra Mapbox garde toujours la position du Tourist au centre de la carte, y compris après un déplacement manuel de carte. Le bouton "Recentrer" recentre sur la dernière position GPS connue. S'il n'existe pas encore de position, il ne déclenche pas de tracking implicite.
+- **BR-16**: En mode marche actif avec GPS lancé, après action explicite de démarrage depuis la carte, la caméra Mapbox garde toujours la position du Tourist au centre de la carte, y compris après un déplacement manuel de carte. Tant que le Tourist a seulement activé le GPS mais n'a pas démarré la rando, les états `pre_start` et `ready_to_join` restent explorables et ne recentrent pas automatiquement la carte. Le bouton "Recentrer" recentre sur la dernière position GPS connue. S'il n'existe pas encore de position, il ne déclenche pas de tracking implicite.
 - **BR-17**: Une position GPS éloignée du départ au premier calcul est un état pré-départ, pas un état `off_track`.
 - **BR-18**: "Rejoindre le départ" ne déclenche jamais `navigator.geolocation` côté StayLocal ; Google Maps gère l'origine de navigation si l'utilisateur l'autorise dans Google.
 - **BR-19**: La liaison visuelle d'approche entre la position GPS et le tracé est affichable seulement avant le démarrage depuis la position courante. Dès que le Tourist choisit "Démarrer depuis ici", cette liaison est retirée de la carte.
@@ -349,7 +349,7 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 - marker arrivée si le tracé permet de l'inférer ;
 - bouton "Activer le suivi GPS" visible en état `ready` ;
 - marker position utilisateur après activation du suivi et consentement ;
-- caméra centrée en continu sur la position utilisateur pendant la marche active ;
+- caméra centrée en continu sur la position utilisateur pendant la marche active, seulement après démarrage explicite depuis la carte ;
 - liaison d'approche vers le tracé retirée après l'action "Démarrer depuis ici" ;
 - bouton recentrer sur position ;
 - panneau bas avec titre randonnée, distance/durée/dénivelé, état GPS et état de suivi ; si le Tourist rabat ou rouvre ce panneau manuellement, les changements ultérieurs d'état GPS ne doivent pas écraser ce choix ;

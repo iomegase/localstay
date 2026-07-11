@@ -41,7 +41,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
     {
       href: '/',
       label: 'Coup de\ncoeur',
-      icon: <Heart className="w-6 h-6" />,
+      icon: <Heart className="w-5 h-5" />,
       active: isPathActive(pathname, '/'),
     },
   ]
@@ -51,7 +51,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
     items.push({
       href: guideHref,
       label: 'Guide',
-      icon: <Map className="w-6 h-6" />,
+      icon: <Map className="w-5 h-5" />,
       active: isPathActive(pathname, guideHref),
     })
   }
@@ -60,7 +60,7 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
     {
       href: '/blog',
       label: 'Blog',
-      icon: <Newspaper className="w-6 h-6" />,
+      icon: <Newspaper className="w-5 h-5" />,
       active: isPathActive(pathname, '/blog'),
     },
   )
@@ -73,19 +73,19 @@ function buildLodgingItems(pathname: string | null, citySlug?: string | null): N
     {
       href: '/',
       label: 'Coup de\ncoeur',
-      icon: <Heart className="w-6 h-6" />,
+      icon: <Heart className="w-5 h-5" />,
       active: isPathActive(pathname, '/'),
     },
     {
       href: '/le-logement',
       label: 'Guide\nlogement',
-      icon: <Home className="w-6 h-6" />,
+      icon: <Home className="w-5 h-5" />,
       active: isPathActive(pathname, '/le-logement'),
     },
     {
       href: '/map',
       label: 'Carte',
-      icon: <Map className="w-6 h-6" />,
+      icon: <Map className="w-5 h-5" />,
       active: isPathActive(pathname, '/map'),
     },
   ]
@@ -98,12 +98,11 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
   const items = mode === 'lodging'
     ? buildLodgingItems(pathname, citySlug)
     : buildAnonymousItems(pathname)
-  // Sur la carte plein écran (/map), on garde le nav visible malgré le mode
-  // immersif ; les autres vues immersives (navigation rando) restent masquées.
+
   const isMapPage = isPathActive(pathname, '/map')
   const navVisibilityClassName = isScrolling
-    ? 'opacity-0 pointer-events-none'
-    : 'opacity-100'
+    ? 'opacity-0 pointer-events-none translate-y-4' // Ajout d'un petit effet de glissement vers le bas au scroll
+    : 'opacity-100 translate-y-0'
   const surfaceClassName = isScrolling
     ? 'bg-transparent border-transparent shadow-none backdrop-blur-0'
     : 'bg-white border-black/5 shadow-xl'
@@ -135,11 +134,11 @@ export function PublicBottomNav({ mode, citySlug }: Props) {
   return (
     <nav
       data-testid="public-bottom-nav"
-      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] ${isMapPage ? '' : 'immersive-hide'} transition-opacity duration-200 ${navVisibilityClassName}`}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[390px] ${isMapPage ? '' : 'immersive-hide'} transition-all duration-300 ease-in-out ${navVisibilityClassName}`}
     >
       <div
         data-testid="public-bottom-nav-surface"
-        className={`border rounded-full px-3 py-2.5 flex justify-around items-center gap-1 transition-all duration-300 ${surfaceClassName}`}
+        className={`border rounded-full px-2 py-1.5 flex justify-around items-center gap-1 transition-all duration-300 ease-out ${surfaceClassName}`}
       >
         {items.map(item => (
           <NavItem key={item.href} {...item} />
@@ -162,14 +161,16 @@ function NavItem({
     <Link
       href={href}
       aria-label={labelLines.join(' ')}
-      className={`group flex flex-col items-center justify-center gap-1.5 rounded-full transition-colors ${
+      className={`group flex flex-col items-center justify-center gap-0.5 rounded-full transition-all duration-300 ease-out active:scale-95 ${
         active
-          ? 'bg-slate-800 text-white px-8 py-2.5'
-          : 'text-[#6f7480] hover:text-[#4b5563] px-3 py-2'
+          ? 'bg-slate-800 text-white px-6 py-1.5 shadow-sm'
+          : 'text-[#6f7480] hover:text-[#4b5563] hover:bg-slate-50 px-2 py-1.5'
       }`}
     >
-      {icon}
-      <span className="text-center text-[9px] font-bold uppercase tracking-wider leading-[1.1]">
+      <div className="transform transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105">
+        {icon}
+      </div>
+      <span className="text-center text-[9px] font-bold uppercase tracking-wider leading-none">
         {labelLines.map(line => (
           <span key={line} className="block">
             {line}
@@ -180,10 +181,6 @@ function NavItem({
   )
 }
 
-/**
- * Bouton de géolocalisation intégré à la nav : active la position (distances
- * recalculées au plus près) et l'éteint au tap suivant. Couleur foncée = actif.
- */
 function GeoNavButton() {
   const { status, location, requestLocation, clearLocation } = useUserLocation()
   const isActive = status === 'ready' && location !== null
@@ -192,8 +189,8 @@ function GeoNavButton() {
   const colorClassName = isLoading
     ? 'text-orange-500'
     : isActive
-      ? 'text-green-600 hover:text-green-700'
-      : 'text-red-500 hover:text-red-600'
+      ? 'text-green-600 hover:text-green-700 bg-green-50'
+      : 'text-red-500 hover:text-red-600 hover:bg-red-50'
 
   const label = isLoading ? 'GPS…' : isActive ? 'Activée' : 'Position'
 
@@ -204,10 +201,12 @@ function GeoNavButton() {
       disabled={isLoading}
       aria-pressed={isActive}
       aria-label={isActive ? 'Désactiver la géolocalisation' : 'Activer la géolocalisation'}
-      className={`flex flex-col items-center justify-center gap-1.5 rounded-full px-3 py-2 transition-colors ${colorClassName}`}
+      className={`group flex flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 transition-all duration-300 ease-out active:scale-95 ${colorClassName}`}
     >
-      <LocateFixed className={`w-6 h-6 ${isLoading ? 'animate-pulse' : ''}`} />
-      <span className="text-[9px] font-bold uppercase tracking-wider leading-[1.1]">{label}</span>
+      <div className="transform transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105">
+        <LocateFixed className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
+      </div>
+      <span className="text-[9px] font-bold uppercase tracking-wider leading-none">{label}</span>
     </button>
   )
 }

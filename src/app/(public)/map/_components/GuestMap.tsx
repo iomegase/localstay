@@ -93,6 +93,12 @@ export type GuestMapPoi = {
   citySlug: string
 }
 
+export type GuestMapLodgingLocation = {
+  latitude: number
+  longitude: number
+  name: string
+}
+
 type CategoryFilter = {
   slug: string
   name: string
@@ -111,7 +117,13 @@ function resolveLucideIcon(iconSlug?: string): LucideIcons.LucideIcon {
   return candidate ?? LucideIcons.MapPin
 }
 
-export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
+export function GuestMap({
+  pois,
+  lodgingLocation = null,
+}: {
+  pois: GuestMapPoi[]
+  lodgingLocation?: GuestMapLodgingLocation | null
+}) {
   const mapRef = useRef<MapRef | null>(null)
   const [active, setActive] = useState<GuestMapPoi | null>(null)
   const [baseLayer, setBaseLayer] = useState<BaseLayer>('plan')
@@ -126,11 +138,15 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
   }, [])
 
   const center = useMemo(() => {
-    if (pois.length === 0) return { latitude: 45.9237, longitude: 6.8694 } // Chamonix fallback
+    if (pois.length === 0) {
+      return lodgingLocation
+        ? { latitude: lodgingLocation.latitude, longitude: lodgingLocation.longitude }
+        : { latitude: 45.9237, longitude: 6.8694 } // Chamonix fallback
+    }
     const lat = pois.reduce((s, p) => s + p.latitude, 0) / pois.length
     const lng = pois.reduce((s, p) => s + p.longitude, 0) / pois.length
     return { latitude: lat, longitude: lng }
-  }, [pois])
+  }, [lodgingLocation, pois])
 
   const categoryFilters = useMemo(() => {
     const map = new globalThis.Map<string, CategoryFilter>()
@@ -273,6 +289,31 @@ export function GuestMap({ pois }: { pois: GuestMapPoi[] }) {
             </Marker>
           )
         })}
+
+        {lodgingLocation && (
+          <Marker
+            longitude={lodgingLocation.longitude}
+            latitude={lodgingLocation.latitude}
+            anchor="bottom"
+          >
+            <div
+              data-testid="lodging-map-pin"
+              aria-label={`Position du logement ${lodgingLocation.name}`}
+              title={`Position du logement ${lodgingLocation.name}`}
+              className="relative flex h-12 w-12 items-center justify-center pb-2"
+            >
+              <span
+                data-testid="lodging-map-pin-pulse"
+                className="absolute bottom-2 h-10 w-10 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] rounded-full bg-pink-500/15"
+              />
+              <span className="absolute bottom-1.5 h-3.5 w-3.5 rotate-45 rounded-[4px] bg-white shadow-[0_8px_16px_rgba(18,18,18,0.16)] ring-1 ring-pink-500/25" />
+              <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-pink-600 shadow-[0_10px_22px_rgba(18,18,18,0.18)] ring-[3px] ring-white">
+                <span className="absolute inset-1 rounded-full border border-pink-500/25" />
+                <LucideIcons.Home className="relative h-4 w-4" />
+              </span>
+            </div>
+          </Marker>
+        )}
 
       </Map>
 

@@ -131,4 +131,25 @@ describe('GuestMap category filter', () => {
     expect(screen.getByRole('button', { name: 'Biche' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Le Chalet' })).toBeInTheDocument()
   })
+
+  it('displays a discreet pulsing lodging pin when lodging coordinates are available', () => {
+    render(
+      <GuestMap
+        pois={pois}
+        lodgingLocation={{
+          latitude: 45.902,
+          longitude: 6.713,
+          name: 'Le 305',
+        }}
+      />,
+    )
+
+    const lodgingPin = screen.getByTestId('lodging-map-pin')
+    expect(lodgingPin).toHaveAttribute('aria-label', 'Position du logement Le 305')
+    expect(lodgingPin).toHaveClass('h-12', 'w-12', 'pb-2')
+    expect(screen.getByTestId('lodging-map-pin-pulse')).toHaveClass(
+      'animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]',
+      'bg-pink-500/15',
+    )
+  })
 })

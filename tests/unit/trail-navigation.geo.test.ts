@@ -54,15 +54,27 @@ describe('shouldAutoFollowCamera', () => {
     'tracking',
     'approaching',
     'off_track',
-    'ready_to_join',
-    'pre_start',
     'low_accuracy',
   ]
+  const exploratoryStates: TrailGpsState[] = ['ready_to_join', 'pre_start']
   const idleStates: TrailGpsState[] = ['ready', 'gps_prompt', 'gps_denied']
 
-  it('follows when GPS is active and following is enabled', () => {
+  it('follows when walking has started, GPS is active and following is enabled', () => {
     for (const state of activeStates) {
-      expect(shouldAutoFollowCamera(state, true)).toBe(true)
+      expect(shouldAutoFollowCamera(state, true, true)).toBe(true)
+    }
+  })
+
+  it('does not follow in pre-start exploration states before the hike begins', () => {
+    for (const state of exploratoryStates) {
+      expect(shouldAutoFollowCamera(state, true, false)).toBe(false)
+      expect(shouldAutoFollowCamera(state, true, true)).toBe(false)
+    }
+  })
+
+  it('does not follow active GPS states until the hike has explicitly started', () => {
+    for (const state of activeStates) {
+      expect(shouldAutoFollowCamera(state, true, false)).toBe(false)
     }
   })
 
@@ -73,7 +85,7 @@ describe('shouldAutoFollowCamera', () => {
   })
 
   it('never follows when following has been disabled (user panned the map)', () => {
-    for (const state of [...activeStates, ...idleStates]) {
+    for (const state of [...activeStates, ...exploratoryStates, ...idleStates]) {
       expect(shouldAutoFollowCamera(state, false)).toBe(false)
     }
   })

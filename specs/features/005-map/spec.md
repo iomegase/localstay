@@ -158,6 +158,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 - Aucun compteur flottant de lieux recommandés n'est affiché sur la carte, y compris quand un filtre Category est actif.
 - Les markers hors Category active sont retirés de la carte ; au retour sur "Tous", tous les markers reviennent.
 - La carte se recentre sur les POI visibles quand le filtre change.
+- En mode séjour actif, si le Lodging possède des coordonnées géocodées, `/map` affiche un pin logement discret et pulsant, visuellement distinct des markers POI et sans interaction popup.
 
 ---
 
@@ -173,7 +174,7 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 | AC-02-03 | Clic hors popup → fermeture | e2e |
 | AC-03-01 | Mini-carte visible dans fiche POI | integration |
 | AC-03-02 | Mini-carte non-interactive avec zoom statique rapproché | unit |
-| AC-04-01 | Side menu catégories sur `/map` avec "Tous", icône, couleur et compteur | unit |
+| AC-04-01 | Side menu catégories sur `/map` avec "Tous", icône, couleur, compteur et pin logement si coordonnées disponibles | unit |
 | AC-04-02 | Sélection Category filtre markers et recentrage sans compteur flottant | unit |
 | AC-04-03 | Retour à "Tous" restaure tous les markers sans fetch | unit |
 

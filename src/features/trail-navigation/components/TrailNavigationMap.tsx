@@ -70,6 +70,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   // Suivi caméra : en mode marche actif, la position utilisateur reste au centre.
   // Le bouton recentrer force aussi un retour immédiat sur la dernière position GPS.
   const [isFollowing, setIsFollowing] = useState(true)
+  const [hasStartedWalking, setHasStartedWalking] = useState(false)
+  const hasStartedWalkingRef = useRef(false)
   const trackingStartedAtRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -136,13 +138,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   // en conservant zoom / pitch / bearing courants.
   useEffect(() => {
     if (!position) return
-    if (!shouldAutoFollowCamera(gpsState, isFollowing)) return
+    if (!shouldAutoFollowCamera(gpsState, isFollowing, hasStartedWalking)) return
     mapRef.current?.getMap()?.easeTo({
       center: [position.longitude, position.latitude],
       duration: 700,
       essential: true,
     })
-  }, [position, isFollowing, gpsState])
+  }, [position, isFollowing, gpsState, hasStartedWalking])
 
   function tiltMapForImmersion() {
     mapRef.current?.flyTo({
@@ -200,9 +202,14 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         const distanceToTrail = getTrailDistanceMeters(current, geometry)
         setDistanceToTrail(distanceToTrail)
 
-        // Sur le tracé physiquement (seuil strict) → guidage actif
+        // Sur le tracé physiquement (seuil strict) : tant que l'utilisateur n'a pas
+        // explicitement démarré, on garde la carte exploratoire et on propose le départ.
         if (distanceToTrail <= TRACKING_TOLERANCE_M) {
           hasIntentToJoinRef.current = true
+          if (!hasStartedWalkingRef.current) {
+            setGpsState('ready_to_join')
+            return
+          }
           hasPhysicallyReachedRef.current = true
           setGpsState('tracking')
           return
@@ -254,6 +261,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   function confirmJoinFromHere() {
     hasIntentToJoinRef.current = true
+    hasStartedWalkingRef.current = true
+    setHasStartedWalking(true)
+    if (distanceToTrail !== null && distanceToTrail <= TRACKING_TOLERANCE_M) {
+      hasPhysicallyReachedRef.current = true
+      setGpsState('tracking')
+      return
+    }
     setGpsState('approaching')
   }
 

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/shared/lib/prisma'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
-import { GuestMap, type GuestMapPoi } from './_components/GuestMap'
+import { GuestMap, type GuestMapLodgingLocation, type GuestMapPoi } from './_components/GuestMap'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,5 +52,22 @@ export default async function GuestMapPage() {
       citySlug: row.poi.city?.slug ?? lodgingContext.citySlug,
     }))
 
-  return <GuestMap pois={pois} />
+  const customization = await prisma.lodgingCustomization.findFirst({
+    where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
+    select: { lodging_latitude: true, lodging_longitude: true },
+  })
+
+  const lodgingLocation: GuestMapLodgingLocation | null =
+    typeof customization?.lodging_latitude === 'number' &&
+    Number.isFinite(customization.lodging_latitude) &&
+    typeof customization.lodging_longitude === 'number' &&
+    Number.isFinite(customization.lodging_longitude)
+      ? {
+          latitude: customization.lodging_latitude,
+          longitude: customization.lodging_longitude,
+          name: lodgingContext.lodgingName,
+        }
+      : null
+
+  return <GuestMap pois={pois} lodgingLocation={lodgingLocation} />
 }

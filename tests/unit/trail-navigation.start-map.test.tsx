@@ -160,7 +160,39 @@ describe('021 trail navigation start mode', () => {
     expect(clearWatch).toHaveBeenCalledWith(42)
   })
 
-  it('keeps the user centered after a map drag while GPS tracking continues', async () => {
+  it('does not center the user before the hike is explicitly started', async () => {
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      success({
+        coords: {
+          latitude: 45.8732,
+          longitude: 6.6731,
+          accuracy: 8,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+        timestamp: 1,
+      } satisfies GeolocationPosition)
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    mockEaseTo.mockClear()
+
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+
+    await screen.findByRole('button', { name: /démarrer depuis ici/i })
+    expect(mockEaseTo).not.toHaveBeenCalledWith(expect.objectContaining({
+      center: [6.6731, 45.8732],
+    }))
+  })
+
+  it('keeps the user centered after the hike has explicitly started', async () => {
     let gpsSuccess: PositionCallback | null = null
     const watchPosition = jest.fn((success: PositionCallback) => {
       gpsSuccess = success
@@ -189,6 +221,15 @@ describe('021 trail navigation start mode', () => {
         timestamp: 1,
       } satisfies GeolocationPosition)
     })
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /démarrer depuis ici/i })).toBeInTheDocument(),
+    )
+    expect(mockEaseTo).not.toHaveBeenCalledWith(expect.objectContaining({
+      center: [6.6731, 45.8732],
+    }))
+
+    await userEvent.click(screen.getByRole('button', { name: /démarrer depuis ici/i }))
 
     await waitFor(() =>
       expect(mockEaseTo).toHaveBeenCalledWith(expect.objectContaining({
