@@ -51,7 +51,8 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.getByTestId('btn-call')).toHaveClass(
       'min-h-[42px]',
       'min-w-0',
-      'flex-1',
+      'w-full',
+      'col-start-1',
       'rounded-full',
       'bg-white',
       'text-[9px]',
@@ -64,7 +65,8 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.getByTestId('btn-directions')).toHaveClass(
       'min-h-[42px]',
       'min-w-0',
-      'flex-1',
+      'w-full',
+      'col-start-2',
       'rounded-full',
       'bg-white',
       'text-[9px]',
@@ -77,7 +79,8 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.getByTestId('btn-site')).toHaveClass(
       'min-h-[42px]',
       'min-w-0',
-      'flex-1',
+      'w-full',
+      'col-start-3',
       'rounded-full',
       'bg-white',
       'text-[9px]',
@@ -86,6 +89,17 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     expect(screen.getByTestId('btn-site')).toHaveTextContent('Site web')
     expect(screen.getByTestId('btn-site')).not.toHaveTextContent('Voir le site')
     expect(screen.getByTestId('btn-site').querySelector('span')).toHaveClass('bg-[#218F9D]')
+  })
+
+  it('keeps the three-column action layout when only itinerary is visible', () => {
+    const { container } = render(<ActionButtons {...base} phone={null} website={null} />)
+
+    const actionGrid = container.firstElementChild
+    expect(actionGrid).toHaveClass('grid', 'grid-cols-3')
+    expect(screen.getByTestId('btn-directions')).toHaveClass('col-start-2', 'w-full')
+    expect(screen.getByTestId('btn-directions')).not.toHaveClass('flex-1')
+    expect(screen.queryByTestId('btn-call')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('btn-site')).not.toBeInTheDocument()
   })
 
   it('uses the public POI address for Google Maps directions before falling back to coordinates', () => {
@@ -105,10 +119,10 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
   it('renders favorite modal footer actions with the POI card-inspired pill design', () => {
     render(<ActionButtons {...base} variant="modalFooter" />)
 
-    expect(screen.getByTestId('favorite-modal-footer-actions')).toHaveClass('fixed', 'bottom-8', 'left-1/2', 'flex', 'gap-2')
-    expect(screen.getByTestId('btn-call')).toHaveClass('min-h-[42px]', 'flex-1', 'rounded-full', 'bg-white', 'text-[9px]')
-    expect(screen.getByTestId('btn-site')).toHaveClass('min-h-[42px]', 'flex-1', 'rounded-full', 'bg-white', 'text-[9px]')
-    expect(screen.getByTestId('btn-directions')).toHaveClass('min-h-[42px]', 'flex-1', 'rounded-full', 'bg-white', 'text-[9px]')
+    expect(screen.getByTestId('favorite-modal-footer-actions')).toHaveClass('fixed', 'bottom-8', 'left-1/2', 'grid', 'grid-cols-3', 'gap-2')
+    expect(screen.getByTestId('btn-call')).toHaveClass('min-h-[42px]', 'w-full', 'col-start-1', 'rounded-full', 'bg-white', 'text-[9px]')
+    expect(screen.getByTestId('btn-site')).toHaveClass('min-h-[42px]', 'w-full', 'col-start-3', 'rounded-full', 'bg-white', 'text-[9px]')
+    expect(screen.getByTestId('btn-directions')).toHaveClass('min-h-[42px]', 'w-full', 'col-start-2', 'rounded-full', 'bg-white', 'text-[9px]')
     expect(screen.getByTestId('btn-call').querySelector('span')).toHaveClass('bg-[#31B95D]')
     expect(screen.getByTestId('btn-site').querySelector('span')).toHaveClass('bg-[#218F9D]')
     expect(screen.getByTestId('btn-directions').querySelector('span')).toHaveClass('bg-[#EF5148]')

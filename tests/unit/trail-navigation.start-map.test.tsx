@@ -276,6 +276,33 @@ describe('021 trail navigation start mode', () => {
     )
   })
 
+  it('keeps the map panel collapsed when GPS acquisition later fails', async () => {
+    let gpsError: PositionErrorCallback | null = null
+    const watchPosition = jest.fn((_success: PositionCallback, error: PositionErrorCallback) => {
+      gpsError = error
+      return 7
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    await userEvent.click(screen.getByRole('button', { name: /réduire le panneau/i }))
+
+    expect(screen.getByTestId('trail-navigation-panel')).toHaveAttribute('aria-hidden', 'true')
+
+    act(() => {
+      gpsError?.({ code: 1, message: 'denied', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 })
+    })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('trail-navigation-panel')).toHaveAttribute('aria-hidden', 'true'),
+    )
+    expect(screen.getByRole('button', { name: /afficher les détails/i })).toBeInTheDocument()
+  })
+
   it('AC-03-03: shows pre-start state instead of off-track when first GPS position is far from the trail', async () => {
     const watchPosition = jest.fn((success: PositionCallback) => {
       success({

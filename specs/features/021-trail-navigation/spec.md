@@ -352,7 +352,7 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 - caméra centrée en continu sur la position utilisateur pendant la marche active ;
 - liaison d'approche vers le tracé retirée après l'action "Démarrer depuis ici" ;
 - bouton recentrer sur position ;
-- panneau bas avec titre randonnée, distance/durée/dénivelé, état GPS et état de suivi ;
+- panneau bas avec titre randonnée, distance/durée/dénivelé, état GPS et état de suivi ; si le Tourist rabat ou rouvre ce panneau manuellement, les changements ultérieurs d'état GPS ne doivent pas écraser ce choix ;
 - bouton "Terminer" ou "Quitter la rando" ;
 - avertissement sécurité accessible avant ou pendant le démarrage.
 

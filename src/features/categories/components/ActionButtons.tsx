@@ -5,7 +5,12 @@ import { Phone, Navigation, Globe } from 'lucide-react'
 export type ActionButtonsVariant = 'default' | 'modalFooter'
 
 const SCROLL_IDLE_MS = 180
-const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[42px] min-w-0 flex-1 rounded-full bg-white py-1 pl-1 pr-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
+const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[42px] min-w-0 w-full rounded-full bg-white py-1 pl-1 pr-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
+const DETAIL_ACTION_COLUMNS = {
+  call: 'col-start-1',
+  directions: 'col-start-2',
+  website: 'col-start-3',
+} as const
 const DETAIL_ACTION_TONES = {
   call: {
     bubble: 'bg-[#31B95D]',
@@ -43,7 +48,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
   }
 
   return (
-    <div className="flex w-full gap-2 px-1 pt-2 pb-3">
+    <div className="grid w-full grid-cols-3 gap-2 px-1 pt-2 pb-3">
       {telHref && phoneLabel && (
         <DetailActionButton
           href={telHref}
@@ -103,7 +108,7 @@ function DetailActionButton({
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
       data-testid={testId}
-      className={DETAIL_ACTION_BUTTON_CLASS}
+      className={`${DETAIL_ACTION_BUTTON_CLASS} ${DETAIL_ACTION_COLUMNS[tone]}`}
       aria-label={ariaLabel}
     >
       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${toneClasses.bubble}`}>
@@ -165,7 +170,7 @@ function ModalFooterActions({
   return (
     <div
       ref={rootRef}
-      className={`fixed bottom-8 left-1/2 z-[120] flex w-[calc(100%-2rem)] max-w-[390px] -translate-x-1/2 items-center gap-2 px-1 transition-[opacity,transform] duration-200 ${visibilityClassName}`}
+      className={`fixed bottom-8 left-1/2 z-[120] grid w-[calc(100%-2rem)] max-w-[390px] -translate-x-1/2 grid-cols-3 items-center gap-2 px-1 transition-[opacity,transform] duration-200 ${visibilityClassName}`}
       data-testid="favorite-modal-footer-actions"
     >
       {telHref && (

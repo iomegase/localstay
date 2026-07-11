@@ -66,6 +66,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const [isHudExpanded, setIsHudExpanded] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
   const [northLocked, setNorthLocked] = useState(true)
+  const hasManualHudPreferenceRef = useRef(false)
   // Suivi caméra : en mode marche actif, la position utilisateur reste au centre.
   // Le bouton recentrer force aussi un retour immédiat sur la dernière position GPS.
   const [isFollowing, setIsFollowing] = useState(true)
@@ -102,9 +103,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   // Auto-collapse du HUD selon l'état GPS (mode immersif sur états "en mouvement")
   useEffect(() => {
+    if (hasManualHudPreferenceRef.current) return
     const immersiveStates: GpsState[] = ['approaching', 'tracking', 'off_track']
     setIsHudExpanded(!immersiveStates.includes(gpsState))
   }, [gpsState])
+
+  function setHudExpandedFromUser(expanded: boolean) {
+    hasManualHudPreferenceRef.current = true
+    setIsHudExpanded(expanded)
+  }
 
   // Application du verrouillage nord sur le map ref (drag rotate + twist 2-doigts).
   // Au unlock on laisse l'utilisateur libre ; au lock on remet la boussole à zéro.
@@ -611,7 +618,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           progressPercent={progress ? progress.percent : null}
           elapsedSeconds={elapsedSeconds}
           pulse={gpsState === 'off_track'}
-          onExpand={() => setIsHudExpanded(true)}
+          onExpand={() => setHudExpandedFromUser(true)}
         />
       )}
 
@@ -642,7 +649,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             </span>
             <button
               type="button"
-              onClick={() => setIsHudExpanded(false)}
+              onClick={() => setHudExpandedFromUser(false)}
               aria-label="Réduire le panneau"
               className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-charcoal shadow-sm active:scale-95 transition-transform"
             >
