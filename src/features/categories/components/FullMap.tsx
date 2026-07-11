@@ -4,6 +4,7 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import * as LucideIcons from 'lucide-react'
 import { getInitialViewState } from '../lib/map-utils'
 import type { PoiCard } from '../types'
+import { getPublicCategoryIconSlug } from '@/features/city-guide/lib/public-category-icon'
 
 interface PopupInfo {
   longitude: number
@@ -42,7 +43,7 @@ export function FullMap({
   categoryColor = '#455E4C',
 }: Props) {
   const [popup, setPopup] = useState<PopupInfo | null>(null)
-  const Icon = resolveLucideIcon(categoryIcon)
+  const Icon = resolveLucideIcon(getPublicCategoryIconSlug(categorySlug, categoryIcon))
 
   return (
     <div

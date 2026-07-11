@@ -107,7 +107,7 @@ function CategoryBentoCard({
           <div
             className={`flex h-full w-full flex-col justify-between bg-gradient-to-br ${getFallbackGradient(category.slug)} p-3 text-white`}
           >
-            <CategoryIcon iconSlug={category.icon} className="h-7 w-7" />
+            <CategoryIcon iconSlug={category.icon} categorySlug={category.slug} className="h-7 w-7" />
             <span className="text-xs font-bold uppercase tracking-wide">{category.name}</span>
           </div>
         )}

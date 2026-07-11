@@ -24,7 +24,7 @@ export function Hero({ ownerName, lodgingName, cityName, stats }: Props) {
   const displayOwner = ownerName ? capitalize(ownerName) : null
   const title = displayOwner ? `Les recommandations de ${displayOwner}` : 'Les recommandations de votre hôte'
   const intro = displayOwner
-    ? `Une sélection personnelle de ${displayOwner} pour profiter de ${cityName}.`
+    ? `Une sélection personnelle de votre hôte pour profiter de ${cityName}.`
     : `Une sélection personnelle de votre hôte pour profiter de ${cityName}.`
 
   return (

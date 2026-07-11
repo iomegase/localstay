@@ -54,7 +54,7 @@ export default async function GuestMapPage() {
 
   const customization = await prisma.lodgingCustomization.findFirst({
     where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
-    select: { lodging_latitude: true, lodging_longitude: true },
+    select: { cover_photo_url: true, lodging_latitude: true, lodging_longitude: true },
   })
 
   const lodgingLocation: GuestMapLodgingLocation | null =
@@ -66,6 +66,7 @@ export default async function GuestMapPage() {
           latitude: customization.lodging_latitude,
           longitude: customization.lodging_longitude,
           name: lodgingContext.lodgingName,
+          photoUrl: customization.cover_photo_url,
         }
       : null
 

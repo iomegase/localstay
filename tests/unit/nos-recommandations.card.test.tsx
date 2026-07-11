@@ -55,10 +55,13 @@ describe('RecommendationCard', () => {
   it('does not render a Voir button on small cards because the whole card is already clickable', () => {
     render(<RecommendationCard row={makeRow()} variant="white" fallbackCitySlug="saint-gervais" />)
 
-    expect(screen.getByRole('link', { name: /Bistrot du Centre/i })).toHaveAttribute(
+    const card = screen.getByRole('link', { name: /Bistrot du Centre/i })
+    expect(card).toHaveAttribute(
       'href',
       '/guide/saint-gervais/restaurants/bistrot-du-centre',
     )
+    expect(card).toHaveClass('bg-white')
+    expect(card).not.toHaveClass('bg-sand')
     expect(screen.queryByText(/^Voir$/i)).not.toBeInTheDocument()
   })
 

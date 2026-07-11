@@ -12,31 +12,39 @@ jest.mock('next/link', () => ({
   ),
 }))
 
-function row(id: string, name: string): RecRow {
+function row(id: string, name: string, category = { name: 'Restaurants', slug: 'restaurants', icon: 'utensils' }): RecRow {
   return {
     poi_id: id,
     owner_note: null,
     poi: {
       id, name, slug: id, description: null, photos: [],
-      category: { name: 'Restaurants', slug: 'restaurants' },
+      category,
       city: null,
     },
   }
 }
 
 describe('BentoSection', () => {
-  it('renders a semibold category title and a card per row', () => {
+  it('renders a light category title with the category icon when requested', () => {
     render(
       <BentoSection
         eyebrow="Sélection principale"
-        title="Restaurants"
-        rows={[row('a', 'Chez A'), row('b', 'Chez B')]}
+        title="Location de skis"
+        rows={[
+          row('a', 'Chez A', { name: 'Location de skis', slug: 'location-de-skis', icon: 'utensils' }),
+          row('b', 'Chez B', { name: 'Location de skis', slug: 'location-de-skis', icon: 'utensils' }),
+        ]}
         fallbackCitySlug="sg"
         showCardCategory={false}
+        showTitleCategoryIcon
       />,
     )
-    const title = screen.getByRole('heading', { level: 2, name: 'Restaurants' })
-    expect(title).toHaveClass('font-semibold')
+    const title = screen.getByRole('heading', { level: 2, name: 'Location de skis' })
+    expect(title).toHaveClass('font-light')
+    expect(title).not.toHaveClass('font-semibold')
+    const iconWrapper = title.querySelector('span[aria-hidden="true"]')
+    expect(iconWrapper).toHaveClass('h-11', 'w-11', 'bg-pink-50', 'text-pink-600')
+    expect(title.querySelector('svg')).toHaveClass('h-6', 'w-6')
     expect(screen.getByText('Chez A')).toBeInTheDocument()
     expect(screen.getByText('Chez B')).toBeInTheDocument()
   })

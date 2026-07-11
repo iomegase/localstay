@@ -26,9 +26,9 @@ describe('assignVariants', () => {
     expect(assignVariants([row('a')]).map(c => c.variant)).toEqual(['white'])
   })
 
-  it('cycles bigImage,image,white,sand for four photo POIs', () => {
+  it('cycles bigImage,image,white,image without cream variants', () => {
     const rows = ['a', 'b', 'c', 'd'].map(id => row(id, { photo: true }))
-    expect(assignVariants(rows).map(c => c.variant)).toEqual(['bigImage', 'image', 'white', 'sand'])
+    expect(assignVariants(rows).map(c => c.variant)).toEqual(['bigImage', 'image', 'white', 'image'])
   })
 
   it('replaces an image slot with white when the POI has no photo', () => {

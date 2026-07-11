@@ -109,12 +109,11 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
     )
   }
 
-  // variant 'white' | 'sand'
-  const bg = variant === 'sand' ? 'bg-sand' : 'bg-white'
+  // Text-only cards stay white; cream/sand backgrounds are not used publicly.
   return (
     <Link
       href={href}
-      className={`group relative aspect-square overflow-hidden rounded-[1.75rem] ${bg} p-4 shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5`}
+      className="group relative aspect-square overflow-hidden rounded-[1.75rem] bg-white p-4 shadow-[0_10px_28px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5"
     >
       <div className="flex h-full flex-col justify-center text-center items-center">
         <div>

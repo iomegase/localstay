@@ -18,14 +18,14 @@ export type RecRow = {
   }
 }
 
-export type CardVariant = 'bigImage' | 'image' | 'white' | 'sand'
+export type CardVariant = 'bigImage' | 'image' | 'white'
 export type AssignedCard = { row: RecRow; variant: CardVariant }
 
 export function hasPhoto(row: RecRow): boolean {
   return Boolean(row.poi.photos?.[0])
 }
 
-const TEXT_CYCLE = ['image', 'white', 'sand'] as const
+const TEXT_CYCLE = ['image', 'white'] as const
 
 export function assignVariants(rows: RecRow[]): AssignedCard[] {
   return rows.map((row, i) => {

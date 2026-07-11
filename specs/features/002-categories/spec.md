@@ -75,6 +75,7 @@ Le Tourist, une fois sur le guide d'une ville, navigue via un menu de catégorie
 - **BR-02**: L'ordre des catégories est fixe et défini par le champ `sort_order` en base
 - **BR-03**: Les icônes sont définies en base (slug d'icône Lucide React), pas en dur dans le code
 - **BR-04**: Une sous-catégorie vide (0 POI dans la City) est également masquée
+- **BR-05**: Le rendu public peut appliquer un override visuel par `Category.slug` pour remplacer les icônes héritées trop génériques, sans modifier le contrat API ni la valeur stockée en base. Overrides approuvés : `boulangerie → croissant`, `cinema/cinéma → popcorn`, `location-de-ski/location-de-skis → snowflake`, `alimentation → shopping-basket`.
 
 ---
 
@@ -251,7 +252,7 @@ components:
 ### Composant : CategoryGrid
 
 - Grille 2 colonnes sur mobile, 3-4 sur desktop
-- Chaque card : icône (Lucide), nom, badge poi_count
+- Chaque card : icône (Lucide, avec override public approuvé si applicable), nom, badge poi_count
 - Animation au tap (scale légère)
 - Ordre défini par `sort_order`
 

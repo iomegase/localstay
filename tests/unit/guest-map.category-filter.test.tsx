@@ -92,6 +92,28 @@ describe('GuestMap category filter', () => {
     document.body.className = ''
   })
 
+  it('keeps the map base layer selector readable when a layer is active', async () => {
+    render(<GuestMap pois={pois} />)
+
+    const layerSelector = screen.getByRole('group', { name: /fond de carte/i })
+    const planButton = within(layerSelector).getByRole('button', { name: 'Plan' })
+    const ignButton = within(layerSelector).getByRole('button', { name: 'IGN' })
+    const satelliteButton = within(layerSelector).getByRole('button', { name: 'Satellite' })
+
+    expect(layerSelector).toHaveClass('left-1/2', '-translate-x-1/2', 'top-4')
+    expect(planButton).toHaveAttribute('aria-pressed', 'true')
+    expect(planButton).toHaveClass('h-7', 'min-w-[3.75rem]', 'text-[10px]', 'bg-[#111111]', 'text-white')
+    expect(ignButton).toHaveClass('text-charcoal/70', 'hover:bg-black/[0.04]')
+
+    await userEvent.click(ignButton)
+
+    expect(planButton).toHaveAttribute('aria-pressed', 'false')
+    expect(planButton).toHaveClass('text-charcoal/70', 'hover:bg-black/[0.04]')
+    expect(ignButton).toHaveAttribute('aria-pressed', 'true')
+    expect(ignButton).toHaveClass('bg-[#111111]', 'text-white', 'hover:bg-[#111111]')
+    expect(satelliteButton).toHaveClass('text-charcoal/70', 'hover:bg-black/[0.04]')
+  })
+
   it('filters recommendation markers by category from the side menu and restores all POIs', async () => {
     render(<GuestMap pois={pois} />)
 
@@ -140,6 +162,7 @@ describe('GuestMap category filter', () => {
           latitude: 45.902,
           longitude: 6.713,
           name: 'Le 305',
+          photoUrl: 'https://cdn.test/le-305.webp',
         }}
       />,
     )
@@ -151,5 +174,12 @@ describe('GuestMap category filter', () => {
       'animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]',
       'bg-pink-500/15',
     )
+    const lodgingCard = screen.getByTestId('lodging-map-card')
+    expect(lodgingCard).toHaveClass('opacity-0', 'group-hover:opacity-100', 'group-focus:opacity-100')
+    expect(screen.getByRole('img', { name: 'Le 305' })).toHaveAttribute(
+      'src',
+      'https://cdn.test/le-305.webp',
+    )
+    expect(screen.getByText('Logement')).toBeInTheDocument()
   })
 })

@@ -10,14 +10,14 @@ function RecommendationCard({ item }: { item: PublicOwnerRecommendationDto }) {
   return (
     <Link
       href={`/guide/${item.city_slug}/${item.category_slug}/${item.slug}`}
-      className="block rounded-2xl border border-gray-100 p-3 transition hover:bg-stone-50"
+      className="block rounded-2xl border border-gray-100 bg-white p-3 transition hover:bg-gray-50"
     >
       <div className="flex items-center gap-3">
         {item.photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.photo_url} alt="" className="h-16 w-16 rounded-2xl object-cover" />
         ) : (
-          <div className="h-16 w-16 rounded-2xl bg-stone-100" aria-hidden="true" />
+          <div className="h-16 w-16 rounded-2xl bg-gray-100" aria-hidden="true" />
         )}
         <span className="text-sm font-medium text-charcoal">{item.name}</span>
       </div>

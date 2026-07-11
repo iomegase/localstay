@@ -63,7 +63,7 @@ export function CategoryRow({ categories, citySlug, lodgingId, activeCategorySlu
                   : 'bg-white border-gray-100 text-[#222222]'
               }`}
             >
-              <CategoryIcon iconSlug={cat.icon} className="w-5 h-5" />
+              <CategoryIcon iconSlug={cat.icon} categorySlug={cat.slug} className="w-5 h-5" />
               <span
                 className={`absolute -top-1 -right-1 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none ${
                   isActive ? 'bg-white text-pink-600' : 'bg-pink-600 text-white'

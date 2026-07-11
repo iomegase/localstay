@@ -101,6 +101,7 @@ export async function RecommendationsView({
               rows={group.items}
               fallbackCitySlug={lodgingContext.citySlug}
               showCardCategory={false}
+              showTitleCategoryIcon
             />
           ))}
 

@@ -1,5 +1,6 @@
 import * as LucideIcons from 'lucide-react'
 import type { FC } from 'react'
+import { getPublicCategoryIconSlug } from './public-category-icon'
 
 /**
  * Rend une icône Lucide à partir d'un slug kebab-case (ex. "heart-pulse" → HeartPulse).
@@ -7,12 +8,15 @@ import type { FC } from 'react'
  */
 export function CategoryIcon({
   iconSlug,
+  categorySlug,
   className,
 }: {
   iconSlug: string
+  categorySlug?: string
   className?: string
 }) {
-  const componentName = iconSlug
+  const resolvedIconSlug = getPublicCategoryIconSlug(categorySlug, iconSlug)
+  const componentName = resolvedIconSlug
     .split('-')
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('') as keyof typeof LucideIcons

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Map, { Marker, NavigationControl, Layer, Source, type MapRef } from 'react-map-gl/mapbox'
 import type { FillExtrusionLayerSpecification } from 'mapbox-gl'
 import * as LucideIcons from 'lucide-react'
+import { getPublicCategoryIconSlug } from '@/features/city-guide/lib/public-category-icon'
 
 // Tuiles IGN libres (Géoplateforme, WMTS PseudoMercator, sans clé).
 const IGN_WMTS = 'https://data.geopf.fr/wmts'
@@ -97,6 +98,7 @@ export type GuestMapLodgingLocation = {
   latitude: number
   longitude: number
   name: string
+  photoUrl: string | null
 }
 
 type CategoryFilter = {
@@ -158,7 +160,7 @@ export function GuestMap({
         map.set(poi.categorySlug, {
           slug: poi.categorySlug,
           name: poi.categoryName,
-          icon: poi.categoryIcon,
+          icon: getPublicCategoryIconSlug(poi.categorySlug, poi.categoryIcon),
           color: poi.categoryColor,
           count: 1,
         })
@@ -265,7 +267,7 @@ export function GuestMap({
         <Layer {...buildings3DLayer} />
 
         {visiblePois.map(poi => {
-          const Icon = resolveLucideIcon(poi.categoryIcon)
+          const Icon = resolveLucideIcon(getPublicCategoryIconSlug(poi.categorySlug, poi.categoryIcon))
           return (
             <Marker
               key={poi.id}
@@ -300,8 +302,34 @@ export function GuestMap({
               data-testid="lodging-map-pin"
               aria-label={`Position du logement ${lodgingLocation.name}`}
               title={`Position du logement ${lodgingLocation.name}`}
-              className="relative flex h-12 w-12 items-center justify-center pb-2"
+              tabIndex={0}
+              className="group relative flex h-12 w-12 items-center justify-center pb-2 outline-none"
             >
+              <div
+                data-testid="lodging-map-card"
+                className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 flex w-44 -translate-x-1/2 items-center gap-2 rounded-2xl bg-white/95 p-2 text-left opacity-0 shadow-[0_14px_34px_rgba(18,18,18,0.2)] ring-1 ring-black/5 backdrop-blur transition duration-150 group-hover:opacity-100 group-focus:opacity-100"
+              >
+                {lodgingLocation.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={lodgingLocation.photoUrl}
+                    alt={lodgingLocation.name}
+                    className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                  />
+                ) : (
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-pink-50 text-pink-600">
+                    <LucideIcons.Home className="h-5 w-5" />
+                  </span>
+                )}
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-bold uppercase tracking-[0.18em] text-pink-600">
+                    Logement
+                  </span>
+                  <span className="mt-0.5 block truncate text-sm font-semibold leading-tight text-charcoal">
+                    {lodgingLocation.name}
+                  </span>
+                </span>
+              </div>
               <span
                 data-testid="lodging-map-pin-pulse"
                 className="absolute bottom-2 h-10 w-10 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] rounded-full bg-pink-500/15"
@@ -464,7 +492,7 @@ export function GuestMap({
       )}
 
       {/* Bouton fermer + sélecteur de fond de carte (haut de page) */}
-      <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
+      <div className="absolute left-4 top-4 z-10">
         <Link
           href="/nos-recommandations"
           aria-label="Fermer la carte"
@@ -472,22 +500,28 @@ export function GuestMap({
         >
           <LucideIcons.X className="h-5 w-5" />
         </Link>
+      </div>
 
-        <div className="flex gap-1 rounded-full bg-white/90 p-1 shadow-lg backdrop-blur">
-          {(Object.keys(LAYER_LABELS) as BaseLayer[]).map(layer => (
-            <button
-              key={layer}
-              type="button"
-              onClick={() => setBaseLayer(layer)}
-              aria-pressed={baseLayer === layer}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-                baseLayer === layer ? 'bg-pine text-white' : 'text-charcoal/70 hover:bg-black/5'
-              }`}
-            >
-              {LAYER_LABELS[layer]}
-            </button>
-          ))}
-        </div>
+      <div
+        role="group"
+        aria-label="Fond de carte"
+        className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 gap-0.5 rounded-full bg-white/95 p-0.5 shadow-[0_8px_20px_rgba(18,18,18,0.12)] ring-1 ring-black/5 backdrop-blur"
+      >
+        {(Object.keys(LAYER_LABELS) as BaseLayer[]).map(layer => (
+          <button
+            key={layer}
+            type="button"
+            onClick={() => setBaseLayer(layer)}
+            aria-pressed={baseLayer === layer}
+            className={`h-7 min-w-[3.75rem] rounded-full px-2.5 text-[10px] font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/25 ${
+              baseLayer === layer
+                ? 'bg-[#111111] text-white shadow-sm hover:bg-[#111111]'
+                : 'text-charcoal/70 hover:bg-black/[0.04] hover:text-charcoal'
+            }`}
+          >
+            {LAYER_LABELS[layer]}
+          </button>
+        ))}
       </div>
 
       {pois.length === 0 && (

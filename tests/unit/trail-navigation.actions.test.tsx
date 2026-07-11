@@ -29,11 +29,14 @@ describe('021 trail access actions', () => {
       />,
     )
 
-    expect(screen.getByRole('link', { name: /rejoindre le départ/i })).toHaveAttribute(
+    const joinStartLink = screen.getByRole('link', { name: /rejoindre le départ/i })
+
+    expect(joinStartLink).toHaveAttribute(
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=45.8731%2C6.673',
     )
-    expect(screen.getByRole('link', { name: /rejoindre le départ/i })).toHaveAttribute('target', '_blank')
+    expect(joinStartLink).toHaveAttribute('target', '_blank')
+    expect(joinStartLink).toHaveClass('rounded-2xl', 'border-[#4A5D53]/20', 'text-[#4A5D53]')
     expect(getCurrentPosition).not.toHaveBeenCalled()
     expect(screen.queryByTestId('mapbox-access-map')).not.toBeInTheDocument()
   })
@@ -75,9 +78,13 @@ describe('021 trail access actions', () => {
       />,
     )
 
-    expect(screen.getByRole('link', { name: /commencer la rando/i })).toHaveAttribute(
+    const startTrailLink = screen.getByRole('link', { name: /commencer la rando/i })
+
+    expect(startTrailLink).toHaveAttribute(
       'href',
       '/guide/saint-gervais-les-bains/balades/mont-joux/start',
     )
+    expect(startTrailLink).toHaveClass('rounded-2xl', 'bg-[#4A5D53]', 'text-white')
+    expect(screen.getByText('Commencer')).toBeInTheDocument()
   })
 })
