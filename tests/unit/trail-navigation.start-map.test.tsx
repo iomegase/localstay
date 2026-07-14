@@ -336,6 +336,9 @@ describe('021 trail navigation start mode', () => {
   })
 
   it('shows entry progress before start, then only live session distance and duration', async () => {
+    const startedAt = 1_800_000_000_000
+    let nowMs = startedAt
+    jest.spyOn(Date, 'now').mockImplementation(() => nowMs)
     let gpsSuccess: PositionCallback | null = null
     const watchPosition = jest.fn((success: PositionCallback) => {
       gpsSuccess = success
@@ -349,12 +352,19 @@ describe('021 trail navigation start mode', () => {
     render(<TrailNavigationMap trail={trail} />)
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
     act(() => {
-      gpsSuccess?.(makePosition({ latitude: 45.875, longitude: 6.676 }))
+      gpsSuccess?.(makePosition({ latitude: 45.875, longitude: 6.676, timestamp: startedAt }))
     })
 
     const startButton = await screen.findByRole('button', { name: 'Démarrer ici' })
     expect(screen.getByText(/Point d'entrée estimé :/i)).toBeInTheDocument()
     expect(screen.queryByText(/m parcourus estimés/i)).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /réduire le panneau/i }))
+    let hud = within(screen.getByTestId('trail-navigation-hud'))
+    expect(hud.getByText('2.7')).toBeInTheDocument()
+    expect(hud.getByText(/%/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /afficher les détails/i }))
 
     await userEvent.click(startButton)
 
@@ -363,6 +373,21 @@ describe('021 trail navigation start mode', () => {
     expect(panel.getByText('0 min')).toBeInTheDocument()
     expect(panel.queryByText('D+')).not.toBeInTheDocument()
     expect(panel.queryByText(/Point d'entrée estimé/i)).not.toBeInTheDocument()
+
+    act(() => {
+      nowMs = startedAt + 10_000
+      gpsSuccess?.(makePosition({
+        latitude: 45.87537,
+        longitude: 6.6766,
+        timestamp: nowMs,
+      }))
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: /réduire le panneau/i }))
+    hud = within(screen.getByTestId('trail-navigation-hud'))
+    expect(hud.getByText('0.1')).toBeInTheDocument()
+    expect(hud.getByText('10 s')).toBeInTheDocument()
+    expect(hud.queryByText(/%/)).not.toBeInTheDocument()
   })
 
   it('never sends the GPS position to the walking-route API', async () => {

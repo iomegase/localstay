@@ -33,9 +33,16 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const mapRef = useRef<MapRef | null>(null)
   const watchIdRef = useRef<number | null>(null)
   const stopGpsTracking = useCallback(() => {
-    if (watchIdRef.current === null || !('geolocation' in navigator)) return
-    navigator.geolocation.clearWatch(watchIdRef.current)
+    const watchId = watchIdRef.current
+    if (watchId === null) return
     watchIdRef.current = null
+    if (!('geolocation' in navigator)) return
+    try {
+      navigator.geolocation.clearWatch(watchId)
+    } catch {
+      // Some browser implementations can throw while clearing an already-ended watcher.
+      // The local session is already frozen, so cleanup must not block its summary.
+    }
   }, [])
   const session = useTrailNavigationSession({ stopGps: stopGpsTracking })
   const sessionActionsRef = useRef({
@@ -52,6 +59,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const [accuracy, setAccuracy] = useState<number | null>(null)
   const [isHudExpanded, setIsHudExpanded] = useState(false)
   const [isSummaryOpen, setIsSummaryOpen] = useState(false)
+  const closeControlRef = useRef<HTMLElement | null>(null)
+  const shouldFocusCloseControlRef = useRef(false)
   const [northLocked, setNorthLocked] = useState(true)
   const hasManualHudPreferenceRef = useRef(false)
   // Suivi caméra : en mode marche actif, la position utilisateur reste au centre.
@@ -67,6 +76,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     document.body.classList.add('immersive-map')
     return () => { document.body.classList.remove('immersive-map') }
   }, [])
+
+  useEffect(() => {
+    if (isSummaryOpen || !shouldFocusCloseControlRef.current) return
+    const frame = window.requestAnimationFrame(() => {
+      shouldFocusCloseControlRef.current = false
+      closeControlRef.current?.focus()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [isSummaryOpen])
 
   // Auto-collapse du HUD selon l'état GPS (mode immersif sur états "en mouvement")
   useEffect(() => {
@@ -251,8 +269,12 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const displayedDuration = session.elapsedSeconds !== null
     ? formatElapsedSeconds(session.elapsedSeconds)
     : formatDuration(trail.estimated_duration_min)
+  const setCloseControlRef = (node: HTMLElement | null) => {
+    closeControlRef.current = node
+  }
   const closeControl = onClose ? (
     <button
+      ref={setCloseControlRef}
       type="button"
       onClick={onClose}
       aria-label="Fermer"
@@ -261,10 +283,20 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       <X className="h-5 w-5" />
     </button>
   ) : (
-    <Link href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
+    <Link ref={setCloseControlRef} href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
       <X className="h-5 w-5" />
     </Link>
   )
+
+  function stopSessionAndOpenSummary() {
+    const frozen = session.stopSession()
+    if (frozen !== null) setIsSummaryOpen(true)
+  }
+
+  function closeSummaryAndFocusMapControl() {
+    shouldFocusCloseControlRef.current = true
+    setIsSummaryOpen(false)
+  }
 
   return (
     <main className="relative mx-auto h-screen w-full max-w-[430px] overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
@@ -414,10 +446,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         {session.isActive ? (
           <button
             type="button"
-            onClick={() => {
-              session.stopSession()
-              setIsSummaryOpen(true)
-            }}
+            onClick={stopSessionAndOpenSummary}
             aria-label="Stop"
             className="flex h-11 items-center justify-center gap-2 rounded-full bg-red-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow"
           >
@@ -615,7 +644,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       {isSummaryOpen && session.summary && (
         <TrailSessionSummaryModal
           summary={session.summary}
-          onViewTrail={() => setIsSummaryOpen(false)}
+          onViewTrail={closeSummaryAndFocusMapControl}
           {...(onClose ? { onExit: onClose } : { exitHref: backHref })}
         />
       )}
