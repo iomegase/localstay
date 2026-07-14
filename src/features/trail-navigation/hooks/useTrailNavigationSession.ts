@@ -29,6 +29,21 @@ const ACTIVE_PHASES: ReadonlySet<TrailSessionPhase> = new Set([
   'tracking',
 ])
 
+function isUsableGpsPoint(point: TrailSessionPoint): boolean {
+  return (
+    Number.isFinite(point.latitude) &&
+    point.latitude >= -90 &&
+    point.latitude <= 90 &&
+    Number.isFinite(point.longitude) &&
+    point.longitude >= -180 &&
+    point.longitude <= 180 &&
+    Number.isFinite(point.accuracy) &&
+    point.accuracy >= 0 &&
+    Number.isFinite(point.timestampMs) &&
+    point.timestampMs >= 0
+  )
+}
+
 export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) {
   const nowRef = useRef(now)
   nowRef.current = now
@@ -76,6 +91,8 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
   }, [])
 
   const markGpsDenied = useCallback(() => {
+    gpsActiveRef.current = false
+    setGpsActive(false)
     setGpsHealth('denied')
   }, [])
 
@@ -90,6 +107,8 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
     if (phaseRef.current === 'stopped') return
 
     const point = toTrailSessionPoint(position)
+    if (!isUsableGpsPoint(point)) return
+
     const receivedAtMs = nowRef.current()
     const validDistance = Number.isFinite(nextDistanceToTrailM) && nextDistanceToTrailM >= 0
       ? nextDistanceToTrailM
@@ -101,11 +120,7 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
     setDistanceToTrailM(validDistance)
     setClockMs(receivedAtMs)
 
-    if (
-      !Number.isFinite(point.accuracy) ||
-      point.accuracy < 0 ||
-      point.accuracy > SESSION_START_MAX_ACCURACY_M
-    ) {
+    if (point.accuracy > SESSION_START_MAX_ACCURACY_M) {
       setGpsHealth('low_accuracy')
       return
     }
@@ -134,7 +149,9 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
       setPoints(nextPoints)
     }
 
-    if (validDistance !== null && validDistance <= SESSION_TRACKING_DISTANCE_M) {
+    if (validDistance === null) return
+
+    if (validDistance <= SESSION_TRACKING_DISTANCE_M) {
       physicallyReachedRef.current = true
       setIsOffTrack(false)
       setPhase('tracking')
@@ -153,6 +170,8 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
   }), [clockMs, distanceToTrailM, gpsActive, latestPoint])
 
   const startSession = useCallback(() => {
+    if (phaseRef.current !== 'ready_to_join') return false
+
     const clickedAtMs = nowRef.current()
     const point = latestPointRef.current
     const eligible = isTrailSessionStartEligible({
