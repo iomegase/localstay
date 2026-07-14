@@ -35,7 +35,7 @@ Référence de source utilisée pour une randonnée ou une randonnée candidate.
 Mode de guidage randonnée côté navigateur. Affiche une carte Mapbox outdoor, le tracé publié, le point de départ, la position GPS du Tourist après consentement et des indicateurs locaux de suivi du tracé.
 
 ### Trail Navigation Session (Session de navigation randonnée)
-Session temporaire locale ouverte quand le Tourist clique "Commencer la rando". En MVP 2, elle n'est pas persistée en base et s'arrête quand le Tourist quitte ou termine le mode randonnée.
+Session temporaire locale démarrée quand le Tourist clique "Démarrer ici" avec un GPS actif et une position fiable. Le clic "Commencer la rando" ouvre seulement le mode de navigation. En MVP 2, la session n'est pas persistée en base et s'arrête quand le Tourist clique "Stop" ou quitte le mode randonnée.
 
 ### Category (Catégorie)
 Regroupement thématique de POI (ex : Manger, Explorer, Sport). Ne s'affiche que si elle contient au moins un POI visible.

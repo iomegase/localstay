@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-25
-updated_at: 2026-07-09
+updated_at: 2026-07-14
 depends_on:
   - 004-poi-detail
   - 005-map
@@ -36,6 +36,10 @@ Décision PO du 2026-05-26 : le mode "Commencer la rando" ne déclenche pas le G
 
 Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire Google Maps vers `TrailDetail.start_latitude` / `TrailDetail.start_longitude`. Cette action ne démarre pas le guidage randonnée, ne demande pas le GPS StayLocal et ne remplace pas le mode "Commencer la rando".
 
+Décision PO du 2026-07-14 : après activation explicite du GPS, le Tourist peut démarrer une session depuis sa position courante s'il se trouve à 1 500 m ou moins du point le plus proche de l'ensemble du tracé. Cette règle permet une entrée au départ officiel comme à mi-parcours. La position GPS fiable disponible au clic "Démarrer ici" devient le départ réel de la session locale ; la distance parcourue et la durée repartent de zéro à cet instant et incluent la phase d'approche restante vers le tracé.
+
+Décision PO du 2026-07-14 : la session ne se termine pas automatiquement à l'arrivée officielle ou à la fermeture d'une boucle. Le Tourist utilise un bouton "Stop" toujours accessible après le démarrage. L'arrêt fige les statistiques locales, arrête `watchPosition` et ouvre un récapitulatif. Les métriques indisponibles ou qui ne satisfont pas les seuils de `BR-26`, notamment le nombre de pas et le dénivelé quand l'altitude ne peut pas être exploitée, sont entièrement masquées.
+
 ---
 
 ## Glossary References
@@ -44,7 +48,7 @@ Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire 
 - **Trail** : randonnée publiable dans le Guide.
 - **Trail Detail** : données spécialisées d'une randonnée publiée.
 - **Trail Navigation** : mode de guidage randonnée côté navigateur, basé sur Mapbox et la géolocalisation consentie.
-- **Trail Navigation Session** : session locale temporaire ouverte quand le Tourist clique "Commencer la rando".
+- **Trail Navigation Session** : session locale temporaire démarrée quand le Tourist clique "Démarrer ici" avec un GPS actif et une position fiable.
 - **Map Load** : chargement d'une carte Mapbox.
 - **POI** : entrée publique du Guide, utilisée comme point d'accès à la randonnée.
 - **Client Component** : composant interactif rendu côté client.
@@ -94,7 +98,7 @@ Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire 
 - **AC-03-02**: Given le GPS est autorisé et le tracé existe, When la position change, Then la distance approximative au tracé est calculée côté client.
 - **AC-03-03**: Given la position GPS est loin du départ ou du tracé au démarrage, When l'état est recalculé, Then l'interface affiche "Vous n'êtes pas encore au départ" avec un accès à l'action "Rejoindre le départ".
 - **AC-03-06**: Given le Tourist a déjà rejoint la zone de randonnée puis s'éloigne du tracé, When la distance au tracé dépasse le seuil de sécurité défini par l'interface, Then un message "Vous semblez vous éloigner du tracé" est affiché sans bloquer la navigation.
-- **AC-03-04**: Given le GPS est autorisé, When la position progresse le long du tracé, Then l'interface affiche une progression indicative : distance parcourue estimée ou pourcentage de tracé.
+- **AC-03-04**: Given le GPS est autorisé mais la session n'a pas démarré, When une entrée à mi-parcours est proposée, Then l'interface peut afficher le pourcentage du tracé correspondant au point d'entrée sans le présenter comme une distance déjà parcourue par le Tourist.
 - **AC-03-05**: Given la précision GPS retournée par le navigateur est faible, When la position est affichée, Then l'interface montre un état "Précision GPS faible" au lieu de prétendre à un guidage fiable.
 
 ### US-04 — Préserver vie privée, batterie et sécurité
@@ -110,6 +114,26 @@ Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire 
 - **AC-04-03**: Given le mode randonnée est actif, When l'interface s'affiche, Then un avertissement sécurité indique que StayLocal ne remplace pas une carte officielle, la météo, le balisage terrain ou l'équipement adapté.
 - **AC-04-04**: Given le Tourist quitte ou termine le mode randonnée, When la session locale se ferme, Then le suivi GPS navigateur est arrêté.
 - **AC-04-05**: Given le Tourist consulte le Guide public, When il n'ouvre pas explicitement le mode randonnée, Then aucun tracking GPS live n'est lancé.
+
+### US-05 — Démarrer depuis sa position et terminer manuellement
+
+**As a** Tourist
+**I want to** choisir ma position GPS courante comme départ réel puis arrêter moi-même la session
+**So that** je puisse rejoindre une randonnée depuis le point du tracé le plus proche, y compris à mi-parcours, et connaître la distance réellement parcourue
+
+#### Acceptance Criteria
+
+- **AC-05-01**: Given le GPS n'est pas actif, la dernière position date de plus de 10 secondes ou sa précision horizontale est supérieure à 30 m, When le mode randonnée s'affiche, Then "Démarrer ici" n'est pas disponible.
+- **AC-05-02**: Given le GPS est actif avec une position fiable, When la distance entre cette position et le point le plus proche de l'ensemble du tracé est inférieure ou égale à 1 500 m, Then "Démarrer ici" est disponible, y compris si ce point se situe à mi-parcours.
+- **AC-05-03**: Given la position fiable est à plus de 1 500 m du point le plus proche du tracé, When l'état est recalculé, Then le démarrage reste bloqué et l'interface demande au Tourist de se rapprocher.
+- **AC-05-04**: Given "Démarrer ici" est disponible, When le Tourist clique ce bouton, Then la dernière position GPS fiable est figée comme départ réel, le temps et les points collectés avant le clic sont exclus des statistiques, et la session passe en `approaching`.
+- **AC-05-05**: Given la session a démarré, When des positions GPS acceptées sont reçues, Then la distance de session est la somme des segments acceptés depuis le départ réel, phase d'approche incluse, et non la distance théorique depuis le départ officiel.
+- **AC-05-06**: Given la session est en `approaching`, When la distance au tracé devient inférieure ou égale à 35 m, Then la session passe automatiquement en `tracking` et la liaison d'approche disparaît.
+- **AC-05-07**: Given une session est active, When l'interface s'affiche, Then un bouton "Stop" reste accessible quel que soit l'état GPS ou la position sur le parcours.
+- **AC-05-08**: Given le Tourist clique "Stop", When l'arrêt est traité, Then `watchPosition` est arrêté une seule fois, les statistiques sont figées et une modale "Randonnée terminée" s'affiche.
+- **AC-05-09**: Given la modale de fin est affichée, When les statistiques sont rendues, Then la distance et la durée figées sont visibles, le dénivelé positif n'est visible que si au moins trois échantillons d'altitude exploitables ont été retenus, et toute métrique indisponible est absente sans `0`, `n/a` ni emplacement vide.
+- **AC-05-10**: Given le signal GPS devient indisponible après le démarrage, When aucune nouvelle position fiable n'est reçue, Then les statistiques acquises restent intactes, aucune distance n'est inventée et "Stop" demeure disponible.
+- **AC-05-11**: Given une session est active sur une boucle ou depuis une entrée intermédiaire, When le Tourist atteint l'arrivée officielle, Then la session ne se termine pas automatiquement et attend l'action "Stop".
 
 ---
 
@@ -131,9 +155,18 @@ Décision PO du 2026-05-26 : le CTA "Rejoindre le départ" ouvre un itinéraire 
 - **BR-14**: L'interface doit prévenir le Tourist des limites sécurité et batterie avant ou au moment du démarrage du guidage.
 - **BR-15**: Le mode "Commencer la rando" ne lance jamais `watchPosition` au chargement initial ; il attend une action explicite "Activer le suivi GPS".
 - **BR-16**: En mode marche actif avec GPS lancé, après action explicite de démarrage depuis la carte, la caméra Mapbox garde toujours la position du Tourist au centre de la carte, y compris après un déplacement manuel de carte. Tant que le Tourist a seulement activé le GPS mais n'a pas démarré la rando, les états `pre_start` et `ready_to_join` restent explorables et ne recentrent pas automatiquement la carte. Le bouton "Recentrer" recentre sur la dernière position GPS connue. S'il n'existe pas encore de position, il ne déclenche pas de tracking implicite.
-- **BR-17**: Une position GPS éloignée du départ au premier calcul est un état pré-départ, pas un état `off_track`.
+- **BR-17**: Une position GPS située à plus de 1 500 m du point le plus proche du tracé au premier calcul est un état pré-départ, pas un état `off_track`.
 - **BR-18**: "Rejoindre le départ" ne déclenche jamais `navigator.geolocation` côté StayLocal ; Google Maps gère l'origine de navigation si l'utilisateur l'autorise dans Google.
-- **BR-19**: La liaison visuelle d'approche entre la position GPS et le tracé est affichable seulement avant le démarrage depuis la position courante. Dès que le Tourist choisit "Démarrer depuis ici", cette liaison est retirée de la carte.
+- **BR-19**: La liaison visuelle d'approche relie la position courante au point le plus proche du tracé avant le démarrage et pendant l'état `approaching`. Elle est retirée quand la session passe en `tracking`, quand le Tourist clique "Stop" ou quand la session est détruite.
+- **BR-20**: La zone autorisant "Démarrer ici" est inclusive et couvre toute position fiable située à 1 500 m ou moins du point le plus proche de l'ensemble de `TrailDetail.geometry_geojson`. Elle n'est pas limitée au départ officiel.
+- **BR-21**: "Démarrer ici" exige un `watchPosition` actif et une dernière position reçue depuis 10 secondes ou moins, dont la précision horizontale est inférieure ou égale à 30 m. Le bouton ne déclenche jamais implicitement l'activation du GPS.
+- **BR-22**: Au clic "Démarrer ici", la dernière position GPS fiable devient le départ réel de la session. Les points et le temps observés avant ce clic sont exclus du récapitulatif.
+- **BR-23**: La distance parcourue de session est calculée localement en additionnant les segments entre points acceptés après le départ réel. Un point est accepté seulement si sa précision horizontale est inférieure ou égale à 30 m, si au moins 3 secondes le séparent du point accepté précédent, si le déplacement est d'au moins 5 m et si la vitesse calculée ne dépasse pas 8 m/s.
+- **BR-24**: La phase entre le départ réel et l'entrée physique sur le tracé appartient à la session et compte dans la distance parcourue. Le passage de `approaching` à `tracking` intervient à 35 m ou moins du tracé.
+- **BR-25**: Une session démarrée ne se termine jamais automatiquement selon la progression du tracé. L'action "Stop" est toujours disponible, idempotente, arrête `watchPosition` et fige définitivement les statistiques de la session.
+- **BR-26**: Le récapitulatif de fin affiche la distance parcourue et la durée. Un échantillon d'altitude est exploitable seulement si `altitude` et `altitudeAccuracy` sont des nombres finis, si `altitudeAccuracy <= 20 m` et si le point GPS horizontal associé respecte `BR-23`. Le dénivelé positif est affiché seulement avec au moins trois échantillons exploitables ; les altitudes sont lissées par médiane glissante sur trois échantillons et seuls les gains successifs d'au moins 3 m sont additionnés. Sinon le champ dénivelé est absent. Le nombre de pas n'est pas calculé en MVP 2 et reste absent.
+- **BR-27**: Une perte de signal GPS après le démarrage ne réinitialise pas la session, n'ajoute aucune distance synthétique et ne masque pas l'action "Stop".
+- **BR-28**: Le départ réel, les points GPS, les altitudes et le récapitulatif restent en mémoire navigateur uniquement et sont détruits à la fermeture du mode randonnée. Ils ne sont envoyés à aucune API StayLocal ou tierce et ne sont pas persistés.
 
 ---
 
@@ -191,6 +224,7 @@ Notes :
 
 - Aucune table `TrailNavigationSession` n'est créée en MVP 2.
 - Aucune position GPS Tourist n'est stockée.
+- La session locale conserve uniquement en mémoire : la position et l'heure du clic "Démarrer ici", les points GPS acceptés après ce clic, les altitudes exploitables éventuellement fournies, l'heure d'arrêt et le récapitulatif figé.
 - Une future persistance de session, historique de trace, partage de progression ou analytics randonnée nécessitera une spec dédiée.
 
 ---
@@ -350,21 +384,27 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 - bouton "Activer le suivi GPS" visible en état `ready` ;
 - marker position utilisateur après activation du suivi et consentement ;
 - caméra centrée en continu sur la position utilisateur pendant la marche active, seulement après démarrage explicite depuis la carte ;
-- liaison d'approche vers le tracé retirée après l'action "Démarrer depuis ici" ;
+- calcul du point le plus proche sur l'ensemble du tracé, y compris sur un segment intermédiaire ;
+- bouton "Démarrer ici" disponible uniquement avec GPS actif, position reçue depuis 10 secondes ou moins, précision horizontale ≤ 30 m et distance au tracé ≤ 1 500 m ;
+- liaison d'approche vers le point le plus proche conservée pendant `approaching`, puis retirée en `tracking` ;
 - bouton recentrer sur position ;
-- panneau bas avec titre randonnée, distance/durée/dénivelé, état GPS et état de suivi ; si le Tourist rabat ou rouvre ce panneau manuellement, les changements ultérieurs d'état GPS ne doivent pas écraser ce choix ;
-- bouton "Terminer" ou "Quitter la rando" ;
+- panneau bas avec titre randonnée, données théoriques du parcours avant démarrage, puis distance et durée réelles de session après "Démarrer ici" ; si le Tourist rabat ou rouvre ce panneau manuellement, les changements ultérieurs d'état GPS ne doivent pas écraser ce choix ;
+- bouton "Stop" toujours accessible après démarrage ;
+- modale "Randonnée terminée" après arrêt, avec actions "Voir le tracé" et "Quitter la rando" ;
 - avertissement sécurité accessible avant ou pendant le démarrage.
 
 États UI obligatoires :
 
 - `ready`: tracé chargé, GPS pas encore demandé, bouton "Activer le suivi GPS" visible ;
 - `gps_prompt`: consentement en cours ;
-- `tracking`: position utilisateur suivie ;
-- `pre_start`: position utilisateur éloignée du départ ou du tracé avant démarrage effectif ;
+- `ready_to_join`: GPS fiable actif et position située à 1 500 m ou moins du point le plus proche du tracé, bouton "Démarrer ici" visible ;
+- `approaching`: session démarrée depuis la position GPS du Tourist, mais tracé pas encore atteint à 35 m ou moins ;
+- `tracking`: session démarrée et position située à 35 m ou moins du tracé au moins une fois ;
+- `pre_start`: GPS actif mais position située à plus de 1 500 m du point le plus proche du tracé ;
 - `off_track`: distance au tracé supérieure au seuil UI après démarrage effectif sur la zone de randonnée ;
-- `low_accuracy`: précision GPS faible ;
+- `low_accuracy`: précision GPS supérieure à 30 m ou dernière position reçue depuis plus de 10 secondes ;
 - `gps_denied`: GPS refusé ;
+- `stopped`: session arrêtée, statistiques figées et récapitulatif affichable ;
 - `map_error`: Mapbox indisponible ;
 - `missing_geometry`: tracé absent ou invalide.
 
@@ -388,16 +428,25 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | AC-03-01 | Position utilisateur affichée après activation GPS | unit |
 | AC-03-02 | Distance au tracé calculée côté client | unit |
 | AC-03-03 | Position initiale éloignée affiche l'état pré-départ | unit |
-| AC-03-04 | Progression indicative affichée | unit |
+| AC-03-04 | Point d'entrée localisé sur le parcours sans distance parcourue fictive | unit |
 | AC-03-05 | Précision GPS faible affichée explicitement | unit |
 | AC-03-06 | Alerte off-track affichée au-delà du seuil après démarrage effectif | unit |
 | BR-16 | Caméra centrée en continu sur le Tourist pendant la marche active | unit |
-| BR-19 | Liaison d'approche retirée après "Démarrer depuis ici" | unit |
+| BR-19 | Liaison d'approche conservée pendant `approaching`, puis retirée en `tracking` | unit |
 | AC-04-01 | Consentement navigateur requis avant position | e2e |
 | AC-04-02 | Position non persistée en base/API | contract |
 | AC-04-03 | Avertissement sécurité visible | integration |
 | AC-04-04 | Fermeture arrête `watchPosition` | unit |
 | AC-04-05 | Aucun tracking GPS sans ouverture explicite du mode randonnée | e2e |
+| AC-05-01 | Aucun démarrage sans GPS actif, position récente et précision ≤ 30 m | unit |
+| AC-05-02/AC-05-03 | Seuil inclusif de 1 500 m calculé depuis le point le plus proche de tout le tracé | unit |
+| AC-05-04 | Clic "Démarrer ici" fige la position réelle et remet la session à zéro | unit |
+| AC-05-05 | Distance réelle calculée depuis le départ utilisateur, approche incluse | unit |
+| AC-05-06 | Passage automatique `approaching` → `tracking` à 35 m ou moins | unit |
+| AC-05-07/AC-05-10 | "Stop" reste accessible pendant la session et après perte GPS | integration |
+| AC-05-08 | Stop idempotent, arrêt GPS et ouverture de la modale | unit |
+| AC-05-09 | Récapitulatif figé et métriques indisponibles masquées | integration |
+| AC-05-11 | Aucune fin automatique au point d'arrivée officiel | unit |
 
 ---
 
@@ -416,6 +465,9 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 - Moteur cartographique autre que Mapbox.
 - Modification des règles d'acquisition `019`.
 - Création d'un modèle Prisma de session navigation.
+- Comptage ou estimation du nombre de pas.
+- Reprise d'une session après "Stop", fermeture ou rechargement de page.
+- Fin automatique fondée sur le départ officiel, l'arrivée officielle ou le bouclage du tracé.
 
 ---
 
@@ -427,3 +479,7 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | OQ-02 | Le mode randonnée peut-il utiliser Google Maps ? | Product Owner | 2026-05-25 | Résolu : Google Maps est autorisé seulement pour "Rejoindre le départ"; "Commencer la rando" reste Mapbox uniquement. |
 | OQ-03 | La position GPS doit-elle être persistée en MVP 2 ? | Product Owner + Architecture | 2026-05-25 | Résolu : non, suivi local navigateur uniquement. |
 | OQ-04 | La navigation live appartient-elle à `019-trails-acquisition` ? | Architecture | 2026-05-25 | Résolu : non, `019` reste acquisition ; `021` couvre la navigation. |
+| OQ-05 | Quelle distance autorise un départ depuis la position courante ? | Product Owner | 2026-07-14 | Résolu : 1 500 m inclusifs depuis le point le plus proche de l'ensemble du tracé. |
+| OQ-06 | Quel point devient le départ de la session ? | Product Owner | 2026-07-14 | Résolu : la position GPS fiable disponible au clic "Démarrer ici". |
+| OQ-07 | Comment terminer une session commencée à mi-parcours ou sur une boucle ? | Product Owner | 2026-07-14 | Résolu : uniquement par le bouton "Stop", sans fin automatique. |
+| OQ-08 | Que faire des métriques indisponibles dans le récapitulatif ? | Product Owner | 2026-07-14 | Résolu : les masquer entièrement ; aucun nombre de pas n'est calculé en MVP 2. |
