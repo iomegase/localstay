@@ -1,8 +1,9 @@
 'use client'
 
+import * as Dialog from '@radix-ui/react-dialog'
 import { Flag, Mountain, Route, Timer } from 'lucide-react'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 
 import type { TrailSessionSummary } from '../types'
 
@@ -63,31 +64,41 @@ export function TrailSessionSummaryModal({
 }: Props) {
   const elevationGainM = summary.elevationGainM
   const hasElevation = elevationGainM !== null
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   return (
-    <div className="absolute inset-0 z-50 flex items-end bg-black/45 p-4 backdrop-blur-sm">
-      <section
-        className="w-full rounded-[2rem] bg-[#FAF9F6] p-6 shadow-2xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="trail-summary-title"
-      >
+    <Dialog.Root open modal>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm" />
+        <Dialog.Content
+          aria-describedby={undefined}
+          onOpenAutoFocus={() => {
+            previousFocusRef.current =
+              document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            previousFocusRef.current?.focus()
+          }}
+          onEscapeKeyDown={(event) => event.preventDefault()}
+          onPointerDownOutside={(event) => event.preventDefault()}
+          className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-[2rem] bg-[#FAF9F6] p-6 shadow-2xl"
+        >
         <div className="mb-6 flex flex-col items-center text-center">
           <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-[#315C45] text-white">
             <Flag className="size-6" aria-hidden="true" />
           </span>
-          <h2
-            id="trail-summary-title"
-            className="font-serif text-2xl font-semibold text-stone-900"
-          >
+          <Dialog.Title className="font-serif text-2xl font-semibold text-stone-900">
             Randonnée terminée
-          </h2>
+          </Dialog.Title>
         </div>
 
         <div className={`mb-6 grid gap-3 ${hasElevation ? 'grid-cols-3' : 'grid-cols-2'}`}>
           <SummaryMetric
             icon={<Route className="size-5" />}
-            label="Distance"
+            label="Distance parcourue"
             value={formatDistance(summary.distanceM)}
           />
           <SummaryMetric
@@ -98,7 +109,7 @@ export function TrailSessionSummaryModal({
           {hasElevation ? (
             <SummaryMetric
               icon={<Mountain className="size-5" />}
-              label="Dénivelé"
+              label="Dénivelé positif"
               value={`${Math.round(elevationGainM)} m`}
             />
           ) : null}
@@ -129,7 +140,8 @@ export function TrailSessionSummaryModal({
             </Link>
           )}
         </div>
-      </section>
-    </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
