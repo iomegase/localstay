@@ -62,10 +62,10 @@ Au clic `Démarrer ici`, le système :
 - fixe `sessionStartedAt` ;
 - efface les points et temps collectés avant le clic ;
 - enregistre la position de départ comme premier point de session ;
-- passe en `approaching` ;
+- passe en `approaching`, ou directement en `tracking` si la position est déjà à 35 m ou moins du tracé ;
 - conserve la liaison vers le point le plus proche du tracé.
 
-La caméra peut suivre le Tourist après ce démarrage explicite. La phase d'approche est comptée dans la distance réelle. Quand la distance au tracé devient inférieure ou égale à 35 m, la session passe en `tracking` et la liaison d'approche disparaît.
+La caméra peut suivre le Tourist après ce démarrage explicite. La phase d'approche est comptée dans la distance réelle. Quand la distance au tracé devient inférieure ou égale à 35 m, immédiatement au départ ou pendant l'approche, la session passe en `tracking` et la liaison d'approche disparaît.
 
 ### Arrêt
 
