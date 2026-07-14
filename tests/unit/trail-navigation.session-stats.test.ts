@@ -49,6 +49,19 @@ describe('021 trail session statistics', () => {
     ])).toBeNull()
   })
 
+  it('BR-26: excludes non-finite altitude and altitude accuracy samples', () => {
+    expect(calculateElevationGain([
+      point({ altitude: 1_000, altitudeAccuracy: 8 }),
+      point({ altitude: Number.POSITIVE_INFINITY, altitudeAccuracy: 8 }),
+      point({ altitude: 1_020, altitudeAccuracy: 8 }),
+    ])).toBeNull()
+    expect(calculateElevationGain([
+      point({ altitude: 1_000, altitudeAccuracy: 8 }),
+      point({ altitude: 1_010, altitudeAccuracy: Number.NEGATIVE_INFINITY }),
+      point({ altitude: 1_020, altitudeAccuracy: 8 }),
+    ])).toBeNull()
+  })
+
   it('BR-26: smooths reliable samples and ignores gains below 3 m', () => {
     const gain = calculateElevationGain([
       point({ altitude: 1_000, altitudeAccuracy: 8 }),

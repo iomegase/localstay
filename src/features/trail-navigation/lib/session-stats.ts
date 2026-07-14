@@ -58,7 +58,9 @@ export function calculateElevationGain(points: readonly TrailSessionPoint[]): nu
   const altitudes = points
     .filter(point => (
       point.altitude !== null &&
+      Number.isFinite(point.altitude) &&
       point.altitudeAccuracy !== null &&
+      Number.isFinite(point.altitudeAccuracy) &&
       point.altitudeAccuracy <= ALTITUDE_MAX_ACCURACY_M
     ))
     .map(point => point.altitude as number)
