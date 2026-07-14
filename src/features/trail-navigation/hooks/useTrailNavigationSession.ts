@@ -7,10 +7,9 @@ import type {
   TrailSessionPoint,
   TrailSessionSummary,
 } from '../types'
-import { shouldAcceptTrackPoint } from '../lib/geo'
+import { haversineMeters, shouldAcceptTrackPoint } from '../lib/geo'
 import {
   buildSessionSummary,
-  calculateSessionDistance,
   isTrailSessionStartEligible,
   SESSION_START_MAX_ACCURACY_M,
   SESSION_START_MAX_AGE_MS,
@@ -57,8 +56,10 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
   const latestPointRef = useRef<TrailSessionPoint | null>(null)
   const [distanceToTrailM, setDistanceToTrailM] = useState<number | null>(null)
   const distanceToTrailRef = useRef<number | null>(null)
-  const [points, setPoints] = useState<readonly TrailSessionPoint[]>([])
-  const pointsRef = useRef<readonly TrailSessionPoint[]>([])
+  const pointsRef = useRef<TrailSessionPoint[]>([])
+  const [, setPointCount] = useState(0)
+  const [distanceM, setDistanceM] = useState(0)
+  const distanceMRef = useRef(0)
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null)
   const startedAtRef = useRef<number | null>(null)
   const [summary, setSummary] = useState<TrailSessionSummary | null>(null)
@@ -145,9 +146,12 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
       accuracy: point.accuracy,
       nowMs: point.timestampMs,
     })) {
-      const nextPoints = [...pointsRef.current, point]
-      pointsRef.current = nextPoints
-      setPoints(nextPoints)
+      if (previousPoint !== null) {
+        distanceMRef.current += haversineMeters(previousPoint, point)
+        setDistanceM(distanceMRef.current)
+      }
+      pointsRef.current.push(point)
+      setPointCount(pointsRef.current.length)
     }
 
     if (validDistance === null) return
@@ -185,9 +189,10 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
     if (!eligible || point === null || distanceToTrailRef.current === null) return false
 
     const snapshot = { ...point, timestampMs: clickedAtMs }
-    const nextPoints = [snapshot]
-    pointsRef.current = nextPoints
-    setPoints(nextPoints)
+    pointsRef.current = [snapshot]
+    setPointCount(1)
+    distanceMRef.current = 0
+    setDistanceM(0)
     startedAtRef.current = clickedAtMs
     setStartedAtMs(clickedAtMs)
     summaryRef.current = null
@@ -227,7 +232,6 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
   }, [setPhase, stopGps])
 
   const isActive = ACTIVE_PHASES.has(phase)
-  const distanceM = useMemo(() => calculateSessionDistance(points), [points])
   const elapsedSeconds = useMemo(() => {
     if (startedAtMs === null) return null
     if (summary !== null) return summary.durationSeconds
@@ -249,7 +253,7 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
     gpsHealth: effectiveGpsHealth,
     latestPoint,
     distanceToTrailM,
-    points,
+    points: pointsRef.current as readonly TrailSessionPoint[],
     summary,
     canStart,
     isActive,

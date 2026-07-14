@@ -27,6 +27,17 @@ interface Props {
 }
 
 export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
+  return (
+    <TrailNavigationSessionMap
+      key={trail.id}
+      trail={trail}
+      backHref={backHref}
+      onClose={onClose}
+    />
+  )
+}
+
+function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
   const isIndicativeTrail = reliabilityFromQualityStatus(trail.data_quality_status) === 'indicative'
@@ -224,13 +235,14 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   const userTrackLine = useMemo(() => {
     if (session.points.length < 2) return null
-    const coordinates = session.points.map(point => [point.longitude, point.latitude] as [number, number])
+    const coordinates = sampleBreadcrumbPoints(session.points)
+      .map(point => [point.longitude, point.latitude] as [number, number])
     return {
       type: 'Feature' as const,
       properties: {},
       geometry: { type: 'LineString' as const, coordinates: smoothTrack(coordinates) },
     }
-  }, [session.points])
+  }, [session.points.length])
 
   // Détection rando en boucle : start et end ≤ 50m → un seul marqueur fusionné
   const isLoopTrail = useMemo(() => {
@@ -260,6 +272,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   }
 
   const statusLabel = sessionPhaseLabel(session.phase)
+  const healthLabel = gpsHealthLabel(session.gpsHealth)
   const hasSessionMetrics = session.isActive || session.phase === 'stopped'
   const displayedDistance = hasSessionMetrics
     ? `${(session.distanceM / 1000).toFixed(2)} km`
@@ -492,7 +505,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         <NavigationHud
           statusColor={markerColor}
           healthColor={gpsHealthColor(session.gpsHealth)}
-          statusLabel={sessionPhaseLabel(session.phase)}
+          healthLabel={healthLabel}
+          statusLabel={statusLabel}
           distanceKm={hasSessionMetrics ? session.distanceM / 1000 : trail.distance_km}
           entryProgressPercent={session.phase === 'ready_to_join' && progress ? progress.percent : null}
           elapsedSeconds={session.elapsedSeconds}
@@ -511,19 +525,20 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#db2777]">Guidage randonnée</p> */}
             <h1 className="mt-1 uppercase text-xlleading-tight text-[#121212]">{trail.name}</h1>
             <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-charcoal/70">{statusLabel}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span
               className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm"
-              title={statusLabel}
-              aria-label={`GPS — ${statusLabel}`}
+              aria-label={healthLabel}
             >
-              GPS
+              {healthLabel}
               <span
                 data-testid="gps-health-dot"
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ backgroundColor: gpsHealthColor(session.gpsHealth) }}
-                aria-hidden="true"
+                aria-label={healthLabel}
+                title={healthLabel}
               />
             </span>
             <button
@@ -634,6 +649,21 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </div>
         )}
 
+        {(session.gpsHealth === 'denied' || session.gpsHealth === 'unavailable') && (
+          <div
+            role="status"
+            className="mt-3 flex items-start gap-2 rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-800"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              <strong>{healthLabel}</strong>.
+              {session.isActive
+                ? ' La session continue avec les statistiques déjà acquises. Stop reste disponible.'
+                : ' Le tracé reste consultable sans suivi en direct.'}
+            </p>
+          </div>
+        )}
+
         {/* <div className="mt-4 flex items-start gap-2 justify-center rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/60">
           <Mountain className="mt-0.5 h-4 w-4 shrink-0 text-[#455E4C]" />
           <p className="text-[10px] leading-5 tracking-wide text-charcoal/90">
@@ -686,10 +716,34 @@ function gpsHealthColor(health: TrailGpsHealth): string {
   return '#16A34A'
 }
 
+export function gpsHealthLabel(health: TrailGpsHealth): string {
+  if (health === 'inactive') return 'GPS inactif'
+  if (health === 'prompting') return 'Recherche GPS'
+  if (health === 'good') return 'Signal GPS fiable'
+  if (health === 'low_accuracy') return 'Précision GPS faible'
+  if (health === 'denied') return 'Accès GPS refusé'
+  return 'Signal GPS indisponible'
+}
+
+export function sampleBreadcrumbPoints<T>(
+  points: readonly T[],
+  maximumPoints = 500,
+): readonly T[] {
+  if (!Number.isInteger(maximumPoints) || maximumPoints < 2) {
+    throw new RangeError('maximumPoints must be an integer of at least 2')
+  }
+  if (points.length <= maximumPoints) return points
+
+  return Array.from({ length: maximumPoints }, (_, index) => {
+    const sourceIndex = Math.round((index * (points.length - 1)) / (maximumPoints - 1))
+    return points[sourceIndex]
+  })
+}
+
 function sessionPhaseLabel(phase: TrailSessionPhase): string {
   if (phase === 'ready_to_join') return 'Prêt à démarrer'
   if (phase === 'approaching') return 'Approche du tracé'
-  if (phase === 'tracking') return 'GPS actif'
+  if (phase === 'tracking') return 'Suivi du tracé'
   if (phase === 'pre_start') return 'Trop loin du tracé'
   if (phase === 'stopped') return 'Session arrêtée'
   return 'Prêt'

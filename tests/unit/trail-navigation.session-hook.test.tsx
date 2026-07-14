@@ -355,4 +355,36 @@ describe('021 trail navigation session hook', () => {
     expect(result.current.distanceToTrailM).toBe(stoppedDistance)
     expect(result.current.points).toEqual(stoppedPoints)
   })
+
+  it('BR-23: retains every accepted point and incrementally accumulates a long session distance', () => {
+    let nowMs = 20_000
+    const { result } = renderHook(() => useTrailNavigationSession({
+      stopGps: jest.fn(),
+      now: () => nowMs,
+    }))
+
+    act(() => {
+      result.current.markGpsPrompting()
+      result.current.receiveGpsPosition(gpsPosition(), 20)
+      expect(result.current.startSession()).toBe(true)
+    })
+    const rawPoints = result.current.points
+
+    const acceptedSegments = 1_000
+    act(() => {
+      for (let index = 1; index <= acceptedSegments; index += 1) {
+        nowMs += 4_000
+        result.current.receiveGpsPosition(gpsPosition({
+          latitude: 45.8731 + (index * 6) / 111_320,
+          timestamp: nowMs,
+        }), 20)
+      }
+    })
+
+    expect(result.current.points).toHaveLength(acceptedSegments + 1)
+    expect(result.current.points).toBe(rawPoints)
+    expect(result.current.distanceM).toBeCloseTo(5_993, 0)
+    expect(result.current.points[0].timestampMs).toBe(20_000)
+    expect(result.current.points.at(-1)?.timestampMs).toBe(nowMs)
+  })
 })

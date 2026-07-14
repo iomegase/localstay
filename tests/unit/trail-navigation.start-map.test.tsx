@@ -3,7 +3,11 @@
  */
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
+import {
+  gpsHealthLabel,
+  sampleBreadcrumbPoints,
+  TrailNavigationMap,
+} from '@/features/trail-navigation/components/TrailNavigationMap'
 import { haversineMeters } from '@/features/trail-navigation/lib/geo'
 
 const mockEaseTo = jest.fn()
@@ -106,6 +110,26 @@ describe('021 trail navigation start mode', () => {
     mockOnMoveStart = null
   })
 
+  it('exposes distinct French labels for every GPS health state', () => {
+    expect(gpsHealthLabel('inactive')).toBe('GPS inactif')
+    expect(gpsHealthLabel('prompting')).toBe('Recherche GPS')
+    expect(gpsHealthLabel('good')).toBe('Signal GPS fiable')
+    expect(gpsHealthLabel('low_accuracy')).toBe('Précision GPS faible')
+    expect(gpsHealthLabel('denied')).toBe('Accès GPS refusé')
+    expect(gpsHealthLabel('unavailable')).toBe('Signal GPS indisponible')
+  })
+
+  it('uniformly bounds breadcrumb points while retaining ordered endpoints', () => {
+    const points = Array.from({ length: 1_001 }, (_, index) => ({ index }))
+
+    const sampled = sampleBreadcrumbPoints(points, 500)
+
+    expect(sampled).toHaveLength(500)
+    expect(sampled[0]).toBe(points[0])
+    expect(sampled.at(-1)).toBe(points.at(-1))
+    expect(sampled.every((point, index) => index === 0 || point.index > sampled[index - 1].index)).toBe(true)
+  })
+
   it('AC-02-03/AC-04-01: renders ready mode without starting GPS tracking automatically', () => {
     const clearWatch = jest.fn()
     const watchPosition = jest.fn()
@@ -123,7 +147,7 @@ describe('021 trail navigation start mode', () => {
     expect(screen.getByRole('button', { name: 'Position indisponible' })).toBeDisabled()
     // Santé GPS « ready » → point orange (en acquisition), libellé accessible préservé
     expect(screen.getByTestId('gps-health-dot')).toHaveStyle({ backgroundColor: '#F59E0B' })
-    expect(screen.getByTitle(/Prêt/i)).toBeInTheDocument()
+    expect(screen.getByTitle('GPS inactif')).toBeInTheDocument()
     expect(watchPosition).not.toHaveBeenCalled()
   })
 
@@ -442,6 +466,52 @@ describe('021 trail navigation start mode', () => {
     expect(watchPosition).toHaveBeenCalledTimes(1)
   })
 
+  it('resets GPS and session state when the trail identity changes and evaluates new fixes against the new geometry', async () => {
+    const callbacks: PositionCallback[] = []
+    const clearWatch = jest.fn()
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      callbacks.push(success)
+      return callbacks.length === 1 ? 42 : 43
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch },
+    })
+    const trailB = {
+      ...trail,
+      id: 'poi-2',
+      slug: 'trail-b',
+      name: 'Trail B',
+      start_latitude: 46,
+      start_longitude: 7,
+      geometry_geojson: {
+        type: 'LineString' as const,
+        coordinates: [[7, 46], [7.01, 46.01]],
+      },
+    }
+
+    const { rerender } = render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => callbacks[0](makePosition({ latitude: 45.8732, longitude: 6.6731 })))
+    await userEvent.click(await screen.findByRole('button', { name: 'Démarrer ici' }))
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument()
+
+    rerender(<TrailNavigationMap trail={trailB} />)
+
+    await waitFor(() => expect(clearWatch).toHaveBeenCalledTimes(1))
+    expect(clearWatch).toHaveBeenCalledWith(42)
+    expect(screen.queryByRole('button', { name: 'Stop' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /activer le suivi gps/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Position indisponible' })).toBeDisabled()
+    expect(watchPosition).toHaveBeenCalledTimes(1)
+
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    expect(watchPosition).toHaveBeenCalledTimes(2)
+    act(() => callbacks[1](makePosition({ latitude: 46.0001, longitude: 7.0001 })))
+
+    expect(await screen.findByRole('button', { name: 'Démarrer ici' })).toBeInTheDocument()
+  })
+
   it('AC-02-04/AC-03-05: keeps trail visible when GPS is denied or inaccurate', async () => {
     const watchPosition = jest.fn((_success: PositionCallback, error: PositionErrorCallback) => {
       error({ code: 1, message: 'denied', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 })
@@ -460,6 +530,38 @@ describe('021 trail navigation start mode', () => {
     await waitFor(() =>
       expect(screen.getByTestId('gps-health-dot')).toHaveStyle({ backgroundColor: '#DC2626' }),
     )
+    expect(screen.getAllByText('Accès GPS refusé').length).toBeGreaterThan(0)
+    expect(screen.getByTitle('Accès GPS refusé')).toBeInTheDocument()
+  })
+
+  it('keeps an active session stoppable while independently announcing an unavailable GPS signal', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    let gpsError: PositionErrorCallback | null = null
+    const watchPosition = jest.fn((success: PositionCallback, error: PositionErrorCallback) => {
+      gpsSuccess = success
+      gpsError = error
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => gpsSuccess?.(makePosition({ latitude: 45.8732, longitude: 6.6731 })))
+    await userEvent.click(await screen.findByRole('button', { name: 'Démarrer ici' }))
+    act(() => {
+      gpsError?.({ code: 2, message: 'lost', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 })
+    })
+
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument()
+    expect(screen.getAllByText('Signal GPS indisponible').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Suivi du tracé').length).toBeGreaterThan(0)
+    screen.getAllByTestId('gps-health-dot').forEach(dot => {
+      expect(dot).toHaveAttribute('aria-label', 'Signal GPS indisponible')
+    })
+    expect(screen.queryByTitle('GPS actif')).not.toBeInTheDocument()
   })
 
   it('keeps the map panel collapsed when GPS acquisition later fails', async () => {
