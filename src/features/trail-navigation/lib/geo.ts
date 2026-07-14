@@ -248,7 +248,7 @@ function coordinateToPosition(coordinate: Coordinate): TrailCoordinate {
   return { longitude: coordinate[0], latitude: coordinate[1] }
 }
 
-function haversineMeters(from: TrailCoordinate, to: TrailCoordinate): number {
+export function haversineMeters(from: TrailCoordinate, to: TrailCoordinate): number {
   const earthRadiusMeters = 6_371_000
   const fromLat = toRadians(from.latitude)
   const toLat = toRadians(to.latitude)
