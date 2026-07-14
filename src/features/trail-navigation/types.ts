@@ -37,3 +37,32 @@ export type TrailNavigationData = {
     used_for: string[]
   }>
 }
+
+export type TrailSessionPhase =
+  | 'idle'
+  | 'pre_start'
+  | 'ready_to_join'
+  | 'approaching'
+  | 'tracking'
+  | 'stopped'
+
+export type TrailGpsHealth =
+  | 'inactive'
+  | 'prompting'
+  | 'good'
+  | 'low_accuracy'
+  | 'denied'
+  | 'unavailable'
+
+export type TrailSessionPoint = TrailCoordinate & {
+  accuracy: number
+  timestampMs: number
+  altitude: number | null
+  altitudeAccuracy: number | null
+}
+
+export type TrailSessionSummary = {
+  distanceM: number
+  durationSeconds: number
+  elevationGainM: number | null
+}

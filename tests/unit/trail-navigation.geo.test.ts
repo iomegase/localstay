@@ -1,4 +1,5 @@
 import {
+  getClosestPointOnTrail,
   getLineEndpoints,
   getPositionProgress,
   getTrailDistanceMeters,
@@ -7,7 +8,7 @@ import {
   shouldAutoFollowCamera,
   smoothTrack,
 } from '@/features/trail-navigation/lib/geo'
-import type { TrailGpsState } from '@/features/trail-navigation/lib/geo'
+import type { TrailSessionPhase } from '@/features/trail-navigation/types'
 
 const line = {
   type: 'LineString',
@@ -47,46 +48,72 @@ describe('021 trail navigation geometry utilities', () => {
     expect(progress.percent).toBeLessThan(70)
     expect(progress.distance_m).toBeGreaterThan(0)
   })
+
+  it('never treats the gap between disconnected MultiLineString parts as trail', () => {
+    const disconnected = {
+      type: 'MultiLineString',
+      coordinates: [
+        [[0, 0], [0.01, 0]],
+        [[0.01, 0.1], [0.02, 0.1]],
+      ],
+    } as const
+    const positionOnSyntheticConnector = { longitude: 0.01, latitude: 0.07 }
+
+    expect(getTrailDistanceMeters(positionOnSyntheticConnector, disconnected)).toBeGreaterThan(3_000)
+    expect(getClosestPointOnTrail(positionOnSyntheticConnector, disconnected)).toEqual({
+      longitude: 0.01,
+      latitude: 0.1,
+    })
+
+    const progress = getPositionProgress(positionOnSyntheticConnector, disconnected)
+    expect(progress.percent).toBeGreaterThanOrEqual(49)
+    expect(progress.percent).toBeLessThanOrEqual(51)
+    expect(progress.distance_m).toBeGreaterThan(1_000)
+    expect(progress.distance_m).toBeLessThan(1_200)
+  })
+
+  it('keeps stable return values for a valid zero-length trail segment', () => {
+    const degenerate = {
+      type: 'LineString',
+      coordinates: [[6.7, 45.9], [6.7, 45.9]],
+    } as const
+
+    expect(getTrailDistanceMeters({ longitude: 6.7, latitude: 45.9 }, degenerate)).toBe(0)
+    expect(getClosestPointOnTrail({ longitude: 6.71, latitude: 45.91 }, degenerate)).toEqual({
+      longitude: 6.7,
+      latitude: 45.9,
+    })
+    expect(getPositionProgress({ longitude: 6.71, latitude: 45.91 }, degenerate)).toEqual({
+      percent: 0,
+      distance_m: 0,
+    })
+  })
 })
 
 describe('shouldAutoFollowCamera', () => {
-  const activeStates: TrailGpsState[] = [
-    'tracking',
-    'approaching',
-    'off_track',
-    'low_accuracy',
+  const activePhases: TrailSessionPhase[] = ['approaching', 'tracking']
+  const inactivePhases: TrailSessionPhase[] = [
+    'idle',
+    'pre_start',
+    'ready_to_join',
+    'stopped',
   ]
-  const exploratoryStates: TrailGpsState[] = ['ready_to_join', 'pre_start']
-  const idleStates: TrailGpsState[] = ['ready', 'gps_prompt', 'gps_denied']
 
-  it('follows when walking has started, GPS is active and following is enabled', () => {
-    for (const state of activeStates) {
-      expect(shouldAutoFollowCamera(state, true, true)).toBe(true)
+  it('follows only during an active session when following is enabled', () => {
+    for (const phase of activePhases) {
+      expect(shouldAutoFollowCamera(phase, true)).toBe(true)
     }
   })
 
-  it('does not follow in pre-start exploration states before the hike begins', () => {
-    for (const state of exploratoryStates) {
-      expect(shouldAutoFollowCamera(state, true, false)).toBe(false)
-      expect(shouldAutoFollowCamera(state, true, true)).toBe(false)
-    }
-  })
-
-  it('does not follow active GPS states until the hike has explicitly started', () => {
-    for (const state of activeStates) {
-      expect(shouldAutoFollowCamera(state, true, false)).toBe(false)
-    }
-  })
-
-  it('does not follow while GPS is idle, prompting, or denied', () => {
-    for (const state of idleStates) {
-      expect(shouldAutoFollowCamera(state, true)).toBe(false)
+  it('does not follow while the session is inactive or exploratory', () => {
+    for (const phase of inactivePhases) {
+      expect(shouldAutoFollowCamera(phase, true)).toBe(false)
     }
   })
 
   it('never follows when following has been disabled (user panned the map)', () => {
-    for (const state of [...activeStates, ...exploratoryStates, ...idleStates]) {
-      expect(shouldAutoFollowCamera(state, false)).toBe(false)
+    for (const phase of [...activePhases, ...inactivePhases]) {
+      expect(shouldAutoFollowCamera(phase, false)).toBe(false)
     }
   })
 })

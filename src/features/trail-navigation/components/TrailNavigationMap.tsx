@@ -1,33 +1,19 @@
 'use client'
 
-import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Mountain, Navigation, RotateCcw, Unlock, X } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, RotateCcw, Square, Unlock, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
-import type { TrailCoordinate, TrailNavigationData } from '../types'
-import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, isValidTrailGeometry, shouldAcceptTrackPoint, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
-import type { TrailGpsState } from '../lib/geo'
+import type { TrailCoordinate, TrailGpsHealth, TrailNavigationData, TrailSessionPhase } from '../types'
+import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, haversineMeters, isValidTrailGeometry, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
+import { SESSION_START_MAX_DISTANCE_M } from '../lib/session-stats'
+import { useTrailNavigationSession } from '../hooks/useTrailNavigationSession'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { NavigationHud } from './NavigationHud'
+import { TrailSessionSummaryModal } from './TrailSessionSummaryModal'
 
-type GpsState = TrailGpsState
-
-// Couleur fixe du marqueur « ma position » (style Google Maps) — l'état (on-track / off-track)
-// reste lisible via le HUD, pas via la couleur du point.
 const POSITION_BLUE = '#2563EB'
-
-// Seuils GPS — précision et tolérances
-const TRACKING_TOLERANCE_M = 35           // strict : sortie de tracé détectée tôt
-const LOW_ACCURACY_THRESHOLD_M = 30       // alerte plus tôt qu'avant (75 m)
-const JOIN_TOLERANCE_M = clampJoinTolerance(
-  parseInt(process.env.NEXT_PUBLIC_JOIN_TOLERANCE_M ?? '150', 10),
-)
-
-function clampJoinTolerance(value: number): number {
-  if (!Number.isFinite(value)) return 150
-  return Math.max(50, Math.min(500, value))
-}
 
 interface Props {
   trail: TrailNavigationData
@@ -41,46 +27,60 @@ interface Props {
 }
 
 export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
+  return (
+    <TrailNavigationSessionMap
+      key={trail.id}
+      trail={trail}
+      backHref={backHref}
+      onClose={onClose}
+    />
+  )
+}
+
+function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
   const isIndicativeTrail = reliabilityFromQualityStatus(trail.data_quality_status) === 'indicative'
   const mapRef = useRef<MapRef | null>(null)
   const watchIdRef = useRef<number | null>(null)
-  // Distinction intention vs réalité :
-  //   - hasIntentToJoinRef : user a cliqué "Démarrer depuis ici" OU a été détecté physiquement sur le tracé
-  //   - hasPhysicallyReachedRef : distance ≤ TRACKING_TOLERANCE observée au moins une fois
-  // off_track ne se déclenche qu'après une vraie atteinte physique du tracé.
-  const hasIntentToJoinRef = useRef(false)
-  const hasPhysicallyReachedRef = useRef(false)
-  // Tracé réellement parcouru (« breadcrumb ») : points GPS acceptés, accumulés en ref pour
-  // ne PAS re-render la carte à chaque fix. `trackVersion` n'est bumpé qu'à l'acceptation
-  // d'un point → seul ce moment reconstruit la géométrie GeoJSON (react-map-gl diffe `data`).
-  const userTrackRef = useRef<Array<[number, number]>>([])
-  const lastAcceptedPointRef = useRef<TrailCoordinate | null>(null)
-  const lastAcceptedAtRef = useRef<number | null>(null)
-  const [trackVersion, setTrackVersion] = useState(0)
-  const [gpsState, setGpsState] = useState<GpsState>('ready')
+  const stopGpsTracking = useCallback(() => {
+    const watchId = watchIdRef.current
+    if (watchId === null) return
+    watchIdRef.current = null
+    if (!('geolocation' in navigator)) return
+    try {
+      navigator.geolocation.clearWatch(watchId)
+    } catch {
+      // Some browser implementations can throw while clearing an already-ended watcher.
+      // The local session is already frozen, so cleanup must not block its summary.
+    }
+  }, [])
+  const session = useTrailNavigationSession({ stopGps: stopGpsTracking })
+  const sessionActionsRef = useRef({
+    receiveGpsPosition: session.receiveGpsPosition,
+    markGpsDenied: session.markGpsDenied,
+    markGpsUnavailable: session.markGpsUnavailable,
+  })
+  sessionActionsRef.current = {
+    receiveGpsPosition: session.receiveGpsPosition,
+    markGpsDenied: session.markGpsDenied,
+    markGpsUnavailable: session.markGpsUnavailable,
+  }
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
-  const [distanceToTrail, setDistanceToTrail] = useState<number | null>(null)
   const [isHudExpanded, setIsHudExpanded] = useState(false)
-  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false)
+  const closeControlRef = useRef<HTMLElement | null>(null)
+  const shouldFocusCloseControlRef = useRef(false)
   const [northLocked, setNorthLocked] = useState(true)
   const hasManualHudPreferenceRef = useRef(false)
   // Suivi caméra : en mode marche actif, la position utilisateur reste au centre.
   // Le bouton recentrer force aussi un retour immédiat sur la dernière position GPS.
   const [isFollowing, setIsFollowing] = useState(true)
-  const [hasStartedWalking, setHasStartedWalking] = useState(false)
-  const hasStartedWalkingRef = useRef(false)
-  const trackingStartedAtRef = useRef<number | null>(null)
 
   useEffect(() => {
-    return () => {
-      if (watchIdRef.current !== null && 'geolocation' in navigator) {
-        navigator.geolocation.clearWatch(watchIdRef.current)
-      }
-    }
-  }, [])
+    return stopGpsTracking
+  }, [stopGpsTracking])
 
   // Mode immersif : masquer header/footer globaux pendant tout le rendu de cette page
   useEffect(() => {
@@ -88,27 +88,21 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     return () => { document.body.classList.remove('immersive-map') }
   }, [])
 
-  // Chrono : démarre au premier passage en `tracking`, tick chaque seconde
   useEffect(() => {
-    if (gpsState === 'tracking' && trackingStartedAtRef.current === null) {
-      trackingStartedAtRef.current = Date.now()
-    }
-    if (trackingStartedAtRef.current === null) return
-    const tick = () => {
-      const startedAt = trackingStartedAtRef.current
-      if (startedAt !== null) setElapsedSeconds((Date.now() - startedAt) / 1000)
-    }
-    tick()
-    const id = window.setInterval(tick, 1000)
-    return () => window.clearInterval(id)
-  }, [gpsState])
+    if (isSummaryOpen || !shouldFocusCloseControlRef.current) return
+    const frame = window.requestAnimationFrame(() => {
+      shouldFocusCloseControlRef.current = false
+      closeControlRef.current?.focus()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [isSummaryOpen])
 
   // Auto-collapse du HUD selon l'état GPS (mode immersif sur états "en mouvement")
   useEffect(() => {
     if (hasManualHudPreferenceRef.current) return
-    const immersiveStates: GpsState[] = ['approaching', 'tracking', 'off_track']
-    setIsHudExpanded(!immersiveStates.includes(gpsState))
-  }, [gpsState])
+    const immersivePhases: TrailSessionPhase[] = ['approaching', 'tracking']
+    setIsHudExpanded(!immersivePhases.includes(session.phase))
+  }, [session.phase])
 
   function setHudExpandedFromUser(expanded: boolean) {
     hasManualHudPreferenceRef.current = true
@@ -138,13 +132,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   // en conservant zoom / pitch / bearing courants.
   useEffect(() => {
     if (!position) return
-    if (!shouldAutoFollowCamera(gpsState, isFollowing, hasStartedWalking)) return
+    if (!shouldAutoFollowCamera(session.phase, isFollowing)) return
     mapRef.current?.getMap()?.easeTo({
       center: [position.longitude, position.latitude],
       duration: 700,
       essential: true,
     })
-  }, [position, isFollowing, gpsState, hasStartedWalking])
+  }, [position, isFollowing, session.phase])
 
   function tiltMapForImmersion() {
     mapRef.current?.flyTo({
@@ -155,15 +149,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     })
   }
 
-  function startGpsTracking() {
+  const startGpsTracking = useCallback(() => {
     if (!geometry) return
     if (!('geolocation' in navigator)) {
-      setGpsState('gps_denied')
+      session.markGpsUnavailable()
       return
     }
     if (watchIdRef.current !== null) return
 
-    setGpsState('gps_prompt')
+    session.markGpsPrompting()
     setIsFollowing(true)
     tiltMapForImmersion()
     watchIdRef.current = navigator.geolocation.watchPosition(
@@ -174,81 +168,22 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
         }
         setPosition(current)
         setAccuracy(nextPosition.coords.accuracy)
-
-        // Tracé parcouru : on retient le point s'il est assez précis, assez espacé dans le
-        // temps et l'espace, et à une vitesse plausible (rejet des sauts GPS). Indépendant
-        // de l'état GPS (off_track / approaching inclus) — on veut le chemin réel.
-        const nowMs = nextPosition.timestamp ?? Date.now()
-        if (
-          shouldAcceptTrackPoint({
-            last: lastAcceptedPointRef.current,
-            lastAcceptedAtMs: lastAcceptedAtRef.current,
-            next: current,
-            accuracy: nextPosition.coords.accuracy,
-            nowMs,
-          })
-        ) {
-          userTrackRef.current = [...userTrackRef.current, [current.longitude, current.latitude]]
-          lastAcceptedPointRef.current = current
-          lastAcceptedAtRef.current = nowMs
-          setTrackVersion(version => version + 1)
-        }
-
-        if (nextPosition.coords.accuracy > LOW_ACCURACY_THRESHOLD_M) {
-          setGpsState('low_accuracy')
-          return
-        }
-
-        const distanceToTrail = getTrailDistanceMeters(current, geometry)
-        setDistanceToTrail(distanceToTrail)
-
-        // Sur le tracé physiquement (seuil strict) : tant que l'utilisateur n'a pas
-        // explicitement démarré, on garde la carte exploratoire et on propose le départ.
-        if (distanceToTrail <= TRACKING_TOLERANCE_M) {
-          hasIntentToJoinRef.current = true
-          if (!hasStartedWalkingRef.current) {
-            setGpsState('ready_to_join')
-            return
-          }
-          hasPhysicallyReachedRef.current = true
-          setGpsState('tracking')
-          return
-        }
-
-        // Déjà PHYSIQUEMENT atteint le tracé et maintenant trop loin → hors piste (alerte)
-        if (hasPhysicallyReachedRef.current) {
-          if (typeof navigator.vibrate === 'function') navigator.vibrate(200)
-          setGpsState('off_track')
-          return
-        }
-
-        // User a explicitement cliqué "Démarrer depuis ici" mais n'a pas encore physiquement atteint le tracé
-        if (hasIntentToJoinRef.current) {
-          setGpsState('approaching')
-          return
-        }
-
-        // Première approche, dans la zone d'intégration → propose démarrage ici
-        if (distanceToTrail <= JOIN_TOLERANCE_M) {
-          setGpsState('ready_to_join')
-          return
-        }
-
-        // Trop loin pour intégrer
-        setGpsState('pre_start')
+        const distanceToTrailM = getTrailDistanceMeters(current, geometry)
+        sessionActionsRef.current.receiveGpsPosition(nextPosition, distanceToTrailM)
       },
-      () => {
-        setGpsState('gps_denied')
+      error => {
+        if (error.code === error.PERMISSION_DENIED) {
+          sessionActionsRef.current.markGpsDenied()
+          return
+        }
+        sessionActionsRef.current.markGpsUnavailable()
       },
       { enableHighAccuracy: true, timeout: 6_000, maximumAge: 2_000 },
     )
-  }
+  }, [geometry, session.markGpsPrompting, session.markGpsUnavailable])
 
   function recenterOnPosition() {
-    if (!position) {
-      startGpsTracking()
-      return
-    }
+    if (!position) return
     setIsFollowing(true)
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
@@ -259,31 +194,18 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     })
   }
 
-  function confirmJoinFromHere() {
-    hasIntentToJoinRef.current = true
-    hasStartedWalkingRef.current = true
-    setHasStartedWalking(true)
-    if (distanceToTrail !== null && distanceToTrail <= TRACKING_TOLERANCE_M) {
-      hasPhysicallyReachedRef.current = true
-      setGpsState('tracking')
-      return
-    }
-    setGpsState('approaching')
-  }
-
   const progress = useMemo(() => {
     if (!position || !geometry) return null
-    if (gpsState === 'pre_start' || gpsState === 'gps_denied' || gpsState === 'ready') return null
+    if (session.phase === 'pre_start' || session.phase === 'idle') return null
     return getPositionProgress(position, geometry)
-  }, [geometry, gpsState, position])
+  }, [geometry, position, session.phase])
 
-  // Cible : point le plus proche du tracé avant démarrage effectif.
-  // Après "Démarrer depuis ici", on retire la liaison visuelle pour garder la carte lisible.
+  // Cible locale avant le départ et pendant l'approche, sans transmettre la position.
   const approachTarget = useMemo(() => {
     if (!position || !geometry) return null
-    if (gpsState !== 'ready_to_join' && gpsState !== 'pre_start') return null
+    if (!(['ready_to_join', 'pre_start', 'approaching'] as TrailSessionPhase[]).includes(session.phase)) return null
     return getClosestPointOnTrail(position, geometry)
-  }, [geometry, gpsState, position])
+  }, [geometry, position, session.phase])
 
   // Segment d'approche en ligne droite (fallback toujours dispo)
   const approachLine = useMemo(() => {
@@ -301,55 +223,6 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     }
   }, [position, approachTarget])
 
-  // Itinéraire réel ORS (chemin sur routes/sentiers) — remplace le pointillé droit quand dispo
-  const [walkingRoute, setWalkingRoute] = useState<{ geometry: { type: 'LineString'; coordinates: Array<[number, number]> }; distance_m: number } | null>(null)
-  const lastFetchPositionRef = useRef<{ lat: number; lng: number; targetLat: number; targetLng: number } | null>(null)
-
-  useEffect(() => {
-    if (!position || !approachTarget) {
-      setWalkingRoute(null)
-      return
-    }
-    // Re-fetch seulement si la position OU la cible a bougé > 50m depuis le dernier appel
-    const last = lastFetchPositionRef.current
-    if (last) {
-      const movedSelf = haversineMeters(position, { latitude: last.lat, longitude: last.lng })
-      const movedTarget = haversineMeters(approachTarget, { latitude: last.targetLat, longitude: last.targetLng })
-      if (movedSelf < 50 && movedTarget < 50) return
-    }
-    const controller = new AbortController()
-    const debounceId = window.setTimeout(async () => {
-      try {
-        const res = await fetch('/api/trails/walking-route', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from: [position.longitude, position.latitude],
-            to: [approachTarget.longitude, approachTarget.latitude],
-          }),
-          signal: controller.signal,
-        })
-        if (!res.ok) return
-        const json = (await res.json()) as { data?: { geometry: { type: 'LineString'; coordinates: Array<[number, number]> }; distance_m: number } | null }
-        if (json.data) {
-          setWalkingRoute({ geometry: json.data.geometry, distance_m: json.data.distance_m })
-          lastFetchPositionRef.current = {
-            lat: position.latitude,
-            lng: position.longitude,
-            targetLat: approachTarget.latitude,
-            targetLng: approachTarget.longitude,
-          }
-        }
-      } catch {
-        // Silent : fallback sur pointillé droit
-      }
-    }, 600)
-    return () => {
-      controller.abort()
-      window.clearTimeout(debounceId)
-    }
-  }, [position, approachTarget])
-
   // Cercle d'incertitude GPS (accuracy en mètres)
   const accuracyCircle = useMemo(() => {
     if (!position || !accuracy) return null
@@ -360,18 +233,16 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     }
   }, [accuracy, position])
 
-  // Tracé réellement parcouru : on garde le brut en mémoire (userTrackRef) et on affiche
-  // une version lissée (moyenne glissante) pour atténuer le jitter GPS. Reconstruit
-  // uniquement quand un point est accepté (trackVersion). Null tant qu'on a < 2 points.
   const userTrackLine = useMemo(() => {
-    void trackVersion
-    if (userTrackRef.current.length < 2) return null
+    if (session.points.length < 2) return null
+    const coordinates = sampleBreadcrumbPoints(session.points)
+      .map(point => [point.longitude, point.latitude] as [number, number])
     return {
       type: 'Feature' as const,
       properties: {},
-      geometry: { type: 'LineString' as const, coordinates: smoothTrack(userTrackRef.current) },
+      geometry: { type: 'LineString' as const, coordinates: smoothTrack(coordinates) },
     }
-  }, [trackVersion])
+  }, [session.points.length])
 
   // Détection rando en boucle : start et end ≤ 50m → un seul marqueur fusionné
   const isLoopTrail = useMemo(() => {
@@ -381,11 +252,11 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   // Couleur du marker selon l'état
   const markerColor = useMemo(() => {
-    if (gpsState === 'off_track') return '#DC2626' // rouge
-    if (gpsState === 'tracking') return '#16A34A'  // vert
-    if (gpsState === 'approaching') return '#F59E0B' // ambre
+    if (session.isOffTrack) return '#DC2626'
+    if (session.phase === 'tracking') return '#16A34A'
+    if (session.phase === 'approaching') return '#F59E0B'
     return '#2563EB' // bleu (ready_to_join, autres)
-  }, [gpsState])
+  }, [session.isOffTrack, session.phase])
 
   if (!geometry || !endpoints) {
     return (
@@ -400,7 +271,45 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
     )
   }
 
-  const statusLabel = gpsState === 'tracking' ? 'GPS actif' : gpsStateLabel(gpsState)
+  const statusLabel = sessionPhaseLabel(session.phase)
+  const healthLabel = gpsHealthLabel(session.gpsHealth)
+  const hasSessionMetrics = session.isActive || session.phase === 'stopped'
+  const displayedDistance = hasSessionMetrics
+    ? `${(session.distanceM / 1000).toFixed(2)} km`
+    : trail.distance_km !== null
+      ? `${trail.distance_km.toFixed(1)} km`
+      : 'n/a'
+  const displayedDuration = session.elapsedSeconds !== null
+    ? formatElapsedSeconds(session.elapsedSeconds)
+    : formatDuration(trail.estimated_duration_min)
+  const setCloseControlRef = (node: HTMLElement | null) => {
+    closeControlRef.current = node
+  }
+  const closeControl = onClose ? (
+    <button
+      ref={setCloseControlRef}
+      type="button"
+      onClick={onClose}
+      aria-label="Fermer"
+      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+    >
+      <X className="h-5 w-5" />
+    </button>
+  ) : (
+    <Link ref={setCloseControlRef} href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
+      <X className="h-5 w-5" />
+    </Link>
+  )
+
+  function stopSessionAndOpenSummary() {
+    const frozen = session.stopSession()
+    if (frozen !== null) setIsSummaryOpen(true)
+  }
+
+  function closeSummaryAndFocusMapControl() {
+    shouldFocusCloseControlRef.current = true
+    setIsSummaryOpen(false)
+  }
 
   return (
     <main className="relative mx-auto h-screen w-full max-w-[430px] overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
@@ -488,9 +397,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             />
           </Source>
         )}
-        {/* Pointillé droit (fallback toujours visible quand pas de route ORS) — rouge vif
-            quelle que soit la couleur d'état pour attirer l'attention */}
-        {approachLine && !walkingRoute && (
+        {approachLine && (
           <Source id="approach-line" type="geojson" data={approachLine}>
             <Layer
               id="approach-line-halo"
@@ -509,29 +416,6 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
                 'line-color': '#ef4444',
                 'line-width': 4,
                 'line-dasharray': [2, 2],
-                'line-opacity': 0.95,
-              }}
-            />
-          </Source>
-        )}
-        {/* Vrai itinéraire de marche ORS — suit les routes & sentiers */}
-        {walkingRoute && (
-          <Source id="walking-route" type="geojson" data={{ type: 'Feature', properties: {}, geometry: walkingRoute.geometry }}>
-            <Layer
-              id="walking-route-halo"
-              type="line"
-              paint={{
-                'line-color': '#ffffff',
-                'line-width': 8,
-                'line-opacity': 0.7,
-              }}
-            />
-            <Layer
-              id="walking-route-line"
-              type="line"
-              paint={{
-                'line-color': '#6366F1',
-                'line-width': 5,
                 'line-opacity': 0.95,
               }}
             />
@@ -562,8 +446,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             <span
               className="block h-[18px] w-[18px] rounded-full border-[3px] border-white"
               style={{
-                backgroundColor: POSITION_BLUE,
-                boxShadow: `0 0 0 2px ${POSITION_BLUE}55, 0 2px 8px rgba(0,0,0,0.35)`,
+                backgroundColor: markerColor,
+                boxShadow: `0 0 0 2px ${markerColor}55, 0 2px 8px rgba(0,0,0,0.35)`,
               }}
               aria-label="Ma position"
             />
@@ -572,20 +456,17 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       </Map>
 
       <div className="absolute left-5 right-5 top-6 flex items-center justify-between">
-        {onClose ? (
+        {session.isActive ? (
           <button
             type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+            onClick={stopSessionAndOpenSummary}
+            aria-label="Stop"
+            className="flex h-11 items-center justify-center gap-2 rounded-full bg-red-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow"
           >
-            <X className="h-5 w-5" />
+            <Square className="h-3.5 w-3.5" fill="currentColor" />
+            Stop
           </button>
-        ) : (
-          <Link href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
-            <X className="h-5 w-5" />
-          </Link>
-        )}
+        ) : closeControl}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -604,6 +485,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           <button
             type="button"
             onClick={recenterOnPosition}
+            disabled={position === null}
             aria-pressed={isFollowing && !!position}
             className={`flex h-11 w-11 items-center justify-center rounded-full shadow transition-colors ${
               isFollowing && position ? 'bg-[#455E4C] text-white' : 'bg-white/90 text-charcoal'
@@ -611,7 +493,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             aria-label={
               position
                 ? 'Recentrer sur ma position'
-                : 'Activer la localisation'
+                : 'Position indisponible'
             }
           >
             <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-[#455E4C]' : ''}`} />
@@ -622,16 +504,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       {!isHudExpanded && (
         <NavigationHud
           statusColor={markerColor}
-          healthColor={gpsHealthColor(gpsState)}
-          statusLabel={gpsState === 'tracking' ? 'GPS actif' : gpsStateLabel(gpsState)}
-          distanceRemainingKm={
-            progress && trail.distance_km
-              ? Math.max(0, trail.distance_km - progress.distance_m / 1000)
-              : trail.distance_km
-          }
-          progressPercent={progress ? progress.percent : null}
-          elapsedSeconds={elapsedSeconds}
-          pulse={gpsState === 'off_track'}
+          healthColor={gpsHealthColor(session.gpsHealth)}
+          healthLabel={healthLabel}
+          statusLabel={statusLabel}
+          distanceKm={hasSessionMetrics ? session.distanceM / 1000 : trail.distance_km}
+          entryProgressPercent={session.phase === 'ready_to_join' && progress ? progress.percent : null}
+          elapsedSeconds={session.elapsedSeconds}
+          pulse={session.isOffTrack}
           onExpand={() => setHudExpandedFromUser(true)}
         />
       )}
@@ -646,19 +525,20 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#db2777]">Guidage randonnée</p> */}
             <h1 className="mt-1 uppercase text-xlleading-tight text-[#121212]">{trail.name}</h1>
             <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-charcoal/70">{statusLabel}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span
               className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm"
-              title={statusLabel}
-              aria-label={`GPS — ${statusLabel}`}
+              aria-label={healthLabel}
             >
-              GPS
+              {healthLabel}
               <span
                 data-testid="gps-health-dot"
                 className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: gpsHealthColor(gpsState) }}
-                aria-hidden="true"
+                style={{ backgroundColor: gpsHealthColor(session.gpsHealth) }}
+                aria-label={healthLabel}
+                title={healthLabel}
               />
             </span>
             <button
@@ -672,13 +552,15 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-          <Metric label="Distance" value={trail.distance_km ? `${trail.distance_km.toFixed(1)} km` : 'n/a'} />
-          <Metric label="Durée" value={formatDuration(trail.estimated_duration_min)} />
-          <Metric label="D+" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
+        <div className={`mt-4 grid gap-2 text-center text-xs ${hasSessionMetrics ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <Metric label="Distance" value={displayedDistance} />
+          <Metric label="Durée" value={displayedDuration} />
+          {!hasSessionMetrics && (
+            <Metric label="D+" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
+          )}
         </div>
 
-        {gpsState === 'ready' && (
+        {session.gpsHealth === 'inactive' && (
           <button
             type="button"
             onClick={startGpsTracking}
@@ -689,43 +571,33 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </button>
         )}
 
-        {progress && (
-          <p className="mt-3 text-xs text-charcoal/60">
-            Progression indicative : {Math.round(progress.percent)}% · {Math.round(progress.distance_m)} m parcourus estimés.
-          </p>
-        )}
-
-        {gpsState === 'ready_to_join' && (
+        {session.phase === 'ready_to_join' && session.canStart && (
           <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
             <p className="font-semibold text-charcoal">
-              Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé.
+              Vous êtes à {session.distanceToTrailM !== null ? Math.round(session.distanceToTrailM) : '?'} m du tracé.
             </p>
             {progress && (
               <p className="mt-1">
-                Point d&apos;entrée estimé : <strong>{Math.round(progress.percent)}%</strong> du parcours
-                ({Math.round(progress.distance_m)} m parcourus si vous démarrez ici).
+                Point d&apos;entrée estimé : <strong>{Math.round(progress.percent)}%</strong> du parcours.
               </p>
             )}
             <button
               type="button"
-              onClick={confirmJoinFromHere}
+              onClick={session.startSession}
               className="mt-3 w-full rounded-full bg-[#455E4C] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
             >
-              Démarrer depuis ici
+              Démarrer ici
             </button>
           </div>
         )}
 
-        {gpsState === 'pre_start' && (
+        {session.phase === 'pre_start' && (
           <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65">
             <p className="font-semibold text-red-600">
-              Vous êtes à {distanceToTrail ? Math.round(distanceToTrail) : '?'} m du tracé
-              {walkingRoute && (
-                <span className="font-normal text-charcoal/55"> ({Math.round(walkingRoute.distance_m)} m à pied par les chemins)</span>
-              )}.
+              Vous êtes à {session.distanceToTrailM !== null ? Math.round(session.distanceToTrailM) : '?'} m du tracé.
             </p>
             <p className="mt-1">
-              Rapprochez-vous à moins de {JOIN_TOLERANCE_M} m pour démarrer le guidage — vous pourrez démarrer
+              Rapprochez-vous à {SESSION_START_MAX_DISTANCE_M} m ou moins pour démarrer le guidage — vous pourrez démarrer
               <strong> en n&apos;importe quel point</strong> du tracé, pas obligatoirement au début.
             </p>
             <div className="mt-3 flex flex-col gap-2">
@@ -751,29 +623,44 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </div>
         )}
 
-        {gpsState === 'approaching' && (
+        {session.phase === 'approaching' && (
           <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
             <p className="font-semibold text-charcoal flex items-center gap-2">
               <Navigation className="h-4 w-4 text-[#455E4C]" />
               En route vers le tracé.
             </p>
             <p className="mt-1">
-              Encore <strong>{distanceToTrail ? Math.round(distanceToTrail) : '?'} m</strong>. Le guidage actif démarrera dès que vous serez sur le sentier.
+              Encore <strong>{session.distanceToTrailM !== null ? Math.round(session.distanceToTrailM) : '?'} m</strong>. Le guidage actif démarrera dès que vous serez sur le sentier.
             </p>
           </div>
         )}
 
-        {gpsState === 'off_track' && (
+        {session.isOffTrack && (
           <div className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             Vous semblez vous éloigner du tracé.
           </div>
         )}
 
-        {gpsState === 'low_accuracy' && (
+        {session.gpsHealth === 'low_accuracy' && (
           <div className="mt-3 flex items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-charcoal/65">
             <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-[#db2777]" />
             Précision GPS faible{accuracy ? ` (${Math.round(accuracy)} m)` : ''}. Le guidage reste indicatif.
+          </div>
+        )}
+
+        {(session.gpsHealth === 'denied' || session.gpsHealth === 'unavailable') && (
+          <div
+            role="status"
+            className="mt-3 flex items-start gap-2 rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-800"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              <strong>{healthLabel}</strong>.
+              {session.isActive
+                ? ' La session continue avec les statistiques déjà acquises. Stop reste disponible.'
+                : ' Le tracé reste consultable sans suivi en direct.'}
+            </p>
           </div>
         )}
 
@@ -784,6 +671,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </p>
         </div> */}
       </section>
+      {isSummaryOpen && session.summary && (
+        <TrailSessionSummaryModal
+          summary={session.summary}
+          onViewTrail={closeSummaryAndFocusMapControl}
+          {...(onClose ? { onExit: onClose } : { exitHref: backHref })}
+        />
+      )}
     </main>
   )
 }
@@ -806,31 +700,51 @@ function formatDuration(minutes: number | null): string {
   return `${hours} h ${remaining}`
 }
 
-function haversineMeters(a: TrailCoordinate, b: TrailCoordinate): number {
-  const R = 6_371_000
-  const lat1 = (a.latitude * Math.PI) / 180
-  const lat2 = (b.latitude * Math.PI) / 180
-  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180
-  const dLng = ((b.longitude - a.longitude) * Math.PI) / 180
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
+function formatElapsedSeconds(seconds: number): string {
+  const totalMinutes = Math.floor(seconds / 60)
+  if (totalMinutes < 60) return `${totalMinutes} min`
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return `${hours} h ${minutes.toString().padStart(2, '0')} min`
 }
 
 // Santé du signal GPS résumée en feu tricolore (indépendant de l'état de navigation,
 // qui reste véhiculé par les blocs et le marqueur carte).
-function gpsHealthColor(status: GpsState): string {
-  if (status === 'gps_denied') return '#DC2626'                                                    // 🔴 indisponible
-  if (status === 'gps_prompt' || status === 'low_accuracy' || status === 'ready') return '#F59E0B' // 🟠 acquisition
-  return '#16A34A'                                                                                 // 🟢 fix fiable
+function gpsHealthColor(health: TrailGpsHealth): string {
+  if (health === 'denied' || health === 'unavailable') return '#DC2626'
+  if (health === 'inactive' || health === 'prompting' || health === 'low_accuracy') return '#F59E0B'
+  return '#16A34A'
 }
 
-function gpsStateLabel(status: GpsState): string {
-  if (status === 'ready') return 'Prêt'
-  if (status === 'gps_prompt') return 'GPS en attente'
-  if (status === 'ready_to_join') return 'Prêt à intégrer'
-  if (status === 'approaching') return 'Approche du tracé'
-  if (status === 'pre_start') return 'Trop loin du tracé'
-  if (status === 'off_track') return 'Hors tracé'
-  if (status === 'low_accuracy') return 'Précision GPS faible'
-  return 'GPS indisponible'
+export function gpsHealthLabel(health: TrailGpsHealth): string {
+  if (health === 'inactive') return 'GPS inactif'
+  if (health === 'prompting') return 'Recherche GPS'
+  if (health === 'good') return 'Signal GPS fiable'
+  if (health === 'low_accuracy') return 'Précision GPS faible'
+  if (health === 'denied') return 'Accès GPS refusé'
+  return 'Signal GPS indisponible'
+}
+
+export function sampleBreadcrumbPoints<T>(
+  points: readonly T[],
+  maximumPoints = 500,
+): readonly T[] {
+  if (!Number.isInteger(maximumPoints) || maximumPoints < 2) {
+    throw new RangeError('maximumPoints must be an integer of at least 2')
+  }
+  if (points.length <= maximumPoints) return points
+
+  return Array.from({ length: maximumPoints }, (_, index) => {
+    const sourceIndex = Math.round((index * (points.length - 1)) / (maximumPoints - 1))
+    return points[sourceIndex]
+  })
+}
+
+function sessionPhaseLabel(phase: TrailSessionPhase): string {
+  if (phase === 'ready_to_join') return 'Prêt à démarrer'
+  if (phase === 'approaching') return 'Approche du tracé'
+  if (phase === 'tracking') return 'Suivi du tracé'
+  if (phase === 'pre_start') return 'Trop loin du tracé'
+  if (phase === 'stopped') return 'Session arrêtée'
+  return 'Prêt'
 }
