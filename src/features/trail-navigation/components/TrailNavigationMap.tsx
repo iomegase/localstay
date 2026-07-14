@@ -418,6 +418,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           <button
             type="button"
             onClick={recenterOnPosition}
+            disabled={position === null}
             aria-pressed={isFollowing && !!position}
             className={`flex h-11 w-11 items-center justify-center rounded-full shadow transition-colors ${
               isFollowing && position ? 'bg-[#455E4C] text-white' : 'bg-white/90 text-charcoal'

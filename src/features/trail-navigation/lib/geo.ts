@@ -117,26 +117,27 @@ export function getLineEndpoints(geometry: TrailGeometry): { start: TrailCoordin
 }
 
 export function getClosestPointOnTrail(position: TrailCoordinate, geometry: TrailGeometry): TrailCoordinate {
-  const coordinates = flattenCoordinates(geometry)
+  const lines = getCoordinateLines(geometry)
   let bestDistance = Number.POSITIVE_INFINITY
-  let bestPoint: Coordinate = coordinates[0]
+  let bestPoint: Coordinate = lines[0][0]
 
-  for (let index = 0; index < coordinates.length - 1; index += 1) {
-    const segmentStart = coordinateToPosition(coordinates[index])
-    const segmentEnd = coordinateToPosition(coordinates[index + 1])
-    const startPoint = toLocalPoint(segmentStart, position)
-    const endPoint = toLocalPoint(segmentEnd, position)
-    const projection = projectPointToSegment(toLocalPoint(position, position), startPoint, endPoint)
-    const distance = distanceBetweenPoints(toLocalPoint(position, position), projection.point)
+  for (const coordinates of lines) {
+    for (let index = 0; index < coordinates.length - 1; index += 1) {
+      const segmentStart = coordinateToPosition(coordinates[index])
+      const segmentEnd = coordinateToPosition(coordinates[index + 1])
+      const startPoint = toLocalPoint(segmentStart, position)
+      const endPoint = toLocalPoint(segmentEnd, position)
+      const projection = projectPointToSegment(toLocalPoint(position, position), startPoint, endPoint)
+      const distance = distanceBetweenPoints(toLocalPoint(position, position), projection.point)
 
-    if (distance < bestDistance) {
-      bestDistance = distance
-      // Reconvertir le point projeté en lng/lat via interpolation
-      const t = projection.t
-      bestPoint = [
-        segmentStart.longitude + t * (segmentEnd.longitude - segmentStart.longitude),
-        segmentStart.latitude + t * (segmentEnd.latitude - segmentStart.latitude),
-      ]
+      if (distance < bestDistance) {
+        bestDistance = distance
+        const t = projection.t
+        bestPoint = [
+          segmentStart.longitude + t * (segmentEnd.longitude - segmentStart.longitude),
+          segmentStart.latitude + t * (segmentEnd.latitude - segmentStart.latitude),
+        ]
+      }
     }
   }
 
@@ -144,16 +145,17 @@ export function getClosestPointOnTrail(position: TrailCoordinate, geometry: Trai
 }
 
 export function getTrailDistanceMeters(position: TrailCoordinate, geometry: TrailGeometry): number {
-  const coordinates = flattenCoordinates(geometry)
   const projectedPosition = toLocalPoint(position, position)
   let min = Number.POSITIVE_INFINITY
 
-  for (let index = 0; index < coordinates.length - 1; index += 1) {
-    const segmentStart = coordinateToPosition(coordinates[index])
-    const segmentEnd = coordinateToPosition(coordinates[index + 1])
-    const startPoint = toLocalPoint(segmentStart, position)
-    const endPoint = toLocalPoint(segmentEnd, position)
-    min = Math.min(min, distancePointToSegment(projectedPosition, startPoint, endPoint))
+  for (const coordinates of getCoordinateLines(geometry)) {
+    for (let index = 0; index < coordinates.length - 1; index += 1) {
+      const segmentStart = coordinateToPosition(coordinates[index])
+      const segmentEnd = coordinateToPosition(coordinates[index + 1])
+      const startPoint = toLocalPoint(segmentStart, position)
+      const endPoint = toLocalPoint(segmentEnd, position)
+      min = Math.min(min, distancePointToSegment(projectedPosition, startPoint, endPoint))
+    }
   }
 
   return min
@@ -163,32 +165,32 @@ export function getPositionProgress(
   position: TrailCoordinate,
   geometry: TrailGeometry,
 ): { percent: number; distance_m: number } {
-  const coordinates = flattenCoordinates(geometry)
   let total = 0
-  let progressed = 0
   let bestDistance = Number.POSITIVE_INFINITY
   let distanceBeforeBestSegment = 0
   let distanceOnBestSegment = 0
 
-  for (let index = 0; index < coordinates.length - 1; index += 1) {
-    const start = coordinateToPosition(coordinates[index])
-    const end = coordinateToPosition(coordinates[index + 1])
-    const segmentLength = haversineMeters(start, end)
-    const startPoint = toLocalPoint(start, position)
-    const endPoint = toLocalPoint(end, position)
-    const projection = projectPointToSegment(toLocalPoint(position, position), startPoint, endPoint)
-    const distance = distanceBetweenPoints(toLocalPoint(position, position), projection.point)
+  for (const coordinates of getCoordinateLines(geometry)) {
+    for (let index = 0; index < coordinates.length - 1; index += 1) {
+      const start = coordinateToPosition(coordinates[index])
+      const end = coordinateToPosition(coordinates[index + 1])
+      const segmentLength = haversineMeters(start, end)
+      const startPoint = toLocalPoint(start, position)
+      const endPoint = toLocalPoint(end, position)
+      const projection = projectPointToSegment(toLocalPoint(position, position), startPoint, endPoint)
+      const distance = distanceBetweenPoints(toLocalPoint(position, position), projection.point)
 
-    if (distance < bestDistance) {
-      bestDistance = distance
-      distanceBeforeBestSegment = total
-      distanceOnBestSegment = segmentLength * projection.t
+      if (distance < bestDistance) {
+        bestDistance = distance
+        distanceBeforeBestSegment = total
+        distanceOnBestSegment = segmentLength * projection.t
+      }
+
+      total += segmentLength
     }
-
-    total += segmentLength
   }
 
-  progressed = distanceBeforeBestSegment + distanceOnBestSegment
+  const progressed = distanceBeforeBestSegment + distanceOnBestSegment
   return {
     percent: total === 0 ? 0 : Math.max(0, Math.min(100, (progressed / total) * 100)),
     distance_m: progressed,
@@ -226,6 +228,10 @@ function isCoordinate(value: unknown): value is Coordinate {
 
 function flattenCoordinates(geometry: TrailGeometry): Coordinate[] {
   return geometry.type === 'LineString' ? geometry.coordinates : geometry.coordinates.flat()
+}
+
+function getCoordinateLines(geometry: TrailGeometry): Coordinate[][] {
+  return geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates
 }
 
 function coordinateToPosition(coordinate: Coordinate): TrailCoordinate {

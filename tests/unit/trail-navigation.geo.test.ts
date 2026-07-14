@@ -1,4 +1,5 @@
 import {
+  getClosestPointOnTrail,
   getLineEndpoints,
   getPositionProgress,
   getTrailDistanceMeters,
@@ -46,6 +47,46 @@ describe('021 trail navigation geometry utilities', () => {
     expect(progress.percent).toBeGreaterThan(30)
     expect(progress.percent).toBeLessThan(70)
     expect(progress.distance_m).toBeGreaterThan(0)
+  })
+
+  it('never treats the gap between disconnected MultiLineString parts as trail', () => {
+    const disconnected = {
+      type: 'MultiLineString',
+      coordinates: [
+        [[0, 0], [0.01, 0]],
+        [[0.01, 0.1], [0.02, 0.1]],
+      ],
+    } as const
+    const positionOnSyntheticConnector = { longitude: 0.01, latitude: 0.07 }
+
+    expect(getTrailDistanceMeters(positionOnSyntheticConnector, disconnected)).toBeGreaterThan(3_000)
+    expect(getClosestPointOnTrail(positionOnSyntheticConnector, disconnected)).toEqual({
+      longitude: 0.01,
+      latitude: 0.1,
+    })
+
+    const progress = getPositionProgress(positionOnSyntheticConnector, disconnected)
+    expect(progress.percent).toBeGreaterThanOrEqual(49)
+    expect(progress.percent).toBeLessThanOrEqual(51)
+    expect(progress.distance_m).toBeGreaterThan(1_000)
+    expect(progress.distance_m).toBeLessThan(1_200)
+  })
+
+  it('keeps stable return values for a valid zero-length trail segment', () => {
+    const degenerate = {
+      type: 'LineString',
+      coordinates: [[6.7, 45.9], [6.7, 45.9]],
+    } as const
+
+    expect(getTrailDistanceMeters({ longitude: 6.7, latitude: 45.9 }, degenerate)).toBe(0)
+    expect(getClosestPointOnTrail({ longitude: 6.71, latitude: 45.91 }, degenerate)).toEqual({
+      longitude: 6.7,
+      latitude: 45.9,
+    })
+    expect(getPositionProgress({ longitude: 6.71, latitude: 45.91 }, degenerate)).toEqual({
+      percent: 0,
+      distance_m: 0,
+    })
   })
 })
 
