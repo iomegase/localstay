@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 import { haversineMeters } from '@/features/trail-navigation/lib/geo'
@@ -333,6 +333,36 @@ describe('021 trail navigation start mode', () => {
     })
 
     expect(await screen.findByRole('button', { name: 'Démarrer ici' })).toBeInTheDocument()
+  })
+
+  it('shows entry progress before start, then only live session distance and duration', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      gpsSuccess = success
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => {
+      gpsSuccess?.(makePosition({ latitude: 45.875, longitude: 6.676 }))
+    })
+
+    const startButton = await screen.findByRole('button', { name: 'Démarrer ici' })
+    expect(screen.getByText(/Point d'entrée estimé :/i)).toBeInTheDocument()
+    expect(screen.queryByText(/m parcourus estimés/i)).not.toBeInTheDocument()
+
+    await userEvent.click(startButton)
+
+    const panel = within(screen.getByTestId('trail-navigation-panel'))
+    expect(panel.getByText('0.00 km')).toBeInTheDocument()
+    expect(panel.getByText('0 min')).toBeInTheDocument()
+    expect(panel.queryByText('D+')).not.toBeInTheDocument()
+    expect(panel.queryByText(/Point d'entrée estimé/i)).not.toBeInTheDocument()
   })
 
   it('never sends the GPS position to the walking-route API', async () => {

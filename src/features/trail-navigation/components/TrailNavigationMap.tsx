@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, RotateCcw, Unlock, X } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, RotateCcw, Square, Unlock, X } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
@@ -11,6 +11,7 @@ import { SESSION_START_MAX_DISTANCE_M } from '../lib/session-stats'
 import { useTrailNavigationSession } from '../hooks/useTrailNavigationSession'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { NavigationHud } from './NavigationHud'
+import { TrailSessionSummaryModal } from './TrailSessionSummaryModal'
 
 const POSITION_BLUE = '#2563EB'
 
@@ -50,6 +51,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   const [position, setPosition] = useState<TrailCoordinate | null>(null)
   const [accuracy, setAccuracy] = useState<number | null>(null)
   const [isHudExpanded, setIsHudExpanded] = useState(false)
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false)
   const [northLocked, setNorthLocked] = useState(true)
   const hasManualHudPreferenceRef = useRef(false)
   // Suivi caméra : en mode marche actif, la position utilisateur reste au centre.
@@ -240,6 +242,29 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
   }
 
   const statusLabel = sessionPhaseLabel(session.phase)
+  const hasSessionMetrics = session.isActive || session.phase === 'stopped'
+  const displayedDistance = hasSessionMetrics
+    ? `${(session.distanceM / 1000).toFixed(2)} km`
+    : trail.distance_km !== null
+      ? `${trail.distance_km.toFixed(1)} km`
+      : 'n/a'
+  const displayedDuration = session.elapsedSeconds !== null
+    ? formatElapsedSeconds(session.elapsedSeconds)
+    : formatDuration(trail.estimated_duration_min)
+  const closeControl = onClose ? (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Fermer"
+      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+    >
+      <X className="h-5 w-5" />
+    </button>
+  ) : (
+    <Link href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
+      <X className="h-5 w-5" />
+    </Link>
+  )
 
   return (
     <main className="relative mx-auto h-screen w-full max-w-[430px] overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
@@ -386,20 +411,20 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
       </Map>
 
       <div className="absolute left-5 right-5 top-6 flex items-center justify-between">
-        {onClose ? (
+        {session.isActive ? (
           <button
             type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+            onClick={() => {
+              session.stopSession()
+              setIsSummaryOpen(true)
+            }}
+            aria-label="Stop"
+            className="flex h-11 items-center justify-center gap-2 rounded-full bg-red-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow"
           >
-            <X className="h-5 w-5" />
+            <Square className="h-3.5 w-3.5" fill="currentColor" />
+            Stop
           </button>
-        ) : (
-          <Link href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
-            <X className="h-5 w-5" />
-          </Link>
-        )}
+        ) : closeControl}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -439,12 +464,8 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           statusColor={markerColor}
           healthColor={gpsHealthColor(session.gpsHealth)}
           statusLabel={sessionPhaseLabel(session.phase)}
-          distanceRemainingKm={
-            progress && trail.distance_km
-              ? Math.max(0, trail.distance_km - progress.distance_m / 1000)
-              : trail.distance_km
-          }
-          progressPercent={progress ? progress.percent : null}
+          distanceKm={hasSessionMetrics ? session.distanceM / 1000 : trail.distance_km}
+          entryProgressPercent={session.phase === 'ready_to_join' && progress ? progress.percent : null}
           elapsedSeconds={session.elapsedSeconds}
           pulse={session.isOffTrack}
           onExpand={() => setHudExpandedFromUser(true)}
@@ -487,10 +508,12 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-          <Metric label="Distance" value={trail.distance_km ? `${trail.distance_km.toFixed(1)} km` : 'n/a'} />
-          <Metric label="Durée" value={formatDuration(trail.estimated_duration_min)} />
-          <Metric label="D+" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
+        <div className={`mt-4 grid gap-2 text-center text-xs ${hasSessionMetrics ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <Metric label="Distance" value={displayedDistance} />
+          <Metric label="Durée" value={displayedDuration} />
+          {!hasSessionMetrics && (
+            <Metric label="D+" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
+          )}
         </div>
 
         {session.gpsHealth === 'inactive' && (
@@ -504,12 +527,6 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </button>
         )}
 
-        {progress && (
-          <p className="mt-3 text-xs text-charcoal/60">
-            Progression indicative : {Math.round(progress.percent)}% · {Math.round(progress.distance_m)} m parcourus estimés.
-          </p>
-        )}
-
         {session.phase === 'ready_to_join' && session.canStart && (
           <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
             <p className="font-semibold text-charcoal">
@@ -517,8 +534,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
             </p>
             {progress && (
               <p className="mt-1">
-                Point d&apos;entrée estimé : <strong>{Math.round(progress.percent)}%</strong> du parcours
-                (à {Math.round(progress.distance_m)} m du début du tracé).
+                Point d&apos;entrée estimé : <strong>{Math.round(progress.percent)}%</strong> du parcours.
               </p>
             )}
             <button
@@ -596,6 +612,13 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
           </p>
         </div> */}
       </section>
+      {isSummaryOpen && session.summary && (
+        <TrailSessionSummaryModal
+          summary={session.summary}
+          onViewTrail={() => setIsSummaryOpen(false)}
+          {...(onClose ? { onExit: onClose } : { exitHref: backHref })}
+        />
+      )}
     </main>
   )
 }
@@ -616,6 +639,14 @@ function formatDuration(minutes: number | null): string {
   if (hours === 0) return `${remaining} min`
   if (remaining === 0) return `${hours} h`
   return `${hours} h ${remaining}`
+}
+
+function formatElapsedSeconds(seconds: number): string {
+  const totalMinutes = Math.floor(seconds / 60)
+  if (totalMinutes < 60) return `${totalMinutes} min`
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return `${hours} h ${minutes.toString().padStart(2, '0')} min`
 }
 
 // Santé du signal GPS résumée en feu tricolore (indépendant de l'état de navigation,

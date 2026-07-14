@@ -6,8 +6,8 @@ type Props = {
   statusColor: string
   healthColor: string
   statusLabel: string
-  distanceRemainingKm: number | null
-  progressPercent: number | null
+  distanceKm: number | null
+  entryProgressPercent: number | null
   elapsedSeconds: number | null
   pulse: boolean
   onExpand: () => void
@@ -17,14 +17,12 @@ export function NavigationHud({
   statusColor,
   healthColor,
   statusLabel,
-  distanceRemainingKm,
-  progressPercent,
+  distanceKm,
+  entryProgressPercent,
   elapsedSeconds,
   pulse,
   onExpand,
 }: Props) {
-  const percent = progressPercent ?? 0
-
   return (
     <div
       data-testid="trail-navigation-hud"
@@ -44,14 +42,14 @@ export function NavigationHud({
           />
         </div>
         <div className="flex items-center gap-3 text-xs font-medium text-charcoal">
-          {distanceRemainingKm !== null && (
-            <span><strong>{distanceRemainingKm.toFixed(1)}</strong> km</span>
+          {distanceKm !== null && (
+            <span><strong>{distanceKm.toFixed(1)}</strong> km</span>
           )}
-          {progressPercent !== null && (
+          {entryProgressPercent !== null && (
             <span className="text-charcoal/60">·</span>
           )}
-          {progressPercent !== null && (
-            <span><strong>{Math.round(progressPercent)}</strong>%</span>
+          {entryProgressPercent !== null && (
+            <span><strong>{Math.round(entryProgressPercent)}</strong>%</span>
           )}
           {elapsedSeconds !== null && (
             <span className="text-charcoal/60">·</span>
@@ -69,12 +67,17 @@ export function NavigationHud({
           <ChevronUp className="h-4 w-4" />
         </button>
       </div>
-      <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-charcoal/10">
-        <div
-          className="h-full transition-all duration-500 ease-out"
-          style={{ width: `${Math.min(100, Math.max(0, percent))}%`, backgroundColor: statusColor }}
-        />
-      </div>
+      {entryProgressPercent !== null && (
+        <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-charcoal/10">
+          <div
+            className="h-full transition-all duration-500 ease-out"
+            style={{
+              width: `${Math.min(100, Math.max(0, entryProgressPercent))}%`,
+              backgroundColor: statusColor,
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
