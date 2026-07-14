@@ -23,6 +23,8 @@ export function isTrailSessionStartEligible({
   nowMs,
 }: EligibilityInput): boolean {
   if (!gpsActive || point === null || distanceToTrailM === null) return false
+  if (!Number.isFinite(point.accuracy) || point.accuracy < 0) return false
+  if (!Number.isFinite(distanceToTrailM) || distanceToTrailM < 0) return false
   const ageMs = nowMs - point.timestampMs
   return (
     ageMs >= 0 &&
@@ -40,7 +42,9 @@ export function toTrailSessionPoint(position: GeolocationPosition): TrailSession
     accuracy: position.coords.accuracy,
     timestampMs: position.timestamp,
     altitude: typeof altitude === 'number' && Number.isFinite(altitude) ? altitude : null,
-    altitudeAccuracy: typeof altitudeAccuracy === 'number' && Number.isFinite(altitudeAccuracy)
+    altitudeAccuracy: typeof altitudeAccuracy === 'number' &&
+      Number.isFinite(altitudeAccuracy) &&
+      altitudeAccuracy >= 0
       ? altitudeAccuracy
       : null,
   }
@@ -61,6 +65,7 @@ export function calculateElevationGain(points: readonly TrailSessionPoint[]): nu
       Number.isFinite(point.altitude) &&
       point.altitudeAccuracy !== null &&
       Number.isFinite(point.altitudeAccuracy) &&
+      point.altitudeAccuracy >= 0 &&
       point.altitudeAccuracy <= ALTITUDE_MAX_ACCURACY_M
     ))
     .map(point => point.altitude as number)
