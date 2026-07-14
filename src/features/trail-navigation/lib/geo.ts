@@ -1,25 +1,10 @@
-import type { TrailCoordinate, TrailGeometry, TrailLineString, TrailMultiLineString } from '../types'
+import type { TrailCoordinate, TrailGeometry, TrailLineString, TrailMultiLineString, TrailSessionPhase } from '../types'
 
 type Coordinate = [number, number]
 
-export type TrailGpsState =
-  | 'ready'
-  | 'gps_prompt'
-  | 'tracking'
-  | 'approaching'
-  | 'ready_to_join'
-  | 'pre_start'
-  | 'off_track'
-  | 'low_accuracy'
-  | 'gps_denied'
-
-// États pendant lesquels la caméra peut suivre la position en continu, uniquement après
-// démarrage explicite de la marche. Les états pré-départ restent explorables à la main.
-const CAMERA_FOLLOW_STATES: ReadonlySet<TrailGpsState> = new Set([
+const CAMERA_FOLLOW_PHASES: ReadonlySet<TrailSessionPhase> = new Set([
   'tracking',
   'approaching',
-  'off_track',
-  'low_accuracy',
 ])
 
 /**
@@ -28,11 +13,10 @@ const CAMERA_FOLLOW_STATES: ReadonlySet<TrailGpsState> = new Set([
  * la géolocalisation quand aucune position n'existe encore.
  */
 export function shouldAutoFollowCamera(
-  gpsState: TrailGpsState,
+  phase: TrailSessionPhase,
   isFollowing: boolean,
-  hasStartedWalking = true,
 ): boolean {
-  return hasStartedWalking && isFollowing && CAMERA_FOLLOW_STATES.has(gpsState)
+  return isFollowing && CAMERA_FOLLOW_PHASES.has(phase)
 }
 
 /** Seuils par défaut du tracé réellement parcouru (« breadcrumb » filtré, façon AllTrails). */

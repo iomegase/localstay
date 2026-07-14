@@ -68,6 +68,31 @@ const trail = {
   source_refs: [],
 }
 
+function makePosition({
+  latitude,
+  longitude,
+  accuracy = 8,
+  timestamp = Date.now(),
+}: {
+  latitude: number
+  longitude: number
+  accuracy?: number
+  timestamp?: number
+}): GeolocationPosition {
+  return {
+    coords: {
+      latitude,
+      longitude,
+      accuracy,
+      altitude: null,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null,
+    },
+    timestamp,
+  }
+}
+
 describe('021 trail navigation start mode', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
@@ -123,18 +148,7 @@ describe('021 trail navigation start mode', () => {
   it('AC-02-06/AC-03-01/AC-04-04: starts watchPosition after explicit activation and clears it on unmount', async () => {
     const clearWatch = jest.fn()
     const watchPosition = jest.fn((success: PositionCallback) => {
-      success({
-        coords: {
-          latitude: 45.8732,
-          longitude: 6.6731,
-          accuracy: 8,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: 1,
-      } satisfies GeolocationPosition)
+      success(makePosition({ latitude: 45.8732, longitude: 6.6731 }))
       return 42
     })
     Object.defineProperty(navigator, 'geolocation', {
@@ -162,18 +176,7 @@ describe('021 trail navigation start mode', () => {
 
   it('does not center the user before the hike is explicitly started', async () => {
     const watchPosition = jest.fn((success: PositionCallback) => {
-      success({
-        coords: {
-          latitude: 45.8732,
-          longitude: 6.6731,
-          accuracy: 8,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: 1,
-      } satisfies GeolocationPosition)
+      success(makePosition({ latitude: 45.8732, longitude: 6.6731 }))
       return 42
     })
     Object.defineProperty(navigator, 'geolocation', {
@@ -186,7 +189,7 @@ describe('021 trail navigation start mode', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
-    await screen.findByRole('button', { name: /démarrer depuis ici/i })
+    await screen.findByRole('button', { name: 'Démarrer ici' })
     expect(mockEaseTo).not.toHaveBeenCalledWith(expect.objectContaining({
       center: [6.6731, 45.8732],
     }))
@@ -208,28 +211,17 @@ describe('021 trail navigation start mode', () => {
 
     await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
     act(() => {
-      gpsSuccess?.({
-        coords: {
-          latitude: 45.8732,
-          longitude: 6.6731,
-          accuracy: 8,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: 1,
-      } satisfies GeolocationPosition)
+      gpsSuccess?.(makePosition({ latitude: 45.8732, longitude: 6.6731 }))
     })
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /démarrer depuis ici/i })).toBeInTheDocument(),
+      expect(screen.getByRole('button', { name: 'Démarrer ici' })).toBeInTheDocument(),
     )
     expect(mockEaseTo).not.toHaveBeenCalledWith(expect.objectContaining({
       center: [6.6731, 45.8732],
     }))
 
-    await userEvent.click(screen.getByRole('button', { name: /démarrer depuis ici/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Démarrer ici' }))
 
     await waitFor(() =>
       expect(mockEaseTo).toHaveBeenCalledWith(expect.objectContaining({
@@ -242,18 +234,7 @@ describe('021 trail navigation start mode', () => {
       mockOnMoveStart?.({ originalEvent: new Event('pointerdown') })
     })
     act(() => {
-      gpsSuccess?.({
-        coords: {
-          latitude: 45.8733,
-          longitude: 6.6732,
-          accuracy: 8,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: 4_500,
-      } satisfies GeolocationPosition)
+      gpsSuccess?.(makePosition({ latitude: 45.8733, longitude: 6.6732 }))
     })
 
     await waitFor(() =>
@@ -263,20 +244,93 @@ describe('021 trail navigation start mode', () => {
     )
   })
 
-  it('hides the red-white approach line after the user starts from here', async () => {
+  it('keeps the approach line while approaching and removes it after reaching the trail', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    const startedAt = Date.now()
     const watchPosition = jest.fn((success: PositionCallback) => {
-      success({
-        coords: {
-          latitude: 45.8737,
-          longitude: 6.673,
-          accuracy: 8,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: 1,
-      } satisfies GeolocationPosition)
+      gpsSuccess = success
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => {
+      gpsSuccess?.(makePosition({
+        latitude: 45.879,
+        longitude: 6.673,
+        timestamp: startedAt,
+      }))
+    })
+
+    await screen.findByRole('button', { name: 'Démarrer ici' })
+    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
+    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Démarrer ici' }))
+
+    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
+    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+
+    act(() => {
+      gpsSuccess?.(makePosition({
+        latitude: 45.875,
+        longitude: 6.676,
+        timestamp: startedAt + 4_000,
+      }))
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
+    })
+  })
+
+  it('offers a local start only after a reliable GPS fix near a middle trail segment', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      gpsSuccess = success
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    const middleTrail = {
+      ...trail,
+      geometry_geojson: {
+        type: 'LineString',
+        coordinates: [
+          [6.673, 45.8731],
+          [6.69, 45.8731],
+          [6.707, 45.8731],
+        ],
+      },
+    }
+    render(<TrailNavigationMap trail={middleTrail} />)
+
+    expect(screen.queryByRole('button', { name: 'Démarrer ici' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => {
+      gpsSuccess?.(makePosition({ latitude: 45.882, longitude: 6.699 }))
+    })
+
+    expect(await screen.findByRole('button', { name: 'Démarrer ici' })).toBeInTheDocument()
+  })
+
+  it('never sends the GPS position to the walking-route API', async () => {
+    Object.defineProperty(global, 'fetch', {
+      configurable: true,
+      writable: true,
+      value: jest.fn(),
+    })
+    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({ ok: true } as Response)
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      success(makePosition({ latitude: 45.879, longitude: 6.673 }))
       return 42
     })
     Object.defineProperty(navigator, 'geolocation', {
@@ -287,14 +341,11 @@ describe('021 trail navigation start mode', () => {
     render(<TrailNavigationMap trail={trail} />)
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
 
-    await screen.findByRole('button', { name: /démarrer depuis ici/i })
-    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
-    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
-
-    await userEvent.click(screen.getByRole('button', { name: /démarrer depuis ici/i }))
-
-    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
+    await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
+    await act(async () => {
+      await new Promise(resolve => window.setTimeout(resolve, 700))
+    })
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 
   it('AC-02-04/AC-03-05: keeps trail visible when GPS is denied or inaccurate', async () => {
@@ -346,18 +397,7 @@ describe('021 trail navigation start mode', () => {
 
   it('AC-03-03: shows pre-start state instead of off-track when first GPS position is far from the trail', async () => {
     const watchPosition = jest.fn((success: PositionCallback) => {
-      success({
-        coords: {
-          latitude: 45.93,
-          longitude: 6.76,
-          accuracy: 8,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null,
-        },
-        timestamp: 1,
-      } satisfies GeolocationPosition)
+      success(makePosition({ latitude: 45.93, longitude: 6.76 }))
       return 99
     })
     Object.defineProperty(navigator, 'geolocation', {

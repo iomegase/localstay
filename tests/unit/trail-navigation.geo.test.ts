@@ -7,7 +7,7 @@ import {
   shouldAutoFollowCamera,
   smoothTrack,
 } from '@/features/trail-navigation/lib/geo'
-import type { TrailGpsState } from '@/features/trail-navigation/lib/geo'
+import type { TrailSessionPhase } from '@/features/trail-navigation/types'
 
 const line = {
   type: 'LineString',
@@ -50,43 +50,29 @@ describe('021 trail navigation geometry utilities', () => {
 })
 
 describe('shouldAutoFollowCamera', () => {
-  const activeStates: TrailGpsState[] = [
-    'tracking',
-    'approaching',
-    'off_track',
-    'low_accuracy',
+  const activePhases: TrailSessionPhase[] = ['approaching', 'tracking']
+  const inactivePhases: TrailSessionPhase[] = [
+    'idle',
+    'pre_start',
+    'ready_to_join',
+    'stopped',
   ]
-  const exploratoryStates: TrailGpsState[] = ['ready_to_join', 'pre_start']
-  const idleStates: TrailGpsState[] = ['ready', 'gps_prompt', 'gps_denied']
 
-  it('follows when walking has started, GPS is active and following is enabled', () => {
-    for (const state of activeStates) {
-      expect(shouldAutoFollowCamera(state, true, true)).toBe(true)
+  it('follows only during an active session when following is enabled', () => {
+    for (const phase of activePhases) {
+      expect(shouldAutoFollowCamera(phase, true)).toBe(true)
     }
   })
 
-  it('does not follow in pre-start exploration states before the hike begins', () => {
-    for (const state of exploratoryStates) {
-      expect(shouldAutoFollowCamera(state, true, false)).toBe(false)
-      expect(shouldAutoFollowCamera(state, true, true)).toBe(false)
-    }
-  })
-
-  it('does not follow active GPS states until the hike has explicitly started', () => {
-    for (const state of activeStates) {
-      expect(shouldAutoFollowCamera(state, true, false)).toBe(false)
-    }
-  })
-
-  it('does not follow while GPS is idle, prompting, or denied', () => {
-    for (const state of idleStates) {
-      expect(shouldAutoFollowCamera(state, true)).toBe(false)
+  it('does not follow while the session is inactive or exploratory', () => {
+    for (const phase of inactivePhases) {
+      expect(shouldAutoFollowCamera(phase, true)).toBe(false)
     }
   })
 
   it('never follows when following has been disabled (user panned the map)', () => {
-    for (const state of [...activeStates, ...exploratoryStates, ...idleStates]) {
-      expect(shouldAutoFollowCamera(state, false)).toBe(false)
+    for (const phase of [...activePhases, ...inactivePhases]) {
+      expect(shouldAutoFollowCamera(phase, false)).toBe(false)
     }
   })
 })
