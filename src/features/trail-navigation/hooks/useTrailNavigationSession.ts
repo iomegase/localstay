@@ -78,7 +78,8 @@ export function useTrailNavigationSession({ stopGps, now = Date.now }: Options) 
   }, [])
 
   useEffect(() => {
-    if (!gpsActive || phase === 'stopped') return
+    const shouldTick = gpsActive || ACTIVE_PHASES.has(phase)
+    if (!shouldTick || phase === 'stopped') return
 
     const interval = window.setInterval(refreshClock, 1_000)
     return () => window.clearInterval(interval)

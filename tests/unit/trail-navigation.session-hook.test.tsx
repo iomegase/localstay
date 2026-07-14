@@ -35,6 +35,10 @@ function gpsPosition({
 }
 
 describe('021 trail navigation session hook', () => {
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('AC-05-01/02/03: starts only with a recent reliable point inside the inclusive start zone', () => {
     let nowMs = 20_000
     const { result } = renderHook(() => useTrailNavigationSession({
@@ -266,6 +270,45 @@ describe('021 trail navigation session hook', () => {
     expect(result.current.phase).toBe('stopped')
     expect(result.current.summary?.distanceM).toBeCloseTo(10, 0)
     expect(stopGps).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps elapsed time advancing after permission denial until the active session is stopped', () => {
+    jest.useFakeTimers()
+    let nowMs = 20_000
+    const { result, unmount } = renderHook(() => useTrailNavigationSession({
+      stopGps: jest.fn(),
+      now: () => nowMs,
+    }))
+
+    act(() => {
+      result.current.markGpsPrompting()
+      result.current.receiveGpsPosition(gpsPosition(), 20)
+      expect(result.current.startSession()).toBe(true)
+      result.current.markGpsDenied()
+    })
+
+    expect(result.current.phase).toBe('tracking')
+    expect(result.current.isActive).toBe(true)
+
+    act(() => {
+      nowMs = 30_000
+      jest.advanceTimersByTime(1_000)
+    })
+    expect(result.current.elapsedSeconds).toBe(10)
+
+    act(() => {
+      nowMs = 80_000
+      result.current.stopSession()
+    })
+    expect(result.current.elapsedSeconds).toBe(60)
+
+    act(() => {
+      nowMs = 90_000
+      jest.advanceTimersByTime(2_000)
+    })
+    expect(result.current.elapsedSeconds).toBe(60)
+
+    unmount()
   })
 
   it('AC-05-08/10: keeps a GPS-lost session active and stops it idempotently with frozen statistics', () => {
