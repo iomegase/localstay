@@ -2,6 +2,7 @@
 
 import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, RotateCcw, Square, Unlock, X } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
@@ -19,9 +20,8 @@ interface Props {
   trail: TrailNavigationData
   backHref?: string
   /**
-   * Si fourni, les boutons de fermeture appellent ce callback au lieu de naviguer via
-   * `backHref`. Utilisé par le modal interceptée pour fermer via `router.back()`
-   * (un `<Link>` vers la liste ne réinitialise pas le slot @modal).
+   * Si fourni, les boutons de fermeture appellent ce callback au lieu de revenir dans
+   * l'historique. Utilisé par le modal intercepté pour réinitialiser le slot @modal.
    */
   onClose?: () => void
 }
@@ -38,6 +38,7 @@ export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, o
 }
 
 function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
+  const router = useRouter()
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
   const isIndicativeTrail = reliabilityFromQualityStatus(trail.data_quality_status) === 'indicative'
@@ -235,6 +236,14 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
     return '#2563EB' // bleu (ready_to_join, autres)
   }, [session.isOffTrack, session.phase])
 
+  const closeNavigation = useCallback(() => {
+    if (onClose) {
+      onClose()
+      return
+    }
+    router.back()
+  }, [onClose, router])
+
   if (!geometry || !endpoints) {
     return (
       <main className="mx-auto min-h-screen w-full max-w-[430px] bg-[#FAF9F6] px-6 py-10">
@@ -262,20 +271,16 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
   const setCloseControlRef = (node: HTMLElement | null) => {
     closeControlRef.current = node
   }
-  const closeControl = onClose ? (
+  const closeControl = (
     <button
       ref={setCloseControlRef}
       type="button"
-      onClick={onClose}
+      onClick={closeNavigation}
       aria-label="Fermer"
-      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
+      className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow"
     >
       <X className="h-5 w-5" />
     </button>
-  ) : (
-    <Link ref={setCloseControlRef} href={backHref} aria-label="Fermer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-charcoal shadow">
-      <X className="h-5 w-5" />
-    </Link>
   )
 
   function stopSessionAndOpenSummary() {
@@ -408,19 +413,22 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
         )}
       </Map>
 
-      <div className="absolute left-5 right-5 top-6 flex items-center justify-between">
+      <div
+        data-testid="trail-top-controls"
+        className="pointer-events-none absolute left-5 right-5 top-6 z-30 flex items-center justify-between"
+      >
         {session.isActive ? (
           <button
             type="button"
             onClick={stopSessionAndOpenSummary}
             aria-label="Stop"
-            className="flex h-11 items-center justify-center gap-2 rounded-full bg-red-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow"
+            className="pointer-events-auto flex h-11 items-center justify-center gap-2 rounded-full bg-red-600 px-4 text-xs font-bold uppercase tracking-wider text-white shadow"
           >
             <Square className="h-3.5 w-3.5" fill="currentColor" />
             Stop
           </button>
         ) : closeControl}
-        <div className="flex items-center gap-3">
+        <div className="pointer-events-auto flex items-center gap-3">
           <button
             type="button"
             onClick={toggleNorthLock}

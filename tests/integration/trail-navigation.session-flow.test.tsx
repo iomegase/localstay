@@ -6,6 +6,12 @@ import userEvent from '@testing-library/user-event'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 import { haversineMeters } from '@/features/trail-navigation/lib/geo'
 
+const mockRouterBack = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ back: mockRouterBack }),
+}))
+
 const mockEaseTo = jest.fn()
 const mockFlyTo = jest.fn()
 const mockDragRotateDisable = jest.fn()
@@ -102,6 +108,7 @@ const positionUnavailable: GeolocationPositionError = {
 describe('021 trail navigation session flow', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
+    mockRouterBack.mockClear()
     mockEaseTo.mockClear()
     mockFlyTo.mockClear()
     mockDragRotateDisable.mockClear()
@@ -177,6 +184,27 @@ describe('021 trail navigation session flow', () => {
 
     expect(within(dialog).getByText(frozenDistance)).toBeInTheDocument()
     expect(within(dialog).getByText('1 min')).toBeInTheDocument()
+    expect(clearWatch).toHaveBeenCalledTimes(1)
+  })
+
+  it('AC-02-07/AC-04-04: Close goes back and clears GPS without creating a summary', async () => {
+    const clearWatch = jest.fn()
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        watchPosition: jest.fn(() => 91),
+        clearWatch,
+      },
+    })
+
+    const { unmount } = render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }))
+    expect(screen.queryByRole('dialog', { name: /randonnée terminée/i })).not.toBeInTheDocument()
+
+    unmount()
+
+    expect(mockRouterBack).toHaveBeenCalledTimes(1)
     expect(clearWatch).toHaveBeenCalledTimes(1)
   })
 
