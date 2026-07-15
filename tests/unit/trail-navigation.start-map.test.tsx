@@ -271,7 +271,7 @@ describe('021 trail navigation start mode', () => {
     )
   })
 
-  it('keeps the approach line while approaching and removes it after reaching the trail', async () => {
+  it('AC-05-06/BR-19: never renders a straight-line approach layer', async () => {
     let gpsSuccess: PositionCallback | null = null
     const startedAt = Date.now()
     const watchPosition = jest.fn((success: PositionCallback) => {
@@ -284,6 +284,9 @@ describe('021 trail navigation start mode', () => {
     })
 
     render(<TrailNavigationMap trail={trail} />)
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
+
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
     act(() => {
       gpsSuccess?.(makePosition({
@@ -294,13 +297,14 @@ describe('021 trail navigation start mode', () => {
     })
 
     await screen.findByRole('button', { name: 'Démarrer ici' })
-    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
-    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+    expect(screen.getByText(/Vous êtes à \d+ m du tracé/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Démarrer ici' }))
-
-    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
-    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+    expect(screen.getByText(/En route vers le tracé/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
 
     act(() => {
       gpsSuccess?.(makePosition({
@@ -311,9 +315,10 @@ describe('021 trail navigation start mode', () => {
     })
 
     await waitFor(() => {
-      expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
+      expect(screen.queryByText(/En route vers le tracé/i)).not.toBeInTheDocument()
     })
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
   })
 
   it('offers a local start only after a reliable GPS fix near a middle trail segment', async () => {

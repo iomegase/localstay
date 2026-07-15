@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { TrailCoordinate, TrailGpsHealth, TrailNavigationData, TrailSessionPhase } from '../types'
-import { getClosestPointOnTrail, getLineEndpoints, getPositionProgress, getTrailDistanceMeters, haversineMeters, isValidTrailGeometry, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
+import { getLineEndpoints, getPositionProgress, getTrailDistanceMeters, haversineMeters, isValidTrailGeometry, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
 import { SESSION_START_MAX_DISTANCE_M } from '../lib/session-stats'
 import { useTrailNavigationSession } from '../hooks/useTrailNavigationSession'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
@@ -200,29 +200,6 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
     return getPositionProgress(position, geometry)
   }, [geometry, position, session.phase])
 
-  // Cible locale avant le départ et pendant l'approche, sans transmettre la position.
-  const approachTarget = useMemo(() => {
-    if (!position || !geometry) return null
-    if (!(['ready_to_join', 'pre_start', 'approaching'] as TrailSessionPhase[]).includes(session.phase)) return null
-    return getClosestPointOnTrail(position, geometry)
-  }, [geometry, position, session.phase])
-
-  // Segment d'approche en ligne droite (fallback toujours dispo)
-  const approachLine = useMemo(() => {
-    if (!position || !approachTarget) return null
-    return {
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'LineString' as const,
-        coordinates: [
-          [position.longitude, position.latitude],
-          [approachTarget.longitude, approachTarget.latitude],
-        ],
-      },
-    }
-  }, [position, approachTarget])
-
   // Cercle d'incertitude GPS (accuracy en mètres)
   const accuracyCircle = useMemo(() => {
     if (!position || !accuracy) return null
@@ -397,32 +374,8 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
             />
           </Source>
         )}
-        {approachLine && (
-          <Source id="approach-line" type="geojson" data={approachLine}>
-            <Layer
-              id="approach-line-halo"
-              type="line"
-              paint={{
-                'line-color': '#ffffff',
-                'line-width': 8,
-                'line-opacity': 0.6,
-                'line-blur': 1,
-              }}
-            />
-            <Layer
-              id="approach-line-layer"
-              type="line"
-              paint={{
-                'line-color': '#ef4444',
-                'line-width': 4,
-                'line-dasharray': [2, 2],
-                'line-opacity': 0.95,
-              }}
-            />
-          </Source>
-        )}
-        {/* Tracé réellement parcouru — distinct du GPX officiel (vert) et de la liaison
-            (rouge/blanc). Casing blanc + cœur bleu pour rester lisible sur fond terrain. */}
+        {/* Tracé réellement parcouru — distinct du GPX officiel (vert).
+            Casing blanc + cœur bleu pour rester lisible sur fond terrain. */}
         {userTrackLine && (
           <Source id="user-track-line" type="geojson" data={userTrackLine}>
             <Layer
