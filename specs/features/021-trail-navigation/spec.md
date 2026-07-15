@@ -44,6 +44,8 @@ Décision PO du 2026-07-15 : aucune liaison graphique à vol d'oiseau ne doit re
 
 Décision PO du 2026-07-15 : avant le démarrage d'une session, la croix du mode randonnée revient à l'écran précédent avec l'historique de navigation, arrête le suivi GPS éventuel et ne crée aucun récapitulatif. Son contrôle tactile reste au-dessus de Mapbox, avec une zone interactive d'au moins 44 × 44 px, en mode intercepté comme sur la page plein écran. Dès qu'une session est active, la croix n'est plus affichée et le bouton "Stop" la remplace ; "Stop" termine la session, fige les statistiques et ouvre le récapitulatif, il n'a donc pas le même effet que la croix. Après l'arrêt, si le Tourist choisit "Voir le tracé" et ferme ainsi le récapitulatif, la croix est restaurée dans l'état `stopped` ; l'activer revient à l'écran précédent via l'historique sans créer un nouveau récapitulatif.
 
+Décision PO du 2026-07-15 : la carte du mode randonnée utilise le relief 3D Mapbox Terrain avec le fond `outdoors-v12`, une exagération modérée de `1.2` et un pitch maximal de `75°`. L'état initial `ready` reste à plat afin de présenter l'ensemble du tracé ; l'activation explicite du GPS et le bouton "Recentrer" conservent l'inclinaison immersive existante de `55°`, puis le suivi caméra déplace uniquement le centre sans réinitialiser le pitch. Aucun fond IGN / Géoplateforme ni sélecteur de fond n'est ajouté au mode randonnée.
+
 ---
 
 ## Glossary References
@@ -90,6 +92,7 @@ Décision PO du 2026-07-15 : avant le démarrage d'une session, la croix du mode
 - **AC-02-05**: Given une randonnée sans géométrie fiable, When la fiche randonnée s'affiche, Then le CTA "Commencer la rando" est masqué et aucun mode guidage n'est accessible.
 - **AC-02-06**: Given le mode randonnée est en état `ready`, When le Tourist clique "Activer le suivi GPS" et accepte la géolocalisation navigateur, Then `watchPosition` démarre et la position utilisateur s'affiche sur la carte.
 - **AC-02-07**: Given le mode randonnée est affiché en modal ou en page plein écran avant le démarrage d'une session, When le Tourist active la croix "Fermer", Then il revient à l'écran précédent, le contrôle accepte le pointeur et le clavier au-dessus de Mapbox, et le suivi GPS éventuel est arrêté sans créer de récapitulatif. Given une session est active, When l'interface s'affiche, Then la croix n'est plus affichée, "Stop" la remplace et conserve le comportement défini par `AC-05-07` et `AC-05-08`. Given la session est `stopped` et le Tourist choisit "Voir le tracé", When le récapitulatif se ferme, Then la croix est restaurée ; l'activer revient à l'écran précédent via l'historique sans créer un nouveau récapitulatif.
+- **AC-02-08**: Given le mode randonnée affiche une géométrie valide, When la carte Mapbox charge, Then le fond `outdoors-v12` est drapé sur une source Mapbox DEM avec une exagération de terrain `1.2`, un pitch maximal de `75°` et aucun fond IGN / Géoplateforme. Given la carte est en état initial `ready`, Then son pitch initial reste à `0°`. Given le Tourist active le GPS ou utilise "Recentrer" avec une position disponible, Then la caméra s'incline à `55°` et les recentrages automatiques suivants conservent le pitch courant.
 
 ### US-03 — Suivre sa progression sur le tracé
 
@@ -173,6 +176,7 @@ Décision PO du 2026-07-15 : avant le démarrage d'une session, la croix du mode
 - **BR-27**: Une perte de signal GPS après le démarrage ne réinitialise pas la session, n'ajoute aucune distance synthétique et ne masque pas l'action "Stop".
 - **BR-28**: Le départ réel, les points GPS, les altitudes et le récapitulatif restent en mémoire navigateur uniquement et sont détruits à la fermeture du mode randonnée. Ils ne sont envoyés à aucune API StayLocal ou tierce et ne sont pas persistés.
 - **BR-29**: Avant le démarrage d'une session, la croix de fermeture du mode randonnée appelle le retour à l'écran précédent sans créer de récapitulatif. Elle dispose d'une zone interactive d'au moins 44 × 44 px, accepte les interactions pointeur et clavier, et reste au-dessus de la surface Mapbox. Pendant une session active, la croix n'est pas affichée : "Stop" la remplace, termine la session et ouvre le récapitulatif conformément à `BR-25`. Dans l'état `stopped`, après l'action "Voir le tracé", la croix est restaurée ; elle revient à l'écran précédent via l'historique et ne crée aucun nouveau récapitulatif.
+- **BR-30**: Le relief du mode randonnée utilise exclusivement Mapbox Terrain avec la source `mapbox://mapbox.mapbox-terrain-dem-v1`, des tuiles DEM de `512 px`, un `maxzoom` DEM de `14` et une exagération de `1.2`. Le relief réutilise l'instance Mapbox existante et n'ajoute ni appel frontend IGN / Géoplateforme, ni nouveau Map Load, ni sélecteur de fond. Si la source DEM ne peut pas être chargée, le fond `outdoors-v12`, le tracé et les contrôles de navigation doivent rester utilisables sans page blanche.
 
 ---
 
@@ -384,6 +388,7 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 Éléments attendus :
 
 - carte Mapbox `outdoors` plein écran ;
+- relief Mapbox Terrain actif avec exagération `1.2`, pitch maximal `75°` et fond initial à `0°` ; l'activation GPS et "Recentrer" inclinent la caméra à `55°`, puis le suivi conserve ce pitch ;
 - tracé GeoJSON visible avec style contrasté ;
 - marker départ ;
 - marker arrivée si le tracé permet de l'inférer ;
@@ -433,6 +438,7 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | AC-02-05 | Pas de géométrie fiable → CTA Commencer masqué | unit |
 | AC-02-06 | Activation explicite démarre `watchPosition` | unit |
 | AC-02-07/BR-29 | Avant session, croix interactive et sortie sans récapitulatif ; pendant la session, Stop remplace exclusivement la croix et ouvre le récapitulatif ; après "Voir le tracé" en état stopped, croix restaurée et sortie sans nouveau récapitulatif | integration |
+| AC-02-08/BR-30 | Relief Mapbox Terrain `1.2` sur `outdoors-v12`, pitch initial `0°`, immersion `55°`, maximum `75°`, sans IGN et avec repli cartographique non bloquant | unit |
 | AC-03-01 | Position utilisateur affichée après activation GPS | unit |
 | AC-03-02 | Distance au tracé calculée côté client | unit |
 | AC-03-03 | Position initiale éloignée affiche l'état pré-départ | unit |
@@ -493,3 +499,4 @@ La route `/guide/[city-slug]/rando/[trail-slug]/start` est une expérience plein
 | OQ-08 | Que faire des métriques indisponibles dans le récapitulatif ? | Product Owner | 2026-07-14 | Résolu : les masquer entièrement ; aucun nombre de pas n'est calculé en MVP 2. |
 | OQ-09 | Faut-il matérialiser la direction du tracé par une ligne droite depuis le Tourist ? | Product Owner | 2026-07-15 | Résolu : non, aucune liaison graphique à vol d'oiseau ; distance indicative textuelle uniquement. |
 | OQ-10 | Où la croix du mode randonnée doit-elle conduire ? | Product Owner | 2026-07-15 | Résolu : avant le démarrage d'une session, retour à l'écran précédent via l'historique de navigation sans récapitulatif ; pendant une session active, la croix est remplacée exclusivement par "Stop", qui termine la session et ouvre le récapitulatif ; après "Voir le tracé" en état `stopped`, la croix est restaurée et revient à l'écran précédent sans créer un nouveau récapitulatif. |
+| OQ-11 | Le mode randonnée doit-il reprendre le relief 3D et les fonds IGN de l'onglet Carte ? | Product Owner | 2026-07-15 | Résolu : relief 3D Mapbox Terrain sur `outdoors-v12` avec exagération `1.2`, pitch immersif existant `55°` et maximum `75°` ; aucun fond IGN / Géoplateforme ni sélecteur de fond dans le mode randonnée. |
