@@ -314,15 +314,25 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
           longitude: trail.start_longitude,
           zoom: 14,
           bearing: 0,
+          pitch: 0,
         }}
         // Le verrouillage nord est toggle-able via le bouton compass. État appliqué
         // dans le useEffect ci-dessous, qui réagit à `northLocked`.
+        maxPitch={75}
+        terrain={{ source: 'mapbox-dem', exaggeration: 1.2 }}
         touchPitch={true}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         style={{ width: '100%', height: '100%' }}
       >
         {/* Décalé vers le bas pour passer sous la rangée de boutons du haut (compass/lock). */}
         <NavigationControl position="top-right" style={{ marginTop: '5.5rem', marginRight: '1.5rem' }} />
+        <Source
+          id="mapbox-dem"
+          type="raster-dem"
+          url="mapbox://mapbox.mapbox-terrain-dem-v1"
+          tileSize={512}
+          maxzoom={14}
+        />
         <Source id="trail-navigation-line" type="geojson" data={{ type: 'Feature', properties: {}, geometry }}>
           <Layer
             id="trail-line"
