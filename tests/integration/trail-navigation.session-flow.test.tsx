@@ -6,6 +6,12 @@ import userEvent from '@testing-library/user-event'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 import { haversineMeters } from '@/features/trail-navigation/lib/geo'
 
+const mockRouterBack = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ back: mockRouterBack }),
+}))
+
 const mockEaseTo = jest.fn()
 const mockFlyTo = jest.fn()
 const mockDragRotateDisable = jest.fn()
@@ -102,6 +108,7 @@ const positionUnavailable: GeolocationPositionError = {
 describe('021 trail navigation session flow', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
+    mockRouterBack.mockClear()
     mockEaseTo.mockClear()
     mockFlyTo.mockClear()
     mockDragRotateDisable.mockClear()
@@ -110,7 +117,7 @@ describe('021 trail navigation session flow', () => {
     mockTouchRotationEnable.mockClear()
   })
 
-  it('AC-05-07/08/09/10: freezes available-only values even when clearWatch throws and late updates arrive', async () => {
+  it('AC-02-07/BR-29 + AC-05-07/08/09/10: freezes available-only values even when clearWatch throws and late updates arrive', async () => {
     const startedAt = 1_800_000_000_000
     let nowMs = startedAt
     jest.spyOn(Date, 'now').mockImplementation(() => nowMs)
@@ -140,6 +147,7 @@ describe('021 trail navigation session flow', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Démarrer ici' }))
 
     expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Fermer' })).not.toBeInTheDocument()
 
     act(() => {
       nowMs = startedAt + 4_000
@@ -180,7 +188,28 @@ describe('021 trail navigation session flow', () => {
     expect(clearWatch).toHaveBeenCalledTimes(1)
   })
 
-  it('restores focus to the persistent Close control after viewing the stopped trail', async () => {
+  it('AC-02-07/AC-04-04: Close goes back and clears GPS without creating a summary', async () => {
+    const clearWatch = jest.fn()
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        watchPosition: jest.fn(() => 91),
+        clearWatch,
+      },
+    })
+
+    const { unmount } = render(<TrailNavigationMap trail={trail} />)
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }))
+    expect(screen.queryByRole('dialog', { name: /randonnée terminée/i })).not.toBeInTheDocument()
+
+    unmount()
+
+    expect(mockRouterBack).toHaveBeenCalledTimes(1)
+    expect(clearWatch).toHaveBeenCalledTimes(1)
+  })
+
+  it('AC-02-07/BR-29: restores the Close control after viewing the stopped trail and exits without another summary', async () => {
     const startedAt = 1_800_000_000_000
     jest.spyOn(Date, 'now').mockReturnValue(startedAt)
     let gpsSuccess: PositionCallback | null = null
@@ -193,7 +222,7 @@ describe('021 trail navigation session flow', () => {
       value: { watchPosition, clearWatch: jest.fn() },
     })
 
-    render(<TrailNavigationMap trail={trail} onClose={jest.fn()} />)
+    render(<TrailNavigationMap trail={trail} />)
 
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
     act(() => {
@@ -217,6 +246,11 @@ describe('021 trail navigation session flow', () => {
       expect(screen.queryByRole('dialog', { name: 'Randonnée terminée' })).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Fermer' })).toHaveFocus()
     })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }))
+
+    expect(mockRouterBack).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('dialog', { name: 'Randonnée terminée' })).not.toBeInTheDocument()
   })
 
   it('AC-05-11: reaching the official end never stops the session automatically', async () => {

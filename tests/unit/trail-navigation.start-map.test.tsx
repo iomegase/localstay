@@ -10,6 +10,12 @@ import {
 } from '@/features/trail-navigation/components/TrailNavigationMap'
 import { haversineMeters } from '@/features/trail-navigation/lib/geo'
 
+const mockRouterBack = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ back: mockRouterBack }),
+}))
+
 const mockEaseTo = jest.fn()
 const mockFlyTo = jest.fn()
 const mockDragRotateDisable = jest.fn()
@@ -101,6 +107,7 @@ function makePosition({
 describe('021 trail navigation start mode', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
+    mockRouterBack.mockClear()
     mockEaseTo.mockClear()
     mockFlyTo.mockClear()
     mockDragRotateDisable.mockClear()
@@ -159,6 +166,32 @@ describe('021 trail navigation start mode', () => {
       'w-full',
       'max-w-[430px]',
     )
+  })
+
+  it('AC-02-07/BR-29: keeps the Close control above Mapbox and returns to the previous screen', async () => {
+    render(<TrailNavigationMap trail={trail} />)
+
+    const controls = screen.getByTestId('trail-top-controls')
+    const close = screen.getByRole('button', { name: 'Fermer' })
+
+    expect(controls).toHaveClass('z-30', 'pointer-events-none')
+    expect(close).toHaveClass('pointer-events-auto', 'h-11', 'w-11')
+
+    close.focus()
+    expect(close).toHaveFocus()
+    await userEvent.click(close)
+
+    expect(mockRouterBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('AC-02-07: uses the modal close callback instead of router history when provided', async () => {
+    const onClose = jest.fn()
+    render(<TrailNavigationMap trail={trail} onClose={onClose} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }))
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(mockRouterBack).not.toHaveBeenCalled()
   })
 
   it('keeps the missing-geometry state constrained to the mobile app shell width', () => {
@@ -271,7 +304,7 @@ describe('021 trail navigation start mode', () => {
     )
   })
 
-  it('keeps the approach line while approaching and removes it after reaching the trail', async () => {
+  it('AC-05-06/BR-19: never renders a straight-line approach layer', async () => {
     let gpsSuccess: PositionCallback | null = null
     const startedAt = Date.now()
     const watchPosition = jest.fn((success: PositionCallback) => {
@@ -284,6 +317,9 @@ describe('021 trail navigation start mode', () => {
     })
 
     render(<TrailNavigationMap trail={trail} />)
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
+
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
     act(() => {
       gpsSuccess?.(makePosition({
@@ -294,13 +330,14 @@ describe('021 trail navigation start mode', () => {
     })
 
     await screen.findByRole('button', { name: 'Démarrer ici' })
-    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
-    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+    expect(screen.getByText(/Vous êtes à \d+ m du tracé/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Démarrer ici' }))
-
-    expect(screen.getByTestId('map-layer-approach-line-halo')).toBeInTheDocument()
-    expect(screen.getByTestId('map-layer-approach-line-layer')).toBeInTheDocument()
+    expect(screen.getByText(/En route vers le tracé/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
 
     act(() => {
       gpsSuccess?.(makePosition({
@@ -311,9 +348,10 @@ describe('021 trail navigation start mode', () => {
     })
 
     await waitFor(() => {
-      expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
+      expect(screen.queryByText(/En route vers le tracé/i)).not.toBeInTheDocument()
     })
+    expect(screen.queryByTestId('map-layer-approach-line-halo')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('map-layer-approach-line-layer')).not.toBeInTheDocument()
   })
 
   it('offers a local start only after a reliable GPS fix near a middle trail segment', async () => {
