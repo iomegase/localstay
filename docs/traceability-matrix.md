@@ -453,6 +453,7 @@
 | AC-05-09/BR-26 | Récapitulatif local avec distance, durée, dénivelé fiable optionnel et métriques indisponibles masquées | `src/features/trail-navigation/lib/session-stats.ts`<br>`src/features/trail-navigation/components/TrailSessionSummaryModal.tsx` | `tests/unit/trail-navigation.session-stats.test.ts`<br>`tests/unit/trail-navigation.session-summary-modal.test.tsx`<br>`tests/integration/trail-navigation.session-flow.test.tsx` | ✅ done |
 | BR-28 | Trace GPS en mémoire uniquement, sans route API ni envoi de coordonnées | `src/features/trail-navigation/hooks/useTrailNavigationSession.ts`<br>`src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx` | ✅ done |
 | AC-02-07/BR-29 | Avant session, croix interactive et sortie sans récapitulatif ; pendant la session active, Stop remplace exclusivement la croix et ouvre le récapitulatif ; après "Voir le tracé" en état `stopped`, croix restaurée et sortie via l'historique sans nouveau récapitulatif | `src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx`<br>`tests/integration/trail-navigation.session-flow.test.tsx` | ✅ done |
+| AC-02-08/BR-30 | Relief Mapbox Terrain `1.2` sur le fond `outdoors-v12`, pitch initial `0°`, immersion GPS et recentrage à `55°`, maximum `75°`, sans IGN ni second Map Load | `src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx` | ✅ done |
 
 ## 022 — Admin POI Management
 

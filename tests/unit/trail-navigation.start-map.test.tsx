@@ -28,7 +28,21 @@ jest.mock('react-map-gl/mapbox', () => ({
   __esModule: true,
   default: jest.requireActual('react').forwardRef(
     (
-      { children, onMoveStart }: { children: React.ReactNode; onMoveStart?: (evt: unknown) => void },
+      {
+        children,
+        onMoveStart,
+        terrain,
+        maxPitch,
+        initialViewState,
+        mapStyle,
+      }: {
+        children: React.ReactNode
+        onMoveStart?: (evt: unknown) => void
+        terrain?: unknown
+        maxPitch?: number
+        initialViewState?: unknown
+        mapStyle?: string
+      },
       ref: React.Ref<unknown>,
     ) => {
       const React = jest.requireActual('react') as typeof import('react')
@@ -47,10 +61,44 @@ jest.mock('react-map-gl/mapbox', () => ({
         }),
         flyTo: mockFlyTo,
       }))
-      return <div data-testid="mapbox-outdoors">{children}</div>
+      return (
+        <div
+          data-testid="mapbox-outdoors"
+          data-terrain={terrain ? JSON.stringify(terrain) : undefined}
+          data-max-pitch={maxPitch}
+          data-initial-view-state={initialViewState ? JSON.stringify(initialViewState) : undefined}
+          data-map-style={mapStyle}
+        >
+          {children}
+        </div>
+      )
     },
   ),
-  Source: ({ children }: { children: React.ReactNode }) => <div data-testid="map-source">{children}</div>,
+  Source: ({
+    children,
+    id,
+    type,
+    url,
+    tileSize,
+    maxzoom,
+  }: {
+    children?: React.ReactNode
+    id: string
+    type: string
+    url?: string
+    tileSize?: number
+    maxzoom?: number
+  }) => (
+    <div
+      data-testid={`map-source-${id}`}
+      data-source-type={type}
+      data-source-url={url}
+      data-tile-size={tileSize}
+      data-max-zoom={maxzoom}
+    >
+      {children}
+    </div>
+  ),
   Layer: ({ id }: { id: string }) => <div data-testid={`map-layer-${id}`} />,
   Marker: ({ children }: { children: React.ReactNode }) => <div data-testid="map-marker">{children}</div>,
   NavigationControl: () => <div data-testid="navigation-control" />,
@@ -158,6 +206,45 @@ describe('021 trail navigation start mode', () => {
     expect(watchPosition).not.toHaveBeenCalled()
   })
 
+  it('AC-02-08/BR-30: enables Mapbox terrain without IGN and preserves the immersive camera pitch', async () => {
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      success(makePosition({ latitude: 45.8732, longitude: 6.6731 }))
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+
+    render(<TrailNavigationMap trail={trail} />)
+
+    const map = screen.getByTestId('mapbox-outdoors')
+    expect(JSON.parse(map.getAttribute('data-terrain') ?? 'null')).toEqual({
+      source: 'mapbox-dem',
+      exaggeration: 1.2,
+    })
+    expect(map).toHaveAttribute('data-map-style', 'mapbox://styles/mapbox/outdoors-v12')
+    expect(map).toHaveAttribute('data-max-pitch', '75')
+    expect(JSON.parse(map.getAttribute('data-initial-view-state') ?? 'null')).toMatchObject({
+      pitch: 0,
+    })
+
+    const dem = screen.getByTestId('map-source-mapbox-dem')
+    expect(dem).toHaveAttribute('data-source-type', 'raster-dem')
+    expect(dem).toHaveAttribute('data-source-url', 'mapbox://mapbox.mapbox-terrain-dem-v1')
+    expect(dem).toHaveAttribute('data-tile-size', '512')
+    expect(dem).toHaveAttribute('data-max-zoom', '14')
+    expect(screen.queryByTestId('map-source-ign-base')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
+    expect(mockFlyTo).toHaveBeenCalledWith(expect.objectContaining({ pitch: 55 }))
+
+    mockFlyTo.mockClear()
+    await userEvent.click(screen.getByRole('button', { name: 'Recentrer sur ma position' }))
+    expect(mockFlyTo).toHaveBeenCalledWith(expect.objectContaining({ pitch: 55 }))
+  })
+
   it('keeps the full-screen navigation constrained to the mobile app shell width', () => {
     render(<TrailNavigationMap trail={trail} />)
 
@@ -255,7 +342,7 @@ describe('021 trail navigation start mode', () => {
     }))
   })
 
-  it('keeps the user centered after the hike has explicitly started', async () => {
+  it('AC-02-08/BR-16: keeps the user centered after the hike has explicitly started', async () => {
     let gpsSuccess: PositionCallback | null = null
     const watchPosition = jest.fn((success: PositionCallback) => {
       gpsSuccess = success
@@ -302,6 +389,16 @@ describe('021 trail navigation start mode', () => {
         center: [6.6732, 45.8733],
       })),
     )
+
+    const autoFollowCall = mockEaseTo.mock.calls.find(([options]) =>
+      Array.isArray(options?.center)
+      && options.center[0] === 6.6732
+      && options.center[1] === 45.8733,
+    )
+    expect(autoFollowCall).toBeDefined()
+    const autoFollowOptions = autoFollowCall?.[0] as Record<string, unknown>
+    expect(Object.prototype.hasOwnProperty.call(autoFollowOptions, 'pitch')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(autoFollowOptions, 'zoom')).toBe(false)
   })
 
   it('AC-05-06/BR-19: never renders a straight-line approach layer', async () => {
