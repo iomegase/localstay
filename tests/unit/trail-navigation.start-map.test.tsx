@@ -34,12 +34,14 @@ jest.mock('react-map-gl/mapbox', () => ({
         terrain,
         maxPitch,
         initialViewState,
+        mapStyle,
       }: {
         children: React.ReactNode
         onMoveStart?: (evt: unknown) => void
         terrain?: unknown
         maxPitch?: number
         initialViewState?: unknown
+        mapStyle?: string
       },
       ref: React.Ref<unknown>,
     ) => {
@@ -65,6 +67,7 @@ jest.mock('react-map-gl/mapbox', () => ({
           data-terrain={terrain ? JSON.stringify(terrain) : undefined}
           data-max-pitch={maxPitch}
           data-initial-view-state={initialViewState ? JSON.stringify(initialViewState) : undefined}
+          data-map-style={mapStyle}
         >
           {children}
         </div>
@@ -220,6 +223,7 @@ describe('021 trail navigation start mode', () => {
       source: 'mapbox-dem',
       exaggeration: 1.2,
     })
+    expect(map).toHaveAttribute('data-map-style', 'mapbox://styles/mapbox/outdoors-v12')
     expect(map).toHaveAttribute('data-max-pitch', '75')
     expect(JSON.parse(map.getAttribute('data-initial-view-state') ?? 'null')).toMatchObject({
       pitch: 0,
@@ -338,7 +342,7 @@ describe('021 trail navigation start mode', () => {
     }))
   })
 
-  it('keeps the user centered after the hike has explicitly started', async () => {
+  it('AC-02-08/BR-16: keeps the user centered after the hike has explicitly started', async () => {
     let gpsSuccess: PositionCallback | null = null
     const watchPosition = jest.fn((success: PositionCallback) => {
       gpsSuccess = success
@@ -385,6 +389,16 @@ describe('021 trail navigation start mode', () => {
         center: [6.6732, 45.8733],
       })),
     )
+
+    const autoFollowCall = mockEaseTo.mock.calls.find(([options]) =>
+      Array.isArray(options?.center)
+      && options.center[0] === 6.6732
+      && options.center[1] === 45.8733,
+    )
+    expect(autoFollowCall).toBeDefined()
+    const autoFollowOptions = autoFollowCall?.[0] as Record<string, unknown>
+    expect(Object.prototype.hasOwnProperty.call(autoFollowOptions, 'pitch')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(autoFollowOptions, 'zoom')).toBe(false)
   })
 
   it('AC-05-06/BR-19: never renders a straight-line approach layer', async () => {
