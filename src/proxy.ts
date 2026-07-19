@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createSupabaseMiddlewareClient } from '@/shared/lib/supabase'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
-import type { Role } from '@/shared/types/roles'
 
 const LODGING_COOKIE_NAME = 'lodging_id'
 const LODGING_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 jours
@@ -89,13 +88,13 @@ export async function proxy(request: NextRequest) {
       return redirectWithCookies('/auth/login')
     }
 
-    const role = (user.user_metadata?.role ?? 'tourist') as Role
+    const role: unknown = user.user_metadata?.role
 
-    if (role === 'tourist') {
+    if (role !== 'owner' && role !== 'merchant' && role !== 'admin') {
       return redirectWithCookies('/auth/login')
     }
 
-    const ownDashboard = DASHBOARD_ROUTES[role as Exclude<Role, 'tourist'>]
+    const ownDashboard = DASHBOARD_ROUTES[role]
 
     // BR-04: block cross-role access
     const otherPrefixes = Object.values(DASHBOARD_ROUTES).filter(p => p !== ownDashboard)
