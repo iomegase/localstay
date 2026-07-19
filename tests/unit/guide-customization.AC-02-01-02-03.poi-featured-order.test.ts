@@ -9,6 +9,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     city: { findFirst: jest.fn() },
     category: { findFirst: jest.fn() },
     subCategory: { findFirst: jest.fn() },
+    lodging: { findFirst: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
   },
 }))
@@ -47,6 +48,7 @@ describe('012 guide customization POI ordering', () => {
     jest.clearAllMocks()
     jest.mocked(prisma.city.findFirst).mockResolvedValue(mockCity as never)
     jest.mocked(prisma.category.findFirst).mockResolvedValue(mockCategory as never)
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue(null)
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       makePoi('near', 'near', 45.89),
       makePoi('featured', 'featured', 46.1),
