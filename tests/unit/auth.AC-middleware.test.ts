@@ -1,6 +1,7 @@
 // tests/unit/auth.AC-middleware.test.ts
 /**
  * AC-02-03 — Accès dashboard sans auth → redirect /auth/login
+ * AC-02-04 / BR-10 — Rôle absent, inconnu ou tourist → redirect /auth/login
  * BR-04 — Cross-role access → redirect vers dashboard propre au rôle
  */
 
@@ -63,15 +64,15 @@ describe('middleware — AC-02-03 + BR-04', () => {
     expect(res.status).toBe(200)
   })
 
-  it('redirects user with no role metadata to / (tourist fallback)', async () => {
+  it('redirects an authenticated user with no role metadata to /auth/login (AC-02-04/BR-10)', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { user_metadata: {} } },
     })
     const res = await middleware(makeRequest('/dashboard'))
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toContain('/')
-    // Should NOT redirect to /auth/login (user is authenticated, just no role)
-    expect(res.headers.get('location')).not.toContain('/auth/login')
+    const location = res.headers.get('location')
+    expect(location).not.toBeNull()
+    expect(new URL(location as string).pathname).toBe('/auth/login')
   })
 })
 
