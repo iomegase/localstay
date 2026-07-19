@@ -43,6 +43,8 @@ const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   useful_services: null,
 }
 
+const SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS = 20_000
+
 function pickPracticalInfo(source: Partial<PracticalInfoFields> | null | undefined): PracticalInfoFields {
   if (!source) return { ...EMPTY_PRACTICAL_INFO }
   return PRACTICAL_INFO_KEYS.reduce<PracticalInfoFields>((acc, key) => {
@@ -394,9 +396,9 @@ export async function saveLodgingCustomization(
       data: { deleted_at: new Date() },
     })
 
-    for (const block of practicalBlocks) {
-      await tx.lodgingPracticalBlock.create({
-        data: {
+    if (practicalBlocks.length > 0) {
+      await tx.lodgingPracticalBlock.createMany({
+        data: practicalBlocks.map(block => ({
           lodging_id: lodgingId,
           title: block.title,
           body: block.body,
@@ -404,10 +406,10 @@ export async function saveLodgingCustomization(
           photo_url: block.photo_url,
           video_url: block.video_url,
           sort_order: block.sort_order,
-        },
+        })),
       })
     }
-  })
+  }, { timeout: SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS })
 
   const savedBlocks = await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },

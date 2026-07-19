@@ -1,7 +1,7 @@
 const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
-  lodgingPracticalBlock: { updateMany: jest.fn(), create: jest.fn() },
+  lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
 }
 
 const mockGeocodeAddress = jest.fn()
@@ -60,6 +60,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
       featured_pois: [],
       practical_blocks: [
         { title: '  La plage  ', body: 'À 5 min', icon: 'star', photo_url: '', sort_order: 7 },
+        { title: 'Local à skis', body: null, icon: 'info', photo_url: 'https://cdn.test/ski.jpg', sort_order: 8 },
         { title: '', body: 'orphan', icon: 'info', photo_url: null, sort_order: 2 },
       ],
     })
@@ -68,21 +69,42 @@ describe('saveLodgingCustomization — practical blocks', () => {
       where: { lodging_id: 'lodging-1', deleted_at: null },
       data: { deleted_at: expect.any(Date) },
     })
-    expect(tx.lodgingPracticalBlock.create).toHaveBeenCalledTimes(1)
-    expect(tx.lodgingPracticalBlock.create).toHaveBeenCalledWith({
-      data: {
-        lodging_id: 'lodging-1',
-        title: 'La plage',
-        body: 'À 5 min',
-        icon: 'star',
-        photo_url: null,
-        video_url: null,
-        sort_order: 0,
-      },
+    expect(tx.lodgingPracticalBlock.createMany).toHaveBeenCalledTimes(1)
+    expect(tx.lodgingPracticalBlock.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          lodging_id: 'lodging-1',
+          title: 'La plage',
+          body: 'À 5 min',
+          icon: 'star',
+          photo_url: null,
+          video_url: null,
+          sort_order: 0,
+        },
+        {
+          lodging_id: 'lodging-1',
+          title: 'Local à skis',
+          body: null,
+          icon: 'info',
+          photo_url: 'https://cdn.test/ski.jpg',
+          video_url: null,
+          sort_order: 1,
+        },
+      ],
     })
     expect(result.practical_blocks).toEqual([
       { id: 'b1', title: 'La plage', body: 'À 5 min', icon: 'star', photo_url: null, sort_order: 0 },
     ])
+  })
+
+  it('uses a longer transaction timeout for customization saves with many owner recommendations', async () => {
+    await saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [],
+      practical_blocks: [],
+    })
+
+    expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), { timeout: 20000 })
   })
 
   it('normalizes and persists an owner note for a selected POI', async () => {
