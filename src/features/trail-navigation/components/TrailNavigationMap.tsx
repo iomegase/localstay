@@ -143,7 +143,7 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   function tiltMapForImmersion() {
     mapRef.current?.flyTo({
-      pitch: 55,
+      pitch: 60,
       zoom: 16,
       duration: 1500,
       essential: true,
@@ -189,7 +189,7 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
       zoom: 17.5,
-      pitch: 55,
+      pitch: 60,
       duration: 800,
       essential: true,
     })
@@ -319,7 +319,7 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
         // Le verrouillage nord est toggle-able via le bouton compass. État appliqué
         // dans le useEffect ci-dessous, qui réagit à `northLocked`.
         maxPitch={75}
-        terrain={{ source: 'mapbox-dem', exaggeration: 1.2 }}
+        terrain={{ source: 'mapbox-dem', exaggeration: 1.4 }}
         touchPitch={true}
         mapStyle="mapbox://styles/mapbox/outdoors-v12"
         style={{ width: '100%', height: '100%' }}
@@ -332,7 +332,20 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
           url="mapbox://mapbox.mapbox-terrain-dem-v1"
           tileSize={512}
           maxzoom={14}
-        />
+        >
+          <Layer
+            id="trail-terrain-hillshade"
+            type="hillshade"
+            paint={{
+              'hillshade-exaggeration': 0.8,
+              'hillshade-illumination-direction': 315,
+              'hillshade-illumination-anchor': 'map',
+              'hillshade-shadow-color': 'rgba(18, 31, 24, 0.72)',
+              'hillshade-highlight-color': 'rgba(255, 248, 220, 0.42)',
+              'hillshade-accent-color': 'rgba(65, 82, 70, 0.55)',
+            }}
+          />
+        </Source>
         <Source id="trail-navigation-line" type="geojson" data={{ type: 'Feature', properties: {}, geometry }}>
           <Layer
             id="trail-line"

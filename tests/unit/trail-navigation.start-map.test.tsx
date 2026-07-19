@@ -99,7 +99,21 @@ jest.mock('react-map-gl/mapbox', () => ({
       {children}
     </div>
   ),
-  Layer: ({ id }: { id: string }) => <div data-testid={`map-layer-${id}`} />,
+  Layer: ({
+    id,
+    type,
+    paint,
+  }: {
+    id: string
+    type?: string
+    paint?: Record<string, unknown>
+  }) => (
+    <div
+      data-testid={`map-layer-${id}`}
+      data-layer-type={type}
+      data-layer-paint={paint ? JSON.stringify(paint) : undefined}
+    />
+  ),
   Marker: ({ children }: { children: React.ReactNode }) => <div data-testid="map-marker">{children}</div>,
   NavigationControl: () => <div data-testid="navigation-control" />,
 }))
@@ -206,7 +220,7 @@ describe('021 trail navigation start mode', () => {
     expect(watchPosition).not.toHaveBeenCalled()
   })
 
-  it('AC-02-08/BR-30: enables Mapbox terrain without IGN and preserves the immersive camera pitch', async () => {
+  it('AC-02-08/BR-30: renders one contrasted DEM terrain and preserves the cinematic camera pitch', async () => {
     const watchPosition = jest.fn((success: PositionCallback) => {
       success(makePosition({ latitude: 45.8732, longitude: 6.6731 }))
       return 42
@@ -221,7 +235,7 @@ describe('021 trail navigation start mode', () => {
     const map = screen.getByTestId('mapbox-outdoors')
     expect(JSON.parse(map.getAttribute('data-terrain') ?? 'null')).toEqual({
       source: 'mapbox-dem',
-      exaggeration: 1.2,
+      exaggeration: 1.4,
     })
     expect(map).toHaveAttribute('data-map-style', 'mapbox://styles/mapbox/outdoors-v12')
     expect(map).toHaveAttribute('data-max-pitch', '75')
@@ -234,15 +248,31 @@ describe('021 trail navigation start mode', () => {
     expect(dem).toHaveAttribute('data-source-url', 'mapbox://mapbox.mapbox-terrain-dem-v1')
     expect(dem).toHaveAttribute('data-tile-size', '512')
     expect(dem).toHaveAttribute('data-max-zoom', '14')
+    expect(screen.getAllByTestId('map-source-mapbox-dem')).toHaveLength(1)
+
+    const hillshade = within(dem).getByTestId('map-layer-trail-terrain-hillshade')
+    expect(hillshade).toHaveAttribute('data-layer-type', 'hillshade')
+    expect(JSON.parse(hillshade.getAttribute('data-layer-paint') ?? 'null')).toEqual({
+      'hillshade-exaggeration': 0.8,
+      'hillshade-illumination-direction': 315,
+      'hillshade-illumination-anchor': 'map',
+      'hillshade-shadow-color': 'rgba(18, 31, 24, 0.72)',
+      'hillshade-highlight-color': 'rgba(255, 248, 220, 0.42)',
+      'hillshade-accent-color': 'rgba(65, 82, 70, 0.55)',
+    })
+    expect(
+      hillshade.compareDocumentPosition(screen.getByTestId('map-layer-trail-line'))
+      & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     expect(screen.queryByTestId('map-source-ign-base')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
     await waitFor(() => expect(watchPosition).toHaveBeenCalledTimes(1))
-    expect(mockFlyTo).toHaveBeenCalledWith(expect.objectContaining({ pitch: 55 }))
+    expect(mockFlyTo).toHaveBeenCalledWith(expect.objectContaining({ pitch: 60 }))
 
     mockFlyTo.mockClear()
     await userEvent.click(screen.getByRole('button', { name: 'Recentrer sur ma position' }))
-    expect(mockFlyTo).toHaveBeenCalledWith(expect.objectContaining({ pitch: 55 }))
+    expect(mockFlyTo).toHaveBeenCalledWith(expect.objectContaining({ pitch: 60 }))
   })
 
   it('keeps the full-screen navigation constrained to the mobile app shell width', () => {
