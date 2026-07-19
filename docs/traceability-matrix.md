@@ -167,6 +167,7 @@
 | AC-02-01 | Connexion valide → redirection selon rôle | `src/app/api/auth/login/route.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
 | AC-02-02 | Identifiants incorrects → message générique | `src/app/api/auth/login/route.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
 | AC-02-03 | Accès dashboard sans auth → `/auth/login` | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
+| AC-02-04/BR-10 | Rôle absent, inconnu ou `tourist` sur espace protégé → `/auth/login`, jamais page publique | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
 | AC-03-01 | Déconnexion → session invalidée | `src/app/api/auth/logout/route.ts` | `tests/contract/auth.AC-login-logout.test.ts` | ✅ done |
 | AC-03-02 | Session expirée → redirect `/auth/login` | `src/proxy.ts` | `tests/unit/auth.AC-middleware.test.ts` | ✅ done |
 | AC-04-01 | Forgot password → même réponse 200 | `src/app/api/auth/forgot-password/route.ts` | `tests/contract/auth.AC-password.test.ts` | ✅ done |
@@ -453,7 +454,7 @@
 | AC-05-09/BR-26 | Récapitulatif local avec distance, durée, dénivelé fiable optionnel et métriques indisponibles masquées | `src/features/trail-navigation/lib/session-stats.ts`<br>`src/features/trail-navigation/components/TrailSessionSummaryModal.tsx` | `tests/unit/trail-navigation.session-stats.test.ts`<br>`tests/unit/trail-navigation.session-summary-modal.test.tsx`<br>`tests/integration/trail-navigation.session-flow.test.tsx` | ✅ done |
 | BR-28 | Trace GPS en mémoire uniquement, sans route API ni envoi de coordonnées | `src/features/trail-navigation/hooks/useTrailNavigationSession.ts`<br>`src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx` | ✅ done |
 | AC-02-07/BR-29 | Avant session, croix interactive et sortie sans récapitulatif ; pendant la session active, Stop remplace exclusivement la croix et ouvre le récapitulatif ; après "Voir le tracé" en état `stopped`, croix restaurée et sortie via l'historique sans nouveau récapitulatif | `src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx`<br>`tests/integration/trail-navigation.session-flow.test.tsx` | ✅ done |
-| AC-02-08/BR-30 | Relief Mapbox Terrain `1.2` sur le fond `outdoors-v12`, pitch initial `0°`, immersion GPS et recentrage à `55°`, maximum `75°`, sans IGN ni second Map Load | `src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx` | ✅ done |
+| AC-02-08/BR-30 | Relief Mapbox Terrain `1.4` et hillshade contrasté sur le fond `outdoors-v12`, pitch initial `0°`, immersion GPS et recentrage à `60°`, maximum `75°`, sans IGN, seconde source DEM ni second Map Load | `src/features/trail-navigation/components/TrailNavigationMap.tsx` | `tests/unit/trail-navigation.start-map.test.tsx` | ✅ done |
 
 ## 022 — Admin POI Management
 

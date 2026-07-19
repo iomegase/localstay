@@ -18,7 +18,10 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 }))
 
 jest.mock('@/shared/lib/prisma', () => ({
-  prisma: { lodgingFeaturedPoi: { findMany: jest.fn() } },
+  prisma: {
+    lodgingFeaturedPoi: { findMany: jest.fn() },
+    lodgingCustomization: { findFirst: jest.fn() },
+  },
 }))
 
 jest.mock('next/link', () => ({
@@ -33,6 +36,7 @@ const mockContext = getActiveLodgingContext as jest.Mock
 describe('HomePage — mode séjour', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue(null)
     mockContext.mockResolvedValue({
       lodgingId: 'lodging-1',
       lodgingName: 'Chalet Rémy',

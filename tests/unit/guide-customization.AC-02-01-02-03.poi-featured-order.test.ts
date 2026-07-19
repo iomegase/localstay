@@ -9,14 +9,9 @@ jest.mock('@/shared/lib/prisma', () => ({
     city: { findFirst: jest.fn() },
     category: { findFirst: jest.fn() },
     subCategory: { findFirst: jest.fn() },
+    lodging: { findFirst: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
   },
-}))
-
-const mockGetPublicCustomization = jest.fn()
-
-jest.mock('@/features/guide-customization/queries/customization', () => ({
-  getPublicCustomization: (...args: unknown[]) => mockGetPublicCustomization(...args),
 }))
 
 import { getPoiCards } from '@/features/categories/queries/poi-cards'
@@ -47,11 +42,11 @@ describe('012 guide customization POI ordering', () => {
     jest.clearAllMocks()
     jest.mocked(prisma.city.findFirst).mockResolvedValue(mockCity as never)
     jest.mocked(prisma.category.findFirst).mockResolvedValue(mockCategory as never)
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue(null)
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       makePoi('near', 'near', 45.89),
       makePoi('featured', 'featured', 46.1),
     ] as never)
-    mockGetPublicCustomization.mockResolvedValue(null)
   })
 
   it('AC-02-03: keeps standard distance order when lodging is absent', async () => {
@@ -61,15 +56,7 @@ describe('012 guide customization POI ordering', () => {
     expect(result!.primary.map(poi => poi.slug)).toEqual(['near', 'featured'])
   })
 
-  it('BR-12: keeps the full category guide when lodging customization exists', async () => {
-    mockGetPublicCustomization.mockResolvedValue({
-      welcome_message: null,
-      category_order: [],
-      featured_pois: [
-        { poi_id: 'featured', sort_order: 0, category_slug: 'restaurants' },
-      ],
-    })
-
+  it('BR-12: keeps the full category guide in lodging mode', async () => {
     const result = await getPoiCards('saint-gervais', 'restaurants', { lodgingId: 'lodging-1' })
 
     expect(result).not.toBeNull()
