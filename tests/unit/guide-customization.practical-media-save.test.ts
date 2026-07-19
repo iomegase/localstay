@@ -1,12 +1,13 @@
 const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
-  lodgingPracticalBlock: { updateMany: jest.fn(), create: jest.fn() },
+  lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
 }
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     lodging: { findFirst: jest.fn() },
+    lodgingCustomization: { findFirst: jest.fn() },
     category: { findMany: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
@@ -27,6 +28,7 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
       city_id: 'city-1',
       city: { latitude: 45, longitude: 6 },
     } as never)
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue(null)
     jest.mocked(prisma.category.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
   })
@@ -57,8 +59,8 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
       ],
     })
 
-    expect(tx.lodgingPracticalBlock.create).toHaveBeenCalledWith({
-      data: {
+    expect(tx.lodgingPracticalBlock.createMany).toHaveBeenCalledWith({
+      data: [{
         lodging_id: 'lodging-1',
         title: 'Visite',
         body: null,
@@ -66,7 +68,7 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
         photo_url: null,
         video_url: 'https://youtu.be/dQw4w9WgXcQ',
         sort_order: 0,
-      },
+      }],
     })
   })
 })
