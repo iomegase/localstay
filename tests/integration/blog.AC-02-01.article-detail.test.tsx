@@ -64,6 +64,12 @@ describe('029 blog article detail page', () => {
     expect(screen.getByAltText('Un week-end à Saint-Gervais')).toHaveAttribute('src', 'https://img.test/cover.jpg')
     expect(screen.getByRole('button', { name: 'Photo suivante' })).toBeInTheDocument()
     expect(screen.getByText(/Deux jours pour profiter du village/i)).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument()
+    expect(screen.getByText('15 juin 2026')).toBeInTheDocument()
+    expect(screen.getByText('1 min')).toBeInTheDocument()
+    expect(screen.getByTestId('blog-article-cover')).toHaveClass('rounded-[28px]')
+    expect(screen.getByText('SEJOUR')).toBeInTheDocument()
+    expect(screen.getByText('ALPES')).toBeInTheDocument()
 
     const schema = container.querySelector('script[type="application/ld+json"]')
     expect(schema).not.toBeNull()

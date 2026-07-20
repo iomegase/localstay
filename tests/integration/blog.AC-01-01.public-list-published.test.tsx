@@ -33,11 +33,16 @@ describe('029 blog public list', () => {
   it('renders only published articles ordered for /blog', async () => {
     render(await BlogListPage({ searchParams: Promise.resolve({}) }))
 
-    expect(screen.getByRole('heading', { name: /Blog/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Inspirations, conciergerie/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Un week-end à Saint-Gervais/i })).toHaveAttribute(
       'href',
       '/blog/week-end-saint-gervais',
     )
-    expect(screen.getByText('Guide local')).toBeInTheDocument()
+    expect(screen.getAllByText('Guide local')).toHaveLength(2)
+    expect(screen.getByText('Blog & Guides')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Accueil/Blog')
+    expect(screen.getByText('Toutes')).toBeInTheDocument()
+    expect(screen.getByTestId('blog-grid')).toHaveClass('grid-cols-2')
+    expect(screen.getByTestId('blog-card-week-end-saint-gervais')).toHaveClass('aspect-square')
   })
 })
