@@ -12,15 +12,25 @@ interface Props {
   poiId?: string
   /** Si true, flèches et pastilles restent masquées (opacity-0) et n'apparaissent qu'au survol du hero. */
   revealControlsOnHover?: boolean
+  /** Variante paysage utilisée par les articles du blog. */
+  variant?: 'default' | 'blog'
   children?: ReactNode
 }
 
-export function PoiDetailHeroCarousel({ photos, name, poiId, revealControlsOnHover = false, children }: Props) {
+export function PoiDetailHeroCarousel({
+  photos,
+  name,
+  poiId,
+  revealControlsOnHover = false,
+  variant = 'default',
+  children,
+}: Props) {
   const [photoIndex, setPhotoIndex] = useState(0)
   const [deadPhotos, setDeadPhotos] = useState<Set<string>>(new Set())
   const galleryPhotos = photos.filter(Boolean).filter(url => !deadPhotos.has(url))
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
+  const isBlogVariant = variant === 'blog'
   const controlReveal = revealControlsOnHover
     ? 'opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'
     : ''
@@ -42,22 +52,26 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, revealControlsOnHov
 
   return (
     <div
-      className="group relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-pink-600/20 to-pink-600/5"
+      className={isBlogVariant
+        ? 'group relative aspect-[2/1] h-auto w-full overflow-hidden rounded-[28px] bg-slate-200'
+        : 'group relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-pink-600/20 to-pink-600/5'}
       data-testid="poi-detail-hero-carousel"
     >
       {currentPhoto ? (
         <>
-          <Image
-            src={currentPhoto}
-            alt=""
-            aria-hidden
-            fill
-            priority
-            unoptimized
-            sizes="(max-width: 480px) 100vw, 480px"
-            data-testid="poi-detail-hero-backdrop"
-            className="scale-110 object-cover blur-xl"
-          />
+          {!isBlogVariant && (
+            <Image
+              src={currentPhoto}
+              alt=""
+              aria-hidden
+              fill
+              priority
+              unoptimized
+              sizes="(max-width: 480px) 100vw, 480px"
+              data-testid="poi-detail-hero-backdrop"
+              className="scale-110 object-cover blur-xl"
+            />
+          )}
           <Image
             src={currentPhoto}
             alt={name}
@@ -66,14 +80,14 @@ export function PoiDetailHeroCarousel({ photos, name, poiId, revealControlsOnHov
             unoptimized
             sizes="(max-width: 480px) 100vw, 480px"
             onError={handlePhotoError}
-            className="object-contain object-center transition-transform duration-500"
+            className={`${isBlogVariant ? 'object-cover' : 'object-contain'} object-center transition-transform duration-500`}
           />
         </>
       ) : (
         <div className="h-full w-full bg-gradient-to-br from-pink-600/20 to-pink-600/5" />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />
+      {!isBlogVariant && <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40" />}
 
       {children}
 
