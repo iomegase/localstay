@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X } from 'lucide-react'
+import { Home, Info, LogOut, Settings, X } from 'lucide-react'
 import { contextualContactPath, contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
 
 type MenuItem = { href: string; label: string }
@@ -21,6 +21,13 @@ const ANONYMOUS_ITEMS: MenuItem[] = [
   { href: contextualFavoritesPath(null), label: 'Vos favoris' },
   { href: '/contact', label: 'Contact' },
 ]
+
+const LODGING_GUIDE_ITEMS = [
+  { href: '#bienvenue', label: 'Bienvenue', icon: Home },
+  { href: '#infos-pratiques', label: 'Infos pratiques', icon: Info },
+  { href: '#bon-a-savoir', label: 'Bon à savoir', icon: Settings },
+  { href: '#depart', label: 'Départ', icon: LogOut },
+] as const
 
 function extractCitySlug(pathname?: string | null): string | null {
   if (!pathname) return null
@@ -60,9 +67,21 @@ export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
   const resolvedCitySlug = citySlug ?? extractCitySlug(pathname)
+  const isLodgingGuide = pathname === '/le-logement'
   const items = mode === 'lodging'
     ? lodgingItems(resolvedCitySlug)
     : anonymousItems(resolvedCitySlug)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [isOpen])
 
   return (
     <>
@@ -87,6 +106,35 @@ export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
           >
             <X className="h-6 w-6" />
           </button>
+          {isLodgingGuide ? (
+            <div className="flex h-full flex-col">
+              <div className="border-b border-slate-200 px-1 pb-8 pt-1">
+                <p className="text-[24px] font-extrabold tracking-[0.16em] text-slate-900">MYSTAY</p>
+              </div>
+              <div className="pt-10">
+                <p className="mb-7 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  Guide du logement
+                </p>
+                <nav aria-label="Guide du logement">
+                  {LODGING_GUIDE_ITEMS.map(item => {
+                    const Icon = item.icon
+                    return (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className="flex min-h-[74px] items-center gap-5 border-b border-slate-200 px-2 text-[20px] font-medium text-slate-900 transition-colors hover:bg-slate-50"
+                      >
+                        <Icon className="h-6 w-6 shrink-0" strokeWidth={1.8} />
+                        <span>{item.label}</span>
+                      </a>
+                    )
+                  })}
+                </nav>
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="mt-20 space-y-8">
             <p className="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-bold">
               Navigation
@@ -119,6 +167,8 @@ export function PublicMenu({ mode, lodgingName, citySlug }: Props) {
           <div className="border-t border-gray-100 pt-8">
             <p className="text-sm text-gray-400">MyStay</p>
           </div>
+          </>
+          )}
           </div>
         </div>,
         document.body,
