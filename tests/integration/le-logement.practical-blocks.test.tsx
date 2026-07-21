@@ -80,7 +80,12 @@ describe('/le-logement — guide vertical', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Le 305' })).toBeInTheDocument()
     expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
     expect(screen.getByAltText('Le 305')).toHaveAttribute('src', 'https://cdn.test/le-305.webp')
-    expect(screen.getByTestId('lodging-welcome-message')).toHaveClass('font-hand')
+    expect(screen.queryAllByText('Bienvenue chez vous ♡')).toHaveLength(0)
+    expect(screen.queryByTestId('lodging-welcome-message')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Votre séjour commence ici' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Préparer mon arrivée/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Découvrir le logement/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Anticiper mon départ/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /voir l’itinéraire/i })).toHaveAttribute('href', expect.stringContaining('google.com/maps'))
 
     expect(within(screen.getByTestId('arrival-fact')).getByText('À partir de 16 h')).toBeInTheDocument()

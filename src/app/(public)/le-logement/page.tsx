@@ -124,7 +124,6 @@ export default async function LeLogementPage() {
             {lodgingContext.cityName}
           </p>
           <div className="my-5 h-px bg-slate-200" />
-          <p className="font-hand text-[28px] leading-tight text-blue-600">Bienvenue chez vous ♡</p>
           {mapUrl && (
             <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex min-h-12 items-center gap-3 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(37,99,235,0.28)]">
               <ArrowUpRight className="h-5 w-5" />
@@ -143,16 +142,7 @@ export default async function LeLogementPage() {
       <LodgingSectionNav />
 
       <GuideSection id="bienvenue" number="01" eyebrow="Bienvenue" title="Votre séjour commence ici">
-        <div className={`${CARD} bg-gradient-to-br from-white to-blue-50 p-6`}>
-          <p className="font-hand text-[27px] leading-tight text-blue-600">Bienvenue chez vous ♡</p>
-          {customization?.welcome_message ? (
-            <div data-testid="lodging-welcome-message" className={`mt-4 font-hand [&_p]:!text-[18px] [&_p]:!leading-7 ${BODY}`}><MarkdownText source={customization.welcome_message} breaks /></div>
-          ) : (
-            <p className="mt-4 text-sm leading-7 text-slate-600">Retrouvez ici toutes les informations utiles pour profiter sereinement de votre séjour.</p>
-          )}
-          <p className="mt-5 text-sm font-bold text-slate-800">Votre hôte MyStay</p>
-        </div>
-        <div className="mt-3 grid gap-2">
+        <div className="grid gap-2">
           <SectionShortcut href="#infos-pratiques" label="Préparer mon arrivée" detail="Adresse, parking et connexion" color="amber" />
           <SectionShortcut href="#bon-a-savoir" label="Découvrir le logement" detail="Équipements et conseils" color="green" />
           <SectionShortcut href="#depart" label="Anticiper mon départ" detail="Consignes et tri" color="pink" />
