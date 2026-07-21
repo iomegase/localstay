@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-07-09
+updated_at: 2026-07-21
 depends_on: [010-dashboard-owner, 011-qr-code-owner, 002-categories, 003-poi-list]
 ```
 
@@ -82,6 +82,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **AC-04-01**: Given le dashboard de personnalisation, When l'Owner renseigne les informations pratiques, Then elles sont sauvegardées et affichées sur `/le-logement`
 - **AC-04-02**: Given le dashboard de personnalisation, When l'Owner importe une image valide, Then elle est convertie si nécessaire, stockée dans Supabase Storage et affichée en haut de la page d'accueil séjour
 - **AC-04-03**: Given l'Owner renseigne une adresse de logement, When elle est sauvegardée, Then le serveur tente de la géocoder via Mapbox depuis le centre de la City et stocke les coordonnées du logement si le résultat est valide
+- **AC-04-04**: Given un Tourist en séjour actif, When il ouvre `/le-logement`, Then il consulte un guide vertical en quatre sections ancrées et le menu mobile de cette route navigue uniquement entre ces sections
 
 ---
 
@@ -104,6 +105,8 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
 - **BR-16**: Les coordonnées du logement dérivées de `lodging_address` sont calculées uniquement côté serveur via Mapbox Geocoding avec proximité City. Gemini ne doit jamais géocoder l'adresse du logement ni calculer de distance.
 - **BR-17**: En mode séjour actif, les cards POI et fiches POI affichent la distance depuis les coordonnées du logement quand elles existent. Si le Tourist active sa position GPS, cette distance affichée est remplacée côté client par la distance depuis sa position actuelle. Les zones `primary` / `nearby` et le tri serveur restent calculés depuis le centre de la City.
+- **BR-18**: Sur `/le-logement`, les horaires publics sont constants pour tous les Lodgings : arrivée à partir de `16 h` et départ à `10 h`. Ils sont définis dans la couche de présentation et ne nécessitent aucun champ persistant.
+- **BR-19**: Le menu mobile contextuel « Guide du logement » et la palette colorée associée sont limités à `/le-logement`. Les autres routes publiques conservent leur menu et leur charte existants.
 
 ---
 
@@ -436,7 +439,11 @@ components:
 
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
-- `/le-logement` affiche un guide logement en quatre pages : page 1 avec le nom du logement, la photo de couverture et le message Owner ; page 2 avec les informations pratiques courantes dont adresse, vidéo du logement, Wi-Fi, parking, règlement, services et urgences ; page 3 avec les équipements et les blocs pratiques personnalisés ; page 4 avec les consignes de départ et les poubelles. La vidéo de présentation du logement, lorsqu'elle existe, est rendue en page 2 entre "Adresse" et "Parking". La carte "Urgences" rend son numéro en grand format. Chaque page affichée ajuste sa hauteur au contenu actif avec un espace bas modéré pour la navigation mobile, sans hauteur viewport forcée ni réserve de hauteur issue des pages masquées. Le pager accepte aussi un geste horizontal gauche/droite et un défilement horizontal au trackpad pour naviguer page par page sans bloquer le scroll vertical.
+- `/le-logement` affiche un guide vertical mobile-first en quatre sections successives : `Bienvenue`, `Infos pratiques`, `Bon à savoir` et `Départ`. Le hero présente la photo, le nom du Lodging, la City, le message Owner et le CTA d'itinéraire lorsque l'adresse existe. Les horaires constants `Arrivée à partir de 16 h` et `Départ à 10 h` sont affichés sans donnée persistée. Une navigation d'ancrage sticky permet d'atteindre les quatre sections.
+- Sur `/le-logement` uniquement, le bouton du menu mobile ouvre un tiroir plein écran intitulé `Guide du logement`, contenant les quatre mêmes destinations avec icônes. Un choix ferme le tiroir puis positionne la section demandée. Le menu public des autres routes est inchangé.
+- La section `Infos pratiques` affiche les données Owner disponibles sous forme de bento cards : adresse et itinéraire, vidéo, parking, Wi-Fi, règlement, services et urgences. La section `Bon à savoir` affiche les équipements et les blocs pratiques personnalisés. La section `Départ` affiche les consignes et les poubelles. Les blocs sans donnée sont omis sans créer de contenu fictif.
+- La palette de `/le-logement` utilise un bleu principal et des accents joyeux jaune, vert et rose/corail, tout en conservant une lisibilité WCAG et la charte globale des autres pages.
+- Les consignes de départ peuvent être cochées localement lorsqu'elles sont structurées en liste. Cet état n'est ni persisté ni envoyé au serveur.
 - `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné. Les titres de groupes utilisent une graisse light/thin ; les titres de catégories locales affichent l'icône de leur Category à côté du libellé, dans une pastille colorée assez grande pour être un repère visuel. Les titres de City de cette section contractent le préfixe "À" avec les noms commençant par "Les" : "Les Contamines-Montjoie" devient "Aux Contamines-Montjoie".
 - Les textes personnalisés Owner affichés publiquement (titre de `/nos-recommandations`, message d'accueil sur `/guide/[city-slug]` et `/le-logement`, commentaire Owner contextualisé sur fiche POI) utilisent la font Story Script via l'alias Tailwind `font-hand`
 - Sur `/nos-recommandations`, chaque recommandation Owner non-randonnée affiche le statut horaire public déjà utilisé par les cards POI quand les données horaires existent : badge "Ouvert" ou "Fermé", puis "Ferme à <heure>" si ouvert ou "Ouvre <jour/heure>" si fermé. Si `is_open_now` et `hours` ne permettent pas de déterminer le statut, aucun badge horaire n'est rendu. Les cards de recommandation n'affichent jamais le nom de catégorie en texte. Les cards locales et les cards "À découvrir ailleurs" n'affichent pas d'icône de catégorie. Les cards textuelles utilisent un fond blanc ; les fonds crème/sable ne sont pas utilisés.
@@ -468,6 +475,7 @@ components:
 | AC-04-01 | Infos pratiques sauvegardées et affichées | integration |
 | AC-04-02 | Upload photo logement sauvegardé et affiché | contract + unit |
 | AC-04-03 / BR-16 / BR-17 | Adresse logement géocodée via Mapbox et distance POI affichée depuis appartement puis GPS | unit + integration |
+| AC-04-04 / BR-18 / BR-19 | `/le-logement` vertical, navigation d'ancrage et menu mobile contextuel limité à cette route, horaires constants et palette colorée | unit + integration |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
 | BR-08/09 | Bucketing local/inter-ville sans étendre les listes du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |
