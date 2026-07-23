@@ -136,7 +136,6 @@ export default async function LeLogementPage() {
       <div className="mt-4 grid gap-3">
         <FactCard testId="arrival-fact" icon={<Clock3 className="h-5 w-5" />} label="Arrivée" value="À partir de 16 h" color="blue" />
         <FactCard testId="departure-fact" icon={<LogOut className="h-5 w-5" />} label="Départ" value="10 h" color="amber" />
-        {hasWifi && <FactCard icon={<Wifi className="h-5 w-5" />} label="Wi-Fi" value={customization?.wifi_ssid ?? 'Disponible'} color="green" />}
       </div>
 
       <LodgingSectionNav />

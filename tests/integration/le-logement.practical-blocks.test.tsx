@@ -90,7 +90,10 @@ describe('/le-logement — guide vertical', () => {
 
     expect(within(screen.getByTestId('arrival-fact')).getByText('À partir de 16 h')).toBeInTheDocument()
     expect(within(screen.getByTestId('departure-fact')).getByText('10 h')).toBeInTheDocument()
-    expect(screen.getAllByText('MyStay-305')).toHaveLength(2)
+    expect(screen.queryByText('Wi-Fi')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Réseau Wi-Fi' })).toBeInTheDocument()
+    expect(screen.getByText('MyStay-305')).toBeInTheDocument()
+    expect(screen.getByText('secret-wifi')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' })).toBeInTheDocument()
     expect(screen.getByText('Place 12 dans la cour.')).toBeInTheDocument()
     expect(screen.getByText('Cheminée et chauffage au sol.')).toBeInTheDocument()
