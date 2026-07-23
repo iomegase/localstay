@@ -108,6 +108,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-18**: Sur `/le-logement`, les horaires publics sont constants pour tous les Lodgings : arrivée à partir de `16 h` et départ à `10 h`. Ils sont définis dans la couche de présentation et ne nécessitent aucun champ persistant.
 - **BR-19**: Le menu mobile contextuel « Guide du logement » et la palette colorée associée sont limités à `/le-logement`. Les autres routes publiques conservent leur menu et leur charte existants.
 - **BR-20**: Le champ `welcome_message` reste sauvegardé et disponible pour les surfaces publiques prévues par la spec, mais `/le-logement` ne rend ni ce contenu ni une salutation de bienvenue de remplacement. Cette règle est uniquement présentationnelle et ne modifie ni le modèle, ni l'API, ni le formulaire Owner.
+- **BR-21**: Le récapitulatif supérieur de `/le-logement` affiche uniquement les horaires d'arrivée et de départ. Les identifiants Wi-Fi ne sont rendus qu'une fois, dans la carte détaillée `Réseau Wi-Fi` de la section `Infos pratiques`, avec les actions de copie existantes.
 
 ---
 
@@ -440,7 +441,7 @@ components:
 
 ### Pages publiques
 - `/` en mode séjour affiche la photo du logement, le message d'accueil et un CTA vers `/guide/[city-slug]`
-- `/le-logement` affiche un guide vertical mobile-first en quatre sections successives : `Bienvenue`, `Infos pratiques`, `Bon à savoir` et `Départ`. Le hero présente la photo, le nom du Lodging, la City et le CTA d'itinéraire lorsque l'adresse existe, sans salutation ni message Owner. Les horaires constants `Arrivée à partir de 16 h` et `Départ à 10 h` sont affichés sans donnée persistée. Une navigation d'ancrage sticky permet d'atteindre les quatre sections.
+- `/le-logement` affiche un guide vertical mobile-first en quatre sections successives : `Bienvenue`, `Infos pratiques`, `Bon à savoir` et `Départ`. Le hero présente la photo, le nom du Lodging, la City et le CTA d'itinéraire lorsque l'adresse existe, sans salutation ni message Owner. Le récapitulatif supérieur affiche uniquement les horaires constants `Arrivée à partir de 16 h` et `Départ à 10 h`, sans doublon Wi-Fi. Une navigation d'ancrage sticky permet d'atteindre les quatre sections.
 - La section `Bienvenue` conserve son titre et ses raccourcis vers les autres sections, mais n'affiche aucune carte de message. Le `welcome_message` reste intact en base et continue d'être rendu sur les autres surfaces qui le prévoient.
 - Sur `/le-logement` uniquement, le bouton du menu mobile ouvre un tiroir plein écran intitulé `Guide du logement`, contenant les quatre mêmes destinations avec icônes. Un choix ferme le tiroir puis positionne la section demandée. Le menu public des autres routes est inchangé.
 - La section `Infos pratiques` affiche les données Owner disponibles sous forme de bento cards : adresse et itinéraire, vidéo, parking, Wi-Fi, règlement, services et urgences. La section `Bon à savoir` affiche les équipements et les blocs pratiques personnalisés. La section `Départ` affiche les consignes et les poubelles. Les blocs sans donnée sont omis sans créer de contenu fictif.
@@ -479,6 +480,7 @@ components:
 | AC-04-03 / BR-16 / BR-17 | Adresse logement géocodée via Mapbox et distance POI affichée depuis appartement puis GPS | unit + integration |
 | AC-04-04 / BR-18 / BR-19 | `/le-logement` vertical, navigation d'ancrage et menu mobile contextuel limité à cette route, horaires constants et palette colorée | unit + integration |
 | BR-20 | Message de bienvenue conservé côté données mais absent du rendu de `/le-logement` | integration |
+| BR-21 | Récapitulatif limité aux horaires ; Wi-Fi rendu uniquement dans sa carte détaillée | integration |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
 | BR-08/09 | Bucketing local/inter-ville sans étendre les listes du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |
