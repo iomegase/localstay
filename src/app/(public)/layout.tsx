@@ -18,7 +18,7 @@ export default async function PublicLayout({
   const mode = lodgingContext ? 'lodging' : 'anonymous'
 
   return (
-    <div className="max-w-[430px] mx-auto min-h-screen relative border-x  shadow-2xl bg-white immersive-container">
+    <div className="max-w-[430px] mx-auto min-h-[100dvh] relative sm:border-x sm:shadow-2xl bg-white immersive-container">
       {/* Glassmorphism sticky header — masqué en mode immersif */}
       <header
         data-testid="public-header"
