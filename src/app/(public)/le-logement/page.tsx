@@ -205,9 +205,9 @@ export default async function LeLogementPage() {
   const departureContent: React.ReactNode[] = []
   if (customization?.checkout_instructions) {
     departureContent.push(
-      <PanelDetail key="departure" icon={<LogOut className="h-5 w-5" />} accent="blue" title="Départ">
+      <div key="departure" className={BODY}>
         {checklistItems.length > 0 ? <DepartureChecklist items={checklistItems} /> : <MarkdownText source={customization.checkout_instructions} />}
-      </PanelDetail>,
+      </div>,
     )
   }
   if (trashBins.length > 0 || customization?.trash_location) {
