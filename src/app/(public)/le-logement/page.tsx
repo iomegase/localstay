@@ -102,7 +102,7 @@ export default async function LeLogementPage() {
 
   if (!hasContent) {
     return (
-      <div className="-mt-6 bg-[#f6f6f4] px-4 py-10">
+      <div className="-mt-6 min-h-[calc(100dvh-64px)] bg-[#f6f6f4] px-4 py-10">
         <div className={`${GUIDE_CARD} flex flex-col items-center p-10 text-center`}>
           <p className="text-sm font-medium text-slate-500">Les informations pratiques n&apos;ont pas encore été renseignées.</p>
           <Link href={`/guide/${lodgingContext.citySlug}`} className="mt-6 rounded-full bg-slate-900 px-7 py-4 text-sm font-bold text-white">
@@ -200,15 +200,18 @@ export default async function LeLogementPage() {
       </PanelDetail>,
     )
   }
+
+  // ─── Accordéon 4 : départ ────────────────────────────────────────────────
+  const departureContent: React.ReactNode[] = []
   if (customization?.checkout_instructions) {
-    practicalContent.push(
+    departureContent.push(
       <PanelDetail key="departure" icon={<LogOut className="h-5 w-5" />} accent="blue" title="Départ">
         {checklistItems.length > 0 ? <DepartureChecklist items={checklistItems} /> : <MarkdownText source={customization.checkout_instructions} />}
       </PanelDetail>,
     )
   }
   if (trashBins.length > 0 || customization?.trash_location) {
-    practicalContent.push(
+    departureContent.push(
       <PanelDetail key="trash" icon={<Trash2 className="h-5 w-5" />} accent="green" title="Poubelles">
         <div className="space-y-4">
           {trashBins.map(bin => {
@@ -241,11 +244,14 @@ export default async function LeLogementPage() {
     sections.push({ key: 'discover', title: 'Découvrir le logement', subtitle: 'Équipements, règlement et services', icon: <Sofa className="h-5 w-5" />, accent: 'green', content: discoverContent })
   }
   if (practicalContent.length > 0) {
-    sections.push({ key: 'practical', title: 'Infos pratiques', subtitle: 'Urgences, départ et tri des déchets', icon: <Info className="h-5 w-5" />, accent: 'pink', content: practicalContent })
+    sections.push({ key: 'practical', title: 'Infos pratiques', subtitle: 'Urgences et numéros utiles', icon: <Info className="h-5 w-5" />, accent: 'pink', content: practicalContent })
+  }
+  if (departureContent.length > 0) {
+    sections.push({ key: 'departure', title: 'Départ', subtitle: 'Consignes de départ et tri des déchets', icon: <LogOut className="h-5 w-5" />, accent: 'blue', content: departureContent })
   }
 
   return (
-    <div className="-mt-6 bg-[#f6f6f4] px-4 pb-10 pt-4 text-slate-900">
+    <div className="-mt-6 min-h-[calc(100dvh-64px)] bg-[#f6f6f4] px-4 pb-10 pt-4 text-slate-900">
       {/* Hero */}
       <section className="relative min-h-[410px] overflow-hidden rounded-[32px] text-white shadow-[0_10px_30px_rgba(17,17,17,0.08)]">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-700" />
