@@ -15,7 +15,7 @@ export type GuideSection = {
 }
 
 export const GUIDE_CARD =
-  'rounded-[24px] bg-white shadow-[0_8px_24px_rgba(17,17,17,0.06)]'
+  'rounded-[24px] bg-white shadow-[0_4px_18px_rgba(17,17,17,0.09)]'
 
 const ACCENT_TILE: Record<GuideAccent, string> = {
   pink: 'bg-pink-100 text-pink-600',
