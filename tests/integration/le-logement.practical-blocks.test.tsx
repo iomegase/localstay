@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import LeLogementPage from '@/app/(public)/le-logement/page'
 import { prisma } from '@/shared/lib/prisma'
 
@@ -19,13 +20,14 @@ jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     lodgingCustomization: { findFirst: jest.fn() },
     lodgingPracticalBlock: { findMany: jest.fn() },
+    lodgingPublicProfile: { findFirst: jest.fn() },
   },
 }))
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
-    <a href={href} className={className}>{children}</a>
+  default: ({ href, children, className, ...rest }: { href: string; children: React.ReactNode; className?: string }) => (
+    <a href={href} className={className} {...rest}>{children}</a>
   ),
 }))
 
@@ -36,10 +38,10 @@ jest.mock('next/image', () => ({
   ),
 }))
 
-describe('/le-logement — guide vertical', () => {
+describe('/le-logement — guide en accordéons', () => {
   beforeEach(() => jest.clearAllMocks())
 
-  it('renders all four sections and maps the complete lodging content', async () => {
+  it('renders the mockup layout and maps the complete lodging content', async () => {
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       welcome_message: 'Bienvenue chez vous ♡',
       cover_photo_url: 'https://cdn.test/le-305.webp',
@@ -61,36 +63,47 @@ describe('/le-logement — guide vertical', () => {
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
       { id: 'b1', title: 'Le local à skis', body: 'Au **rez-de-chaussée**.', icon: 'star', photo_url: 'https://cdn.test/skis.webp', video_url: null, sort_order: 0 },
     ] as never)
+    jest.mocked(prisma.lodgingPublicProfile.findFirst).mockResolvedValue({
+      max_guests: 4,
+      bedroom_count: 2,
+      surface_m2: 52,
+    } as never)
 
     const { container } = render(await LeLogementPage())
-    const welcome = container.querySelector('#bienvenue')
-    const practical = container.querySelector('#infos-pratiques')
-    const knowledge = container.querySelector('#bon-a-savoir')
-    const departure = container.querySelector('#depart')
 
-    expect(welcome).not.toBeNull()
-    expect(practical).not.toBeNull()
-    expect(knowledge).not.toBeNull()
-    expect(departure).not.toBeNull()
-    expect(welcome?.compareDocumentPosition(practical as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(practical?.compareDocumentPosition(knowledge as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(knowledge?.compareDocumentPosition(departure as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
-    expect(container.querySelector('[data-testid="lodging-pager-panel"]')).not.toBeInTheDocument()
+    // Pas de chronologie 01/02/03/04 ni de navigation par sections
+    expect(container.querySelector('#bienvenue')).toBeNull()
+    expect(container.querySelector('#infos-pratiques')).toBeNull()
+    expect(screen.queryByText('01')).not.toBeInTheDocument()
+    expect(screen.queryByText('02')).not.toBeInTheDocument()
 
+    // Hero + stats depuis le profil showcase
     expect(screen.getByRole('heading', { level: 1, name: 'Le 305' })).toBeInTheDocument()
     expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
     expect(screen.getByAltText('Le 305')).toHaveAttribute('src', 'https://cdn.test/le-305.webp')
-    expect(screen.queryAllByText('Bienvenue chez vous ♡')).toHaveLength(0)
-    expect(screen.queryByTestId('lodging-welcome-message')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Votre séjour commence ici' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Préparer mon arrivée/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Découvrir le logement/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Anticiper mon départ/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /voir l’itinéraire/i })).toHaveAttribute('href', expect.stringContaining('google.com/maps'))
+    expect(screen.getByText('Voyageurs')).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('Chambres')).toBeInTheDocument()
+    expect(screen.getByText('52 m²')).toBeInTheDocument()
 
-    expect(within(screen.getByTestId('arrival-fact')).getByText('À partir de 16 h')).toBeInTheDocument()
-    expect(within(screen.getByTestId('departure-fact')).getByText('10 h')).toBeInTheDocument()
-    expect(screen.queryByText('Wi-Fi')).not.toBeInTheDocument()
+    // Le message d'accueil n'est pas affiché sur cette page
+    expect(screen.queryAllByText('Bienvenue chez vous ♡')).toHaveLength(0)
+
+    // Arrivée / Départ : informations non cliquables
+    const arrival = screen.getByTestId('arrival-fact')
+    const departure = screen.getByTestId('departure-fact')
+    expect(arrival.tagName).toBe('DIV')
+    expect(departure.tagName).toBe('DIV')
+    expect(within(arrival).getByText('À partir de 16 h')).toBeInTheDocument()
+    expect(within(departure).getByText('10 h')).toBeInTheDocument()
+
+    // Accordéons
+    expect(screen.getByRole('button', { name: /Accéder au logement/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Découvrir le logement/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Infos pratiques/i })).toBeInTheDocument()
+
+    // Contenu dynamique complet (présent dans le DOM même replié)
+    expect(screen.getByText('1 rue des Alpes, 74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Réseau Wi-Fi' })).toBeInTheDocument()
     expect(screen.getByText('MyStay-305')).toBeInTheDocument()
     expect(screen.getByText('secret-wifi')).toBeInTheDocument()
@@ -102,6 +115,32 @@ describe('/le-logement — guide vertical', () => {
     expect(screen.getByRole('checkbox', { name: 'Vider le réfrigérateur' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Poubelles' })).toBeInTheDocument()
     expect(screen.getByTestId('lodging-emergency-number')).toHaveTextContent('112')
+
+    // « Autour de vous » = lien direct vers les coups de cœur
+    expect(screen.getByRole('link', { name: /Autour de vous/i })).toHaveAttribute('href', '/nos-recommandations')
+  })
+
+  it('opens a single accordion at a time', async () => {
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
+      lodging_address: '1 rue des Alpes',
+      equipment_info: 'Cheminée.',
+      emergency_contacts: '112',
+      trash_bins: [],
+    } as never)
+    jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+    jest.mocked(prisma.lodgingPublicProfile.findFirst).mockResolvedValue(null as never)
+
+    const user = userEvent.setup()
+    render(await LeLogementPage())
+
+    const access = screen.getByRole('button', { name: /Accéder au logement/i })
+    const discover = screen.getByRole('button', { name: /Découvrir le logement/i })
+
+    await user.click(access)
+    expect(access).toHaveAttribute('aria-expanded', 'true')
+    await user.click(discover)
+    expect(access).toHaveAttribute('aria-expanded', 'false')
+    expect(discover).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('omits optional cards instead of fabricating owner content', async () => {
@@ -122,14 +161,16 @@ describe('/le-logement — guide vertical', () => {
       useful_services: null,
     } as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+    jest.mocked(prisma.lodgingPublicProfile.findFirst).mockResolvedValue(null as never)
 
     render(await LeLogementPage())
 
     expect(screen.getByText('1 rue des Alpes')).toBeInTheDocument()
     expect(screen.queryByText('Réseau Wi-Fi')).not.toBeInTheDocument()
-    expect(screen.queryByText('Parking')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Découvrir le logement/i })).not.toBeInTheDocument()
     expect(screen.queryByText('Votre checklist')).not.toBeInTheDocument()
-    expect(screen.queryByText(/Aucune information renseignée dans cette section/i)).not.toBeInTheDocument()
+    // Pas de stats sans profil showcase
+    expect(screen.queryByText('Voyageurs')).not.toBeInTheDocument()
   })
 
   it('treats custom practical blocks as page content', async () => {
@@ -137,6 +178,7 @@ describe('/le-logement — guide vertical', () => {
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
       { id: 'b1', title: 'Bons plans', body: null, icon: 'info', photo_url: null, video_url: null, sort_order: 0 },
     ] as never)
+    jest.mocked(prisma.lodgingPublicProfile.findFirst).mockResolvedValue(null as never)
 
     render(await LeLogementPage())
 
