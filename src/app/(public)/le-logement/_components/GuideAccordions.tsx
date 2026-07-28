@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-export type GuideAccent = 'pink' | 'orange' | 'green' | 'violet'
+export type GuideAccent = 'pink' | 'orange' | 'green' | 'violet' | 'blue'
 
 export type GuideSection = {
   key: string
@@ -22,6 +22,7 @@ const ACCENT_TILE: Record<GuideAccent, string> = {
   orange: 'bg-orange-100 text-orange-600',
   green: 'bg-lime-100 text-lime-700',
   violet: 'bg-violet-100 text-violet-600',
+  blue: 'bg-blue-100 text-blue-700',
 }
 
 const ACCENT_TEXT: Record<GuideAccent, string> = {
@@ -29,6 +30,7 @@ const ACCENT_TEXT: Record<GuideAccent, string> = {
   orange: 'text-orange-600',
   green: 'text-lime-700',
   violet: 'text-violet-600',
+  blue: 'text-blue-700',
 }
 
 /**

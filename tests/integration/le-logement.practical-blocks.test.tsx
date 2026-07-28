@@ -97,10 +97,19 @@ describe('/le-logement — guide en accordéons', () => {
     expect(within(arrival).getByText('À partir de 16 h')).toBeInTheDocument()
     expect(within(departure).getByText('10 h')).toBeInTheDocument()
 
-    // Accordéons
+    // Accordéons (dont l'onglet Départ distinct des infos pratiques)
     expect(screen.getByRole('button', { name: /Accéder au logement/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Découvrir le logement/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Infos pratiques/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Départ/i })).toBeInTheDocument()
+
+    // Le contenu de départ (checklist + tri) vit dans l'onglet Départ, pas dans Infos pratiques
+    const departureAccordion = screen.getByRole('button', { name: /Départ/i }).closest('article') as HTMLElement
+    expect(within(departureAccordion).getByRole('checkbox', { name: 'Vider le réfrigérateur' })).toBeInTheDocument()
+    expect(within(departureAccordion).getByRole('heading', { name: 'Poubelles' })).toBeInTheDocument()
+    const practicalAccordion = screen.getByRole('button', { name: /Infos pratiques/i }).closest('article') as HTMLElement
+    expect(within(practicalAccordion).queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(within(practicalAccordion).getByTestId('lodging-emergency-number')).toHaveTextContent('112')
 
     // Contenu dynamique complet (présent dans le DOM même replié)
     expect(screen.getByText('1 rue des Alpes, 74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
