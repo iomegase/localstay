@@ -356,12 +356,12 @@ function PanelDetail({
   children: React.ReactNode
 }) {
   return (
-    <section className="flex items-start gap-3">
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] ${BUBBLE[accent]}`}>{icon}</span>
-      <div className="min-w-0 flex-1">
-        <h4 className="mb-1.5 text-base font-semibold text-slate-900">{title}</h4>
-        <div className={BODY}>{children}</div>
+    <section>
+      <div className="flex items-center gap-3">
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl [&_svg]:h-4 [&_svg]:w-4 ${BUBBLE[accent]}`}>{icon}</span>
+        <h4 className="min-w-0 text-base font-semibold text-slate-900">{title}</h4>
       </div>
+      <div className={`mt-3 ${BODY}`}>{children}</div>
     </section>
   )
 }
