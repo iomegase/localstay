@@ -73,7 +73,6 @@ export function GuideApp({
     >
       {activeView !== 'poi' && (
         <GuideHeader
-          mode={mode}
           city={lodging.city}
           onOpenHome={() => navigate('home')}
         />

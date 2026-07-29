@@ -27,10 +27,7 @@ export function GuideFavoritesPage({
   return (
     <div className="px-3 pb-24 pt-5">
       <div className="px-2">
-        <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
-          Sélection MyStay
-        </p>
-        <h1 className="mt-2 text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
+        <h1 className="text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
           Nos coups de cœur
         </h1>
         <p className="mt-3 text-xs leading-5 text-slate-500">

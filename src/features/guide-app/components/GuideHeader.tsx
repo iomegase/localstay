@@ -2,14 +2,11 @@
 
 import { Menu } from 'lucide-react'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
-import type { GuideMode } from '@/features/guide-app/types'
 
 export function GuideHeader({
-  mode,
   city,
   onOpenHome,
 }: {
-  mode: GuideMode
   city: string
   onOpenHome: () => void
 }) {
@@ -32,20 +29,13 @@ export function GuideHeader({
         </span>
       </button>
 
-      <div className="flex items-center gap-2">
-        {mode === 'demo' && (
-          <span className="rounded-full bg-pink-50 px-2.5 py-1 text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
-            Démonstration
-          </span>
-        )}
-        <span
-          aria-hidden="true"
-          data-testid="guide-menu-icon"
-          className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 text-slate-700"
-        >
-          <Menu className="h-4 w-4" />
-        </span>
-      </div>
+      <span
+        aria-hidden="true"
+        data-testid="guide-menu-icon"
+        className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 text-slate-700"
+      >
+        <Menu className="h-4 w-4" />
+      </span>
     </header>
   )
 }

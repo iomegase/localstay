@@ -7,7 +7,6 @@ describe('GuideHeader approved brand', () => {
   it('renders the approved prominent monogram and keeps the city context', () => {
     render(
       <GuideHeader
-        mode="demo"
         city="Saint-Gervais-les-Bains"
         onOpenHome={jest.fn()}
       />,
@@ -22,7 +21,7 @@ describe('GuideHeader approved brand', () => {
     expect(screen.getByRole('banner')).toHaveClass('h-[68px]')
     expect(screen.getByAltText('MyStay')).toHaveClass('w-[50px]')
     expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
-    expect(screen.getByText('Démonstration')).toBeInTheDocument()
+    expect(screen.queryByText('Démonstration')).not.toBeInTheDocument()
     expect(screen.getByTestId('guide-menu-icon')).toBeInTheDocument()
   })
 
@@ -30,7 +29,6 @@ describe('GuideHeader approved brand', () => {
     const onOpenHome = jest.fn()
     render(
       <GuideHeader
-        mode="private"
         city="Saint-Gervais-les-Bains"
         onOpenHome={onOpenHome}
       />,
