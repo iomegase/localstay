@@ -135,6 +135,7 @@ export function GuidePoiDetails({
             latitude={poi.latitude}
             longitude={poi.longitude}
             address={poi.address}
+            variant="compact"
           />
         </div>
 
