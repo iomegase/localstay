@@ -78,7 +78,7 @@ export function GuideApp({
         />
       )}
 
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {activeView === 'home' && (
           <GuideHome
             lodging={lodging}
