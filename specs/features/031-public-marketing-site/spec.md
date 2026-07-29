@@ -221,6 +221,13 @@ routes privées, l'authentification et les API existantes restent inchangées.
   normalement la zone visible tandis que la rangée de filtres devient sticky
   immédiatement sous le header de l'application. Given cette rangée, Then son
   scroll horizontal reste fonctionnel et sa scrollbar reste masquée.
+- **AC-05-12**: Given la vue « Nos coups de cœur » du guide de démonstration,
+  When les POI sont rendus, Then ils utilisent la hiérarchie bento du guide
+  privé : une première carte carrée sur deux colonnes puis des cartes carrées
+  sur une colonne. Given chaque carte, Then elle possède toujours une image
+  plein cadre, utilise la hero administrée lorsqu'elle existe et un fallback de
+  catégorie en son absence ou en cas d'échec de chargement ; aucune variante
+  blanche n'est rendue.
 
 ## Business Rules
 
@@ -323,6 +330,12 @@ routes privées, l'authentification et les API existantes restent inchangées.
   Aucun listener de scroll, observer, calcul JavaScript de hauteur ou état React
   supplémentaire n'est ajouté. Le comportement est commun aux modes `demo` et
   `private`.
+- **BR-32**: La refonte bento de `GuideFavoritesPage` utilise un composant de
+  présentation dédié au contrat `GuidePoi`. Elle reproduit les styles des
+  variantes illustrées de `/nos-recommandations` sans importer ses `Link`, ses
+  types Prisma ni ses routes privées. Le composant privé
+  `RecommendationCard`, le header, l'introduction, les filtres sticky, la
+  navigation et les autres vues du `GuideApp` ne sont pas modifiés.
 
 ## Data Model
 
