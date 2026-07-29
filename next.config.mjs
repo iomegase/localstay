@@ -12,6 +12,10 @@ const nextConfig = {
       { protocol: 'https', hostname: 'lerelaisdescommunailles.com' },
       { protocol: 'https', hostname: 'static.apidae-tourisme.com' },
       { protocol: 'https', hostname: 'static.wixstatic.com' },
+      { protocol: 'https', hostname: 'www.3serac.fr' },
+      { protocol: 'https', hostname: 'www.tramwaydumontblanc.fr' },
+      { protocol: 'https', hostname: 'woody.cloudly.space' },
+      { protocol: 'https', hostname: 'www.thermes-saint-gervais.com' },
     ],
   },
 }

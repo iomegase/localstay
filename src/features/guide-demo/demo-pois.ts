@@ -83,7 +83,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Sur la place du village, une table conviviale autour de la cuisson à la braise et de produits soigneusement sélectionnés.',
     shortDescription: 'Cuisine à la braise sur la place du village.',
-    photos: ['/fallback/fallback-restaurant.png'],
+    photos: ['https://www.3serac.fr/media/cache/jadro_resize/rc/FjUHU7lg1755510540/jadroRoot/medias/68077ec88354f/atelier-boris-molinier-lou-broche-2278.jpg'],
     latitude: 45.892444,
     longitude: 6.711432,
     address: '38 avenue du Mont Paccard, 74170 Saint-Gervais-les-Bains',
@@ -127,7 +127,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Pains, viennoiseries et pâtisseries artisanales à quelques pas de la patinoire.',
     shortDescription: 'La pause gourmande près de la patinoire.',
-    photos: ['/fallback/fallback-boulangerie.png'],
+    photos: ['https://static.apidae-tourisme.com/filestore/objets-touristiques/images/246/232/41609462.jpg'],
     latitude: 45.888729,
     longitude: 6.712794,
     address: '28 impasse de la Cascade, 74170 Saint-Gervais-les-Bains',
@@ -194,7 +194,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Le pôle culturel du village réunit expositions, bibliothèque de montagne, ateliers et conférences.',
     shortDescription: 'Le nouveau pôle culturel de Saint-Gervais.',
-    photos: ['/fallback/fallback-culture.png'],
+    photos: ['https://static.apidae-tourisme.com/filestore/objets-touristiques/images/31/195/37208863.jpg'],
     latitude: 45.892227,
     longitude: 6.710875,
     address: '15 avenue du Mont Paccard, 74170 Saint-Gervais-les-Bains',
@@ -216,7 +216,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Le train à crémaillère emblématique monte du Fayet vers les paysages d’altitude au pied du Mont-Blanc.',
     shortDescription: 'Le train mythique vers le Nid d’Aigle.',
-    photos: ['/fallback/fallback-transport.png'],
+    photos: ['https://www.tramwaydumontblanc.fr/app/uploads/2026/04/Gare_de_Saint-Gervais_du_Tramway_du_Mont-Blanc-Hugo_GUILLEREZ-13658-1200px-1.jpg'],
     latitude: 45.897875,
     longitude: 6.711024,
     address: '571 rue du Mont Lachat, 74170 Saint-Gervais-les-Bains',
@@ -237,7 +237,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Une montée rapide vers le plateau du Bettex et son panorama spectaculaire sur le massif du Mont-Blanc.',
     shortDescription: 'Accès panoramique au plateau du Bettex.',
-    photos: ['/fallback/fallback-transport.png'],
+    photos: ['https://woody.cloudly.space/app/uploads/saint-gervais/2023/07/thumbs/DSC01791-1920x960.jpg'],
     latitude: 45.891922,
     longitude: 6.713623,
     address: '201 avenue du Mont d’Arbois, 74170 Saint-Gervais-les-Bains',
@@ -298,7 +298,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Un établissement thermal historique et un spa installés au fond du Parc thermal du Fayet.',
     shortDescription: 'Eau thermale, soins et détente au pied du Mont-Blanc.',
-    photos: ['/fallback/fallback-culture.png'],
+    photos: ['https://www.thermes-saint-gervais.com/include/images/Menu_Sejours_Sante.jpg'],
     latitude: 45.896529,
     longitude: 6.70612,
     address: '355 allée du Docteur Lépinay, 74170 Saint-Gervais-les-Bains',
@@ -335,7 +335,7 @@ export const demoPois: GuidePoi[] = [
     description:
       'Une randonnée vers un alpage paisible avec de beaux points de vue sur l’Aiguille de Bionnassay et les Dômes de Miage.',
     shortDescription: 'Forêts, clairières et panorama sur le massif.',
-    photos: ['/fallback/fallback-rando.png'],
+    photos: ['https://static.apidae-tourisme.com/filestore/objets-touristiques/images/181/221/31382965.jpg'],
     latitude: 45.863934,
     longitude: 6.717467,
     address: 'Départ à Saint-Nicolas de Véroce, 74170 Saint-Gervais-les-Bains',
