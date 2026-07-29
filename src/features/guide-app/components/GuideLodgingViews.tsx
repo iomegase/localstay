@@ -127,7 +127,7 @@ export function GuideLodgingViews({
             {lodging.name}
           </h1>
           <p className="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
-            <MapPin className="h-4 w-4 text-pink-500" />
+            <MapPin className="h-4 w-4 text-slate-400" />
             {lodging.city}
           </p>
         </div>
@@ -233,7 +233,7 @@ function Fact({
 }) {
   return (
     <div className={`${cardClass} flex items-center gap-3 p-4`}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-pink-50 text-pink-600">
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-pink-50 text-slate-600">
         <Icon className="h-4 w-4" />
       </span>
       <span>
@@ -261,7 +261,7 @@ function GuideLink({
       onClick={onClick}
       className={`${cardClass} grid w-full grid-cols-[42px_minmax(0,1fr)_24px] items-center gap-3 p-4 text-left`}
     >
-      <span className="grid h-[42px] w-[42px] place-items-center rounded-[14px] bg-pink-50 text-pink-600">
+      <span className="grid h-[42px] w-[42px] place-items-center rounded-[14px] bg-pink-50 text-slate-600">
         <Icon className="h-5 w-5" />
       </span>
       <span className="min-w-0">
