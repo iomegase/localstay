@@ -6,6 +6,14 @@ export const demoLodging: GuideLodging = {
   city: 'Saint-Gervais-les-Bains',
   tagline: 'Un refuge fictif pensé pour découvrir l’expérience MyStay.',
   coverImage: '/marketing/guide-interior.png',
+  // Galerie de démonstration — assets statiques locaux (aucun UUID réel, BR-25).
+  gallery: [
+    '/marketing/guide-interior.png',
+    '/marketing/demo-lodging-1.webp',
+    '/marketing/demo-lodging-2.webp',
+    '/marketing/demo-lodging-3.webp',
+    '/marketing/hero-chalet.png',
+  ],
   latitude: 45.8921,
   longitude: 6.7085,
   addressLabel: 'Centre de Saint-Gervais — adresse masquée pour la démonstration',

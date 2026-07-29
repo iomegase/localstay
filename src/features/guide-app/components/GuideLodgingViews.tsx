@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { GuideLodgingGallery } from '@/features/guide-app/components/GuideLodgingGallery'
 import {
   ArrowLeft,
   BedDouble,
@@ -120,25 +120,14 @@ export function GuideLodgingViews({
 
   return (
     <div className="space-y-4 px-3 pb-24 pt-3">
-      <section className="relative min-h-[290px] overflow-hidden rounded-[30px] bg-slate-900 text-white">
-        <Image
-          src={lodging.coverImage}
-          alt={lodging.name}
-          fill
-          priority
-          sizes="360px"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-        <div className="absolute inset-x-6 bottom-4">
-          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
-            Votre guide de séjour
-          </p>
-          <h1 className="mt-2 text-[31px] font-semibold leading-none tracking-[-0.045em]">
+      <section>
+        <GuideLodgingGallery images={lodging.gallery} alt={lodging.name} />
+        <div className="mt-4 px-1">
+          <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.04em] text-slate-900">
             {lodging.name}
           </h1>
-          <p className="mt-3 flex items-center gap-2 text-xs text-white/75">
-            <MapPin className="h-4 w-4 text-pink-400" />
+          <p className="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
+            <MapPin className="h-4 w-4 text-pink-500" />
             {lodging.city}
           </p>
         </div>

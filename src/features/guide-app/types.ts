@@ -77,6 +77,8 @@ export type GuideLodging = {
   city: string
   tagline: string
   coverImage: string
+  /** Galerie photo du logement (carrousel). */
+  gallery: string[]
   latitude: number
   longitude: number
   addressLabel: string
