@@ -1,3 +1,5 @@
+import type { PoiHours } from '@/features/categories/types'
+
 export type GuideMode = 'private' | 'demo'
 
 export type GuideView =
@@ -48,6 +50,12 @@ export type GuidePoi = {
   phone?: string
   directionsUrl: string
   rating?: number
+  /** Nombre d'avis affiché à côté de la note. */
+  reviewCount?: number
+  /** Horaires d'ouverture par jour (0 = dimanche). */
+  hours?: PoiHours
+  /** Mot de l'hôte pour ce POI (recommandation éditoriale). */
+  ownerNote?: string
   trail?: GuideTrailSummary
 }
 

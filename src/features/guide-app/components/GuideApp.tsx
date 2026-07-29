@@ -112,6 +112,7 @@ export function GuideApp({
           <GuidePoiDetails
             mode={mode}
             poi={selectedPoi}
+            lodging={lodging}
             onBack={() => navigate('favorites')}
             onShowOnMap={showOnMap}
           />

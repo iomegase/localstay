@@ -1,78 +1,146 @@
-import Image from 'next/image'
-import {
-  ArrowLeft,
-  ExternalLink,
-  Globe2,
-  Map,
-  MapPin,
-  Mountain,
-  Phone,
-  Route,
-  Star,
-  TrendingUp,
-} from 'lucide-react'
+import { ArrowLeft, Map, MapPin, Mountain, Route, Star, TrendingUp } from 'lucide-react'
+import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
+import { HoursBlock } from '@/features/categories/components/HoursBlock'
+import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
+import { ActionButtons } from '@/features/categories/components/ActionButtons'
+import { haversineKm } from '@/features/geolocation/lib/user-location'
+import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import { canStartTrail } from '@/features/guide-app/lib/trail-access'
-import type { GuideMode, GuidePoi } from '@/features/guide-app/types'
+import type { GuideLodging, GuideMode, GuidePoi } from '@/features/guide-app/types'
 
 export function GuidePoiDetails({
   mode,
   poi,
+  lodging,
   onBack,
   onShowOnMap,
 }: {
   mode: GuideMode
   poi: GuidePoi
+  lodging: GuideLodging
   onBack: () => void
   onShowOnMap: (poi: GuidePoi) => void
 }) {
+  const heroPhotos = poi.photos.length > 0
+    ? poi.photos
+    : [getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: [] })]
+  const attributionHost = getWebsiteHost(poi.website)
+  const hasRealPhotos = poi.photos.some(p => p.trim() && !p.startsWith('/fallback/'))
+  const distanceKm = haversineKm(lodging.latitude, lodging.longitude, poi.latitude, poi.longitude)
+
   return (
     <article className="min-h-full bg-slate-50 pb-24">
-      <section className="relative h-[265px] overflow-hidden bg-slate-900 text-white">
-        <Image
-          src={poi.photos[0]}
-          alt={poi.name}
-          fill
-          priority
-          sizes="360px"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-slate-900/30" />
+      {/* Hero carousel */}
+      <div className="relative">
+        <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name}>
+          {poi.isOpenNow === true && (
+            <div className="absolute bottom-8 left-6 z-10 pb-4">
+              <span className="inline-flex rounded-full border border-green-200 bg-green-50/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 shadow-sm backdrop-blur">
+                Ouvert
+              </span>
+            </div>
+          )}
+        </PoiDetailHeroCarousel>
         <button
           type="button"
           onClick={onBack}
           aria-label="Retour aux coups de cœur"
-          className="absolute left-4 top-4 z-10 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur"
+          className="absolute left-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur active:scale-95"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <div className="absolute inset-x-5 bottom-6">
-          <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-pink-300">
-            {poi.category.name}
-          </p>
-          <h1 className="mt-2 text-[28px] font-semibold leading-[0.98] tracking-[-0.04em]">
-            {poi.name}
-          </h1>
-        </div>
-      </section>
+      </div>
 
-      <div className="relative -mt-4 space-y-4 rounded-t-[28px] bg-slate-50 px-4 pt-6">
-        <div className="flex items-start justify-between gap-3">
-          <p className="flex items-start gap-2 text-[10px] leading-4 text-slate-500">
-            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pink-600" />
-            {poi.address}
-          </p>
-          {poi.rating !== undefined && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold shadow-sm">
-              <Star className="h-3 w-3 fill-pink-600 text-pink-600" />
-              {poi.rating.toFixed(1)}
+      {/* Content sheet */}
+      <main className="relative z-10 -mt-8 space-y-6 rounded-t-[28px] bg-slate-50 pb-8 pt-8 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-6">
+          <div className="min-w-0 flex-1">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-pink-600">
+              {poi.category.name}
             </span>
+            <h1 className="mt-1 text-xl uppercase leading-tight text-charcoal">{poi.name}</h1>
+            <p className="mt-4 truncate text-xs text-charcoal/50">{poi.address}</p>
+          </div>
+          {poi.rating != null && (
+            <div className="ml-4 flex shrink-0 items-center">
+              <span className="inline-flex items-center gap-1 rounded-2xl border border-gray-100 bg-white px-3 py-1.5 shadow-sm">
+                <Star className="h-3.5 w-3.5 fill-pink-600 text-pink-600" />
+                <span className="text-sm font-bold" data-testid="poi-detail-rating">{poi.rating.toFixed(1)}</span>
+              </span>
+              {poi.reviewCount != null && poi.reviewCount > 0 && (
+                <span className="ml-3 mt-1 text-[10px] text-charcoal/40" data-testid="poi-detail-rating-count">
+                  {poi.reviewCount} avis
+                </span>
+              )}
+            </div>
           )}
         </div>
 
-        <p className="text-xs leading-5 text-slate-600">{poi.description}</p>
+        {/* Distance from lodging */}
+        <div className="px-6">
+          <span className="inline-flex items-center gap-1.5 text-sm text-charcoal/60">
+            <MapPin className="h-4 w-4" />
+            <span data-testid="poi-detail-distance">{lodgingDistanceLabel(distanceKm)}</span>
+          </span>
+        </div>
 
+        {/* Description */}
+        {poi.description && (
+          <p className="whitespace-pre-line px-6 text-sm leading-relaxed text-charcoal/70">{poi.description}</p>
+        )}
+
+        {/* Le mot de votre hôte */}
+        <OwnerRecommendationNote note={poi.ownerNote ?? null} />
+
+        {/* Hours */}
+        {poi.hours && (
+          <div className="px-6 pb-2">
+            <HoursBlock is_open_now={poi.isOpenNow ?? null} hours={poi.hours} showOpenBadge={false} />
+          </div>
+        )}
+
+        {/* Photo attribution */}
+        {hasRealPhotos && poi.website && attributionHost && (
+          <div className="px-6">
+            <a
+              href={poi.website}
+              target="_blank"
+              rel="noreferrer"
+              data-testid="photo-attribution"
+              className="text-[11px] text-charcoal/45 underline underline-offset-2"
+            >
+              Photos : {attributionHost}
+            </a>
+          </div>
+        )}
+
+        {/* Voir sur la carte (navigation interne) */}
+        <div className="px-6">
+          <button
+            type="button"
+            onClick={() => onShowOnMap(poi)}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white active:scale-[0.98]"
+          >
+            <Map className="h-4 w-4" />
+            Voir sur la carte
+          </button>
+        </div>
+
+        {/* Appeler / Itinéraire / Site web */}
+        <div className="px-6">
+          <ActionButtons
+            phone={poi.phone ?? null}
+            website={poi.website ?? null}
+            latitude={poi.latitude}
+            longitude={poi.longitude}
+            address={poi.address}
+          />
+        </div>
+
+        {/* Bloc randonnée (sans démarrage GPS en démo) */}
         {poi.trail && (
-          <section className="rounded-[22px] bg-white p-4 shadow-sm">
+          <section className="mx-6 rounded-[22px] bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
                 <Mountain className="h-5 w-5" />
@@ -81,35 +149,21 @@ export function GuidePoiDetails({
                 <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-emerald-700">
                   Randonnée {formatDifficulty(poi.trail.difficulty)}
                 </p>
-                <h2 className="text-sm font-semibold text-slate-900">
-                  Les informations du parcours
-                </h2>
+                <h2 className="text-sm font-semibold text-slate-900">Les informations du parcours</h2>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2">
               <Metric
                 icon={Route}
-                value={
-                  poi.trail.distanceKm === null
-                    ? '—'
-                    : `${String(poi.trail.distanceKm).replace('.', ',')} km`
-                }
+                value={poi.trail.distanceKm === null ? '—' : `${String(poi.trail.distanceKm).replace('.', ',')} km`}
                 label="Distance"
               />
               <Metric
                 icon={TrendingUp}
-                value={
-                  poi.trail.elevationGainM === null
-                    ? '—'
-                    : `${poi.trail.elevationGainM} m`
-                }
+                value={poi.trail.elevationGainM === null ? '—' : `${poi.trail.elevationGainM} m`}
                 label="Dénivelé"
               />
-              <Metric
-                icon={Mountain}
-                value={poi.durationLabel ?? '—'}
-                label="Durée"
-              />
+              <Metric icon={Mountain} value={poi.durationLabel ?? '—'} label="Durée" />
             </div>
             {canStartTrail(mode, poi.trail) && (
               <button
@@ -127,49 +181,23 @@ export function GuidePoiDetails({
             )}
           </section>
         )}
-
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => onShowOnMap(poi)}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-slate-900 px-3 text-[9px] font-bold uppercase tracking-[0.1em] text-white"
-          >
-            <Map className="h-4 w-4" />
-            Voir sur la carte
-          </button>
-          <a
-            href={poi.directionsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-[9px] font-bold uppercase tracking-[0.1em] text-slate-900 shadow-sm"
-          >
-            <ExternalLink className="h-4 w-4 text-pink-600" />
-            Itinéraire
-          </a>
-          {poi.website && (
-            <a
-              href={poi.website}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-[9px] font-bold uppercase tracking-[0.1em] text-slate-900 shadow-sm"
-            >
-              <Globe2 className="h-4 w-4 text-blue-600" />
-              Site
-            </a>
-          )}
-          {poi.phone && (
-            <a
-              href={`tel:${poi.phone.replace(/\s/g, '')}`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-[9px] font-bold uppercase tracking-[0.1em] text-slate-900 shadow-sm"
-            >
-              <Phone className="h-4 w-4 text-emerald-600" />
-              Appeler
-            </a>
-          )}
-        </div>
-      </div>
+      </main>
     </article>
   )
+}
+
+function lodgingDistanceLabel(distanceKm: number): string {
+  if (distanceKm < 1) return `Situé à ${Math.round(distanceKm * 1000)} m du logement`
+  return `Situé à ${distanceKm.toFixed(1).replace('.', ',')} km du logement`
+}
+
+function getWebsiteHost(website: string | null | undefined): string | null {
+  if (!website) return null
+  try {
+    return new URL(website).hostname
+  } catch {
+    return null
+  }
 }
 
 function Metric({

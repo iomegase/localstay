@@ -16,6 +16,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'www.tramwaydumontblanc.fr' },
       { protocol: 'https', hostname: 'woody.cloudly.space' },
       { protocol: 'https', hostname: 'www.thermes-saint-gervais.com' },
+      { protocol: 'https', hostname: 'api.cloudly.space' },
+      { protocol: 'https', hostname: 'www.saintgervais.com' },
     ],
   },
 }

@@ -1,4 +1,5 @@
 import type { GuidePoi, GuidePoiCategory } from '@/features/guide-app/types'
+import { DEMO_POI_CONTENT } from './demo-poi-content'
 
 const categories = {
   restaurant: {
@@ -49,7 +50,7 @@ function directions(latitude: number, longitude: number) {
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
 }
 
-export const demoPois: GuidePoi[] = [
+const baseDemoPois: GuidePoi[] = [
   {
     id: 'demo-poi-rond-de-carotte',
     isOpenNow: true,
@@ -355,3 +356,10 @@ export const demoPois: GuidePoi[] = [
     },
   },
 ]
+
+// Fusionne le contenu réel (photos, note, avis, horaires, description) récupéré
+// des POI publics. Les POI absents de la base conservent leur repli catégorie.
+export const demoPois: GuidePoi[] = baseDemoPois.map(poi => ({
+  ...poi,
+  ...DEMO_POI_CONTENT[poi.slug],
+}))
