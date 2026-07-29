@@ -11,15 +11,54 @@ const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}
 const GATE_PATH = '/acces-reserve'
 // Préfixes accessibles sans séjour actif (espace hôte + écran de blocage lui-même).
 const BYPASS_PREFIXES = ['/auth', GATE_PATH]
+const ANONYMOUS_MARKETING_EXACT_PATHS = new Set([
+  '/',
+  '/concept',
+  '/seminaires',
+  '/confier-mon-logement',
+  '/connexion',
+  '/logements',
+  '/blog',
+])
+const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/']
 
 // Confinement guest : sous /guide/{ville}, seuls ces 2ᵉ segments sont autorisés
 // pour un visiteur en séjour (hors entrée QR ?lodging=). Tout le reste (page ville,
 // catégories, météo…) est renvoyé vers l'accueil séjour.
 const GUEST_ALLOWED_GUIDE_SEGMENTS = new Set(['logements', 'agenda', 'mes-favoris', 'contact'])
 
+export function isAnonymousMarketingPath(pathname: string) {
+  const segments = pathname.split('/').filter(Boolean)
+  const isPublicLodgingDetail =
+    segments.length === 4 &&
+    segments[0] === 'guide' &&
+    segments[2] === 'logements'
+
+  return (
+    ANONYMOUS_MARKETING_EXACT_PATHS.has(pathname) ||
+    ANONYMOUS_MARKETING_PREFIXES.some(prefix => pathname.startsWith(prefix)) ||
+    isPublicLodgingDetail
+  )
+}
+
 export async function proxy(request: NextRequest) {
-  const response = NextResponse.next()
   const path = request.nextUrl.pathname
+  const isMarketingRoute = isAnonymousMarketingPath(path)
+  const requestHeaders = new Headers(request.headers)
+
+  if (isMarketingRoute) {
+    requestHeaders.set('x-staylocal-marketing-route', '1')
+  }
+
+  const response = NextResponse.next(
+    isMarketingRoute
+      ? {
+        request: {
+          headers: requestHeaders,
+        },
+      }
+      : undefined,
+  )
 
   // === Branche publique : /guide/:path* — point d'entrée séjour, jamais bloqué ===
   if (path.startsWith('/guide/')) {
@@ -35,14 +74,14 @@ export async function proxy(request: NextRequest) {
       }
 
       // Atterrissage du QR séjour = /guide/{ville} (2 segments exactement).
-      // On dépose alors le guest sur la home « Bienvenue » (/) qui affiche
-      // LodgingHome grâce au cookie. ?lodging= est transporté pour que la home
-      // enregistre l'évènement qr_scan. La navigation interne plus profonde
+      // On dépose alors le guest sur l'accueil privé (/nos-recommandations).
+      // ?lodging= est transporté pour que cette page enregistre l'évènement
+      // qr_scan. La navigation interne plus profonde
       // (/guide/{ville}/{categorie}…) porte aussi ?lodging= : on se contente
       // alors de rafraîchir le cookie, sans rediriger.
       const isCityLanding = path.split('/').filter(Boolean).length === 2
       if (isCityLanding) {
-        const destination = new URL('/', request.url)
+        const destination = new URL('/nos-recommandations', request.url)
         destination.searchParams.set('lodging', lodgingFromQuery)
         const redirect = NextResponse.redirect(destination)
         redirect.cookies.set(cookie)
@@ -54,7 +93,8 @@ export async function proxy(request: NextRequest) {
     }
 
     // Confinement : hors entrée QR (?lodging=), un guest en séjour ne peut ouvrir
-    // que les surfaces autorisées sous /guide/{ville} ; le reste redirige vers /.
+    // que les surfaces autorisées sous /guide/{ville} ; le reste redirige vers
+    // l'accueil privé du séjour.
     const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
     if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
       const segments = path.split('/').filter(Boolean) // ['guide', ville, seg2?, seg3?…]
@@ -65,7 +105,7 @@ export async function proxy(request: NextRequest) {
       const isPoiDetail = segments.length >= 4
       const allowed = isPoiDetail || (guideSegment !== null && GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment))
       if (!allowed) {
-        return NextResponse.redirect(new URL('/', request.url))
+        return NextResponse.redirect(new URL('/nos-recommandations', request.url))
       }
     }
     return response
@@ -112,7 +152,12 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
-  // === Pages invité (home, le-logement, recommandations, map, blog…) ===
+  // === Site éditorial public : accessible sans séjour actif ===
+  if (isMarketingRoute) {
+    return response
+  }
+
+  // === Pages invité (le-logement, recommandations, map…) ===
   // Accès réservé : il faut un séjour actif (cookie lodging valide), sinon on
   // affiche l'écran « accès par lien » sans changer l'URL.
   const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value

@@ -1,0 +1,73 @@
+import type { GuideLodging } from '@/features/guide-app/types'
+
+export const demoLodging: GuideLodging = {
+  id: 'demo-refuge-mont-blanc',
+  name: 'Le Refuge du Mont-Blanc',
+  city: 'Saint-Gervais-les-Bains',
+  tagline: 'Un refuge fictif pensé pour découvrir l’expérience MyStay.',
+  coverImage: '/marketing/guide-interior.png',
+  latitude: 45.8921,
+  longitude: 6.7085,
+  addressLabel: 'Centre de Saint-Gervais — adresse masquée pour la démonstration',
+  checkIn: '16:00',
+  checkOut: '10:00',
+  wifiName: 'Refuge-Mont-Blanc',
+  wifiPassword: 'Bienvenue2026',
+  arrivalInstructions: [
+    'L’arrivée est possible à partir de 16 h.',
+    'Le logement fictif se trouve à quelques minutes du centre du village.',
+    'Pour cette démonstration, l’adresse exacte et les codes d’accès sont volontairement masqués.',
+  ],
+  departureInstructions: [
+    'Libérer le logement avant 10 h.',
+    'Fermer les fenêtres et éteindre les lumières.',
+    'Déposer les déchets dans les conteneurs adaptés.',
+    'Laisser les clés à l’emplacement indiqué dans votre véritable guide.',
+  ],
+  equipment: [
+    'Cuisine équipée',
+    'Lave-vaisselle',
+    'Machine à café',
+    'Lave-linge',
+    'Local à skis',
+    'Lit bébé sur demande',
+  ],
+  houseRules: [
+    'Logement non-fumeur',
+    'Respecter le calme de la résidence après 22 h',
+    'Les fêtes ne sont pas autorisées',
+    'Signaler rapidement toute anomalie à la conciergerie',
+  ],
+  practicalCards: [
+    {
+      id: 'demo-parking',
+      title: 'Stationnement',
+      description: 'Une place fictive est indiquée dans le guide réel remis au voyageur.',
+      icon: 'car',
+    },
+    {
+      id: 'demo-heating',
+      title: 'Chauffage',
+      description: 'Le thermostat principal se règle depuis le séjour.',
+      icon: 'thermometer',
+    },
+    {
+      id: 'demo-waste',
+      title: 'Tri des déchets',
+      description: 'Verre, emballages et ordures ménagères disposent de bacs séparés.',
+      icon: 'recycle',
+    },
+    {
+      id: 'demo-contact',
+      title: 'Assistance MyStay',
+      description: 'Dans un véritable séjour, votre contact privé apparaît uniquement ici.',
+      icon: 'messages-square',
+    },
+  ],
+  usefulNumbers: [
+    { label: 'Urgences européennes', number: '112' },
+    { label: 'SAMU', number: '15' },
+    { label: 'Pompiers', number: '18' },
+    { label: 'Office de tourisme', number: '04 50 47 76 08' },
+  ],
+}

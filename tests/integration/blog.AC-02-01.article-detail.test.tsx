@@ -43,6 +43,36 @@ jest.mock('@/features/blog/queries/public-blog', () => ({
       },
     ],
   })),
+  getPublishedBlogArticles: jest.fn(async () => ({
+    city: null,
+    items: [
+      {
+        id: 'article-1',
+        slug: 'week-end-saint-gervais',
+        title: 'Un week-end à Saint-Gervais',
+        excerpt: 'Article courant',
+        category: 'local_guide',
+        tags: [],
+        published_at: new Date('2026-06-15T10:00:00Z'),
+        city: null,
+        cover: null,
+      },
+      {
+        id: 'article-2',
+        slug: 'adresses-du-mont-blanc',
+        title: 'Les adresses du Mont-Blanc',
+        excerpt: 'Une sélection locale pour prolonger la lecture.',
+        category: 'travel_tips',
+        tags: [],
+        published_at: new Date('2026-06-10T10:00:00Z'),
+        city: null,
+        cover: {
+          url: 'https://img.test/related.jpg',
+          alt: 'Montagnes au soleil',
+        },
+      },
+    ],
+  })),
 }))
 
 describe('029 blog article detail page', () => {
@@ -56,7 +86,11 @@ describe('029 blog article detail page', () => {
       'href',
       '/guide/saint-gervais-les-bains',
     )
-    expect(screen.getByRole('link', { name: 'Blog' })).toHaveAttribute('href', '/blog?city=saint-gervais-les-bains')
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Blog' })
+        .some(link => link.getAttribute('href') === '/blog?city=saint-gervais-les-bains'),
+    ).toBe(true)
     // Toutes les photos (couverture + galerie) alimentent le carousel du hero :
     // la couverture est la première image affichée, et la navigation n'apparaît
     // que lorsqu'il y a plusieurs photos.
@@ -65,9 +99,24 @@ describe('029 blog article detail page', () => {
     expect(screen.getByRole('button', { name: 'Photo suivante' })).toBeInTheDocument()
     expect(screen.getByText(/Deux jours pour profiter du village/i)).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument()
-    expect(screen.getByText('15 juin 2026')).toBeInTheDocument()
+    expect(screen.getAllByText('15 juin 2026')).toHaveLength(2)
     expect(screen.getByText('1 min')).toBeInTheDocument()
-    expect(screen.getByTestId('blog-article-cover')).toHaveClass('rounded-[28px]')
+    expect(screen.getByTestId('blog-article-cover')).toHaveClass(
+      'rounded-[26px]',
+      'min-[701px]:rounded-[28px]',
+    )
+    expect(screen.getByTestId('blog-article-intro')).toHaveClass(
+      'min-[701px]:grid-cols-[0.88fr_1.12fr]',
+    )
+    expect(screen.getByRole('navigation', { name: 'Sommaire de l’article' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /Envie d’un accueil plus simple/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Continuer la lecture/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Les adresses du Mont-Blanc/i })).toHaveAttribute(
+      'href',
+      '/blog/adresses-du-mont-blanc',
+    )
     expect(screen.getByText('SEJOUR')).toBeInTheDocument()
     expect(screen.getByText('ALPES')).toBeInTheDocument()
 

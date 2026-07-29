@@ -6,8 +6,10 @@ describe('Story Script public font', () => {
     const layout = readFileSync(join(process.cwd(), 'src/app/layout.tsx'), 'utf8')
     const tailwind = readFileSync(join(process.cwd(), 'tailwind.config.ts'), 'utf8')
 
-    expect(layout).toContain('family=Story+Script')
-    expect(layout).not.toContain('Dancing+Script')
-    expect(tailwind).toContain("hand: ['Story Script', 'cursive']")
+    expect(layout).toContain('Story_Script')
+    expect(layout).toContain("variable: '--font-story'")
+    expect(layout).toContain('storyScript.variable')
+    expect(layout).not.toContain('Dancing_Script')
+    expect(tailwind).toContain("hand: ['var(--font-story)', 'cursive']")
   })
 })

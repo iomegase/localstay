@@ -11,6 +11,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     pois,
     lodgings,
     blogArticles,
-    staticPaths: ['/contact', '/blog'],
+    staticPaths: [
+      '/',
+      '/concept',
+      '/seminaires',
+      '/confier-mon-logement',
+      '/logements',
+      '/contact',
+      '/blog',
+    ],
   })
 }

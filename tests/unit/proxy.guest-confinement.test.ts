@@ -23,9 +23,9 @@ describe('proxy — confinement du guest en séjour', () => {
     '/guide/paris',
     '/guide/paris/restaurants',
     '/guide/paris/meteo',
-  ])('redirige %s vers / pour un guest', async path => {
+  ])('redirige %s vers l’accueil privé pour un guest', async path => {
     const res = await proxy(guestRequest(path))
-    expect(redirectPathname(res)).toBe('/')
+    expect(redirectPathname(res)).toBe('/nos-recommandations')
   })
 
   it.each([

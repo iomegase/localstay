@@ -8,6 +8,10 @@ import { ANALYTICS_CONSENT_KEY } from '@/features/admin-analytics/lib/consent'
 
 const fetchMock = jest.fn()
 
+jest.mock('next/headers', () => ({
+  headers: jest.fn(async () => new Headers()),
+}))
+
 jest.mock('next/navigation', () => ({
   usePathname: () => '/',
 }))

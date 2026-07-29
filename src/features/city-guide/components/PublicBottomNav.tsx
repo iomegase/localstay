@@ -71,10 +71,10 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 function buildLodgingItems(pathname: string | null, citySlug?: string | null): NavItemConfig[] {
   return [
     {
-      href: '/',
+      href: '/nos-recommandations',
       label: 'Coup de\ncoeur',
       icon: <Heart className="w-5 h-5" />,
-      active: isPathActive(pathname, '/'),
+      active: isPathActive(pathname, '/nos-recommandations'),
     },
     {
       href: '/le-logement',

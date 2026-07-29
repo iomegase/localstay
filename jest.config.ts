@@ -8,6 +8,7 @@ const config: Config = {
   maxWorkers: '50%',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  modulePathIgnorePatterns: ['<rootDir>/.worktrees/', '<rootDir>/references/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     // react-markdown@10 est ESM pur (non transformé par next/jest) → stub en test.

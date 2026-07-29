@@ -1,4 +1,11 @@
 import type { Metadata, Viewport } from 'next'
+import {
+  Lobster,
+  Playfair_Display,
+  Plus_Jakarta_Sans,
+  Quicksand,
+  Story_Script,
+} from 'next/font/google'
 import { MobileBrowserChromeCollapser } from '@/shared/components/MobileBrowserChromeCollapser'
 import { SITE, siteBaseUrl } from '@/features/seo/lib/site'
 import { JsonLd } from '@/shared/components/JsonLd'
@@ -6,11 +13,65 @@ import { organizationSchema, websiteSchema } from '@/features/seo/lib/structured
 import './globals.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
+const jakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+})
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  variable: '--font-quicksand',
+  display: 'swap',
+})
+
+const lobster = Lobster({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-lobster',
+  display: 'swap',
+})
+
+const storyScript = Story_Script({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-story',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteBaseUrl()),
   title: { default: SITE.defaultTitle, template: '%s | MyStay' },
   description: SITE.defaultDescription,
   applicationName: SITE.name,
+  icons: {
+    icon: [
+      { url: '/mystay-logo-approved/favicon.ico' },
+      {
+        url: '/mystay-logo-approved/favicon-32.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        url: '/mystay-logo-approved/favicon-16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+    ],
+    apple: [
+      {
+        url: '/mystay-logo-approved/favicon-180.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
+  },
   // Pas de canonical global ici : il serait hérité par toutes les pages sans metadata propre
   // (/contact, /le-logement…) qui se déclareraient alors doublons de la home. Chaque page
   // pose son propre canonical (la home le fait dans (public)/page.tsx).
@@ -52,21 +113,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Quicksand:wght@500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet"/>
-        <link href="https://fonts.googleapis.com/css2?family=Story+Script&display=swap" rel="stylesheet"/>
-      </head>
+    <html
+      lang="fr"
+      className={`${jakartaSans.variable} ${playfairDisplay.variable} ${quicksand.variable} ${lobster.variable} ${storyScript.variable}`}
+    >
       <body
         className="bg-white text-charcoal font-sans antialiased"
         suppressHydrationWarning

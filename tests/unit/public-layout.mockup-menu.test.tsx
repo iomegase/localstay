@@ -6,6 +6,10 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PublicLayout from '@/app/(public)/layout'
 
+jest.mock('next/headers', () => ({
+  headers: jest.fn(async () => new Headers()),
+}))
+
 jest.mock('@vercel/analytics/react', () => ({
   Analytics: () => null,
 }))
@@ -64,9 +68,11 @@ describe('PublicLayout mockup menu', () => {
       'href',
       '/guide/saint-gervais/logements',
     )
-    // L'entrée « recommandations » est retirée du menu : la home (/) affiche
-    // déjà ce contenu en mode séjour.
-    expect(within(screen.getByTestId('public-menu-overlay')).queryByRole('link', { name: /recommandations/i })).not.toBeInTheDocument()
+    expect(
+      within(screen.getByTestId('public-menu-overlay')).getByRole('link', {
+        name: 'Bienvenue',
+      }),
+    ).toHaveAttribute('href', '/nos-recommandations')
   })
 
   it('keeps the menu overlay constrained to the mobile app shell width', async () => {

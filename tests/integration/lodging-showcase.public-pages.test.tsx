@@ -121,7 +121,11 @@ const detailResult = {
   city_name: 'Annecy',
   city_region: 'Auvergne-Rhone-Alpes',
   description: 'Une description detaillee du chalet Hygge pour la page publique.',
-  photos: [{ id: 'photo-1', url: 'https://img.test/cover.webp', alt: 'Salon', room_type: 'common_area', sort_order: 0, is_cover: true }],
+  photos: [
+    { id: 'photo-1', url: 'https://img.test/cover.webp', alt: 'Salon', room_type: 'common_area', room_label: 'Salon', sort_order: 0, is_cover: true },
+    { id: 'photo-2', url: 'https://img.test/bedroom.webp', alt: 'Chambre', room_type: 'bedroom', room_label: 'Chambre', sort_order: 1, is_cover: false },
+    { id: 'photo-3', url: 'https://img.test/exterior.webp', alt: 'Extérieur', room_type: 'exterior', room_label: 'Extérieur', sort_order: 2, is_cover: false },
+  ],
   bathroom_count: 1,
   bed_count: 3,
   surface_m2: 70,
@@ -186,21 +190,83 @@ describe('lodging showcase public pages', () => {
     })
     render(jsx)
 
+    expect(screen.getByTestId('marketing-stage')).toBeInTheDocument()
+    expect(screen.getByTestId('marketing-surface')).toHaveClass(
+      'md:max-w-[1184px]',
+      'md:rounded-[42px]',
+      'xl:rounded-[34px]',
+    )
     expect(screen.getAllByText('Chalet Hygge').length).toBeGreaterThan(0)
     expect(screen.getByText('Un chalet lumineux pour decouvrir Annecy.')).toBeInTheDocument()
     expect(screen.getByText('Une description detaillee du chalet Hygge pour la page publique.')).toBeInTheDocument()
-    expect(screen.getByText('Équipements & Services')).toBeInTheDocument()
-    expect(screen.getByText('compris dans le séjour')).toBeInTheDocument()
+    expect(screen.getByText('Équipements')).toBeInTheDocument()
+    expect(screen.getByText('Le confort essentiel, sur place.')).toBeInTheDocument()
     expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
-    expect(screen.getByText('Réserver ou contacter')).toBeInTheDocument()
-    expect(screen.getByText('Reserver sur Airbnb')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
-    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
-    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-city-slug', 'annecy')
-    expect(screen.getByRole('link', { name: 'Contacter' })).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
-    expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-event', 'lodging_external_booking_click')
-    expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-city-slug', 'annecy')
-    expect(screen.getByRole('link', { name: 'Reserver sur Airbnb' })).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
+    expect(screen.getByText('Réserver ce logement')).toBeInTheDocument()
+
+    for (const contactLink of screen.getAllByRole('link', { name: 'Contacter' })) {
+      expect(contactLink).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
+      expect(contactLink).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
+      expect(contactLink).toHaveAttribute('data-analytics-city-slug', 'annecy')
+      expect(contactLink).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
+    }
+
+    for (const bookingLink of screen.getAllByRole('link', { name: 'Reserver sur Airbnb' })) {
+      expect(bookingLink).toHaveAttribute('data-analytics-event', 'lodging_external_booking_click')
+      expect(bookingLink).toHaveAttribute('data-analytics-city-slug', 'annecy')
+      expect(bookingLink).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
+    }
+  })
+
+  it('follows the approved editorial property-detail hierarchy', async () => {
+    const jsx = await LodgingDetailPage({
+      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+    })
+    render(jsx)
+
+    expect(screen.getByTestId('lodging-detail-heading')).toBeInTheDocument()
+    expect(screen.getByTestId('lodging-marketing-gallery')).toHaveAttribute(
+      'aria-label',
+      'Photos de Chalet Hygge',
+    )
+    expect(screen.getByTestId('lodging-story')).toContainElement(
+      screen.getByRole('heading', { name: 'Un chalet lumineux pour decouvrir Annecy.' }),
+    )
+    expect(screen.getByTestId('lodging-stay-card')).toHaveTextContent('Votre séjour')
+    expect(screen.getByRole('heading', { name: 'Les essentiels, en un coup d’œil.' })).toBeInTheDocument()
+    expect(screen.getByTestId('lodging-feature-sections')).toHaveTextContent('Le confort essentiel, sur place.')
+    expect(screen.getByText("L'espace de vie")).toBeInTheDocument()
+  })
+
+  it('renders a compact factual essentials band without invented stay details', async () => {
+    const jsx = await LodgingDetailPage({
+      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+    })
+    render(jsx)
+
+    const section = screen.getByTestId('lodging-essentials')
+    expect(section).toHaveClass('xl:py-10')
+    expect(section.querySelectorAll('dl > div')).toHaveLength(5)
+    expect(section).toHaveTextContent('70 m²')
+    expect(section).toHaveTextContent('4 voyageurs')
+    expect(section).toHaveTextContent('2 chambres')
+    expect(section).toHaveTextContent('3 couchages')
+    expect(section).toHaveTextContent('1 salle de bain')
+    expect(section).not.toHaveTextContent('Arrivée')
+    expect(section).not.toHaveTextContent('Départ')
+    expect(section).not.toHaveTextContent('€')
+  })
+
+  it('does not render owner recommendation blocks on the marketing detail page', async () => {
+    const jsx = await LodgingDetailPage({
+      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+    })
+    render(jsx)
+
+    expect(screen.queryByText('Les recommandations de votre hôte')).not.toBeInTheDocument()
+    expect(screen.queryByText('À découvrir ailleurs')).not.toBeInTheDocument()
+    expect(screen.queryByText('Le Port')).not.toBeInTheDocument()
+    expect(screen.queryByText('Aiguille du Midi')).not.toBeInTheDocument()
   })
 
   it('hides external booking and contact CTAs when disabled', async () => {

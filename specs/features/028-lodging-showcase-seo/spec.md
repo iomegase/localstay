@@ -95,8 +95,8 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-02-02**: Given une fiche sans lien de réservation externe, When la page s'affiche, Then le CTA externe est absent et le CTA contact reste disponible si `public_contact_enabled = true`.
 - **AC-02-03**: Given un slug logement inconnu ou non publié, When la route fiche est demandée, Then Next.js retourne 404 et aucun contenu privé du Lodging n'est exposé.
 - **AC-02-04**: Given une fiche publiée avec moins de 5 photos, When la page s'affiche, Then elle reste consultable mais le dashboard signale une qualité SEO insuffisante pour la publication optimale.
-- **AC-02-05**: Given une fiche publiée avec des recommandations Owner, When les recommandations s'affichent, Then les POI actifs et non supprimés de la City du Lodging apparaissent dans une section locale et les POI des autres Cities apparaissent dans une section séparée "À découvrir ailleurs", groupée par City.
-- **AC-02-06**: Given une recommandation Owner avec un commentaire, When la fiche logement s'affiche, Then le commentaire est visible sur la recommandation locale ou inter-ville concernée, et le lien de la card utilise le slug de la City réelle du POI.
+- **AC-02-05**: Given une fiche publiée avec des recommandations Owner, When la fiche marketing s'affiche, Then ces recommandations ne sont pas rendues dans un bloc dédié, conformément à `031-public-marketing-site` AC-03-08, et leurs données restent disponibles pour les autres parcours du Guide.
+- **AC-02-06**: Given une recommandation Owner avec un commentaire, When la fiche marketing s'affiche, Then le commentaire n'est pas exposé dans cette fiche, mais reste conservé sans modification dans `LodgingFeaturedPoi`.
 
 ### US-03 — Réserver ou demander des informations
 

@@ -1,7 +1,6 @@
-import Link from 'next/link'
-import Image from 'next/image'
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { headers } from 'next/headers'
 import { PublicMenu } from '@/features/city-guide/components/PublicMenu'
 import { PublicBottomNav } from '@/features/city-guide/components/PublicBottomNav'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
@@ -15,7 +14,28 @@ export default async function PublicLayout({
   children: React.ReactNode
 }) {
   const lodgingContext = await getActiveLodgingContext()
+  const requestHeaders = await headers()
+  const isMarketingRoute =
+    requestHeaders.get('x-staylocal-marketing-route') === '1'
   const mode = lodgingContext ? 'lodging' : 'anonymous'
+  const analytics = (
+    <>
+      <AnalyticsConsentBanner />
+      <GoogleAnalyticsClient />
+      <PublicAnalyticsTracker />
+      <VercelAnalytics />
+      <SpeedInsights />
+    </>
+  )
+
+  if (!lodgingContext || isMarketingRoute) {
+    return (
+      <>
+        {children}
+        {analytics}
+      </>
+    )
+  }
 
   return (
     <div className="max-w-[430px] mx-auto min-h-[100dvh] relative bg-white immersive-container">
@@ -24,16 +44,6 @@ export default async function PublicLayout({
         data-testid="public-header"
         className="sticky top-0 z-[70] flex items-center border-b border-white/40 bg-white/70 px-6 py-5 backdrop-blur-xl immersive-hide"
       >
-        {/* <Link href="/" className="flex items-center" aria-label="Accueil">
-          <Image
-            src="/logo.png"
-            alt="my stay"
-            width={695}
-            height={130}
-            priority
-            className="h-7 w-auto"
-          />
-        </Link> */}
         <div data-testid="public-header-menu-slot" className="ml-auto">
           <PublicMenu
             mode={mode}
@@ -49,11 +59,7 @@ export default async function PublicLayout({
 
       {/* Floating bottom navigation bar — masqué en mode immersif */}
       <PublicBottomNav mode={mode} citySlug={lodgingContext?.citySlug ?? null} />
-      <AnalyticsConsentBanner />
-      <GoogleAnalyticsClient />
-      <PublicAnalyticsTracker />
-      <VercelAnalytics />
-      <SpeedInsights />
+      {analytics}
     </div>
   )
 }

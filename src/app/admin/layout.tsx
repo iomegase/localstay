@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogoutButton } from '@/shared/components/LogoutButton'
+import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Vue globale', icon: LayoutDashboard },
@@ -74,7 +75,13 @@ export default function AdminPathLayout({ children }: { children: ReactNode }) {
         <div className="relative flex h-32 flex-shrink-0 items-center px-6 pt-6">
           <div className="flex w-14 flex-shrink-0 items-center justify-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md p-1.5 overflow-hidden">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              <MyStayLogo
+                form="mark"
+                alt="MyStay"
+                className="h-full w-full object-contain"
+                priority
+                sizes="48px"
+              />
             </div>
           </div>
           
@@ -220,7 +227,14 @@ export default function AdminPathLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#0B1437] p-1 shadow-sm">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain filter brightness-0 invert" />
+                <MyStayLogo
+                  form="mark"
+                  tone="reversed"
+                  alt="MyStay"
+                  className="h-full w-full object-contain"
+                  priority
+                  sizes="40px"
+                />
               </div>
               <div className="pt-0.5">
                 <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-gray-400">MyStay</p>

@@ -35,17 +35,22 @@ export function LodgingLocationMap({
   }, [latitude, longitude])
 
   return (
-    <section className="mx-4 mt-6">
-      <p className="mb-4 text-[14px] font-bold uppercase tracking-wider text-charcoal">Localisation</p>
-      <div className="relative h-[200px] w-full overflow-hidden rounded-2xl shadow-sm">
+    <section>
+      <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+        Les alentours
+      </span>
+      <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
+        Situer le logement.
+      </h2>
+      <div className="relative h-[280px] w-full overflow-hidden rounded-[24px] shadow-sm md:h-[360px]">
         <div ref={containerRef} className="absolute inset-0 h-full w-full" />
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] flex items-center justify-between bg-white/85 px-3 py-2 backdrop-blur-sm">
-          <span className="text-[10px] font-light uppercase tracking-widest text-gray-700">{areaLabel ?? ''}</span>
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] flex items-center justify-between bg-white/90 px-4 py-3 backdrop-blur-sm">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">{areaLabel ?? ''}</span>
           <a
             href={mapsDirectionUrl(latitude, longitude)}
             target="_blank"
             rel="noopener noreferrer"
-            className="pointer-events-auto text-[10px] font-semibold text-pink-600"
+            className="pointer-events-auto text-[11px] font-bold text-pink-600"
           >
             Itinéraire →
           </a>

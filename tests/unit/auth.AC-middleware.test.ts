@@ -88,7 +88,7 @@ describe('middleware — QR séjour : /guide/:slug?lodging=:id', () => {
 
   beforeEach(() => jest.clearAllMocks())
 
-  it('redirects to the welcome home / and sets the lodging cookie when ?lodging= is a valid UUID', async () => {
+  it('redirects to the private welcome home and sets the lodging cookie when ?lodging= is a valid UUID', async () => {
     const res = await middleware(
       makeRequest(`/guide/chamonix?lodging=${VALID_UUID}`),
     )
@@ -96,8 +96,8 @@ describe('middleware — QR séjour : /guide/:slug?lodging=:id', () => {
     const location = res.headers.get('location')
     expect(location).not.toBeNull()
     const url = new URL(location as string)
-    expect(url.pathname).toBe('/')
-    // ?lodging= is carried so the home can record the qr_scan event.
+    expect(url.pathname).toBe('/nos-recommandations')
+    // ?lodging= is carried so the private home can record the qr_scan event.
     expect(url.searchParams.get('lodging')).toBe(VALID_UUID)
     expect(res.cookies.get('lodging_id')?.value).toBe(VALID_UUID)
   })

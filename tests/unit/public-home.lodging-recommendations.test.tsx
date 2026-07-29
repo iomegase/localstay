@@ -1,11 +1,11 @@
 /**
  * @jest-environment jsdom
  *
- * En mode séjour, la home / rend le contenu « Nos recommandations »
- * (le bento des lieux choisis par l'hôte), pas le bento des catégories.
+ * En mode séjour, /nos-recommandations rend le bento des lieux choisis
+ * par l'hôte, tandis que / reste le site éditorial public.
  */
 import { render, screen } from '@testing-library/react'
-import HomePage from '@/app/(public)/page'
+import NosRecommendationsPage from '@/app/(public)/nos-recommandations/page'
 import { prisma } from '@/shared/lib/prisma'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 
@@ -33,7 +33,7 @@ jest.mock('next/link', () => ({
 
 const mockContext = getActiveLodgingContext as jest.Mock
 
-describe('HomePage — mode séjour', () => {
+describe('NosRecommendationsPage — mode séjour', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue(null)
@@ -63,7 +63,7 @@ describe('HomePage — mode séjour', () => {
       },
     ] as never)
 
-    render(await HomePage())
+    render(await NosRecommendationsPage())
 
     expect(screen.getByText('Les recommandations de Alice')).toBeInTheDocument()
     expect(screen.getByText('Bistrot du Centre')).toBeInTheDocument()
@@ -72,7 +72,7 @@ describe('HomePage — mode séjour', () => {
   it('renders the recommendations empty state when the host has no picks', async () => {
     jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([] as never)
 
-    render(await HomePage())
+    render(await NosRecommendationsPage())
 
     expect(screen.getByText(/n'a pas encore sélectionné/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Voir le guide complet' })).toHaveAttribute(

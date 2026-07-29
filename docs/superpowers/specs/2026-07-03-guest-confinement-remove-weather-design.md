@@ -99,7 +99,8 @@ vers `/` — pour éviter une redirection proxy déroutante. Détection du mode 
   - `/guide/{ville}/{categorie}` → redirige vers `/`
   - `/guide/{ville}/logements`, `/guide/{autre-ville}/logements`, `/guide/{ville}/logements/{slug}`,
     `/guide/{ville}/agenda`, `/guide/{ville}/mes-favoris`, `/guide/{ville}/contact` → passent
-  - `/guide/{ville}?lodging={uuid}` (entrée QR) → comportement inchangé (cookie + redirection `/`)
+  - `/guide/{ville}?lodging={uuid}` (entrée QR) → cookie + redirection vers
+    `/nos-recommandations` ; `/` reste réservé au site éditorial public
   - visiteur **sans cookie** sur `/guide/{ville}` → non bloqué (rendu public)
 - **Menu** : items séjour = Logements/Agenda/Blog/Contact, sans Météo ; lien nom → `/`.
 - **Météo** : après suppression, `tsc`/build sans imports orphelins ; suites météo retirées.

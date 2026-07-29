@@ -118,6 +118,11 @@ ne lit aucun cookie et n’utilise aucun UUID réel. L’adresse exacte du logem
 fictif est volontairement masquée ; son marqueur utilise un point générique du
 centre de Saint-Gervais-les-Bains.
 
+La collection statique peut être constituée à partir d'une lecture ponctuelle
+des POI publics actifs déjà présents en base. Cette extraction est un
+instantané de développement : aucune query Prisma n'est exécutée au chargement
+du modal et aucun identifiant UUID de la base n'est conservé dans le bundle.
+
 Les informations de démonstration comprennent des horaires d’arrivée et de
 départ, un Wi-Fi fictif, des équipements, des consignes, les urgences publiques
 et des services génériques. Aucun nom de voyageur, code d’accès, téléphone
@@ -181,6 +186,10 @@ naturels. La sélection de départ comprend notamment :
 - une balade officielle autour du Parc thermal ou du sentier du Berchat ;
 - une activité familiale officielle du Bettex.
 
+La randonnée « L'Alpage de Porcherey » est incluse avec ses métriques publiques
+disponibles. En mode `demo`, sa fiche ne compose jamais les contrôles de
+démarrage, la géolocalisation, le tracé de suivi ni `TrailNavigationMap`.
+
 Chaque entrée doit posséder une fiche officielle Saint-Gervais ou opérateur,
 une adresse publique, des coordonnées provenant du lien d’itinéraire officiel,
 un site public vérifié et un `directionsUrl` Google Maps dérivé de ces
@@ -212,7 +221,7 @@ Le cadre suit le contrat fourni :
   `overflow-hidden` ;
 - ombre `0 35px 120px rgba(15,23,42,.55)` ;
 - contenu interne scrollable, header et navigation basse fixes dans le cadre ;
-- bouton de fermeture discret dans la bordure supérieure ;
+- aucun bouton de fermeture flottant au-dessus du téléphone ;
 - clic dans le téléphone arrêté avant l’overlay.
 
 Sur les écrans très étroits, le cadre conserve une marge de 12 px et une
@@ -238,10 +247,10 @@ La carte partagée reçoit `pois`, `lodgingLocation`, `selectedPoiId`,
 
 - Le trigger conserve un libellé explicite et un focus visible.
 - Le titre et la description du Dialog sont reliés par les attributs Radix.
-- La fermeture fonctionne par bouton, `Escape` ou clic overlay.
+- La fermeture fonctionne par `Escape` ou clic overlay.
 - Les clics internes ne ferment jamais le modal.
-- Le focus initial vise le bouton de fermeture ou le premier contrôle du
-  guide ; à la fermeture, il revient au CTA.
+- Le focus initial vise le premier contrôle du guide ; à la fermeture, il
+  revient au CTA.
 - La navigation interne utilise des boutons avec `aria-current` ou
   `aria-pressed` selon le cas.
 - Les zones scrollables conservent le défilement tactile et empêchent le

@@ -17,6 +17,12 @@ type PublicLodgingCardApi = {
   href: string
 }
 
+export type MarketingLodgingCard = PublicLodgingCardApi & {
+  city_name: string
+  bathroom_count: number | null
+  surface_m2: number | null
+}
+
 export type PublicLodgingDetailQueryResult = PublicLodgingCardApi & {
   city_name: string
   city_region: string | null
@@ -143,6 +149,45 @@ function toCardApi(row: {
     amenities: row.amenities.map(amenity => amenity.label),
     href: `/guide/${row.city.slug}/logements/${row.slug}`,
   }
+}
+
+export async function listPublishedLodgings({
+  limit,
+}: {
+  limit?: number
+} = {}): Promise<MarketingLodgingCard[]> {
+  const rows = await prisma.lodgingPublicProfile.findMany({
+    where: {
+      publication_status: 'published',
+      deleted_at: null,
+      city: { is_active: true, deleted_at: null },
+      lodging: { is_active: true, deleted_at: null },
+    },
+    orderBy: [{ is_featured: 'desc' }, { published_at: 'desc' }, { created_at: 'desc' }],
+    ...(limit ? { take: limit } : {}),
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      short_description: true,
+      property_type: true,
+      max_guests: true,
+      bedroom_count: true,
+      bathroom_count: true,
+      surface_m2: true,
+      public_area_label: true,
+      city: { select: { slug: true, name: true } },
+      photos: listPhotoArgs,
+      amenities: amenityArgs,
+    },
+  })
+
+  return rows.map(row => ({
+    ...toCardApi(row),
+    city_name: row.city.name,
+    bathroom_count: row.bathroom_count,
+    surface_m2: row.surface_m2,
+  }))
 }
 
 export async function listPublishedLodgingsForCity(

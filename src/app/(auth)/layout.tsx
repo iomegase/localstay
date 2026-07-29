@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,11 +9,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         {/* En-tête du layout */}
         <div className="mb-16 text-center">
           <div className="mb-4 flex justify-center">
-            {/* REMPLACEZ "/logo.svg" PAR LE CHEMIN DE VOTRE LOGO */}
-            <img 
-              src="/logo.png" 
+            <MyStayLogo
               alt="Logo MyStay"
-              className="h-10 w-auto object-contain" 
+              className="h-10 w-auto object-contain"
+              priority
+              sizes="160px"
             />
           </div>
           

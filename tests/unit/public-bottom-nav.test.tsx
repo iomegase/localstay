@@ -127,6 +127,7 @@ describe('PublicBottomNav', () => {
     render(<PublicBottomNav mode="lodging" citySlug="saint-gervais-les-bains" />)
 
     const inactiveLink = screen.getByRole('link', { name: /Coup de coeur/i })
+    expect(inactiveLink).toHaveAttribute('href', '/nos-recommandations')
     expect(inactiveLink).toHaveClass('text-[#6f7480]')
     expect(inactiveLink).toHaveClass('hover:text-[#4b5563]')
     expect(inactiveLink).not.toHaveClass('hover:text-pink-600')

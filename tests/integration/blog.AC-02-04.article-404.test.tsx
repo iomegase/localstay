@@ -8,6 +8,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/features/blog/queries/public-blog', () => ({
   getPublishedBlogArticleBySlug: jest.fn(async () => null),
+  getPublishedBlogArticles: jest.fn(async () => ({ city: null, items: [] })),
 }))
 
 describe('029 blog article 404', () => {

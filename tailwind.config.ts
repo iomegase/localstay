@@ -57,11 +57,11 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
-        lobster: ['Lobster', 'cursive'],
-        quicksand: ['Quicksand', 'sans-serif'],
-        hand: ['Story Script', 'cursive'],
+        sans: ['var(--font-jakarta)', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'serif'],
+        lobster: ['var(--font-lobster)', 'cursive'],
+        quicksand: ['var(--font-quicksand)', 'sans-serif'],
+        hand: ['var(--font-story)', 'cursive'],
       },
       boxShadow: {
         soft: '0 18px 60px rgba(36, 34, 32, 0.08)',

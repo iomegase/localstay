@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogoutButton } from '@/shared/components/LogoutButton'
+import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Accueil', icon: LayoutDashboard },
@@ -58,7 +59,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="relative flex h-32 flex-shrink-0 items-center px-6 pt-6">
           <div className="flex w-14 flex-shrink-0 items-center justify-center">
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-white p-1.5 shadow-md">
-              <img src="/logo.png" alt="Logo" className="h-full w-full object-contain" />
+              <MyStayLogo
+                form="mark"
+                alt="MyStay"
+                className="h-full w-full object-contain"
+                priority
+                sizes="48px"
+              />
             </div>
           </div>
 
@@ -201,10 +208,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#0B1437] p-1 shadow-sm">
-                <img
-                  src="/logo.png"
-                  alt="Logo"
-                  className="h-full w-full object-contain brightness-0 invert"
+                <MyStayLogo
+                  form="mark"
+                  tone="reversed"
+                  alt="MyStay"
+                  className="h-full w-full object-contain"
+                  priority
+                  sizes="40px"
                 />
               </div>
               <div className="pt-0.5">

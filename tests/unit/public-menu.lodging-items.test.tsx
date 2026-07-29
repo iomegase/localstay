@@ -37,8 +37,11 @@ describe('PublicMenu — mode séjour', () => {
     expect(screen.queryByRole('link', { name: /météo/i })).not.toBeInTheDocument()
   })
 
-  it('links the current-stay name to the stay home (/), not the public city page', async () => {
+  it('links the current-stay name to the private stay home', async () => {
     await openLodgingMenu()
-    expect(screen.getByRole('link', { name: /chalet rémy/i })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: /chalet rémy/i })).toHaveAttribute(
+      'href',
+      '/nos-recommandations',
+    )
   })
 })
