@@ -1,23 +1,6 @@
-import Image from 'next/image'
-import {
-  Clock3,
-  Heart,
-  Map as MapIcon,
-  MapPin,
-  Sparkles,
-  Users,
-} from 'lucide-react'
 import type { GuidePoi } from '@/features/guide-app/types'
-
-const categoryTextClasses: Record<string, string> = {
-  diner: 'text-rose-600',
-  alimentation: 'text-amber-700',
-  culture: 'text-violet-600',
-  activite: 'text-blue-600',
-  famille: 'text-emerald-700',
-  soin: 'text-pink-700',
-  rando: 'text-lime-700',
-}
+import { getFavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
+import { GuideFavoriteBentoCard } from './GuideFavoriteBentoCard'
 
 export function GuideFavoritesPage({
   pois,
@@ -75,73 +58,15 @@ export function GuideFavoritesPage({
         ))}
       </div>
 
-      <div className="mt-3 space-y-3">
-        {visiblePois.map(poi => (
-          <article
+      <div data-testid="favorites-bento-grid" className="mt-3 grid grid-cols-2 gap-3">
+        {visiblePois.map((poi, index) => (
+          <GuideFavoriteBentoCard
             key={poi.id}
-            className="overflow-hidden rounded-[24px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.07)]"
-          >
-            <button
-              type="button"
-              aria-label={`Ouvrir ${poi.name}`}
-              onClick={() => onSelectPoi(poi)}
-              className="grid w-full grid-cols-[108px_minmax(0,1fr)] text-left"
-            >
-              <span className="relative min-h-[128px]">
-                <Image
-                  src={poi.photos[0]}
-                  alt=""
-                  fill
-                  sizes="108px"
-                  className="object-cover"
-                />
-              </span>
-              <span className="flex min-w-0 flex-col p-4">
-                <span
-                  className={`text-[8px] font-extrabold uppercase tracking-[0.16em] ${
-                    categoryTextClasses[poi.category.slug] ?? 'text-pink-600'
-                  }`}
-                >
-                  {poi.category.name}
-                </span>
-                <strong className="mt-1 line-clamp-2 text-sm leading-[1.15] text-slate-900">
-                  {poi.name}
-                </strong>
-                <span className="mt-2 line-clamp-2 text-[10px] leading-4 text-slate-500">
-                  {poi.shortDescription}
-                </span>
-                <span className="mt-auto flex items-center gap-3 pt-2 text-[9px] text-slate-500">
-                  {poi.distanceLabel && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-pink-600" />
-                      {poi.distanceLabel}
-                    </span>
-                  )}
-                  {poi.durationLabel && (
-                    <span className="flex items-center gap-1">
-                      <Clock3 className="h-3 w-3" />
-                      {poi.durationLabel}
-                    </span>
-                  )}
-                </span>
-              </span>
-            </button>
-            <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2">
-              <div className="flex gap-1.5">
-                {poi.recommended && <Badge icon={Heart} label="Notre préféré" />}
-                {poi.familyFriendly && <Badge icon={Users} label="En famille" />}
-                {poi.nearby && <Badge icon={Sparkles} label="À proximité" />}
-              </div>
-              <button
-                type="button"
-                onClick={() => onShowOnMap(poi)}
-                className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-[8px] font-bold uppercase tracking-[0.1em] text-white"
-              >
-                <MapIcon className="h-3 w-3" />
-                Carte
-              </button>
-            </div>
-          </article>
+            poi={poi}
+            variant={getFavoriteBentoVariant(index)}
+            onSelectPoi={onSelectPoi}
+            onShowOnMap={onShowOnMap}
+          />
         ))}
       </div>
     </div>
@@ -170,20 +95,5 @@ function FilterButton({
     >
       {label}
     </button>
-  )
-}
-
-function Badge({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof Heart
-  label: string
-}) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-pink-50 px-2 py-1 text-[7px] font-bold text-pink-700">
-      <Icon className="h-2.5 w-2.5" />
-      {label}
-    </span>
   )
 }

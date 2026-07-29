@@ -52,6 +52,7 @@ function directions(latitude: number, longitude: number) {
 export const demoPois: GuidePoi[] = [
   {
     id: 'demo-poi-rond-de-carotte',
+    isOpenNow: true,
     name: 'Rond de Carotte',
     slug: 'rond-de-carotte',
     category: categories.restaurant,
@@ -75,6 +76,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-bistrotserac',
+    isOpenNow: true,
     name: 'Bistrotsérac',
     slug: 'bistrotserac',
     category: categories.restaurant,
@@ -94,6 +96,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-communailles',
+    isOpenNow: false,
     name: 'Le Relais des Communailles',
     slug: 'le-relais-des-communailles',
     category: categories.restaurant,
@@ -117,6 +120,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-petit-biscuit',
+    isOpenNow: true,
     name: 'Boulangerie Petit Biscuit La Patinoire',
     slug: 'boulangerie-petit-biscuit-la-patinoire',
     category: categories.shop,
@@ -136,6 +140,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-carrefour-express',
+    isOpenNow: true,
     name: 'Carrefour Express',
     slug: 'carrefour-express',
     category: categories.shop,
@@ -156,6 +161,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-hautetour',
+    isOpenNow: true,
     name: 'Maison forte de Hautetour',
     slug: 'maison-forte-de-hautetour',
     category: categories.culture,
@@ -181,6 +187,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-la-cure',
+    isOpenNow: false,
     name: 'La Cure',
     slug: 'la-cure',
     category: categories.culture,
@@ -202,6 +209,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-tramway',
+    isOpenNow: true,
     name: 'Tramway du Mont-Blanc',
     slug: 'tramway-du-mont-blanc',
     category: categories.activity,
@@ -222,6 +230,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-bettex',
+    isOpenNow: false,
     name: 'Télécabine de l’Alpin — Le Bettex',
     slug: 'telecabine-le-bettex',
     category: categories.activity,
@@ -242,6 +251,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-piscine',
+    isOpenNow: true,
     name: 'Piscine de Saint-Gervais',
     slug: 'piscine-de-saint-gervais',
     category: categories.family,
@@ -281,6 +291,7 @@ export const demoPois: GuidePoi[] = [
   },
   {
     id: 'demo-poi-thermes',
+    isOpenNow: true,
     name: 'Les Thermes de Saint-Gervais Mont Blanc',
     slug: 'thermes-de-saint-gervais',
     category: categories.care,

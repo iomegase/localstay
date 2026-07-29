@@ -42,6 +42,8 @@ export type GuidePoi = {
   recommended?: boolean
   familyFriendly?: boolean
   nearby?: boolean
+  /** Statut d'ouverture instantané, quand le lieu a des horaires (sinon absent). */
+  isOpenNow?: boolean
   website?: string
   phone?: string
   directionsUrl: string
