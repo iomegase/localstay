@@ -6,7 +6,7 @@ import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 describe('GuideApp featured bento cards', () => {
-  it('renders three equally sized image cards in a scrollbar-free horizontal row', () => {
+  it('renders featured POIs as square image cards in a two-column grid', () => {
     render(
       <GuideApp
         mode="demo"
@@ -15,23 +15,13 @@ describe('GuideApp featured bento cards', () => {
       />,
     )
 
-    const carousel = screen.getByTestId('guide-featured-carousel')
-    expect(carousel).toHaveClass(
-      'overflow-x-auto',
-      '[scrollbar-width:none]',
-      '[&::-webkit-scrollbar]:hidden',
-    )
+    const grid = screen.getByTestId('guide-featured-grid')
+    expect(grid).toHaveClass('grid', 'grid-cols-2')
 
     const cards = screen.getAllByTestId('guide-featured-card')
-    expect(cards).toHaveLength(3)
+    expect(cards).toHaveLength(2)
     for (const card of cards) {
-      expect(card).toHaveClass(
-        'h-[156px]',
-        'w-[156px]',
-        'aspect-square',
-        'snap-start',
-        'rounded-[24px]',
-      )
+      expect(card).toHaveClass('aspect-square', 'w-full', 'rounded-[24px]')
       expect(card).not.toHaveClass('bg-white')
     }
 

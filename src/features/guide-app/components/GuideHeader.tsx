@@ -20,12 +20,12 @@ export function GuideHeader({
       >
         <span className="min-w-0">
           <MyStayLogo
-            form="mark"
-            className="h-auto w-[50px] object-contain"
+            form="horizontal"
+            className="h-7 w-auto object-contain"
             priority
-            sizes="50px"
+            sizes="140px"
           />
-          <span className="block truncate text-[9px] text-slate-500">{city}</span>
+          <span className="mt-1 block truncate text-[9px] text-slate-500">{city}</span>
         </span>
       </button>
 

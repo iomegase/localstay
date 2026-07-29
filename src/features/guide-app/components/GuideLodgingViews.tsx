@@ -129,8 +129,8 @@ export function GuideLodgingViews({
           sizes="360px"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/55 to-transparent" />
-        <div className="relative flex min-h-[290px] flex-col justify-end p-6">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+        <div className="absolute inset-x-6 bottom-4">
           <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
             Votre guide de séjour
           </p>

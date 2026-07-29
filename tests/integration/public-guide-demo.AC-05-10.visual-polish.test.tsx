@@ -1,12 +1,12 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 describe('GuideApp demo visual polish', () => {
-  it('uses neutral slate colors for the arrival and Wi-Fi shortcuts', () => {
+  it('shows the arrival time and a wifi icon on the home shortcuts', () => {
     render(
       <GuideApp
         mode="demo"
@@ -15,12 +15,10 @@ describe('GuideApp demo visual polish', () => {
       />,
     )
 
-    for (const name of [/arrivée dès 16:00/i, /wi-fi refuge-mont-blanc/i]) {
-      const button = screen.getByRole('button', { name })
-      const icon = button.querySelector('[data-testid="quick-card-icon"]')
+    const arrival = screen.getByRole('button', { name: /arrivée 16:00/i })
+    expect(within(arrival).getByText('16:00')).toBeInTheDocument()
 
-      expect(icon).toHaveClass('bg-slate-100', 'text-slate-600')
-      expect(icon).not.toHaveClass('bg-pink-50', 'text-pink-600')
-    }
+    const wifi = screen.getByRole('button', { name: /wi-fi refuge-mont-blanc/i })
+    expect(within(wifi).getByTestId('wifi-icon')).toBeInTheDocument()
   })
 })

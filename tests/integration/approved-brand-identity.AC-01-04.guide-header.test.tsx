@@ -16,10 +16,10 @@ describe('GuideHeader approved brand', () => {
       screen.getByAltText('MyStay').getAttribute('src') ?? '',
     )
     expect(logoSource).toContain(
-      '/mystay-logo-approved/mystay-mark-approved@4x.png',
+      '/mystay-logo-approved/mystay-logo-approved@4x.png',
     )
     expect(screen.getByRole('banner')).toHaveClass('h-[68px]')
-    expect(screen.getByAltText('MyStay')).toHaveClass('w-[50px]')
+    expect(screen.getByAltText('MyStay')).toHaveClass('h-7')
     expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
     expect(screen.queryByText('Démonstration')).not.toBeInTheDocument()
     expect(screen.getByTestId('guide-menu-icon')).toBeInTheDocument()
