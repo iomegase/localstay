@@ -20,7 +20,6 @@ import {
   Sparkles,
   Trash2,
   Users,
-  Video,
   Wifi,
 } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
@@ -127,21 +126,21 @@ export default async function LeLogementPage() {
   const accessContent: React.ReactNode[] = []
   if (customization?.lodging_address) {
     accessContent.push(
-      <PanelDetail key="address" icon={<MapPin className="h-5 w-5" />} accent="orange" title="Adresse">
+      <div key="address" className={BODY}>
         <p>{customization.lodging_address}</p>
         {mapUrl && (
-          <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 font-bold text-orange-600">
+          <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 font-bold text-blue-600">
             Ouvrir dans Maps <ArrowUpRight className="h-4 w-4" />
           </a>
         )}
-      </PanelDetail>,
+      </div>,
     )
   }
   if (customization?.presentation_video_url) {
     accessContent.push(
-      <PanelDetail key="video" icon={<Video className="h-5 w-5" />} accent="pink" title="Vidéo du logement">
-        <YouTubeEmbed url={customization.presentation_video_url} title="Vidéo du logement" className="mt-2 rounded-[18px]" />
-      </PanelDetail>,
+      <div key="video">
+        <YouTubeEmbed url={customization.presentation_video_url} title="Vidéo du logement" className="rounded-[18px]" />
+      </div>,
     )
   }
   if (has(customization?.parking_info) || has(customization?.parking_photo_url) || has(customization?.parking_video_url)) {
