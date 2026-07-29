@@ -55,8 +55,8 @@ partagée.
   marque est rendue, Then le monogramme approuvé est utilisé à la place du logo
   horizontal.
 - **AC-01-04**: Given le header du GuideApp, When il s'affiche en mode privé ou
-  démonstration, Then le logo horizontal approuvé remplace le pictogramme et le
-  mot-symbole de substitution tout en conservant la ville.
+  démonstration, Then le monogramme approuvé est affiché seul dans un format
+  plus imposant, sans mot-symbole, tout en conservant la ville.
 - **AC-01-05**: Given le code source actif, When les références de marque sont
   contrôlées, Then aucune occurrence active de `/logo.png` ne subsiste.
 - **AC-01-06**: Given une largeur mobile ou desktop, When une surface concernée
@@ -103,14 +103,15 @@ Aucune route API créée ou modifiée.
 | AC-01-01 | Test du logo horizontal standard sur surface claire |
 | AC-01-02 | Test du logo horizontal inversé sur surface sombre |
 | AC-01-03 | Test du monogramme dans les dashboards |
-| AC-01-04 | Test du header GuideApp avec ville et logo approuvé |
+| AC-01-04 | Test du header GuideApp avec ville et monogramme approuvé |
 | AC-01-05 | Test statique interdisant `/logo.png` dans le code actif |
 | AC-01-06 | Test responsive et absence de débordement horizontal |
 
 ## Out of Scope
 
 - Redessiner ou recolorer les fichiers approuvés.
-- Modifier la taille des headers, sidebars ou panneaux.
+- Modifier la taille des sidebars ou panneaux. Le header partagé du GuideApp
+  peut atteindre 68 px pour équilibrer le monogramme approuvé.
 - Modifier les avatars utilisateurs.
 - Modifier les e-mails ou documents hors application.
 
