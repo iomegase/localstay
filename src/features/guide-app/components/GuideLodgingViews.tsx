@@ -73,7 +73,7 @@ export function GuideLodgingViews({
       >
         <section className={`${cardClass} p-5`}>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-slate-600">
               <Wifi className="h-5 w-5" />
             </span>
             <div>
@@ -102,7 +102,9 @@ export function GuideLodgingViews({
         </div>
         <section className={`${cardClass} p-5`}>
           <div className="flex items-center gap-3">
-            <Phone className="h-5 w-5 text-pink-600" />
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-slate-600">
+              <Phone className="h-5 w-5" />
+            </span>
             <h2 className="text-sm font-semibold text-slate-900">Numéros utiles</h2>
           </div>
           <div className="mt-4 divide-y divide-slate-100">
@@ -285,7 +287,7 @@ function InfoCard({
   return (
     <article className={`${cardClass} p-5`}>
       <div className="flex items-center gap-3">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 text-blue-700">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 text-slate-600">
           <Icon className="h-4 w-4" />
         </span>
         <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
