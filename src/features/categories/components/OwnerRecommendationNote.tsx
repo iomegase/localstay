@@ -11,7 +11,7 @@ export function OwnerRecommendationNote({ note }: { note: string | null }) {
       </h2>
       <p
         data-testid="owner-recommendation-note-text"
-        className="mt-2 break-words whitespace-pre-line font-hand text-xl leading-snug text-gray-700"
+        className="mt-2 break-words whitespace-pre-line font-hand text-[15px] leading-snug text-gray-700"
       >
         {note}
       </p>

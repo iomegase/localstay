@@ -87,7 +87,7 @@ export function GuidePoiDetails({
 
         {/* Description */}
         {poi.description && (
-          <p className="whitespace-pre-line px-6 text-sm leading-relaxed text-charcoal/70">{poi.description}</p>
+          <p className="whitespace-pre-line px-6 text-[12px] leading-[1.9] text-justify text-charcoal/70">{poi.description}</p>
         )}
 
         {/* Le mot de votre hôte */}
