@@ -52,7 +52,8 @@ export const demoLodging: GuideLodging = {
       title: 'Stationnement',
       description: 'Une place fictive est indiquée dans le guide réel remis au voyageur.',
       icon: 'car',
-      videoUrl: '/marketing/demo-parking.mp4',
+      videoUrl:
+        '/video/social_davdev8307_Une_voiture_de_gare_sur_une_place_de_parking_vu_de_947eaaec-52b2-4eb0-a275-5fd32164ed2c_1.mp4',
     },
     {
       id: 'demo-heating',
