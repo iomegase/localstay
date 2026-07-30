@@ -88,13 +88,5 @@ describe('031-public-marketing-site home', () => {
     )
 
     expect(lodgingImage).not.toHaveAttribute('loading', 'lazy')
-    expect(screen.getByTestId('home-property-card')).toHaveAttribute(
-      'data-variant',
-      'compact',
-    )
-    expect(screen.getByTestId('home-property-image')).toHaveClass(
-      'xl:h-[344px]',
-      'xl:rounded-[26px]',
-    )
   })
 })

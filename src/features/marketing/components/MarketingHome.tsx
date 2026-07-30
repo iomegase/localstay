@@ -285,7 +285,6 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                 key={lodging.id}
                 lodging={lodging}
                 priority
-                compact
               />
             ))}
           </div>
