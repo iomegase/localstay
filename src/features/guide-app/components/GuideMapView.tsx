@@ -2,18 +2,17 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowRight,
   ExternalLink,
   Home,
   MapPin,
+  Minus,
   Navigation,
+  Plus,
 } from 'lucide-react'
-import Map, {
-  Marker,
-  NavigationControl,
-  type MapRef,
-} from 'react-map-gl/mapbox'
+import Map, { Marker, type MapRef } from 'react-map-gl/mapbox'
 import type {
   GuideLodging,
   GuidePoi,
@@ -28,6 +27,9 @@ const markerClasses: Record<string, string> = {
   soin: 'bg-pink-700',
   rando: 'bg-lime-700',
 }
+
+/** Position basse de la POI card / du hint : au-dessus de la barre de nav. */
+const overlayBottom = 'bottom-[calc(5.25rem+env(safe-area-inset-bottom))]'
 
 export function GuideMapView({
   lodging,
@@ -66,10 +68,63 @@ export function GuideMapView({
     if (!selectedPoi) return
     mapRef.current?.flyTo({
       center: [selectedPoi.longitude, selectedPoi.latitude],
-      zoom: 14,
-      duration: 600,
+      zoom: 15.5,
+      duration: 700,
     })
   }, [selectedPoi])
+
+  function zoomBy(delta: number) {
+    const map = mapRef.current?.getMap?.()
+    map?.easeTo({ zoom: (map.getZoom?.() ?? 13) + delta, duration: 300 })
+  }
+
+  /** Ajoute les bâtiments 3D une fois le style chargé. */
+  function handleMapLoad() {
+    const map = mapRef.current?.getMap?.()
+    if (!map || map.getLayer('3d-buildings')) return
+    const labelLayerId = map
+      .getStyle()
+      ?.layers?.find(
+        layer =>
+          layer.type === 'symbol' &&
+          (layer.layout as { 'text-field'?: unknown } | undefined)?.['text-field'],
+      )?.id
+    map.addLayer(
+      {
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 14,
+        paint: {
+          'fill-extrusion-color': '#d9d9de',
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            14,
+            0,
+            15.5,
+            ['get', 'height'],
+          ],
+          'fill-extrusion-base': ['get', 'min_height'],
+          'fill-extrusion-opacity': 0.9,
+        },
+      } as Parameters<typeof map.addLayer>[0],
+      labelLayerId,
+    )
+  }
+
+  /** Incline la caméra (tilt 3D) quand l'utilisateur zoome. */
+  function handleZoomEnd() {
+    const map = mapRef.current?.getMap?.()
+    if (!map) return
+    const targetPitch = (map.getZoom?.() ?? 0) >= 15 ? 55 : 0
+    if (Math.abs((map.getPitch?.() ?? 0) - targetPitch) > 2) {
+      map.easeTo({ pitch: targetPitch, duration: 450 })
+    }
+  }
 
   return (
     <div
@@ -85,10 +140,13 @@ export function GuideMapView({
           latitude: lodging.latitude,
           longitude: lodging.longitude,
           zoom: 12.2,
+          pitch: 0,
         }}
+        maxPitch={62}
+        onLoad={handleMapLoad}
+        onZoomEnd={handleZoomEnd}
         mapStyle="mapbox://styles/mapbox/light-v11"
       >
-        <NavigationControl position="top-right" showCompass={false} />
         <Marker
           longitude={lodging.longitude}
           latitude={lodging.latitude}
@@ -131,7 +189,7 @@ export function GuideMapView({
       </Map>
 
       <div className="absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-white via-white/95 to-transparent px-3 pb-5 pt-3">
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
+        <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
           <MapFilter
             label="Tous"
             active={selectedCategorySlug === null}
@@ -148,52 +206,87 @@ export function GuideMapView({
         </div>
       </div>
 
-      {selectedPoi ? (
-        <article className="absolute inset-x-3 bottom-3 z-10 overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_16px_44px_rgba(15,23,42,0.24)] backdrop-blur-xl">
-          <button
-            type="button"
-            onClick={() => onOpenPoi(selectedPoi)}
-            className="grid w-full grid-cols-[78px_minmax(0,1fr)_28px] items-center gap-3 p-2.5 text-left"
-            aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+      <div className="absolute right-3 top-[68px] z-10 flex flex-col divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100 bg-white/95 shadow-md backdrop-blur">
+        <button
+          type="button"
+          aria-label="Zoomer"
+          onClick={() => zoomBy(1)}
+          className="grid h-8 w-8 place-items-center text-slate-700 active:bg-slate-50"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Dézoomer"
+          onClick={() => zoomBy(-1)}
+          className="grid h-8 w-8 place-items-center text-slate-700 active:bg-slate-50"
+        >
+          <Minus className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {selectedPoi ? (
+          <motion.article
+            key={selectedPoi.id}
+            initial={{ y: 28, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 28, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            className={`absolute inset-x-3 ${overlayBottom} z-10 overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_16px_44px_rgba(15,23,42,0.24)] backdrop-blur-xl`}
           >
-            <span className="relative h-[68px] overflow-hidden rounded-[15px]">
-              <Image
-                src={selectedPoi.photos[0]}
-                alt=""
-                fill
-                sizes="78px"
-                className="object-cover"
-              />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
-                {selectedPoi.category.name}
+            <button
+              type="button"
+              onClick={() => onOpenPoi(selectedPoi)}
+              className="grid w-full grid-cols-[78px_minmax(0,1fr)_28px] items-center gap-3 p-2.5 text-left"
+              aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+            >
+              <span className="relative h-[68px] overflow-hidden rounded-[15px]">
+                <Image
+                  src={selectedPoi.photos[0]}
+                  alt=""
+                  fill
+                  sizes="78px"
+                  className="object-cover"
+                />
               </span>
-              <strong className="mt-1 block truncate text-xs text-slate-900">
-                {selectedPoi.name}
-              </strong>
-              <span className="mt-1 flex items-center gap-1 text-[9px] text-slate-500">
-                <Navigation className="h-3 w-3" aria-hidden="true" />
-                {selectedPoi.distanceLabel ?? selectedPoi.address}
+              <span className="min-w-0">
+                <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
+                  {selectedPoi.category.name}
+                </span>
+                <strong className="mt-1 block truncate text-xs text-slate-900">
+                  {selectedPoi.name}
+                </strong>
+                <span className="mt-1 flex items-center gap-1 text-[9px] text-slate-500">
+                  <Navigation className="h-3 w-3" aria-hidden="true" />
+                  {selectedPoi.distanceLabel ?? selectedPoi.address}
+                </span>
               </span>
-            </span>
-            <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
-          </button>
-          <a
-            href={selectedPoi.directionsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-center gap-2 border-t border-slate-100 py-2.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-700"
+              <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            </button>
+            <a
+              href={selectedPoi.directionsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 border-t border-slate-100 py-2.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-700"
+            >
+              Itinéraire
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+            </a>
+          </motion.article>
+        ) : (
+          <motion.p
+            key="hint"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.2 }}
+            className={`absolute inset-x-3 ${overlayBottom} z-10 rounded-full bg-white/95 px-4 py-3 text-center text-[10px] font-medium text-slate-600 shadow-lg backdrop-blur`}
           >
-            Itinéraire
-            <ExternalLink className="h-3 w-3" aria-hidden="true" />
-          </a>
-        </article>
-      ) : (
-        <p className="absolute inset-x-3 bottom-3 z-10 rounded-full bg-white/95 px-4 py-3 text-center text-[10px] font-medium text-slate-600 shadow-lg backdrop-blur">
-          Touchez un repère pour découvrir le lieu.
-        </p>
-      )}
+            Touchez un repère pour découvrir le lieu.
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
