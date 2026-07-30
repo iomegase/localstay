@@ -417,7 +417,7 @@ export function GuideMapView({
           <motion.article
             key={selectedPoi.id}
             initial={{ y: 28, opacity: 0, x: 0 }}
-            animate={{ y: 0, opacity: 1, x: peeked ? 'calc(-100% + 40px)' : 0 }}
+            animate={{ y: 0, opacity: 1, x: peeked ? 'calc(-100% + 30px)' : 0 }}
             exit={{ y: 28, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
             className={`absolute inset-x-3 ${overlayBottom} z-10 overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_16px_44px_rgba(15,23,42,0.24)] backdrop-blur-xl`}
@@ -427,9 +427,9 @@ export function GuideMapView({
                 type="button"
                 onClick={restoreCard}
                 aria-label="Afficher la fiche"
-                className="absolute inset-y-0 right-0 z-20 flex w-10 items-center justify-center"
+                className="absolute inset-y-0 right-0 z-20 flex w-7 items-center justify-center"
               >
-                <span className="h-9 w-1.5 rounded-full bg-slate-300" />
+                <span className="h-8 w-1.5 rounded-full bg-slate-300" />
               </button>
             )}
 

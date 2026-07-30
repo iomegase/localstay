@@ -45,6 +45,7 @@ export function GuideApp({
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(
     null,
   )
+  const [poiOrigin, setPoiOrigin] = useState<GuideView>('favorites')
 
   const selectedPoi = useMemo(
     () => pois.find(poi => poi.id === selectedPoiId) ?? null,
@@ -52,6 +53,8 @@ export function GuideApp({
   )
 
   function openPoi(poi: GuidePoi) {
+    // Mémorise la vue d'origine pour y revenir en fermant la fiche (carte ou favoris).
+    if (activeView !== 'poi') setPoiOrigin(activeView)
     setSelectedPoiId(poi.id)
     setActiveView('poi')
   }
@@ -113,7 +116,7 @@ export function GuideApp({
             mode={mode}
             poi={selectedPoi}
             lodging={lodging}
-            onBack={() => navigate('favorites')}
+            onBack={() => navigate(poiOrigin)}
             onShowOnMap={showOnMap}
           />
         )}
