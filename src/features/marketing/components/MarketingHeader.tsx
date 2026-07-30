@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Menu, UserRound } from 'lucide-react'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
+import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemoPhoneButton'
 import { marketingContainerClass } from './marketing-styles'
 
 const navigation = [
@@ -48,11 +49,13 @@ export function MarketingHeader() {
           ))}
         </nav>
 
+        <GuideDemoPhoneButton className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-pink-600 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]" />
+
         <Link
           href="/auth/login"
           aria-label="Se connecter à l’espace propriétaire"
           title="Se connecter"
-          className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]"
+          className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]"
         >
           <UserRound
             aria-hidden="true"
