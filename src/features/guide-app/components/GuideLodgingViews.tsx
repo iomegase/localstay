@@ -16,6 +16,7 @@ import {
   Wifi,
 } from 'lucide-react'
 import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
+import { GuidePracticalVideo } from '@/features/guide-app/components/GuidePracticalVideo'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
 function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
@@ -403,14 +404,7 @@ function ParkingCard({
 }) {
   return (
     <article className={`${navyCardClass} overflow-hidden`}>
-      <video
-        className="aspect-video w-full object-cover"
-        src={videoUrl}
-        poster="/marketing/guide-interior.png"
-        controls
-        playsInline
-        preload="metadata"
-      />
+      <GuidePracticalVideo src={videoUrl} />
       <div className="flex items-start gap-3 p-5">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
           <Icon className="h-4 w-4" />
