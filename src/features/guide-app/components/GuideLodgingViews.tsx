@@ -146,8 +146,16 @@ export function GuideLodgingViews({
       </section>
 
       <section className="grid grid-cols-2 gap-2.5">
-        <Fact icon={Clock3} label="Arrivée" value={lodging.checkIn} />
-        <Fact icon={LogOut} label="Départ" value={lodging.checkOut} />
+        <TimeCard
+          label="Arrivée"
+          value={lodging.checkIn}
+          onClick={() => onNavigate('arrival')}
+        />
+        <TimeCard
+          label="Départ"
+          value={lodging.checkOut}
+          onClick={() => onNavigate('departure')}
+        />
       </section>
 
       <section className="space-y-2.5">
@@ -236,25 +244,29 @@ function InstructionList({ items }: { items: string[] }) {
   )
 }
 
-function Fact({
-  icon: Icon,
+function TimeCard({
   label,
   value,
+  onClick,
 }: {
-  icon: typeof Clock3
   label: string
   value: string
+  onClick: () => void
 }) {
   return (
-    <div className={`${cardClass} flex items-center gap-3 p-4`}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-pink-50 text-slate-600">
-        <Icon className="h-4 w-4" />
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${label} ${value}`}
+      className="flex min-h-[132px] flex-col items-center justify-center rounded-[26px] bg-white text-center shadow-[0_10px_28px_rgba(15,23,42,0.06)]"
+    >
+      <span className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+        {label}
       </span>
-      <span>
-        <span className="block text-[9px] text-slate-400">{label}</span>
-        <strong className="block text-sm text-slate-900">{value}</strong>
+      <span className="mt-2 font-[family-name:var(--font-big-shoulders)] text-[44px] font-semibold leading-none tracking-tight text-slate-900">
+        {value}
       </span>
-    </div>
+    </button>
   )
 }
 
@@ -273,9 +285,9 @@ function GuideLink({
     <button
       type="button"
       onClick={onClick}
-      className={`${cardClass} grid w-full grid-cols-[42px_minmax(0,1fr)_24px] items-center gap-3 p-4 text-left`}
+      className="grid w-full grid-cols-[46px_minmax(0,1fr)_24px] items-center gap-3 rounded-[26px] bg-white p-4 text-left shadow-[0_10px_28px_rgba(15,23,42,0.06)]"
     >
-      <span className="grid h-[42px] w-[42px] place-items-center rounded-[14px] bg-pink-50 text-slate-600">
+      <span className="grid h-[46px] w-[46px] place-items-center rounded-[16px] bg-pink-50 text-pink-600">
         <Icon className="h-5 w-5" />
       </span>
       <span className="min-w-0">
