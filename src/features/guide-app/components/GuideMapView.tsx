@@ -503,27 +503,29 @@ export function GuideMapView({
                     : (selectedPoi.distanceLabel ?? selectedPoi.address)}
                 </span>
 
-                <a
-                  href={selectedPoi.directionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2.5 inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.1)]"
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EF5148] text-white">
-                    <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
-                  </span>
-                  <span className="text-[#EF5148]">Itinéraire</span>
-                </a>
-              </div>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <a
+                    href={selectedPoi.directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.1)]"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EF5148] text-white">
+                      <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                    </span>
+                    <span className="text-[#EF5148]">Itinéraire</span>
+                  </a>
 
-              <button
-                type="button"
-                onClick={() => onOpenPoi(selectedPoi)}
-                aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
-                className="grid h-9 w-9 shrink-0 self-center place-items-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
-              >
-                <Eye className="h-4 w-4" aria-hidden="true" />
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenPoi(selectedPoi)}
+                    aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
+                  >
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.article>
         )}
