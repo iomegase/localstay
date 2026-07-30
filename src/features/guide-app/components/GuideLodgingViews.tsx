@@ -1,9 +1,9 @@
 import { GuideLodgingGallery } from '@/features/guide-app/components/GuideLodgingGallery'
 import {
   ArrowLeft,
+  ArrowRight,
   BedDouble,
   Car,
-  Check,
   Clock3,
   Copy,
   DoorOpen,
@@ -285,16 +285,18 @@ function GuideLink({
     <button
       type="button"
       onClick={onClick}
-      className="grid w-full grid-cols-[46px_minmax(0,1fr)_24px] items-center gap-3 rounded-[26px] bg-white p-4 text-left shadow-[0_10px_28px_rgba(15,23,42,0.06)]"
+      className="flex w-full items-center justify-between gap-3 rounded-[26px] bg-slate-900 px-5 py-4 text-left text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]"
     >
-      <span className="grid h-[46px] w-[46px] place-items-center rounded-[16px] bg-pink-50 text-pink-600">
-        <Icon className="h-5 w-5" />
+      <span className="flex min-w-0 items-center gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pink-600">
+          <Icon className="h-5 w-5" />
+        </span>
+        <span className="min-w-0">
+          <strong className="block truncate text-sm font-semibold">{title}</strong>
+          <small className="mt-0.5 block truncate text-[11px] text-white/60">{copy}</small>
+        </span>
       </span>
-      <span className="min-w-0">
-        <strong className="block text-sm text-slate-900">{title}</strong>
-        <small className="mt-1 block truncate text-[10px] text-slate-500">{copy}</small>
-      </span>
-      <Check className="h-4 w-4 text-slate-300" />
+      <ArrowRight className="h-4 w-4 shrink-0 text-white/80" />
     </button>
   )
 }
