@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Home, MapPin, Minus, Navigation, Plus } from 'lucide-react'
+import { Eye, Home, MapPin, Minus, Navigation, Plus } from 'lucide-react'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type {
@@ -489,19 +489,12 @@ export function GuideMapView({
               </span>
 
               <div className="min-w-0 flex-1">
-                <button
-                  type="button"
-                  onClick={() => onOpenPoi(selectedPoi)}
-                  aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
-                  className="block w-full min-w-0 text-left"
-                >
-                  <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
-                    {selectedPoi.category.name}
-                  </span>
-                  <strong className="mt-1 block truncate text-sm text-slate-900">
-                    {selectedPoi.name}
-                  </strong>
-                </button>
+                <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
+                  {selectedPoi.category.name}
+                </span>
+                <strong className="mt-1 block truncate text-sm text-slate-900">
+                  {selectedPoi.name}
+                </strong>
 
                 <span className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
                   <Navigation className="h-3 w-3" aria-hidden="true" />
@@ -513,12 +506,24 @@ export function GuideMapView({
                 <a
                   href={selectedPoi.directionsUrl}
                   target="_blank"
-                  rel="noreferrer"
-                  className="mt-2.5 inline-flex items-center rounded-full bg-slate-900 px-3.5 py-2 text-[9px] font-extrabold uppercase tracking-[0.12em] text-white transition-colors hover:bg-pink-600"
+                  rel="noopener noreferrer"
+                  className="mt-2.5 inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.1)]"
                 >
-                  Google Maps
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EF5148] text-white">
+                    <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  <span className="text-[#EF5148]">Itinéraire</span>
                 </a>
               </div>
+
+              <button
+                type="button"
+                onClick={() => onOpenPoi(selectedPoi)}
+                aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+                className="grid h-9 w-9 shrink-0 self-center place-items-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
+              >
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              </button>
             </div>
           </motion.article>
         )}
