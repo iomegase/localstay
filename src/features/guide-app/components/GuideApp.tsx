@@ -46,6 +46,7 @@ export function GuideApp({
     null,
   )
   const [poiOrigin, setPoiOrigin] = useState<GuideView>('favorites')
+  const [favoritesRefreshKey, setFavoritesRefreshKey] = useState(0)
 
   const selectedPoi = useMemo(
     () => pois.find(poi => poi.id === selectedPoiId) ?? null,
@@ -83,6 +84,13 @@ export function GuideApp({
       setSelectedPoiId(null)
       setSelectedCategorySlug(null)
     }
+    // Re-tap sur Favoris déjà actif : réinitialise « Tous » et rafraîchit la page.
+    if (view === 'favorites' && activeView === 'favorites') {
+      setSelectedPoiId(null)
+      setSelectedCategorySlug(null)
+      setFavoritesRefreshKey(key => key + 1)
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
     navigate(view)
   }
 
@@ -119,6 +127,7 @@ export function GuideApp({
         )}
         {activeView === 'favorites' && (
           <GuideFavoritesPage
+            key={favoritesRefreshKey}
             pois={pois}
             selectedCategorySlug={selectedCategorySlug}
             scrollContainerRef={scrollRef}

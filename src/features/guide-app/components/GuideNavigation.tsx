@@ -1,12 +1,12 @@
 'use client'
 
-import { Heart, Home, Map, Sparkles } from 'lucide-react'
+import { BookOpen, Heart, Home, Map } from 'lucide-react'
 import type { GuideView } from '@/features/guide-app/types'
 
 const items = [
-  { view: 'home' as const, ariaLabel: 'Accueil', label: 'Accueil', icon: Sparkles },
+  { view: 'home' as const, ariaLabel: 'Accueil', label: 'Accueil', icon: Home },
+  { view: 'lodging' as const, ariaLabel: 'Guide logement', label: 'Guide', icon: BookOpen },
   { view: 'favorites' as const, ariaLabel: 'Coups de cœur', label: null, icon: Heart, pink: true },
-  { view: 'lodging' as const, ariaLabel: 'Guide logement', label: 'Guide', icon: Home },
   { view: 'map' as const, ariaLabel: 'Carte', label: 'Carte', icon: Map },
 ]
 
@@ -47,7 +47,7 @@ export function GuideNavigation({
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Icon className={`h-[17px] w-[17px] ${pink ? 'scale-[1.02] text-pink-600' : ''}`} />
+              <Icon className={`h-[17px] w-[17px] ${pink ? 'scale-[1.1] text-pink-600' : ''}`} />
               {label && <span>{label}</span>}
             </button>
           )
