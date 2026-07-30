@@ -185,20 +185,22 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                 aria-hidden="true"
                 className="absolute left-6 top-0 h-[3px] w-[50px] rounded-b-full bg-pink-600"
               />
-              <span className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white xl:h-11 xl:w-11 xl:rounded-[14px]">
-                <Icon
-                  aria-hidden="true"
-                  className="h-[18px] w-[18px] xl:h-[22px] xl:w-[22px]"
-                  strokeWidth={1.7}
-                />
-              </span>
-              <h3
-                className={`mt-7 font-bold tracking-[-0.035em] xl:mt-5 xl:leading-[1.18] ${
-                  index === 0 ? 'text-lg xl:text-[26px]' : 'text-lg xl:text-[17px]'
-                }`}
-              >
-                {label}
-              </h3>
+              <div className="flex items-center gap-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white xl:h-11 xl:w-11 xl:rounded-[14px]">
+                  <Icon
+                    aria-hidden="true"
+                    className="h-[18px] w-[18px] xl:h-[22px] xl:w-[22px]"
+                    strokeWidth={1.7}
+                  />
+                </span>
+                <h3
+                  className={`font-bold tracking-[-0.035em] xl:leading-[1.18] ${
+                    index === 0 ? 'text-lg xl:text-[26px]' : 'text-lg xl:text-[17px]'
+                  }`}
+                >
+                  {label}
+                </h3>
+              </div>
               <p
                 className={`mt-3 text-xs leading-5 text-slate-500 xl:mt-[13px] xl:text-[12px] ${
                   index === 0 ? 'xl:max-w-[220px]' : 'xl:max-w-[265px]'
