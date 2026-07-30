@@ -134,6 +134,15 @@ export default async function LodgingDetailPage({ params }: Props) {
             </div>
           </section>
 
+          <LodgingEssentials
+            title={detail.title}
+            maxGuests={detail.max_guests}
+            bedroomCount={detail.bedroom_count}
+            bathroomCount={detail.bathroom_count}
+            bedCount={detail.bed_count}
+            surfaceM2={detail.surface_m2}
+          />
+
           <LodgingMarketingGallery title={detail.title} photos={detail.photos} />
 
           <section
@@ -186,15 +195,6 @@ export default async function LodgingDetailPage({ params }: Props) {
               )}
             </aside>
           </section>
-
-          <LodgingEssentials
-            title={detail.title}
-            maxGuests={detail.max_guests}
-            bedroomCount={detail.bedroom_count}
-            bathroomCount={detail.bathroom_count}
-            bedCount={detail.bed_count}
-            surfaceM2={detail.surface_m2}
-          />
 
           <LodgingFeatureSections
             bedroomCount={detail.bedroom_count}
