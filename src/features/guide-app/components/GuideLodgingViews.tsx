@@ -205,16 +205,18 @@ function GuideSubPage({
         <ArrowLeft className="h-4 w-4" />
         Guide logement
       </button>
-      <div className="rounded-[26px] bg-slate-900 p-6 text-white">
-        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-pink-600">
+      <div className="flex items-center gap-4 rounded-[26px] bg-slate-900 p-6 text-white">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-pink-600">
           <Icon className="h-5 w-5" />
         </span>
-        <p className="mt-5 text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
-          {eyebrow}
-        </p>
-        <h1 className="mt-2 text-[28px] font-semibold leading-[1.02] tracking-[-0.04em]">
-          {title}
-        </h1>
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
+            {eyebrow}
+          </p>
+          <h1 className="mt-1 text-[28px] font-semibold leading-[1.02] tracking-[-0.04em]">
+            {title}
+          </h1>
+        </div>
       </div>
       {children}
     </div>
