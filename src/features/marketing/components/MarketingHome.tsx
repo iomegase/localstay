@@ -114,7 +114,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           >
             <div className="max-w-[745px] xl:max-w-[600px] xl:[&>span:first-child]:mb-[19px]">
               <MarketingEyebrow light>Conciergerie en Haute-Savoie</MarketingEyebrow>
-              <h1 className="max-w-[690px] text-[43px] font-bold leading-[0.99] tracking-[-0.055em] sm:text-5xl lg:text-[50px] xl:max-w-[600px] xl:text-[50px]">
+              <h1 className="max-w-[690px] text-[43px] font-bold leading-[1.08] tracking-[-0.055em] sm:text-5xl lg:text-[50px] xl:max-w-[600px] xl:text-[50px]">
                 Votre logement, géré avec soin.
                 <span className="mt-1 block font-medium">Vos voyageurs, accueillis autrement.</span>
               </h1>
@@ -159,7 +159,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           className="max-w-2xl xl:max-w-[744px] xl:px-6"
         >
           <MarketingEyebrow>La conciergerie MyStay</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.08] tracking-[-0.05em] sm:text-[44px] xl:max-w-[660px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:max-w-[660px] xl:text-[40px] xl:leading-[1.02]">
             Votre bien mérite plus qu’une simple remise de clés.
           </h2>
           <p className="mt-5 max-w-xl text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
@@ -223,7 +223,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       >
         <div className="max-w-2xl xl:mb-[42px] xl:max-w-[656px]">
           <MarketingEyebrow>Nos services</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
             Une gestion attentive, avant, pendant et après chaque séjour.
           </h2>
           <p className="mt-5 text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
@@ -265,7 +265,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       >
         <div className="xl:sticky xl:top-7">
           <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.04] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
             Des lieux que nous gérons comme s’ils étaient les nôtres.
           </h2>
           <p className="mt-5 text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
@@ -298,7 +298,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       >
         <div className="max-w-2xl xl:mb-[42px] xl:max-w-[608px]">
           <MarketingEyebrow>Notre différence</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
             Le guide MyStay prolonge notre accueil, même à distance.
           </h2>
           <p className="mt-5 text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
@@ -350,7 +350,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         >
           <div>
             <MarketingEyebrow light>Votre projet</MarketingEyebrow>
-            <h2 className="text-4xl font-bold leading-[1.02] tracking-[-0.05em] xl:text-[40px] xl:leading-[1.03]">
+            <h2 className="text-4xl font-bold leading-[1.12] tracking-[-0.05em] xl:text-[40px] xl:leading-[1.03]">
               Confiez-nous votre logement.
               <br />
               Gardez l’esprit libre.
