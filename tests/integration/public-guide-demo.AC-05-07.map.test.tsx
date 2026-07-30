@@ -25,6 +25,10 @@ jest.mock('react-map-gl/mapbox', () => {
       children: React.ReactNode
     }) => <div data-testid="mapbox-marker">{children}</div>,
     NavigationControl: () => <div data-testid="mapbox-navigation" />,
+    Source: ({ children }: { children?: React.ReactNode }) => (
+      <div data-testid="mapbox-source">{children}</div>
+    ),
+    Layer: () => <div data-testid="mapbox-layer" />,
   }
 })
 

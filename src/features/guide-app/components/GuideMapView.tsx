@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -12,7 +12,7 @@ import {
   Navigation,
   Plus,
 } from 'lucide-react'
-import Map, { Marker, type MapRef } from 'react-map-gl/mapbox'
+import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import type {
   GuideLodging,
   GuidePoi,
@@ -30,6 +30,73 @@ const markerClasses: Record<string, string> = {
 
 /** Position basse de la POI card / du hint : au-dessus de la barre de nav. */
 const overlayBottom = 'bottom-[calc(5.25rem+env(safe-area-inset-bottom))]'
+
+type LngLat = [number, number]
+
+type RouteResult = {
+  coords: LngLat[]
+  meta: { distance: number; duration: number } | null
+}
+
+function segmentDistance(a: LngLat, b: LngLat) {
+  return Math.hypot(a[0] - b[0], a[1] - b[1])
+}
+
+/** Renvoie le début du tracé jusqu'à `fraction` (0→1) de sa longueur totale. */
+function sliceLine(coords: LngLat[], fraction: number): LngLat[] {
+  if (coords.length < 2 || fraction >= 1) return coords
+  const lengths: number[] = []
+  let total = 0
+  for (let i = 1; i < coords.length; i++) {
+    const d = segmentDistance(coords[i - 1], coords[i])
+    lengths.push(d)
+    total += d
+  }
+  const target = total * Math.max(0, fraction)
+  const out: LngLat[] = [coords[0]]
+  let acc = 0
+  for (let i = 1; i < coords.length; i++) {
+    const d = lengths[i - 1]
+    if (acc + d >= target) {
+      const r = d === 0 ? 0 : (target - acc) / d
+      const a = coords[i - 1]
+      const b = coords[i]
+      out.push([a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r])
+      break
+    }
+    acc += d
+    out.push(coords[i])
+  }
+  return out
+}
+
+function formatDistance(meters: number) {
+  return meters < 1000
+    ? `${Math.round(meters)} m`
+    : `${(meters / 1000).toFixed(1)} km`
+}
+
+/** Itinéraire piéton Mapbox ; repli sur une ligne directe si indisponible. */
+async function fetchRoute(from: LngLat, to: LngLat): Promise<RouteResult> {
+  const straight: RouteResult = { coords: [from, to], meta: null }
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+  if (!token || typeof fetch !== 'function') return straight
+  try {
+    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from[0]},${from[1]};${to[0]},${to[1]}?geometries=geojson&overview=full&access_token=${token}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('directions')
+    const data = await res.json()
+    const route = data?.routes?.[0]
+    const coords = route?.geometry?.coordinates as LngLat[] | undefined
+    if (!Array.isArray(coords) || coords.length < 2) throw new Error('empty')
+    return {
+      coords,
+      meta: { distance: route.distance, duration: route.duration },
+    }
+  } catch {
+    return straight
+  }
+}
 
 export function GuideMapView({
   lodging,
@@ -49,6 +116,8 @@ export function GuideMapView({
   onOpenPoi: (poi: GuidePoi) => void
 }) {
   const mapRef = useRef<MapRef | null>(null)
+  const [drawnCoords, setDrawnCoords] = useState<LngLat[] | null>(null)
+  const [routeMeta, setRouteMeta] = useState<RouteResult['meta']>(null)
   const selectedPoi =
     pois.find(poi => poi.id === selectedPoiId) ?? null
   const visiblePois = selectedCategorySlug
@@ -65,13 +134,80 @@ export function GuideMapView({
   )
 
   useEffect(() => {
-    if (!selectedPoi) return
-    mapRef.current?.flyTo({
-      center: [selectedPoi.longitude, selectedPoi.latitude],
-      zoom: 15.5,
-      duration: 700,
+    if (!selectedPoi) {
+      setDrawnCoords(null)
+      setRouteMeta(null)
+      return
+    }
+
+    let cancelled = false
+    let raf = 0
+    const from: LngLat = [lodging.longitude, lodging.latitude]
+    const to: LngLat = [selectedPoi.longitude, selectedPoi.latitude]
+
+    fetchRoute(from, to).then(({ coords, meta }) => {
+      if (cancelled) return
+      setRouteMeta(meta)
+
+      // Cadre la carte sur l'ensemble du trajet (logement + POI + tracé).
+      const map = mapRef.current?.getMap?.()
+      if (map?.fitBounds) {
+        let minX = coords[0][0]
+        let minY = coords[0][1]
+        let maxX = coords[0][0]
+        let maxY = coords[0][1]
+        for (const [x, y] of coords) {
+          minX = Math.min(minX, x)
+          minY = Math.min(minY, y)
+          maxX = Math.max(maxX, x)
+          maxY = Math.max(maxY, y)
+        }
+        map.fitBounds(
+          [
+            [minX, minY],
+            [maxX, maxY],
+          ],
+          {
+            padding: { top: 130, bottom: 190, left: 48, right: 48 },
+            duration: 700,
+            maxZoom: 16,
+          },
+        )
+      }
+
+      const reduce =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduce || typeof requestAnimationFrame !== 'function') {
+        setDrawnCoords(coords)
+        return
+      }
+
+      const start = performance.now()
+      const duration = 1000
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration)
+        const eased = 1 - Math.pow(1 - t, 3)
+        setDrawnCoords(sliceLine(coords, eased))
+        if (t < 1 && !cancelled) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
     })
-  }, [selectedPoi])
+
+    return () => {
+      cancelled = true
+      if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(raf)
+    }
+  }, [selectedPoi, lodging.longitude, lodging.latitude])
+
+  const routeFeature =
+    drawnCoords && drawnCoords.length >= 2
+      ? {
+          type: 'Feature' as const,
+          geometry: { type: 'LineString' as const, coordinates: drawnCoords },
+          properties: {},
+        }
+      : null
 
   function zoomBy(delta: number) {
     const map = mapRef.current?.getMap?.()
@@ -147,6 +283,31 @@ export function GuideMapView({
         onZoomEnd={handleZoomEnd}
         mapStyle="mapbox://styles/mapbox/light-v11"
       >
+        {routeFeature && (
+          <Source id="guide-route" type="geojson" data={routeFeature} lineMetrics>
+            <Layer
+              id="guide-route-halo"
+              type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{
+                'line-color': '#db2777',
+                'line-width': 11,
+                'line-opacity': 0.18,
+                'line-blur': 4,
+              }}
+            />
+            <Layer
+              id="guide-route-line"
+              type="line"
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{
+                'line-color': '#db2777',
+                'line-width': 4,
+                'line-opacity': 0.95,
+              }}
+            />
+          </Source>
+        )}
         <Marker
           longitude={lodging.longitude}
           latitude={lodging.latitude}
@@ -259,7 +420,9 @@ export function GuideMapView({
                 </strong>
                 <span className="mt-1 flex items-center gap-1 text-[9px] text-slate-500">
                   <Navigation className="h-3 w-3" aria-hidden="true" />
-                  {selectedPoi.distanceLabel ?? selectedPoi.address}
+                  {routeMeta
+                    ? `${Math.max(1, Math.round(routeMeta.duration / 60))} min · ${formatDistance(routeMeta.distance)}`
+                    : (selectedPoi.distanceLabel ?? selectedPoi.address)}
                 </span>
               </span>
               <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
