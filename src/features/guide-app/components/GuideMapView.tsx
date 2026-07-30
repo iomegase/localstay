@@ -13,6 +13,7 @@ import {
   Plus,
 } from 'lucide-react'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
+import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type {
   GuideLodging,
   GuidePoi,
@@ -118,8 +119,39 @@ export function GuideMapView({
   const mapRef = useRef<MapRef | null>(null)
   const [drawnCoords, setDrawnCoords] = useState<LngLat[] | null>(null)
   const [routeMeta, setRouteMeta] = useState<RouteResult['meta']>(null)
+  const [peeked, setPeeked] = useState(false)
+  const hideTimer = useRef(0)
   const selectedPoi =
     pois.find(poi => poi.id === selectedPoiId) ?? null
+  const heroImage = selectedPoi
+    ? getGuidePoiHeroImage({
+        categorySlug: selectedPoi.category.slug,
+        photos: selectedPoi.photos,
+      })
+    : ''
+
+  function scheduleHide() {
+    if (typeof window === 'undefined') return
+    window.clearTimeout(hideTimer.current)
+    hideTimer.current = window.setTimeout(() => setPeeked(true), 5000)
+  }
+
+  function restoreCard() {
+    setPeeked(false)
+    scheduleHide()
+  }
+
+  // La card s'escamote sur la droite 5 s après l'ouverture ; reset à chaque POI.
+  useEffect(() => {
+    setPeeked(false)
+    if (typeof window !== 'undefined') window.clearTimeout(hideTimer.current)
+    if (!selectedPoiId) return
+    scheduleHide()
+    return () => {
+      if (typeof window !== 'undefined') window.clearTimeout(hideTimer.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPoiId])
   const visiblePois = selectedCategorySlug
     ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
     : pois
@@ -390,52 +422,78 @@ export function GuideMapView({
         {selectedPoi ? (
           <motion.article
             key={selectedPoi.id}
-            initial={{ y: 28, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+            initial={{ y: 28, opacity: 0, x: 0 }}
+            animate={{ y: 0, opacity: 1, x: peeked ? 'calc(100% - 40px)' : 0 }}
             exit={{ y: 28, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
             className={`absolute inset-x-3 ${overlayBottom} z-10 overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_16px_44px_rgba(15,23,42,0.24)] backdrop-blur-xl`}
           >
-            <button
-              type="button"
-              onClick={() => onOpenPoi(selectedPoi)}
-              className="grid w-full grid-cols-[78px_minmax(0,1fr)_28px] items-center gap-3 p-2.5 text-left"
-              aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+            {peeked && (
+              <button
+                type="button"
+                onClick={restoreCard}
+                aria-label="Afficher la fiche"
+                className="absolute inset-y-0 left-0 z-20 flex w-10 items-center justify-center"
+              >
+                <span className="h-9 w-1.5 rounded-full bg-slate-300" />
+              </button>
+            )}
+
+            <div
+              className={`flex items-stretch gap-3 p-3 ${
+                peeked ? 'pointer-events-none select-none' : ''
+              }`}
             >
-              <span className="relative h-[68px] overflow-hidden rounded-[15px]">
+              <span className="relative w-[78px] shrink-0 self-stretch overflow-hidden rounded-[15px] bg-slate-100">
                 <Image
-                  src={selectedPoi.photos[0]}
+                  src={heroImage}
                   alt=""
                   fill
                   sizes="78px"
+                  unoptimized={heroImage.startsWith('https://')}
                   className="object-cover"
                 />
               </span>
-              <span className="min-w-0">
-                <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
-                  {selectedPoi.category.name}
-                </span>
-                <strong className="mt-1 block truncate text-xs text-slate-900">
-                  {selectedPoi.name}
-                </strong>
-                <span className="mt-1 flex items-center gap-1 text-[9px] text-slate-500">
+
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => onOpenPoi(selectedPoi)}
+                  aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+                  className="flex w-full items-start justify-between gap-2 text-left"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
+                      {selectedPoi.category.name}
+                    </span>
+                    <strong className="mt-1 block truncate text-sm text-slate-900">
+                      {selectedPoi.name}
+                    </strong>
+                  </span>
+                  <ArrowRight
+                    className="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
+                    aria-hidden="true"
+                  />
+                </button>
+
+                <span className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
                   <Navigation className="h-3 w-3" aria-hidden="true" />
                   {routeMeta
                     ? `${Math.max(1, Math.round(routeMeta.duration / 60))} min · ${formatDistance(routeMeta.distance)}`
                     : (selectedPoi.distanceLabel ?? selectedPoi.address)}
                 </span>
-              </span>
-              <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
-            </button>
-            <a
-              href={selectedPoi.directionsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 border-t border-slate-100 py-2.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-700"
-            >
-              Itinéraire
-              <ExternalLink className="h-3 w-3" aria-hidden="true" />
-            </a>
+
+                <a
+                  href={selectedPoi.directionsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-2 text-[9px] font-extrabold uppercase tracking-[0.12em] text-white transition-colors hover:bg-pink-600"
+                >
+                  Itinéraire
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              </div>
+            </div>
           </motion.article>
         ) : (
           <motion.p
