@@ -107,14 +107,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 1180px"
           />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/30 lg:from-slate-950/[0.92] lg:via-slate-950/[0.72] lg:to-slate-950/[0.12]"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"
-          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/72 to-slate-900/15 sm:via-slate-900/60" />
           <div
             data-testid="editorial-hero-content"
             className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-white min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
@@ -184,7 +177,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             <article
               key={label}
               data-testid={`editorial-highlight-${index}`}
-              className={`relative flex min-h-[205px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[205px] xl:rounded-[22px] xl:px-6 xl:py-[22px] ${
+              className={`relative flex min-h-[205px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[205px] xl:rounded-[22px] xl:px-6 xl:py-[22px] ${
                 index === 0 ? 'lg:row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1' : ''
               } ${index === serviceHighlights.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
             >
@@ -243,7 +236,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             <article
               key={service.number}
               data-testid={`editorial-service-${service.number}`}
-              className={`relative flex min-h-[210px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[198px] xl:rounded-[20px] xl:px-6 xl:pb-6 xl:pt-[27px] ${
+              className={`relative flex min-h-[210px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[198px] xl:rounded-[20px] xl:px-6 xl:pb-6 xl:pt-[27px] ${
                 index === 2 ? 'col-span-2 lg:col-span-1' : ''
               }`}
             >
@@ -319,7 +312,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             <article
               key={label}
               data-testid={`editorial-process-card-${index}`}
-              className={`relative flex min-h-[260px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[234px] xl:rounded-[22px] xl:px-6 xl:pb-6 xl:pt-[26px] ${
+              className={`relative flex min-h-[260px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[234px] xl:rounded-[22px] xl:px-6 xl:pb-6 xl:pt-[26px] ${
                 index === 2 ? 'col-span-2 lg:col-span-1' : ''
               }`}
             >
