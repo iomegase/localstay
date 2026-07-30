@@ -28,9 +28,9 @@ export function GuideHeader({
       <span
         aria-hidden="true"
         data-testid="guide-menu-icon"
-        className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 text-slate-700"
+        className="-mr-2 p-2 text-slate-800"
       >
-        <Menu className="h-4 w-4" />
+        <Menu className="h-6 w-6" strokeWidth={2} />
       </span>
     </header>
   )

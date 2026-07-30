@@ -85,12 +85,7 @@ export function GuideApp({
         className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
         {activeView === 'home' && (
-          <GuideHome
-            lodging={lodging}
-            pois={pois}
-            onNavigate={navigate}
-            onSelectPoi={openPoi}
-          />
+          <GuideHome lodging={lodging} pois={pois} onNavigate={navigate} />
         )}
         {['lodging', 'arrival', 'departure', 'practical'].includes(activeView) && (
           <GuideLodgingViews

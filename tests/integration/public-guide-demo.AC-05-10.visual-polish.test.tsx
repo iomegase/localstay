@@ -1,12 +1,12 @@
 /** @jest-environment jsdom */
 
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 describe('GuideApp demo visual polish', () => {
-  it('shows the arrival time and a wifi icon on the home shortcuts', () => {
+  it('shows an épurée home with the welcome title and the two shortcuts only', () => {
     render(
       <GuideApp
         mode="demo"
@@ -15,10 +15,20 @@ describe('GuideApp demo visual polish', () => {
       />,
     )
 
-    const arrival = screen.getByRole('button', { name: /arrivée 16:00/i })
-    expect(within(arrival).getByText('16:00')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /bienvenue au refuge du mont-blanc/i }),
+    ).toBeInTheDocument()
 
-    const wifi = screen.getByRole('button', { name: /wi-fi refuge-mont-blanc/i })
-    expect(within(wifi).getByTestId('wifi-icon')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /explorer saint-gervais/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /découvrir le livret/i }),
+    ).toBeInTheDocument()
+
+    // La home épurée ne montre plus les raccourcis Arrivée / Wi-Fi.
+    expect(
+      screen.queryByRole('button', { name: /arrivée 16:00/i }),
+    ).not.toBeInTheDocument()
   })
 })
