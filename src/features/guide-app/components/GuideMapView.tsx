@@ -3,15 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
-import {
-  ArrowRight,
-  ExternalLink,
-  Home,
-  MapPin,
-  Minus,
-  Navigation,
-  Plus,
-} from 'lucide-react'
+import { Home, MapPin, Minus, Navigation, Plus } from 'lucide-react'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type {
@@ -200,7 +192,9 @@ export function GuideMapView({
             [maxX, maxY],
           ],
           {
-            padding: { top: 130, bottom: 190, left: 48, right: 48 },
+            // bottom élevé : garde le tracé ET le repère logement au-dessus de
+            // la POI card ; le reste garde le parcours entier dans le cadre.
+            padding: { top: 140, bottom: 224, left: 44, right: 44 },
             duration: 700,
             maxZoom: 16,
           },
@@ -423,7 +417,7 @@ export function GuideMapView({
           <motion.article
             key={selectedPoi.id}
             initial={{ y: 28, opacity: 0, x: 0 }}
-            animate={{ y: 0, opacity: 1, x: peeked ? 'calc(100% - 40px)' : 0 }}
+            animate={{ y: 0, opacity: 1, x: peeked ? 'calc(-100% + 40px)' : 0 }}
             exit={{ y: 28, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
             className={`absolute inset-x-3 ${overlayBottom} z-10 overflow-hidden rounded-[22px] border border-white/80 bg-white/95 shadow-[0_16px_44px_rgba(15,23,42,0.24)] backdrop-blur-xl`}
@@ -433,7 +427,7 @@ export function GuideMapView({
                 type="button"
                 onClick={restoreCard}
                 aria-label="Afficher la fiche"
-                className="absolute inset-y-0 left-0 z-20 flex w-10 items-center justify-center"
+                className="absolute inset-y-0 right-0 z-20 flex w-10 items-center justify-center"
               >
                 <span className="h-9 w-1.5 rounded-full bg-slate-300" />
               </button>
@@ -460,20 +454,14 @@ export function GuideMapView({
                   type="button"
                   onClick={() => onOpenPoi(selectedPoi)}
                   aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
-                  className="flex w-full items-start justify-between gap-2 text-left"
+                  className="block w-full min-w-0 text-left"
                 >
-                  <span className="min-w-0">
-                    <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
-                      {selectedPoi.category.name}
-                    </span>
-                    <strong className="mt-1 block truncate text-sm text-slate-900">
-                      {selectedPoi.name}
-                    </strong>
+                  <span className="block text-[8px] font-extrabold uppercase tracking-[0.14em] text-pink-600">
+                    {selectedPoi.category.name}
                   </span>
-                  <ArrowRight
-                    className="mt-0.5 h-4 w-4 shrink-0 text-slate-400"
-                    aria-hidden="true"
-                  />
+                  <strong className="mt-1 block truncate text-sm text-slate-900">
+                    {selectedPoi.name}
+                  </strong>
                 </button>
 
                 <span className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
@@ -487,10 +475,9 @@ export function GuideMapView({
                   href={selectedPoi.directionsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-2 text-[9px] font-extrabold uppercase tracking-[0.12em] text-white transition-colors hover:bg-pink-600"
+                  className="mt-2.5 inline-flex items-center rounded-full bg-slate-900 px-3.5 py-2 text-[9px] font-extrabold uppercase tracking-[0.12em] text-white transition-colors hover:bg-pink-600"
                 >
-                  Itinéraire
-                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  Google Maps
                 </a>
               </div>
             </div>
