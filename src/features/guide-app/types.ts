@@ -64,6 +64,10 @@ export type GuidePracticalCard = {
   title: string
   description: string
   icon: string
+  /** Numéro de téléphone à appeler (bouton d'appel sur la card). */
+  phone?: string
+  /** Vidéo affichée sur le recto de la card. */
+  videoUrl?: string
 }
 
 export type GuideUsefulNumber = {

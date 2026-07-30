@@ -52,6 +52,7 @@ export const demoLodging: GuideLodging = {
       title: 'Stationnement',
       description: 'Une place fictive est indiquée dans le guide réel remis au voyageur.',
       icon: 'car',
+      videoUrl: '/marketing/demo-parking.mp4',
     },
     {
       id: 'demo-heating',
@@ -70,6 +71,7 @@ export const demoLodging: GuideLodging = {
       title: 'Assistance MyStay',
       description: 'Dans un véritable séjour, votre contact privé apparaît uniquement ici.',
       icon: 'messages-square',
+      phone: '+33 4 50 47 76 08',
     },
   ],
   usefulNumbers: [

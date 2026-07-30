@@ -114,23 +114,49 @@ export function GuideLodgingViews({
           </div>
         </section>
         <div className="grid gap-3">
-          {lodging.practicalCards.map(card =>
-            card.icon === 'recycle' ? (
-              <WasteCard
-                key={card.id}
-                title={card.title}
-                description={card.description}
-                city={lodging.city}
-              />
-            ) : (
+          {lodging.practicalCards.map(card => {
+            if (card.icon === 'recycle') {
+              return (
+                <WasteCard
+                  key={card.id}
+                  title={card.title}
+                  description={card.description}
+                  city={lodging.city}
+                />
+              )
+            }
+            const Icon = resolvePracticalIcon(card.icon)
+            if (card.videoUrl) {
+              return (
+                <ParkingCard
+                  key={card.id}
+                  icon={Icon}
+                  title={card.title}
+                  description={card.description}
+                  videoUrl={card.videoUrl}
+                />
+              )
+            }
+            if (card.phone) {
+              return (
+                <ContactCard
+                  key={card.id}
+                  icon={Icon}
+                  title={card.title}
+                  description={card.description}
+                  phone={card.phone}
+                />
+              )
+            }
+            return (
               <InfoCard
                 key={card.id}
-                icon={resolvePracticalIcon(card.icon)}
+                icon={Icon}
                 title={card.title}
                 description={card.description}
               />
-            ),
-          )}
+            )
+          })}
         </div>
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
@@ -359,6 +385,73 @@ function WasteCard({
         className="mt-4 flex items-center justify-center rounded-[18px] bg-pink-600 p-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
       >
         Point de tri sur Google Maps
+      </a>
+    </article>
+  )
+}
+
+function ParkingCard({
+  icon: Icon,
+  title,
+  description,
+  videoUrl,
+}: {
+  icon: typeof Info
+  title: string
+  description: string
+  videoUrl: string
+}) {
+  return (
+    <article className={`${navyCardClass} overflow-hidden`}>
+      <video
+        className="aspect-video w-full object-cover"
+        src={videoUrl}
+        poster="/marketing/guide-interior.png"
+        controls
+        playsInline
+        preload="metadata"
+      />
+      <div className="flex items-start gap-3 p-5">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
+          <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function ContactCard({
+  icon: Icon,
+  title,
+  description,
+  phone,
+}: {
+  icon: typeof Info
+  title: string
+  description: string
+  phone: string
+}) {
+  return (
+    <article className={`${navyCardClass} p-5`}>
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
+          <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
+        </div>
+      </div>
+      <a
+        href={`tel:${phone.replace(/\s/g, '')}`}
+        className="mt-4 flex items-center justify-center gap-2 rounded-[18px] bg-pink-600 p-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
+      >
+        <Phone className="h-4 w-4" aria-hidden="true" />
+        {phone}
       </a>
     </article>
   )
