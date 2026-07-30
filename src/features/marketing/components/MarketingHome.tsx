@@ -160,7 +160,8 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         >
           <MarketingEyebrow>La conciergerie MyStay</MarketingEyebrow>
           <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:max-w-[660px] xl:text-[40px] xl:leading-[1.1]">
-            Votre bien mérite plus qu’une simple remise de clés.
+            Votre bien mérite plus qu’une
+            <br className="hidden sm:block" /> simple remise de clés.
           </h2>
           <p className="mt-7 max-w-xl text-sm leading-7 text-slate-500 xl:mt-8 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
             Nous prenons soin du logement, de son image et de chaque voyageur. Notre accompagnement
