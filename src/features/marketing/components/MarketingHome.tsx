@@ -332,7 +332,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                   {label}
                 </span>
               </div>
-              <h3 className="mt-auto pt-8 text-base font-bold xl:text-[17px] xl:leading-[1.18]">
+              <h3 className="mt-6 text-base font-semibold xl:mt-7 xl:text-[17px] xl:leading-[1.18]">
                 {title}
               </h3>
               <p className="mt-4 text-xs leading-6 text-slate-500 xl:mt-[13px] xl:max-w-[265px] xl:text-[12px]">
