@@ -226,10 +226,10 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       >
         <div className="max-w-2xl xl:mb-[42px] xl:max-w-[656px]">
           <MarketingEyebrow>Nos services</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.1]">
             Une gestion attentive, avant, pendant et après chaque séjour.
           </h2>
-          <p className="mt-5 text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
+          <p className="mt-7 text-sm leading-7 text-slate-500 xl:mt-8 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
             Nous adaptons notre accompagnement à votre logement, à vos priorités et au niveau de
             délégation que vous recherchez.
           </p>
@@ -268,10 +268,10 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       >
         <div className="xl:sticky xl:top-7">
           <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.1]">
             Des lieux que nous gérons comme s’ils étaient les nôtres.
           </h2>
-          <p className="mt-5 text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
+          <p className="mt-7 text-sm leading-7 text-slate-500 xl:mt-8 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
             Découvrez une sélection de biens accompagnés par notre conciergerie. Chacun bénéficie
             d’un suivi dédié et de son propre guide d’arrivée MyStay.
           </p>
@@ -301,10 +301,10 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       >
         <div className="max-w-2xl xl:mb-[42px] xl:max-w-[608px]">
           <MarketingEyebrow>Notre différence</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.02]">
+          <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.1]">
             Le guide MyStay prolonge notre accueil, même à distance.
           </h2>
-          <p className="mt-5 text-sm leading-7 text-slate-500 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
+          <p className="mt-7 text-sm leading-7 text-slate-500 xl:mt-8 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
             Créé pour les logements que nous gérons, il rassemble les informations pratiques et
             les meilleures recommandations dans une expérience mobile simple et élégante.
           </p>
