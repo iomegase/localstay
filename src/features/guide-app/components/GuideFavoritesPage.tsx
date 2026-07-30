@@ -33,10 +33,6 @@ export function GuideFavoritesPage({
         <h1 className="text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
           Nos coups de cœur
         </h1>
-        <p className="mt-3 text-xs leading-5 text-slate-500">
-          Des adresses et activités réellement situées à Saint-Gervais et dans
-          ses environs.
-        </p>
       </div>
 
       <div
