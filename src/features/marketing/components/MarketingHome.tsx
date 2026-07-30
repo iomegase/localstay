@@ -107,7 +107,14 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 1180px"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/72 to-slate-900/15 sm:via-slate-900/60" />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/30 lg:from-slate-950/[0.92] lg:via-slate-950/[0.72] lg:to-slate-950/[0.12]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"
+          />
           <div
             data-testid="editorial-hero-content"
             className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-white min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
