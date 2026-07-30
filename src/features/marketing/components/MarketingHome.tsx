@@ -279,13 +279,11 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           </Link>
         </div>
         {lodgings.length > 0 ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:gap-x-[18px] xl:gap-y-[22px] xl:pt-[26px]">
-            {lodgings.slice(0, 2).map(lodging => (
-              <MarketingPropertyCard
-                key={lodging.id}
-                lodging={lodging}
-                priority
-              />
+          <div className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto md:grid md:snap-none md:grid-cols-2 md:overflow-visible xl:gap-x-[18px] xl:gap-y-[22px] xl:pt-[26px]">
+            {lodgings.map((lodging, index) => (
+              <div key={lodging.id} className="w-[280px] shrink-0 snap-start md:w-auto">
+                <MarketingPropertyCard lodging={lodging} priority={index < 2} />
+              </div>
             ))}
           </div>
         ) : (
