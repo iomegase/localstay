@@ -53,7 +53,7 @@ export function GuideLodgingViews({
           href={mapsUrl}
           target="_blank"
           rel="noreferrer"
-          className={`${cardClass} flex items-center justify-center gap-2 p-4 text-sm font-semibold text-blue-600`}
+          className="flex items-center justify-center gap-2 rounded-[22px] bg-pink-600 p-4 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
         >
           <NavigationIcon className="h-4 w-4" aria-hidden="true" />
           Itinéraire Google Maps
