@@ -6,6 +6,7 @@ import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
 import { GuideHome } from './GuideHome'
 import { GuideLodgingViews } from './GuideLodgingViews'
+import { GuideMenuOverlay } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
 import { GuidePoiDetails } from './GuidePoiDetails'
 import type {
@@ -47,6 +48,7 @@ export function GuideApp({
   )
   const [poiOrigin, setPoiOrigin] = useState<GuideView>('favorites')
   const [favoritesRefreshKey, setFavoritesRefreshKey] = useState(0)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const selectedPoi = useMemo(
     () => pois.find(poi => poi.id === selectedPoiId) ?? null,
@@ -103,6 +105,7 @@ export function GuideApp({
         <GuideHeader
           city={lodging.city}
           onOpenHome={() => navigate('home')}
+          onOpenMenu={() => setMenuOpen(true)}
         />
       )}
 
@@ -165,6 +168,12 @@ export function GuideApp({
           hidden={navHidden}
         />
       )}
+
+      <GuideMenuOverlay
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        lodgingName={lodging.name}
+      />
     </div>
   )
 }
