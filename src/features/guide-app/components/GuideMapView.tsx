@@ -133,6 +133,45 @@ export function GuideMapView({
     scheduleHide()
   }
 
+  // Recadre la carte sur les POIs de la catégorie (les contenir tous à l'écran).
+  const categoryReady = useRef(false)
+  useEffect(() => {
+    if (!categoryReady.current) {
+      categoryReady.current = true
+      return
+    }
+    const map = mapRef.current?.getMap?.()
+    if (!map?.fitBounds) return
+    const list = selectedCategorySlug
+      ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
+      : pois
+    const points: LngLat[] = list.map(poi => [poi.longitude, poi.latitude])
+    points.push([lodging.longitude, lodging.latitude])
+    if (points.length === 0) return
+    let minX = points[0][0]
+    let minY = points[0][1]
+    let maxX = points[0][0]
+    let maxY = points[0][1]
+    for (const [x, y] of points) {
+      minX = Math.min(minX, x)
+      minY = Math.min(minY, y)
+      maxX = Math.max(maxX, x)
+      maxY = Math.max(maxY, y)
+    }
+    map.easeTo({ pitch: 0, duration: 0 })
+    map.fitBounds(
+      [
+        [minX, minY],
+        [maxX, maxY],
+      ],
+      {
+        padding: { top: 140, bottom: 120, left: 44, right: 44 },
+        duration: 700,
+        maxZoom: 15,
+      },
+    )
+  }, [selectedCategorySlug, pois, lodging.longitude, lodging.latitude])
+
   // La card s'escamote sur la droite 5 s après l'ouverture ; reset à chaque POI.
   useEffect(() => {
     setPeeked(false)

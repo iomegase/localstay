@@ -64,6 +64,12 @@ export function GuideApp({
     setActiveView('map')
   }
 
+  // Changer de catégorie efface la sélection (donc le tracé sur la carte).
+  function filterCategory(slug: string | null) {
+    setSelectedPoiId(null)
+    setSelectedCategorySlug(slug)
+  }
+
   function navigate(view: GuideView) {
     if (view !== 'poi' && view !== 'map') {
       setSelectedPoiId(null)
@@ -106,7 +112,7 @@ export function GuideApp({
           <GuideFavoritesPage
             pois={pois}
             selectedCategorySlug={selectedCategorySlug}
-            onFilter={setSelectedCategorySlug}
+            onFilter={filterCategory}
             onSelectPoi={openPoi}
             onShowOnMap={showOnMap}
           />
@@ -126,7 +132,7 @@ export function GuideApp({
             pois={pois}
             selectedPoiId={selectedPoiId}
             selectedCategorySlug={selectedCategorySlug}
-            onFilter={setSelectedCategorySlug}
+            onFilter={filterCategory}
             onSelectPoi={poi => setSelectedPoiId(poi.id)}
             onOpenPoi={openPoi}
           />
