@@ -43,8 +43,8 @@ export function LodgingSearch({ lodgings }: { lodgings: MarketingLodgingCard[] }
         data-testid="lodging-filters"
         className="rounded-[24px] border border-slate-200/70 bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.05),transparent_38%)] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6"
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)] lg:items-end">
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="sm:min-w-[190px] sm:flex-1">
             <label htmlFor="lodging-city" className={fieldLabelClass}>
               Ville
             </label>
@@ -65,7 +65,7 @@ export function LodgingSearch({ lodgings }: { lodgings: MarketingLodgingCard[] }
             </select>
           </div>
 
-          <div>
+          <div className="sm:min-w-[190px] sm:flex-1">
             <label htmlFor="lodging-guests" className={fieldLabelClass}>
               Couchages
             </label>
@@ -90,7 +90,7 @@ export function LodgingSearch({ lodgings }: { lodgings: MarketingLodgingCard[] }
           </div>
 
           {amenityOptions.length > 0 && (
-            <div>
+            <div className="sm:min-w-[240px] sm:flex-1">
               <span className={fieldLabelClass}>Équipements</span>
               <div className="flex flex-wrap gap-2">
                 {amenityOptions.map(amenity => {

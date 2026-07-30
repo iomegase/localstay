@@ -31,7 +31,7 @@ export default async function LodgingsPage() {
         </div>
       </section>
 
-      <section className={`${marketingContainerClass} py-16 sm:py-24`}>
+      <section className={`${marketingContainerClass} pb-16 pt-10 sm:pb-24 sm:pt-12`}>
         {lodgings.length > 0 ? (
           <LodgingSearch lodgings={lodgings} />
         ) : (
