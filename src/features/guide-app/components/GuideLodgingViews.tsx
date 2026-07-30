@@ -1,4 +1,3 @@
-import { GuideLodgingGallery } from '@/features/guide-app/components/GuideLodgingGallery'
 import {
   ArrowLeft,
   ArrowRight,
@@ -132,19 +131,6 @@ export function GuideLodgingViews({
 
   return (
     <div className="space-y-4 px-3 pb-24 pt-3">
-      <section>
-        <GuideLodgingGallery images={lodging.gallery} alt={lodging.name} />
-        <div className="mt-4 px-1">
-          <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.04em] text-slate-900">
-            {lodging.name}
-          </h1>
-          <p className="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
-            <MapPin className="h-4 w-4 text-slate-400" />
-            {lodging.city}
-          </p>
-        </div>
-      </section>
-
       <section className="grid grid-cols-2 gap-2.5">
         <TimeCard
           label="Arrivée"

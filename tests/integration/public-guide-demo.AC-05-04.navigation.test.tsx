@@ -25,7 +25,7 @@ describe('GuideApp demo navigation', () => {
       screen.getByRole('button', { name: 'Guide logement' }),
     )
     expect(
-      screen.getByRole('heading', { name: 'Le Refuge du Mont-Blanc' }),
+      screen.getByRole('button', { name: /accéder au logement/i }),
     ).toBeInTheDocument()
     fireEvent.click(
       screen.getByRole('button', { name: /informations pratiques/i }),
