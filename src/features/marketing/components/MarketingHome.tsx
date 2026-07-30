@@ -244,15 +244,15 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                 aria-hidden="true"
                 className="absolute left-6 top-0 h-[3px] w-11 rounded-b-full bg-pink-600"
               />
-              <div className="grid grid-cols-[45px_minmax(0,1fr)] items-end gap-3">
+              <div className="grid grid-cols-[45px_minmax(0,1fr)] items-center gap-3">
                 <span className="text-[44px] font-bold leading-[0.9] tracking-[-0.07em] text-slate-400">
                   {service.number}
                 </span>
-                <h3 className="text-base font-medium xl:text-[18px] xl:leading-[1.08]">
+                <h3 className="text-base font-semibold xl:text-[18px] xl:leading-[1.08]">
                   {service.title}
                 </h3>
               </div>
-              <p className="mt-auto pt-10 text-xs leading-5 text-slate-500 xl:pt-6 xl:text-[12px] xl:leading-[1.62]">
+              <p className="mt-4 text-xs leading-5 text-slate-500 xl:mt-4 xl:text-[12px] xl:leading-[1.62]">
                 {service.copy}
               </p>
             </article>
