@@ -6,10 +6,12 @@ import {
   Check,
   Clock3,
   Copy,
+  DoorOpen,
   Info,
   KeyRound,
   LogOut,
   MapPin,
+  Navigation as NavigationIcon,
   Phone,
   ScrollText,
   Settings,
@@ -33,11 +35,12 @@ export function GuideLodgingViews({
   onNavigate: (view: GuideView) => void
 }) {
   if (view === 'arrival') {
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lodging.latitude},${lodging.longitude}`
     return (
       <GuideSubPage
-        eyebrow="Votre arrivée"
-        title={`Bienvenue dès ${lodging.checkIn}`}
-        icon={KeyRound}
+        eyebrow="Votre séjour commence ici"
+        title="Bienvenue"
+        icon={DoorOpen}
         onBack={() => onNavigate('lodging')}
       >
         <InstructionList items={lodging.arrivalInstructions} />
@@ -46,6 +49,15 @@ export function GuideLodgingViews({
           title="Localisation"
           description={lodging.addressLabel}
         />
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className={`${cardClass} flex items-center justify-center gap-2 p-4 text-sm font-semibold text-blue-600`}
+        >
+          <NavigationIcon className="h-4 w-4" aria-hidden="true" />
+          Itinéraire Google Maps
+        </a>
       </GuideSubPage>
     )
   }
@@ -214,7 +226,7 @@ function InstructionList({ items }: { items: string[] }) {
     <ol className={`${cardClass} divide-y divide-slate-100 p-2`}>
       {items.map((item, index) => (
         <li key={item} className="flex gap-3 p-3 text-xs leading-5 text-slate-600">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-50 text-[10px] font-bold text-pink-600">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-[10px] font-bold text-blue-600">
             {index + 1}
           </span>
           <span className="pt-1">{item}</span>
