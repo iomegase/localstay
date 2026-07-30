@@ -5,7 +5,7 @@ import type { GuideView } from '@/features/guide-app/types'
 
 const items = [
   { view: 'home' as const, ariaLabel: 'Accueil', label: 'Accueil', icon: Sparkles },
-  { view: 'favorites' as const, ariaLabel: 'Coups de cœur', label: null, icon: Heart },
+  { view: 'favorites' as const, ariaLabel: 'Coups de cœur', label: null, icon: Heart, pink: true },
   { view: 'lodging' as const, ariaLabel: 'Guide logement', label: 'Guide', icon: Home },
   { view: 'map' as const, ariaLabel: 'Carte', label: 'Carte', icon: Map },
 ]
@@ -28,7 +28,7 @@ export function GuideNavigation({
       }`}
     >
       <div className="grid grid-cols-4 gap-1">
-        {items.map(({ view, ariaLabel, label, icon: Icon }) => {
+        {items.map(({ view, ariaLabel, label, icon: Icon, pink }) => {
           const active =
             activeView === view ||
             (view === 'lodging' &&
@@ -47,7 +47,7 @@ export function GuideNavigation({
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Icon className="h-[17px] w-[17px]" />
+              <Icon className={`h-[17px] w-[17px] ${pink ? 'text-pink-600' : ''}`} />
               {label && <span>{label}</span>}
             </button>
           )
