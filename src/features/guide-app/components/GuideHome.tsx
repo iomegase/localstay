@@ -19,7 +19,7 @@ export function GuideHome({
 
   return (
     <div className="flex min-h-full flex-col px-4 pb-36 pt-6">
-      <h1 className="text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
+      <h1 className="mt-[30px] text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
         Bienvenue
         <br />
         au {welcomeName}

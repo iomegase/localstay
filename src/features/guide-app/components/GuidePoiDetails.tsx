@@ -29,7 +29,7 @@ export function GuidePoiDetails({
   const distanceKm = haversineKm(lodging.latitude, lodging.longitude, poi.latitude, poi.longitude)
 
   return (
-    <article className="min-h-full bg-slate-50 pb-24">
+    <article className="min-h-full bg-slate-50">
       {/* Hero carousel */}
       <div className="relative">
         <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name}>
