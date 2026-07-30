@@ -116,7 +116,12 @@ export function GuideLodgingViews({
         <div className="grid gap-3">
           {lodging.practicalCards.map(card =>
             card.icon === 'recycle' ? (
-              <WasteCard key={card.id} title={card.title} description={card.description} />
+              <WasteCard
+                key={card.id}
+                title={card.title}
+                description={card.description}
+                city={lodging.city}
+              />
             ) : (
               <InfoCard
                 key={card.id}
@@ -307,7 +312,18 @@ function GuideLink({
 
 const DEMO_TRASH_BINS = ['jaune', 'verte', 'bordeaux'] as const
 
-function WasteCard({ title, description }: { title: string; description: string }) {
+function WasteCard({
+  title,
+  description,
+  city,
+}: {
+  title: string
+  description: string
+  city: string
+}) {
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `point de tri ${city.replace(/-/g, ' ')}`,
+  )}`
   return (
     <article className={`${navyCardClass} p-5`}>
       <div className="flex items-start gap-3">
@@ -336,6 +352,14 @@ function WasteCard({ title, description }: { title: string; description: string 
           )
         })}
       </div>
+      <a
+        href={mapsUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-4 flex items-center justify-center rounded-[18px] bg-pink-600 p-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
+      >
+        Point de tri sur Google Maps
+      </a>
     </article>
   )
 }
