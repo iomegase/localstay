@@ -107,7 +107,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 1180px"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/72 to-slate-900/15 sm:via-slate-900/60" />
+          <div className="absolute inset-0 bg-black/60" />
           <div
             data-testid="editorial-hero-content"
             className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-white min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
@@ -115,8 +115,12 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             <div className="max-w-[745px] xl:max-w-[600px] xl:[&>span:first-child]:mb-[19px]">
               <MarketingEyebrow light>Conciergerie en Haute-Savoie</MarketingEyebrow>
               <h1 className="max-w-[690px] text-[43px] font-bold leading-[1.08] tracking-[-0.055em] sm:text-5xl lg:text-[50px] xl:max-w-[600px] xl:text-[50px]">
-                Votre logement, géré avec soin.
-                <span className="mt-1 block font-medium">Vos voyageurs, accueillis autrement.</span>
+                Votre logement,
+                <br /> géré avec soin.
+                <span className="mt-2 block font-serif font-normal italic tracking-[-0.02em]">
+                  Vos voyageurs,
+                  <br /> accueillis autrement.
+                </span>
               </h1>
               <p className="mt-6 max-w-[560px] text-[15px] leading-[1.65] text-slate-200 xl:max-w-[450px] xl:text-[14px] xl:leading-[1.6]">
                 MyStay accompagne les propriétaires dans la gestion de leur location saisonnière,
@@ -129,12 +133,6 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                 >
                   Confier mon logement
                 </Link>
-                <a
-                  href="#services"
-                  className="hidden items-center gap-[14px] border-b border-white/60 pb-[5px] text-[13px] font-bold text-white hover:border-pink-500 hover:text-pink-200 sm:inline-flex xl:gap-[11px] xl:pb-1 xl:text-[11px]"
-                >
-                  Découvrir nos services <span aria-hidden="true">↓</span>
-                </a>
               </div>
             </div>
             <div className="mt-auto flex flex-col items-start gap-3 pt-[30px] text-[11px] font-bold uppercase tracking-[0.04em] text-slate-200 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-[34px] xl:gap-x-[27px] xl:pt-8 xl:text-[9px]">
