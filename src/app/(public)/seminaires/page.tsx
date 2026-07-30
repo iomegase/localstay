@@ -123,21 +123,14 @@ export default function SeminarsPage() {
               sizes="(min-width: 1280px) 944px, (min-width: 768px) calc(100vw - 80px), 100vw"
               src="/marketing/hero-chalet.png"
             />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/30 lg:from-slate-950/[0.92] lg:via-slate-950/[0.72] lg:to-slate-950/[0.12]"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"
-            />
+            <div aria-hidden="true" className="absolute inset-0 bg-black/60" />
 
-            <div className="relative z-10 max-w-[650px]">
+            <div className="relative z-10 my-auto max-w-[650px]">
               <MarketingEyebrow light>Séminaires en Haute-Savoie</MarketingEyebrow>
               <h1 className="m-0 max-w-[640px] text-[clamp(42px,12vw,50px)] font-bold leading-[0.99] tracking-[-0.055em] lg:text-[clamp(42px,4.8vw,50px)]">
                 Réunir vos équipes.
                 <br />
-                <em className="font-serif font-normal not-italic tracking-[-0.035em]">
+                <em className="font-serif font-normal italic tracking-[-0.035em]">
                   Prendre de la hauteur.
                 </em>
               </h1>
@@ -156,7 +149,7 @@ export default function SeminarsPage() {
               </div>
             </div>
 
-            <div className="relative z-10 mt-auto flex flex-col items-start gap-3 pt-[42px] text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 sm:flex-row sm:items-center sm:gap-7">
+            <div className="relative z-10 flex flex-col items-start gap-3 pt-8 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 sm:flex-row sm:items-center sm:gap-7">
               <span className="inline-flex items-center gap-2">
                 <MapPin aria-hidden="true" className="h-[17px] w-[17px]" />
                 Haute-Savoie
