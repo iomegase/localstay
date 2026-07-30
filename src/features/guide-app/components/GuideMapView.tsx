@@ -452,7 +452,7 @@ export function GuideMapView({
       </div>
 
       <AnimatePresence>
-        {selectedPoi ? (
+        {selectedPoi && (
           <motion.article
             key={selectedPoi.id}
             initial={{ y: 28, opacity: 0, x: 0 }}
@@ -521,17 +521,6 @@ export function GuideMapView({
               </div>
             </div>
           </motion.article>
-        ) : (
-          <motion.p
-            key="hint"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-            transition={{ duration: 0.2 }}
-            className={`absolute inset-x-3 ${overlayBottom} z-10 rounded-full bg-white/95 px-4 py-3 text-center text-[10px] font-medium text-slate-600 shadow-lg backdrop-blur`}
-          >
-            Touchez un repère pour découvrir le lieu.
-          </motion.p>
         )}
       </AnimatePresence>
     </div>

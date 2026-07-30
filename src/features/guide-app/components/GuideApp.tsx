@@ -77,6 +77,15 @@ export function GuideApp({
     setActiveView(view)
   }
 
+  // Depuis la barre du bas : ouvrir la carte réinitialise sur la catégorie « Tous ».
+  function navigateFromTab(view: GuideView) {
+    if (view === 'map') {
+      setSelectedPoiId(null)
+      setSelectedCategorySlug(null)
+    }
+    navigate(view)
+  }
+
   return (
     <div
       data-guide-mode={mode}
@@ -142,7 +151,7 @@ export function GuideApp({
       {activeView !== 'poi' && (
         <GuideNavigation
           activeView={activeView}
-          onNavigate={navigate}
+          onNavigate={navigateFromTab}
           hidden={navHidden}
         />
       )}
