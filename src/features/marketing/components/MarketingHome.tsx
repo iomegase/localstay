@@ -244,7 +244,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                 aria-hidden="true"
                 className="absolute left-6 top-0 h-[3px] w-11 rounded-b-full bg-pink-600"
               />
-              <div className="grid grid-cols-[45px_minmax(0,1fr)] items-center gap-3">
+              <div className="flex items-center gap-4">
                 <span className="text-[44px] font-bold leading-[0.9] tracking-[-0.07em] text-slate-400">
                   {service.number}
                 </span>
