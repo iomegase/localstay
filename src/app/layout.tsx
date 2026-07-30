@@ -82,13 +82,13 @@ export const metadata: Metadata = {
     title: SITE.defaultTitle,
     description: SITE.defaultDescription,
     url: '/',
-    images: [{ url: '/imageOpenGraph.png', width: 1200, height: 630, alt: SITE.defaultTitle }],
+    images: [{ url: '/og-mystay.png', width: 1200, height: 630, alt: SITE.defaultTitle }],
   },
   twitter: {
     card: 'summary_large_image',
     title: SITE.defaultTitle,
     description: SITE.defaultDescription,
-    images: ['/imageOpenGraph.png'],
+    images: ['/og-mystay.png'],
   },
   appleWebApp: {
     capable: true,
