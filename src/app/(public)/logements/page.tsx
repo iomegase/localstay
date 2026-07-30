@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
-import { MarketingPropertyCard } from '@/features/marketing/components/MarketingPropertyCard'
+import { LodgingSearch } from '@/features/lodging-showcase/components/LodgingSearch'
 import {
   MarketingEyebrow,
   MarketingShell,
@@ -33,11 +33,7 @@ export default async function LodgingsPage() {
 
       <section className={`${marketingContainerClass} py-16 sm:py-24`}>
         {lodgings.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {lodgings.map(lodging => (
-              <MarketingPropertyCard key={lodging.id} lodging={lodging} />
-            ))}
-          </div>
+          <LodgingSearch lodgings={lodgings} />
         ) : (
           <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
             <h2 className="text-2xl font-bold">Aucun logement public n’est encore disponible.</h2>
