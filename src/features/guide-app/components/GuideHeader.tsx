@@ -28,7 +28,7 @@ export function GuideHeader({
       <span
         aria-hidden="true"
         data-testid="guide-menu-icon"
-        className="-mr-2 p-2 text-slate-800"
+        className="translate-x-1 translate-y-1.5 p-2 text-slate-800"
       >
         <Menu className="h-6 w-6" strokeWidth={2} />
       </span>
