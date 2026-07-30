@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type RefObject } from 'react'
+import { motion } from 'framer-motion'
 import { Clock3, Map as MapIcon, MapPin } from 'lucide-react'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type { FavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
@@ -9,6 +10,8 @@ import type { GuidePoi } from '@/features/guide-app/types'
 type Props = {
   poi: GuidePoi
   variant: FavoriteBentoVariant
+  index?: number
+  revealRoot?: RefObject<HTMLElement | null>
   onSelectPoi: (poi: GuidePoi) => void
   onShowOnMap: (poi: GuidePoi) => void
 }
@@ -19,7 +22,14 @@ type Props = {
  * pour le type `GuidePoi`, sans importer de `Link`, de type Prisma ni de route
  * privée : le clic principal appelle `onSelectPoi`, l'action Carte `onShowOnMap`.
  */
-export function GuideFavoriteBentoCard({ poi, variant, onSelectPoi, onShowOnMap }: Props) {
+export function GuideFavoriteBentoCard({
+  poi,
+  variant,
+  index = 0,
+  revealRoot,
+  onSelectPoi,
+  onShowOnMap,
+}: Props) {
   const heroSrc = getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: poi.photos })
   const fallbackSrc = getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: [] })
   const [src, setSrc] = useState(heroSrc)
@@ -29,9 +39,18 @@ export function GuideFavoriteBentoCard({ poi, variant, onSelectPoi, onShowOnMap 
   const durationLabel = poi.durationLabel && poi.durationLabel !== 'Demi-journée' ? poi.durationLabel : null
 
   return (
-    <article
+    <motion.article
       data-testid="favorite-bento-card"
       data-variant={variant}
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ root: revealRoot, amount: 0.2, once: false, margin: '0px 0px -8% 0px' }}
+      transition={{
+        type: 'spring',
+        stiffness: 300,
+        damping: 28,
+        delay: (index % 2) * 0.06,
+      }}
       className={`group relative aspect-square overflow-hidden bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)] ${
         isBig ? 'col-span-2 rounded-[2rem]' : 'rounded-[1.75rem]'
       }`}
@@ -104,6 +123,6 @@ export function GuideFavoriteBentoCard({ poi, variant, onSelectPoi, onShowOnMap 
       >
         <MapIcon className="h-4 w-4" />
       </button>
-    </article>
+    </motion.article>
   )
 }

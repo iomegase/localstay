@@ -1,3 +1,4 @@
+import type { RefObject } from 'react'
 import type { GuidePoi } from '@/features/guide-app/types'
 import { getFavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import { GuideFavoriteBentoCard } from './GuideFavoriteBentoCard'
@@ -5,12 +6,14 @@ import { GuideFavoriteBentoCard } from './GuideFavoriteBentoCard'
 export function GuideFavoritesPage({
   pois,
   selectedCategorySlug,
+  scrollContainerRef,
   onFilter,
   onSelectPoi,
   onShowOnMap,
 }: {
   pois: GuidePoi[]
   selectedCategorySlug: string | null
+  scrollContainerRef?: RefObject<HTMLElement | null>
   onFilter: (categorySlug: string | null) => void
   onSelectPoi: (poi: GuidePoi) => void
   onShowOnMap: (poi: GuidePoi) => void
@@ -61,6 +64,8 @@ export function GuideFavoritesPage({
             key={poi.id}
             poi={poi}
             variant={getFavoriteBentoVariant(index)}
+            index={index}
+            revealRoot={scrollContainerRef}
             onSelectPoi={onSelectPoi}
             onShowOnMap={onShowOnMap}
           />

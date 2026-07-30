@@ -121,6 +121,7 @@ export function GuideApp({
           <GuideFavoritesPage
             pois={pois}
             selectedCategorySlug={selectedCategorySlug}
+            scrollContainerRef={scrollRef}
             onFilter={filterCategory}
             onSelectPoi={openPoi}
             onShowOnMap={showOnMap}
