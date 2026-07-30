@@ -171,7 +171,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
 
         <div
           data-testid="editorial-highlight-grid"
-          className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:mt-[88px] xl:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))] xl:grid-rows-[repeat(2,minmax(205px,auto))] xl:gap-[14px]"
+          className="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:mt-[88px] xl:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))] xl:grid-rows-[repeat(2,minmax(205px,auto))] xl:gap-[14px]"
         >
           {serviceHighlights.map(({ icon: Icon, label, copy }, index) => (
             <article
@@ -179,7 +179,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
               data-testid={`editorial-highlight-${index}`}
               className={`relative flex min-h-[205px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[205px] xl:rounded-[22px] xl:px-6 xl:py-[22px] ${
                 index === 0
-                  ? 'sm:row-span-2 lg:row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1'
+                  ? 'row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1'
                   : ''
               }`}
             >
@@ -210,7 +210,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
               </p>
             </article>
           ))}
-          <div className="mt-5 flex items-center justify-center sm:col-span-2 lg:col-span-3 xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0">
+          <div className="col-span-2 mt-5 flex items-center justify-center lg:col-span-3 xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0">
             <Link href="/concept" className={marketingDarkButtonClass}>
               Comprendre notre approche <span aria-hidden="true">→</span>
             </Link>
@@ -233,12 +233,14 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
             délégation que vous recherchez.
           </p>
         </div>
-        <div className="mt-12 grid gap-4 lg:grid-cols-3 xl:mt-0 xl:gap-[14px]">
-          {conciergeServices.map(service => (
+        <div className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:mt-0 xl:gap-[14px]">
+          {conciergeServices.map((service, index) => (
             <article
               key={service.number}
               data-testid={`editorial-service-${service.number}`}
-              className="relative flex min-h-[210px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[198px] xl:rounded-[20px] xl:px-6 xl:pb-6 xl:pt-[27px]"
+              className={`relative flex min-h-[210px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[198px] xl:rounded-[20px] xl:px-6 xl:pb-6 xl:pt-[27px] ${
+                index === 2 ? 'col-span-2 lg:col-span-1' : ''
+              }`}
             >
               <span
                 aria-hidden="true"
@@ -310,12 +312,14 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           </p>
           <GuideDemoLauncher />
         </div>
-        <div className="mt-12 grid gap-4 lg:grid-cols-3 xl:mt-0 xl:gap-[14px]">
+        <div className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:mt-0 xl:gap-[14px]">
           {guideSteps.map(({ icon: Icon, label, title, copy }, index) => (
             <article
               key={label}
               data-testid={`editorial-process-card-${index}`}
-              className="relative flex min-h-[260px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[234px] xl:rounded-[22px] xl:px-6 xl:pb-6 xl:pt-[26px]"
+              className={`relative flex min-h-[260px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[234px] xl:rounded-[22px] xl:px-6 xl:pb-6 xl:pt-[26px] ${
+                index === 2 ? 'col-span-2 lg:col-span-1' : ''
+              }`}
             >
               <span
                 aria-hidden="true"
