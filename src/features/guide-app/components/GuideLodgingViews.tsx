@@ -12,8 +12,10 @@ import {
   MapPin,
   Phone,
   ScrollText,
+  Trash2,
   Wifi,
 } from 'lucide-react'
+import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
 function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
@@ -112,14 +114,18 @@ export function GuideLodgingViews({
           </div>
         </section>
         <div className="grid gap-3">
-          {lodging.practicalCards.map(card => (
-            <InfoCard
-              key={card.id}
-              icon={resolvePracticalIcon(card.icon)}
-              title={card.title}
-              description={card.description}
-            />
-          ))}
+          {lodging.practicalCards.map(card =>
+            card.icon === 'recycle' ? (
+              <WasteCard key={card.id} title={card.title} description={card.description} />
+            ) : (
+              <InfoCard
+                key={card.id}
+                icon={resolvePracticalIcon(card.icon)}
+                title={card.title}
+                description={card.description}
+              />
+            ),
+          )}
         </div>
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
@@ -296,6 +302,41 @@ function GuideLink({
       </span>
       <ArrowRight className="h-4 w-4 shrink-0 text-white/80" />
     </button>
+  )
+}
+
+const DEMO_TRASH_BINS = ['jaune', 'verte', 'bordeaux'] as const
+
+function WasteCard({ title, description }: { title: string; description: string }) {
+  return (
+    <article className={`${navyCardClass} p-5`}>
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+          <Trash2 className="h-4 w-4" />
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
+          <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
+        </div>
+      </div>
+      <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
+        {DEMO_TRASH_BINS.map(type => {
+          const bin = getTrashBin(type)
+          if (!bin) return null
+          return (
+            <div key={type} className="flex items-center gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white">
+                <Trash2 className={`h-5 w-5 ${bin.colorClass}`} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">{bin.label}</p>
+                <p className="text-[11px] text-white/60">{bin.hint}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </article>
   )
 }
 
