@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
@@ -39,6 +39,8 @@ export function GuideApp({
   initialView?: GuideView
 }) {
   const [activeView, setActiveView] = useState<GuideView>(initialView)
+  const scrollRef = useRef<HTMLElement>(null)
+  const navHidden = useAutoHideOnScroll(scrollRef, activeView)
   const [selectedPoiId, setSelectedPoiId] = useState<string | null>(null)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(
     null,
@@ -78,7 +80,10 @@ export function GuideApp({
         />
       )}
 
-      <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <main
+        ref={scrollRef}
+        className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
         {activeView === 'home' && (
           <GuideHome
             lodging={lodging}
@@ -131,8 +136,62 @@ export function GuideApp({
       </main>
 
       {activeView !== 'poi' && (
-        <GuideNavigation activeView={activeView} onNavigate={navigate} />
+        <GuideNavigation
+          activeView={activeView}
+          onNavigate={navigate}
+          hidden={navHidden}
+        />
       )}
     </div>
   )
+}
+
+/**
+ * Masque la barre de nav quand on scrolle vers le bas dans le conteneur donné,
+ * la révèle en scrollant vers le haut, à l'arrêt du scroll, et toujours en
+ * haut/bas de contenu. Respecte prefers-reduced-motion. Réinitialisée à chaque
+ * changement de vue.
+ */
+function useAutoHideOnScroll(
+  ref: React.RefObject<HTMLElement | null>,
+  resetKey: unknown,
+): boolean {
+  const [hidden, setHidden] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    setHidden(false)
+
+    const reduce =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let lastY = el.scrollTop
+    let idleTimer = 0
+
+    const onScroll = () => {
+      const y = el.scrollTop
+      const max = el.scrollHeight - el.clientHeight
+
+      if (reduce || y <= 8 || y >= max - 8) {
+        setHidden(false)
+      } else if (y > lastY + 4) {
+        setHidden(true)
+      } else if (y < lastY - 4) {
+        setHidden(false)
+      }
+      lastY = y
+
+      window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(() => setHidden(false), 160)
+    }
+
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      window.clearTimeout(idleTimer)
+    }
+  }, [ref, resetKey])
+
+  return hidden
 }

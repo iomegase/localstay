@@ -13,14 +13,19 @@ const items = [
 export function GuideNavigation({
   activeView,
   onNavigate,
+  hidden = false,
 }: {
   activeView: GuideView
   onNavigate: (view: GuideView) => void
+  hidden?: boolean
 }) {
   return (
     <nav
       aria-label="Navigation du guide"
-      className="absolute inset-x-3 bottom-3 z-40 rounded-full border border-white/70 bg-white/92 p-1.5 shadow-[0_16px_36px_rgba(15,23,42,0.18)] backdrop-blur-xl"
+      aria-hidden={hidden}
+      className={`absolute inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-full border border-slate-100 bg-white p-1.5 shadow-[0_16px_36px_rgba(15,23,42,0.18)] transition-transform duration-300 ease-out will-change-transform ${
+        hidden ? 'pointer-events-none translate-y-[calc(100%+1.5rem)]' : 'translate-y-0'
+      }`}
     >
       <div className="grid grid-cols-4 gap-1">
         {items.map(({ view, ariaLabel, label, icon: Icon }) => {
