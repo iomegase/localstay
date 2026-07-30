@@ -267,7 +267,9 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         className={`${marketingContainerClass} grid gap-10 pb-20 pt-10 sm:pb-28 lg:grid-cols-[0.8fr_1.7fr] lg:items-start xl:grid-cols-[0.7fr_1.8fr] xl:gap-[50px] xl:py-[88px]`}
       >
         <div className="xl:sticky xl:top-7">
-          <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
+          <MarketingEyebrow>
+            <span className="whitespace-nowrap">Les logements confiés à MyStay</span>
+          </MarketingEyebrow>
           <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.1]">
             Des lieux que nous gérons comme s’ils étaient les nôtres.
           </h2>
@@ -280,7 +282,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           </Link>
         </div>
         {lodgings.length > 0 ? (
-          <div className="no-scrollbar -mx-6 -my-8 flex min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto px-6 py-8 lg:mx-0 lg:my-0 lg:grid lg:snap-none lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:py-0 xl:gap-x-[18px] xl:gap-y-[22px] xl:pt-[26px]">
+          <div className="no-scrollbar -mx-6 -my-8 flex min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto px-6 py-8 lg:mx-0 lg:my-0 lg:grid lg:snap-none lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:py-0 lg:pt-8 xl:gap-x-[18px] xl:gap-y-[22px] xl:pt-[64px]">
             {lodgings.map((lodging, index) => (
               <div key={lodging.id} className="w-[280px] shrink-0 snap-start lg:w-auto">
                 <MarketingPropertyCard lodging={lodging} priority={index < 2} />
