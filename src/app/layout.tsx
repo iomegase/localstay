@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import {
+  Big_Shoulders_Inline,
   Lobster,
   Playfair_Display,
   Plus_Jakarta_Sans,
@@ -42,6 +43,12 @@ const storyScript = Story_Script({
   subsets: ['latin'],
   weight: '400',
   variable: '--font-story',
+  display: 'swap',
+})
+
+const bigShouldersInline = Big_Shoulders_Inline({
+  subsets: ['latin'],
+  variable: '--font-big-shoulders',
   display: 'swap',
 })
 
@@ -115,7 +122,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${jakartaSans.variable} ${playfairDisplay.variable} ${quicksand.variable} ${lobster.variable} ${storyScript.variable}`}
+      className={`${jakartaSans.variable} ${playfairDisplay.variable} ${quicksand.variable} ${lobster.variable} ${storyScript.variable} ${bigShouldersInline.variable}`}
     >
       <body
         className="bg-white text-charcoal font-sans antialiased"
