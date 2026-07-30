@@ -47,7 +47,7 @@ export function GuideNavigation({
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Icon className={`h-[17px] w-[17px] ${pink ? 'text-pink-600' : ''}`} />
+              <Icon className={`h-[17px] w-[17px] ${pink ? 'scale-[1.02] text-pink-600' : ''}`} />
               {label && <span>{label}</span>}
             </button>
           )
