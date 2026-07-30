@@ -298,13 +298,15 @@ function InfoCard({
 }) {
   return (
     <article className={`${cardClass} p-5`}>
-      <div className="flex items-center gap-3">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 text-slate-600">
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-slate-600">
           <Icon className="h-4 w-4" />
         </span>
-        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+        <div>
+          <h2 className="text-sm font-semibold leading-9 text-slate-900">{title}</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
+        </div>
       </div>
-      <p className="mt-3 text-xs leading-5 text-slate-500">{description}</p>
     </article>
   )
 }
