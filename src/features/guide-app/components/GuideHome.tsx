@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Heart, Sparkles, Wifi } from 'lucide-react'
+import { ArrowRight, BookOpen, Heart, Wifi } from 'lucide-react'
 import { GuideFeaturedPoiCard } from '@/features/guide-app/components/GuideFeaturedPoiCard'
 import type {
   GuideLodging,
@@ -24,12 +24,13 @@ export function GuideHome({
     <div className="space-y-4 px-3 pb-24 pt-3">
       {/* Hero */}
       <section className="px-1 pt-4">
-        <span className="inline-flex w-fit items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-pink-600">
-          <Sparkles className="h-4 w-4" />
+        <span className="block text-[8px] font-light uppercase tracking-[0.06em] text-pink-600">
           Votre séjour à {lodging.city.replace(/-/g, ' ')}
         </span>
         <h1 className="mt-4 text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
-          Bienvenue au {welcomeName}
+          Bienvenue
+          <br />
+          au {welcomeName}
         </h1>
         <p className="mt-4 text-sm leading-6 text-slate-500">{lodging.tagline}</p>
       </section>

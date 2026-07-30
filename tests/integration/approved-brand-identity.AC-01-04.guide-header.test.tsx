@@ -19,8 +19,8 @@ describe('GuideHeader approved brand', () => {
       '/mystay-logo-approved/mystay-logo-approved@4x.png',
     )
     expect(screen.getByRole('banner')).toHaveClass('h-[68px]')
-    expect(screen.getByAltText('MyStay')).toHaveClass('h-7')
-    expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
+    expect(screen.getByAltText('MyStay')).toHaveClass('h-9')
+    expect(screen.queryByText('Saint-Gervais-les-Bains')).not.toBeInTheDocument()
     expect(screen.queryByText('Démonstration')).not.toBeInTheDocument()
     expect(screen.getByTestId('guide-menu-icon')).toBeInTheDocument()
   })

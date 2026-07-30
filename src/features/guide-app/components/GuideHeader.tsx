@@ -4,10 +4,9 @@ import { Menu } from 'lucide-react'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 
 export function GuideHeader({
-  city,
   onOpenHome,
 }: {
-  city: string
+  city?: string
   onOpenHome: () => void
 }) {
   return (
@@ -18,15 +17,12 @@ export function GuideHeader({
         className="flex min-w-0 items-center gap-2 text-left"
         aria-label="Accueil du guide"
       >
-        <span className="min-w-0">
-          <MyStayLogo
-            form="horizontal"
-            className="h-7 w-auto object-contain"
-            priority
-            sizes="140px"
-          />
-          <span className="mt-1 block truncate text-[9px] text-slate-500">{city}</span>
-        </span>
+        <MyStayLogo
+          form="horizontal"
+          className="h-9 w-auto object-contain"
+          priority
+          sizes="160px"
+        />
       </button>
 
       <span
