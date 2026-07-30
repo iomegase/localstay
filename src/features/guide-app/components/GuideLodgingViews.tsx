@@ -1,8 +1,8 @@
+import * as LucideIcons from 'lucide-react'
 import {
   ArrowLeft,
   ArrowRight,
   BedDouble,
-  Car,
   Clock3,
   Copy,
   DoorOpen,
@@ -12,9 +12,17 @@ import {
   MapPin,
   Phone,
   ScrollText,
-  Settings,
   Wifi,
 } from 'lucide-react'
+
+/** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
+function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
+  const name = slug
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('') as keyof typeof LucideIcons
+  return (LucideIcons[name] as LucideIcons.LucideIcon | undefined) ?? Info
+}
 import type {
   GuideLodging,
   GuideView,
@@ -22,6 +30,9 @@ import type {
 
 const cardClass =
   'rounded-[22px] border border-slate-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]'
+
+const navyCardClass =
+  'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
 
 export function GuideLodgingViews({
   view,
@@ -46,6 +57,7 @@ export function GuideLodgingViews({
           icon={MapPin}
           title="Localisation"
           description={lodging.addressLabel}
+          tone="light"
         />
         <a
           href={mapsUrl}
@@ -80,47 +92,47 @@ export function GuideLodgingViews({
         icon={Info}
         onBack={() => onNavigate('lodging')}
       >
-        <section className={`${cardClass} p-5`}>
+        <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-slate-600">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
               <Wifi className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
                 Réseau Wi-Fi
               </p>
-              <h2 className="text-sm font-semibold text-slate-900">
+              <h2 className="text-sm font-semibold text-white">
                 {lodging.wifiName}
               </h2>
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-3">
-            <code className="text-xs text-slate-700">{lodging.wifiPassword}</code>
-            <Copy className="h-4 w-4 text-slate-400" aria-hidden="true" />
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-white/10 px-3 py-3">
+            <code className="text-xs text-white/90">{lodging.wifiPassword}</code>
+            <Copy className="h-4 w-4 text-white/50" aria-hidden="true" />
           </div>
         </section>
         <div className="grid gap-3">
           {lodging.practicalCards.map(card => (
             <InfoCard
               key={card.id}
-              icon={card.icon === 'car' ? Car : Settings}
+              icon={resolvePracticalIcon(card.icon)}
               title={card.title}
               description={card.description}
             />
           ))}
         </div>
-        <section className={`${cardClass} p-5`}>
+        <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-slate-600">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
               <Phone className="h-5 w-5" />
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">Numéros utiles</h2>
+            <h2 className="text-sm font-semibold text-white">Numéros utiles</h2>
           </div>
-          <div className="mt-4 divide-y divide-slate-100">
+          <div className="mt-4 divide-y divide-white/10">
             {lodging.usefulNumbers.map(item => (
               <div key={item.label} className="flex items-center justify-between py-2.5 text-xs">
-                <span className="text-slate-500">{item.label}</span>
-                <span className="font-semibold text-slate-900">{item.number}</span>
+                <span className="text-white/60">{item.label}</span>
+                <span className="font-semibold text-white">{item.number}</span>
               </div>
             ))}
           </div>
@@ -291,20 +303,31 @@ function InfoCard({
   icon: Icon,
   title,
   description,
+  tone = 'navy',
 }: {
   icon: typeof Info
   title: string
   description: string
+  tone?: 'light' | 'navy'
 }) {
+  const navy = tone === 'navy'
   return (
-    <article className={`${cardClass} p-5`}>
+    <article className={`${navy ? navyCardClass : cardClass} p-5`}>
       <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-slate-600">
+        <span
+          className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
+            navy ? 'bg-white/10 text-white' : 'bg-blue-50 text-slate-600'
+          }`}
+        >
           <Icon className="h-4 w-4" />
         </span>
         <div>
-          <h2 className="text-sm font-semibold leading-9 text-slate-900">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
+          <h2 className={`text-sm font-semibold leading-9 ${navy ? 'text-white' : 'text-slate-900'}`}>
+            {title}
+          </h2>
+          <p className={`mt-1 text-xs leading-5 ${navy ? 'text-white/60' : 'text-slate-500'}`}>
+            {description}
+          </p>
         </div>
       </div>
     </article>
