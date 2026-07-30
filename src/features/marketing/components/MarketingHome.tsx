@@ -131,7 +131,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
                 </Link>
                 <a
                   href="#services"
-                  className="inline-flex items-center gap-[14px] border-b border-white/60 pb-[5px] text-[13px] font-bold text-white hover:border-pink-500 hover:text-pink-200 xl:gap-[11px] xl:pb-1 xl:text-[11px]"
+                  className="hidden items-center gap-[14px] border-b border-white/60 pb-[5px] text-[13px] font-bold text-white hover:border-pink-500 hover:text-pink-200 sm:inline-flex xl:gap-[11px] xl:pb-1 xl:text-[11px]"
                 >
                   Découvrir nos services <span aria-hidden="true">↓</span>
                 </a>
@@ -178,10 +178,8 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
               key={label}
               data-testid={`editorial-highlight-${index}`}
               className={`relative flex min-h-[205px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-50 to-pink-50/40 p-6 xl:min-h-[205px] xl:rounded-[22px] xl:px-6 xl:py-[22px] ${
-                index === 0
-                  ? 'row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1'
-                  : ''
-              }`}
+                index === 0 ? 'lg:row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1' : ''
+              } ${index === serviceHighlights.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
             >
               <span
                 aria-hidden="true"
@@ -210,7 +208,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
               </p>
             </article>
           ))}
-          <div className="col-span-2 mt-5 flex items-center justify-center lg:col-span-3 xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0">
+          <div className="col-span-2 mt-5 hidden items-center justify-center lg:col-span-3 lg:flex xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0">
             <Link href="/concept" className={marketingDarkButtonClass}>
               Comprendre notre approche <span aria-hidden="true">→</span>
             </Link>
