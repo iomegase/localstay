@@ -1,4 +1,5 @@
 import { ArrowRight, BookOpen, Heart } from 'lucide-react'
+import { GuideGpsCard } from '@/features/guide-app/components/GuideGpsCard'
 import type {
   GuideLodging,
   GuidePoi,
@@ -66,6 +67,8 @@ export function GuideHome({
           </span>
           <ArrowRight className="h-4 w-4" />
         </button>
+
+        <GuideGpsCard />
       </div>
     </div>
   )
