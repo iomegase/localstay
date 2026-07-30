@@ -31,7 +31,7 @@ export function MarketingFooter() {
         </div>
 
         <FooterColumn title="Découvrir">
-          <Link href="/#services">Nos services</Link>
+          <Link href="/">Nos services</Link>
           <Link href="/logements">Nos logements</Link>
           <Link href="/seminaires">Séminaires</Link>
           <Link href="/concept">Notre approche</Link>

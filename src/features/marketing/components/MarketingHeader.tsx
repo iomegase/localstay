@@ -4,7 +4,7 @@ import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { marketingContainerClass } from './marketing-styles'
 
 const navigation = [
-  { href: '/#services', label: 'Nos services' },
+  { href: '/', label: 'Nos services' },
   { href: '/logements', label: 'Nos logements' },
   { href: '/seminaires', label: 'Séminaires' },
   { href: '/concept', label: 'Notre approche' },
