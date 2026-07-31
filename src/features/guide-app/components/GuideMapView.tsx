@@ -63,12 +63,6 @@ function sliceLine(coords: LngLat[], fraction: number): LngLat[] {
   return out
 }
 
-function formatDistance(meters: number) {
-  return meters < 1000
-    ? `${Math.round(meters)} m`
-    : `${(meters / 1000).toFixed(1)} km`
-}
-
 /** Itinéraire piéton Mapbox ; repli sur une ligne directe si indisponible. */
 async function fetchRoute(from: LngLat, to: LngLat): Promise<RouteResult> {
   const straight: RouteResult = { coords: [from, to], meta: null }
@@ -110,7 +104,6 @@ export function GuideMapView({
 }) {
   const mapRef = useRef<MapRef | null>(null)
   const [drawnCoords, setDrawnCoords] = useState<LngLat[] | null>(null)
-  const [routeMeta, setRouteMeta] = useState<RouteResult['meta']>(null)
   const [peeked, setPeeked] = useState(false)
   const hideTimer = useRef(0)
   const selectedPoi =
@@ -199,7 +192,6 @@ export function GuideMapView({
   useEffect(() => {
     if (!selectedPoi) {
       setDrawnCoords(null)
-      setRouteMeta(null)
       return
     }
 
@@ -208,9 +200,8 @@ export function GuideMapView({
     const from: LngLat = [lodging.longitude, lodging.latitude]
     const to: LngLat = [selectedPoi.longitude, selectedPoi.latitude]
 
-    fetchRoute(from, to).then(({ coords, meta }) => {
+    fetchRoute(from, to).then(({ coords }) => {
       if (cancelled) return
-      setRouteMeta(meta)
 
       // Cadre la carte sur l'ensemble du trajet (logement + POI + tracé).
       const map = mapRef.current?.getMap?.()
@@ -498,9 +489,7 @@ export function GuideMapView({
 
                 <span className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
                   <Navigation className="h-3 w-3" aria-hidden="true" />
-                  {routeMeta
-                    ? `${Math.max(1, Math.round(routeMeta.duration / 60))} min · ${formatDistance(routeMeta.distance)}`
-                    : (selectedPoi.distanceLabel ?? selectedPoi.address)}
+                  {selectedPoi.distanceLabel ?? selectedPoi.address}
                 </span>
 
                 <div className="mt-2.5 flex items-center gap-2">
