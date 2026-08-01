@@ -1,5 +1,6 @@
 import type { GuidePoi, GuidePoiCategory } from '@/features/guide-app/types'
 import { DEMO_POI_CONTENT } from './demo-poi-content'
+import { demoPorchereyGeometry } from './demo-trail-geometry'
 
 const categories = {
   restaurant: {
@@ -353,6 +354,10 @@ const baseDemoPois: GuidePoi[] = [
       elevationGainM: 709,
       startLabel: 'Saint-Nicolas de Véroce',
       trackingEnabled: false,
+      geometry: demoPorchereyGeometry,
+      startLatitude: 45.8535446,
+      startLongitude: 6.7236865,
+      reliability: 'reliable',
     },
   },
 ]

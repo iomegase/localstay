@@ -26,6 +26,10 @@ export type GuideTrailSummary = {
   elevationGainM: number | null
   startLabel: string | null
   trackingEnabled: boolean
+  geometry?: unknown
+  startLatitude?: number | null
+  startLongitude?: number | null
+  reliability?: 'reliable' | 'indicative'
 }
 
 export type GuidePoi = {
