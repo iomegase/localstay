@@ -143,7 +143,7 @@ export function GuidePoiDetails({
               />
               <Metric icon={Mountain} value={poi.durationLabel ?? '—'} label="Durée" />
             </div>
-            {mode === 'demo' && poi.trail.geometry && (
+            {mode === 'demo' && poi.trail.geometry != null && (
               <div className="mt-4 overflow-hidden rounded-[18px]">
                 <TrailPreviewMap
                   name={poi.name}
@@ -156,7 +156,7 @@ export function GuidePoiDetails({
                 />
               </div>
             )}
-            {mode === 'demo' && poi.trail.geometry && (
+            {mode === 'demo' && poi.trail.geometry != null && (
               <>
                 <p className="mt-2 text-center text-[8px] text-slate-400">
                   Tracé OSM · données altimétriques IGN
