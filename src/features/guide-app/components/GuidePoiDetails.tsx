@@ -115,30 +115,6 @@ export function GuidePoiDetails({
           </div>
         )}
 
-        {/* Voir sur la carte (navigation interne) */}
-        <div className="px-6">
-          <button
-            type="button"
-            onClick={() => onShowOnMap(poi)}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white active:scale-[0.98]"
-          >
-            <Map className="h-4 w-4" />
-            Voir sur la carte
-          </button>
-        </div>
-
-        {/* Appeler / Itinéraire / Site web */}
-        <div className="px-6">
-          <ActionButtons
-            phone={poi.phone ?? null}
-            website={poi.website ?? null}
-            latitude={poi.latitude}
-            longitude={poi.longitude}
-            address={poi.address}
-            variant="compact"
-          />
-        </div>
-
         {/* Bloc randonnée (sans démarrage GPS en démo) */}
         {poi.trail && (
           <section className="mx-6 rounded-[22px] bg-white p-4 shadow-sm">
@@ -182,6 +158,30 @@ export function GuidePoiDetails({
             )}
           </section>
         )}
+
+        {/* Voir sur la carte (navigation interne) */}
+        <div className="px-6">
+          <button
+            type="button"
+            onClick={() => onShowOnMap(poi)}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white active:scale-[0.98]"
+          >
+            <Map className="h-4 w-4" />
+            Voir sur la carte
+          </button>
+        </div>
+
+        {/* Appeler / Itinéraire / Site web */}
+        <div className="px-6">
+          <ActionButtons
+            phone={poi.phone ?? null}
+            website={poi.website ?? null}
+            latitude={poi.latitude}
+            longitude={poi.longitude}
+            address={poi.address}
+            variant="compact"
+          />
+        </div>
       </main>
     </article>
   )
