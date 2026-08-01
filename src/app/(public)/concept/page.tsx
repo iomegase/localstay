@@ -167,29 +167,29 @@ export default function ConceptPage() {
       <section className="bg-slate-50 py-20 sm:py-28">
         <div className={marketingContainerClass}>
           <MarketingEyebrow>Notre accompagnement</MarketingEyebrow>
-          <h2 className="max-w-2xl text-3xl font-bold tracking-[-0.045em] sm:text-5xl">
+          <h2 className="max-w-2xl text-center text-3xl font-bold tracking-[-0.045em] sm:text-5xl">
             Le logement, l’accueil et le digital réunis.
           </h2>
-          <ol className="mt-12 grid gap-4 lg:grid-cols-3">
-            {steps.map(([number, label, title, copy]) => (
-              <li key={number} className="rounded-[24px] border-t-2 border-pink-600 bg-white p-6">
-                <div className="flex items-end justify-between">
+          <ol className="mt-12 grid gap-4 grid-cols-2">
+            {steps.map(([number, label, copy]) => (
+              <li key={number} className="rounded-[24px] bg-white p-6">
+                <div className="flex items-center gap-4">
                   <span className="text-4xl font-bold text-slate-300">{number}</span>
-                  <small className="text-[9px] font-bold uppercase tracking-widest text-pink-600">{label}</small>
+                  <small className="text-[10px] font-bold uppercase tracking-widest text-pink-600">{label}</small>
                 </div>
-                <h3 className="mt-10 text-lg font-bold">{title}</h3>
-                <p className="mt-4 text-xs leading-6 text-slate-500">{copy}</p>
+            
+                <p className="mt-4 text-xs pl-4 tracking-widest leading-6 text-slate-500">{copy}</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="bg-slate-800 py-20 text-white sm:py-28">
-        <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-2`}>
+      <section className="bg-slate-800 py-20 text-white">
+        <div className={`${marketingContainerClass} grid gap-4 lg:grid-cols-2`}>
           <div>
             <MarketingEyebrow light>Notre vision</MarketingEyebrow>
-            <blockquote className="text-3xl font-bold leading-tight tracking-[-0.045em] sm:text-5xl">
+            <blockquote className="text-3xl text-center font-bold mt-10 leading-tight tracking-[-0.045em] sm:text-5xl">
               L’accueil doit rester humain.
               <span className="mt-2 block font-normal text-slate-300">
                 Le digital doit simplement le rendre plus fluide.
@@ -197,7 +197,7 @@ export default function ConceptPage() {
             </blockquote>
           </div>
           <div className="space-y-8 text-sm leading-7 text-slate-300">
-            <p>
+            <p className="text-center p-4 pt-0">
               MyStay est d’abord une conciergerie locale. La technologie intervient là où elle est
               vraiment utile : pour anticiper, transmettre les bonnes informations et laisser plus
               de place à la qualité de l’accueil.
@@ -207,9 +207,10 @@ export default function ConceptPage() {
               'Des besoins anticipés avec justesse',
               'Chaque logement valorisé durablement',
             ].map((principle, index) => (
-              <div key={principle} className="flex gap-5 border-t border-slate-700 pt-5">
+              <div key={principle} className="flex flex-col gap-2 justify-center items-center  pt-5">
                 <span className="font-bold text-pink-400">0{index + 1}</span>
                 <h3 className="font-bold text-white">{principle}</h3>
+                <p>description des principes </p>
               </div>
             ))}
           </div>
@@ -223,11 +224,11 @@ export default function ConceptPage() {
             Une expérience plus sereine des deux côtés.
           </h2>
         </div>
-        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+        <div className="mt-12 grid gap-5 grid-cols-2">
           {benefits.map(benefit => (
-            <article key={benefit.audience} className="rounded-[26px] bg-slate-50 p-7 sm:p-9">
-              <small className="font-bold uppercase tracking-widest text-pink-600">{benefit.audience}</small>
-              <h3 className="mt-5 text-2xl font-bold">{benefit.title}</h3>
+            <article key={benefit.audience} className="rounded-[24px] bg-slate-50 p-6 ">
+              <small className="text-[10px] font-bold uppercase tracking-widest text-pink-600">{benefit.audience}</small>
+              <h3 className="mt-5 text-xm font-bold">{benefit.title}</h3>
               <ul className="mt-6 space-y-3 text-sm text-slate-500">
                 {benefit.items.map(item => (
                   <li key={item} className="flex items-center gap-3">
