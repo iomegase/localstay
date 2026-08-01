@@ -1,13 +1,16 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
-import { Check, Heart, Home, QrCode, Smartphone } from 'lucide-react'
+import { ArrowRight, Check, Heart, Home, QrCode } from 'lucide-react'
 import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
-  marketingDarkButtonClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
+
+const outlineButtonClass =
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 text-xs font-bold text-slate-900 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-colors hover:border-slate-300'
 
 export const metadata: Metadata = {
   title: 'Notre approche',
@@ -56,13 +59,13 @@ const benefits = [
 export default function ConceptPage() {
   return (
     <MarketingShell>
-      <section className="bg-slate-50 py-16 sm:py-24">
-        <div className={`${marketingContainerClass} grid items-center gap-12 lg:grid-cols-2`}>
+      <section className="bg-white py-16 sm:py-24">
+        <div className={`${marketingContainerClass} grid items-center gap-14 lg:grid-cols-2`}>
           <div>
             <MarketingEyebrow>Notre approche</MarketingEyebrow>
-            <h1 className="text-4xl font-bold leading-[1.03] tracking-[-0.055em] sm:text-6xl">
+            <h1 className="text-4xl font-bold leading-[1.03] tracking-[-0.055em] text-slate-900 sm:text-6xl">
               Une conciergerie humaine,
-              <span className="block font-normal text-slate-500">prolongée par le digital.</span>
+              <span className="block font-normal text-slate-400">prolongée par le digital.</span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-8 text-slate-500">
               Nous prenons en charge la gestion du logement et l’accueil des voyageurs. Notre guide
@@ -74,39 +77,74 @@ export default function ConceptPage() {
               </Link>
               <Link
                 href="/guide/saint-gervais-les-bains?lodging=dc682b31-d390-4a3b-ae2e-e7342581535f"
-                className={marketingDarkButtonClass}
+                className={outlineButtonClass}
               >
                 Voir le guide voyageur
               </Link>
             </div>
           </div>
 
-          <div className="relative min-h-[430px] overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-800 to-[#30253f] p-6 text-white">
-            <div className="absolute left-6 top-8 flex items-center gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur">
-              <Home aria-hidden="true" className="h-6 w-6 text-pink-400" />
-              <div>
-                <small className="block text-[9px] uppercase tracking-widest text-slate-300">Équipe MyStay</small>
-                <strong className="text-sm">Prépare et accompagne le séjour</strong>
+          <div className="relative mx-auto flex min-h-[470px] w-full max-w-[500px] items-center justify-center">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 grid place-items-center">
+              <span className="absolute h-[440px] w-[440px] rounded-full border border-dashed border-slate-200" />
+              <span className="absolute h-[320px] w-[320px] rounded-full border border-dashed border-slate-200/80" />
+            </div>
+
+            <div className="relative z-10 w-[206px] overflow-hidden rounded-[34px] border-[6px] border-white bg-slate-900 shadow-[0_34px_70px_rgba(15,23,42,0.22)]">
+              <div className="relative aspect-[9/16]">
+                <Image
+                  src="/marketing/hero-chalet.png"
+                  alt=""
+                  fill
+                  sizes="206px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                <div className="absolute inset-x-4 top-7 text-white">
+                  <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-white/70">
+                    Bienvenue à
+                  </span>
+                  <p className="mt-1 font-serif text-[26px] leading-[1.05]">Saint-Gervais</p>
+                </div>
+                <div className="absolute inset-x-4 bottom-5 space-y-2.5">
+                  <span className="block h-9 rounded-xl bg-white/15 backdrop-blur-sm" />
+                  <span className="block h-9 rounded-xl bg-white/15 backdrop-blur-sm" />
+                </div>
               </div>
             </div>
-            <div className="absolute left-8 top-[190px] grid h-20 w-20 place-items-center rounded-2xl bg-white text-slate-800">
-              <QrCode aria-hidden="true" className="h-12 w-12" />
-            </div>
-            <div className="absolute right-8 top-24 w-[180px] rounded-[28px] border-8 border-white bg-white p-4 text-slate-800 shadow-2xl">
-              <Smartphone aria-hidden="true" className="h-5 w-5 text-pink-600" />
-              <small className="mt-6 block text-[9px] uppercase tracking-widest text-slate-500">Votre séjour</small>
-              <strong className="mt-1 block text-xl">Saint-Gervais</strong>
-              <div className="mt-5 space-y-2">
-                <span className="block h-9 rounded-xl bg-slate-100" />
-                <span className="block h-9 rounded-xl bg-slate-100" />
-                <span className="block h-9 rounded-xl bg-pink-50" />
+
+            <div className="absolute -left-2 top-3 z-20 flex max-w-[220px] items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.12)]">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
+                <Home aria-hidden="true" className="h-4 w-4" />
+              </span>
+              <div>
+                <small className="block text-[8px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  Équipe MyStay
+                </small>
+                <strong className="block text-xs leading-tight text-slate-800">
+                  Prépare et accompagne le séjour
+                </strong>
               </div>
             </div>
-            <div className="absolute bottom-7 left-7 flex items-center gap-3 rounded-2xl bg-white p-4 text-slate-800 shadow-xl">
-              <Heart aria-hidden="true" className="h-5 w-5 text-pink-600" />
+
+            <div className="absolute left-3 top-[152px] z-20 flex items-center gap-2">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white p-2 shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+                <QrCode aria-hidden="true" className="h-full w-full text-slate-900" />
+              </div>
+              <ArrowRight aria-hidden="true" className="h-4 w-4 text-slate-400" />
+            </div>
+
+            <div className="absolute -right-2 bottom-6 z-20 flex max-w-[212px] items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.12)]">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
+                <Heart aria-hidden="true" className="h-4 w-4" />
+              </span>
               <div>
-                <small className="block text-[9px] uppercase tracking-widest text-slate-500">Voyageur</small>
-                <strong className="text-sm">Profite pleinement du séjour</strong>
+                <small className="block text-[8px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  Voyageur
+                </small>
+                <strong className="block text-xs leading-tight text-slate-800">
+                  Profite pleinement du séjour
+                </strong>
               </div>
             </div>
           </div>
@@ -211,15 +249,24 @@ export default function ConceptPage() {
         </div>
       </section>
 
-      <section className={`${marketingContainerClass} pb-20 sm:pb-28`}>
-        <div className="rounded-[28px] bg-gradient-to-r from-[#30253f] to-slate-800 p-8 text-white sm:p-12">
-          <MarketingEyebrow light>Votre projet</MarketingEyebrow>
-          <h2 className="text-4xl font-bold tracking-[-0.05em] sm:text-5xl">
-            Un logement bien géré.
-            <span className="block font-normal text-slate-300">Des voyageurs bien accueillis.</span>
-          </h2>
-          <Link href="/confier-mon-logement" className={`${marketingPrimaryButtonClass} mt-8`}>
+      <section className={`${marketingContainerClass} pb-24 pt-4 text-center sm:pb-32`}>
+        <div className="flex justify-center">
+          <MarketingEyebrow>Votre projet</MarketingEyebrow>
+        </div>
+        <h2 className="mx-auto mt-6 max-w-4xl font-serif text-[38px] leading-[1.12] tracking-[-0.01em] text-slate-900 sm:text-[54px]">
+          Un logement bien géré.
+          <span className="mt-1 block italic text-pink-600">Des voyageurs bien accueillis.</span>
+        </h2>
+        <p className="mx-auto mt-7 max-w-xl text-base leading-8 text-slate-500">
+          Parlons de votre bien, de vos priorités et de l’accompagnement adapté pour simplifier sa
+          gestion au quotidien.
+        </p>
+        <div className="mt-9 flex flex-wrap justify-center gap-3">
+          <Link href="/confier-mon-logement" className={marketingPrimaryButtonClass}>
             Échanger sur mon projet
+          </Link>
+          <Link href="/logements" className={outlineButtonClass}>
+            Découvrir nos logements <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </div>
       </section>
