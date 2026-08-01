@@ -134,6 +134,8 @@ export default async function LodgingDetailPage({ params }: Props) {
             </div>
           </section>
 
+          <LodgingMarketingGallery title={detail.title} photos={detail.photos} />
+
           <LodgingEssentials
             title={detail.title}
             maxGuests={detail.max_guests}
@@ -142,8 +144,6 @@ export default async function LodgingDetailPage({ params }: Props) {
             bedCount={detail.bed_count}
             surfaceM2={detail.surface_m2}
           />
-
-          <LodgingMarketingGallery title={detail.title} photos={detail.photos} />
 
           <section
             data-testid="lodging-story"
