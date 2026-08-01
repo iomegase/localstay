@@ -590,6 +590,7 @@
 | AC-05-09 | Le modal ne déborde pas horizontalement et conserve son format application sur mobile, tablette et desktop | `src/features/guide-demo/components/GuideDemoModal.tsx`<br>`src/features/guide-app/components/GuideApp.tsx` | `tests/e2e/public-guide-demo.AC-05-01-09.test.ts` | ✅ done |
 | AC-05-10 | Les raccourcis Arrivée et Wi-Fi utilisent des icônes slate neutres ; le header conserve la ville et le menu autour d’un monogramme MyStay seul et plus imposant | `src/features/guide-app/components/GuideHome.tsx`<br>`src/features/guide-app/components/GuideHeader.tsx` | `tests/integration/public-guide-demo.AC-05-10.visual-polish.test.tsx`<br>`tests/integration/approved-brand-identity.AC-01-04.guide-header.test.tsx` | ✅ done |
 | AC-05-11/BR-31 | La rangée horizontale de filtres des coups de cœur devient sticky immédiatement sous le header pendant le scroll, sans listener JavaScript et avec une scrollbar masquée | `src/features/guide-app/components/GuideFavoritesPage.tsx` | `tests/integration/public-guide-demo.AC-05-11.sticky-filters.test.tsx`<br>`tests/e2e/public-guide-demo.AC-05-01-09.test.ts` | ✅ done |
+| AC-05-13/BR-33 | La fiche d’un POI randonnée place physiquement les informations du parcours avant le bouton Carte, tout en conservant les métriques et le suivi GPS désactivé en démonstration | `src/features/guide-app/components/GuidePoiDetails.tsx` | `tests/integration/public-guide-demo.AC-05-04.navigation.test.tsx`<br>`tests/unit/public-guide-demo.AC-05-08.trail.test.ts` | ✅ done |
 
 ## 032 — Approved Brand Identity
 
