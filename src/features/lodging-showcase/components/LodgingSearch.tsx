@@ -162,23 +162,24 @@ export function LodgingSearch({ lodgings }: { lodgings: MarketingLodgingCard[] }
         </div>
       </div>
 
-      {/* ---------- Poignée mobile ---------- */}
-      <button
-        type="button"
-        onClick={() => setDrawerOpen(true)}
-        aria-label="Ouvrir les filtres"
-        className="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-1.5 rounded-l-2xl bg-slate-900 py-4 pl-3.5 pr-3 text-white shadow-[0_10px_30px_rgba(15,23,42,0.28)] lg:hidden"
-      >
-        {active && (
-          <span className="absolute left-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-pink-600 text-[9px] font-bold">
-            {activeCount}
-          </span>
-        )}
-        <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
-        <span className="text-[9px] font-bold uppercase tracking-[0.12em] [writing-mode:vertical-rl] [text-orientation:mixed]">
+      {/* ---------- Déclencheur mobile (aligné à gauche, au-dessus des photos) ---------- */}
+      <div className="flex items-center justify-between gap-4 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Ouvrir les filtres"
+          className="inline-flex items-center gap-2.5 rounded-full bg-slate-900 py-3 pl-5 pr-4 text-xs font-bold uppercase tracking-[0.08em] text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)] transition-colors hover:bg-pink-600"
+        >
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           Filtrer
-        </span>
-      </button>
+          {active && (
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-pink-600 px-1 text-[10px] font-bold">
+              {activeCount}
+            </span>
+          )}
+        </button>
+        <span className="text-xs font-bold text-slate-500">{resultLabel}</span>
+      </div>
 
       {/* ---------- Tiroir mobile ---------- */}
       <AnimatePresence>
