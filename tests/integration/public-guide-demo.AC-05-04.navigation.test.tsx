@@ -66,6 +66,21 @@ describe('GuideApp demo navigation', () => {
     expect(
       screen.queryByRole('button', { name: /démarrer/i }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.getByLabelText('Aperçu de la randonnée L’Alpage de Porcherey'),
+    ).toBeInTheDocument()
+
+    const startButton = screen.getByRole('button', {
+      name: 'Commencer la randonnée',
+    })
+    expect(startButton).toBeDisabled()
+    expect(startButton).toHaveAttribute('aria-disabled', 'true')
+    expect(
+      screen.queryByRole('link', { name: /démarrer la randonnée/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Suivi GPS indisponible dans le guide de démonstration.'),
+    ).toBeInTheDocument()
 
     const trailHeading = screen.getByRole('heading', {
       name: 'Les informations du parcours',

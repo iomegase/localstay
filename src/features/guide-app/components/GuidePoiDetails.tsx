@@ -1,4 +1,4 @@
-import { ArrowLeft, Map, MapPin, Mountain, Route, Star, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Map, MapPin, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HoursBlock } from '@/features/categories/components/HoursBlock'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
@@ -6,6 +6,7 @@ import { ActionButtons } from '@/features/categories/components/ActionButtons'
 import { haversineKm } from '@/features/geolocation/lib/user-location'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import { canStartTrail } from '@/features/guide-app/lib/trail-access'
+import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
 import type { GuideLodging, GuideMode, GuidePoi } from '@/features/guide-app/types'
 
 export function GuidePoiDetails({
@@ -142,6 +143,35 @@ export function GuidePoiDetails({
               />
               <Metric icon={Mountain} value={poi.durationLabel ?? '—'} label="Durée" />
             </div>
+            {mode === 'demo' && poi.trail.geometry && (
+              <div className="mt-4 overflow-hidden rounded-[18px]">
+                <TrailPreviewMap
+                  name={poi.name}
+                  geometry={poi.trail.geometry}
+                  startLatitude={poi.trail.startLatitude ?? null}
+                  startLongitude={poi.trail.startLongitude ?? null}
+                  startHref={null}
+                  reliability={poi.trail.reliability}
+                  variant="compact"
+                />
+              </div>
+            )}
+            {mode === 'demo' && poi.trail.geometry && (
+              <>
+                <p className="mt-2 text-center text-[8px] text-slate-400">
+                  Tracé OSM · données altimétriques IGN
+                </p>
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  className="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-emerald-700/35 px-4 py-3 text-xs font-bold text-white"
+                >
+                  <Play className="h-4 w-4 fill-current" aria-hidden="true" />
+                  Commencer la randonnée
+                </button>
+              </>
+            )}
             {canStartTrail(mode, poi.trail) && (
               <button
                 type="button"
@@ -153,7 +183,7 @@ export function GuidePoiDetails({
             )}
             {mode === 'demo' && (
               <p className="mt-4 rounded-xl bg-slate-50 p-3 text-[9px] leading-4 text-slate-500">
-                Le suivi GPS est volontairement désactivé dans le guide de démonstration.
+                Suivi GPS indisponible dans le guide de démonstration.
               </p>
             )}
           </section>
