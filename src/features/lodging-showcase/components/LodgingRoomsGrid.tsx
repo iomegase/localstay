@@ -22,7 +22,7 @@ export function LodgingRoomsGrid({ photos }: { photos: Photo[] }) {
       <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
         En images
       </span>
-      <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
+      <h2 className="mb-7 mt-2 text-[20px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
         L&apos;espace de vie
       </h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

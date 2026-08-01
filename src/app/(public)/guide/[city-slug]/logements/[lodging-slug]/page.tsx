@@ -22,7 +22,7 @@ import { contextualContactPath } from '@/features/city-guide/lib/public-paths'
 import { MarketingShell } from '@/features/marketing/components/MarketingShell'
 import {
   marketingContainerClass,
-  marketingDarkButtonClass,
+  // marketingDarkButtonClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/marketing-styles'
 
@@ -104,9 +104,9 @@ export default async function LodgingDetailPage({ params }: Props) {
           >
             <Link
               href="/logements"
-              className="group flex w-fit items-center text-[12px] font-bold text-slate-500 transition-colors hover:text-pink-600"
+              className="group flex w-fit items-center tracking-wide text-[10px] uppercase font-bold text-slate-500 transition-colors hover:text-pink-600"
             >
-              <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" strokeWidth={2} />
+              <ArrowLeft className="mr-1.5 uppercase h-4 w-4  transition-transform group-hover:-translate-x-1" strokeWidth={2} />
               Tous les logements
             </Link>
 
@@ -124,13 +124,13 @@ export default async function LodgingDetailPage({ params }: Props) {
                 </div>
               </div>
 
-              <ExternalBookingCta
+              {/* <ExternalBookingCta
                 externalBookingUrl={detail.external_booking_url}
                 platform={detail.external_booking_platform}
                 citySlug={citySlug}
                 lodgingId={detail.id}
                 className={`${marketingDarkButtonClass} shrink-0 px-7`}
-              />
+              /> */}
             </div>
           </section>
 
@@ -158,9 +158,9 @@ export default async function LodgingDetailPage({ params }: Props) {
               </h2>
               <div className="mt-7 space-y-5">
                 {descriptionParagraphs.map(paragraph => (
-                  <p key={paragraph} className="whitespace-pre-line text-[15px] leading-[1.85] text-slate-500">
+                  <p key={paragraph} className="whitespace-pre-line text-[13px] text-justify leading-[1.85] text-slate-500">
                     {paragraph}
-                  </p>
+                  </p>  
                 ))}
               </div>
             </div>
@@ -220,7 +220,7 @@ export default async function LodgingDetailPage({ params }: Props) {
                   <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-300">
                     Réserver ce logement
                   </span>
-                  <h2 className="mt-3 max-w-[600px] text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] md:text-[38px]">
+                  <h2 className="mt-3 max-w-[600px] text-[30px] font-semibold leading-[1.2] tracking-[-0.04em] md:text-[38px]">
                     Envie de séjourner au {detail.title} ?
                   </h2>
                   <p className="mt-4 max-w-[560px] text-[14px] leading-relaxed text-slate-300">
