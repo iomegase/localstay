@@ -200,7 +200,6 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByText('Un chalet lumineux pour decouvrir Annecy.')).toBeInTheDocument()
     expect(screen.getByText('Une description detaillee du chalet Hygge pour la page publique.')).toBeInTheDocument()
     expect(screen.getByText('Équipements')).toBeInTheDocument()
-    expect(screen.getByText('Le confort essentiel, sur place.')).toBeInTheDocument()
     expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
     expect(screen.getByText('Réserver ce logement')).toBeInTheDocument()
 
@@ -234,7 +233,10 @@ describe('lodging showcase public pages', () => {
     )
     expect(screen.getByTestId('lodging-stay-card')).toHaveTextContent('Votre séjour')
     expect(screen.getByRole('heading', { name: 'Les essentiels, en un coup d’œil.' })).toBeInTheDocument()
-    expect(screen.getByTestId('lodging-feature-sections')).toHaveTextContent('Le confort essentiel, sur place.')
+    const features = screen.getByTestId('lodging-feature-sections')
+    expect(features).toHaveTextContent('Équipements')
+    expect(features).not.toHaveTextContent('Le confort essentiel')
+    expect(features).not.toHaveTextContent('Couchages')
     expect(screen.getByText("L'espace de vie")).toBeInTheDocument()
   })
 

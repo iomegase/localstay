@@ -197,8 +197,6 @@ export default async function LodgingDetailPage({ params }: Props) {
           </section>
 
           <LodgingFeatureSections
-            bedroomCount={detail.bedroom_count}
-            bedCount={detail.bed_count}
             includedAmenities={detail.amenities_included}
             onRequestAmenities={detail.amenities_on_request}
           />
