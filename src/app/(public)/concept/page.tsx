@@ -90,7 +90,7 @@ export default function ConceptPage() {
               <span className="absolute h-[320px] w-[320px] rounded-full border border-dashed border-slate-200/80" />
             </div>
 
-            <div className="relative z-10 w-[240px] drop-shadow-[0_34px_60px_rgba(15,23,42,0.22)]">
+            <div className="relative z-10 w-[240px] drop-shadow-[0_34px_60px_rgba(189,146,84,0.4)]">
               <Image
                 src="/marketing/telephone-demo-trim.png"
                 alt="Aperçu du guide MyStay sur smartphone"
