@@ -141,7 +141,6 @@ export default async function LodgingDetailPage({ params }: Props) {
             maxGuests={detail.max_guests}
             bedroomCount={detail.bedroom_count}
             bathroomCount={detail.bathroom_count}
-            bedCount={detail.bed_count}
             surfaceM2={detail.surface_m2}
           />
 

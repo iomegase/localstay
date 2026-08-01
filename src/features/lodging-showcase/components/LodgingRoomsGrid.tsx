@@ -25,7 +25,7 @@ export function LodgingRoomsGrid({ photos }: { photos: Photo[] }) {
       <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
         L&apos;espace de vie
       </h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {groups.map(group => (
           <RoomGroupCard key={group.label} group={group} />
         ))}
@@ -52,7 +52,7 @@ function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
   }
 
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-slate-100 shadow-sm">
+    <div className="relative aspect-square w-full overflow-hidden rounded-[20px] bg-slate-100 shadow-sm">
       <div
         ref={trackRef}
         onScroll={multiple ? handleScroll : undefined}

@@ -1,4 +1,4 @@
-import { Bath, BedDouble, BedSingle, Maximize2, UsersRound } from 'lucide-react'
+import { Bath, BedDouble, Maximize2, UsersRound } from 'lucide-react'
 
 type Essential = {
   label: string
@@ -15,14 +15,12 @@ export function LodgingEssentials({
   maxGuests,
   bedroomCount,
   bathroomCount,
-  bedCount,
   surfaceM2,
 }: {
   title: string
   maxGuests: number
   bedroomCount: number | null
   bathroomCount: number | null
-  bedCount: number | null
   surfaceM2: number | null
 }) {
   const essentials: Array<Essential | null> = [
@@ -31,9 +29,6 @@ export function LodgingEssentials({
     bedroomCount == null
       ? null
       : { label: 'Chambres', value: countLabel(bedroomCount, 'chambre', 'chambres'), icon: BedDouble },
-    bedCount == null
-      ? null
-      : { label: 'Couchages', value: countLabel(bedCount, 'couchage', 'couchages'), icon: BedSingle },
     bathroomCount == null
       ? null
       : {
@@ -67,17 +62,17 @@ export function LodgingEssentials({
           {visibleEssentials.map(({ label, value, icon: Icon }) => (
             <div
               key={label}
-              className="flex min-h-[64px] flex-col items-start justify-center gap-1 border-b border-r border-slate-100 px-3 py-2 even:border-r-0 last:border-b-0 md:min-h-[82px] md:gap-1.5 md:border-b-0 md:border-r-0 md:px-4 md:py-2.5"
+              className="flex min-h-[64px] flex-col items-center justify-center gap-1 border-b border-r border-slate-100 px-3 py-2 text-center even:border-r-0 last:border-b-0 md:min-h-[82px] md:gap-1.5 md:border-b-0 md:border-r-0 md:px-4 md:py-2.5"
             >
-              <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-pink-600" strokeWidth={1.8} />
-              <div>
+              <div className="flex items-center gap-1.5">
+                <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-pink-600" strokeWidth={1.8} />
                 <dt className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
                   {label}
                 </dt>
-                <dd className="mt-0.5 text-[14px] font-bold tracking-[-0.02em] text-slate-800">
-                  {value}
-                </dd>
               </div>
+              <dd className="text-[14px] font-bold tracking-[-0.02em] text-slate-800">
+                {value}
+              </dd>
             </div>
           ))}
         </dl>

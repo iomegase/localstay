@@ -246,11 +246,11 @@ describe('lodging showcase public pages', () => {
 
     const section = screen.getByTestId('lodging-essentials')
     expect(section).toHaveClass('xl:py-10')
-    expect(section.querySelectorAll('dl > div')).toHaveLength(5)
+    expect(section.querySelectorAll('dl > div')).toHaveLength(4)
     expect(section).toHaveTextContent('70 m²')
     expect(section).toHaveTextContent('4 voyageurs')
     expect(section).toHaveTextContent('2 chambres')
-    expect(section).toHaveTextContent('3 couchages')
+    expect(section).not.toHaveTextContent('couchage')
     expect(section).toHaveTextContent('1 salle de bain')
     expect(section).not.toHaveTextContent('Arrivée')
     expect(section).not.toHaveTextContent('Départ')
