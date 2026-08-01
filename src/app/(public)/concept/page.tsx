@@ -113,8 +113,8 @@ export default function ConceptPage() {
               </div>
             </div>
 
-            <div className="absolute -left-2 top-3 z-20 flex max-w-[220px] items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.12)]">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
+            <div className="absolute -left-2 top-3 z-20 flex max-w-[220px] items-center gap-3 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.06),transparent_65%)] bg-[#f7f6f4] p-3 pt-3.5 shadow-[0_18px_38px_rgba(15,23,42,0.12)] before:absolute before:left-4 before:top-0 before:h-[3px] before:w-9 before:rounded-b-full before:bg-pink-600">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500">
                 <Home aria-hidden="true" className="h-4 w-4" />
               </span>
               <div>
@@ -134,8 +134,8 @@ export default function ConceptPage() {
               <ArrowRight aria-hidden="true" className="h-4 w-4 text-slate-400" />
             </div>
 
-            <div className="absolute -right-2 bottom-6 z-20 flex max-w-[212px] items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_18px_38px_rgba(15,23,42,0.12)]">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
+            <div className="absolute -right-2 bottom-6 z-20 flex max-w-[212px] items-center gap-3 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.06),transparent_65%)] bg-[#f7f6f4] p-3 pt-3.5 shadow-[0_18px_38px_rgba(15,23,42,0.12)] before:absolute before:left-4 before:top-0 before:h-[3px] before:w-9 before:rounded-b-full before:bg-pink-600">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500">
                 <Heart aria-hidden="true" className="h-4 w-4" />
               </span>
               <div>
