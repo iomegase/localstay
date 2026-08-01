@@ -1,4 +1,13 @@
-import { Bath, BedDouble, Maximize2, UsersRound } from 'lucide-react'
+import {
+  Bath,
+  BedDouble,
+  Clapperboard,
+  Droplets,
+  Maximize2,
+  Sparkles,
+  UsersRound,
+  Waves,
+} from 'lucide-react'
 
 type Essential = {
   label: string
@@ -6,8 +15,14 @@ type Essential = {
   icon: typeof Maximize2
 }
 
-function countLabel(value: number, singular: string, plural: string) {
-  return `${value} ${value > 1 ? plural : singular}`
+function hasAmenity(amenities: string[], keywords: string[]) {
+  return amenities.some(amenity => {
+    const normalized = amenity
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+    return keywords.some(keyword => normalized.includes(keyword))
+  })
 }
 
 export function LodgingEssentials({
@@ -16,26 +31,32 @@ export function LodgingEssentials({
   bedroomCount,
   bathroomCount,
   surfaceM2,
+  amenities = [],
 }: {
   title: string
   maxGuests: number
   bedroomCount: number | null
   bathroomCount: number | null
   surfaceM2: number | null
+  amenities?: string[]
 }) {
   const essentials: Array<Essential | null> = [
     surfaceM2 == null ? null : { label: 'Surface', value: `${surfaceM2} m²`, icon: Maximize2 },
-    { label: 'Voyageurs', value: countLabel(maxGuests, 'voyageur', 'voyageurs'), icon: UsersRound },
-    bedroomCount == null
-      ? null
-      : { label: 'Chambres', value: countLabel(bedroomCount, 'chambre', 'chambres'), icon: BedDouble },
-    bathroomCount == null
-      ? null
-      : {
-          label: 'Salles de bain',
-          value: countLabel(bathroomCount, 'salle de bain', 'salles de bain'),
-          icon: Bath,
-        },
+    { label: 'Voyageurs', value: String(maxGuests), icon: UsersRound },
+    bedroomCount == null ? null : { label: 'Chambres', value: String(bedroomCount), icon: BedDouble },
+    bathroomCount == null ? null : { label: 'Salles de bain', value: String(bathroomCount), icon: Bath },
+    hasAmenity(amenities, ['piscine', 'pool'])
+      ? { label: 'Piscine', value: 'Oui', icon: Waves }
+      : null,
+    hasAmenity(amenities, ['hammam'])
+      ? { label: 'Hammam', value: 'Oui', icon: Droplets }
+      : null,
+    hasAmenity(amenities, ['jacuzzi', 'spa', 'bain a remous', 'bain nordique'])
+      ? { label: 'Jacuzzi', value: 'Oui', icon: Sparkles }
+      : null,
+    hasAmenity(amenities, ['cinema', 'home cinema', 'projecteur'])
+      ? { label: 'Cinéma', value: 'Oui', icon: Clapperboard }
+      : null,
   ]
 
   const visibleEssentials = essentials.filter((item): item is Essential => item !== null)
@@ -70,7 +91,7 @@ export function LodgingEssentials({
                   {label}
                 </dt>
               </div>
-              <dd className="text-[14px] font-bold tracking-[-0.02em] text-slate-800">
+              <dd className="w-full text-center text-[14px] font-bold tracking-[-0.02em] text-slate-800">
                 {value}
               </dd>
             </div>

@@ -142,6 +142,7 @@ export default async function LodgingDetailPage({ params }: Props) {
             bedroomCount={detail.bedroom_count}
             bathroomCount={detail.bathroom_count}
             surfaceM2={detail.surface_m2}
+            amenities={[...detail.amenities_included, ...detail.amenities_on_request]}
           />
 
           <section
