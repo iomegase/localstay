@@ -90,14 +90,20 @@ export default function ConceptPage() {
               <span className="absolute h-[320px] w-[320px] rounded-full border border-dashed border-slate-200/80" />
             </div>
 
-            <Image
-              src="/marketing/telephone-demo-trim.png"
-              alt="Aperçu du guide MyStay sur smartphone"
-              width={598}
-              height={1185}
-              sizes="240px"
-              className="relative z-10 h-auto w-[240px] rounded-[34px] border-[5px] border-white bg-white drop-shadow-[0_34px_60px_rgba(15,23,42,0.22)]"
-            />
+            <div className="relative z-10 w-[240px] drop-shadow-[0_34px_60px_rgba(15,23,42,0.22)]">
+              <Image
+                src="/marketing/telephone-demo-trim.png"
+                alt="Aperçu du guide MyStay sur smartphone"
+                width={598}
+                height={1185}
+                sizes="240px"
+                className="h-auto w-full rounded-[34px] bg-white"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-[34px] border-[5px] border-white"
+              />
+            </div>
 
             <div className="absolute -left-2 top-3 z-20 flex max-w-[220px] items-center gap-3 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.06),transparent_65%)] bg-[#f7f6f4] p-3 pt-3.5 shadow-[0_18px_38px_rgba(15,23,42,0.12)] before:absolute before:left-4 before:top-0 before:h-[3px] before:w-9 before:rounded-b-full before:bg-pink-600">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500">
