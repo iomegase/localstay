@@ -17,6 +17,8 @@ export default async function PublicLayout({
   const requestHeaders = await headers()
   const isMarketingRoute =
     requestHeaders.get('x-staylocal-marketing-route') === '1'
+  const isGuideAppRoute =
+    requestHeaders.get('x-staylocal-guide-app-route') === '1'
   const mode = lodgingContext ? 'lodging' : 'anonymous'
   const analytics = (
     <>
@@ -28,7 +30,7 @@ export default async function PublicLayout({
     </>
   )
 
-  if (!lodgingContext || isMarketingRoute) {
+  if (!lodgingContext || isMarketingRoute || isGuideAppRoute) {
     return (
       <>
         {children}

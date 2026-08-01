@@ -44,14 +44,18 @@ export function isAnonymousMarketingPath(pathname: string) {
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isMarketingRoute = isAnonymousMarketingPath(path)
+  const isGuideAppRoute = path === '/sejour'
   const requestHeaders = new Headers(request.headers)
 
   if (isMarketingRoute) {
     requestHeaders.set('x-staylocal-marketing-route', '1')
   }
+  if (isGuideAppRoute) {
+    requestHeaders.set('x-staylocal-guide-app-route', '1')
+  }
 
   const response = NextResponse.next(
-    isMarketingRoute
+    isMarketingRoute || isGuideAppRoute
       ? {
         request: {
           headers: requestHeaders,

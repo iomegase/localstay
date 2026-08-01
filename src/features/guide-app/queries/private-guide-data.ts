@@ -110,7 +110,7 @@ export async function getPrivateGuideData(
       tagline:
         customization?.welcome_message?.trim() ||
         `Bienvenue à ${lodging.city.name}`,
-      coverImage: coverImage || '/fallback/fallback-lodging.png',
+      coverImage: coverImage || '/marketing/hero-chalet.png',
       gallery: coverImage ? [coverImage] : [],
       latitude: customization?.lodging_latitude ?? lodging.city.latitude,
       longitude: customization?.lodging_longitude ?? lodging.city.longitude,
