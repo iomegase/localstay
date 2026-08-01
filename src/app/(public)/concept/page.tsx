@@ -90,26 +90,15 @@ export default function ConceptPage() {
               <span className="absolute h-[320px] w-[320px] rounded-full border border-dashed border-slate-200/80" />
             </div>
 
-            <div className="relative z-10 w-[206px] overflow-hidden rounded-[34px] border-[6px] border-white bg-slate-900 shadow-[0_34px_70px_rgba(15,23,42,0.22)]">
-              <div className="relative aspect-[9/16]">
+            <div className="relative z-10 w-[210px] overflow-hidden rounded-[34px] border-[6px] border-white bg-slate-900 shadow-[0_34px_70px_rgba(15,23,42,0.22)]">
+              <div className="relative aspect-[940/1512]">
                 <Image
-                  src="/marketing/hero-chalet.png"
-                  alt=""
+                  src="/marketing/telephone-demo.png"
+                  alt="Aperçu du guide MyStay sur smartphone"
                   fill
-                  sizes="206px"
+                  sizes="210px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-                <div className="absolute inset-x-4 top-7 text-white">
-                  <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-white/70">
-                    Bienvenue à
-                  </span>
-                  <p className="mt-1 font-serif text-[26px] leading-[1.05]">Saint-Gervais</p>
-                </div>
-                <div className="absolute inset-x-4 bottom-5 space-y-2.5">
-                  <span className="block h-9 rounded-xl bg-white/15 backdrop-blur-sm" />
-                  <span className="block h-9 rounded-xl bg-white/15 backdrop-blur-sm" />
-                </div>
               </div>
             </div>
 
