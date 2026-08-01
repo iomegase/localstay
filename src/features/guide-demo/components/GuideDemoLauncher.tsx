@@ -11,7 +11,17 @@ const GuideDemoModal = dynamic(
   { ssr: false },
 )
 
-export function GuideDemoLauncher() {
+const DEFAULT_LAUNCHER_CLASS = `${marketingDarkButtonClass} mt-7 xl:mt-[19px] xl:min-h-[42px] xl:gap-[14px] xl:px-[17px] xl:text-[11px]`
+
+export function GuideDemoLauncher({
+  className = DEFAULT_LAUNCHER_CLASS,
+  label = 'Voir le guide d’exemple',
+  showIcon = true,
+}: {
+  className?: string
+  label?: string
+  showIcon?: boolean
+} = {}) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -31,14 +41,9 @@ export function GuideDemoLauncher() {
 
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={openDemo}
-        className={`${marketingDarkButtonClass} mt-7 xl:mt-[19px] xl:min-h-[42px] xl:gap-[14px] xl:px-[17px] xl:text-[11px]`}
-      >
-        <Smartphone className="h-4 w-4" aria-hidden="true" />
-        Voir le guide d’exemple
+      <button ref={triggerRef} type="button" onClick={openDemo} className={className}>
+        {showIcon && <Smartphone className="h-4 w-4" aria-hidden="true" />}
+        {label}
       </button>
       {isLoaded && (
         <GuideDemoModal open={isOpen} onOpenChange={setIsOpen} />

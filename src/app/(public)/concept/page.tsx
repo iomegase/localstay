@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Check, Heart, Home, QrCode } from 'lucide-react'
+import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLauncher'
 import {
   MarketingEyebrow,
   MarketingShell,
@@ -75,12 +76,11 @@ export default function ConceptPage() {
               <Link href="/confier-mon-logement" className={marketingPrimaryButtonClass}>
                 Confier mon logement
               </Link>
-              <Link
-                href="/guide/saint-gervais-les-bains?lodging=dc682b31-d390-4a3b-ae2e-e7342581535f"
+              <GuideDemoLauncher
                 className={outlineButtonClass}
-              >
-                Voir le guide voyageur
-              </Link>
+                label="Voir le guide voyageur"
+                showIcon={false}
+              />
             </div>
           </div>
 
