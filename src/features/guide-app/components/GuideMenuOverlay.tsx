@@ -3,25 +3,33 @@
 import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
+import Link from 'next/link'
 
-// Items repris du menu public existant. Liens inactifs pour l'instant (démo).
-const MENU_ITEMS = [
-  'Bienvenue',
-  'Vos favoris',
-  'Tous nos logements',
-  'Agenda',
-  'Blog',
-  'Nous contacter',
-] as const
+export type GuideMenuItem = {
+  label: string
+  href?: string
+}
+
+// Items repris du menu public existant. Ils restent inactifs dans la démo.
+const DEFAULT_MENU_ITEMS: GuideMenuItem[] = [
+  { label: 'Bienvenue' },
+  { label: 'Vos favoris' },
+  { label: 'Tous nos logements' },
+  { label: 'Agenda' },
+  { label: 'Blog' },
+  { label: 'Nous contacter' },
+]
 
 export function GuideMenuOverlay({
   open,
   onClose,
   lodgingName,
+  items = DEFAULT_MENU_ITEMS,
 }: {
   open: boolean
   onClose: () => void
   lodgingName: string
+  items?: GuideMenuItem[]
 }) {
   useEffect(() => {
     if (!open) return
@@ -70,21 +78,33 @@ export function GuideMenuOverlay({
             </p>
 
             <ul className="mt-7 space-y-5">
-              {MENU_ITEMS.map((item, index) => (
+              {items.map((item, index) => (
                 <motion.li
-                  key={item}
+                  key={`${item.label}-${item.href ?? 'disabled'}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.12 + index * 0.05, duration: 0.25, ease: 'easeOut' }}
                 >
-                  <span
-                    aria-disabled="true"
-                    className={`block cursor-default select-none text-[26px] font-bold uppercase tracking-[-0.01em] ${
-                      item === 'Nous contacter' ? 'text-slate-500' : 'text-slate-800'
-                    }`}
-                  >
-                    {item}
-                  </span>
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      className="block text-[26px] font-bold uppercase tracking-[-0.01em] text-slate-800 transition-colors hover:text-pink-600"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <span
+                      aria-disabled="true"
+                      className={`block cursor-default select-none text-[26px] font-bold uppercase tracking-[-0.01em] ${
+                        item.label === 'Nous contacter'
+                          ? 'text-slate-500'
+                          : 'text-slate-800'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
                 </motion.li>
               ))}
             </ul>

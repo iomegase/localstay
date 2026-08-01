@@ -2,17 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
 import { GuideHome } from './GuideHome'
 import { GuideLodgingViews } from './GuideLodgingViews'
 import { GuideMenuOverlay } from './GuideMenuOverlay'
+import type { GuideMenuItem } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
 import { GuidePoiDetails } from './GuidePoiDetails'
 import type {
   GuideLodging,
   GuideMode,
   GuidePoi,
+  GuideRouteMap,
   GuideView,
 } from '@/features/guide-app/types'
 
@@ -28,17 +31,46 @@ const GuideMapView = dynamic(
   },
 )
 
-export function GuideApp({
-  mode,
-  lodging,
-  pois,
-  initialView = 'home',
-}: {
+type GuideAppProps = {
   mode: GuideMode
   lodging: GuideLodging
   pois: GuidePoi[]
   initialView?: GuideView
+  routes?: GuideRouteMap
+  menuItems?: GuideMenuItem[]
+}
+
+export function GuideApp(props: GuideAppProps) {
+  if (props.routes) {
+    return <RoutedGuideApp {...props} routes={props.routes} />
+  }
+
+  return <GuideAppShell {...props} />
+}
+
+function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
+  routes: GuideRouteMap
 }) {
+  const router = useRouter()
+
+  return (
+    <GuideAppShell
+      {...props}
+      routes={routes}
+      onOpenRoute={href => router.push(href)}
+    />
+  )
+}
+
+function GuideAppShell({
+  mode,
+  lodging,
+  pois,
+  initialView = 'home',
+  routes,
+  menuItems,
+  onOpenRoute,
+}: GuideAppProps & { onOpenRoute?: (href: string) => void }) {
   const [activeView, setActiveView] = useState<GuideView>(initialView)
   const scrollRef = useRef<HTMLElement>(null)
   const navHidden = useAutoHideOnScroll(scrollRef, activeView)
@@ -74,6 +106,11 @@ export function GuideApp({
   }
 
   function navigate(view: GuideView) {
+    const href = view === 'poi' ? undefined : routes?.[view]
+    if (href && onOpenRoute) {
+      onOpenRoute(href)
+      return
+    }
     if (view !== 'poi' && view !== 'map') {
       setSelectedPoiId(null)
     }
@@ -173,6 +210,7 @@ export function GuideApp({
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         lodgingName={lodging.name}
+        items={menuItems}
       />
     </div>
   )
