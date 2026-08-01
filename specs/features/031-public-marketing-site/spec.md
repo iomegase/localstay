@@ -228,6 +228,11 @@ routes privées, l'authentification et les API existantes restent inchangées.
   plein cadre, utilise la hero administrée lorsqu'elle existe et un fallback de
   catégorie en son absence ou en cas d'échec de chargement ; aucune variante
   blanche n'est rendue.
+- **AC-05-13**: Given la fiche détaillée d'un POI possédant des informations de
+  randonnée, When son contenu est rendu, Then le bloc « Les informations du
+  parcours » apparaît après l'attribution photo éventuelle et avant le bouton
+  « Voir sur la carte ». Given le mode démonstration, Then les métriques restent
+  visibles et aucun démarrage ou suivi GPS n'est activé.
 
 ## Business Rules
 
@@ -336,6 +341,10 @@ routes privées, l'authentification et les API existantes restent inchangées.
   types Prisma ni ses routes privées. Le composant privé
   `RecommendationCard`, le header, l'introduction, les filtres sticky, la
   navigation et les autres vues du `GuideApp` ne sont pas modifiés.
+- **BR-33**: `GuidePoiDetails` place physiquement la section randonnée avant le
+  bouton Carte dans le JSX afin d'aligner les ordres DOM, visuel et clavier.
+  Aucun style, métrique, callback, règle `canStartTrail` ou action externe n'est
+  modifié par ce déplacement.
 
 ## Data Model
 
