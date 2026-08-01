@@ -91,12 +91,12 @@ export default function ConceptPage() {
             </div>
 
             <Image
-              src="/marketing/telephone-demo.png"
+              src="/marketing/telephone-demo-trim.png"
               alt="Aperçu du guide MyStay sur smartphone"
-              width={940}
-              height={1512}
+              width={598}
+              height={1185}
               sizes="240px"
-              className="relative z-10 h-auto w-[240px] drop-shadow-[0_34px_60px_rgba(15,23,42,0.22)]"
+              className="relative z-10 h-auto w-[240px] rounded-[34px] border-[5px] border-white bg-white drop-shadow-[0_34px_60px_rgba(15,23,42,0.22)]"
             />
 
             <div className="absolute -left-2 top-3 z-20 flex max-w-[220px] items-center gap-3 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.06),transparent_65%)] bg-[#f7f6f4] p-3 pt-3.5 shadow-[0_18px_38px_rgba(15,23,42,0.12)] before:absolute before:left-4 before:top-0 before:h-[3px] before:w-9 before:rounded-b-full before:bg-pink-600">
