@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import type { GuideMenuItem } from '@/features/guide-app/components/GuideMenuOverlay'
 import { getPrivateGuideData } from '@/features/guide-app/queries/private-guide-data'
@@ -15,12 +16,22 @@ const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   map: '/map',
 }
 
-export default async function SejourPage() {
+type SejourPageProps = {
+  searchParams?: Promise<{ lodging?: string }>
+}
+
+export default async function SejourPage({
+  searchParams,
+}: SejourPageProps = {}) {
+  const lodgingFromQuery = (await searchParams)?.lodging ?? null
+
   const lodgingContext = await getActiveLodgingContext()
   if (!lodgingContext) redirect('/acces-reserve')
 
   const guideData = await getPrivateGuideData(lodgingContext.lodgingId)
   if (!guideData) redirect('/acces-reserve')
+
+  void recordQrScanIfPresent(lodgingFromQuery)
 
   const menuItems: GuideMenuItem[] = [
     { label: 'Bienvenue', href: '/sejour' },

@@ -25,7 +25,7 @@ describe('proxy — confinement du guest en séjour', () => {
     '/guide/paris/meteo',
   ])('redirige %s vers l’accueil privé pour un guest', async path => {
     const res = await proxy(guestRequest(path))
-    expect(redirectPathname(res)).toBe('/nos-recommandations')
+    expect(redirectPathname(res)).toBe('/sejour')
   })
 
   it.each([
@@ -55,5 +55,20 @@ describe('proxy — confinement du guest en séjour', () => {
   it('ne confine pas un visiteur anonyme (sans cookie) sur la page ville', async () => {
     const res = await proxy(anonRequest('/guide/paris'))
     expect(redirectPathname(res)).toBeNull()
+  })
+
+  it('garde /sejour privé et marque sa requête pour le nouveau shell', async () => {
+    const guestResponse = await proxy(guestRequest('/sejour'))
+    expect(redirectPathname(guestResponse)).toBeNull()
+    expect(
+      guestResponse.headers.get(
+        'x-middleware-request-x-staylocal-guide-app-route',
+      ),
+    ).toBe('1')
+
+    const anonymousResponse = await proxy(anonRequest('/sejour'))
+    expect(anonymousResponse.headers.get('x-middleware-rewrite')).toBe(
+      'http://localhost:3000/acces-reserve',
+    )
   })
 })

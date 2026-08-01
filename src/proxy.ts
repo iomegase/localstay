@@ -78,14 +78,14 @@ export async function proxy(request: NextRequest) {
       }
 
       // Atterrissage du QR séjour = /guide/{ville} (2 segments exactement).
-      // On dépose alors le guest sur l'accueil privé (/nos-recommandations).
+      // On dépose alors le guest sur la home privée canonique (/sejour).
       // ?lodging= est transporté pour que cette page enregistre l'évènement
       // qr_scan. La navigation interne plus profonde
       // (/guide/{ville}/{categorie}…) porte aussi ?lodging= : on se contente
       // alors de rafraîchir le cookie, sans rediriger.
       const isCityLanding = path.split('/').filter(Boolean).length === 2
       if (isCityLanding) {
-        const destination = new URL('/nos-recommandations', request.url)
+        const destination = new URL('/sejour', request.url)
         destination.searchParams.set('lodging', lodgingFromQuery)
         const redirect = NextResponse.redirect(destination)
         redirect.cookies.set(cookie)
@@ -109,7 +109,7 @@ export async function proxy(request: NextRequest) {
       const isPoiDetail = segments.length >= 4
       const allowed = isPoiDetail || (guideSegment !== null && GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment))
       if (!allowed) {
-        return NextResponse.redirect(new URL('/nos-recommandations', request.url))
+        return NextResponse.redirect(new URL('/sejour', request.url))
       }
     }
     return response

@@ -7,6 +7,7 @@ const mockGetPrivateGuideData = jest.fn()
 const mockRedirect = jest.fn((destination: string) => {
   throw new Error(`REDIRECT:${destination}`)
 })
+const mockRecordQrScanIfPresent = jest.fn()
 
 jest.mock('next/navigation', () => ({
   redirect: (destination: string) => mockRedirect(destination),
@@ -19,6 +20,11 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
   getPrivateGuideData: (lodgingId: string) =>
     mockGetPrivateGuideData(lodgingId),
+}))
+
+jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
+  recordQrScanIfPresent: (lodgingId: string | null) =>
+    mockRecordQrScanIfPresent(lodgingId),
 }))
 
 jest.mock('@/features/guide-app/components/GuideApp', () => ({
@@ -63,7 +69,11 @@ describe('034-private-guide-app /sejour home', () => {
   })
 
   it('renders the shared private GuideApp with real stay data and legacy child routes', async () => {
-    render(await SejourPage())
+    render(
+      await SejourPage({
+        searchParams: Promise.resolve({ lodging: 'lodging-1' }),
+      }),
+    )
 
     const shell = screen.getByTestId('private-guide-shell')
     expect(shell).toHaveClass('max-w-[430px]', 'h-[100dvh]')
@@ -79,12 +89,15 @@ describe('034-private-guide-app /sejour home', () => {
     )
     expect(guide).toHaveAttribute('data-lodging-route', '/le-logement')
     expect(guide).toHaveAttribute('data-map-route', '/map')
+    expect(mockRecordQrScanIfPresent).toHaveBeenCalledWith('lodging-1')
   })
 
   it('does not load private guide data without an active stay', async () => {
     mockGetActiveLodgingContext.mockResolvedValue(null)
 
-    await expect(SejourPage()).rejects.toThrow('REDIRECT:/acces-reserve')
+    await expect(
+      SejourPage({ searchParams: Promise.resolve({}) }),
+    ).rejects.toThrow('REDIRECT:/acces-reserve')
     expect(mockGetPrivateGuideData).not.toHaveBeenCalled()
   })
 })
