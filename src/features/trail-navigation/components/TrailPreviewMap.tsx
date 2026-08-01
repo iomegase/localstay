@@ -8,9 +8,10 @@ interface Props {
   geometry: unknown | null
   startLatitude: number | null
   startLongitude: number | null
-  startHref: string
+  startHref?: string | null
   /** 'indicative' affiche un badge d'avertissement et atténue le tracé. Défaut: 'reliable'. */
   reliability?: TrailReliability
+  variant?: 'default' | 'compact'
 }
 
 const STATIC_BASE = 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static'
@@ -21,13 +22,85 @@ const STROKE_COLOR = '455E4C'
 const STROKE_WIDTH = 5
 const MAX_GEOMETRY_POINTS = 40
 
-export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude, startHref, reliability = 'reliable' }: Props) {
+export function TrailPreviewMap({
+  name,
+  geometry,
+  startLatitude,
+  startLongitude,
+  startHref,
+  reliability = 'reliable',
+  variant = 'default',
+}: Props) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
   const isIndicative = reliability === 'indicative'
   const validGeometry = isValidTrailGeometry(geometry) ? geometry : null
   const previewSrc = buildStaticUrl(validGeometry, startLatitude, startLongitude, token, isIndicative)
   const endpoints = validGeometry ? extractEndpoints(validGeometry) : null
   const isLoop = endpoints ? haversineMeters(endpoints.start, endpoints.end) <= 50 : false
+
+  const content = (
+    <div
+      data-testid="trail-preview-viewport"
+      className={variant === 'compact' ? 'relative h-[190px]' : 'relative h-[340px]'}
+    >
+      {previewSrc ? (
+        <img
+          src={previewSrc}
+          alt={`Carte randonnée — ${name}`}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#dfe8d7] to-[#b5c7aa]" />
+      )}
+
+      {/* Attribution Mapbox */}
+      <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-white/85 px-2 py-1 text-[9px] font-medium text-[#121212] shadow-sm">
+        <MapPin className="h-3 w-3" />
+        Mapbox outdoors
+      </div>
+
+      {/* Badge fiabilité : tracé approximatif (géométrie pauvre / incomplète / héritée) */}
+      {isIndicative && (
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-amber-50/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 shadow-sm ring-1 ring-amber-200">
+          <AlertTriangle className="h-3 w-3" />
+          Tracé indicatif
+        </div>
+      )}
+
+      {/* Légende discrète (icônes seulement, pas de pills empilés) */}
+      {endpoints && (
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
+          {isLoop ? (
+            <>
+              <RotateCcw className="h-3 w-3" />
+              Boucle
+            </>
+          ) : (
+            <>
+              <Flag className="h-3 w-3" />
+              <span className="opacity-50">→</span>
+              <FlagTriangleRight className="h-3 w-3" />
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+
+  if (!startHref) {
+    return (
+      <div
+        aria-label={`Aperçu de la randonnée ${name}`}
+        className="relative block overflow-hidden bg-[#E8E6DF] shadow-sm"
+        data-testid="trail-preview-map"
+      >
+        {content}
+      </div>
+    )
+  }
 
   return (
     <Link
@@ -36,52 +109,7 @@ export function TrailPreviewMap({ name, geometry, startLatitude, startLongitude,
       aria-label={`Démarrer la randonnée ${name}`}
       data-testid="trail-preview-map"
     >
-      <div className="relative h-[340px]">
-        {previewSrc ? (
-          <img
-            src={previewSrc}
-            alt={`Carte randonnée — ${name}`}
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#dfe8d7] to-[#b5c7aa]" />
-        )}
-
-        {/* Attribution Mapbox */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-md bg-white/85 px-2 py-1 text-[9px] font-medium text-[#121212] shadow-sm">
-          <MapPin className="h-3 w-3" />
-          Mapbox outdoors
-        </div>
-
-        {/* Badge fiabilité : tracé approximatif (géométrie pauvre / incomplète / héritée) */}
-        {isIndicative && (
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-amber-50/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 shadow-sm ring-1 ring-amber-200">
-            <AlertTriangle className="h-3 w-3" />
-            Tracé indicatif
-          </div>
-        )}
-
-        {/* Légende discrète (icônes seulement, pas de pills empilés) */}
-        {endpoints && (
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm">
-            {isLoop ? (
-              <>
-                <RotateCcw className="h-3 w-3" />
-                Boucle
-              </>
-            ) : (
-              <>
-                <Flag className="h-3 w-3" />
-                <span className="opacity-50">→</span>
-                <FlagTriangleRight className="h-3 w-3" />
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      {content}
     </Link>
   )
 }

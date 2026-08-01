@@ -28,4 +28,28 @@ describe('TrailPreviewMap — badge fiabilité du tracé', () => {
     render(<TrailPreviewMap {...base} />)
     expect(screen.queryByText(/tracé indicatif/i)).not.toBeInTheDocument()
   })
+
+  it('renders a compact non-interactive preview when startHref is absent', () => {
+    render(
+      <TrailPreviewMap
+        {...base}
+        startHref={null}
+        variant="compact"
+      />,
+    )
+
+    const preview = screen.getByLabelText('Aperçu de la randonnée Col de Voza')
+    expect(preview).not.toHaveAttribute('href')
+    expect(preview.closest('a')).toBeNull()
+    expect(screen.getByTestId('trail-preview-viewport')).toHaveClass('h-[190px]')
+  })
+
+  it('keeps the private preview interactive by default', () => {
+    render(<TrailPreviewMap {...base} />)
+
+    expect(
+      screen.getByRole('link', { name: 'Démarrer la randonnée Col de Voza' }),
+    ).toHaveAttribute('href', base.startHref)
+    expect(screen.getByTestId('trail-preview-viewport')).toHaveClass('h-[340px]')
+  })
 })
