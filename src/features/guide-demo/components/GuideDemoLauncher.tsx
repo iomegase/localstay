@@ -17,10 +17,12 @@ export function GuideDemoLauncher({
   className = DEFAULT_LAUNCHER_CLASS,
   label = 'Voir le guide d’exemple',
   showIcon = true,
+  ariaLabel,
 }: {
   className?: string
   label?: string
   showIcon?: boolean
+  ariaLabel?: string
 } = {}) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -41,7 +43,13 @@ export function GuideDemoLauncher({
 
   return (
     <>
-      <button ref={triggerRef} type="button" onClick={openDemo} className={className}>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={openDemo}
+        className={className}
+        aria-label={ariaLabel}
+      >
         {showIcon && <Smartphone className="h-4 w-4" aria-hidden="true" />}
         {label}
       </button>

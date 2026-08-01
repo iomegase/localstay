@@ -13,7 +13,9 @@ import { redirect } from 'next/navigation'
 describe('031-public-marketing-site editorial routes', () => {
   it('renders the concept page from the approved mockup', () => {
     render(<ConceptPage />)
-    expect(screen.getByRole('heading', { level: 1, name: /Une conciergerie humaine/i })).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('heading', { level: 1, name: /Une conciergerie.*prolongée par.*le digital/i }),
+    ).not.toHaveLength(0)
   })
 
   it('renders the seminars page from the approved mockup', () => {
