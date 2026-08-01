@@ -66,5 +66,17 @@ describe('GuideApp demo navigation', () => {
     expect(
       screen.queryByRole('button', { name: /démarrer/i }),
     ).not.toBeInTheDocument()
+
+    const trailHeading = screen.getByRole('heading', {
+      name: 'Les informations du parcours',
+    })
+    const trailSection = trailHeading.closest('section')
+    const mapButton = screen.getByRole('button', { name: 'Voir sur la carte' })
+
+    expect(trailSection).not.toBeNull()
+    expect(
+      trailSection?.compareDocumentPosition(mapButton)
+      ?? Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 })
