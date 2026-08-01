@@ -205,8 +205,9 @@ routes privées, l'authentification et les API existantes restent inchangées.
   centre le POI, sélectionne son marqueur et affiche sa carte d'aperçu.
 - **AC-05-08**: Given le POI randonnée « L'Alpage de Porcherey », When sa fiche
   de démonstration s'affiche, Then sa difficulté, sa durée, sa distance et son
-  dénivelé sont visibles, mais aucun contrôle « Démarrer », navigation GPS ou
-  suivi de randonnée n'est proposé.
+  dénivelé sont visibles avec un aperçu compact du tracé public. Un bouton
+  « Commencer la randonnée » est visible mais désactivé ; aucune navigation GPS
+  ni aucun suivi de randonnée n'est proposé.
 - **AC-05-09**: Given le bundle de démonstration, When il est inspecté ou
   exécuté, Then il n'appelle aucune route privée, ne lit aucun UUID de Lodging
   réel, ne charge aucune donnée de voyageur et ne dépend d'aucune
@@ -233,6 +234,12 @@ routes privées, l'authentification et les API existantes restent inchangées.
   parcours » apparaît après l'attribution photo éventuelle et avant le bouton
   « Voir sur la carte ». Given le mode démonstration, Then les métriques restent
   visibles et aucun démarrage ou suivi GPS n'est activé.
+- **AC-05-14**: Given Porcherey dans le guide de démonstration, When son aperçu
+  randonnée est rendu, Then il réutilise `TrailPreviewMap` avec la géométrie
+  publique publiée, dans une variante compacte et non interactive. Given le
+  bouton « Commencer la randonnée », Then il possède les états natifs
+  `disabled` et `aria-disabled`, ne contient aucun lien de démarrage et ne
+  déclenche aucune navigation, géolocalisation ou route privée.
 
 ## Business Rules
 
@@ -320,9 +327,10 @@ routes privées, l'authentification et les API existantes restent inchangées.
 - **BR-27**: La carte de démonstration conserve Mapbox via
   `react-map-gl/mapbox`, est chargée dynamiquement uniquement lors de son
   ouverture et ne déclenche aucune géolocalisation du visiteur.
-- **BR-28**: Les randonnées peuvent présenter leurs métriques publiques
-  vérifiées, mais le mode `demo` masque systématiquement le démarrage, la
-  navigation GPS et le suivi de tracé.
+- **BR-28**: Les randonnées peuvent présenter leurs métriques et leur géométrie
+  publiques vérifiées. Le mode `demo` rend le contrôle de démarrage visible
+  mais désactivé et interdit systématiquement la navigation GPS et le suivi de
+  tracé.
 - **BR-29**: Le modal utilise Radix Dialog pour le contrôle du focus, `Escape`,
   `role="dialog"`, `aria-modal` et le verrouillage du scroll. Framer Motion
   anime l'ouverture et la fermeture dans le respect de
@@ -345,6 +353,11 @@ routes privées, l'authentification et les API existantes restent inchangées.
   bouton Carte dans le JSX afin d'aligner les ordres DOM, visuel et clavier.
   Aucun style, métrique, callback, règle `canStartTrail` ou action externe n'est
   modifié par ce déplacement.
+- **BR-34**: L'aperçu de randonnée de démonstration réutilise
+  `TrailPreviewMap` et un instantané statique de la géométrie publique publiée,
+  sans UUID Prisma ni fetch navigateur. Sa variante non interactive ne rend ni
+  `Link` vers `/start`, ni gestionnaire de démarrage. La variante privée
+  interactive historique de `TrailPreviewMap` reste inchangée par défaut.
 
 ## Data Model
 
