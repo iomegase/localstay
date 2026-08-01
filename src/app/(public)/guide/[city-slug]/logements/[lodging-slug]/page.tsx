@@ -153,7 +153,7 @@ export default async function LodgingDetailPage({ params }: Props) {
               <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
                 Le logement
               </span>
-              <h2 className="mt-4 text-[32px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[38px]">
+              <h2 className="mt-4 text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800">
                 {detail.short_description}
               </h2>
               <div className="mt-7 space-y-5">
