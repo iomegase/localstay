@@ -22,7 +22,7 @@ describe('034-private-guide-app route-aware shell', () => {
         routes={{
           home: '/sejour',
           favorites: '/sejour/coups-de-coeur',
-          lodging: '/le-logement',
+          lodging: '/sejour/logement',
           map: '/map',
         }}
       />,
@@ -32,7 +32,7 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
 
     fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
-    expect(mockPush).toHaveBeenCalledWith('/le-logement')
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement')
   })
 
   it('renders functional private menu links', () => {

@@ -9,7 +9,7 @@ import type { GuideMenuItem } from './GuideMenuOverlay'
 export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   home: '/sejour',
   favorites: '/sejour/coups-de-coeur',
-  lodging: '/le-logement',
+  lodging: '/sejour/logement',
   arrival: '/le-logement#bienvenue',
   practical: '/le-logement#infos-pratiques',
   departure: '/le-logement#depart',
@@ -38,7 +38,7 @@ export async function PrivateGuidePage({
   const menuItems: GuideMenuItem[] = [
     { label: 'Bienvenue', href: '/sejour' },
     { label: 'Coups de cœur', href: '/sejour/coups-de-coeur' },
-    { label: "Livret d'accueil", href: '/le-logement' },
+    { label: "Livret d'accueil", href: '/sejour/logement' },
     { label: 'Vos favoris', href: '/mes-favoris' },
     { label: 'Carte', href: '/map' },
     {

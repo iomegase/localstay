@@ -90,7 +90,7 @@ describe('034-private-guide-app /sejour home', () => {
       '/sejour/coups-de-coeur',
     )
     expect(guide).toHaveAttribute('data-initial-view', 'home')
-    expect(guide).toHaveAttribute('data-lodging-route', '/le-logement')
+    expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
     expect(guide).toHaveAttribute('data-map-route', '/map')
     expect(mockRecordQrScanIfPresent).toHaveBeenCalledWith('lodging-1')
   })
