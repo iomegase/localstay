@@ -110,11 +110,6 @@ function GuideAppShell({
     setActiveView('map')
   }
 
-  function closePoi() {
-    setSelectedPoiId(null)
-    setActiveView(poiOrigin)
-  }
-
   // Changer de catégorie efface la sélection (donc le tracé sur la carte).
   function filterCategory(slug: string | null) {
     setSelectedPoiId(null)
@@ -197,7 +192,7 @@ function GuideAppShell({
             mode={mode}
             poi={selectedPoi}
             lodging={lodging}
-            onBack={closePoi}
+            onBack={() => navigate(poiOrigin)}
             onShowOnMap={showOnMap}
             onStartTrail={onStartTrail}
           />

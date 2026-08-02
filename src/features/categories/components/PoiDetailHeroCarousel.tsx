@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef, useState, type ReactNode, type UIEvent } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
 
@@ -14,8 +14,6 @@ interface Props {
   revealControlsOnHover?: boolean
   /** Variante paysage utilisée par les articles du blog. */
   variant?: 'default' | 'blog'
-  /** Navigation tactile moderne ; le mode historique à flèches reste le défaut. */
-  navigation?: 'arrows' | 'swipe'
   children?: ReactNode
 }
 
@@ -25,17 +23,14 @@ export function PoiDetailHeroCarousel({
   poiId,
   revealControlsOnHover = false,
   variant = 'default',
-  navigation = 'arrows',
   children,
 }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0)
   const [deadPhotos, setDeadPhotos] = useState<Set<string>>(new Set())
-  const swipeRef = useRef<HTMLDivElement>(null)
   const galleryPhotos = photos.filter(Boolean).filter(url => !deadPhotos.has(url))
   const hasMultiplePhotos = galleryPhotos.length > 1
   const currentPhoto = galleryPhotos[photoIndex] ?? null
   const isBlogVariant = variant === 'blog'
-  const usesNativeSwipe = navigation === 'swipe' && hasMultiplePhotos
   const controlReveal = revealControlsOnHover
     ? 'opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'
     : ''
@@ -48,28 +43,11 @@ export function PoiDetailHeroCarousel({
     setPhotoIndex(index => (index + 1) % galleryPhotos.length)
   }
 
-  function handlePhotoError(photo: string) {
-    if (poiId) reportDeadPhoto(poiId, photo)
-    setDeadPhotos(prev => new Set(prev).add(photo))
+  function handlePhotoError() {
+    if (!currentPhoto) return
+    if (poiId) reportDeadPhoto(poiId, currentPhoto)
+    setDeadPhotos(prev => new Set(prev).add(currentPhoto))
     setPhotoIndex(0)
-    swipeRef.current?.scrollTo({ left: 0 })
-  }
-
-  function handleSwipeScroll(event: UIEvent<HTMLDivElement>) {
-    const container = event.currentTarget
-    if (container.clientWidth === 0) return
-    const nextIndex = Math.round(container.scrollLeft / container.clientWidth)
-    setPhotoIndex(Math.min(nextIndex, galleryPhotos.length - 1))
-  }
-
-  function showPhoto(index: number) {
-    const container = swipeRef.current
-    if (!container) return
-    setPhotoIndex(index)
-    container.scrollTo({
-      left: index * container.clientWidth,
-      behavior: 'smooth',
-    })
   }
 
   return (
@@ -79,44 +57,7 @@ export function PoiDetailHeroCarousel({
         : 'group relative h-[450px] w-full overflow-hidden bg-gradient-to-br from-pink-600/20 to-pink-600/5'}
       data-testid="poi-detail-hero-carousel"
     >
-      {usesNativeSwipe ? (
-        <div
-          ref={swipeRef}
-          data-testid="poi-detail-hero-swipe"
-          onScroll={handleSwipeScroll}
-          className="no-scrollbar flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain touch-pan-x touch-pan-y"
-        >
-          {galleryPhotos.map((photo, index) => (
-            <div
-              key={photo}
-              className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
-            >
-              {!isBlogVariant && (
-                <Image
-                  src={photo}
-                  alt=""
-                  aria-hidden
-                  fill
-                  priority={index === 0}
-                  unoptimized
-                  sizes="(max-width: 480px) 100vw, 480px"
-                  className="scale-110 object-cover blur-xl"
-                />
-              )}
-              <Image
-                src={photo}
-                alt={index === 0 ? name : `${name} — photo ${index + 1}`}
-                fill
-                priority={index === 0}
-                unoptimized
-                sizes="(max-width: 480px) 100vw, 480px"
-                onError={() => handlePhotoError(photo)}
-                className={`${isBlogVariant ? 'object-cover' : 'object-contain'} object-center`}
-              />
-            </div>
-          ))}
-        </div>
-      ) : currentPhoto ? (
+      {currentPhoto ? (
         <>
           {!isBlogVariant && (
             <Image
@@ -138,7 +79,7 @@ export function PoiDetailHeroCarousel({
             priority
             unoptimized
             sizes="(max-width: 480px) 100vw, 480px"
-            onError={() => handlePhotoError(currentPhoto)}
+            onError={handlePhotoError}
             className={`${isBlogVariant ? 'object-cover' : 'object-contain'} object-center transition-transform duration-500`}
           />
         </>
@@ -150,7 +91,7 @@ export function PoiDetailHeroCarousel({
 
       {children}
 
-      {hasMultiplePhotos && !usesNativeSwipe && (
+      {hasMultiplePhotos && (
         <>
           <button
             type="button"
@@ -181,23 +122,6 @@ export function PoiDetailHeroCarousel({
             ))}
           </div>
         </>
-      )}
-
-      {usesNativeSwipe && (
-        <div className="absolute bottom-12 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5">
-          {galleryPhotos.map((photo, index) => (
-            <button
-              key={photo}
-              type="button"
-              onClick={() => showPhoto(index)}
-              aria-label={`Photo ${index + 1} sur ${galleryPhotos.length}`}
-              aria-current={index === photoIndex ? 'true' : undefined}
-              className={`h-1.5 rounded-full transition-all ${
-                index === photoIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/60'
-              }`}
-            />
-          ))}
-        </div>
       )}
     </div>
   )

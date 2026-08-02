@@ -3,7 +3,6 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
-import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import type { PoiDetail } from '@/features/categories/types'
 
 // react-markdown est ESM (casse le transform jest) ; il est tiré transitivement par PoiDetailBody.
@@ -114,36 +113,6 @@ describe('PoiDetailBody — hero image (LCP)', () => {
 
     expect(screen.queryByRole('button', { name: 'Photo suivante' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Photo précédente' })).not.toBeInTheDocument()
-  })
-
-  it('004 AC-01-07: uses native scroll snap without arrows in swipe mode and synchronizes the active dot', () => {
-    render(
-      <PoiDetailHeroCarousel
-        photos={['https://example.com/photo-1.jpg', 'https://example.com/photo-2.jpg']}
-        name="Le Bistrot du Mont-Blanc"
-        navigation="swipe"
-      />,
-    )
-
-    const swipeGallery = screen.getByTestId('poi-detail-hero-swipe')
-    expect(swipeGallery).toHaveClass('overflow-x-auto', 'snap-x', 'snap-mandatory')
-    expect(screen.queryByRole('button', { name: 'Photo suivante' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Photo précédente' })).not.toBeInTheDocument()
-
-    Object.defineProperty(swipeGallery, 'clientWidth', {
-      configurable: true,
-      value: 320,
-    })
-    Object.defineProperty(swipeGallery, 'scrollLeft', {
-      configurable: true,
-      value: 320,
-    })
-    fireEvent.scroll(swipeGallery)
-
-    expect(screen.getByRole('button', { name: 'Photo 2 sur 2' })).toHaveAttribute(
-      'aria-current',
-      'true',
-    )
   })
 
   it('displays the open pill in the hero footer and keeps the closing time in the hours area', () => {

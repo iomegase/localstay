@@ -6,7 +6,6 @@ import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { PRIVATE_GUIDE_ROUTES } from '@/features/guide-app/components/PrivateGuidePage'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
-import type { GuidePoi } from '@/features/guide-app/types'
 
 const mockPush = jest.fn()
 const mockGuidePoiDetailsProps = jest.fn()
@@ -16,23 +15,8 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 jest.mock('next/dynamic', () => () => {
-  function DynamicGuideMapStub({
-    pois,
-    onOpenPoi,
-  }: {
-    pois: GuidePoi[]
-    onOpenPoi: (poi: GuidePoi) => void
-  }) {
-    return (
-      <div>
-        Chargement de la carte…
-        {pois[0] && (
-          <button type="button" onClick={() => onOpenPoi(pois[0])}>
-            Ouvrir le POI depuis la carte
-          </button>
-        )}
-      </div>
-    )
+  function DynamicGuideMapStub() {
+    return <div>Chargement de la carte…</div>
   }
 
   return DynamicGuideMapStub
@@ -269,60 +253,5 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(
       screen.getByRole('button', { name: 'Commencer la randonnée' }),
     ).toBeDisabled()
-  })
-
-  it('004 AC-01-08: closes a POI back to its internal favorites origin without pushing the current route', () => {
-    render(
-      <GuideApp
-        mode="private"
-        lodging={demoLodging}
-        pois={demoPois}
-        initialView="favorites"
-        routes={{
-          home: '/sejour',
-          favorites: '/sejour/coups-de-coeur',
-        }}
-      />,
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /ouvrir rond de carotte/i }),
-    )
-    expect(
-      screen.getByRole('heading', { name: 'Rond de Carotte' }),
-    ).toBeInTheDocument()
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Retour' }),
-    )
-
-    expect(
-      screen.getByRole('heading', { name: 'Nos coups de cœur' }),
-    ).toBeInTheDocument()
-    expect(mockPush).not.toHaveBeenCalledWith('/sejour/coups-de-coeur')
-  })
-
-  it('004 AC-01-08: closes a POI back to its internal map origin', () => {
-    render(
-      <GuideApp
-        mode="private"
-        lodging={demoLodging}
-        pois={demoPois}
-        initialView="map"
-        routes={PRIVATE_GUIDE_ROUTES}
-      />,
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Ouvrir le POI depuis la carte' }),
-    )
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Retour' }),
-    )
-
-    expect(screen.getByText('Chargement de la carte…')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Ouvrir le POI depuis la carte' }),
-    ).toBeInTheDocument()
   })
 })
