@@ -61,7 +61,9 @@ function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
       routes={routes}
       onOpenRoute={href => router.push(href)}
       onStartTrail={citySlug
-        ? poi => router.push(`/guide/${citySlug}/rando/${poi.slug}/start`)
+        ? poi => router.push(
+            `/guide/${poi.citySlug ?? citySlug}/rando/${poi.slug}/start`,
+          )
         : undefined}
     />
   )

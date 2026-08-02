@@ -40,6 +40,7 @@ export type GuidePoi = {
   id: string
   name: string
   slug: string
+  citySlug?: string
   category: GuidePoiCategory
   description: string
   shortDescription: string

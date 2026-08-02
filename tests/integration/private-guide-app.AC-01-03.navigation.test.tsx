@@ -152,7 +152,7 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
   })
 
-  it('021 AC-01-05/AC-02-02: opens the existing Mapbox trail navigation from a private trail', () => {
+  it('021 AC-02-02 + 012 BR-03/BR-08: opens a cross-city private trail from its actual city', () => {
     const porchereyPoi = demoPois.find(
       poi => poi.id === 'demo-poi-porcherey',
     )
@@ -162,6 +162,7 @@ describe('034-private-guide-app route-aware shell', () => {
     const privateTrailPoi = {
       ...porchereyPoi,
       slug: 'l-alpage-de-porcherey',
+      citySlug: 'les-contamines-montjoie',
       trail: {
         ...porchereyPoi.trail,
         trackingEnabled: true,
@@ -190,7 +191,7 @@ describe('034-private-guide-app route-aware shell', () => {
     )
 
     expect(mockPush).toHaveBeenLastCalledWith(
-      '/guide/saint-gervais-les-bains/rando/l-alpage-de-porcherey/start',
+      '/guide/les-contamines-montjoie/rando/l-alpage-de-porcherey/start',
     )
   })
 

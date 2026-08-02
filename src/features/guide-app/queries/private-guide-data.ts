@@ -78,6 +78,7 @@ export async function getPrivateGuideData(
           is_open_now: true,
           hours: true,
           photos: true,
+          city: { select: { slug: true } },
           category: { select: { slug: true, name: true, icon: true } },
           trail_detail: {
             where: { deleted_at: null, is_active: true },
@@ -155,6 +156,7 @@ type PrivateGuidePoiRow = {
     is_open_now: boolean | null
     hours: Prisma.JsonValue | null
     photos: string[]
+    city: { slug: string }
     category: { slug: string; name: string; icon: string }
     trail_detail: {
       difficulty: string
@@ -183,6 +185,7 @@ function mapPrivateGuidePoi(row: PrivateGuidePoiRow): GuidePoi {
     id: poi.id,
     name: poi.name,
     slug: poi.slug,
+    citySlug: poi.city.slug,
     category: {
       slug: poi.category.slug,
       name: poi.category.name,
