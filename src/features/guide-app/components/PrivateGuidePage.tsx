@@ -11,7 +11,7 @@ export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   favorites: '/sejour/coups-de-coeur',
   lodging: '/sejour/logement',
   arrival: '/sejour/logement/arrivee',
-  practical: '/le-logement#infos-pratiques',
+  practical: '/sejour/logement/informations-pratiques',
   departure: '/le-logement#depart',
   map: '/map',
 }

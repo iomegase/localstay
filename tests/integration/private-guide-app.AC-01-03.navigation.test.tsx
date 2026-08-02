@@ -85,4 +85,27 @@ describe('034-private-guide-app route-aware shell', () => {
     fireEvent.click(screen.getByRole('button', { name: /Accéder au logement/i }))
     expect(mockPush).toHaveBeenLastCalledWith('/sejour/logement/arrivee')
   })
+
+  it('opens the canonical practical information page from the lodging guide', () => {
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={[]}
+        initialView="lodging"
+        routes={{
+          home: '/sejour',
+          lodging: '/sejour/logement',
+          practical: '/sejour/logement/informations-pratiques',
+        }}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /Informations pratiques/i }),
+    )
+    expect(mockPush).toHaveBeenCalledWith(
+      '/sejour/logement/informations-pratiques',
+    )
+  })
 })
