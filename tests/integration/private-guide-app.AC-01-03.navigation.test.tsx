@@ -3,6 +3,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
+import { demoPois } from '@/features/guide-demo/demo-pois'
 
 const mockPush = jest.fn()
 
@@ -128,5 +129,47 @@ describe('034-private-guide-app route-aware shell', () => {
       screen.getByRole('button', { name: /Préparer le départ/i }),
     )
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
+  })
+
+  it('021 AC-01-05/AC-02-02: opens the existing Mapbox trail navigation from a private trail', () => {
+    const porchereyPoi = demoPois.find(
+      poi => poi.id === 'demo-poi-porcherey',
+    )
+    if (!porchereyPoi?.trail) {
+      throw new Error('Expected the Porcherey demo trail fixture')
+    }
+    const privateTrailPoi = {
+      ...porchereyPoi,
+      slug: 'l-alpage-de-porcherey',
+      trail: {
+        ...porchereyPoi.trail,
+        trackingEnabled: true,
+      },
+    }
+
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={[privateTrailPoi]}
+        citySlug="saint-gervais-les-bains"
+        initialView="favorites"
+        routes={{
+          home: '/sejour',
+          favorites: '/sejour/coups-de-coeur',
+        }}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /ouvrir l’alpage de porcherey/i }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Démarrer la randonnée' }),
+    )
+
+    expect(mockPush).toHaveBeenLastCalledWith(
+      '/guide/saint-gervais-les-bains/rando/l-alpage-de-porcherey/start',
+    )
   })
 })

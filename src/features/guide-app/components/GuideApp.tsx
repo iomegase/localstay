@@ -35,6 +35,7 @@ type GuideAppProps = {
   mode: GuideMode
   lodging: GuideLodging
   pois: GuidePoi[]
+  citySlug?: string
   initialView?: GuideView
   routes?: GuideRouteMap
   menuItems?: GuideMenuItem[]
@@ -52,12 +53,16 @@ function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
   routes: GuideRouteMap
 }) {
   const router = useRouter()
+  const citySlug = props.citySlug
 
   return (
     <GuideAppShell
       {...props}
       routes={routes}
       onOpenRoute={href => router.push(href)}
+      onStartTrail={citySlug
+        ? poi => router.push(`/guide/${citySlug}/rando/${poi.slug}/start`)
+        : undefined}
     />
   )
 }
@@ -70,7 +75,11 @@ function GuideAppShell({
   routes,
   menuItems,
   onOpenRoute,
-}: GuideAppProps & { onOpenRoute?: (href: string) => void }) {
+  onStartTrail,
+}: GuideAppProps & {
+  onOpenRoute?: (href: string) => void
+  onStartTrail?: (poi: GuidePoi) => void
+}) {
   const [activeView, setActiveView] = useState<GuideView>(initialView)
   const scrollRef = useRef<HTMLElement>(null)
   const navHidden = useAutoHideOnScroll(scrollRef, activeView)
@@ -183,6 +192,7 @@ function GuideAppShell({
             lodging={lodging}
             onBack={() => navigate(poiOrigin)}
             onShowOnMap={showOnMap}
+            onStartTrail={onStartTrail}
           />
         )}
         {activeView === 'map' && (

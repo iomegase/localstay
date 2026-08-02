@@ -15,12 +15,14 @@ export function GuidePoiDetails({
   lodging,
   onBack,
   onShowOnMap,
+  onStartTrail,
 }: {
   mode: GuideMode
   poi: GuidePoi
   lodging: GuideLodging
   onBack: () => void
   onShowOnMap: (poi: GuidePoi) => void
+  onStartTrail?: (poi: GuidePoi) => void
 }) {
   const heroPhotos = poi.photos.length > 0
     ? poi.photos
@@ -172,9 +174,10 @@ export function GuidePoiDetails({
                 </button>
               </>
             )}
-            {canStartTrail(mode, poi.trail) && (
+            {canStartTrail(mode, poi.trail) && onStartTrail && (
               <button
                 type="button"
+                onClick={() => onStartTrail(poi)}
                 aria-label="Démarrer la randonnée"
                 className="mt-4 w-full rounded-full bg-emerald-700 px-4 py-3 text-xs font-bold text-white"
               >
