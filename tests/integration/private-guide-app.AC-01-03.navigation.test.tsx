@@ -108,4 +108,25 @@ describe('034-private-guide-app route-aware shell', () => {
       '/sejour/logement/informations-pratiques',
     )
   })
+
+  it('opens the canonical departure page from the lodging guide', () => {
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={[]}
+        initialView="lodging"
+        routes={{
+          home: '/sejour',
+          lodging: '/sejour/logement',
+          departure: '/sejour/logement/depart',
+        }}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /Préparer le départ/i }),
+    )
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
+  })
 })

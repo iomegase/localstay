@@ -26,41 +26,47 @@ jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
 }))
 
 jest.mock('@/features/guide-app/components/GuideApp', () => ({
-  GuideApp: ({ mode, lodging, pois, routes, initialView, menuItems }: {
+  GuideApp: ({ mode, lodging, initialView, routes }: {
     mode: string
-    lodging: { name: string; city: string }
-    pois: unknown[]
-    routes: Record<string, string>
+    lodging: {
+      name: string
+      checkOut: string
+      departureInstructions: string[]
+    }
     initialView?: string
-    menuItems?: Array<{ label: string; href: string }>
+    routes: Record<string, string>
   }) => (
     <div
       data-testid="shared-guide-app"
       data-mode={mode}
       data-lodging={lodging.name}
-      data-city={lodging.city}
-      data-poi-count={pois.length}
       data-initial-view={initialView}
-      data-favorites-route={routes.favorites}
-      data-menu-favorites-route={
-        menuItems?.find(item => item.label === 'Coups de cœur')?.href
-      }
+      data-departure-route={routes.departure}
+      data-parent-route={routes.lodging}
+      data-check-out={lodging.checkOut}
+      data-instruction-count={lodging.departureInstructions.length}
     />
   ),
 }))
 
-import PrivateFavoritesPage from '@/app/(public)/sejour/coups-de-coeur/page'
+import PrivateDeparturePage from '@/app/(public)/sejour/logement/depart/page'
 
 const privateData = {
   lodging: {
     id: 'lodging-1',
     name: 'Le Chalet Hygge',
     city: 'Saint-Gervais-les-Bains',
+    checkOut: '10:00',
+    departureInstructions: [
+      'Vider le réfrigérateur',
+      'Fermer les fenêtres',
+      'Déposer les clés',
+    ],
   },
-  pois: [{ id: 'poi-1' }, { id: 'poi-2' }, { id: 'poi-3' }],
+  pois: [],
 }
 
-describe('035-private-guide-favorites page', () => {
+describe('039-private-guide-departure page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockGetActiveLodgingContext.mockResolvedValue({
@@ -70,33 +76,26 @@ describe('035-private-guide-favorites page', () => {
     mockGetPrivateGuideData.mockResolvedValue(privateData)
   })
 
-  it('renders the shared demo favorites view with private stay data', async () => {
-    render(await PrivateFavoritesPage())
+  it('renders the shared departure view with private instructions', async () => {
+    render(await PrivateDeparturePage())
 
-    expect(screen.getByTestId('private-guide-shell')).toHaveClass(
-      'w-[min(430px,calc(100vw-24px))]',
-      'h-[min(820px,calc(100dvh-24px))]',
-    )
     const guide = screen.getByTestId('shared-guide-app')
     expect(guide).toHaveAttribute('data-mode', 'private')
     expect(guide).toHaveAttribute('data-lodging', 'Le Chalet Hygge')
-    expect(guide).toHaveAttribute('data-city', 'Saint-Gervais-les-Bains')
-    expect(guide).toHaveAttribute('data-poi-count', '3')
-    expect(guide).toHaveAttribute('data-initial-view', 'favorites')
+    expect(guide).toHaveAttribute('data-initial-view', 'departure')
     expect(guide).toHaveAttribute(
-      'data-favorites-route',
-      '/sejour/coups-de-coeur',
+      'data-departure-route',
+      '/sejour/logement/depart',
     )
-    expect(guide).toHaveAttribute(
-      'data-menu-favorites-route',
-      '/sejour/coups-de-coeur',
-    )
+    expect(guide).toHaveAttribute('data-parent-route', '/sejour/logement')
+    expect(guide).toHaveAttribute('data-check-out', '10:00')
+    expect(guide).toHaveAttribute('data-instruction-count', '3')
   })
 
-  it('does not load private POIs without an active stay', async () => {
+  it('does not load departure data without an active stay', async () => {
     mockGetActiveLodgingContext.mockResolvedValue(null)
 
-    await expect(PrivateFavoritesPage()).rejects.toThrow(
+    await expect(PrivateDeparturePage()).rejects.toThrow(
       'REDIRECT:/acces-reserve',
     )
     expect(mockGetPrivateGuideData).not.toHaveBeenCalled()

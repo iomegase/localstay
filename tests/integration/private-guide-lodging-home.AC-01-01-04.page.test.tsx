@@ -109,7 +109,10 @@ describe('036-private-guide-lodging-home page', () => {
       'data-practical-route',
       '/sejour/logement/informations-pratiques',
     )
-    expect(guide).toHaveAttribute('data-departure-route', '/le-logement#depart')
+    expect(guide).toHaveAttribute(
+      'data-departure-route',
+      '/sejour/logement/depart',
+    )
   })
 
   it('does not load lodging data without an active stay', async () => {

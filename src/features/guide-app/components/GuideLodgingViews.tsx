@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
 import { GuidePracticalVideo } from '@/features/guide-app/components/GuidePracticalVideo'
+import { DepartureChecklist } from '@/features/guide-app/components/DepartureChecklist'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
 function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
@@ -82,7 +83,9 @@ export function GuideLodgingViews({
         icon={LogOut}
         onBack={() => onNavigate('lodging')}
       >
-        <InstructionList items={lodging.departureInstructions} />
+        <section className={`${cardClass} p-5`}>
+          <DepartureChecklist items={lodging.departureInstructions} />
+        </section>
       </GuideSubPage>
     )
   }

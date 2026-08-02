@@ -12,7 +12,7 @@ export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   lodging: '/sejour/logement',
   arrival: '/sejour/logement/arrivee',
   practical: '/sejour/logement/informations-pratiques',
-  departure: '/le-logement#depart',
+  departure: '/sejour/logement/depart',
   map: '/map',
 }
 
@@ -49,17 +49,22 @@ export async function PrivateGuidePage({
 
   return (
     <div
-      data-testid="private-guide-shell"
-      className="mx-auto h-[100dvh] w-full max-w-[430px] overflow-hidden bg-white shadow-[0_24px_80px_rgba(15,23,42,0.16)]"
+      data-testid="private-guide-stage"
+      className="flex min-h-[100dvh] w-full items-center justify-center bg-slate-200 p-3"
     >
-      <GuideApp
-        mode="private"
-        lodging={guideData.lodging}
-        pois={guideData.pois}
-        initialView={initialView}
-        routes={PRIVATE_GUIDE_ROUTES}
-        menuItems={menuItems}
-      />
+      <div
+        data-testid="private-guide-shell"
+        className="h-[min(820px,calc(100dvh-24px))] w-[min(430px,calc(100vw-24px))] overflow-hidden rounded-[2.75rem] border-[5px] border-white bg-white shadow-[0_35px_120px_rgba(15,23,42,0.38)]"
+      >
+        <GuideApp
+          mode="private"
+          lodging={guideData.lodging}
+          pois={guideData.pois}
+          initialView={initialView}
+          routes={PRIVATE_GUIDE_ROUTES}
+          menuItems={menuItems}
+        />
+      </div>
     </div>
   )
 }
