@@ -59,4 +59,30 @@ describe('034-private-guide-app route-aware shell', () => {
       '/mes-favoris',
     )
   })
+
+  it('opens the canonical arrival page from the lodging guide', () => {
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={[]}
+        initialView="lodging"
+        routes={{
+          home: '/sejour',
+          lodging: '/sejour/logement',
+          arrival: '/sejour/logement/arrivee',
+        }}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: `Arrivée ${demoLodging.checkIn}`,
+      }),
+    )
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/arrivee')
+
+    fireEvent.click(screen.getByRole('button', { name: /Accéder au logement/i }))
+    expect(mockPush).toHaveBeenLastCalledWith('/sejour/logement/arrivee')
+  })
 })

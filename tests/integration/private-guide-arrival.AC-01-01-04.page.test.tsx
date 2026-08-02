@@ -26,55 +26,52 @@ jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
 }))
 
 jest.mock('@/features/guide-app/components/GuideApp', () => ({
-  GuideApp: ({ mode, lodging, initialView, routes, menuItems }: {
+  GuideApp: ({ mode, lodging, initialView, routes }: {
     mode: string
     lodging: {
       name: string
-      checkIn: string
-      checkOut: string
-      equipment: unknown[]
-      houseRules: unknown[]
+      addressLabel: string
+      latitude: number
+      longitude: number
+      arrivalInstructions: string[]
     }
     initialView?: string
     routes: Record<string, string>
-    menuItems?: Array<{ label: string; href: string }>
   }) => (
     <div
       data-testid="shared-guide-app"
       data-mode={mode}
       data-lodging={lodging.name}
       data-initial-view={initialView}
-      data-lodging-route={routes.lodging}
       data-arrival-route={routes.arrival}
-      data-practical-route={routes.practical}
-      data-departure-route={routes.departure}
-      data-menu-lodging-route={
-        menuItems?.find(item => item.label === "Livret d'accueil")?.href
-      }
-      data-check-in={lodging.checkIn}
-      data-check-out={lodging.checkOut}
-      data-equipment-count={lodging.equipment.length}
-      data-rules-count={lodging.houseRules.length}
+      data-parent-route={routes.lodging}
+      data-address={lodging.addressLabel}
+      data-latitude={lodging.latitude}
+      data-longitude={lodging.longitude}
+      data-instruction-count={lodging.arrivalInstructions.length}
     />
   ),
 }))
 
-import PrivateLodgingHomePage from '@/app/(public)/sejour/logement/page'
+import PrivateArrivalPage from '@/app/(public)/sejour/logement/arrivee/page'
 
 const privateData = {
   lodging: {
     id: 'lodging-1',
     name: 'Le Chalet Hygge',
     city: 'Saint-Gervais-les-Bains',
-    checkIn: '16:00',
-    checkOut: '10:00',
-    equipment: ['Wi-Fi', 'Parking', 'Lave-linge'],
-    houseRules: ['Non-fumeur', 'Calme après 22 h'],
+    addressLabel: '123 route du Mont-Blanc',
+    latitude: 45.89,
+    longitude: 6.71,
+    arrivalInstructions: [
+      'Garez-vous devant le chalet.',
+      'Entrez par la porte principale.',
+    ],
   },
   pois: [],
 }
 
-describe('036-private-guide-lodging-home page', () => {
+describe('037-private-guide-arrival page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockGetActiveLodgingContext.mockResolvedValue({
@@ -84,38 +81,28 @@ describe('036-private-guide-lodging-home page', () => {
     mockGetPrivateGuideData.mockResolvedValue(privateData)
   })
 
-  it('renders the shared lodging view with private stay data', async () => {
-    render(await PrivateLodgingHomePage())
+  it('renders the shared arrival view with private lodging data', async () => {
+    render(await PrivateArrivalPage())
 
     const guide = screen.getByTestId('shared-guide-app')
     expect(guide).toHaveAttribute('data-mode', 'private')
     expect(guide).toHaveAttribute('data-lodging', 'Le Chalet Hygge')
-    expect(guide).toHaveAttribute('data-initial-view', 'lodging')
-    expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
-    expect(guide).toHaveAttribute(
-      'data-menu-lodging-route',
-      '/sejour/logement',
-    )
-    expect(guide).toHaveAttribute('data-check-in', '16:00')
-    expect(guide).toHaveAttribute('data-check-out', '10:00')
-    expect(guide).toHaveAttribute('data-equipment-count', '3')
-    expect(guide).toHaveAttribute('data-rules-count', '2')
-
+    expect(guide).toHaveAttribute('data-initial-view', 'arrival')
     expect(guide).toHaveAttribute(
       'data-arrival-route',
       '/sejour/logement/arrivee',
     )
-    expect(guide).toHaveAttribute(
-      'data-practical-route',
-      '/le-logement#infos-pratiques',
-    )
-    expect(guide).toHaveAttribute('data-departure-route', '/le-logement#depart')
+    expect(guide).toHaveAttribute('data-parent-route', '/sejour/logement')
+    expect(guide).toHaveAttribute('data-address', '123 route du Mont-Blanc')
+    expect(guide).toHaveAttribute('data-latitude', '45.89')
+    expect(guide).toHaveAttribute('data-longitude', '6.71')
+    expect(guide).toHaveAttribute('data-instruction-count', '2')
   })
 
-  it('does not load lodging data without an active stay', async () => {
+  it('does not load arrival data without an active stay', async () => {
     mockGetActiveLodgingContext.mockResolvedValue(null)
 
-    await expect(PrivateLodgingHomePage()).rejects.toThrow(
+    await expect(PrivateArrivalPage()).rejects.toThrow(
       'REDIRECT:/acces-reserve',
     )
     expect(mockGetPrivateGuideData).not.toHaveBeenCalled()

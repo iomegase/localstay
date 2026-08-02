@@ -10,7 +10,7 @@ export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   home: '/sejour',
   favorites: '/sejour/coups-de-coeur',
   lodging: '/sejour/logement',
-  arrival: '/le-logement#bienvenue',
+  arrival: '/sejour/logement/arrivee',
   practical: '/le-logement#infos-pratiques',
   departure: '/le-logement#depart',
   map: '/map',
