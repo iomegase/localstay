@@ -50,6 +50,8 @@ const bigShouldersInline = Big_Shoulders_Inline({
   subsets: ['latin'],
   variable: '--font-big-shoulders',
   display: 'swap',
+  fallback: ['sans-serif'],
+  adjustFontFallback: false,
 })
 
 export const metadata: Metadata = {
