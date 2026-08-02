@@ -1,6 +1,7 @@
 'use client'
 
-import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, RotateCcw, Square, Unlock, X } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, Route, RotateCcw, Square, Timer, TrendingUp, Unlock, X } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -525,43 +526,38 @@ function TrailNavigationSessionMap({
         data-testid="trail-navigation-panel"
         aria-hidden={!isHudExpanded}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#db2777]">Guidage randonnée</p> */}
-            <h1 className="mt-1 text-2xl font-light leading-tight tracking-tight text-charcoal">{trail.name}</h1>
-            <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
-            <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">{statusLabel}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-charcoal/55"
+            aria-label={healthLabel}
+          >
+            {healthLabel}
             <span
-              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-700"
+              data-testid="gps-health-dot"
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: gpsHealthColor(session.gpsHealth) }}
               aria-label={healthLabel}
-            >
-              {healthLabel}
-              <span
-                data-testid="gps-health-dot"
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: gpsHealthColor(session.gpsHealth) }}
-                aria-label={healthLabel}
-                title={healthLabel}
-              />
-            </span>
-            <button
-              type="button"
-              onClick={() => setHudExpandedFromUser(false)}
-              aria-label="Réduire le panneau"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-cream text-charcoal shadow-sm active:scale-95 transition-transform"
-            >
-              <ChevronDown className="h-4 w-4" />
-            </button>
-          </div>
+              title={healthLabel}
+            />
+          </span>
+          <button
+            type="button"
+            onClick={() => setHudExpandedFromUser(false)}
+            aria-label="Réduire le panneau"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-charcoal shadow-sm active:scale-95 transition-transform"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
         </div>
 
+        <h1 className="mt-4 text-2xl font-light leading-tight tracking-tight text-charcoal">{trail.name}</h1>
+        <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
+
         <div className={`mt-5 grid gap-3 text-center text-xs ${hasSessionMetrics ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          <Metric label="Distance" value={displayedDistance} />
-          <Metric label="Durée" value={displayedDuration} />
+          <Metric icon={Route} label="Distance" value={displayedDistance} />
+          <Metric icon={Timer} label="Durée" value={displayedDuration} />
           {!hasSessionMetrics && (
-            <Metric label="D+" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
+            <Metric icon={TrendingUp} label="Dénivelé" value={trail.elevation_gain_m ? `${trail.elevation_gain_m} m` : 'n/a'} />
           )}
         </div>
 
@@ -654,21 +650,6 @@ function TrailNavigationSessionMap({
           </div>
         )}
 
-        {(session.gpsHealth === 'denied' || session.gpsHealth === 'unavailable') && (
-          <div
-            role="status"
-            className="mt-3 flex items-start gap-2 rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-800"
-          >
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>
-              <strong>{healthLabel}</strong>.
-              {session.isActive
-                ? ' La session continue avec les statistiques déjà acquises. Stop reste disponible.'
-                : ' Le tracé reste consultable sans suivi en direct.'}
-            </p>
-          </div>
-        )}
-
         {/* <div className="mt-4 flex items-start gap-2 justify-center rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/60">
           <Mountain className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           <p className="text-[10px] leading-5 tracking-wide text-charcoal/90">
@@ -687,11 +668,12 @@ function TrailNavigationSessionMap({
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-cream px-3 py-3.5">
-      <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-charcoal/45">{label}</p>
-      <p className="mt-1 text-[15px] font-medium text-charcoal">{value}</p>
+    <div className="rounded-2xl bg-gray-50 px-3 py-4 text-center shadow-[0_2px_10px_-4px_rgba(18,18,18,0.12)]">
+      <Icon className="mx-auto h-5 w-5 text-emerald-600" strokeWidth={1.75} />
+      <p className="mt-2 text-[15px] font-semibold text-charcoal">{value}</p>
+      <p className="mt-0.5 text-[11px] text-charcoal/45">{label}</p>
     </div>
   )
 }
