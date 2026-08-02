@@ -47,6 +47,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **AC-01-05**: Given un séjour actif dont le Lodging recommande ce POI avec un commentaire Owner non vide, When la fiche POI s'affiche, Then un bloc "Le mot de votre hôte" affiche uniquement le commentaire de ce Lodging
 - **AC-01-06**: Given aucun séjour actif, un autre Lodging actif ou une recommandation sans commentaire, When la fiche POI s'affiche, Then aucun commentaire Owner n'est rendu
 - **AC-01-07**: Given la fiche POI est ouverte dans le `GuideApp` privé ou de démonstration avec plusieurs photos, When le Tourist balaie horizontalement le hero, Then la galerie suit le geste avec un scroll-snap natif, met à jour l'indicateur actif et n'affiche aucune flèche gauche/droite ; le scroll vertical de la fiche reste utilisable et les indicateurs permettent aussi une sélection au clavier ou au clic
+- **AC-01-08**: Given une fiche POI est ouverte depuis les Coups de cœur ou la Carte interne du `GuideApp`, When le Tourist active le bouton Retour en haut à gauche, Then la fiche se ferme immédiatement et la vue interne d'origine est restaurée sans `router.push` vers une route déjà active ou vers l'ancienne carte `/map`
 
 ### US-02 — Agir depuis la fiche
 
@@ -90,6 +91,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **BR-12**: La mini-carte statique de fiche POI utilise un zoom rapproché par défaut afin de mieux situer le bâtiment et les rues immédiates autour du POI.
 - **BR-13**: Dans le nouveau `GuideApp`, le hero POI utilise une variante swipe native isolée du carousel historique : chaque photo occupe exactement la largeur du hero, le conteneur utilise `overflow-x-auto`, `snap-x` et `snap-mandatory`, les flèches sont absentes et les indicateurs restent visibles et interactifs. Les fiches publiques historiques et les variantes Blog conservent leur comportement tant qu'elles ne migrent pas explicitement vers cette variante.
 - **BR-14**: La variante swipe conserve le signalement des photos mortes, le fallback par catégorie, le cadrage de l'image, la pastille d'ouverture et les contenus superposés existants. Elle ne doit pas bloquer le geste vertical de la fiche.
+- **BR-15**: Le bouton Retour d'une fiche POI ouverte dans le `GuideApp` ferme toujours la vue `poi` par transition d'état interne : il efface le POI sélectionné et restaure `poiOrigin`. Cette fermeture ne consulte pas `GuideRouteMap`, car une navigation externe vers l'URL courante serait ignorée par Next.js et laisserait la fiche ouverte.
 
 ---
 
@@ -301,6 +303,7 @@ components:
 - **Header** : carousel photo plein écran (hero), ou image fallback catégorie si aucune photo POI n'existe, avec back button overlay et pastille "Ouvert" en footer d'image si le POI est ouvert
 - **Carousel** : une photo active visible à la fois dans le hero ; flèches gauche/droite et indicateurs si `photos.length > 1`
 - **Carousel du nouveau GuideApp** : une photo par écran, swipe horizontal natif avec scroll-snap, sans flèches ; indicateurs visibles, cliquables et accessibles au clavier
+- **Retour du nouveau GuideApp** : le bouton superposé en haut à gauche ferme la fiche dans la mini-application et restaure Coups de cœur ou Carte selon la vue d'origine, sans changement d'URL
 - **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager ; aucun bouton Réserver en MVP 1
 - **Section horaires** : accordéon, jour courant en gras
 - **Section carte** : mini-carte Mapbox avec marker du POI (voir spec 005-map)
@@ -323,6 +326,7 @@ components:
 | AC-01-05 | Séjour actif et recommandation commentée → commentaire du Lodging affiché | integration |
 | AC-01-06 | Aucun contexte, autre Lodging ou note vide → aucun commentaire Owner | unit + integration |
 | AC-01-07 | Le hero POI du GuideApp se parcourt par swipe natif sans flèches, avec indicateur synchronisé et scroll vertical préservé | unit + integration |
+| AC-01-08 | Le bouton Retour ferme la fiche POI et restaure sa vue interne d'origine sans navigation vers l'URL courante ou `/map` | integration |
 | AC-02-01 | Bouton Appeler → `tel:` link | e2e |
 | AC-02-02 | Bouton Itinéraire → Google Maps avec adresse publique puis fallback coordonnées | e2e |
 | AC-02-03 | Bouton Site → nouvel onglet | e2e |
