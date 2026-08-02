@@ -53,7 +53,7 @@ function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
   routes: GuideRouteMap
 }) {
   const router = useRouter()
-  const citySlug = props.citySlug
+  const citySlug = props.mode === 'private' ? props.citySlug : undefined
 
   return (
     <GuideAppShell

@@ -1,18 +1,39 @@
 /** @jest-environment jsdom */
 
+import type { ComponentProps } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 const mockPush = jest.fn()
+const mockGuidePoiDetailsProps = jest.fn()
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 
+jest.mock('@/features/guide-app/components/GuidePoiDetails', () => {
+  const actual = jest.requireActual<
+    typeof import('@/features/guide-app/components/GuidePoiDetails')
+  >('@/features/guide-app/components/GuidePoiDetails')
+  const ActualGuidePoiDetails = actual.GuidePoiDetails
+
+  function ObservedGuidePoiDetails(
+    props: ComponentProps<typeof ActualGuidePoiDetails>,
+  ) {
+    mockGuidePoiDetailsProps(props)
+    return <ActualGuidePoiDetails {...props} />
+  }
+
+  return { GuidePoiDetails: ObservedGuidePoiDetails }
+})
+
 describe('034-private-guide-app route-aware shell', () => {
-  beforeEach(() => mockPush.mockClear())
+  beforeEach(() => {
+    mockPush.mockClear()
+    mockGuidePoiDetailsProps.mockClear()
+  })
 
   it('uses private routes from the shared GuideApp home', () => {
     render(
@@ -171,5 +192,28 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(mockPush).toHaveBeenLastCalledWith(
       '/guide/saint-gervais-les-bains/rando/l-alpage-de-porcherey/start',
     )
+  })
+
+  it('021 BR-04: does not provide trail start navigation to a routed demo guide', () => {
+    render(
+      <GuideApp
+        mode="demo"
+        lodging={demoLodging}
+        pois={demoPois}
+        citySlug="saint-gervais-les-bains"
+        initialView="favorites"
+        routes={{ home: '/', favorites: '/coups-de-coeur' }}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /ouvrir l’alpage de porcherey/i }),
+    )
+
+    const detailsProps = mockGuidePoiDetailsProps.mock.lastCall?.[0]
+    expect(detailsProps?.onStartTrail).toBeUndefined()
+    expect(
+      screen.getByRole('button', { name: 'Commencer la randonnée' }),
+    ).toBeDisabled()
   })
 })
