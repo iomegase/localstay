@@ -72,7 +72,7 @@ describe('034-private-guide-app /sejour home', () => {
     mockGetPrivateGuideData.mockResolvedValue(privateData)
   })
 
-  it('renders the shared private GuideApp with real stay data and canonical favorites route', async () => {
+  it('renders the shared private GuideApp with real stay data and internal map navigation', async () => {
     render(
       await SejourPage({
         searchParams: Promise.resolve({ lodging: 'lodging-1' }),
@@ -100,7 +100,7 @@ describe('034-private-guide-app /sejour home', () => {
     )
     expect(guide).toHaveAttribute('data-initial-view', 'home')
     expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
-    expect(guide).toHaveAttribute('data-map-route', '/map')
+    expect(guide).not.toHaveAttribute('data-map-route')
     expect(mockRecordQrScanIfPresent).toHaveBeenCalledWith('lodging-1')
   })
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { PrivateGuideFrame } from '@/features/guide-app/components/PrivateGuideFrame'
 import { TrailNavigationMap } from './TrailNavigationMap'
 import type { TrailNavigationData } from '../types'
 
@@ -20,7 +21,14 @@ export function TrailStartModal({
   const router = useRouter()
   return (
     <div className="fixed inset-0 z-[100]" data-testid="trail-start-modal">
-      <TrailNavigationMap trail={trail} backHref={backHref} onClose={() => router.back()} />
+      <PrivateGuideFrame>
+        <TrailNavigationMap
+          trail={trail}
+          backHref={backHref}
+          contained
+          onClose={() => router.back()}
+        />
+      </PrivateGuideFrame>
     </div>
   )
 }

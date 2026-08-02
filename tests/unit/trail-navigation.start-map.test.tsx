@@ -285,6 +285,15 @@ describe('021 trail navigation start mode', () => {
     )
   })
 
+  it('040 AC-03: fills its parent frame instead of the browser viewport in contained mode', () => {
+    render(<TrailNavigationMap trail={trail} contained />)
+
+    expect(screen.getByTestId('trail-navigation-start')).toHaveClass('h-full')
+    expect(screen.getByTestId('trail-navigation-start')).not.toHaveClass(
+      'h-screen',
+    )
+  })
+
   it('AC-02-07/BR-29: keeps the Close control above Mapbox and returns to the previous screen', async () => {
     render(<TrailNavigationMap trail={trail} />)
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { PrivateGuideFrame } from '@/features/guide-app/components/PrivateGuideFrame'
 import { TrailNavigationMap } from '@/features/trail-navigation/components/TrailNavigationMap'
 import { getPublishedTrail } from '@/features/trails-acquisition/queries/public-trails'
 import type { TrailNavigationData } from '@/features/trail-navigation/types'
@@ -34,9 +35,12 @@ export default async function TrailNavigationStartPage({ params }: Props) {
   }
 
   return (
-    <TrailNavigationMap
-      trail={trail as TrailNavigationData}
-      backHref={`/guide/${citySlug}/${categorySlug}`}
-    />
+    <PrivateGuideFrame>
+      <TrailNavigationMap
+        trail={trail as TrailNavigationData}
+        backHref={`/guide/${citySlug}/${categorySlug}`}
+        contained
+      />
+    </PrivateGuideFrame>
   )
 }
