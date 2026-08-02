@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-07-09
+updated_at: 2026-08-02
 depends_on: [001-city-guide, 002-categories, 003-poi-list, 012-guide-customization]
 ```
 
@@ -40,12 +40,13 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 #### Acceptance Criteria
 
-- **AC-01-01**: Given un POI valide, When la fiche s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos ou fallback catégorie, distance ; le hero affiche les photos dans un carousel plein largeur, avec flèches seulement si plusieurs photos sont disponibles ; si aucune photo n'est disponible, il affiche une image fallback publique issue de `/fallback/fallback-<catégorie>.png` selon la catégorie ou sous-catégorie du POI
+- **AC-01-01**: Given un POI valide, When la fiche publique historique s'affiche, Then sont visibles : nom, catégorie, adresse, horaires, téléphone, site web, note, nombre d'avis, photos ou fallback catégorie, distance ; le hero affiche les photos dans un carousel plein largeur, avec flèches seulement si plusieurs photos sont disponibles ; si aucune photo n'est disponible, il affiche une image fallback publique issue de `/fallback/fallback-<catégorie>.png` selon la catégorie ou sous-catégorie du POI. La variante du nouveau `GuideApp` est définie séparément par AC-01-07.
 - **AC-01-02**: Given un POI sans téléphone, When la fiche s'affiche, Then le bouton "Appeler" est masqué
 - **AC-01-03**: Given un POI sans site web, When la fiche s'affiche, Then le bouton "Site web" est masqué
 - **AC-01-04**: Given un POI avec `is_open_now = true`, When la fiche s'affiche, Then une pastille verte "Ouvert" est visible dans le footer de l'image hero et l'heure de fermeture reste affichée dans la section horaires
 - **AC-01-05**: Given un séjour actif dont le Lodging recommande ce POI avec un commentaire Owner non vide, When la fiche POI s'affiche, Then un bloc "Le mot de votre hôte" affiche uniquement le commentaire de ce Lodging
 - **AC-01-06**: Given aucun séjour actif, un autre Lodging actif ou une recommandation sans commentaire, When la fiche POI s'affiche, Then aucun commentaire Owner n'est rendu
+- **AC-01-07**: Given la fiche POI est ouverte dans le `GuideApp` privé ou de démonstration avec plusieurs photos, When le Tourist balaie horizontalement le hero, Then la galerie suit le geste avec un scroll-snap natif, met à jour l'indicateur actif et n'affiche aucune flèche gauche/droite ; le scroll vertical de la fiche reste utilisable et les indicateurs permettent aussi une sélection au clavier ou au clic
 
 ### US-02 — Agir depuis la fiche
 
@@ -77,7 +78,7 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 
 - **BR-01**: Les boutons d'action (appeler, itinéraire, site) n'apparaissent que si la donnée correspondante existe ; l'itinéraire est toujours disponible via adresse publique ou coordonnées en fallback
 - **BR-02**: Le bouton "Réserver" n'est pas rendu en MVP 1 ; il sera introduit uniquement par une spec réservation approuvée
-- **BR-03**: Les photos de la fiche sont affichées dans le hero sous forme de carousel plein largeur. La photo active réutilise la logique visuelle des `PoiCard` : fond flou `object-cover` pour remplir le cadre, image principale centrée en `object-contain` pour préserver le cadrage ; des flèches et indicateurs sont affichés uniquement si plusieurs photos sont disponibles.
+- **BR-03**: Les photos de la fiche publique historique sont affichées dans le hero sous forme de carousel plein largeur. La photo active réutilise la logique visuelle des `PoiCard` : fond flou `object-cover` pour remplir le cadre, image principale centrée en `object-contain` pour préserver le cadrage ; des flèches et indicateurs sont affichés uniquement si plusieurs photos sont disponibles. Le nouveau `GuideApp` applique l'exception swipe définie par BR-13.
 - **BR-04**: Si aucune photo n'est disponible, une image fallback de `/public/fallback` est affichée selon la catégorie ou sous-catégorie du POI. Le placeholder gradient ne reste qu'un dernier recours si aucune correspondance fallback n'existe.
 - **BR-05**: Les horaires sont affichés jour par jour ; le jour courant est mis en évidence
 - **BR-06**: Le commentaire Owner est résolu séparément du `PoiDetail` global, à partir du cookie de séjour actif et de la paire exacte `(lodging_id, poi_id)`
@@ -87,6 +88,8 @@ La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner tou
 - **BR-10**: En mode séjour actif avec coordonnées logement disponibles, la distance de fiche POI affiche `Situé à X m/km du logement`. Si le Tourist a activé son GPS, la fiche recalcule localement la distance et affiche `Situé à X m/km de votre position actuelle`. La position GPS du Tourist reste locale et n'est jamais persistée.
 - **BR-11**: Les actions principales de fiche POI (`Appeler`, `Itinéraire`, `Site web`) utilisent un style de bouton pilule compact inspiré des POI cards : fond blanc sans bordure visible, ombre portée douce, pastille icône colorée et libellé uppercase coloré en 9px, sans numéro de téléphone ni texte secondaire visible, et tiennent sur une seule ligne sans scroll horizontal. La barre d'actions conserve toujours une grille fixe en 3 colonnes (`Appeler` à gauche, `Itinéraire` au centre, `Site web` à droite), même quand une ou plusieurs actions sont masquées. La top bar de fiche POI ne capture pas les clics sur toute la largeur afin de laisser le burger public utilisable quand il est visible derrière cette zone fixe.
 - **BR-12**: La mini-carte statique de fiche POI utilise un zoom rapproché par défaut afin de mieux situer le bâtiment et les rues immédiates autour du POI.
+- **BR-13**: Dans le nouveau `GuideApp`, le hero POI utilise une variante swipe native isolée du carousel historique : chaque photo occupe exactement la largeur du hero, le conteneur utilise `overflow-x-auto`, `snap-x` et `snap-mandatory`, les flèches sont absentes et les indicateurs restent visibles et interactifs. Les fiches publiques historiques et les variantes Blog conservent leur comportement tant qu'elles ne migrent pas explicitement vers cette variante.
+- **BR-14**: La variante swipe conserve le signalement des photos mortes, le fallback par catégorie, le cadrage de l'image, la pastille d'ouverture et les contenus superposés existants. Elle ne doit pas bloquer le geste vertical de la fiche.
 
 ---
 
@@ -297,6 +300,7 @@ components:
 
 - **Header** : carousel photo plein écran (hero), ou image fallback catégorie si aucune photo POI n'existe, avec back button overlay et pastille "Ouvert" en footer d'image si le POI est ouvert
 - **Carousel** : une photo active visible à la fois dans le hero ; flèches gauche/droite et indicateurs si `photos.length > 1`
+- **Carousel du nouveau GuideApp** : une photo par écran, swipe horizontal natif avec scroll-snap, sans flèches ; indicateurs visibles, cliquables et accessibles au clavier
 - **Action bar** sticky en bas : boutons Appeler / Itinéraire / Site / Partager ; aucun bouton Réserver en MVP 1
 - **Section horaires** : accordéon, jour courant en gras
 - **Section carte** : mini-carte Mapbox avec marker du POI (voir spec 005-map)
@@ -312,12 +316,13 @@ components:
 
 | ID | Description | Test type |
 |---|---|---|
-| AC-01-01 | Tous les champs visibles si présents + hero photo carousel ou fallback catégorie avec flèches si plusieurs photos | integration |
+| AC-01-01 | Tous les champs visibles si présents + hero photo carousel historique ou fallback catégorie avec flèches si plusieurs photos | integration |
 | AC-01-02 | Bouton Appeler masqué si pas de tel | unit |
 | AC-01-03 | Bouton Site masqué si pas de site | unit |
 | AC-01-04 | Pastille Ouvert dans le footer image + heure de fermeture dans la section horaires | unit + integration |
 | AC-01-05 | Séjour actif et recommandation commentée → commentaire du Lodging affiché | integration |
 | AC-01-06 | Aucun contexte, autre Lodging ou note vide → aucun commentaire Owner | unit + integration |
+| AC-01-07 | Le hero POI du GuideApp se parcourt par swipe natif sans flèches, avec indicateur synchronisé et scroll vertical préservé | unit + integration |
 | AC-02-01 | Bouton Appeler → `tel:` link | e2e |
 | AC-02-02 | Bouton Itinéraire → Google Maps avec adresse publique puis fallback coordonnées | e2e |
 | AC-02-03 | Bouton Site → nouvel onglet | e2e |
