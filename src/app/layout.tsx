@@ -44,6 +44,8 @@ const storyScript = Story_Script({
   weight: '400',
   variable: '--font-story',
   display: 'swap',
+  fallback: ['cursive'],
+  adjustFontFallback: false,
 })
 
 const bigShouldersInline = Big_Shoulders_Inline({

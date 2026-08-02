@@ -372,7 +372,7 @@ function TrailNavigationSessionMap({
             id="trail-line"
             type="line"
             paint={{
-              'line-color': '#455E4C',
+              'line-color': '#059669',
               'line-width': 5,
               'line-opacity': 0.9,
             }}
@@ -380,7 +380,7 @@ function TrailNavigationSessionMap({
         </Source>
         {isLoopTrail ? (
           <Marker latitude={endpoints.start.latitude} longitude={endpoints.start.longitude} anchor="bottom">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#455E4C] text-white shadow-lg" aria-label="Départ et arrivée (boucle)">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow-lg" aria-label="Départ et arrivée (boucle)">
               <RotateCcw className="h-4 w-4" />
             </span>
           </Marker>
@@ -493,7 +493,7 @@ function TrailNavigationSessionMap({
             disabled={position === null}
             aria-pressed={isFollowing && !!position}
             className={`flex h-11 w-11 items-center justify-center rounded-full shadow transition-colors ${
-              isFollowing && position ? 'bg-[#455E4C] text-white' : 'bg-white/90 text-charcoal'
+              isFollowing && position ? 'bg-emerald-600 text-white' : 'bg-white/90 text-charcoal'
             }`}
             aria-label={
               position
@@ -501,7 +501,7 @@ function TrailNavigationSessionMap({
                 : 'Position indisponible'
             }
           >
-            <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-[#455E4C]' : ''}`} />
+            <LocateFixed className={`h-5 w-5 ${!position ? 'animate-pulse text-emerald-600' : ''}`} />
           </button>
         </div>
       </div>
@@ -521,20 +521,20 @@ function TrailNavigationSessionMap({
       )}
 
       <section
-        className={`absolute inset-x-4 bottom-4 rounded-md bg-white/95 p-5 shadow-2xl backdrop-blur transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`absolute inset-x-3 bottom-3 rounded-[28px] bg-white/95 p-6 shadow-[0_-6px_44px_-8px_rgba(18,18,18,0.28)] backdrop-blur transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         data-testid="trail-navigation-panel"
         aria-hidden={!isHudExpanded}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
             {/* <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#db2777]">Guidage randonnée</p> */}
-            <h1 className="mt-1 uppercase text-xlleading-tight text-[#121212]">{trail.name}</h1>
+            <h1 className="mt-1 text-2xl font-light leading-tight tracking-tight text-charcoal">{trail.name}</h1>
             <p className="mt-2 text-xs text-charcoal/55">{trail.start_label ?? 'Point de départ renseigné'}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-charcoal/70">{statusLabel}</p>
+            <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">{statusLabel}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#455E4C] shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-700"
               aria-label={healthLabel}
             >
               {healthLabel}
@@ -550,14 +550,14 @@ function TrailNavigationSessionMap({
               type="button"
               onClick={() => setHudExpandedFromUser(false)}
               aria-label="Réduire le panneau"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-charcoal shadow-sm active:scale-95 transition-transform"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-cream text-charcoal shadow-sm active:scale-95 transition-transform"
             >
               <ChevronDown className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        <div className={`mt-4 grid gap-2 text-center text-xs ${hasSessionMetrics ? 'grid-cols-2' : 'grid-cols-3'}`}>
+        <div className={`mt-5 grid gap-3 text-center text-xs ${hasSessionMetrics ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <Metric label="Distance" value={displayedDistance} />
           <Metric label="Durée" value={displayedDuration} />
           {!hasSessionMetrics && (
@@ -569,7 +569,7 @@ function TrailNavigationSessionMap({
           <button
             type="button"
             onClick={startGpsTracking}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#455E4C] px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3.5 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-[0_10px_28px_-8px_rgba(5,150,105,0.6)] transition-all hover:bg-emerald-700 active:scale-[0.98]"
           >
             <LocateFixed className="h-4 w-4" />
             Activer le suivi GPS
@@ -577,7 +577,7 @@ function TrailNavigationSessionMap({
         )}
 
         {session.phase === 'ready_to_join' && session.canStart && (
-          <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
+          <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-5 text-charcoal/75">
             <p className="font-semibold text-charcoal">
               Vous êtes à {session.distanceToTrailM !== null ? Math.round(session.distanceToTrailM) : '?'} m du tracé.
             </p>
@@ -589,7 +589,7 @@ function TrailNavigationSessionMap({
             <button
               type="button"
               onClick={session.startSession}
-              className="mt-3 w-full rounded-full bg-[#455E4C] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-sm active:scale-[0.98] transition-transform"
+              className="mt-3 w-full rounded-full bg-emerald-600 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_8px_22px_-8px_rgba(5,150,105,0.6)] transition-all hover:bg-emerald-700 active:scale-[0.98]"
             >
               Démarrer ici
             </button>
@@ -629,9 +629,9 @@ function TrailNavigationSessionMap({
         )}
 
         {session.phase === 'approaching' && (
-          <div className="mt-3 rounded-2xl bg-[#F2F5EF] px-4 py-3 text-xs leading-5 text-charcoal/75">
+          <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-5 text-charcoal/75">
             <p className="font-semibold text-charcoal flex items-center gap-2">
-              <Navigation className="h-4 w-4 text-[#455E4C]" />
+              <Navigation className="h-4 w-4 text-emerald-600" />
               En route vers le tracé.
             </p>
             <p className="mt-1">
@@ -670,7 +670,7 @@ function TrailNavigationSessionMap({
         )}
 
         {/* <div className="mt-4 flex items-start gap-2 justify-center rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/60">
-          <Mountain className="mt-0.5 h-4 w-4 shrink-0 text-[#455E4C]" />
+          <Mountain className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           <p className="text-[10px] leading-5 tracking-wide text-charcoal/90">
             MyStay ne remplace pas une carte officielle, la météo, le balisage terrain ou un équipement adapté.
           </p>
@@ -689,9 +689,9 @@ function TrailNavigationSessionMap({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-white px-3 py-3 drop-shadow-sm">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-charcoal/40">{label}</p>
-      <p className="mt-1 font-semibold text-charcoal">{value}</p>
+    <div className="rounded-2xl bg-cream px-3 py-3.5">
+      <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-charcoal/45">{label}</p>
+      <p className="mt-1 text-[15px] font-medium text-charcoal">{value}</p>
     </div>
   )
 }

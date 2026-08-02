@@ -28,7 +28,7 @@ export function NavigationHud({
   return (
     <div
       data-testid="trail-navigation-hud"
-      className={`absolute inset-x-3 bottom-3 rounded-2xl bg-[#FAF9F6]/95 px-4 py-3 shadow-2xl backdrop-blur ${pulse ? 'animate-pulse' : ''}`}
+      className={`absolute inset-x-3 bottom-3 rounded-[26px] bg-[#FAF9F6]/95 px-5 py-3.5 shadow-[0_10px_36px_-10px_rgba(18,18,18,0.32)] backdrop-blur ${pulse ? 'animate-pulse' : ''}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
@@ -63,7 +63,7 @@ export function NavigationHud({
           type="button"
           onClick={onExpand}
           aria-label="Afficher les détails"
-          className="ml-1 flex h-7 w-7 items-center justify-center rounded-full bg-white text-charcoal shadow-sm active:scale-95 transition-transform"
+          className="ml-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 shadow-sm active:scale-95 transition-transform"
         >
           <ChevronUp className="h-4 w-4" />
         </button>
