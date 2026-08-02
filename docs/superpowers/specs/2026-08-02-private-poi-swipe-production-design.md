@@ -38,19 +38,6 @@ photos dans une rangée horizontale native :
 fiches historiques qui suivent encore le contrat à flèches et la variante Blog
 ne sont pas modifiées dans cet incrément.
 
-## POI back navigation
-
-Le bouton Retour actuel appelle `navigate(poiOrigin)`. Quand l'origine est
-`favorites`, la table de routes traduit cette vue en
-`/sejour/coups-de-coeur`, qui est déjà l'URL active. Next.js ignore ce push
-identique et le `GuideApp` reste dans l'état `poi`, ce qui donne l'impression
-que le bouton est inactif.
-
-Une action interne `closePoi` doit être dédiée à la fermeture de la fiche. Elle
-efface la sélection puis restaure directement `poiOrigin` avec `setActiveView`,
-sans consulter `GuideRouteMap`. Le même mécanisme ramène correctement vers la
-carte interne lorsque la fiche a été ouverte depuis la carte.
-
 ## Preserved behavior
 
 - Le swipe horizontal ne bloque pas le scroll vertical du panneau POI.
@@ -69,8 +56,6 @@ carte interne lorsque la fiche a été ouverte depuis la carte.
   synchronisation de l'index.
 - Test d'intégration GuideApp : retour d'une fiche vers la carte interne sans
   `router.push('/map')`.
-- Test d'intégration GuideApp : retour d'une fiche ouverte depuis Coups de cœur
-  sans push vers l'URL déjà active.
 - Test d'intégration privé : le bouton randonnée possède le callback et ouvre
   la route de démarrage.
 - Lint, TypeScript, tests GuideApp et build de production avant fusion.
