@@ -8,7 +8,7 @@ jest.mock('@/shared/lib/supabase', () => ({
 }))
 
 describe('031-public-marketing-site QR landing', () => {
-  it('redirects a valid city QR to the private recommendations home', async () => {
+  it('redirects a valid city QR to the private stay home', async () => {
     const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
     const response = await proxy(
       new NextRequest(
@@ -18,7 +18,7 @@ describe('031-public-marketing-site QR landing', () => {
 
     expect(response.status).toBe(307)
     expect(response.headers.get('location')).toBe(
-      `http://localhost:3000/nos-recommandations?lodging=${lodgingId}`,
+      `http://localhost:3000/sejour?lodging=${lodgingId}`,
     )
     expect(response.cookies.get('lodging_id')?.value).toBe(lodgingId)
   })

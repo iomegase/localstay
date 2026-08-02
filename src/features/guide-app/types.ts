@@ -12,6 +12,10 @@ export type GuideView =
   | 'map'
   | 'poi'
 
+export type GuideRouteMap = Partial<
+  Record<Exclude<GuideView, 'poi'>, string>
+>
+
 export type GuidePoiCategory = {
   slug: string
   name: string
@@ -100,4 +104,9 @@ export type GuideLodging = {
   houseRules: string[]
   practicalCards: GuidePracticalCard[]
   usefulNumbers: GuideUsefulNumber[]
+}
+
+export type PrivateGuideData = {
+  lodging: GuideLodging
+  pois: GuidePoi[]
 }

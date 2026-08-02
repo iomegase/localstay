@@ -44,14 +44,18 @@ export function isAnonymousMarketingPath(pathname: string) {
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isMarketingRoute = isAnonymousMarketingPath(path)
+  const isGuideAppRoute = path === '/sejour' || path.startsWith('/sejour/')
   const requestHeaders = new Headers(request.headers)
 
   if (isMarketingRoute) {
     requestHeaders.set('x-staylocal-marketing-route', '1')
   }
+  if (isGuideAppRoute) {
+    requestHeaders.set('x-staylocal-guide-app-route', '1')
+  }
 
   const response = NextResponse.next(
-    isMarketingRoute
+    isMarketingRoute || isGuideAppRoute
       ? {
         request: {
           headers: requestHeaders,
@@ -74,14 +78,14 @@ export async function proxy(request: NextRequest) {
       }
 
       // Atterrissage du QR séjour = /guide/{ville} (2 segments exactement).
-      // On dépose alors le guest sur l'accueil privé (/nos-recommandations).
+      // On dépose alors le guest sur la home privée canonique (/sejour).
       // ?lodging= est transporté pour que cette page enregistre l'évènement
       // qr_scan. La navigation interne plus profonde
       // (/guide/{ville}/{categorie}…) porte aussi ?lodging= : on se contente
       // alors de rafraîchir le cookie, sans rediriger.
       const isCityLanding = path.split('/').filter(Boolean).length === 2
       if (isCityLanding) {
-        const destination = new URL('/nos-recommandations', request.url)
+        const destination = new URL('/sejour', request.url)
         destination.searchParams.set('lodging', lodgingFromQuery)
         const redirect = NextResponse.redirect(destination)
         redirect.cookies.set(cookie)
@@ -105,7 +109,7 @@ export async function proxy(request: NextRequest) {
       const isPoiDetail = segments.length >= 4
       const allowed = isPoiDetail || (guideSegment !== null && GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment))
       if (!allowed) {
-        return NextResponse.redirect(new URL('/nos-recommandations', request.url))
+        return NextResponse.redirect(new URL('/sejour', request.url))
       }
     }
     return response
@@ -155,6 +159,17 @@ export async function proxy(request: NextRequest) {
   // === Site éditorial public : accessible sans séjour actif ===
   if (isMarketingRoute) {
     return response
+  }
+
+  // Compatibilité des anciens liens privés : la nouvelle page canonique des
+  // coups de cœur remplace l'interface historique sans rendre la route publique.
+  if (path === '/nos-recommandations') {
+    const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+    if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
+      return NextResponse.redirect(
+        new URL('/sejour/coups-de-coeur', request.url),
+      )
+    }
   }
 
   // === Pages invité (le-logement, recommandations, map…) ===

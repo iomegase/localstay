@@ -23,6 +23,7 @@ describe('031-public-marketing-site anonymous access policy', () => {
     '/map',
     '/mes-favoris',
     '/services-prives',
+    '/sejour',
     '/guide/saint-gervais-les-bains/logements',
   ])('keeps the guest route %s behind the invitation gate', pathname => {
     expect(isAnonymousMarketingPath(pathname)).toBe(false)
