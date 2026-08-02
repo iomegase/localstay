@@ -7,7 +7,6 @@ const mockGetPrivateGuideData = jest.fn()
 const mockRedirect = jest.fn((destination: string) => {
   throw new Error(`REDIRECT:${destination}`)
 })
-const mockRecordQrScanIfPresent = jest.fn()
 
 jest.mock('next/navigation', () => ({
   redirect: (destination: string) => mockRedirect(destination),
@@ -23,17 +22,17 @@ jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
 }))
 
 jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
-  recordQrScanIfPresent: (lodgingId: string | null) =>
-    mockRecordQrScanIfPresent(lodgingId),
+  recordQrScanIfPresent: jest.fn(),
 }))
 
 jest.mock('@/features/guide-app/components/GuideApp', () => ({
-  GuideApp: ({ mode, lodging, pois, routes, initialView }: {
+  GuideApp: ({ mode, lodging, pois, routes, initialView, menuItems }: {
     mode: string
     lodging: { name: string; city: string }
     pois: unknown[]
     routes: Record<string, string>
     initialView?: string
+    menuItems?: Array<{ label: string; href: string }>
   }) => (
     <div
       data-testid="shared-guide-app"
@@ -41,15 +40,16 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       data-lodging={lodging.name}
       data-city={lodging.city}
       data-poi-count={pois.length}
+      data-initial-view={initialView}
       data-favorites-route={routes.favorites}
-      data-lodging-route={routes.lodging}
-      data-map-route={routes.map}
-      data-initial-view={initialView ?? 'home'}
+      data-menu-favorites-route={
+        menuItems?.find(item => item.label === 'Coups de cœur')?.href
+      }
     />
   ),
 }))
 
-import SejourPage from '@/app/(public)/sejour/page'
+import PrivateFavoritesPage from '@/app/(public)/sejour/coups-de-coeur/page'
 
 const privateData = {
   lodging: {
@@ -57,10 +57,10 @@ const privateData = {
     name: 'Le Chalet Hygge',
     city: 'Saint-Gervais-les-Bains',
   },
-  pois: [{ id: 'poi-1' }, { id: 'poi-2' }],
+  pois: [{ id: 'poi-1' }, { id: 'poi-2' }, { id: 'poi-3' }],
 }
 
-describe('034-private-guide-app /sejour home', () => {
+describe('035-private-guide-favorites page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockGetActiveLodgingContext.mockResolvedValue({
@@ -70,37 +70,35 @@ describe('034-private-guide-app /sejour home', () => {
     mockGetPrivateGuideData.mockResolvedValue(privateData)
   })
 
-  it('renders the shared private GuideApp with real stay data and canonical favorites route', async () => {
-    render(
-      await SejourPage({
-        searchParams: Promise.resolve({ lodging: 'lodging-1' }),
-      }),
+  it('renders the shared demo favorites view with private stay data', async () => {
+    render(await PrivateFavoritesPage())
+
+    expect(screen.getByTestId('private-guide-shell')).toHaveClass(
+      'max-w-[430px]',
+      'h-[100dvh]',
     )
-
-    const shell = screen.getByTestId('private-guide-shell')
-    expect(shell).toHaveClass('max-w-[430px]', 'h-[100dvh]')
-
     const guide = screen.getByTestId('shared-guide-app')
     expect(guide).toHaveAttribute('data-mode', 'private')
     expect(guide).toHaveAttribute('data-lodging', 'Le Chalet Hygge')
     expect(guide).toHaveAttribute('data-city', 'Saint-Gervais-les-Bains')
-    expect(guide).toHaveAttribute('data-poi-count', '2')
+    expect(guide).toHaveAttribute('data-poi-count', '3')
+    expect(guide).toHaveAttribute('data-initial-view', 'favorites')
     expect(guide).toHaveAttribute(
       'data-favorites-route',
       '/sejour/coups-de-coeur',
     )
-    expect(guide).toHaveAttribute('data-initial-view', 'home')
-    expect(guide).toHaveAttribute('data-lodging-route', '/le-logement')
-    expect(guide).toHaveAttribute('data-map-route', '/map')
-    expect(mockRecordQrScanIfPresent).toHaveBeenCalledWith('lodging-1')
+    expect(guide).toHaveAttribute(
+      'data-menu-favorites-route',
+      '/sejour/coups-de-coeur',
+    )
   })
 
-  it('does not load private guide data without an active stay', async () => {
+  it('does not load private POIs without an active stay', async () => {
     mockGetActiveLodgingContext.mockResolvedValue(null)
 
-    await expect(
-      SejourPage({ searchParams: Promise.resolve({}) }),
-    ).rejects.toThrow('REDIRECT:/acces-reserve')
+    await expect(PrivateFavoritesPage()).rejects.toThrow(
+      'REDIRECT:/acces-reserve',
+    )
     expect(mockGetPrivateGuideData).not.toHaveBeenCalled()
   })
 })

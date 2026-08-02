@@ -71,4 +71,28 @@ describe('proxy — confinement du guest en séjour', () => {
       'http://localhost:3000/acces-reserve',
     )
   })
+
+  it('applique le shell privé et le contrôle d’accès à /sejour/coups-de-coeur', async () => {
+    const guestResponse = await proxy(
+      guestRequest('/sejour/coups-de-coeur'),
+    )
+    expect(redirectPathname(guestResponse)).toBeNull()
+    expect(
+      guestResponse.headers.get(
+        'x-middleware-request-x-staylocal-guide-app-route',
+      ),
+    ).toBe('1')
+
+    const anonymousResponse = await proxy(
+      anonRequest('/sejour/coups-de-coeur'),
+    )
+    expect(anonymousResponse.headers.get('x-middleware-rewrite')).toBe(
+      'http://localhost:3000/acces-reserve',
+    )
+  })
+
+  it('redirige l’ancien lien recommandations vers la route canonique', async () => {
+    const response = await proxy(guestRequest('/nos-recommandations'))
+    expect(redirectPathname(response)).toBe('/sejour/coups-de-coeur')
+  })
 })

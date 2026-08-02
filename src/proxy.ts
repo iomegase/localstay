@@ -44,7 +44,7 @@ export function isAnonymousMarketingPath(pathname: string) {
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isMarketingRoute = isAnonymousMarketingPath(path)
-  const isGuideAppRoute = path === '/sejour'
+  const isGuideAppRoute = path === '/sejour' || path.startsWith('/sejour/')
   const requestHeaders = new Headers(request.headers)
 
   if (isMarketingRoute) {
@@ -159,6 +159,17 @@ export async function proxy(request: NextRequest) {
   // === Site éditorial public : accessible sans séjour actif ===
   if (isMarketingRoute) {
     return response
+  }
+
+  // Compatibilité des anciens liens privés : la nouvelle page canonique des
+  // coups de cœur remplace l'interface historique sans rendre la route publique.
+  if (path === '/nos-recommandations') {
+    const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+    if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
+      return NextResponse.redirect(
+        new URL('/sejour/coups-de-coeur', request.url),
+      )
+    }
   }
 
   // === Pages invité (le-logement, recommandations, map…) ===

@@ -21,7 +21,7 @@ describe('034-private-guide-app route-aware shell', () => {
         pois={[]}
         routes={{
           home: '/sejour',
-          favorites: '/nos-recommandations',
+          favorites: '/sejour/coups-de-coeur',
           lodging: '/le-logement',
           map: '/map',
         }}
@@ -29,7 +29,7 @@ describe('034-private-guide-app route-aware shell', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /explorer/i }))
-    expect(mockPush).toHaveBeenCalledWith('/nos-recommandations')
+    expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
 
     fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
     expect(mockPush).toHaveBeenCalledWith('/le-logement')
