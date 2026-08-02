@@ -60,6 +60,7 @@ export async function PrivateGuidePage({
           mode="private"
           lodging={guideData.lodging}
           pois={guideData.pois}
+          citySlug={lodgingContext.citySlug}
           initialView={initialView}
           routes={PRIVATE_GUIDE_ROUTES}
           menuItems={menuItems}

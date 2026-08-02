@@ -61,6 +61,9 @@ describe('034-private-guide-app private data adapter', () => {
           is_open_now: true,
           hours: null,
           photos: ['/hero.jpg'],
+          city: {
+            slug: 'les-contamines-montjoie',
+          },
           category: {
             slug: 'diner',
             name: 'Restaurants',
@@ -81,6 +84,7 @@ describe('034-private-guide-app private data adapter', () => {
       photos: ['/hero.jpg'],
       ownerNote: 'Notre table préférée',
       recommended: true,
+      citySlug: 'les-contamines-montjoie',
     })
     expect(featuredFindMany).toHaveBeenCalledWith(
       expect.objectContaining({

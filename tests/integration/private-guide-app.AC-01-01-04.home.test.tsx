@@ -28,12 +28,13 @@ jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
 }))
 
 jest.mock('@/features/guide-app/components/GuideApp', () => ({
-  GuideApp: ({ mode, lodging, pois, routes, initialView }: {
+  GuideApp: ({ mode, lodging, pois, routes, initialView, citySlug }: {
     mode: string
     lodging: { name: string; city: string }
     pois: unknown[]
     routes: Record<string, string>
     initialView?: string
+    citySlug?: string
   }) => (
     <div
       data-testid="shared-guide-app"
@@ -45,6 +46,7 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       data-lodging-route={routes.lodging}
       data-map-route={routes.map}
       data-initial-view={initialView ?? 'home'}
+      data-city-slug={citySlug}
     />
   ),
 }))
@@ -87,6 +89,10 @@ describe('034-private-guide-app /sejour home', () => {
     expect(guide).toHaveAttribute('data-mode', 'private')
     expect(guide).toHaveAttribute('data-lodging', 'Le Chalet Hygge')
     expect(guide).toHaveAttribute('data-city', 'Saint-Gervais-les-Bains')
+    expect(guide).toHaveAttribute(
+      'data-city-slug',
+      'saint-gervais-les-bains',
+    )
     expect(guide).toHaveAttribute('data-poi-count', '2')
     expect(guide).toHaveAttribute(
       'data-favorites-route',
