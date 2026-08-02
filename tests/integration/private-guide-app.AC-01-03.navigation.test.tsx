@@ -3,6 +3,7 @@
 import type { ComponentProps } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
+import { PRIVATE_GUIDE_ROUTES } from '@/features/guide-app/components/PrivateGuidePage'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
@@ -10,7 +11,25 @@ const mockPush = jest.fn()
 const mockGuidePoiDetailsProps = jest.fn()
 
 jest.mock('next/navigation', () => ({
+  redirect: jest.fn(),
   useRouter: () => ({ push: mockPush }),
+}))
+jest.mock('next/dynamic', () => () => {
+  function DynamicGuideMapStub() {
+    return <div>Chargement de la carte…</div>
+  }
+
+  return DynamicGuideMapStub
+})
+
+jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
+  getActiveLodgingContext: jest.fn(),
+}))
+jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
+  getPrivateGuideData: jest.fn(),
+}))
+jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
+  recordQrScanIfPresent: jest.fn(),
 }))
 
 jest.mock('@/features/guide-app/components/GuidePoiDetails', () => {
@@ -55,6 +74,24 @@ describe('034-private-guide-app route-aware shell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement')
+  })
+
+  it('040 AC-01: opens the shared map view inside the private guide frame', () => {
+    expect(PRIVATE_GUIDE_ROUTES.map).toBeUndefined()
+
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={demoPois}
+        routes={PRIVATE_GUIDE_ROUTES}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
+
+    expect(mockPush).not.toHaveBeenCalledWith('/map')
+    expect(screen.getByText('Chargement de la carte…')).toBeInTheDocument()
   })
 
   it('renders functional private menu links', () => {

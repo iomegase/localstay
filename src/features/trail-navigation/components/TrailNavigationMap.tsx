@@ -19,6 +19,7 @@ const POSITION_BLUE = '#2563EB'
 interface Props {
   trail: TrailNavigationData
   backHref?: string
+  contained?: boolean
   /**
    * Si fourni, les boutons de fermeture appellent ce callback au lieu de revenir dans
    * l'historique. Utilisé par le modal intercepté pour réinitialiser le slot @modal.
@@ -26,18 +27,29 @@ interface Props {
   onClose?: () => void
 }
 
-export function TrailNavigationMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
+export function TrailNavigationMap({
+  trail,
+  backHref = `/guide/${trail.slug}`,
+  onClose,
+  contained = false,
+}: Props) {
   return (
     <TrailNavigationSessionMap
       key={trail.id}
       trail={trail}
       backHref={backHref}
       onClose={onClose}
+      contained={contained}
     />
   )
 }
 
-function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, onClose }: Props) {
+function TrailNavigationSessionMap({
+  trail,
+  backHref = `/guide/${trail.slug}`,
+  onClose,
+  contained = false,
+}: Props) {
   const router = useRouter()
   const geometry = isValidTrailGeometry(trail.geometry_geojson) ? trail.geometry_geojson : null
   const endpoints = geometry ? getLineEndpoints(geometry) : null
@@ -246,7 +258,11 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
 
   if (!geometry || !endpoints) {
     return (
-      <main className="mx-auto min-h-screen w-full max-w-[430px] bg-[#FAF9F6] px-6 py-10">
+      <main
+        className={`mx-auto w-full max-w-[430px] overflow-y-auto bg-[#FAF9F6] px-6 py-10 ${
+          contained ? 'h-full min-h-0' : 'min-h-screen'
+        }`}
+      >
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#db2777]">Randonnée</p>
         <h1 className="mt-4 font-serif text-4xl italic leading-tight text-[#121212]">{trail.name}</h1>
         <div data-testid="missing_geometry" className="mt-8 rounded-[2rem] border border-amber-200 bg-white p-5 text-sm text-charcoal/70 shadow-sm">
@@ -294,7 +310,12 @@ function TrailNavigationSessionMap({ trail, backHref = `/guide/${trail.slug}`, o
   }
 
   return (
-    <main className="relative mx-auto h-screen w-full max-w-[430px] overflow-hidden bg-[#0f1611]" data-testid="trail-navigation-start">
+    <main
+      className={`relative mx-auto w-full max-w-[430px] overflow-hidden bg-[#0f1611] ${
+        contained ? 'h-full' : 'h-screen'
+      }`}
+      data-testid="trail-navigation-start"
+    >
       {isIndicativeTrail && (
         <div
           data-testid="trail-indicative-banner"
