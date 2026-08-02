@@ -35,7 +35,11 @@ export function GuidePoiDetails({
     <article className="min-h-full bg-slate-50">
       {/* Hero carousel */}
       <div className="relative">
-        <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name}>
+        <PoiDetailHeroCarousel
+          photos={heroPhotos}
+          name={poi.name}
+          navigation="swipe"
+        >
           {poi.isOpenNow === true && (
             <div className="absolute bottom-8 left-6 z-10 pb-4">
               <span className="inline-flex rounded-full border border-green-200 bg-green-50/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 shadow-sm backdrop-blur">
@@ -47,7 +51,7 @@ export function GuidePoiDetails({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Retour aux coups de cœur"
+          aria-label="Retour"
           className="absolute left-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur active:scale-95"
         >
           <ArrowLeft className="h-4 w-4" />

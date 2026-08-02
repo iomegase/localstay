@@ -36,6 +36,8 @@ describe('Demo POI detail reproduces the private guide content', () => {
 
     // Actions internes + externes
     expect(screen.getByRole('button', { name: /voir sur la carte/i })).toBeInTheDocument()
+    expect(screen.getByTestId('poi-detail-hero-swipe')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Photo suivante' })).not.toBeInTheDocument()
   })
 
   it('omits rating and credit for POIs without that data (fallback stays clean)', () => {
