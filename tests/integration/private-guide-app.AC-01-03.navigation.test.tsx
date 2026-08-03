@@ -9,9 +9,11 @@ import { demoPois } from '@/features/guide-demo/demo-pois'
 
 const mockPush = jest.fn()
 const mockGuidePoiDetailsProps = jest.fn()
+let mockPathname = '/sejour'
 
 jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
+  usePathname: () => mockPathname,
   useRouter: () => ({ push: mockPush }),
 }))
 jest.mock('next/dynamic', () => () => {
@@ -52,6 +54,7 @@ describe('034-private-guide-app route-aware shell', () => {
   beforeEach(() => {
     mockPush.mockClear()
     mockGuidePoiDetailsProps.mockClear()
+    mockPathname = '/sejour'
   })
 
   it('uses private routes from the shared GuideApp home', () => {
@@ -74,6 +77,24 @@ describe('034-private-guide-app route-aware shell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement')
+  })
+
+  it('does not render a routed destination before its App Router transition completes', () => {
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={demoPois}
+        routes={PRIVATE_GUIDE_ROUTES}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /explorer/i }))
+
+    expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
+    expect(
+      screen.queryByRole('heading', { name: 'Nos coups de cœur' }),
+    ).not.toBeInTheDocument()
   })
 
   it('040 AC-01: opens the shared map view inside the private guide frame', () => {
@@ -99,6 +120,7 @@ describe('034-private-guide-app route-aware shell', () => {
     // Taper « Coups de cœur » y repousse la même URL → router.push est un no-op (mockPush).
     // La vue doit donc rebasculer côté client, sinon on reste bloqué sur la carte.
     expect(PRIVATE_GUIDE_ROUTES.map).toBeUndefined()
+    mockPathname = '/sejour/coups-de-coeur'
 
     render(
       <GuideApp
@@ -115,6 +137,36 @@ describe('034-private-guide-app route-aware shell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
     expect(screen.queryByText('Chargement de la carte…')).not.toBeInTheDocument()
+  })
+
+  it('resets an active favorites tab without remounting its page', () => {
+    mockPathname = '/sejour/coups-de-coeur'
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={demoPois}
+        initialView="favorites"
+        routes={PRIVATE_GUIDE_ROUTES}
+      />,
+    )
+
+    const originalGrid = screen.getByTestId('favorites-bento-grid')
+    const scrollContainer = originalGrid.closest('main')
+
+    if (!scrollContainer) {
+      throw new Error('Expected favorites scroll container')
+    }
+
+    Object.defineProperty(scrollContainer, 'scrollTo', {
+      configurable: true,
+      value: jest.fn(),
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+
+    expect(screen.getByTestId('favorites-bento-grid')).toBe(originalGrid)
+    expect(mockPush).not.toHaveBeenCalled()
   })
 
   it('renders functional private menu links', () => {
