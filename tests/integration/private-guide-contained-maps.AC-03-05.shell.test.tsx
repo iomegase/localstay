@@ -63,12 +63,12 @@ describe('040-private-guide contained hiking maps', () => {
     render(<TrailStartModal trail={trail} backHref="/guide/saint-gervais/rando" />)
 
     expect(screen.getByTestId('private-guide-shell')).toHaveClass(
-      'h-[min(820px,calc(100dvh-24px))]',
-      'w-[min(430px,calc(100vw-24px))]',
-      'border-[5px]',
-      'border-white',
-      'rounded-[2.75rem]',
       'overflow-hidden',
+      'min-[480px]:h-[min(820px,calc(100dvh-24px))]',
+      'min-[480px]:w-[min(430px,calc(100vw-24px))]',
+      'min-[480px]:border-[5px]',
+      'min-[480px]:border-white',
+      'min-[480px]:rounded-[2.75rem]',
     )
     expect(mockTrailNavigationProps).toHaveBeenLastCalledWith(
       expect.objectContaining({ contained: true }),
@@ -87,12 +87,12 @@ describe('040-private-guide contained hiking maps', () => {
     )
 
     expect(screen.getByTestId('private-guide-shell')).toHaveClass(
-      'h-[min(820px,calc(100dvh-24px))]',
-      'w-[min(430px,calc(100vw-24px))]',
-      'border-[5px]',
-      'border-white',
-      'rounded-[2.75rem]',
       'overflow-hidden',
+      'min-[480px]:h-[min(820px,calc(100dvh-24px))]',
+      'min-[480px]:w-[min(430px,calc(100vw-24px))]',
+      'min-[480px]:border-[5px]',
+      'min-[480px]:border-white',
+      'min-[480px]:rounded-[2.75rem]',
     )
     expect(mockTrailNavigationProps).toHaveBeenLastCalledWith(
       expect.objectContaining({

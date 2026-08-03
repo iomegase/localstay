@@ -35,7 +35,7 @@ describe('Demo POI detail reproduces the private guide content', () => {
     expect(screen.getByTestId('photo-attribution')).toHaveTextContent('www.ronddecarotte.com')
 
     // Actions internes + externes
-    expect(screen.getByRole('button', { name: /voir sur la carte/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Carte' })).toBeInTheDocument()
   })
 
   it('omits rating and credit for POIs without that data (fallback stays clean)', () => {

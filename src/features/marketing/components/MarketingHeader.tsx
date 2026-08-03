@@ -49,7 +49,7 @@ export function MarketingHeader() {
           ))}
         </nav>
 
-        <GuideDemoPhoneButton className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full  text-pink-600 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]" />
+        <GuideDemoPhoneButton className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-pink-600 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]" />
 
         <Link
           href="/auth/login"

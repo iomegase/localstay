@@ -86,7 +86,7 @@ describe('GuideApp demo navigation', () => {
       name: 'Les informations du parcours',
     })
     const trailSection = trailHeading.closest('section')
-    const mapButton = screen.getByRole('button', { name: 'Voir sur la carte' })
+    const mapButton = screen.getByRole('button', { name: 'Carte' })
 
     expect(trailSection).not.toBeNull()
     expect(

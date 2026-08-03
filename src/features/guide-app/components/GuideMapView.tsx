@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Eye, Home, MapPin, Minus, Navigation, Plus } from 'lucide-react'
+import { Home, MapPin, Minus, Navigation, Plus } from 'lucide-react'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type {
@@ -124,6 +124,16 @@ export function GuideMapView({
   function restoreCard() {
     setPeeked(false)
     scheduleHide()
+  }
+
+  function handleMarkerSelect(poi: GuidePoi) {
+    // Recliquer le POI déjà sélectionné ne change pas `selectedPoiId` : l'effet ne
+    // se relance pas, donc on ré-affiche manuellement la card escamotée.
+    if (poi.id === selectedPoiId) {
+      restoreCard()
+      return
+    }
+    onSelectPoi(poi)
   }
 
   // Recadre la carte sur les POIs de la catégorie (les contenir tous à l'écran).
@@ -384,13 +394,13 @@ export function GuideMapView({
             anchor="bottom"
             onClick={event => {
               event.originalEvent.stopPropagation()
-              onSelectPoi(poi)
+              handleMarkerSelect(poi)
             }}
           >
             <button
               type="button"
               aria-label={`Sélectionner ${poi.name}`}
-              onClick={() => onSelectPoi(poi)}
+              onClick={() => handleMarkerSelect(poi)}
               className={`grid h-8 w-8 place-items-center rounded-full border-[3px] border-white text-white shadow-md transition ${
                 markerClasses[poi.category.slug] ?? 'bg-pink-600'
               } ${
@@ -463,6 +473,17 @@ export function GuideMapView({
               </button>
             )}
 
+            {/* Toute la carte est cliquable : bouton transparent en surimpression
+                qui ouvre la fiche. Le lien Itinéraire est remonté au-dessus (z-10). */}
+            {!peeked && (
+              <button
+                type="button"
+                onClick={() => onOpenPoi(selectedPoi)}
+                aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+                className="absolute inset-0 z-[5]"
+              />
+            )}
+
             <div
               className={`flex items-stretch gap-3 p-3 ${
                 peeked ? 'pointer-events-none select-none' : ''
@@ -497,22 +518,14 @@ export function GuideMapView({
                     href={selectedPoi.directionsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.1)]"
+                    onClick={event => event.stopPropagation()}
+                    className="relative z-10 inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.1)]"
                   >
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EF5148] text-white">
                       <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
                     <span className="text-[#EF5148]">Itinéraire</span>
                   </a>
-
-                  <button
-                    type="button"
-                    onClick={() => onOpenPoi(selectedPoi)}
-                    aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
-                  >
-                    <Eye className="h-4 w-4" aria-hidden="true" />
-                  </button>
                 </div>
               </div>
             </div>

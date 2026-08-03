@@ -1,4 +1,4 @@
-import { ArrowLeft, Map, MapPin, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
+import { ArrowLeft, MapPin, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HoursBlock } from '@/features/categories/components/HoursBlock'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
@@ -192,19 +192,7 @@ export function GuidePoiDetails({
           </section>
         )}
 
-        {/* Voir sur la carte (navigation interne) */}
-        <div className="px-6">
-          <button
-            type="button"
-            onClick={() => onShowOnMap(poi)}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white active:scale-[0.98]"
-          >
-            <Map className="h-4 w-4" />
-            Voir sur la carte
-          </button>
-        </div>
-
-        {/* Appeler / Itinéraire / Site web */}
+        {/* Appeler / Site web / Carte / Itinéraire — 2×2 quand les 4 sont présents */}
         <div className="px-6">
           <ActionButtons
             phone={poi.phone ?? null}
@@ -212,7 +200,8 @@ export function GuidePoiDetails({
             latitude={poi.latitude}
             longitude={poi.longitude}
             address={poi.address}
-            variant="compact"
+            variant="guide"
+            onShowOnMap={() => onShowOnMap(poi)}
           />
         </div>
       </main>

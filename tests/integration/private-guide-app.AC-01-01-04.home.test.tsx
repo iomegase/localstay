@@ -81,8 +81,8 @@ describe('034-private-guide-app /sejour home', () => {
 
     const shell = screen.getByTestId('private-guide-shell')
     expect(shell).toHaveClass(
-      'w-[min(430px,calc(100vw-24px))]',
-      'h-[min(820px,calc(100dvh-24px))]',
+      'min-[480px]:w-[min(430px,calc(100vw-24px))]',
+      'min-[480px]:h-[min(820px,calc(100dvh-24px))]',
     )
 
     const guide = screen.getByTestId('shared-guide-app')

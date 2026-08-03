@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Phone, Navigation, Globe } from 'lucide-react'
+import { Phone, Navigation, Globe, Map } from 'lucide-react'
 
-export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter'
+export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter' | 'guide'
 
 const SCROLL_IDLE_MS = 180
 const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[42px] min-w-0 w-full rounded-full bg-white py-1 pl-1 pr-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
@@ -25,6 +25,10 @@ const DETAIL_ACTION_TONES = {
     bubble: 'bg-[#218F9D]',
     label: 'text-[#218F9D]',
   },
+  map: {
+    bubble: 'bg-slate-900',
+    label: 'text-slate-900',
+  },
 } as const
 
 interface Props {
@@ -34,9 +38,11 @@ interface Props {
   longitude: number
   address: string
   variant?: ActionButtonsVariant
+  /** Guide variant only: adds a "Carte" pill that triggers internal map navigation. */
+  onShowOnMap?: (() => void) | null
 }
 
-export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default' }: Props) {
+export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default', onShowOnMap }: Props) {
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
   const phoneLabel = phone?.trim() || null
@@ -45,6 +51,56 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
   if (variant === 'modalFooter') {
     return (
       <ModalFooterActions telHref={telHref} website={website} directionsUrl={directionsUrl} />
+    )
+  }
+
+  // Guide POI details : mêmes pilules, mais sur 2 colonnes. Avec les 4 actions on
+  // obtient un 2×2 (Appeler / Site web puis Carte / Itinéraire).
+  if (variant === 'guide') {
+    return (
+      <div className="grid w-full grid-cols-2 gap-2 px-1 pt-2 pb-3">
+        {telHref && phoneLabel && (
+          <DetailActionButton
+            href={telHref}
+            testId="btn-call"
+            tone="call"
+            icon={<Phone className="h-3.5 w-3.5" />}
+            label="Appeler"
+            ariaLabel={`Appeler ${phoneLabel}`}
+            pinColumn={false}
+          />
+        )}
+        {website && (
+          <DetailActionButton
+            href={website}
+            testId="btn-site"
+            tone="website"
+            icon={<Globe className="h-3.5 w-3.5" />}
+            label="Site web"
+            external
+            pinColumn={false}
+          />
+        )}
+        {onShowOnMap && (
+          <DetailActionButton
+            onClick={onShowOnMap}
+            testId="btn-map"
+            tone="map"
+            icon={<Map className="h-3.5 w-3.5" />}
+            label="Carte"
+            pinColumn={false}
+          />
+        )}
+        <DetailActionButton
+          href={directionsUrl}
+          testId="btn-directions"
+          tone="directions"
+          icon={<Navigation className="h-3.5 w-3.5" />}
+          label="Itinéraire"
+          external
+          pinColumn={false}
+        />
+      </div>
     )
   }
 
@@ -91,6 +147,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
 
 function DetailActionButton({
   href,
+  onClick,
   testId,
   tone,
   icon,
@@ -98,8 +155,10 @@ function DetailActionButton({
   external = false,
   ariaLabel,
   compact = false,
+  pinColumn = true,
 }: {
-  href: string
+  href?: string
+  onClick?: () => void
   testId: string
   tone: keyof typeof DETAIL_ACTION_TONES
   icon: ReactNode
@@ -107,10 +166,31 @@ function DetailActionButton({
   external?: boolean
   ariaLabel?: string
   compact?: boolean
+  pinColumn?: boolean
 }) {
   const toneClasses = DETAIL_ACTION_TONES[tone]
   const buttonClass = compact ? COMPACT_ACTION_BUTTON_CLASS : DETAIL_ACTION_BUTTON_CLASS
   const bubbleClass = compact ? 'h-6 w-6 [&_svg]:h-3 [&_svg]:w-3' : 'h-8 w-8'
+  const columnClass = pinColumn ? DETAIL_ACTION_COLUMNS[tone as keyof typeof DETAIL_ACTION_COLUMNS] ?? '' : ''
+
+  const inner = (
+    <>
+      <span className={`flex ${bubbleClass} shrink-0 items-center justify-center rounded-full text-white ${toneClasses.bubble}`}>
+        {icon}
+      </span>
+      <span className={`shrink-0 ${toneClasses.label}`}>{label}</span>
+    </>
+  )
+
+  const className = `${buttonClass} ${columnClass}`
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} data-testid={testId} className={className} aria-label={ariaLabel}>
+        {inner}
+      </button>
+    )
+  }
 
   return (
     <a
@@ -118,13 +198,10 @@ function DetailActionButton({
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
       data-testid={testId}
-      className={`${buttonClass} ${DETAIL_ACTION_COLUMNS[tone]}`}
+      className={className}
       aria-label={ariaLabel}
     >
-      <span className={`flex ${bubbleClass} shrink-0 items-center justify-center rounded-full text-white ${toneClasses.bubble}`}>
-        {icon}
-      </span>
-      <span className={`shrink-0 ${toneClasses.label}`}>{label}</span>
+      {inner}
     </a>
   )
 }

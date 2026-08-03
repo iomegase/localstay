@@ -94,6 +94,29 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(screen.getByText('Chargement de la carte…')).toBeInTheDocument()
   })
 
+  it('040 AC-02: returns to favorites from the unrouted map tab', () => {
+    // Régression : la carte n'a pas de route, donc l'URL reste sur /sejour/coups-de-coeur.
+    // Taper « Coups de cœur » y repousse la même URL → router.push est un no-op (mockPush).
+    // La vue doit donc rebasculer côté client, sinon on reste bloqué sur la carte.
+    expect(PRIVATE_GUIDE_ROUTES.map).toBeUndefined()
+
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={demoPois}
+        initialView="favorites"
+        routes={PRIVATE_GUIDE_ROUTES}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
+    expect(screen.getByText('Chargement de la carte…')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    expect(screen.queryByText('Chargement de la carte…')).not.toBeInTheDocument()
+  })
+
   it('renders functional private menu links', () => {
     render(
       <GuideApp
@@ -120,17 +143,22 @@ describe('034-private-guide-app route-aware shell', () => {
   })
 
   it('opens the canonical arrival page from the lodging guide', () => {
-    render(
+    // Les deux entrées du hub logement (« Arrivée » et « Accéder au logement »)
+    // mènent à /arrivee. Chacune quitte le hub, donc on les vérifie sur un rendu
+    // frais plutôt qu'enchaînées (ce que seul l'ancien no-op de navigation permettait).
+    const lodgingRoutes = {
+      home: '/sejour',
+      lodging: '/sejour/logement',
+      arrival: '/sejour/logement/arrivee',
+    }
+
+    const first = render(
       <GuideApp
         mode="private"
         lodging={demoLodging}
         pois={[]}
         initialView="lodging"
-        routes={{
-          home: '/sejour',
-          lodging: '/sejour/logement',
-          arrival: '/sejour/logement/arrivee',
-        }}
+        routes={lodgingRoutes}
       />,
     )
 
@@ -140,6 +168,17 @@ describe('034-private-guide-app route-aware shell', () => {
       }),
     )
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/arrivee')
+    first.unmount()
+
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={[]}
+        initialView="lodging"
+        routes={lodgingRoutes}
+      />,
+    )
 
     fireEvent.click(screen.getByRole('button', { name: /Accéder au logement/i }))
     expect(mockPush).toHaveBeenLastCalledWith('/sejour/logement/arrivee')

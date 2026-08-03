@@ -74,8 +74,8 @@ describe('035-private-guide-favorites page', () => {
     render(await PrivateFavoritesPage())
 
     expect(screen.getByTestId('private-guide-shell')).toHaveClass(
-      'w-[min(430px,calc(100vw-24px))]',
-      'h-[min(820px,calc(100dvh-24px))]',
+      'min-[480px]:w-[min(430px,calc(100vw-24px))]',
+      'min-[480px]:h-[min(820px,calc(100dvh-24px))]',
     )
     const guide = screen.getByTestId('shared-guide-app')
     expect(guide).toHaveAttribute('data-mode', 'private')

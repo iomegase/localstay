@@ -117,15 +117,20 @@ function GuideAppShell({
   }
 
   function navigate(view: GuideView) {
-    const href = view === 'poi' ? undefined : routes?.[view]
-    if (href && onOpenRoute) {
-      onOpenRoute(href)
-      return
-    }
+    // On bascule toujours la vue côté client d'abord. Sinon, quand la vue courante
+    // n'est pas routée (la carte n'a pas d'URL), un push vers l'URL déjà affichée
+    // (ex. /sejour/coups-de-coeur) est un no-op et laisse `activeView` bloqué sur
+    // la carte — impossible de revenir aux favoris.
     if (view !== 'poi' && view !== 'map') {
       setSelectedPoiId(null)
     }
     setActiveView(view)
+
+    // Synchronise l'URL pour les vues routées (deep-link, bouton retour).
+    const href = view === 'poi' ? undefined : routes?.[view]
+    if (href && onOpenRoute) {
+      onOpenRoute(href)
+    }
   }
 
   // Depuis la barre du bas : ouvrir la carte réinitialise sur la catégorie « Tous ».
