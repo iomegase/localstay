@@ -89,3 +89,29 @@ Expected: exit code 0.
 git add docs/superpowers/plans/2026-08-03-private-guide-favorites-single-navigation.md docs/traceability-matrix.md src/features/guide-app/components/GuideApp.tsx tests/integration/private-guide-app.AC-01-03.navigation.test.tsx
 git commit -m "fix: prevent duplicate favorites render"
 ```
+
+### Task 4: Render Favorites cards without hydration flash
+
+**Files:**
+- Modify: `tests/unit/guide-app.favorite-bento-card.test.tsx`
+- Modify: `src/features/guide-app/components/GuideFavoriteBentoCard.tsx`
+- Modify: `docs/traceability-matrix.md`
+
+- [x] **Step 1: Write a failing immediate-visibility regression test**
+
+Render a favorite card and assert that it is visible immediately, without
+waiting for an IntersectionObserver callback.
+
+- [x] **Step 2: Run the test to verify RED**
+
+Expected: FAIL because Framer Motion renders the card with `opacity: 0` and a
+22 px translation.
+
+- [x] **Step 3: Remove the viewport-driven reveal**
+
+Render the semantic article directly without an initial hidden state or a
+repeatable `whileInView` transition.
+
+- [x] **Step 4: Run the focused test to verify GREEN**
+
+Expected: PASS, with the card immediately visible.

@@ -25,6 +25,19 @@ const basePoi: GuidePoi = {
 }
 
 describe('GuideFavoriteBentoCard', () => {
+  it('is visible immediately without waiting for a viewport observer', () => {
+    render(
+      <GuideFavoriteBentoCard
+        poi={basePoi}
+        variant="big"
+        onSelectPoi={jest.fn()}
+        onShowOnMap={jest.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('favorite-bento-card')).toBeVisible()
+  })
+
   it('opens the internal POI sheet on the primary action without any link', () => {
     const onSelectPoi = jest.fn()
     const onShowOnMap = jest.fn()
