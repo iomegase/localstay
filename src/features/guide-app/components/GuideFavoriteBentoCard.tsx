@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, type RefObject } from 'react'
-import { motion } from 'framer-motion'
 import { Clock3, Map as MapIcon, MapPin } from 'lucide-react'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type { FavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
@@ -25,8 +24,6 @@ type Props = {
 export function GuideFavoriteBentoCard({
   poi,
   variant,
-  index = 0,
-  revealRoot,
   onSelectPoi,
   onShowOnMap,
 }: Props) {
@@ -39,18 +36,9 @@ export function GuideFavoriteBentoCard({
   const durationLabel = poi.durationLabel && poi.durationLabel !== 'Demi-journée' ? poi.durationLabel : null
 
   return (
-    <motion.article
+    <article
       data-testid="favorite-bento-card"
       data-variant={variant}
-      initial={{ opacity: 0, y: 22 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ root: revealRoot, amount: 0.2, once: false, margin: '0px 0px -8% 0px' }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 28,
-        delay: (index % 2) * 0.06,
-      }}
       className={`group relative aspect-square overflow-hidden bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)] ${
         isBig ? 'col-span-2 rounded-[2rem]' : 'rounded-[1.75rem]'
       }`}
@@ -123,6 +111,6 @@ export function GuideFavoriteBentoCard({
       >
         <MapIcon className="h-4 w-4" />
       </button>
-    </motion.article>
+    </article>
   )
 }

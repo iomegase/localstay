@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
 import { GuideHome } from './GuideHome'
@@ -52,6 +52,7 @@ export function GuideApp(props: GuideAppProps) {
 function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
   routes: GuideRouteMap
 }) {
+  const pathname = usePathname()
   const router = useRouter()
   const citySlug = props.mode === 'private' ? props.citySlug : undefined
 
@@ -59,7 +60,11 @@ function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
     <GuideAppShell
       {...props}
       routes={routes}
-      onOpenRoute={href => router.push(href)}
+      onOpenRoute={href => {
+        if (href === pathname) return false
+        router.push(href)
+        return true
+      }}
       onStartTrail={citySlug
         ? poi => router.push(
             `/guide/${poi.citySlug ?? citySlug}/rando/${poi.slug}/start`,
@@ -79,7 +84,7 @@ function GuideAppShell({
   onOpenRoute,
   onStartTrail,
 }: GuideAppProps & {
-  onOpenRoute?: (href: string) => void
+  onOpenRoute?: (href: string) => boolean
   onStartTrail?: (poi: GuidePoi) => void
 }) {
   const [activeView, setActiveView] = useState<GuideView>(initialView)
@@ -90,7 +95,6 @@ function GuideAppShell({
     null,
   )
   const [poiOrigin, setPoiOrigin] = useState<GuideView>('favorites')
-  const [favoritesRefreshKey, setFavoritesRefreshKey] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
 
   const selectedPoi = useMemo(
@@ -117,20 +121,16 @@ function GuideAppShell({
   }
 
   function navigate(view: GuideView) {
-    // On bascule toujours la vue côté client d'abord. Sinon, quand la vue courante
-    // n'est pas routée (la carte n'a pas d'URL), un push vers l'URL déjà affichée
-    // (ex. /sejour/coups-de-coeur) est un no-op et laisse `activeView` bloqué sur
-    // la carte — impossible de revenir aux favoris.
+    // Une nouvelle route laisse l'App Router monter la vue cible une seule fois.
+    // Si l'URL est déjà courante (ex. retour carte → favoris) ou si la vue n'a
+    // pas de route, la navigation reste locale dans le GuideApp.
+    const href = view === 'poi' ? undefined : routes?.[view]
+    if (href && onOpenRoute?.(href)) return
+
     if (view !== 'poi' && view !== 'map') {
       setSelectedPoiId(null)
     }
     setActiveView(view)
-
-    // Synchronise l'URL pour les vues routées (deep-link, bouton retour).
-    const href = view === 'poi' ? undefined : routes?.[view]
-    if (href && onOpenRoute) {
-      onOpenRoute(href)
-    }
   }
 
   // Depuis la barre du bas : ouvrir la carte réinitialise sur la catégorie « Tous ».
@@ -143,7 +143,6 @@ function GuideAppShell({
     if (view === 'favorites' && activeView === 'favorites') {
       setSelectedPoiId(null)
       setSelectedCategorySlug(null)
-      setFavoritesRefreshKey(key => key + 1)
       scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
     }
     navigate(view)
@@ -183,7 +182,6 @@ function GuideAppShell({
         )}
         {activeView === 'favorites' && (
           <GuideFavoritesPage
-            key={favoritesRefreshKey}
             pois={pois}
             selectedCategorySlug={selectedCategorySlug}
             scrollContainerRef={scrollRef}
