@@ -97,6 +97,41 @@ describe('034-private-guide-app private data adapter', () => {
     )
   })
 
+  it('maps useful numbers from useful_services and house rules from house_rules', async () => {
+    lodgingFindFirst.mockResolvedValue({
+      id: 'lodging-1',
+      name: 'Le Chalet Hygge',
+      city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
+      customization: {
+        welcome_message: null,
+        cover_photo_url: null,
+        lodging_address: null,
+        lodging_latitude: null,
+        lodging_longitude: null,
+        wifi_ssid: null,
+        wifi_password: null,
+        equipment_info: null,
+        checkout_instructions: null,
+        house_rules: 'Non-fumeur\nAnimaux sur demande',
+        emergency_contacts: 'Pompiers: 18', // ne doit PAS alimenter les numéros utiles
+        useful_services: 'Office de tourisme: 04 50 47 76 08\nPharmacie: 04 50 78 12 34',
+      },
+      practical_blocks: [],
+    })
+    featuredFindMany.mockResolvedValue([])
+
+    const result = await getPrivateGuideData('lodging-1')
+
+    expect(result?.lodging.usefulNumbers).toEqual([
+      { label: 'Office de tourisme', number: '04 50 47 76 08' },
+      { label: 'Pharmacie', number: '04 50 78 12 34' },
+    ])
+    expect(result?.lodging.houseRules).toEqual([
+      'Non-fumeur',
+      'Animaux sur demande',
+    ])
+  })
+
   it('returns null when the active lodging cannot be resolved', async () => {
     lodgingFindFirst.mockResolvedValue(null)
 

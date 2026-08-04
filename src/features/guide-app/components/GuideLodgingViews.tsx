@@ -12,10 +12,13 @@ import {
   MapPin,
   Phone,
   ScrollText,
+  Siren,
   Trash2,
   Wifi,
 } from 'lucide-react'
 import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
+import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
+import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { GuidePracticalVideo } from '@/features/guide-app/components/GuidePracticalVideo'
 import { DepartureChecklist } from '@/features/guide-app/components/DepartureChecklist'
 
@@ -162,22 +165,54 @@ export function GuideLodgingViews({
             )
           })}
         </div>
+        {lodging.houseRules.length > 0 && (
+          <section className={`${navyCardClass} p-5`}>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+                <ScrollText className="h-5 w-5" />
+              </span>
+              <h2 className="text-sm font-semibold text-white">Règlement intérieur</h2>
+            </div>
+            <ul className="mt-4 space-y-2">
+              {lodging.houseRules.map(rule => (
+                <li key={rule} className="flex gap-2 text-xs leading-5 text-white/70">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                  <span>{rule}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-              <Phone className="h-5 w-5" />
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/20 text-red-300">
+              <Siren className="h-5 w-5" />
             </span>
-            <h2 className="text-sm font-semibold text-white">Numéros utiles</h2>
+            <h2 className="text-sm font-semibold text-white">Urgences</h2>
           </div>
           <div className="mt-4 divide-y divide-white/10">
-            {lodging.usefulNumbers.map(item => (
-              <div key={item.label} className="flex items-center justify-between py-2.5 text-xs">
-                <span className="text-white/60">{item.label}</span>
-                <span className="font-semibold text-white">{item.number}</span>
-              </div>
+            {FRENCH_EMERGENCY_NUMBERS.map(item => (
+              <CallRow key={item.number} label={item.label} number={item.number} />
             ))}
           </div>
         </section>
+
+        {lodging.usefulNumbers.length > 0 && (
+          <section className={`${navyCardClass} p-5`}>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+                <Phone className="h-5 w-5" />
+              </span>
+              <h2 className="text-sm font-semibold text-white">Numéros utiles</h2>
+            </div>
+            <div className="mt-4 divide-y divide-white/10">
+              {lodging.usefulNumbers.map(item => (
+                <CallRow key={item.label} label={item.label} number={item.number} />
+              ))}
+            </div>
+          </section>
+        )}
       </GuideSubPage>
     )
   }
@@ -451,6 +486,22 @@ function ContactCard({
         {phone}
       </a>
     </article>
+  )
+}
+
+/** Ligne « libellé → numéro » cliquable pour appeler (icône téléphone verte). */
+function CallRow({ label, number }: { label: string; number: string }) {
+  return (
+    <a
+      href={frenchPhoneHref(number)}
+      className="flex items-center justify-between gap-3 py-2.5 text-xs"
+    >
+      <span className="text-white/60">{label}</span>
+      <span className="flex items-center gap-2 font-semibold text-white">
+        <Phone className="h-3.5 w-3.5 text-green-400" aria-hidden="true" />
+        {formatFrenchPhone(number)}
+      </span>
+    </a>
   )
 }
 

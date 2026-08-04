@@ -133,7 +133,7 @@ export async function getPrivateGuideData(
         icon: block.icon,
         videoUrl: block.video_url ?? undefined,
       })),
-      usefulNumbers: mapUsefulNumbers(customization?.emergency_contacts),
+      usefulNumbers: mapUsefulNumbers(customization?.useful_services),
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
   }

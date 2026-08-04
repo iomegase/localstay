@@ -36,6 +36,7 @@ import { PracticalBlocksEditor } from '@/features/guide-customization/components
 import { TrashBinsEditor } from '@/features/guide-customization/components/TrashBinsEditor'
 import type { TrashBinInput } from '@/features/guide-customization/lib/trash-bins'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
+import { UsefulNumbersEditor } from '@/features/guide-customization/components/UsefulNumbersEditor'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 import type {
@@ -681,24 +682,9 @@ const PRACTICAL_SECTIONS: PracticalSection[] = [
     rows: 4,
     markdown: true,
   },
-  {
-    key: 'emergency_contacts',
-    label: 'Urgences',
-    placeholder: 'Pompiers : 18\nSAMU : 15\nGendarmerie Saint-Gervais : 04 50 47 75 49\nProprietaire : 06 12 34 56 78',
-    type: 'textarea',
-    maxLength: 2000,
-    rows: 4,
-    markdown: true,
-  },
-  {
-    key: 'useful_services',
-    label: 'Services utiles',
-    placeholder: 'Boulangerie du village (50m).\nMédecin de garde : 39 66.\nLocation skis : Sport 2000 (200m).',
-    type: 'textarea',
-    maxLength: 4000,
-    rows: 4,
-    markdown: true,
-  },
+  // « Urgences » est désormais une carte en dur côté guide (aucune saisie).
+  // Les « Numéros utiles » (ex-`useful_services`) sont édités via
+  // UsefulNumbersEditor, hors de cette liste de champs texte.
 ]
 
 function PracticalInfoCard({
@@ -882,6 +868,11 @@ function PracticalInfoCard({
             </Fragment>
           )
         })}
+
+        <UsefulNumbersEditor
+          value={practicalInfo.useful_services}
+          onChange={value => setPracticalField('useful_services', value)}
+        />
       </div>
     </section>
   )
