@@ -75,7 +75,7 @@ export function MarketingHeader() {
           <summary
             aria-label="Ouvrir le menu"
             className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full border border-slate-200 bg-white [&::-webkit-details-marker]:hidden"
-          >
+          > 
             <Menu aria-hidden="true" className="h-5 w-5" />
           </summary>
           <nav
