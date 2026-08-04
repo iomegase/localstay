@@ -56,6 +56,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       category_order: ['restaurants'],
       featured_pois: [],
       practical_blocks: [],
+      arrival_instructions: [],
       trash_bins: [],
       presentation_video_url: null,
       parking_video_url: null,

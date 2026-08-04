@@ -34,6 +34,7 @@ export async function hardDeleteLodging(
   await tx.lodgingCustomization.deleteMany({ where: { lodging_id: lodgingId } })
   await tx.lodgingFeaturedPoi.deleteMany({ where: { lodging_id: lodgingId } })
   await tx.lodgingPracticalBlock.deleteMany({ where: { lodging_id: lodgingId } })
+  await tx.lodgingArrivalInstruction.deleteMany({ where: { lodging_id: lodgingId } })
   await tx.contactMessage.deleteMany({ where: { lodging_id: lodgingId } })
 
   await tx.lodging.delete({ where: { id: lodgingId } })

@@ -88,6 +88,18 @@ const practicalBlockSchema = z.object({
   sort_order: z.number().int().min(0),
 })
 
+const arrivalInstructionSchema = z.object({
+  id: z.string().optional(),
+  text: z
+    .string()
+    .trim()
+    .min(1, "Le texte de l'instruction est requis.")
+    .max(2000, "L'instruction doit faire 2000 caractères maximum."),
+  video_url: youtubeUrlSchema,
+  photos: z.array(z.string().trim().url()).max(20).default([]),
+  sort_order: z.number().int().min(0),
+})
+
 const customizationSchema = z.object({
   welcome_message: z
     .string()
@@ -115,6 +127,7 @@ const customizationSchema = z.object({
   emergency_contacts: practicalText(2000),
   useful_services: practicalText(4000),
   practical_blocks: z.array(practicalBlockSchema).default([]),
+  arrival_instructions: z.array(arrivalInstructionSchema).default([]),
   trash_bins: z.array(trashBinSchema).max(20).default([]),
 })
 

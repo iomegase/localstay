@@ -771,6 +771,7 @@ model Lodging {
   contact_messages             ContactMessage[]
   public_profile               LodgingPublicProfile?
   practical_blocks             LodgingPracticalBlock[]
+  arrival_instructions         LodgingArrivalInstruction[]
 }
 
 // ─── Spec 012 — Guide Customization ─────────────────────────────────────────
@@ -1306,6 +1307,22 @@ model LodgingPracticalBlock {
   icon       String
   photo_url  String?
   video_url  String?
+  sort_order Int     @default(0)
+
+  @@index([lodging_id, deleted_at])
+}
+
+model LodgingArrivalInstruction {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  lodging_id String
+  lodging    Lodging @relation(fields: [lodging_id], references: [id])
+  text       String
+  video_url  String?
+  photos     String[]
   sort_order Int     @default(0)
 
   @@index([lodging_id, deleted_at])

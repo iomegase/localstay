@@ -8,6 +8,7 @@ import {
   countWords,
   filterValidCategoryOrder,
   groupFeaturedPoisByCategory,
+  normalizeArrivalInstructions,
   normalizeOwnerNote,
   normalizePracticalBlocks,
   normalizeTrashBins,
@@ -278,6 +279,12 @@ export async function getLodgingCustomization(
     select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
   })
 
+  const arrivalInstructions = await prisma.lodgingArrivalInstruction.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: { id: true, text: true, video_url: true, photos: true, sort_order: true },
+  })
+
   return {
     lodging_id: lodgingId,
     welcome_message: customization?.welcome_message ?? null,
@@ -290,6 +297,7 @@ export async function getLodgingCustomization(
     })),
     ignored_category_slugs: [],
     practical_blocks: practicalBlocks,
+    arrival_instructions: arrivalInstructions,
     trash_bins: (customization?.trash_bins as unknown as TrashBin[] | null) ?? [],
     ...pickPracticalInfo(customization),
   }
@@ -345,6 +353,7 @@ export async function saveLodgingCustomization(
     lodging.city,
   )
   const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
+  const arrivalInstructions = normalizeArrivalInstructions(input.arrival_instructions)
   const trashBins = normalizeTrashBins(input.trash_bins)
   const trashBinsJson = trashBins as unknown as Prisma.InputJsonValue
 
@@ -409,12 +418,35 @@ export async function saveLodgingCustomization(
         })),
       })
     }
+
+    await tx.lodgingArrivalInstruction.updateMany({
+      where: { lodging_id: lodgingId, deleted_at: null },
+      data: { deleted_at: new Date() },
+    })
+
+    if (arrivalInstructions.length > 0) {
+      await tx.lodgingArrivalInstruction.createMany({
+        data: arrivalInstructions.map(instruction => ({
+          lodging_id: lodgingId,
+          text: instruction.text,
+          video_url: instruction.video_url,
+          photos: instruction.photos,
+          sort_order: instruction.sort_order,
+        })),
+      })
+    }
   }, { timeout: SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS })
 
   const savedBlocks = await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
     select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
+  })
+
+  const savedInstructions = await prisma.lodgingArrivalInstruction.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: { id: true, text: true, video_url: true, photos: true, sort_order: true },
   })
 
   return {
@@ -424,6 +456,7 @@ export async function saveLodgingCustomization(
     featured_pois: featuredPois,
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
     practical_blocks: savedBlocks,
+    arrival_instructions: savedInstructions,
     trash_bins: trashBins,
     ...practicalInfo,
   }

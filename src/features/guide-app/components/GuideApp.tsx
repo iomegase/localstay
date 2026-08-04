@@ -168,12 +168,12 @@ function GuideAppShell({
         {activeView === 'home' && (
           <GuideHome lodging={lodging} pois={pois} onNavigate={navigate} />
         )}
-        {['lodging', 'arrival', 'departure', 'practical'].includes(activeView) && (
+        {['lodging', 'arrival', 'departure', 'practical', 'rules'].includes(activeView) && (
           <GuideLodgingViews
             view={
               activeView as Extract<
                 GuideView,
-                'lodging' | 'arrival' | 'departure' | 'practical'
+                'lodging' | 'arrival' | 'departure' | 'practical' | 'rules'
               >
             }
             lodging={lodging}

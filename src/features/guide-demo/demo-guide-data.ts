@@ -22,9 +22,21 @@ export const demoLodging: GuideLodging = {
   wifiName: 'Refuge-Mont-Blanc',
   wifiPassword: 'Bienvenue2026',
   arrivalInstructions: [
-    'L’arrivée est possible à partir de 16 h : prenez le temps de vous installer.',
-    'Le logement se situe au 300 route du Mont-Blanc, à quelques minutes du centre du village.',
-    'Récupérez les clés dans la boîte sécurisée à droite de l’entrée (code 1789).',
+    {
+      text: 'L’arrivée est possible à partir de 16 h : prenez le temps de vous installer.',
+      videoUrl: null,
+      photos: [],
+    },
+    {
+      text: 'Le logement se situe au 300 route du Mont-Blanc, à quelques minutes du centre du village.',
+      videoUrl: null,
+      photos: [],
+    },
+    {
+      text: 'Récupérez les clés dans la boîte sécurisée à droite de l’entrée (code 1789).',
+      videoUrl: null,
+      photos: [],
+    },
   ],
   departureInstructions: [
     'Libérer le logement avant 10 h.',
@@ -81,4 +93,7 @@ export const demoLodging: GuideLodging = {
     { label: 'Pompiers', number: '18' },
     { label: 'Office de tourisme', number: '04 50 47 76 08' },
   ],
+  parkingInfo: 'Place réservée n°3, juste devant le chalet. Badge dans le tiroir.',
+  parkingPhotoUrl: null,
+  parkingVideoUrl: null,
 }

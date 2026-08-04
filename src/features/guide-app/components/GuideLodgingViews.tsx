@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BedDouble,
+  Car,
   Clock3,
   Copy,
   DoorOpen,
@@ -10,6 +11,7 @@ import {
   KeyRound,
   LogOut,
   MapPin,
+  Navigation,
   Phone,
   ScrollText,
   Siren,
@@ -19,7 +21,8 @@ import {
 import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
 import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
-import { GuidePracticalVideo } from '@/features/guide-app/components/GuidePracticalVideo'
+import { PracticalMediaCard } from '@/features/guide-app/components/PracticalMediaCard'
+import { ArrivalInstructionCard } from '@/features/guide-app/components/ArrivalInstructionCard'
 import { DepartureChecklist } from '@/features/guide-app/components/DepartureChecklist'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
@@ -31,7 +34,9 @@ function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
   return (LucideIcons[name] as LucideIcons.LucideIcon | undefined) ?? Info
 }
 import type {
+  GuideArrivalInstruction,
   GuideLodging,
+  GuidePracticalCard,
   GuideView,
 } from '@/features/guide-app/types'
 
@@ -46,7 +51,7 @@ export function GuideLodgingViews({
   lodging,
   onNavigate,
 }: {
-  view: Extract<GuideView, 'lodging' | 'arrival' | 'departure' | 'practical'>
+  view: Extract<GuideView, 'lodging' | 'arrival' | 'departure' | 'practical' | 'rules'>
   lodging: GuideLodging
   onNavigate: (view: GuideView) => void
 }) {
@@ -60,20 +65,45 @@ export function GuideLodgingViews({
         onBack={() => onNavigate('lodging')}
       >
         <InstructionList items={lodging.arrivalInstructions} />
-        <InfoCard
-          icon={MapPin}
-          title="Localisation"
-          description={lodging.addressLabel}
-          tone="light"
-        />
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center justify-center rounded-[22px] bg-pink-600 p-4 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
-        >
-          Google Maps
-        </a>
+        <section className={`${navyCardClass} p-5`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+                <MapPin className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold leading-9 text-white">Localisation</h2>
+                <p className="mt-1 text-xs leading-5 text-white/70">
+                  {lodging.addressLabel.split(',').map((part, index) => (
+                    <span key={index} className="block">
+                      {part.trim()}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            </div>
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-[#EF5148] shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+            >
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#EF5148] text-white">
+                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              Maps
+            </a>
+          </div>
+        </section>
+        {(lodging.parkingInfo || lodging.parkingPhotoUrl || lodging.parkingVideoUrl) && (
+          <PracticalMediaCard
+            icon={Car}
+            title="Parking"
+            description={lodging.parkingInfo}
+            photoUrl={lodging.parkingPhotoUrl ?? undefined}
+            videoUrl={lodging.parkingVideoUrl ?? undefined}
+          />
+        )}
       </GuideSubPage>
     )
   }
@@ -89,6 +119,65 @@ export function GuideLodgingViews({
         <section className={`${cardClass} p-5`}>
           <DepartureChecklist items={lodging.departureInstructions} />
         </section>
+      </GuideSubPage>
+    )
+  }
+
+  if (view === 'rules') {
+    return (
+      <GuideSubPage
+        eyebrow="Le nécessaire"
+        title="Consignes du logement"
+        icon={ScrollText}
+        onBack={() => onNavigate('lodging')}
+      >
+        {lodging.equipment.length > 0 && (
+          <section className={`${navyCardClass} p-5`}>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+                <BedDouble className="h-5 w-5" />
+              </span>
+              <h2 className="text-sm font-semibold text-white">Équipements</h2>
+            </div>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {lodging.equipment.map(item => (
+                <li
+                  key={item}
+                  className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {lodging.practicalCards.length > 0 && (
+          <div className="grid gap-3">
+            {lodging.practicalCards.map(card => (
+              <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
+            ))}
+          </div>
+        )}
+
+        {lodging.houseRules.length > 0 && (
+          <section className={`${navyCardClass} p-5`}>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+                <ScrollText className="h-5 w-5" />
+              </span>
+              <h2 className="text-sm font-semibold text-white">Règlement intérieur</h2>
+            </div>
+            <ul className="mt-4 space-y-2">
+              {lodging.houseRules.map(rule => (
+                <li key={rule} className="flex gap-2 text-xs leading-5 text-white/70">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                  <span>{rule}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </GuideSubPage>
     )
   }
@@ -120,70 +209,6 @@ export function GuideLodgingViews({
             <Copy className="h-4 w-4 text-white/50" aria-hidden="true" />
           </div>
         </section>
-        <div className="grid gap-3">
-          {lodging.practicalCards.map(card => {
-            if (card.icon === 'recycle') {
-              return (
-                <WasteCard
-                  key={card.id}
-                  title={card.title}
-                  description={card.description}
-                  city={lodging.city}
-                />
-              )
-            }
-            const Icon = resolvePracticalIcon(card.icon)
-            if (card.videoUrl) {
-              return (
-                <ParkingCard
-                  key={card.id}
-                  icon={Icon}
-                  title={card.title}
-                  description={card.description}
-                  videoUrl={card.videoUrl}
-                />
-              )
-            }
-            if (card.phone) {
-              return (
-                <ContactCard
-                  key={card.id}
-                  icon={Icon}
-                  title={card.title}
-                  description={card.description}
-                  phone={card.phone}
-                />
-              )
-            }
-            return (
-              <InfoCard
-                key={card.id}
-                icon={Icon}
-                title={card.title}
-                description={card.description}
-              />
-            )
-          })}
-        </div>
-        {lodging.houseRules.length > 0 && (
-          <section className={`${navyCardClass} p-5`}>
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-                <ScrollText className="h-5 w-5" />
-              </span>
-              <h2 className="text-sm font-semibold text-white">Règlement intérieur</h2>
-            </div>
-            <ul className="mt-4 space-y-2">
-              {lodging.houseRules.map(rule => (
-                <li key={rule} className="flex gap-2 text-xs leading-5 text-white/70">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                  <span>{rule}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/20 text-red-300">
@@ -242,14 +267,14 @@ export function GuideLodgingViews({
         <GuideLink
           icon={Wifi}
           title="Informations pratiques"
-          copy="Wi-Fi, équipements et contacts"
+          copy="Wi-Fi et contacts"
           onClick={() => onNavigate('practical')}
         />
         <GuideLink
           icon={ScrollText}
           title="Consignes du logement"
           copy={`${lodging.equipment.length} équipements · ${lodging.houseRules.length} règles`}
-          onClick={() => onNavigate('practical')}
+          onClick={() => onNavigate('rules')}
         />
         <GuideLink
           icon={LogOut}
@@ -303,18 +328,14 @@ function GuideSubPage({
   )
 }
 
-function InstructionList({ items }: { items: string[] }) {
+function InstructionList({ items }: { items: GuideArrivalInstruction[] }) {
+  if (items.length === 0) return null
   return (
-    <ol className={`${cardClass} divide-y divide-slate-100 p-2`}>
-      {items.map((item, index) => (
-        <li key={item} className="flex gap-3 p-3 text-xs leading-5 text-slate-600">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-[10px] font-bold text-blue-600">
-            {index + 1}
-          </span>
-          <span className="pt-1">{item}</span>
-        </li>
+    <div className="space-y-3">
+      {items.map((instruction, index) => (
+        <ArrivalInstructionCard key={index} index={index} instruction={instruction} />
       ))}
-    </ol>
+    </div>
   )
 }
 
@@ -375,6 +396,36 @@ function GuideLink({
   )
 }
 
+/** Rend une carte « bloc pratique » selon son contenu (tri, média, contact, texte). */
+function PracticalBlockCard({ card, city }: { card: GuidePracticalCard; city: string }) {
+  if (card.icon === 'recycle') {
+    return <WasteCard title={card.title} description={card.description} city={city} />
+  }
+  const Icon = resolvePracticalIcon(card.icon)
+  if (card.photoUrl || card.videoUrl) {
+    return (
+      <PracticalMediaCard
+        icon={Icon}
+        title={card.title}
+        description={card.description}
+        photoUrl={card.photoUrl}
+        videoUrl={card.videoUrl}
+      />
+    )
+  }
+  if (card.phone) {
+    return (
+      <ContactCard
+        icon={Icon}
+        title={card.title}
+        description={card.description}
+        phone={card.phone}
+      />
+    )
+  }
+  return <InfoCard icon={Icon} title={card.title} description={card.description} />
+}
+
 const DEMO_TRASH_BINS = ['jaune', 'verte', 'bordeaux'] as const
 
 function WasteCard({
@@ -425,33 +476,6 @@ function WasteCard({
       >
         Point de tri sur Google Maps
       </a>
-    </article>
-  )
-}
-
-function ParkingCard({
-  icon: Icon,
-  title,
-  description,
-  videoUrl,
-}: {
-  icon: typeof Info
-  title: string
-  description: string
-  videoUrl: string
-}) {
-  return (
-    <article className={`${navyCardClass} overflow-hidden`}>
-      <GuidePracticalVideo src={videoUrl} />
-      <div className="flex items-start gap-3 p-5">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
-          <Icon className="h-4 w-4" />
-        </span>
-        <div>
-          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
-        </div>
-      </div>
     </article>
   )
 }

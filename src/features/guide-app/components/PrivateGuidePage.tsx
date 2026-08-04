@@ -13,6 +13,7 @@ export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   lodging: '/sejour/logement',
   arrival: '/sejour/logement/arrivee',
   practical: '/sejour/logement/informations-pratiques',
+  rules: '/sejour/logement/consignes',
   departure: '/sejour/logement/depart',
 }
 

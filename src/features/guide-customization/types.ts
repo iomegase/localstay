@@ -43,6 +43,22 @@ export interface PracticalBlockResponse {
   sort_order: number
 }
 
+export interface ArrivalInstructionInput {
+  id?: string
+  text: string
+  video_url: string | null
+  photos: string[]
+  sort_order: number
+}
+
+export interface ArrivalInstructionResponse {
+  id: string
+  text: string
+  video_url: string | null
+  photos: string[]
+  sort_order: number
+}
+
 export interface PracticalInfoFields {
   cover_photo_url: string | null
   presentation_video_url: string | null
@@ -86,6 +102,7 @@ export interface LodgingCustomizationInput extends PracticalInfoInput {
   category_order: string[]
   featured_pois: FeaturedPoiInput[]
   practical_blocks?: PracticalBlockInput[]
+  arrival_instructions?: ArrivalInstructionInput[]
   trash_bins?: TrashBinInput[]
 }
 
@@ -96,6 +113,7 @@ export interface LodgingCustomizationResponse extends PracticalInfoFields {
   featured_pois: FeaturedPoiResponse[]
   ignored_category_slugs: string[]
   practical_blocks: PracticalBlockResponse[]
+  arrival_instructions: ArrivalInstructionResponse[]
   trash_bins: TrashBin[]
 }
 

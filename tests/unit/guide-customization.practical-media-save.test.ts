@@ -2,6 +2,7 @@ const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
   lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
+  lodgingArrivalInstruction: { updateMany: jest.fn(), createMany: jest.fn() },
 }
 
 jest.mock('@/shared/lib/prisma', () => ({
@@ -12,6 +13,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     pointOfInterest: { findMany: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
     lodgingPracticalBlock: { findMany: jest.fn() },
+    lodgingArrivalInstruction: { findMany: jest.fn() },
     $transaction: jest.fn(async (cb: (t: typeof tx) => unknown) => cb(tx)),
   },
 }))
@@ -31,6 +33,7 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue(null)
     jest.mocked(prisma.category.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
+    jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([] as never)
   })
 
   it('persists parking media + presentation video on the customization row', async () => {

@@ -8,6 +8,7 @@ export type GuideView =
   | 'arrival'
   | 'departure'
   | 'practical'
+  | 'rules'
   | 'favorites'
   | 'map'
   | 'poi'
@@ -75,13 +76,21 @@ export type GuidePracticalCard = {
   icon: string
   /** Numéro de téléphone à appeler (bouton d'appel sur la card). */
   phone?: string
-  /** Vidéo affichée sur le recto de la card. */
+  /** Photo (URL) présentée en vignette → modal. */
+  photoUrl?: string
+  /** Vidéo YouTube présentée en vignette → modal. */
   videoUrl?: string
 }
 
 export type GuideUsefulNumber = {
   label: string
   number: string
+}
+
+export type GuideArrivalInstruction = {
+  text: string
+  videoUrl: string | null
+  photos: string[]
 }
 
 export type GuideLodging = {
@@ -99,12 +108,16 @@ export type GuideLodging = {
   checkOut: string
   wifiName: string
   wifiPassword: string
-  arrivalInstructions: string[]
+  arrivalInstructions: GuideArrivalInstruction[]
   departureInstructions: string[]
   equipment: string[]
   houseRules: string[]
   practicalCards: GuidePracticalCard[]
   usefulNumbers: GuideUsefulNumber[]
+  /** Infos parking affichées sur la page d'arrivée. */
+  parkingInfo: string
+  parkingPhotoUrl: string | null
+  parkingVideoUrl: string | null
 }
 
 export type PrivateGuideData = {

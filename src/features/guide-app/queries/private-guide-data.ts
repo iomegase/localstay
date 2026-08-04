@@ -35,6 +35,9 @@ export async function getPrivateGuideData(
           house_rules: true,
           emergency_contacts: true,
           useful_services: true,
+          parking_info: true,
+          parking_photo_url: true,
+          parking_video_url: true,
         },
       },
       practical_blocks: {
@@ -45,8 +48,14 @@ export async function getPrivateGuideData(
           title: true,
           body: true,
           icon: true,
+          photo_url: true,
           video_url: true,
         },
+      },
+      arrival_instructions: {
+        where: { deleted_at: null },
+        orderBy: { sort_order: 'asc' },
+        select: { text: true, video_url: true, photos: true },
       },
     },
   })
@@ -120,7 +129,11 @@ export async function getPrivateGuideData(
       checkOut: '10:00',
       wifiName: customization?.wifi_ssid ?? '',
       wifiPassword: customization?.wifi_password ?? '',
-      arrivalInstructions: [],
+      arrivalInstructions: lodging.arrival_instructions.map(instruction => ({
+        text: instruction.text,
+        videoUrl: instruction.video_url,
+        photos: instruction.photos,
+      })),
       departureInstructions: splitContent(
         customization?.checkout_instructions,
       ),
@@ -131,9 +144,13 @@ export async function getPrivateGuideData(
         title: block.title,
         description: block.body ?? '',
         icon: block.icon,
+        photoUrl: block.photo_url ?? undefined,
         videoUrl: block.video_url ?? undefined,
       })),
       usefulNumbers: mapUsefulNumbers(customization?.useful_services),
+      parkingInfo: customization?.parking_info?.trim() ?? '',
+      parkingPhotoUrl: customization?.parking_photo_url ?? null,
+      parkingVideoUrl: customization?.parking_video_url ?? null,
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
   }

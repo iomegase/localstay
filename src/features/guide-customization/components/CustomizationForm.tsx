@@ -33,6 +33,8 @@ import {
   WELCOME_MESSAGE_MAX_WORDS,
 } from '../lib/validation'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
+import { ArrivalInstructionsEditor } from '@/features/guide-customization/components/ArrivalInstructionsEditor'
+import type { ArrivalInstructionInput } from '@/features/guide-customization/types'
 import { TrashBinsEditor } from '@/features/guide-customization/components/TrashBinsEditor'
 import type { TrashBinInput } from '@/features/guide-customization/lib/trash-bins'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
@@ -211,6 +213,9 @@ export function CustomizationForm({
   const [practicalBlocks, setPracticalBlocks] = useState<PracticalBlockInput[]>(
     initialCustomization.practical_blocks ?? [],
   )
+  const [arrivalInstructions, setArrivalInstructions] = useState<ArrivalInstructionInput[]>(
+    initialCustomization.arrival_instructions ?? [],
+  )
   const [trashBins, setTrashBins] = useState<TrashBinInput[]>(
     initialCustomization.trash_bins ?? [],
   )
@@ -321,6 +326,10 @@ export function CustomizationForm({
           ...block,
           sort_order: index,
         })),
+        arrival_instructions: arrivalInstructions.map((instruction, index) => ({
+          ...instruction,
+          sort_order: index,
+        })),
         trash_bins: trashBins,
         ...practicalPayload,
       }),
@@ -371,6 +380,7 @@ export function CustomizationForm({
       useful_services: payload.useful_services ?? null,
     })
     setPracticalBlocks(payload.practical_blocks ?? [])
+    setArrivalInstructions(payload.arrival_instructions ?? [])
     setTrashBins(payload.trash_bins ?? [])
     setStatus('saved')
     setMessage(
@@ -442,6 +452,11 @@ export function CustomizationForm({
       {/* 2b. Blocs personnalisés « Infos pratiques » */}
       <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
         <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} />
+      </section>
+
+      {/* 2c. Instructions d'arrivée (texte + photos + vidéo) */}
+      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
+        <ArrivalInstructionsEditor value={arrivalInstructions} onChange={setArrivalInstructions} lodgingId={lodgingId} />
       </section>
 
       {/* 2c. Recommandations dans d'autres villes */}

@@ -37,6 +37,7 @@ function buildTx() {
     lodgingCustomization: del(),
     lodgingFeaturedPoi: del(),
     lodgingPracticalBlock: del(),
+    lodgingArrivalInstruction: del(),
   }
 }
 

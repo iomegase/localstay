@@ -508,9 +508,14 @@ export function GuideMapView({
                   {selectedPoi.name}
                 </strong>
 
-                <span className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
-                  <Navigation className="h-3 w-3" aria-hidden="true" />
-                  {selectedPoi.distanceLabel ?? selectedPoi.address}
+                <span className="mt-1.5 block text-[10px] leading-4 text-slate-500">
+                  {selectedPoi.distanceLabel
+                    ? selectedPoi.distanceLabel
+                    : selectedPoi.address.split(',').map((part, index) => (
+                        <span key={index} className="block">
+                          {part.trim()}
+                        </span>
+                      ))}
                 </span>
 
                 <div className="mt-2.5 flex items-center gap-2">

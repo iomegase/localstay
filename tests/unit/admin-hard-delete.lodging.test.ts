@@ -14,6 +14,7 @@ const tx = {
   lodgingCustomization: del(),
   lodgingFeaturedPoi: del(),
   lodgingPracticalBlock: del(),
+  lodgingArrivalInstruction: del(),
   contactMessage: del(),
   lodging: { delete: jest.fn().mockResolvedValue({ id: 'lodg-1' }) },
 }

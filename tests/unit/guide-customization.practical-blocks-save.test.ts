@@ -2,6 +2,7 @@ const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
   lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
+  lodgingArrivalInstruction: { updateMany: jest.fn(), createMany: jest.fn() },
 }
 
 const mockGeocodeAddress = jest.fn()
@@ -14,6 +15,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     pointOfInterest: { findMany: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
     lodgingPracticalBlock: { findMany: jest.fn() },
+    lodgingArrivalInstruction: { findMany: jest.fn() },
     $transaction: jest.fn(async (cb: (t: typeof tx) => unknown) => cb(tx)),
   },
 }))
@@ -52,6 +54,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([
       { id: 'b1', title: 'La plage', body: 'À 5 min', icon: 'star', photo_url: null, sort_order: 0 },
     ] as never)
+    jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([] as never)
   })
 
   it('soft-deletes existing blocks then recreates one row per normalized block', async () => {

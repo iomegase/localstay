@@ -1,4 +1,4 @@
-import type { PracticalBlockInput } from '../types'
+import type { ArrivalInstructionInput, PracticalBlockInput } from '../types'
 import { isTrashBinType, type TrashBin, type TrashBinInput } from './trash-bins'
 
 const GUIDE_RADIUS_KM = 30
@@ -137,6 +137,38 @@ export function normalizePracticalBlocks(
       icon: block.icon,
       photo_url: clean(block.photo_url),
       video_url: clean(block.video_url),
+      sort_order: index,
+    }))
+}
+
+export interface NormalizedArrivalInstruction {
+  text: string
+  video_url: string | null
+  photos: string[]
+  sort_order: number
+}
+
+/**
+ * Nettoie et réordonne les instructions d'arrivée.
+ * - rejette les instructions sans texte (après trim),
+ * - trim texte/vidéo, retire les photos vides,
+ * - réindexe sort_order par la position (l'ordre client fait foi).
+ */
+export function normalizeArrivalInstructions(
+  instructions: ArrivalInstructionInput[] | undefined,
+): NormalizedArrivalInstruction[] {
+  if (!instructions || instructions.length === 0) return []
+  const clean = (value: string | null | undefined): string | null =>
+    typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+
+  return instructions
+    .filter(instruction => clean(instruction.text) !== null)
+    .map((instruction, index) => ({
+      text: clean(instruction.text) as string,
+      video_url: clean(instruction.video_url),
+      photos: (instruction.photos ?? [])
+        .map(photo => photo.trim())
+        .filter(Boolean),
       sort_order: index,
     }))
 }
