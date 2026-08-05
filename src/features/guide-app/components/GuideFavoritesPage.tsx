@@ -1,4 +1,8 @@
+'use client'
+
 import type { RefObject } from 'react'
+import { motion } from 'framer-motion'
+import { capitalizeFirst } from '@/shared/lib/utils'
 import type { GuidePoi } from '@/features/guide-app/types'
 import { getFavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import { GuideFavoriteBentoCard } from './GuideFavoriteBentoCard'
@@ -36,7 +40,7 @@ export function GuideFavoritesPage({
       </div>
 
       <div
-        className="sticky top-0 z-20 -mx-3 mt-5 flex gap-2 overflow-x-auto border-b border-slate-100/80 bg-white/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="sticky top-0 z-20 -mx-3 mt-5 flex gap-2 overflow-x-auto bg-white px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-label="Filtrer les catégories"
       >
         <FilterButton
@@ -47,7 +51,7 @@ export function GuideFavoritesPage({
         {categories.map(category => (
           <FilterButton
             key={category.slug}
-            label={category.name}
+            label={capitalizeFirst(category.name)}
             active={selectedCategorySlug === category.slug}
             onClick={() => onFilter(category.slug)}
           />
@@ -81,17 +85,20 @@ function FilterButton({
   onClick: () => void
 }) {
   return (
-    <button
+    <motion.button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-4 py-2 text-[9px] font-bold ${
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      className={`shrink-0 rounded-full border-none px-4 py-2 text-[10px] font-bold tracking-[0.4px] shadow-md transition-shadow duration-200 ${
         active
           ? 'bg-slate-900 text-white'
-          : 'border border-slate-200 bg-white text-slate-600'
+          : 'bg-white text-slate-600 hover:text-slate-900 hover:shadow-lg'
       }`}
     >
       {label}
-    </button>
+    </motion.button>
   )
 }

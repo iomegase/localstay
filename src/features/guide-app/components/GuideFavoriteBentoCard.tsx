@@ -3,6 +3,7 @@
 import { useState, type RefObject } from 'react'
 import { Clock3, Map as MapIcon, MapPin } from 'lucide-react'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
+import { capitalizeFirst } from '@/shared/lib/utils'
 import type { FavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import type { GuidePoi } from '@/features/guide-app/types'
 
@@ -80,8 +81,12 @@ export function GuideFavoriteBentoCard({
 
       {/* Contenu superposé, non interactif (les clics tombent sur l'action principale) */}
       <div className={`pointer-events-none absolute inset-0 z-[1] flex flex-col justify-end text-white ${isBig ? 'p-5' : 'p-4'}`}>
-        <h3 className={`uppercase leading-none ${isBig ? 'text-2xl' : 'text-sm leading-tight'}`}>
-          {poi.name}
+        <h3
+          className={`mb-2.5 max-w-[62%] font-semibold uppercase leading-none tracking-[0.4px] ${
+            isBig ? 'text-2xl' : 'text-sm leading-tight'
+          }`}
+        >
+          {capitalizeFirst(poi.name)}
         </h3>
 
         {(poi.distanceLabel || durationLabel) && (
