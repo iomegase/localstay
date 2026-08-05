@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
 import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
+import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
 import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { PracticalMediaCard } from '@/features/guide-app/components/PracticalMediaCard'
 import { ArrivalInstructionCard } from '@/features/guide-app/components/ArrivalInstructionCard'
@@ -73,7 +74,6 @@ export function GuideLodgingViews({
         icon={DoorOpen}
         onBack={() => onNavigate('lodging')}
       >
-        <InstructionList items={lodging.arrivalInstructions} />
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
@@ -104,6 +104,7 @@ export function GuideLodgingViews({
             </a>
           </div>
         </section>
+        <InstructionList items={lodging.arrivalInstructions} />
         {(lodging.parkingInfo || lodging.parkingPhotoUrl || lodging.parkingVideoUrl) && (
           <PracticalMediaCard
             icon={Car}
@@ -125,7 +126,7 @@ export function GuideLodgingViews({
         icon={LogOut}
         onBack={() => onNavigate('lodging')}
       >
-        <section className={`${cardClass} p-5`}>
+        <section className={`${navyCardClass} p-5`}>
           <DepartureChecklist items={lodging.departureInstructions} />
         </section>
       </GuideSubPage>
@@ -140,14 +141,6 @@ export function GuideLodgingViews({
         icon={ScrollText}
         onBack={() => onNavigate('lodging')}
       >
-        {lodging.practicalCards.length > 0 && (
-          <div className="grid gap-3">
-            {lodging.practicalCards.map(card => (
-              <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
-            ))}
-          </div>
-        )}
-
         {lodging.houseRules.length > 0 && (
           <section className={`${navyCardClass} p-5`}>
             <div className="flex items-center gap-3">
@@ -158,13 +151,21 @@ export function GuideLodgingViews({
             </div>
             <ul className="mt-4 space-y-2">
               {lodging.houseRules.map(rule => (
-                <li key={rule} className="flex gap-2 text-xs leading-5 text-white/70">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                  <span>{rule}</span>
+                <li key={rule} className="flex items-center gap-2 text-xs leading-5 text-white/70">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                  <span>{inlineMarkdown(rule)}</span>
                 </li>
               ))}
             </ul>
           </section>
+        )}
+
+        {lodging.practicalCards.length > 0 && (
+          <div className="grid gap-3">
+            {lodging.practicalCards.map(card => (
+              <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
+            ))}
+          </div>
         )}
       </GuideSubPage>
     )
@@ -274,27 +275,32 @@ export function GuideLodgingViews({
   }
 
   return (
-    <div className="space-y-4 px-3 pb-24 pt-3">
-      <section className="grid grid-cols-2 gap-2.5">
-        <TimeCard
-          label="Arrivée"
-          value={lodging.checkIn}
-          onClick={() => onNavigate('arrival')}
-        />
-        <TimeCard
-          label="Départ"
-          value={lodging.checkOut}
-          onClick={() => onNavigate('departure')}
-        />
-      </section>
+    <div className="flex min-h-full flex-col gap-4 px-3 pb-24 pt-3">
+      {/* Conteneur 1 — arrivée / départ, centré */}
+      <div className="flex flex-1 flex-col justify-center">
+        <section className="grid grid-cols-2 gap-2.5">
+          <TimeCard
+            label="Arrivée"
+            value={lodging.checkIn}
+            onClick={() => onNavigate('arrival')}
+          />
+          <TimeCard
+            label="Départ"
+            value={lodging.checkOut}
+            onClick={() => onNavigate('departure')}
+          />
+        </section>
+      </div>
 
-      <section className="space-y-2.5">
-        <GuideLink
-          icon={KeyRound}
-          title="Accéder au logement"
-          copy="Horaires, accès et arrivée"
-          onClick={() => onNavigate('arrival')}
-        />
+      {/* Conteneur 2 — accès au livret, centré */}
+      <div className="flex flex-1 flex-col justify-center">
+        <section className="space-y-2.5">
+          <GuideLink
+            icon={KeyRound}
+            title="Accéder au logement"
+            copy="Horaires, accès et arrivée"
+            onClick={() => onNavigate('arrival')}
+          />
         <GuideLink
           icon={Wifi}
           title="Informations pratiques"
@@ -313,7 +319,8 @@ export function GuideLodgingViews({
           copy={`Checklist avant ${lodging.checkOut}`}
           onClick={() => onNavigate('departure')}
         />
-      </section>
+        </section>
+      </div>
     </div>
   )
 }
@@ -487,7 +494,7 @@ function WasteCard({
         </span>
         <div>
           <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
+          <p className="mt-1 text-xs leading-5 text-white/60">{inlineMarkdown(description)}</p>
         </div>
       </div>
       <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
@@ -538,7 +545,7 @@ function ContactCard({
         </span>
         <div>
           <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
+          <p className="mt-1 text-xs leading-5 text-white/60">{inlineMarkdown(description)}</p>
         </div>
       </div>
       <a

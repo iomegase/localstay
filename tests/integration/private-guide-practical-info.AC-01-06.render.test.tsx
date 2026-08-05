@@ -25,7 +25,7 @@ describe('038 AC — practical view: emergencies, useful numbers', () => {
 
     expect(screen.getByRole('heading', { name: 'Urgences' })).toBeInTheDocument()
     expect(screen.getByText('112')).toBeInTheDocument()
-    expect(screen.getByText('Pompiers')).toBeInTheDocument()
+    expect(screen.getByText('114')).toBeInTheDocument()
   })
 
   it('renders owner useful numbers, formatted and tappable to call', () => {
@@ -43,10 +43,9 @@ describe('038 AC — practical view: emergencies, useful numbers', () => {
   it('keeps emergency short codes tappable without +33 reformatting', () => {
     renderView('practical', { usefulNumbers: [] })
 
-    expect(screen.getByRole('link', { name: /Pompiers/i })).toHaveAttribute(
-      'href',
-      'tel:18',
-    )
+    expect(
+      screen.getByRole('link', { name: /numéro européen/i }),
+    ).toHaveAttribute('href', 'tel:112')
   })
 
   it('shows the active trash bins in a Recyclage section', () => {

@@ -5,6 +5,7 @@ import { Eye, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 import { extractYouTubeId } from '@/shared/lib/youtube'
+import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
 
 type Props = {
   icon: LucideIcon
@@ -42,18 +43,20 @@ export function PracticalMediaCard({
 
   return (
     <article className="rounded-[26px] bg-slate-900 p-5 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
-            <Icon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-            <p className="mt-1 text-xs leading-5 text-white/60">{description}</p>
-          </div>
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
+          <p className="mt-1 text-xs leading-5 text-white/60">
+            {inlineMarkdown(description)}
+          </p>
         </div>
+      </div>
 
-        {hasMedia && (
+      {hasMedia && (
+        <div className="mt-3 flex justify-end">
           <button
             type="button"
             aria-label={`Voir — ${title}`}
@@ -65,8 +68,8 @@ export function PracticalMediaCard({
             </span>
             Voir
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {open && (
         <div

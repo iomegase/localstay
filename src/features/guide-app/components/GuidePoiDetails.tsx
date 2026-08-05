@@ -1,9 +1,12 @@
-import { ArrowLeft, MapPin, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
+'use client'
+
+import { ArrowLeft, MapPin, Navigation, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HoursBlock } from '@/features/categories/components/HoursBlock'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
 import { ActionButtons } from '@/features/categories/components/ActionButtons'
 import { haversineKm } from '@/features/geolocation/lib/user-location'
+import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import { canStartTrail } from '@/features/guide-app/lib/trail-access'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
@@ -30,6 +33,10 @@ export function GuidePoiDetails({
   const attributionHost = getWebsiteHost(poi.website)
   const hasRealPhotos = poi.photos.some(p => p.trim() && !p.startsWith('/fallback/'))
   const distanceKm = haversineKm(lodging.latitude, lodging.longitude, poi.latitude, poi.longitude)
+  const { location } = useUserLocation()
+  const userDistanceKm = location
+    ? haversineKm(location.latitude, location.longitude, poi.latitude, poi.longitude)
+    : null
 
   return (
     <article className="min-h-full bg-slate-50">
@@ -80,12 +87,20 @@ export function GuidePoiDetails({
           )}
         </div>
 
-        {/* Distance from lodging */}
-        <div className="px-6">
-          <span className="inline-flex items-center gap-1.5 text-sm text-charcoal/60">
-            <MapPin className="h-4 w-4" />
+        {/* Distance from lodging (+ from user if GPS is active) */}
+        <div className="flex flex-col gap-1 px-6">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
+            <MapPin className="h-3 w-3" />
             <span data-testid="poi-detail-distance">{lodgingDistanceLabel(distanceKm)}</span>
           </span>
+          {userDistanceKm !== null && (
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
+              <Navigation className="h-3 w-3" />
+              <span data-testid="poi-detail-user-distance">
+                {userDistanceLabel(userDistanceKm)}
+              </span>
+            </span>
+          )}
         </div>
 
         {/* Description */}
@@ -212,6 +227,11 @@ export function GuidePoiDetails({
 function lodgingDistanceLabel(distanceKm: number): string {
   if (distanceKm < 1) return `Situé à ${Math.round(distanceKm * 1000)} m du logement`
   return `Situé à ${distanceKm.toFixed(1).replace('.', ',')} km du logement`
+}
+
+function userDistanceLabel(distanceKm: number): string {
+  if (distanceKm < 1) return `À ${Math.round(distanceKm * 1000)} m de vous`
+  return `À ${distanceKm.toFixed(1).replace('.', ',')} km de vous`
 }
 
 function getWebsiteHost(website: string | null | undefined): string | null {
