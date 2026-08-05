@@ -12,6 +12,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description: SITE.defaultDescription,
     start_url: '/',
     display: 'standalone',
+    // Verrouille l'app installée (PWA) en portrait. En onglet navigateur,
+    // le web ne permet pas de forcer l'orientation (limite connue).
+    orientation: 'portrait',
     background_color: '#FAF9F6',
     theme_color: '#FAF9F6',
     icons: [

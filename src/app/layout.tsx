@@ -114,6 +114,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // Rendu « app » : on bloque le pinch-zoom de page. Les cartes Mapbox gèrent
+  // leur propre zoom (canvas + boutons +/−) et restent donc zoomables.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#FAF9F6',
 }
