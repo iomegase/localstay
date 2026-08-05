@@ -110,7 +110,6 @@ export type GuideLodging = {
   wifiPassword: string
   arrivalInstructions: GuideArrivalInstruction[]
   departureInstructions: string[]
-  equipment: string[]
   houseRules: string[]
   practicalCards: GuidePracticalCard[]
   usefulNumbers: GuideUsefulNumber[]

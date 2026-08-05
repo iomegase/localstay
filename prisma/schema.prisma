@@ -798,7 +798,6 @@ model LodgingCustomization {
   parking_info          String?
   parking_photo_url     String?
   parking_video_url     String?
-  equipment_info        String?
   checkout_instructions String?
   trash_info            String?
   trash_location        String?

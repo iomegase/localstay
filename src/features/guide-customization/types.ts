@@ -68,7 +68,6 @@ export interface PracticalInfoFields {
   parking_info: string | null
   parking_photo_url: string | null
   parking_video_url: string | null
-  equipment_info: string | null
   checkout_instructions: string | null
   trash_info: string | null
   trash_location: string | null
@@ -86,7 +85,6 @@ export const PRACTICAL_INFO_KEYS = [
   'parking_info',
   'parking_photo_url',
   'parking_video_url',
-  'equipment_info',
   'checkout_instructions',
   'trash_info',
   'trash_location',

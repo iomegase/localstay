@@ -14,7 +14,6 @@ import {
   MapPin,
   Ruler,
   ScrollText,
-  Settings,
   Siren,
   Sofa,
   Sparkles,
@@ -71,7 +70,6 @@ export default async function LeLogementPage() {
         parking_info: true,
         parking_photo_url: true,
         parking_video_url: true,
-        equipment_info: true,
         checkout_instructions: true,
         trash_location: true,
         trash_bins: true,
@@ -162,13 +160,6 @@ export default async function LeLogementPage() {
 
   // ─── Accordéon 2 : découvrir le logement ─────────────────────────────────
   const discoverContent: React.ReactNode[] = []
-  if (customization?.equipment_info) {
-    discoverContent.push(
-      <PanelDetail key="equipment" icon={<Settings className="h-5 w-5" />} accent="green" title="Équipements">
-        <MarkdownText source={customization.equipment_info} />
-      </PanelDetail>,
-    )
-  }
   for (const block of practicalBlocks) {
     discoverContent.push(<PracticalBlockDetail key={block.id} block={block} />)
   }
@@ -240,7 +231,7 @@ export default async function LeLogementPage() {
     sections.push({ key: 'access', title: 'Accéder au logement', subtitle: 'Adresse, vidéo, accès et stationnement', icon: <KeyRound className="h-5 w-5" />, accent: 'orange', content: accessContent })
   }
   if (discoverContent.length > 0) {
-    sections.push({ key: 'discover', title: 'Découvrir le logement', subtitle: 'Équipements, règlement et services', icon: <Sofa className="h-5 w-5" />, accent: 'green', content: discoverContent })
+    sections.push({ key: 'discover', title: 'Découvrir le logement', subtitle: 'Règlement et services', icon: <Sofa className="h-5 w-5" />, accent: 'green', content: discoverContent })
   }
   if (practicalContent.length > 0) {
     sections.push({ key: 'practical', title: 'Infos pratiques', subtitle: 'Urgences et numéros utiles', icon: <Info className="h-5 w-5" />, accent: 'pink', content: practicalContent })

@@ -44,14 +44,6 @@ export const demoLodging: GuideLodging = {
     'Déposer les déchets dans les conteneurs adaptés.',
     'Laisser les clés à l’emplacement indiqué dans votre véritable guide.',
   ],
-  equipment: [
-    'Cuisine équipée',
-    'Lave-vaisselle',
-    'Machine à café',
-    'Lave-linge',
-    'Local à skis',
-    'Lit bébé sur demande',
-  ],
   houseRules: [
     'Logement non-fumeur',
     'Respecter le calme de la résidence après 22 h',

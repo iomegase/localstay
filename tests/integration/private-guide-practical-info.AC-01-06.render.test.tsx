@@ -92,16 +92,14 @@ describe('practical block cards live in Consignes, not in Informations pratiques
 })
 
 describe('Consignes du logement view (rules)', () => {
-  it('lists equipment and the house rules', () => {
+  it('lists the house rules', () => {
     renderView('rules', {
-      equipment: ['Lave-vaisselle', 'Sèche-cheveux'],
       houseRules: ['Non-fumeur', 'Animaux sur demande'],
     })
 
     expect(
       screen.getByRole('heading', { name: 'Consignes du logement' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Lave-vaisselle')).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Règlement intérieur' }),
     ).toBeInTheDocument()

@@ -19,7 +19,7 @@ const baseCustomization = {
   featured_pois: [],
   ignored_category_slugs: [],
   cover_photo_url: null, lodging_address: null, wifi_ssid: null, wifi_password: null,
-  parking_info: null, equipment_info: null, checkout_instructions: null, trash_info: null,
+  parking_info: null, checkout_instructions: null, trash_info: null,
   trash_location: null, house_rules: null, emergency_contacts: null, useful_services: null,
   presentation_video_url: null, parking_photo_url: null, parking_video_url: null,
   practical_blocks: [],

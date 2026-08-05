@@ -31,7 +31,6 @@ export async function getPrivateGuideData(
           lodging_longitude: true,
           wifi_ssid: true,
           wifi_password: true,
-          equipment_info: true,
           checkout_instructions: true,
           house_rules: true,
           emergency_contacts: true,
@@ -140,7 +139,6 @@ export async function getPrivateGuideData(
       departureInstructions: splitContent(
         customization?.checkout_instructions,
       ),
-      equipment: splitContent(customization?.equipment_info),
       houseRules: splitContent(customization?.house_rules),
       practicalCards: lodging.practical_blocks.map(block => ({
         id: block.id,

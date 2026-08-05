@@ -32,7 +32,6 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       name: string
       checkIn: string
       checkOut: string
-      equipment: unknown[]
       houseRules: unknown[]
     }
     initialView?: string
@@ -53,7 +52,6 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       }
       data-check-in={lodging.checkIn}
       data-check-out={lodging.checkOut}
-      data-equipment-count={lodging.equipment.length}
       data-rules-count={lodging.houseRules.length}
     />
   ),
@@ -68,7 +66,6 @@ const privateData = {
     city: 'Saint-Gervais-les-Bains',
     checkIn: '16:00',
     checkOut: '10:00',
-    equipment: ['Wi-Fi', 'Parking', 'Lave-linge'],
     houseRules: ['Non-fumeur', 'Calme après 22 h'],
   },
   pois: [],
@@ -98,7 +95,6 @@ describe('036-private-guide-lodging-home page', () => {
     )
     expect(guide).toHaveAttribute('data-check-in', '16:00')
     expect(guide).toHaveAttribute('data-check-out', '10:00')
-    expect(guide).toHaveAttribute('data-equipment-count', '3')
     expect(guide).toHaveAttribute('data-rules-count', '2')
 
     expect(guide).toHaveAttribute(

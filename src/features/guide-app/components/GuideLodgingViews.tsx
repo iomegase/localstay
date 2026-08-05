@@ -140,27 +140,6 @@ export function GuideLodgingViews({
         icon={ScrollText}
         onBack={() => onNavigate('lodging')}
       >
-        {lodging.equipment.length > 0 && (
-          <section className={`${navyCardClass} p-5`}>
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-                <BedDouble className="h-5 w-5" />
-              </span>
-              <h2 className="text-sm font-semibold text-white">Équipements</h2>
-            </div>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {lodging.equipment.map(item => (
-                <li
-                  key={item}
-                  className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
         {lodging.practicalCards.length > 0 && (
           <div className="grid gap-3">
             {lodging.practicalCards.map(card => (
@@ -325,7 +304,7 @@ export function GuideLodgingViews({
         <GuideLink
           icon={ScrollText}
           title="Consignes du logement"
-          copy={`${lodging.equipment.length} équipements · ${lodging.houseRules.length} règles`}
+          copy={`${lodging.houseRules.length} règles`}
           onClick={() => onNavigate('rules')}
         />
         <GuideLink

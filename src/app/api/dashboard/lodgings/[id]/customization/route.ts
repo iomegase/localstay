@@ -119,7 +119,6 @@ const customizationSchema = z.object({
   parking_info: practicalText(2000),
   parking_photo_url: imageUrlSchema,
   parking_video_url: youtubeUrlSchema,
-  equipment_info: practicalText(4000),
   checkout_instructions: practicalText(4000),
   trash_info: practicalText(2000),
   trash_location: practicalText(500),

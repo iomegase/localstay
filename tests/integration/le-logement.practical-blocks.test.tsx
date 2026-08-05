@@ -52,7 +52,6 @@ describe('/le-logement — guide en accordéons', () => {
       parking_info: 'Place 12 dans la cour.',
       parking_photo_url: null,
       parking_video_url: null,
-      equipment_info: 'Cheminée et chauffage au sol.',
       checkout_instructions: '- Vider le réfrigérateur\n- Fermer les fenêtres',
       trash_location: 'Point tri en bas du bâtiment',
       trash_bins: [{ type: 'jaune' }, { type: 'verre' }],
@@ -118,7 +117,6 @@ describe('/le-logement — guide en accordéons', () => {
     expect(screen.getByText('secret-wifi')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' })).toBeInTheDocument()
     expect(screen.getByText('Place 12 dans la cour.')).toBeInTheDocument()
-    expect(screen.getByText('Cheminée et chauffage au sol.')).toBeInTheDocument()
     expect(screen.getByText('Le local à skis')).toBeInTheDocument()
     expect(screen.getByAltText('Le local à skis')).toHaveAttribute('src', 'https://cdn.test/skis.webp')
     expect(screen.getByRole('checkbox', { name: 'Vider le réfrigérateur' })).toBeInTheDocument()
@@ -132,7 +130,7 @@ describe('/le-logement — guide en accordéons', () => {
   it('opens a single accordion at a time', async () => {
     jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({
       lodging_address: '1 rue des Alpes',
-      equipment_info: 'Cheminée.',
+      house_rules: 'Logement non-fumeur.',
       emergency_contacts: '112',
       trash_bins: [],
     } as never)
@@ -161,7 +159,6 @@ describe('/le-logement — guide en accordéons', () => {
       wifi_ssid: null,
       wifi_password: null,
       parking_info: null,
-      equipment_info: null,
       checkout_instructions: null,
       trash_location: null,
       trash_bins: [],

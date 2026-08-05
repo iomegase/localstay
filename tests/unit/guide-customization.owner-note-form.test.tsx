@@ -36,7 +36,6 @@ const baseCustomization = {
   wifi_ssid: null,
   wifi_password: null,
   parking_info: null,
-  equipment_info: null,
   checkout_instructions: null,
   trash_info: null,
   trash_location: null,
