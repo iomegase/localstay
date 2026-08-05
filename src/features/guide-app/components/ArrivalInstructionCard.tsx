@@ -26,23 +26,23 @@ export function ArrivalInstructionCard({
   const hasMedia = instruction.photos.length > 0 || Boolean(videoId)
 
   return (
-    <article className="rounded-[22px] border border-slate-100 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <div className="flex items-start gap-3">
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-[11px] font-bold text-blue-600">
+    <div className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]">
+      <div className="flex items-center gap-3">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
           {index + 1}
         </span>
-        <p className="pt-0.5 text-xs leading-5 text-slate-600">{instruction.text}</p>
-      </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs leading-5 text-white/80">{instruction.text}</p>
 
-      {hasMedia && (
-        <div className="mt-3 flex flex-wrap gap-2 pl-10">
-          {instruction.photos.map((photo, i) => (
+          {hasMedia && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {instruction.photos.map((photo, i) => (
             <button
               key={i}
               type="button"
               aria-label={`Photo ${i + 1}`}
               onClick={() => setLightbox({ kind: 'photos', startIndex: i })}
-              className="h-16 w-20 overflow-hidden rounded-xl border border-slate-100 transition-transform active:scale-95"
+              className="h-16 w-20 overflow-hidden rounded-xl border border-white/15 transition-transform active:scale-95"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo} alt="" className="h-full w-full object-cover" />
@@ -53,7 +53,7 @@ export function ArrivalInstructionCard({
               type="button"
               aria-label="Vidéo"
               onClick={() => setLightbox({ kind: 'video' })}
-              className="relative h-16 w-20 overflow-hidden rounded-xl border border-slate-100 transition-transform active:scale-95"
+              className="relative h-16 w-20 overflow-hidden rounded-xl border border-white/15 transition-transform active:scale-95"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -67,9 +67,11 @@ export function ArrivalInstructionCard({
                 </span>
               </span>
             </button>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
 
       {lightbox && (
         <MediaLightbox
@@ -86,6 +88,6 @@ export function ArrivalInstructionCard({
           onClose={() => setLightbox(null)}
         />
       )}
-    </article>
+    </div>
   )
 }

@@ -9,10 +9,12 @@ import {
   DoorOpen,
   Info,
   KeyRound,
+  ListOrdered,
   LogOut,
   MapPin,
   Navigation,
   Phone,
+  Recycle,
   ScrollText,
   Siren,
   Trash2,
@@ -45,6 +47,13 @@ const cardClass =
 
 const navyCardClass =
   'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
+
+/** Lien du point de tri : URL directe si déjà un lien, sinon recherche Google Maps. */
+function trashLocationHref(location: string): string {
+  return /^https?:\/\//i.test(location)
+    ? location
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+}
 
 export function GuideLodgingViews({
   view,
@@ -86,9 +95,9 @@ export function GuideLodgingViews({
               href={mapsUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-[#EF5148] shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
             >
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#EF5148] text-white">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
                 <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
               Maps
@@ -238,6 +247,49 @@ export function GuideLodgingViews({
             </div>
           </section>
         )}
+
+        {lodging.trashBins.length > 0 && (
+          <section className={`${navyCardClass} p-5`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+                  <Recycle className="h-5 w-5" />
+                </span>
+                <h2 className="text-sm font-semibold text-white">Recyclage</h2>
+              </div>
+              {lodging.trashLocation && (
+                <a
+                  href={trashLocationHref(lodging.trashLocation)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+                >
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
+                    <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  Maps
+                </a>
+              )}
+            </div>
+            <div className="mt-4 space-y-3">
+              {lodging.trashBins.map(bin => {
+                const preset = getTrashBin(bin.type)
+                if (!preset) return null
+                return (
+                  <div key={bin.type} className="flex items-center gap-3">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white">
+                      <Trash2 className={`h-5 w-5 ${preset.colorClass}`} />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{preset.label}</p>
+                      <p className="text-[11px] text-white/60">{preset.hint}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
       </GuideSubPage>
     )
   }
@@ -267,7 +319,7 @@ export function GuideLodgingViews({
         <GuideLink
           icon={Wifi}
           title="Informations pratiques"
-          copy="Wi-Fi et contacts"
+          copy="Wi-Fi · contacts · recyclage"
           onClick={() => onNavigate('practical')}
         />
         <GuideLink
@@ -331,11 +383,19 @@ function GuideSubPage({
 function InstructionList({ items }: { items: GuideArrivalInstruction[] }) {
   if (items.length === 0) return null
   return (
-    <div className="space-y-3">
-      {items.map((instruction, index) => (
-        <ArrivalInstructionCard key={index} index={index} instruction={instruction} />
-      ))}
-    </div>
+    <section className={`${navyCardClass} p-5`}>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+          <ListOrdered className="h-5 w-5" />
+        </span>
+        <h2 className="text-sm font-semibold text-white">Instructions</h2>
+      </div>
+      <div className="mt-4 space-y-5">
+        {items.map((instruction, index) => (
+          <ArrivalInstructionCard key={index} index={index} instruction={instruction} />
+        ))}
+      </div>
+    </section>
   )
 }
 

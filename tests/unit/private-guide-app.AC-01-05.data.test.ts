@@ -256,6 +256,41 @@ describe('034-private-guide-app private data adapter', () => {
     ])
   })
 
+  it('maps active trash bins and the sorting point location', async () => {
+    lodgingFindFirst.mockResolvedValue({
+      id: 'lodging-1',
+      name: 'Le Chalet Hygge',
+      city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
+      customization: {
+        welcome_message: null,
+        cover_photo_url: null,
+        lodging_address: null,
+        lodging_latitude: null,
+        lodging_longitude: null,
+        wifi_ssid: null,
+        wifi_password: null,
+        equipment_info: null,
+        checkout_instructions: null,
+        house_rules: null,
+        emergency_contacts: null,
+        useful_services: null,
+        parking_info: null,
+        parking_photo_url: null,
+        parking_video_url: null,
+        trash_bins: [{ type: 'jaune' }, { type: 'verte' }],
+        trash_location: '  https://maps.app.goo.gl/abc  ',
+      },
+      practical_blocks: [],
+      arrival_instructions: [],
+    })
+    featuredFindMany.mockResolvedValue([])
+
+    const result = await getPrivateGuideData('lodging-1')
+
+    expect(result?.lodging.trashBins).toEqual([{ type: 'jaune' }, { type: 'verte' }])
+    expect(result?.lodging.trashLocation).toBe('https://maps.app.goo.gl/abc')
+  })
+
   it('returns null when the active lodging cannot be resolved', async () => {
     lodgingFindFirst.mockResolvedValue(null)
 

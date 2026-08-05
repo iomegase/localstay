@@ -96,4 +96,6 @@ export const demoLodging: GuideLodging = {
   parkingInfo: 'Place réservée n°3, juste devant le chalet. Badge dans le tiroir.',
   parkingPhotoUrl: null,
   parkingVideoUrl: null,
+  trashBins: [{ type: 'jaune' }, { type: 'verte' }, { type: 'bordeaux' }],
+  trashLocation: 'Point de tri à 100 m, route du Bettex.',
 }

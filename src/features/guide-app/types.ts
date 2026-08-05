@@ -118,6 +118,9 @@ export type GuideLodging = {
   parkingInfo: string
   parkingPhotoUrl: string | null
   parkingVideoUrl: string | null
+  /** Bacs de tri actifs (recyclage) + localisation du point de tri. */
+  trashBins: { type: string }[]
+  trashLocation: string | null
 }
 
 export type PrivateGuideData = {

@@ -49,6 +49,23 @@ describe('038 AC — practical view: emergencies, useful numbers', () => {
     )
   })
 
+  it('shows the active trash bins in a Recyclage section', () => {
+    renderView('practical', {
+      trashBins: [{ type: 'jaune' }, { type: 'verte' }],
+      trashLocation: 'https://maps.app.goo.gl/abc',
+    })
+
+    expect(screen.getByRole('heading', { name: 'Recyclage' })).toBeInTheDocument()
+    expect(screen.getByText('Poubelle jaune')).toBeInTheDocument()
+    expect(
+      screen.getByText('Emballages & papiers recyclables'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /maps/i })).toHaveAttribute(
+      'href',
+      'https://maps.app.goo.gl/abc',
+    )
+  })
+
   it('does not show the règlement in practical (moved to Consignes)', () => {
     renderView('practical', { houseRules: ['Non-fumeur'], usefulNumbers: [] })
 
@@ -101,9 +118,20 @@ describe('arrival view (Bienvenue) parking', () => {
     })
 
     expect(screen.getByText('Place réservée n°3.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /voir/i })).toBeInTheDocument()
+  })
+
+  it('groups the arrival steps under an "Instructions" section', () => {
+    renderView('arrival', {
+      arrivalInstructions: [
+        { text: 'Ouvrez le portail avec le badge', videoUrl: null, photos: [] },
+      ],
+    })
+
     expect(
-      screen.getByRole('button', { name: /voir la photo/i }),
+      screen.getByRole('heading', { name: 'Instructions' }),
     ).toBeInTheDocument()
+    expect(screen.getByText('Ouvrez le portail avec le badge')).toBeInTheDocument()
   })
 
   it('embeds a compact Maps link in the Localisation card, address on two lines', () => {

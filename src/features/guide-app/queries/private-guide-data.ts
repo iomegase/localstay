@@ -9,6 +9,7 @@ import type {
   PrivateGuideData,
 } from '@/features/guide-app/types'
 import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
+import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiHours } from '@/features/categories/types'
 
@@ -38,6 +39,8 @@ export async function getPrivateGuideData(
           parking_info: true,
           parking_photo_url: true,
           parking_video_url: true,
+          trash_bins: true,
+          trash_location: true,
         },
       },
       practical_blocks: {
@@ -151,6 +154,10 @@ export async function getPrivateGuideData(
       parkingInfo: customization?.parking_info?.trim() ?? '',
       parkingPhotoUrl: customization?.parking_photo_url ?? null,
       parkingVideoUrl: customization?.parking_video_url ?? null,
+      trashBins: (
+        (customization?.trash_bins as unknown as { type: string }[] | null) ?? []
+      ).filter(bin => isTrashBinType(bin.type)),
+      trashLocation: customization?.trash_location?.trim() || null,
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
   }
