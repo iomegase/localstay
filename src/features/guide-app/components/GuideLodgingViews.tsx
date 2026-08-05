@@ -1,6 +1,5 @@
 import * as LucideIcons from 'lucide-react'
 import {
-  ArrowLeft,
   ArrowRight,
   BedDouble,
   Car,
@@ -27,6 +26,7 @@ import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { PracticalMediaCard } from '@/features/guide-app/components/PracticalMediaCard'
 import { ArrivalInstructionCard } from '@/features/guide-app/components/ArrivalInstructionCard'
 import { DepartureChecklist } from '@/features/guide-app/components/DepartureChecklist'
+import { GuideLodgingTabs } from '@/features/guide-app/components/GuideLodgingTabs'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
 function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
@@ -72,7 +72,8 @@ export function GuideLodgingViews({
         eyebrow="Votre séjour commence ici"
         title="Bienvenue"
         icon={DoorOpen}
-        onBack={() => onNavigate('lodging')}
+        view="arrival"
+        onNavigate={onNavigate}
       >
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center justify-between gap-3">
@@ -124,7 +125,8 @@ export function GuideLodgingViews({
         eyebrow="Avant de partir"
         title={`Départ avant ${lodging.checkOut}`}
         icon={LogOut}
-        onBack={() => onNavigate('lodging')}
+        view="departure"
+        onNavigate={onNavigate}
       >
         <section className={`${navyCardClass} p-5`}>
           <DepartureChecklist items={lodging.departureInstructions} />
@@ -139,7 +141,8 @@ export function GuideLodgingViews({
         eyebrow="Le nécessaire"
         title="Consignes du logement"
         icon={ScrollText}
-        onBack={() => onNavigate('lodging')}
+        view="rules"
+        onNavigate={onNavigate}
       >
         {lodging.houseRules.length > 0 && (
           <section className={`${navyCardClass} p-5`}>
@@ -177,7 +180,8 @@ export function GuideLodgingViews({
         eyebrow="Bon à savoir"
         title="Informations pratiques"
         icon={Info}
-        onBack={() => onNavigate('lodging')}
+        view="practical"
+        onNavigate={onNavigate}
       >
         <section className={`${navyCardClass} p-5`}>
           <div className="flex items-center gap-3">
@@ -329,25 +333,20 @@ function GuideSubPage({
   eyebrow,
   title,
   icon: Icon,
-  onBack,
+  view,
+  onNavigate,
   children,
 }: {
   eyebrow: string
   title: string
   icon: typeof BedDouble
-  onBack: () => void
+  view: Extract<GuideView, 'arrival' | 'practical' | 'rules' | 'departure'>
+  onNavigate: (view: GuideView) => void
   children: React.ReactNode
 }) {
   return (
-    <div className="space-y-4 px-4 pb-24 pt-4">
-      <button
-        type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Guide logement
-      </button>
+    <div className="space-y-4 px-4 pb-24 pt-2">
+      <GuideLodgingTabs view={view} onNavigate={onNavigate} />
       <div className="flex items-center gap-4 rounded-[26px] bg-slate-900 p-6 text-white">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-pink-600">
           <Icon className="h-5 w-5" />
