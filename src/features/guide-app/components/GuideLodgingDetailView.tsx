@@ -41,10 +41,10 @@ export function GuideLodgingDetailView({
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
+        className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-pink-600"
       >
         <ArrowLeft className="h-4 w-4" />
-        Nos logements
+        retour
       </button>
 
       {!detail ? (
@@ -81,7 +81,7 @@ export function GuideLodgingDetailView({
 
           {(detail.amenitiesIncluded.length > 0 || detail.amenitiesOnRequest.length > 0) && (
             <div className="grid grid-cols-2 items-stretch gap-3">
-              <AmenityCard title="Équipements inclus" items={detail.amenitiesIncluded} />
+              <AmenityCard title="Équipements " items={detail.amenitiesIncluded} />
               <AmenityCard title="Sur demande" items={detail.amenitiesOnRequest} />
             </div>
           )}
