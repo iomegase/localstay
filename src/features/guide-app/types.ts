@@ -16,6 +16,7 @@ export type GuideView =
   | 'blog'
   | 'lodging-detail'
   | 'blog-detail'
+  | 'contact'
 
 /** Carte logement affichée dans l'app (données injectées, aucun lien sortant). */
 export type GuideLodgingCard = {

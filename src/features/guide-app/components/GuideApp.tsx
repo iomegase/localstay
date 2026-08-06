@@ -11,6 +11,7 @@ import { GuideLodgingsView } from './GuideLodgingsView'
 import { GuideBlogView } from './GuideBlogView'
 import { GuideLodgingDetailView } from './GuideLodgingDetailView'
 import { GuideBlogDetailView } from './GuideBlogDetailView'
+import { GuideContactView, type GuideContactInfo } from './GuideContactView'
 import { GuideMenuOverlay } from './GuideMenuOverlay'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
@@ -49,6 +50,7 @@ type GuideAppProps = {
   menuItems?: GuideMenuItem[]
   lodgings?: GuideLodgingCard[]
   blogPosts?: GuideBlogPost[]
+  contact?: GuideContactInfo
 }
 
 export function GuideApp(props: GuideAppProps) {
@@ -93,6 +95,7 @@ function GuideAppShell({
   menuItems,
   lodgings,
   blogPosts,
+  contact,
   onOpenRoute,
   onStartTrail,
 }: GuideAppProps & {
@@ -235,6 +238,7 @@ function GuideAppShell({
         {activeView === 'blog-detail' && (
           <GuideBlogDetailView detail={blogDetail} onBack={() => navigate('blog')} />
         )}
+        {activeView === 'contact' && contact && <GuideContactView contact={contact} />}
         {activeView === 'favorites' && (
           <GuideFavoritesPage
             pois={pois}

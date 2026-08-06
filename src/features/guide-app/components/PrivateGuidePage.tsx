@@ -82,10 +82,7 @@ export async function PrivateGuidePage({
   const menuItems: GuideMenuItem[] = [
     { label: 'Tous nos logements', view: 'lodgings' },
     { label: 'Blog', view: 'blog' },
-    {
-      label: 'Nous contacter',
-      href: `/guide/${lodgingContext.citySlug}/contact`,
-    },
+    { label: 'Nous contacter', view: 'contact' },
   ]
 
   return (
@@ -100,6 +97,11 @@ export async function PrivateGuidePage({
         menuItems={menuItems}
         lodgings={lodgings}
         blogPosts={blogPosts}
+        contact={{
+          lodgingId: lodgingContext.lodgingId,
+          lodgingName: lodgingContext.lodgingName,
+          cityName: lodgingContext.cityName,
+        }}
       />
     </PrivateGuideFrame>
   )

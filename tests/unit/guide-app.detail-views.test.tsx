@@ -108,7 +108,7 @@ describe('Guide detail views', () => {
     expect(screen.getByText('Chalet Rémy')).toBeInTheDocument()
     expect(screen.getByText('Beau chalet')).toBeInTheDocument()
     expect(screen.getByText('Wifi')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /nos logements/i }))
+    fireEvent.click(screen.getByRole('button', { name: /retour/i }))
     expect(onBack).toHaveBeenCalled()
   })
 
