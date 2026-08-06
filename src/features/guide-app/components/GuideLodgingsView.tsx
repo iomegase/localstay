@@ -6,7 +6,13 @@ import type { GuideLodgingCard } from '@/features/guide-app/types'
  * carte publique `LodgingCard` mais SANS lien (`href` absent) : purement
  * présentative, aucune sortie vers le site public — sinon perte d'accès au guide.
  */
-export function GuideLodgingsView({ lodgings }: { lodgings: GuideLodgingCard[] }) {
+export function GuideLodgingsView({
+  lodgings,
+  onOpen,
+}: {
+  lodgings: GuideLodgingCard[]
+  onOpen: (lodging: GuideLodgingCard) => void
+}) {
   return (
     <div className="px-3 pb-24 pt-5">
       <h1 className="px-2 text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
@@ -16,17 +22,24 @@ export function GuideLodgingsView({ lodgings }: { lodgings: GuideLodgingCard[] }
       {lodgings.length > 0 ? (
         <div className="mt-6 space-y-5">
           {lodgings.map(lodging => (
-            <LodgingCard
+            <button
               key={lodging.id}
-              title={lodging.title}
-              coverPhotoUrl={lodging.coverPhotoUrl}
-              shortDescription={lodging.shortDescription}
-              propertyType={lodging.propertyType}
-              maxGuests={lodging.maxGuests}
-              bedroomCount={lodging.bedroomCount}
-              publicAreaLabel={lodging.publicAreaLabel ?? lodging.cityName}
-              amenities={lodging.amenities}
-            />
+              type="button"
+              onClick={() => onOpen(lodging)}
+              aria-label={`Voir ${lodging.title}`}
+              className="block w-full text-left"
+            >
+              <LodgingCard
+                title={lodging.title}
+                coverPhotoUrl={lodging.coverPhotoUrl}
+                shortDescription={lodging.shortDescription}
+                propertyType={lodging.propertyType}
+                maxGuests={lodging.maxGuests}
+                bedroomCount={lodging.bedroomCount}
+                publicAreaLabel={lodging.publicAreaLabel ?? lodging.cityName}
+                amenities={lodging.amenities}
+              />
+            </button>
           ))}
         </div>
       ) : (

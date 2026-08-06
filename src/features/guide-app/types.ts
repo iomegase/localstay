@@ -14,10 +14,15 @@ export type GuideView =
   | 'poi'
   | 'lodgings'
   | 'blog'
+  | 'lodging-detail'
+  | 'blog-detail'
 
 /** Carte logement affichée dans l'app (données injectées, aucun lien sortant). */
 export type GuideLodgingCard = {
   id: string
+  /** Clés de fetch du détail (API interne) — jamais rendues en lien sortant. */
+  slug: string
+  citySlug: string
   title: string
   cityName: string
   propertyType: string
@@ -32,11 +37,37 @@ export type GuideLodgingCard = {
 /** Article de blog affiché dans l'app (données injectées, aucun lien sortant). */
 export type GuideBlogPost = {
   id: string
+  /** Clé de fetch du détail (API interne) — jamais rendue en lien sortant. */
+  slug: string
   title: string
   excerpt: string | null
   categoryLabel: string | null
   coverUrl: string | null
   cityName: string | null
+}
+
+/** Détail complet d'un article, chargé à la demande via l'API interne. */
+export type GuideBlogDetail = {
+  title: string
+  categoryLabel: string | null
+  cityName: string | null
+  coverUrl: string | null
+  contentMarkdown: string
+}
+
+/** Détail complet d'un logement, chargé à la demande via l'API interne. */
+export type GuideLodgingDetail = {
+  title: string
+  cityName: string
+  propertyType: string
+  description: string
+  maxGuests: number
+  bedroomCount: number | null
+  bathroomCount: number | null
+  surfaceM2: number | null
+  photos: Array<{ url: string; alt: string }>
+  amenitiesIncluded: string[]
+  amenitiesOnRequest: string[]
 }
 
 export type GuideRouteMap = Partial<

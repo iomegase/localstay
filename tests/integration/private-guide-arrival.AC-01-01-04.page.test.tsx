@@ -16,6 +16,12 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: () => mockGetActiveLodgingContext(),
 }))
 
+jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
+  listPublishedLodgings: jest.fn(async () => []),
+}))
+jest.mock('@/features/blog/queries/public-blog', () => ({
+  getPublishedBlogArticles: jest.fn(async () => ({ city: null, items: [] })),
+}))
 jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
   getPrivateGuideData: (lodgingId: string) =>
     mockGetPrivateGuideData(lodgingId),

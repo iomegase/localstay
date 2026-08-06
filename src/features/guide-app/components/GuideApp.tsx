@@ -9,14 +9,18 @@ import { GuideHome } from './GuideHome'
 import { GuideLodgingViews } from './GuideLodgingViews'
 import { GuideLodgingsView } from './GuideLodgingsView'
 import { GuideBlogView } from './GuideBlogView'
+import { GuideLodgingDetailView } from './GuideLodgingDetailView'
+import { GuideBlogDetailView } from './GuideBlogDetailView'
 import { GuideMenuOverlay } from './GuideMenuOverlay'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
 import { GuidePoiDetails } from './GuidePoiDetails'
 import type {
+  GuideBlogDetail,
   GuideBlogPost,
   GuideLodging,
   GuideLodgingCard,
+  GuideLodgingDetail,
   GuideMode,
   GuidePoi,
   GuideRouteMap,
@@ -104,6 +108,34 @@ function GuideAppShell({
   )
   const [poiOrigin, setPoiOrigin] = useState<GuideView>('favorites')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [lodgingDetail, setLodgingDetail] = useState<GuideLodgingDetail | null>(null)
+  const [blogDetail, setBlogDetail] = useState<GuideBlogDetail | null>(null)
+
+  // Détail chargé à la demande via l'API interne (confinement : JSON, jamais de
+  // sortie vers le site public). `null` pendant le chargement.
+  async function openLodgingDetail(card: GuideLodgingCard) {
+    setLodgingDetail(null)
+    setActiveView('lodging-detail')
+    try {
+      const res = await fetch(
+        `/api/internal/guide/lodging/${card.slug}?city=${encodeURIComponent(card.citySlug)}`,
+      )
+      if (res.ok) setLodgingDetail(await res.json())
+    } catch {
+      /* garde l'état de chargement ; retour possible via le bouton */
+    }
+  }
+
+  async function openBlogDetail(post: GuideBlogPost) {
+    setBlogDetail(null)
+    setActiveView('blog-detail')
+    try {
+      const res = await fetch(`/api/internal/guide/blog/${post.slug}`)
+      if (res.ok) setBlogDetail(await res.json())
+    } catch {
+      /* garde l'état de chargement */
+    }
+  }
 
   const selectedPoi = useMemo(
     () => pois.find(poi => poi.id === selectedPoiId) ?? null,
@@ -189,9 +221,20 @@ function GuideAppShell({
           />
         )}
         {activeView === 'lodgings' && (
-          <GuideLodgingsView lodgings={lodgings ?? []} />
+          <GuideLodgingsView lodgings={lodgings ?? []} onOpen={openLodgingDetail} />
         )}
-        {activeView === 'blog' && <GuideBlogView posts={blogPosts ?? []} />}
+        {activeView === 'blog' && (
+          <GuideBlogView posts={blogPosts ?? []} onOpen={openBlogDetail} />
+        )}
+        {activeView === 'lodging-detail' && (
+          <GuideLodgingDetailView
+            detail={lodgingDetail}
+            onBack={() => navigate('lodgings')}
+          />
+        )}
+        {activeView === 'blog-detail' && (
+          <GuideBlogDetailView detail={blogDetail} onBack={() => navigate('blog')} />
+        )}
         {activeView === 'favorites' && (
           <GuideFavoritesPage
             pois={pois}

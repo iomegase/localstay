@@ -10,6 +10,12 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
     citySlug: 'saint-gervais-les-bains',
   })),
 }))
+jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
+  listPublishedLodgings: jest.fn(async () => []),
+}))
+jest.mock('@/features/blog/queries/public-blog', () => ({
+  getPublishedBlogArticles: jest.fn(async () => ({ city: null, items: [] })),
+}))
 jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
   getPrivateGuideData: jest.fn(async () => ({
     lodging: { id: 'lodging-1', name: 'Le Chalet Hygge' },

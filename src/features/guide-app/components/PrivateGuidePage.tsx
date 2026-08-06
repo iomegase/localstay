@@ -54,6 +54,8 @@ export async function PrivateGuidePage({
 
   const lodgings: GuideLodgingCard[] = lodgingsData.map(item => ({
     id: item.id,
+    slug: item.slug,
+    citySlug: item.city_slug,
     title: item.title,
     cityName: item.city_name,
     propertyType: item.property_type,
@@ -67,6 +69,7 @@ export async function PrivateGuidePage({
 
   const blogPosts: GuideBlogPost[] = (blogData?.items ?? []).map(article => ({
     id: article.id,
+    slug: article.slug,
     title: article.title,
     excerpt: article.excerpt,
     categoryLabel: blogCategoryLabel(article.category),

@@ -5,7 +5,13 @@ import type { GuideBlogPost } from '@/features/guide-app/types'
  * Vue « Blog » rendue DANS l'app (guest confiné). Reprend le langage visuel des
  * cartes du blog public, mais SANS lien sortant vers le site public.
  */
-export function GuideBlogView({ posts }: { posts: GuideBlogPost[] }) {
+export function GuideBlogView({
+  posts,
+  onOpen,
+}: {
+  posts: GuideBlogPost[]
+  onOpen: (post: GuideBlogPost) => void
+}) {
   return (
     <div className="px-3 pb-24 pt-5">
       <h1 className="px-2 text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
@@ -15,9 +21,12 @@ export function GuideBlogView({ posts }: { posts: GuideBlogPost[] }) {
       {posts.length > 0 ? (
         <div className="mt-6 space-y-6">
           {posts.map(post => (
-            <article
+            <button
               key={post.id}
-              className="overflow-hidden rounded-[24px] bg-white shadow-[0_18px_48px_rgba(15,23,42,0.10)]"
+              type="button"
+              onClick={() => onOpen(post)}
+              aria-label={`Lire ${post.title}`}
+              className="block w-full overflow-hidden rounded-[24px] bg-white text-left shadow-[0_18px_48px_rgba(15,23,42,0.10)]"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-slate-200">
                 {post.coverUrl ? (
@@ -53,7 +62,7 @@ export function GuideBlogView({ posts }: { posts: GuideBlogPost[] }) {
                   <p className="mt-4 line-clamp-3 text-xs leading-6 text-slate-500">{post.excerpt}</p>
                 )}
               </div>
-            </article>
+            </button>
           ))}
         </div>
       ) : (
