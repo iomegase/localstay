@@ -21,6 +21,14 @@ jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
     mockGetPrivateGuideData(lodgingId),
 }))
 
+jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
+  listPublishedLodgings: jest.fn(async () => []),
+}))
+
+jest.mock('@/features/blog/queries/public-blog', () => ({
+  getPublishedBlogArticles: jest.fn(async () => ({ city: null, items: [] })),
+}))
+
 jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
   recordQrScanIfPresent: jest.fn(),
 }))
@@ -36,7 +44,7 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
     }
     initialView?: string
     routes: Record<string, string>
-    menuItems?: Array<{ label: string; href: string }>
+    menuItems?: Array<{ label: string; href?: string; view?: string }>
   }) => (
     <div
       data-testid="shared-guide-app"
@@ -47,9 +55,7 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       data-arrival-route={routes.arrival}
       data-practical-route={routes.practical}
       data-departure-route={routes.departure}
-      data-menu-lodging-route={
-        menuItems?.find(item => item.label === "Livret d'accueil")?.href
-      }
+      data-menu-labels={menuItems?.map(item => item.label).join(',')}
       data-check-in={lodging.checkIn}
       data-check-out={lodging.checkOut}
       data-rules-count={lodging.houseRules.length}
@@ -90,8 +96,8 @@ describe('036-private-guide-lodging-home page', () => {
     expect(guide).toHaveAttribute('data-initial-view', 'lodging')
     expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
     expect(guide).toHaveAttribute(
-      'data-menu-lodging-route',
-      '/sejour/logement',
+      'data-menu-labels',
+      'Tous nos logements,Blog,Nous contacter',
     )
     expect(guide).toHaveAttribute('data-check-in', '16:00')
     expect(guide).toHaveAttribute('data-check-out', '10:00')

@@ -21,6 +21,14 @@ jest.mock('@/features/guide-app/queries/private-guide-data', () => ({
     mockGetPrivateGuideData(lodgingId),
 }))
 
+jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
+  listPublishedLodgings: jest.fn(async () => []),
+}))
+
+jest.mock('@/features/blog/queries/public-blog', () => ({
+  getPublishedBlogArticles: jest.fn(async () => ({ city: null, items: [] })),
+}))
+
 jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
   recordQrScanIfPresent: jest.fn(),
 }))
@@ -32,7 +40,7 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
     pois: unknown[]
     routes: Record<string, string>
     initialView?: string
-    menuItems?: Array<{ label: string; href: string }>
+    menuItems?: Array<{ label: string; href?: string; view?: string }>
   }) => (
     <div
       data-testid="shared-guide-app"
@@ -42,9 +50,7 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       data-poi-count={pois.length}
       data-initial-view={initialView}
       data-favorites-route={routes.favorites}
-      data-menu-favorites-route={
-        menuItems?.find(item => item.label === 'Coups de cœur')?.href
-      }
+      data-menu-labels={menuItems?.map(item => item.label).join(',')}
     />
   ),
 }))
@@ -88,8 +94,8 @@ describe('035-private-guide-favorites page', () => {
       '/sejour/coups-de-coeur',
     )
     expect(guide).toHaveAttribute(
-      'data-menu-favorites-route',
-      '/sejour/coups-de-coeur',
+      'data-menu-labels',
+      'Tous nos logements,Blog,Nous contacter',
     )
   })
 

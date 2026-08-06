@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { Users, BedDouble, MapPin, ChevronRight, Sparkles } from 'lucide-react'
 
 interface LodgingCardProps {
-  href: string
+  /** Optionnel : sans lien, la carte est purement présentative (ex. guest confiné). */
+  href?: string
   title: string
   coverPhotoUrl: string | null
   shortDescription: string
@@ -24,11 +26,21 @@ export function LodgingCard({
   publicAreaLabel,
   amenities,
 }: LodgingCardProps) {
+  const surfaceClass = 'relative block w-full overflow-hidden rounded-[1.5rem] bg-zinc-900'
+  const Surface = ({ children }: { children: ReactNode }) =>
+    href ? (
+      <Link href={href} className={surfaceClass}>
+        {children}
+      </Link>
+    ) : (
+      <div className={surfaceClass}>{children}</div>
+    )
+
   return (
     // Le cadre extérieur blanc (comme sur le screenshot) avec une ombre douce
     <article className="group relative w-full rounded-[2rem] bg-white p-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 hover:shadow-[0_8px_40px_rgb(0,0,0,0.12)]">
-      <Link href={href} className="relative block w-full overflow-hidden rounded-[1.5rem] bg-zinc-900">
-        
+      <Surface>
+
         {/* L'image en pleine hauteur (ratio portrait pour le style "carte") */}
         <div className="relative aspect-[4/5] w-full">
           {coverPhotoUrl ? (
@@ -114,18 +126,20 @@ export function LodgingCard({
             </div>
           </div>
 
-          {/* Bouton d'action "Get in touch" adapté */}
-          <div className="flex items-center justify-between rounded-[1rem] bg-white/10 p-1.5 pl-5 backdrop-blur-md transition-colors hover:bg-white/20 border border-white/5">
-            <span className="text-sm font-semibold text-white">
-              Découvrir le logement
-            </span>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black transition-transform group-hover:scale-105">
-              <ChevronRight className="h-5 w-5" />
+          {/* Bouton d'action — seulement si la carte navigue */}
+          {href && (
+            <div className="flex items-center justify-between rounded-[1rem] bg-white/10 p-1.5 pl-5 backdrop-blur-md transition-colors hover:bg-white/20 border border-white/5">
+              <span className="text-sm font-semibold text-white">
+                Découvrir le logement
+              </span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black transition-transform group-hover:scale-105">
+                <ChevronRight className="h-5 w-5" />
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
-      </Link>
+      </Surface>
     </article>
   )
 }

@@ -4,9 +4,13 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import Link from 'next/link'
+import type { GuideView } from '@/features/guide-app/types'
 
 export type GuideMenuItem = {
   label: string
+  /** Vue interne à l'app : bascule sans quitter le cadre (guest confiné). */
+  view?: GuideView
+  /** Lien guide-scopé autorisé (ex. contact). Jamais vers le site public. */
   href?: string
 }
 
@@ -23,12 +27,15 @@ const DEFAULT_MENU_ITEMS: GuideMenuItem[] = [
 export function GuideMenuOverlay({
   open,
   onClose,
-  lodgingName,
+  onNavigate,
   items = DEFAULT_MENU_ITEMS,
 }: {
   open: boolean
   onClose: () => void
-  lodgingName: string
+  /** Bascule vers une vue interne de l'app (items `view`). */
+  onNavigate?: (view: GuideView) => void
+  /** Toujours accepté (passé par GuideApp) même si plus affiché. */
+  lodgingName?: string
   items?: GuideMenuItem[]
 }) {
   useEffect(() => {
@@ -49,43 +56,44 @@ export function GuideMenuOverlay({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="absolute inset-0 z-[100] flex flex-col bg-white px-7 pb-12 pt-5"
+          className="absolute inset-0 z-[100] flex flex-col bg-white/80 px-7 pb-12 pt-5 backdrop-blur-xl"
         >
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer le menu"
-              className="-mr-1 grid h-11 w-11 place-items-center text-slate-900"
-            >
-              <X className="h-6 w-6" strokeWidth={2} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer le menu"
+            className="absolute right-3 top-5 flex h-10 w-10 items-center justify-center text-slate-900"
+          >
+            <X className="h-6 w-6" strokeWidth={2} />
+          </button>
 
           <motion.nav
             aria-label="Menu du guide"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06, duration: 0.28, ease: 'easeOut' }}
-            className="mt-4"
+            className="mt-16"
           >
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">
-              Navigation
-            </p>
-            <p className="mt-6 text-sm text-slate-500">
-              Séjour en cours :{' '}
-              <span className="font-semibold text-slate-900">{lodgingName}</span>
-            </p>
-
-            <ul className="mt-7 space-y-5">
+            <ul className="space-y-5">
               {items.map((item, index) => (
                 <motion.li
-                  key={`${item.label}-${item.href ?? 'disabled'}`}
+                  key={`${item.label}-${item.view ?? item.href ?? 'disabled'}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.12 + index * 0.05, duration: 0.25, ease: 'easeOut' }}
                 >
-                  {item.href ? (
+                  {item.view ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onNavigate?.(item.view as GuideView)
+                        onClose()
+                      }}
+                      className="block w-full text-left text-[26px] font-bold uppercase tracking-[-0.01em] text-slate-800 transition-colors hover:text-pink-600"
+                    >
+                      {item.label}
+                    </button>
+                  ) : item.href ? (
                     <Link
                       href={item.href}
                       onClick={onClose}
@@ -96,11 +104,7 @@ export function GuideMenuOverlay({
                   ) : (
                     <span
                       aria-disabled="true"
-                      className={`block cursor-default select-none text-[26px] font-bold uppercase tracking-[-0.01em] ${
-                        item.label === 'Nous contacter'
-                          ? 'text-slate-500'
-                          : 'text-slate-800'
-                      }`}
+                      className="block cursor-default select-none text-[26px] font-bold uppercase tracking-[-0.01em] text-slate-800"
                     >
                       {item.label}
                     </span>

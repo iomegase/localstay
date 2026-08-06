@@ -12,6 +12,32 @@ export type GuideView =
   | 'favorites'
   | 'map'
   | 'poi'
+  | 'lodgings'
+  | 'blog'
+
+/** Carte logement affichée dans l'app (données injectées, aucun lien sortant). */
+export type GuideLodgingCard = {
+  id: string
+  title: string
+  cityName: string
+  propertyType: string
+  coverPhotoUrl: string | null
+  shortDescription: string
+  maxGuests: number
+  bedroomCount: number | null
+  publicAreaLabel: string | null
+  amenities: string[]
+}
+
+/** Article de blog affiché dans l'app (données injectées, aucun lien sortant). */
+export type GuideBlogPost = {
+  id: string
+  title: string
+  excerpt: string | null
+  categoryLabel: string | null
+  coverUrl: string | null
+  cityName: string | null
+}
 
 export type GuideRouteMap = Partial<
   Record<Exclude<GuideView, 'poi'>, string>

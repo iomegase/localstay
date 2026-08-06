@@ -7,12 +7,16 @@ import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
 import { GuideHome } from './GuideHome'
 import { GuideLodgingViews } from './GuideLodgingViews'
+import { GuideLodgingsView } from './GuideLodgingsView'
+import { GuideBlogView } from './GuideBlogView'
 import { GuideMenuOverlay } from './GuideMenuOverlay'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
 import { GuidePoiDetails } from './GuidePoiDetails'
 import type {
+  GuideBlogPost,
   GuideLodging,
+  GuideLodgingCard,
   GuideMode,
   GuidePoi,
   GuideRouteMap,
@@ -39,6 +43,8 @@ type GuideAppProps = {
   initialView?: GuideView
   routes?: GuideRouteMap
   menuItems?: GuideMenuItem[]
+  lodgings?: GuideLodgingCard[]
+  blogPosts?: GuideBlogPost[]
 }
 
 export function GuideApp(props: GuideAppProps) {
@@ -81,6 +87,8 @@ function GuideAppShell({
   initialView = 'home',
   routes,
   menuItems,
+  lodgings,
+  blogPosts,
   onOpenRoute,
   onStartTrail,
 }: GuideAppProps & {
@@ -180,6 +188,10 @@ function GuideAppShell({
             onNavigate={navigate}
           />
         )}
+        {activeView === 'lodgings' && (
+          <GuideLodgingsView lodgings={lodgings ?? []} />
+        )}
+        {activeView === 'blog' && <GuideBlogView posts={blogPosts ?? []} />}
         {activeView === 'favorites' && (
           <GuideFavoritesPage
             pois={pois}
@@ -224,6 +236,7 @@ function GuideAppShell({
       <GuideMenuOverlay
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
+        onNavigate={navigate}
         lodgingName={lodging.name}
         items={menuItems}
       />
