@@ -57,15 +57,16 @@ export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard })
         </span>
 
         <div className="absolute inset-x-0 bottom-0 flex flex-col p-5 text-white">
-          <h2 className="line-clamp-1 text-2xl font-bold tracking-tight">
+          <h2 className="line-clamp-1 text-xl font-semibold tracking-wide">
             {capitalizeFirst(lodging.title)}
           </h2>
-          <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-white/85">
+          <p className="mt-1.5 flex items-center gap-1.5 text-[9px] tracking-widest uppercase font-light text-white
+          ">
             <MapPin className="h-4 w-4 text-white" />
             {lodging.cityName}
           </p>
 
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2">
             <Metric icon={Users} value={lodging.maxGuests} />
             <Metric icon={BedDouble} value={lodging.bedroomCount ?? '—'} />
             {lodging.surfaceM2 != null && (
@@ -75,8 +76,8 @@ export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard })
               <badge.icon
                 key={badge.label}
                 aria-label={badge.label}
-                className="h-[18px] w-[18px] text-white"
-                strokeWidth={1.8}
+                className="h-[15px] w-[15px] text-white"
+                strokeWidth={1.5}
               />
             ))}
           </div>
@@ -88,8 +89,8 @@ export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard })
 
 function Metric({ icon: Icon, value }: { icon: LucideIcon; value: string | number }) {
   return (
-    <span className="flex items-center gap-1.5 text-base font-bold text-white">
-      <Icon className="h-[18px] w-[18px] text-white" strokeWidth={1.8} />
+    <span className="flex items-center gap-1.5 text-[12px] font-medium text-white">
+      <Icon className="h-[15px] w-[15px] text-white" strokeWidth={1.5} />
       {value}
     </span>
   )

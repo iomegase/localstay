@@ -57,13 +57,13 @@ export function GuideLodgingDetailView({
           )}
 
           <header>
-            <span className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600">
+            {/* <span className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600">
               {detail.propertyType}
-            </span>
-            <h1 className="mt-1 text-2xl font-bold leading-tight tracking-[-0.035em] text-slate-900">
+            </span> */}
+            <h1 className="mt-2 text-2xl font-semibold leading-tight tracking-wide text-slate-900">
               {capitalizeFirst(detail.title)}
             </h1>
-            <p className="mt-1 text-sm text-slate-400">{detail.cityName}</p>
+            <p className="mt-1 text-[10px] text-slate-600">{detail.cityName}</p>
           </header>
 
           <div className="grid grid-cols-4 gap-2 rounded-[20px] bg-slate-50 p-4 text-center">
@@ -74,25 +74,25 @@ export function GuideLodgingDetailView({
           </div>
 
           {detail.description && (
-            <p className="whitespace-pre-line text-justify text-[12px] leading-6 text-slate-600">
+            <p className="whitespace-pre-line p-4 text-justify text-[12px] leading-6 text-slate-600">
               {detail.description}
             </p>
           )}
 
-          {detail.amenitiesIncluded.length > 0 && (
-            <AmenityList title="Équipements inclus" items={detail.amenitiesIncluded} />
-          )}
-          {detail.amenitiesOnRequest.length > 0 && (
-            <AmenityList title="Sur demande" items={detail.amenitiesOnRequest} />
+          {(detail.amenitiesIncluded.length > 0 || detail.amenitiesOnRequest.length > 0) && (
+            <div className="grid grid-cols-2 items-stretch gap-3">
+              <AmenityCard title="Équipements inclus" items={detail.amenitiesIncluded} />
+              <AmenityCard title="Sur demande" items={detail.amenitiesOnRequest} />
+            </div>
           )}
 
           {/* Bas de page : vignettes par pièce, chacune swipeable sur ses photos */}
           {rooms.length > 0 && (
             <section>
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+              {/* <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Les pièces
-              </h2>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              </h2> */}
+              <div className="mt-8 grid grid-cols-2 gap-3">
                 {rooms.map(room => (
                   <div key={room.label}>
                     <SwipeCarousel
@@ -133,21 +133,28 @@ function Fact({
   )
 }
 
-function AmenityList({ title, items }: { title: string; items: string[] }) {
+function AmenityCard({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null
+
   return (
-    <section>
-      <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{title}</h2>
-      <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
+    <article className="relative overflow-hidden rounded-[22px] bg-[#f8f7f5] px-5 pb-5 pt-6 ">
+      <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-pink-600">
+        {title}
+      </span>
+      <ul className="mt-3">
         {items.map(item => {
           const Icon = featureIconFor(item)
           return (
-            <li key={item} className="flex items-center gap-2.5 text-xs text-slate-600">
+            <li
+              key={item}
+              className="flex items-center gap-3 border-b border-slate-200/70 py-2.5 text-xs leading-snug text-slate-600 last:border-b-0"
+            >
               <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-pink-600" strokeWidth={1.7} />
               <span>{item}</span>
             </li>
           )
         })}
       </ul>
-    </section>
+    </article>
   )
 }
