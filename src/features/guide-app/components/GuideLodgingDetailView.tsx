@@ -1,5 +1,9 @@
+'use client'
+
+import { useState } from 'react'
 import { ArrowLeft, BedDouble, Bath, Maximize, Users } from 'lucide-react'
 import { capitalizeFirst } from '@/shared/lib/utils'
+import { MediaLightbox } from '@/features/guide-app/components/MediaLightbox'
 import type { GuideLodgingDetail } from '@/features/guide-app/types'
 
 /**
@@ -14,6 +18,9 @@ export function GuideLodgingDetailView({
   detail: GuideLodgingDetail | null
   onBack: () => void
 }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const photoUrls = detail?.photos.map(photo => photo.url) ?? []
+
   return (
     <div className="px-4 pb-24 pt-4">
       <button
@@ -30,18 +37,10 @@ export function GuideLodgingDetailView({
       ) : (
         <article className="mt-4 space-y-5">
           {detail.photos.length > 0 && (
-            <div className="space-y-3">
-              {detail.photos.map((photo, index) => (
-                // eslint-disable-next-line @next/next/no-img-element -- image distante (parité guide)
-                <img
-                  key={index}
-                  src={photo.url}
-                  alt={photo.alt}
-                  loading={index === 0 ? undefined : 'lazy'}
-                  className="aspect-[4/3] w-full rounded-[22px] object-cover"
-                />
-              ))}
-            </div>
+            <LodgingGallery
+              photos={detail.photos}
+              onOpen={index => setLightboxIndex(index)}
+            />
           )}
 
           <header>
@@ -74,6 +73,64 @@ export function GuideLodgingDetailView({
             <AmenityList title="Sur demande" items={detail.amenitiesOnRequest} />
           )}
         </article>
+      )}
+
+      {lightboxIndex !== null && detail && (
+        <MediaLightbox
+          title={detail.title}
+          content={{ kind: 'photos', photos: photoUrls, startIndex: lightboxIndex }}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * Galerie mosaïque : la 1re photo en grand, les suivantes en grille 2 colonnes.
+ * Chaque vignette ouvre le carrousel lightbox — les photos ne sont plus empilées.
+ */
+function LodgingGallery({
+  photos,
+  onOpen,
+}: {
+  photos: GuideLodgingDetail['photos']
+  onOpen: (index: number) => void
+}) {
+  const [cover, ...rest] = photos
+
+  return (
+    <div className="space-y-3">
+      <button
+        type="button"
+        onClick={() => onOpen(0)}
+        aria-label="Ouvrir la galerie photos"
+        className="block w-full overflow-hidden rounded-[22px]"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- image distante (parité guide) */}
+        <img src={cover.url} alt={cover.alt} className="aspect-[4/3] w-full object-cover" />
+      </button>
+
+      {rest.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {rest.map((photo, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => onOpen(index + 1)}
+              aria-label={`Photo ${index + 2}`}
+              className="block overflow-hidden rounded-[18px]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- image distante (parité guide) */}
+              <img
+                src={photo.url}
+                alt={photo.alt}
+                loading="lazy"
+                className="aspect-square w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )

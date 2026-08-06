@@ -110,4 +110,33 @@ describe('Guide detail views', () => {
     fireEvent.click(screen.getByRole('button', { name: /nos logements/i }))
     expect(onBack).toHaveBeenCalled()
   })
+
+  it('opens the photo gallery in a lightbox instead of stacking', () => {
+    render(
+      <GuideLodgingDetailView
+        detail={{
+          title: 'Chalet Rémy',
+          cityName: 'Saint-Gervais',
+          propertyType: 'Chalet',
+          description: '',
+          maxGuests: 6,
+          bedroomCount: 3,
+          bathroomCount: 2,
+          surfaceM2: 120,
+          photos: [
+            { url: 'https://cdn/a.jpg', alt: 'a' },
+            { url: 'https://cdn/b.jpg', alt: 'b' },
+            { url: 'https://cdn/c.jpg', alt: 'c' },
+          ],
+          amenitiesIncluded: [],
+          amenitiesOnRequest: [],
+        }}
+        onBack={() => {}}
+      />,
+    )
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /ouvrir la galerie photos/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
 })
