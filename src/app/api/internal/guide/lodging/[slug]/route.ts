@@ -37,7 +37,12 @@ export async function GET(
     bedroomCount: lodging.bedroom_count,
     bathroomCount: lodging.bathroom_count,
     surfaceM2: lodging.surface_m2,
-    photos: lodging.photos.map(photo => ({ url: photo.url, alt: photo.alt })),
+    photos: lodging.photos.map(photo => ({
+      url: photo.url,
+      alt: photo.alt,
+      roomType: photo.room_type,
+      roomLabel: photo.room_label,
+    })),
     amenitiesIncluded: lodging.amenities_included,
     amenitiesOnRequest: lodging.amenities_on_request,
   }

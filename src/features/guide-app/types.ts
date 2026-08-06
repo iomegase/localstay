@@ -65,7 +65,12 @@ export type GuideLodgingDetail = {
   bedroomCount: number | null
   bathroomCount: number | null
   surfaceM2: number | null
-  photos: Array<{ url: string; alt: string }>
+  photos: Array<{
+    url: string
+    alt: string
+    roomType?: string | null
+    roomLabel?: string | null
+  }>
   amenitiesIncluded: string[]
   amenitiesOnRequest: string[]
 }

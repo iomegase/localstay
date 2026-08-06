@@ -1,15 +1,30 @@
-'use client'
-
-import { useState } from 'react'
 import { ArrowLeft, BedDouble, Bath, Maximize, Users } from 'lucide-react'
 import { capitalizeFirst } from '@/shared/lib/utils'
-import { MediaLightbox } from '@/features/guide-app/components/MediaLightbox'
+import { SwipeCarousel } from '@/features/guide-app/components/SwipeCarousel'
 import type { GuideLodgingDetail } from '@/features/guide-app/types'
+
+type DetailPhoto = GuideLodgingDetail['photos'][number]
+
+/** Regroupe les photos par pièce (ordre d'apparition). Ignore celles sans pièce. */
+function groupByRoom(photos: DetailPhoto[]): Array<{ label: string; photos: DetailPhoto[] }> {
+  const groups = new Map<string, { label: string; photos: DetailPhoto[] }>()
+  for (const photo of photos) {
+    const key = photo.roomLabel ?? photo.roomType
+    if (!key) continue
+    if (!groups.has(key)) {
+      groups.set(key, {
+        label: photo.roomLabel ?? capitalizeFirst(photo.roomType ?? ''),
+        photos: [],
+      })
+    }
+    groups.get(key)!.photos.push(photo)
+  }
+  return [...groups.values()]
+}
 
 /**
  * Vue détail d'un logement, DANS l'app (guest confiné). Chargée à la demande via
- * l'API interne ; `detail` à null = chargement. Bouton retour vers la liste —
- * aucune sortie vers le site public.
+ * l'API interne ; `detail` à null = chargement. Aucune sortie vers le site public.
  */
 export function GuideLodgingDetailView({
   detail,
@@ -18,8 +33,7 @@ export function GuideLodgingDetailView({
   detail: GuideLodgingDetail | null
   onBack: () => void
 }) {
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const photoUrls = detail?.photos.map(photo => photo.url) ?? []
+  const rooms = detail ? groupByRoom(detail.photos) : []
 
   return (
     <div className="px-4 pb-24 pt-4">
@@ -36,11 +50,9 @@ export function GuideLodgingDetailView({
         <p className="mt-10 text-center text-sm text-slate-400">Chargement…</p>
       ) : (
         <article className="mt-4 space-y-5">
+          {/* Header : une seule zone photo swipeable regroupant toute la galerie */}
           {detail.photos.length > 0 && (
-            <LodgingGallery
-              photos={detail.photos}
-              onOpen={index => setLightboxIndex(index)}
-            />
+            <SwipeCarousel photos={detail.photos} aspectClass="aspect-[4/3]" />
           )}
 
           <header>
@@ -72,65 +84,31 @@ export function GuideLodgingDetailView({
           {detail.amenitiesOnRequest.length > 0 && (
             <AmenityList title="Sur demande" items={detail.amenitiesOnRequest} />
           )}
+
+          {/* Bas de page : vignettes par pièce, chacune swipeable sur ses photos */}
+          {rooms.length > 0 && (
+            <section>
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                Les pièces
+              </h2>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {rooms.map(room => (
+                  <div key={room.label}>
+                    <SwipeCarousel
+                      photos={room.photos}
+                      aspectClass="aspect-square"
+                      roundedClass="rounded-[16px]"
+                    />
+                    <p className="mt-2 text-xs font-semibold text-slate-700">{room.label}</p>
+                    <p className="text-[11px] text-slate-400">
+                      {room.photos.length} photo{room.photos.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </article>
-      )}
-
-      {lightboxIndex !== null && detail && (
-        <MediaLightbox
-          title={detail.title}
-          content={{ kind: 'photos', photos: photoUrls, startIndex: lightboxIndex }}
-          onClose={() => setLightboxIndex(null)}
-        />
-      )}
-    </div>
-  )
-}
-
-/**
- * Galerie mosaïque : la 1re photo en grand, les suivantes en grille 2 colonnes.
- * Chaque vignette ouvre le carrousel lightbox — les photos ne sont plus empilées.
- */
-function LodgingGallery({
-  photos,
-  onOpen,
-}: {
-  photos: GuideLodgingDetail['photos']
-  onOpen: (index: number) => void
-}) {
-  const [cover, ...rest] = photos
-
-  return (
-    <div className="space-y-3">
-      <button
-        type="button"
-        onClick={() => onOpen(0)}
-        aria-label="Ouvrir la galerie photos"
-        className="block w-full overflow-hidden rounded-[22px]"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- image distante (parité guide) */}
-        <img src={cover.url} alt={cover.alt} className="aspect-[4/3] w-full object-cover" />
-      </button>
-
-      {rest.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
-          {rest.map((photo, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => onOpen(index + 1)}
-              aria-label={`Photo ${index + 2}`}
-              className="block overflow-hidden rounded-[18px]"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- image distante (parité guide) */}
-              <img
-                src={photo.url}
-                alt={photo.alt}
-                loading="lazy"
-                className="aspect-square w-full object-cover"
-              />
-            </button>
-          ))}
-        </div>
       )}
     </div>
   )

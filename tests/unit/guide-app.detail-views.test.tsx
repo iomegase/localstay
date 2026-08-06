@@ -111,7 +111,7 @@ describe('Guide detail views', () => {
     expect(onBack).toHaveBeenCalled()
   })
 
-  it('opens the photo gallery in a lightbox instead of stacking', () => {
+  it('shows a swipe gallery header and groups thumbnails by room', () => {
     render(
       <GuideLodgingDetailView
         detail={{
@@ -124,9 +124,9 @@ describe('Guide detail views', () => {
           bathroomCount: 2,
           surfaceM2: 120,
           photos: [
-            { url: 'https://cdn/a.jpg', alt: 'a' },
-            { url: 'https://cdn/b.jpg', alt: 'b' },
-            { url: 'https://cdn/c.jpg', alt: 'c' },
+            { url: 'https://cdn/a.jpg', alt: 'a', roomLabel: 'Chambre 1', roomType: 'bedroom' },
+            { url: 'https://cdn/b.jpg', alt: 'b', roomLabel: 'Chambre 1', roomType: 'bedroom' },
+            { url: 'https://cdn/c.jpg', alt: 'c', roomLabel: 'Cuisine', roomType: 'kitchen' },
           ],
           amenitiesIncluded: [],
           amenitiesOnRequest: [],
@@ -135,8 +135,14 @@ describe('Guide detail views', () => {
       />,
     )
 
+    // Pas de lightbox : galerie inline en swipe (toutes les photos rendues).
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /ouvrir la galerie photos/i }))
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    // Header (toutes) + vignettes par pièce → chaque photo apparaît ≥ 1 fois.
+    expect(screen.getAllByAltText('a').length).toBeGreaterThanOrEqual(1)
+
+    // Vignettes par pièce.
+    expect(screen.getByText('Chambre 1')).toBeInTheDocument()
+    expect(screen.getByText('Cuisine')).toBeInTheDocument()
+    expect(screen.getByText('2 photos')).toBeInTheDocument()
   })
 })
