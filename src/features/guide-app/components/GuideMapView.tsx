@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Home, MapPin, Minus, Navigation, Plus } from 'lucide-react'
+import { Home, Minus, Navigation, Plus } from 'lucide-react'
+import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import type {
@@ -11,15 +12,24 @@ import type {
   GuidePoi,
 } from '@/features/guide-app/types'
 
-const markerClasses: Record<string, string> = {
-  diner: 'bg-rose-600',
-  alimentation: 'bg-amber-600',
-  culture: 'bg-violet-600',
-  activite: 'bg-sky-600',
-  famille: 'bg-emerald-600',
-  soin: 'bg-pink-700',
-  rando: 'bg-lime-700',
-}
+// Palette de teintes distinctes ; une couleur par catégorie, assignée par index
+// (voir `categoryColorBySlug`) → jamais deux catégories différentes de la même couleur.
+const MARKER_PALETTE = [
+  'bg-rose-600',
+  'bg-orange-600',
+  'bg-amber-600',
+  'bg-lime-600',
+  'bg-emerald-600',
+  'bg-teal-600',
+  'bg-cyan-600',
+  'bg-sky-600',
+  'bg-blue-600',
+  'bg-indigo-600',
+  'bg-violet-600',
+  'bg-fuchsia-600',
+  'bg-pink-600',
+  'bg-red-700',
+] as const
 
 /** Position basse de la POI card / du hint : au-dessus de la barre de nav. */
 const overlayBottom = 'bottom-[calc(5.25rem+env(safe-area-inset-bottom))]'
@@ -198,6 +208,14 @@ export function GuideMapView({
       ),
     [pois],
   )
+  // Une couleur distincte par catégorie (index dans la palette), stable par rendu.
+  const categoryColorBySlug = useMemo(() => {
+    const map = new globalThis.Map<string, string>()
+    categories.forEach((category, index) => {
+      map.set(category.slug, MARKER_PALETTE[index % MARKER_PALETTE.length])
+    })
+    return map
+  }, [categories])
 
   useEffect(() => {
     if (!selectedPoi) {
@@ -402,14 +420,18 @@ export function GuideMapView({
               aria-label={`Sélectionner ${poi.name}`}
               onClick={() => handleMarkerSelect(poi)}
               className={`grid h-8 w-8 place-items-center rounded-full border-[3px] border-white text-white shadow-md transition ${
-                markerClasses[poi.category.slug] ?? 'bg-pink-600'
+                categoryColorBySlug.get(poi.category.slug) ?? 'bg-slate-600'
               } ${
                 selectedPoiId === poi.id
                   ? 'scale-125 ring-2 ring-slate-900/25'
                   : ''
               }`}
             >
-              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+              <CategoryIcon
+                iconSlug={poi.category.icon}
+                categorySlug={poi.category.slug}
+                className="h-3.5 w-3.5"
+              />
             </button>
           </Marker>
         ))}
@@ -555,7 +577,7 @@ function MapFilter({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-2 text-[8px] font-bold shadow-sm ${
+      className={`shrink-0 rounded-full px-3 py-2 text-[8px] font-bold uppercase tracking-wide shadow-sm ${
         active
           ? 'bg-slate-900 text-white'
           : 'border border-slate-100 bg-white text-slate-600'

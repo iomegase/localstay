@@ -22,7 +22,7 @@ export function SubCategoryFilter({ subcategories }: { subcategories: SubCategor
       <div className="no-scrollbar flex gap-2 overflow-x-auto px-5">
         <button
           onClick={() => select(null)}
-          className={`shrink-0 flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm transition ${
+          className={`shrink-0 flex items-center gap-2  rounded-full px-3 py-1.5 shadow-sm transition ${
             !active
               ? 'bg-charcoal text-white'
               : 'border border-gray-100 bg-white text-gray-400'
@@ -30,7 +30,7 @@ export function SubCategoryFilter({ subcategories }: { subcategories: SubCategor
         >
           <span
             data-testid="subcategory-all-icon"
-            className={`flex h-5 w-5 items-center justify-center rounded-full ${
+            className={`flex h-5 w-5 items-center  justify-center rounded-full ${
               !active ? 'bg-white/15' : 'bg-gray-100'
             }`}
           >
