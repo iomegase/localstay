@@ -74,7 +74,7 @@ export function GuideLodgingDetailView({
           </div>
 
           {detail.description && (
-            <p className="whitespace-pre-line text-sm leading-6 text-slate-600">
+            <p className="whitespace-pre-line text-justify text-[12px] leading-6 text-slate-600">
               {detail.description}
             </p>
           )}

@@ -63,6 +63,7 @@ export async function PrivateGuidePage({
     shortDescription: item.short_description,
     maxGuests: item.max_guests,
     bedroomCount: item.bedroom_count,
+    surfaceM2: item.surface_m2,
     publicAreaLabel: item.public_area_label,
     amenities: item.amenities,
   }))

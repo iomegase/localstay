@@ -30,6 +30,7 @@ export type GuideLodgingCard = {
   shortDescription: string
   maxGuests: number
   bedroomCount: number | null
+  surfaceM2: number | null
   publicAreaLabel: string | null
   amenities: string[]
 }

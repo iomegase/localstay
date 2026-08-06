@@ -1,10 +1,10 @@
-import { LodgingCard } from '@/features/lodging-showcase/components/LodgingCard'
+import { GuideLodgingListCard } from '@/features/guide-app/components/GuideLodgingListCard'
 import type { GuideLodgingCard } from '@/features/guide-app/types'
 
 /**
- * Vue « Tous nos logements » rendue DANS l'app (guest confiné). Réutilise la
- * carte publique `LodgingCard` mais SANS lien (`href` absent) : purement
- * présentative, aucune sortie vers le site public — sinon perte d'accès au guide.
+ * Vue « Tous nos logements » rendue DANS l'app (guest confiné). Cartes carrées
+ * dédiées (GuideLodgingListCard), purement présentatives — aucun lien sortant
+ * vers le site public (sinon perte d'accès au guide). Le clic ouvre le détail interne.
  */
 export function GuideLodgingsView({
   lodgings,
@@ -29,16 +29,7 @@ export function GuideLodgingsView({
               aria-label={`Voir ${lodging.title}`}
               className="block w-full text-left"
             >
-              <LodgingCard
-                title={lodging.title}
-                coverPhotoUrl={lodging.coverPhotoUrl}
-                shortDescription={lodging.shortDescription}
-                propertyType={lodging.propertyType}
-                maxGuests={lodging.maxGuests}
-                bedroomCount={lodging.bedroomCount}
-                publicAreaLabel={lodging.publicAreaLabel ?? lodging.cityName}
-                amenities={lodging.amenities}
-              />
+              <GuideLodgingListCard lodging={lodging} />
             </button>
           ))}
         </div>

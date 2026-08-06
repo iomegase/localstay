@@ -28,8 +28,9 @@ const lodging: GuideLodgingCard = {
   shortDescription: 'Cosy',
   maxGuests: 6,
   bedroomCount: 3,
+  surfaceM2: 120,
   publicAreaLabel: null,
-  amenities: ['Wifi'],
+  amenities: ['Wifi', 'Piscine'],
 }
 
 const post: GuideBlogPost = {
