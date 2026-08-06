@@ -41,7 +41,7 @@ export function GuideNavigation({
               aria-label={ariaLabel}
               aria-current={active ? 'page' : undefined}
               onClick={() => onNavigate(view)}
-              className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[8px] font-bold leading-tight transition ${
+              className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[8px] font-bold uppercase tracking-wide leading-tight transition ${
                 active
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
