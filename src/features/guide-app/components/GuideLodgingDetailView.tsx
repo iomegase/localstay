@@ -1,6 +1,7 @@
 import { ArrowLeft, BedDouble, Bath, Maximize, Users } from 'lucide-react'
 import { capitalizeFirst } from '@/shared/lib/utils'
 import { SwipeCarousel } from '@/features/guide-app/components/SwipeCarousel'
+import { featureIconFor } from '@/features/lodging-showcase/lib/feature-icon'
 import type { GuideLodgingDetail } from '@/features/guide-app/types'
 
 type DetailPhoto = GuideLodgingDetail['photos'][number]
@@ -136,13 +137,16 @@ function AmenityList({ title, items }: { title: string; items: string[] }) {
   return (
     <section>
       <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{title}</h2>
-      <ul className="mt-3 grid grid-cols-2 gap-2">
-        {items.map(item => (
-          <li key={item} className="flex items-center gap-2 text-xs text-slate-600">
-            <span className="h-1 w-1 shrink-0 rounded-full bg-pink-500" />
-            {item}
-          </li>
-        ))}
+      <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
+        {items.map(item => {
+          const Icon = featureIconFor(item)
+          return (
+            <li key={item} className="flex items-center gap-2.5 text-xs text-slate-600">
+              <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-pink-600" strokeWidth={1.7} />
+              <span>{item}</span>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )
