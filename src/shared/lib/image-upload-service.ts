@@ -18,7 +18,9 @@ export async function uploadGuideImage(file: File, pathPrefix: string): Promise<
   if (file.size > MAX_IMAGE_UPLOAD_BYTES) return { ok: false, code: 'TOO_LARGE' }
 
   const input = Buffer.from(await file.arrayBuffer())
-  const body = format.convert ? await sharp(input).webp({ quality: 82 }).toBuffer() : input
+  const body = format.convert
+    ? await sharp(input).rotate().webp({ quality: 82 }).toBuffer()
+    : input
 
   const supabase = createSupabaseServer()
   const path = `${pathPrefix}/${Date.now()}.${format.extension}`

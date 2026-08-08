@@ -83,6 +83,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **AC-04-02**: Given le dashboard de personnalisation, When l'Owner importe une image valide, Then elle est convertie si nécessaire, stockée dans Supabase Storage et affichée en haut de la page d'accueil séjour
 - **AC-04-03**: Given l'Owner renseigne une adresse de logement, When elle est sauvegardée, Then le serveur tente de la géocoder via Mapbox depuis le centre de la City et stocke les coordonnées du logement si le résultat est valide
 - **AC-04-04**: Given un Tourist en séjour actif, When il ouvre `/le-logement`, Then il consulte un guide vertical en quatre sections ancrées et le menu mobile de cette route navigue uniquement entre ces sections
+- **AC-04-05**: Given une photo JPEG dont l’orientation d’affichage est portée par les métadonnées EXIF, When l’Owner l’importe, Then le serveur applique cette orientation aux pixels avant la conversion WebP et l’image stockée conserve le cadrage visible attendu.
 
 ---
 
@@ -100,7 +101,7 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-10**: Si `category_order` contient des slugs inconnus, inactifs ou sans POI visible, ces slugs sont isolés dans `ignored_category_slugs` et ne sont pas sauvegardés. Les catégories valides restantes sont sauvegardées ; aucun statut de Category n'est modifié par cette spec.
 - **BR-11**: `featured_pois` accepte au maximum 100 entrées par requête comme limite technique, tout en appliquant les limites métier de 5 favoris par catégorie locale et de 5 favoris par autre City
 - **BR-12**: Si un `lodging` valide est actif, le guide public de la City reste complet : les catégories et listes POI ne sont jamais filtrées exclusivement sur `featured_pois`. Les `featured_pois` sont visibles dans `/nos-recommandations`, sur la fiche publique du logement et, pour leur seul commentaire contextuel, sur leur fiche POI.
-- **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`.
+- **BR-13**: L'upload image Owner est autorisé pour les photos de logement. Les images sont validées côté serveur, limitées à 5 Mo et stockées dans le bucket `guide-photos`. Lorsqu’une image est convertie en WebP, son orientation EXIF est appliquée aux pixels avant l’encodage afin que le fichier stocké ne dépende plus de cette métadonnée.
 - **BR-14**: Les libellés publics utilisent le nom produit MyStay.
 - **BR-15**: `owner_note` est normalisé par trim ; une valeur vide devient `null`. Le commentaire est rendu comme texte simple, sans interprétation Markdown ou HTML.
 - **BR-16**: Les coordonnées du logement dérivées de `lodging_address` sont calculées uniquement côté serveur via Mapbox Geocoding avec proximité City. Gemini ne doit jamais géocoder l'adresse du logement ni calculer de distance.
@@ -479,6 +480,7 @@ components:
 | AC-04-02 | Upload photo logement sauvegardé et affiché | contract + unit |
 | AC-04-03 / BR-16 / BR-17 | Adresse logement géocodée via Mapbox et distance POI affichée depuis appartement puis GPS | unit + integration |
 | AC-04-04 / BR-18 / BR-19 | `/le-logement` vertical, navigation d'ancrage et menu mobile contextuel limité à cette route, horaires constants et palette colorée | unit + integration |
+| AC-04-05 | Orientation EXIF appliquée avant conversion WebP | unit |
 | BR-20 | Message de bienvenue conservé côté données mais absent du rendu de `/le-logement` | integration |
 | BR-21 | Récapitulatif limité aux horaires ; Wi-Fi rendu uniquement dans sa carte détaillée | integration |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
