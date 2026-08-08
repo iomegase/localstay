@@ -12,6 +12,20 @@ type Lightbox =
   | { kind: 'video' }
   | null
 
+function splitInstructionText(source: string, index: number): { title: string; body: string } {
+  const normalized = source.replace(/^(#{1,3})(?!#)(?=\S)/, '$1 ')
+  const heading = normalized.match(/^\s*#{1,3}\s+(.+?)\s*(?:\r?\n|$)/)
+
+  if (!heading) {
+    return { title: `Instruction ${index + 1}`, body: source }
+  }
+
+  return {
+    title: heading[1].replace(/\s+#+\s*$/, '').trim(),
+    body: normalized.slice(heading[0].length).trimStart(),
+  }
+}
+
 /** Mini-card numérotée d'une instruction d'arrivée : texte + vignettes → lightbox. */
 export function ArrivalInstructionCard({
   index,
@@ -24,22 +38,27 @@ export function ArrivalInstructionCard({
   const videoId = instruction.videoUrl
     ? extractYouTubeId(instruction.videoUrl)
     : null
+  const { title, body } = splitInstructionText(instruction.text, index)
 
   return (
     <div className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]">
-      {/* Numéro centré verticalement sur le texte ; sauts de ligne préservés. */}
-      <div className="flex items-center gap-3">
+      <div data-testid="arrival-instruction-header" className="flex items-center gap-3">
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
           {index + 1}
         </span>
-        <div className="min-w-0 flex-1">
-          <GuideDarkMarkdown source={instruction.text} />
-        </div>
+        <h3 className="min-w-0 text-sm font-bold uppercase tracking-[0.14em] text-white">
+          {title}
+        </h3>
       </div>
 
-      {/* Vignettes sous le texte : photos puis vidéo, à la suite. */}
+      {body && (
+        <div data-testid="arrival-instruction-content" className="mt-3 min-w-0">
+          <GuideDarkMarkdown source={body} />
+        </div>
+      )}
+
       {(instruction.photos.length > 0 || videoId) && (
-        <div className="mt-3 flex flex-wrap gap-2 pl-10">
+        <div data-testid="arrival-instruction-media" className="mt-3 flex flex-wrap gap-2">
           {instruction.photos.map((photo, i) => (
             <button
               key={i}
