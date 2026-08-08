@@ -4,7 +4,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { ArrivalInstructionCard } from '@/features/guide-app/components/ArrivalInstructionCard'
 
 const instruction = {
-  text: 'Ouvrez le portail avec le badge',
+  text: '# Accès au garage\n\nOuvrez le portail avec le badge',
   videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   photos: ['https://cdn.example.com/a.jpg', 'https://cdn.example.com/b.jpg'],
 }
@@ -14,6 +14,43 @@ describe('ArrivalInstructionCard', () => {
     render(<ArrivalInstructionCard index={0} instruction={instruction} />)
     expect(screen.getByText('1')).toBeInTheDocument()
     expect(screen.getByText('Ouvrez le portail avec le badge')).toBeInTheDocument()
+  })
+
+  it('places the number beside the title and the content below at full width', () => {
+    render(<ArrivalInstructionCard index={0} instruction={instruction} />)
+
+    const header = screen.getByTestId('arrival-instruction-header')
+    expect(within(header).getByText('1')).toBeInTheDocument()
+    expect(within(header).getByRole('heading', { name: 'Accès au garage' })).toBeInTheDocument()
+    expect(within(header).queryByText('Ouvrez le portail avec le badge')).not.toBeInTheDocument()
+
+    const content = screen.getByTestId('arrival-instruction-content')
+    expect(within(content).getByText('Ouvrez le portail avec le badge')).toBeInTheDocument()
+    expect(content).not.toHaveClass('pl-10')
+
+    expect(screen.getByTestId('arrival-instruction-media')).not.toHaveClass('pl-10')
+  })
+
+  it.each(['#', '##', '###'])('extracts a level %s heading as the card title', marker => {
+    render(
+      <ArrivalInstructionCard
+        index={1}
+        instruction={{ text: `${marker} Parking\n\nGarez-vous place 46`, videoUrl: null, photos: [] }}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: 'Parking' })).toBeInTheDocument()
+    expect(screen.getByText('Garez-vous place 46')).toBeInTheDocument()
+  })
+
+  it('uses a safe fallback title for a legacy instruction without heading', () => {
+    render(
+      <ArrivalInstructionCard
+        index={2}
+        instruction={{ text: 'Sonnez à l’interphone', videoUrl: null, photos: [] }}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: 'Instruction 3' })).toBeInTheDocument()
+    expect(screen.getByText('Sonnez à l’interphone')).toBeInTheDocument()
   })
 
   it('opens the photos in a framed carousel lightbox', () => {
