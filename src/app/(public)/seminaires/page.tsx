@@ -121,7 +121,7 @@ export default function SeminarsPage() {
               fill
               priority
               sizes="(min-width: 1280px) 944px, (min-width: 768px) calc(100vw - 80px), 100vw"
-              src="/marketing/hero-chalet.png"
+              src="/marketing/hero-chalet-v2.png"
             />
             <div aria-hidden="true" className="absolute inset-0 bg-black/60" />
 

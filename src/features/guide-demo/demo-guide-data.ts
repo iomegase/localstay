@@ -12,7 +12,7 @@ export const demoLodging: GuideLodging = {
     '/marketing/demo-lodging-1.webp',
     '/marketing/demo-lodging-2.webp',
     '/marketing/demo-lodging-3.webp',
-    '/marketing/hero-chalet.png',
+    '/marketing/hero-chalet-v2.png',
   ],
   latitude: 45.8921,
   longitude: 6.7085,

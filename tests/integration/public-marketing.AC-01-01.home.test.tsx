@@ -12,7 +12,7 @@ const lodging: MarketingLodgingCard = {
   short_description: 'Un chalet chaleureux.',
   public_area_label: 'Saint-Gervais-les-Bains',
   city_name: 'Saint-Gervais-les-Bains',
-  cover_photo_url: '/marketing/hero-chalet.png',
+  cover_photo_url: '/marketing/hero-chalet-v2.png',
   max_guests: 6,
   bedroom_count: 3,
   bathroom_count: 2,

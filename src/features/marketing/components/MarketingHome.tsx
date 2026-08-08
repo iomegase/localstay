@@ -100,7 +100,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           className="relative min-h-[720px] overflow-hidden rounded-[26px] bg-slate-800 min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:rounded-[32px] min-[1051px]:min-h-[700px] xl:min-h-[560px] xl:rounded-[26px]"
         >
           <Image
-            src="/marketing/hero-chalet.png"
+            src="/marketing/hero-chalet-v2.png"
             alt="Chalet MyStay face aux montagnes"
             fill
             priority
