@@ -15,19 +15,19 @@
 **Files:**
 - Modify: `specs/features/031-public-marketing-site/spec.md`
 
-- [ ] **Step 1: Add BR-21**
+- [x] **Step 1: Add BR-35**
 
 ```markdown
-- **BR-21**: Lorsqu’un asset hero marketing déjà déployé est remplacé, son chemin public est versionné afin de créer une nouvelle clé `next/image` et CDN ; le code actif ne conserve aucune référence à l’ancien chemin.
+- **BR-35**: Lorsqu’un asset hero marketing déjà déployé est remplacé, son chemin public est versionné afin de créer une nouvelle clé `next/image` et CDN ; le code actif ne conserve aucune référence à l’ancien chemin.
 ```
 
-- [ ] **Step 2: Map BR-21 to a unit test in the acceptance table**
+- [x] **Step 2: Map BR-35 to a unit test in the acceptance table**
 
 ```markdown
-| BR-21 | unit |
+| BR-35 | unit |
 ```
 
-- [ ] **Step 3: Commit the approved contract change**
+- [x] **Step 3: Commit the approved contract change**
 
 ```bash
 git add specs/features/031-public-marketing-site/spec.md
@@ -37,9 +37,9 @@ git commit -m "docs(marketing): specify versioned hero assets"
 ### Task 2: Add a failing cache-key regression test
 
 **Files:**
-- Create: `tests/unit/public-marketing.BR-21.hero-cache-key.test.ts`
+- Create: `tests/unit/public-marketing.BR-35.hero-cache-key.test.ts`
 
-- [ ] **Step 1: Write the source contract test**
+- [x] **Step 1: Write the source contract test**
 
 ```typescript
 import { readFileSync } from 'node:fs'
@@ -52,7 +52,7 @@ const activeConsumers = [
   'src/features/guide-app/queries/private-guide-data.ts',
 ] as const
 
-describe('031 public marketing BR-21 — versioned hero cache key', () => {
+describe('031 public marketing BR-35 — versioned hero cache key', () => {
   it.each(activeConsumers)('%s uses no stale hero-chalet.png cache key', relativePath => {
     const source = readFileSync(join(process.cwd(), relativePath), 'utf8')
     expect(source).not.toContain('/marketing/hero-chalet.png')
@@ -65,18 +65,18 @@ describe('031 public marketing BR-21 — versioned hero cache key', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and confirm RED**
+- [x] **Step 2: Run the test and confirm RED**
 
 ```bash
-npm test -- --runInBand tests/unit/public-marketing.BR-21.hero-cache-key.test.ts
+npm test -- --runInBand tests/unit/public-marketing.BR-35.hero-cache-key.test.ts
 ```
 
 Expected: every assertion fails because consumers still use `hero-chalet.png`.
 
-- [ ] **Step 3: Commit the regression test**
+- [x] **Step 3: Commit the regression test**
 
 ```bash
-git add tests/unit/public-marketing.BR-21.hero-cache-key.test.ts
+git add tests/unit/public-marketing.BR-35.hero-cache-key.test.ts
 git commit -m "test(marketing): require a versioned hero cache key"
 ```
 
@@ -90,13 +90,13 @@ git commit -m "test(marketing): require a versioned hero cache key"
 - Modify: `src/features/guide-app/queries/private-guide-data.ts`
 - Modify: `tests/integration/public-marketing.AC-01-01.home.test.tsx`
 
-- [ ] **Step 1: Rename the binary without altering it**
+- [x] **Step 1: Rename the binary without altering it**
 
 ```bash
 git mv public/marketing/hero-chalet.png public/marketing/hero-chalet-v2.png
 ```
 
-- [ ] **Step 2: Replace every active path**
+- [x] **Step 2: Replace every active path**
 
 Replace:
 
@@ -112,23 +112,23 @@ with:
 
 in the four source consumers and the marketing fixture.
 
-- [ ] **Step 3: Confirm GREEN and run marketing regressions**
+- [x] **Step 3: Confirm GREEN and run marketing regressions**
 
 ```bash
-npm test -- --runInBand tests/unit/public-marketing.BR-21.hero-cache-key.test.ts tests/integration/public-marketing.AC-01-01.home.test.tsx tests/integration/public-marketing.AC-01-02.editorial-pages.test.tsx tests/unit/public-guide-demo.AC-05-06.data.test.ts
+npm test -- --runInBand tests/unit/public-marketing.BR-35.hero-cache-key.test.ts tests/integration/public-marketing.AC-01-01.home.test.tsx tests/integration/public-marketing.AC-01-02.editorial-pages.test.tsx tests/unit/public-guide-demo.AC-05-06.data.test.ts
 ```
 
 Expected: all selected suites pass.
 
-- [ ] **Step 4: Confirm the old active path is gone**
+- [x] **Step 4: Confirm the old active path is gone**
 
 ```bash
-rg -n -S "/marketing/hero-chalet\.png" src tests
+rg -n -S "/marketing/hero-chalet\.png" src tests --glob '!tests/unit/public-marketing.BR-35.hero-cache-key.test.ts'
 ```
 
 Expected: no matches.
 
-- [ ] **Step 5: Commit the implementation**
+- [x] **Step 5: Commit the implementation**
 
 ```bash
 git add public/marketing/hero-chalet-v2.png src tests
@@ -140,13 +140,13 @@ git commit -m "fix(marketing): version hero image cache key"
 **Files:**
 - Modify: `docs/traceability-matrix.md`
 
-- [ ] **Step 1: Add the traceability row**
+- [x] **Step 1: Add the traceability row**
 
 ```markdown
-| BR-21 | Hero marketing utilise un chemin versionné pour invalider les transformations `next/image` et CDN | `public/marketing/hero-chalet-v2.png`<br>`src/features/marketing/components/MarketingHome.tsx`<br>`src/app/(public)/seminaires/page.tsx`<br>`src/features/guide-demo/demo-guide-data.ts`<br>`src/features/guide-app/queries/private-guide-data.ts` | `tests/unit/public-marketing.BR-21.hero-cache-key.test.ts` | ✅ done |
+| BR-35 | Hero marketing utilise un chemin versionné pour invalider les transformations `next/image` et CDN | `public/marketing/hero-chalet-v2.png`<br>`src/features/marketing/components/MarketingHome.tsx`<br>`src/app/(public)/seminaires/page.tsx`<br>`src/features/guide-demo/demo-guide-data.ts`<br>`src/features/guide-app/queries/private-guide-data.ts` | `tests/unit/public-marketing.BR-35.hero-cache-key.test.ts` | ✅ done |
 ```
 
-- [ ] **Step 2: Run final verification**
+- [x] **Step 2: Run final verification**
 
 ```bash
 npm run lint
