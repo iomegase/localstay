@@ -338,6 +338,9 @@ routes privées, l'authentification et les API existantes restent inchangées.
 - **BR-30**: Le bouton menu interne au guide reste affiché. Le modal ne rend
   aucun bouton de fermeture flottant ; `Escape` et l'overlay sont ses deux
   mécanismes visuels de fermeture.
+- **BR-35**: Lorsqu'un asset hero marketing déjà déployé est remplacé, son
+  chemin public est versionné afin de créer une nouvelle clé `next/image` et
+  CDN ; le code actif ne conserve aucune référence à l'ancien chemin.
 - **BR-31**: La rangée de filtres de `GuideFavoritesPage` utilise le
   positionnement sticky CSS natif dans le conteneur scrollable du `GuideApp`.
   Aucun listener de scroll, observer, calcul JavaScript de hauteur ou état React
@@ -464,6 +467,7 @@ context `lodging-showcase`.
 | AC-05-08 | integration |
 | AC-05-09 | unit + security regression |
 | AC-05-10 | integration + e2e |
+| BR-35 | unit |
 
 ## Out of Scope
 
