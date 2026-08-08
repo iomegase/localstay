@@ -102,6 +102,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           <Image
             src="/marketing/hero-chalet-v2.png"
             alt="Chalet MyStay face aux montagnes"
+            
             fill
             priority
             className="object-cover"
@@ -110,7 +111,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           <div className="absolute inset-0 bg-black/60" />
           <div
             data-testid="editorial-hero-content"
-            className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-white min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
+            className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-blq min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
           >
             <div className="max-w-[745px] xl:max-w-[600px] xl:[&>span:first-child]:mb-[19px]">
               <MarketingEyebrow light>Conciergerie en Haute-Savoie</MarketingEyebrow>
