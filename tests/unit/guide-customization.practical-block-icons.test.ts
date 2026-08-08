@@ -19,4 +19,16 @@ describe('practical block icon catalog', () => {
   it('uses a default icon that exists in the catalog', () => {
     expect(PRACTICAL_BLOCK_ICON_SLUGS).toContain(DEFAULT_PRACTICAL_BLOCK_ICON)
   })
+
+  it('exposes the approved amenity icons', () => {
+    expect(PRACTICAL_BLOCK_ICONS).toEqual(
+      expect.arrayContaining([
+        { slug: 'waves-ladder', label: 'Piscine' },
+        { slug: 'bubbles', label: 'Jacuzzi' },
+        { slug: 'air-vent', label: 'Climatisation' },
+        { slug: 'mountain-snow', label: 'Skis' },
+        { slug: 'umbrella', label: 'Terrasse' },
+      ]),
+    )
+  })
 })

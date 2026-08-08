@@ -36,4 +36,18 @@ describe('PracticalBlocksEditor', () => {
     await user.click(screen.getByRole('button', { name: /supprimer le bloc/i }))
     expect(screen.getByTestId('state').textContent).toBe('[]')
   })
+
+  it('offers the approved amenity icons and selects skis', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
+
+    for (const label of ['Piscine', 'Jacuzzi', 'Climatisation', 'Skis', 'Terrasse']) {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Skis' }))
+    expect(screen.getByTestId('state').textContent).toContain('"icon":"mountain-snow"')
+  })
 })
