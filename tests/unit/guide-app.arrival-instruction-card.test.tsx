@@ -24,10 +24,7 @@ describe('ArrivalInstructionCard', () => {
 
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getAllByRole('img').length).toBeGreaterThanOrEqual(2)
-    expect(screen.getByTestId('media-modal-frame')).toHaveClass(
-      'border-[5px]',
-      'border-white',
-    )
+    expect(screen.getByTestId('media-modal-frame')).toHaveClass('rounded-[24px]')
     // navigation du carrousel
     expect(
       screen.getByRole('button', { name: /photo suivante/i }),
@@ -45,8 +42,9 @@ describe('ArrivalInstructionCard', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /vidéo/i }))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+    // Lecteur « short » maison : barre de progression exposée (pas le chrome YouTube).
     expect(
-      screen.getByRole('button', { name: /lire la vidéo/i }),
+      screen.getByRole('slider', { name: /progression de la vidéo/i }),
     ).toBeInTheDocument()
   })
 

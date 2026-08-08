@@ -8,24 +8,36 @@ type Props = {
   url: string
   title: string
   className?: string
+  /** Masque l'habillage YouTube (contrôles, roue, volume, CC, titre/chaîne, branding). */
+  chromeless?: boolean
+  /** Démarre la vidéo sans le son. */
+  muted?: boolean
 }
 
 /**
  * Lecteur YouTube « click-to-load » : affiche d'abord la miniature (aucun cookie
  * ni JS YouTube chargé), puis remplace par l'iframe sans cookie au clic.
  */
-export function YouTubeEmbed({ url, title, className }: Props) {
+export function YouTubeEmbed({ url, title, className, chromeless = false, muted = false }: Props) {
   const [playing, setPlaying] = useState(false)
   const videoId = extractYouTubeId(url)
 
   if (!videoId) return null
+
+  const params = [
+    'autoplay=1',
+    muted ? 'mute=1' : null,
+    chromeless ? 'controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&disablekb=1&fs=0' : null,
+  ]
+    .filter(Boolean)
+    .join('&')
 
   return (
     <div className={`relative aspect-video w-full overflow-hidden bg-black ${className ?? ''}`}>
       {playing ? (
         <iframe
           className="absolute inset-0 h-full w-full"
-          src={`${youTubeEmbedUrl(videoId)}?autoplay=1`}
+          src={`${youTubeEmbedUrl(videoId)}?${params}`}
           title={title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

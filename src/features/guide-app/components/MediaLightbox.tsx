@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
+import { ShortVideoPlayer } from './ShortVideoPlayer'
 
 export type LightboxContent =
   | { kind: 'photos'; photos: string[]; startIndex: number }
@@ -56,12 +56,14 @@ export function MediaLightbox({
       aria-modal="true"
       aria-label={title}
       onClick={onClose}
-      className="absolute inset-0 z-[100] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+      className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 p-6 backdrop-blur-xl"
     >
       <div
         data-testid="media-modal-frame"
         onClick={event => event.stopPropagation()}
-        className="relative w-full max-w-[420px] overflow-hidden rounded-[24px] border-[5px] border-white bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+        className={`relative w-full overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)] ${
+          content.kind === 'video' ? 'max-w-[340px]' : 'max-w-[420px]'
+        }`}
       >
         <button
           type="button"
@@ -73,7 +75,7 @@ export function MediaLightbox({
         </button>
 
         {content.kind === 'video' ? (
-          <YouTubeEmbed url={content.url} title={title} />
+          <ShortVideoPlayer url={content.url} />
         ) : (
           <>
             <div
