@@ -110,6 +110,11 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **BR-19**: Le menu mobile contextuel « Guide du logement » et la palette colorée associée sont limités à `/le-logement`. Les autres routes publiques conservent leur menu et leur charte existants.
 - **BR-20**: Le champ `welcome_message` reste sauvegardé et disponible pour les surfaces publiques prévues par la spec, mais `/le-logement` ne rend ni ce contenu ni une salutation de bienvenue de remplacement. Cette règle est uniquement présentationnelle et ne modifie ni le modèle, ni l'API, ni le formulaire Owner.
 - **BR-21**: Le récapitulatif supérieur de `/le-logement` affiche uniquement les horaires d'arrivée et de départ. Les identifiants Wi-Fi ne sont rendus qu'une fois, dans la carte détaillée `Réseau Wi-Fi` de la section `Infos pratiques`, avec les actions de copie existantes.
+- **BR-22**: Le catalogue des icônes de blocs pratiques propose aussi `Piscine`
+  (`waves-ladder`), `Jacuzzi` (`bubbles`), `Climatisation` (`air-vent`),
+  `Skis` (`mountain-snow`) et `Terrasse` (`umbrella`). Ces slugs Lucide sont
+  acceptés par la validation API et rendus dans le dashboard Owner comme dans
+  le guide privé.
 
 ---
 
@@ -483,6 +488,7 @@ components:
 | AC-04-05 | Orientation EXIF appliquée avant conversion WebP | unit |
 | BR-20 | Message de bienvenue conservé côté données mais absent du rendu de `/le-logement` | integration |
 | BR-21 | Récapitulatif limité aux horaires ; Wi-Fi rendu uniquement dans sa carte détaillée | integration |
+| BR-22 | Catalogue d'icônes d'équipements disponible et sélectionnable | unit |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
 | BR-08/09 | Bucketing local/inter-ville sans étendre les listes du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |
