@@ -18,6 +18,11 @@ export const PRACTICAL_BLOCK_ICONS: readonly PracticalBlockIcon[] = [
   { slug: 'baby', label: 'Enfants' },
   { slug: 'leaf', label: 'Tri / écologie' },
   { slug: 'map-pin', label: 'Lieu' },
+  { slug: 'waves-ladder', label: 'Piscine' },
+  { slug: 'bubbles', label: 'Jacuzzi' },
+  { slug: 'air-vent', label: 'Climatisation' },
+  { slug: 'mountain-snow', label: 'Skis' },
+  { slug: 'umbrella', label: 'Terrasse' },
 ] as const
 
 export const PRACTICAL_BLOCK_ICON_SLUGS: ReadonlyArray<string> =
