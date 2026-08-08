@@ -79,6 +79,12 @@ instructions et coordonnées réelles du Lodging actif.
   aucune géolocalisation ou donnée externe n'est inventée.
 - **BR-05**: Le shell reste limité à 430 px sans zoom ni mise à l'échelle CSS.
 - **BR-06**: Aucune migration Prisma ni nouvelle API.
+- **BR-07**: Chaque consigne d'arrivée utilise son premier heading Markdown
+  comme titre. La pastille numérotée est placée à gauche de ce titre ; le
+  contenu Markdown restant et les médias commencent sur les lignes suivantes
+  au bord intérieur gauche de la carte, sans retrait sous le titre. Une
+  consigne historique sans heading utilise `Instruction N` comme titre de
+  repli.
 
 ## Data Model
 
@@ -109,6 +115,7 @@ Aucune nouvelle API. La route est un Server Component privé.
 | AC-02-01 | integration |
 | AC-02-02 | integration |
 | AC-02-03 | integration |
+| BR-07 | unit |
 
 ## Out of Scope
 
