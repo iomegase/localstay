@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Play } from 'lucide-react'
 import type { GuideArrivalInstruction } from '@/features/guide-app/types'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
+import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
 import { MediaLightbox } from './MediaLightbox'
 
 type Lightbox =
@@ -33,7 +34,7 @@ export function ArrivalInstructionCard({
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
               {index + 1}
             </span>
-            <p className="text-xs leading-5 text-white/80">{instruction.text}</p>
+            <p className="text-xs leading-5 text-white/80">{inlineMarkdown(instruction.text)}</p>
           </div>
 
           {instruction.photos.length > 0 && (
