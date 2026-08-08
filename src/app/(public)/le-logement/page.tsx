@@ -5,7 +5,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   BedDouble,
-  Car,
   Clock3,
   Info,
   KeyRound,
@@ -67,9 +66,6 @@ export default async function LeLogementPage() {
         lodging_address: true,
         wifi_ssid: true,
         wifi_password: true,
-        parking_info: true,
-        parking_photo_url: true,
-        parking_video_url: true,
         checkout_instructions: true,
         trash_location: true,
         trash_bins: true,
@@ -139,15 +135,6 @@ export default async function LeLogementPage() {
       <div key="video">
         <YouTubeEmbed url={customization.presentation_video_url} title="Vidéo du logement" className="rounded-[18px]" />
       </div>,
-    )
-  }
-  if (has(customization?.parking_info) || has(customization?.parking_photo_url) || has(customization?.parking_video_url)) {
-    accessContent.push(
-      <PanelDetail key="parking" icon={<Car className="h-5 w-5" />} accent="orange" title="Parking">
-        {customization?.parking_info && <MarkdownText source={customization.parking_info} />}
-        {customization?.parking_photo_url && <MediaImage src={customization.parking_photo_url} alt="Parking" />}
-        {customization?.parking_video_url && <YouTubeEmbed url={customization.parking_video_url} title="Parking" className="mt-3 rounded-[18px]" />}
-      </PanelDetail>,
     )
   }
   if (hasWifi) {

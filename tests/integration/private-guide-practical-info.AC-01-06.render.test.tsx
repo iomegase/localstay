@@ -106,18 +106,7 @@ describe('Consignes du logement view (rules)', () => {
   })
 })
 
-describe('arrival view (Bienvenue) parking', () => {
-  it('shows the parking info and its media on the arrival page', () => {
-    renderView('arrival', {
-      parkingInfo: 'Place réservée n°3.',
-      parkingPhotoUrl: 'https://cdn.example.com/parking.jpg',
-      parkingVideoUrl: null,
-    })
-
-    expect(screen.getByText('Place réservée n°3.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /voir/i })).toBeInTheDocument()
-  })
-
+describe('arrival view (Bienvenue)', () => {
   it('groups the arrival steps under an "Instructions" section', () => {
     renderView('arrival', {
       arrivalInstructions: [

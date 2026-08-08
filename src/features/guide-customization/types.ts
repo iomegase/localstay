@@ -65,9 +65,6 @@ export interface PracticalInfoFields {
   lodging_address: string | null
   wifi_ssid: string | null
   wifi_password: string | null
-  parking_info: string | null
-  parking_photo_url: string | null
-  parking_video_url: string | null
   checkout_instructions: string | null
   trash_info: string | null
   trash_location: string | null
@@ -82,9 +79,6 @@ export const PRACTICAL_INFO_KEYS = [
   'lodging_address',
   'wifi_ssid',
   'wifi_password',
-  'parking_info',
-  'parking_photo_url',
-  'parking_video_url',
   'checkout_instructions',
   'trash_info',
   'trash_location',

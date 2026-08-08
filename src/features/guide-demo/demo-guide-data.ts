@@ -85,9 +85,6 @@ export const demoLodging: GuideLodging = {
     { label: 'Pompiers', number: '18' },
     { label: 'Office de tourisme', number: '04 50 47 76 08' },
   ],
-  parkingInfo: 'Place réservée n°3, juste devant le chalet. Badge dans le tiroir.',
-  parkingPhotoUrl: null,
-  parkingVideoUrl: null,
   trashBins: [{ type: 'jaune' }, { type: 'verte' }, { type: 'bordeaux' }],
   trashLocation: 'Point de tri à 100 m, route du Bettex.',
 }

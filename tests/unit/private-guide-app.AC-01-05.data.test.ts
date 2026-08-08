@@ -173,41 +173,6 @@ describe('034-private-guide-app private data adapter', () => {
     })
   })
 
-  it('maps parking info, photo and video for the arrival page', async () => {
-    lodgingFindFirst.mockResolvedValue({
-      id: 'lodging-1',
-      name: 'Le Chalet Hygge',
-      city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
-      customization: {
-        welcome_message: null,
-        cover_photo_url: null,
-        lodging_address: null,
-        lodging_latitude: null,
-        lodging_longitude: null,
-        wifi_ssid: null,
-        wifi_password: null,
-        checkout_instructions: null,
-        house_rules: null,
-        emergency_contacts: null,
-        useful_services: null,
-        parking_info: 'Place réservée n°3, devant le chalet.',
-        parking_photo_url: 'https://cdn.example.com/parking.jpg',
-        parking_video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      },
-      practical_blocks: [],
-      arrival_instructions: [],
-    })
-    featuredFindMany.mockResolvedValue([])
-
-    const result = await getPrivateGuideData('lodging-1')
-
-    expect(result?.lodging.parkingInfo).toBe('Place réservée n°3, devant le chalet.')
-    expect(result?.lodging.parkingPhotoUrl).toBe('https://cdn.example.com/parking.jpg')
-    expect(result?.lodging.parkingVideoUrl).toBe(
-      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    )
-  })
-
   it('maps arrival instructions (text + video + photos) in order', async () => {
     lodgingFindFirst.mockResolvedValue({
       id: 'lodging-1',
@@ -225,9 +190,6 @@ describe('034-private-guide-app private data adapter', () => {
         house_rules: null,
         emergency_contacts: null,
         useful_services: null,
-        parking_info: null,
-        parking_photo_url: null,
-        parking_video_url: null,
       },
       practical_blocks: [],
       arrival_instructions: [
@@ -268,9 +230,6 @@ describe('034-private-guide-app private data adapter', () => {
         house_rules: null,
         emergency_contacts: null,
         useful_services: null,
-        parking_info: null,
-        parking_photo_url: null,
-        parking_video_url: null,
         trash_bins: [{ type: 'jaune' }, { type: 'verte' }],
         trash_location: '  https://maps.app.goo.gl/abc  ',
       },

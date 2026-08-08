@@ -177,10 +177,6 @@ export type GuideLodging = {
   houseRules: string[]
   practicalCards: GuidePracticalCard[]
   usefulNumbers: GuideUsefulNumber[]
-  /** Infos parking affichées sur la page d'arrivée. */
-  parkingInfo: string
-  parkingPhotoUrl: string | null
-  parkingVideoUrl: string | null
   /** Bacs de tri actifs (recyclage) + localisation du point de tri. */
   trashBins: { type: string }[]
   trashLocation: string | null

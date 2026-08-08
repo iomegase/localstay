@@ -49,9 +49,6 @@ describe('/le-logement — guide en accordéons', () => {
       lodging_address: '1 rue des Alpes, 74170 Saint-Gervais-les-Bains',
       wifi_ssid: 'MyStay-305',
       wifi_password: 'secret-wifi',
-      parking_info: 'Place 12 dans la cour.',
-      parking_photo_url: null,
-      parking_video_url: null,
       checkout_instructions: '- Vider le réfrigérateur\n- Fermer les fenêtres',
       trash_location: 'Point tri en bas du bâtiment',
       trash_bins: [{ type: 'jaune' }, { type: 'verre' }],
@@ -116,7 +113,6 @@ describe('/le-logement — guide en accordéons', () => {
     expect(screen.getByText('MyStay-305')).toBeInTheDocument()
     expect(screen.getByText('secret-wifi')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' })).toBeInTheDocument()
-    expect(screen.getByText('Place 12 dans la cour.')).toBeInTheDocument()
     expect(screen.getByText('Le local à skis')).toBeInTheDocument()
     expect(screen.getByAltText('Le local à skis')).toHaveAttribute('src', 'https://cdn.test/skis.webp')
     expect(screen.getByRole('checkbox', { name: 'Vider le réfrigérateur' })).toBeInTheDocument()
@@ -158,7 +154,6 @@ describe('/le-logement — guide en accordéons', () => {
       lodging_address: '1 rue des Alpes',
       wifi_ssid: null,
       wifi_password: null,
-      parking_info: null,
       checkout_instructions: null,
       trash_location: null,
       trash_bins: [],

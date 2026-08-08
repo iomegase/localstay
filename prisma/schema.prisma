@@ -795,9 +795,6 @@ model LodgingCustomization {
   lodging_longitude     Float?
   wifi_ssid             String?
   wifi_password         String?
-  parking_info          String?
-  parking_photo_url     String?
-  parking_video_url     String?
   checkout_instructions String?
   trash_info            String?
   trash_location        String?

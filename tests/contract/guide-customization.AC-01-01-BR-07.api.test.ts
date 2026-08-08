@@ -59,7 +59,6 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       arrival_instructions: [],
       trash_bins: [],
       presentation_video_url: null,
-      parking_video_url: null,
     })
     await expect(res.json()).resolves.toEqual(responseBody)
   })

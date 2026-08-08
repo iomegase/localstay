@@ -2,7 +2,6 @@ import * as LucideIcons from 'lucide-react'
 import {
   ArrowRight,
   BedDouble,
-  Car,
   Clock3,
   Copy,
   DoorOpen,
@@ -106,15 +105,6 @@ export function GuideLodgingViews({
           </div>
         </section>
         <InstructionList items={lodging.arrivalInstructions} />
-        {(lodging.parkingInfo || lodging.parkingPhotoUrl || lodging.parkingVideoUrl) && (
-          <PracticalMediaCard
-            icon={Car}
-            title="Parking"
-            description={lodging.parkingInfo}
-            photoUrl={lodging.parkingPhotoUrl ?? undefined}
-            videoUrl={lodging.parkingVideoUrl ?? undefined}
-          />
-        )}
       </GuideSubPage>
     )
   }

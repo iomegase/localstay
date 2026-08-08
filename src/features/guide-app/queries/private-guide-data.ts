@@ -35,9 +35,6 @@ export async function getPrivateGuideData(
           house_rules: true,
           emergency_contacts: true,
           useful_services: true,
-          parking_info: true,
-          parking_photo_url: true,
-          parking_video_url: true,
           trash_bins: true,
           trash_location: true,
         },
@@ -149,9 +146,6 @@ export async function getPrivateGuideData(
         videoUrl: block.video_url ?? undefined,
       })),
       usefulNumbers: mapUsefulNumbers(customization?.useful_services),
-      parkingInfo: customization?.parking_info?.trim() ?? '',
-      parkingPhotoUrl: customization?.parking_photo_url ?? null,
-      parkingVideoUrl: customization?.parking_video_url ?? null,
       trashBins: (
         (customization?.trash_bins as unknown as { type: string }[] | null) ?? []
       ).filter(bin => isTrashBinType(bin.type)),

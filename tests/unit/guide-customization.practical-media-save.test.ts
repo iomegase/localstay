@@ -36,20 +36,16 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
     jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([] as never)
   })
 
-  it('persists parking media + presentation video on the customization row', async () => {
+  it('persists the presentation video on the customization row', async () => {
     await saveLodgingCustomization('owner-1', 'lodging-1', {
       category_order: [],
       featured_pois: [],
       presentation_video_url: 'https://youtu.be/dQw4w9WgXcQ',
-      parking_photo_url: 'https://cdn.example.com/parking.jpg',
-      parking_video_url: 'https://youtu.be/dQw4w9WgXcQ',
     })
 
     const upsertArg = jest.mocked(tx.lodgingCustomization.upsert).mock.calls[0][0]
     expect(upsertArg.create).toMatchObject({
       presentation_video_url: 'https://youtu.be/dQw4w9WgXcQ',
-      parking_photo_url: 'https://cdn.example.com/parking.jpg',
-      parking_video_url: 'https://youtu.be/dQw4w9WgXcQ',
     })
   })
 

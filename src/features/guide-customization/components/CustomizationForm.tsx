@@ -93,9 +93,6 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   lodging_address: 'Adresse du logement',
   wifi_ssid: 'Wi-Fi - nom du réseau',
   wifi_password: 'Wi-Fi - mot de passe',
-  parking_info: 'Parking',
-  parking_photo_url: 'Photo du parking',
-  parking_video_url: 'Vidéo du parking',
   checkout_instructions: 'Consignes de départ',
   trash_info: 'Déchets',
   trash_location: 'Point de tri',
@@ -198,9 +195,6 @@ export function CustomizationForm({
     lodging_address: initialCustomization.lodging_address ?? null,
     wifi_ssid: initialCustomization.wifi_ssid ?? null,
     wifi_password: initialCustomization.wifi_password ?? null,
-    parking_info: initialCustomization.parking_info ?? null,
-    parking_photo_url: initialCustomization.parking_photo_url ?? null,
-    parking_video_url: initialCustomization.parking_video_url ?? null,
     checkout_instructions: initialCustomization.checkout_instructions ?? null,
     trash_info: initialCustomization.trash_info ?? null,
     trash_location: initialCustomization.trash_location ?? null,
@@ -244,7 +238,6 @@ export function CustomizationForm({
     block => block.title.trim().length === 0,
   )
   const invalidVideoUrl = hasInvalidYouTubeUrl(practicalInfo.presentation_video_url) ||
-    hasInvalidYouTubeUrl(practicalInfo.parking_video_url) ||
     practicalBlocks.some(block => hasInvalidYouTubeUrl(block.video_url))
   const clientValidationMessage = practicalBlockWithoutTitle
     ? 'Un bloc personnalisé doit avoir un titre, ou être supprimé avant enregistrement.'
@@ -366,9 +359,6 @@ export function CustomizationForm({
       lodging_address: payload.lodging_address ?? null,
       wifi_ssid: payload.wifi_ssid ?? null,
       wifi_password: payload.wifi_password ?? null,
-      parking_info: payload.parking_info ?? null,
-      parking_photo_url: payload.parking_photo_url ?? null,
-      parking_video_url: payload.parking_video_url ?? null,
       checkout_instructions: payload.checkout_instructions ?? null,
       trash_info: payload.trash_info ?? null,
       trash_location: payload.trash_location ?? null,
@@ -652,15 +642,6 @@ const PRACTICAL_SECTIONS: PracticalSection[] = [
     maxLength: 120,
   },
   {
-    key: 'parking_info',
-    label: 'Parking',
-    placeholder: 'Place numéro 12 dans la cour intérieure, code portail 1234.',
-    type: 'textarea',
-    maxLength: 2000,
-    rows: 3,
-    markdown: true,
-  },
-  {
     key: 'checkout_instructions',
     label: 'Consignes de départ',
     placeholder: 'Merci de vider le frigo, lancer le lave-vaisselle, fermer les volets et déposer les clés dans la boîte à l’entrée.',
@@ -830,43 +811,6 @@ function PracticalInfoCard({
               <p className="text-right text-[11px] font-medium text-gray-400">
                 {value.length}/{section.maxLength}
               </p>
-
-              {section.key === 'parking_info' && (
-                <div className="space-y-3 rounded-2xl border border-gray-100 bg-gray-50/60 p-4">
-                  <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                    Photo du parking (optionnelle)
-                  </Label>
-                  <ImageUpload
-                    endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
-                    onUploaded={url => setPracticalField('parking_photo_url', url)}
-                    label="Téléverser une photo"
-                  />
-                  {practicalInfo.parking_photo_url && practicalInfo.parking_photo_url.trim() !== '' && (
-                    <div className="flex items-center gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={practicalInfo.parking_photo_url}
-                        alt="Aperçu photo du parking"
-                        referrerPolicy="no-referrer"
-                        className="h-16 w-24 rounded-lg object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setPracticalField('parking_photo_url', '')}
-                        className="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-red-500"
-                      >
-                        Retirer la photo
-                      </button>
-                    </div>
-                  )}
-                  <YouTubeUrlField
-                    id="practical-parking_video_url"
-                    label="Vidéo du parking (lien YouTube)"
-                    value={practicalInfo.parking_video_url}
-                    onChange={url => setPracticalField('parking_video_url', url ?? '')}
-                  />
-                </div>
-              )}
             </div>
             </Fragment>
           )
