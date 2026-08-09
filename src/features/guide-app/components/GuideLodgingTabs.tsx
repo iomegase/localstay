@@ -1,4 +1,4 @@
-import { KeyRound, LogOut, ScrollText, Wifi } from 'lucide-react'
+import { HousePlug, KeyRound, LogOut, Wifi } from 'lucide-react'
 import type { GuideView } from '@/features/guide-app/types'
 
 type LodgingSubView = Extract<GuideView, 'arrival' | 'practical' | 'rules' | 'departure'>
@@ -6,7 +6,7 @@ type LodgingSubView = Extract<GuideView, 'arrival' | 'practical' | 'rules' | 'de
 const TABS: { view: LodgingSubView; label: string; icon: typeof KeyRound }[] = [
   { view: 'arrival', label: 'Accès', icon: KeyRound },
   { view: 'practical', label: 'Infos', icon: Wifi },
-  { view: 'rules', label: 'Consignes', icon: ScrollText },
+  { view: 'rules', label: 'Équipements', icon: HousePlug },
   { view: 'departure', label: 'Départ', icon: LogOut },
 ]
 

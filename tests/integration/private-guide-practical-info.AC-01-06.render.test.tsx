@@ -74,14 +74,33 @@ describe('038 AC — practical view: emergencies, useful numbers', () => {
   })
 })
 
-describe('practical block cards live in Consignes, not in Informations pratiques', () => {
+describe('practical block cards live in Équipements, not in Informations pratiques', () => {
   const blocks = [
     { id: 'c1', title: 'Écran de cinéma', description: 'attention', icon: 'tv' },
   ]
 
-  it('shows the block cards in the Consignes (rules) view', () => {
+  it('shows the block cards in the Équipements (rules) view', () => {
     renderView('rules', { practicalCards: blocks })
     expect(screen.getByText('Écran de cinéma')).toBeInTheDocument()
+  })
+
+  it('expands equipment descriptions under the icon column', () => {
+    renderView('rules', {
+      practicalCards: [
+        {
+          id: 'c1',
+          title: 'Climatisation',
+          description: 'L’appartement est équipé d’une climatisation réversible.',
+          icon: 'air-vent',
+        },
+      ],
+    })
+
+    const contentWrapper = screen
+      .getByText('L’appartement est équipé d’une climatisation réversible.')
+      .closest('div')
+
+    expect(contentWrapper).toHaveClass('mt-3', 'pl-12')
   })
 
   it('no longer shows the block cards in Informations pratiques', () => {
@@ -90,14 +109,14 @@ describe('practical block cards live in Consignes, not in Informations pratiques
   })
 })
 
-describe('Consignes du logement view (rules)', () => {
+describe('Équipements view (rules)', () => {
   it('lists the house rules', () => {
     renderView('rules', {
       houseRules: ['Non-fumeur', 'Animaux sur demande'],
     })
 
     expect(
-      screen.getByRole('heading', { name: 'Consignes du logement' }),
+      screen.getByRole('heading', { name: 'Les Équipements' }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Règlement intérieur' }),
@@ -137,10 +156,10 @@ describe('arrival view (Bienvenue)', () => {
 })
 
 describe('lodging hub navigation', () => {
-  it('routes the "Consignes du logement" link to the rules view', () => {
+  it('routes the "Équipements" link to the rules view', () => {
     const onNavigate = renderView('lodging')
 
-    fireEvent.click(screen.getByRole('button', { name: /Consignes du logement/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Équipements/i }))
 
     expect(onNavigate).toHaveBeenCalledWith('rules')
   })

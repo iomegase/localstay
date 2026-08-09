@@ -85,7 +85,8 @@ dupliquer son interface et sans modifier les pages enfants historiques.
 - **BR-07**: La vue interne `rules` est présentée au Tourist sous le libellé
   `Équipements`. La carte du hub affiche le nombre de blocs pratiques avec la
   forme `1 équipement` au singulier et `N équipements` dans tous les autres
-  cas. La route `/sejour/logement/consignes` reste inchangée.
+  cas. L'icône Lucide `HousePlug` identifie cette vue dans l'onglet, la carte du
+  hub et l'en-tête. La route `/sejour/logement/consignes` reste inchangée.
 
 ## Data Model
 

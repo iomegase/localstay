@@ -6,14 +6,14 @@ import { GuideLodgingTabs } from '@/features/guide-app/components/GuideLodgingTa
 describe('GuideLodgingTabs', () => {
   it('renders the four category pills', () => {
     render(<GuideLodgingTabs view="arrival" onNavigate={() => {}} />)
-    for (const label of ['Accès', 'Infos', 'Consignes', 'Départ']) {
+    for (const label of ['Accès', 'Infos', 'Équipements', 'Départ']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
     }
   })
 
   it('marks the pill matching the current view as current', () => {
     render(<GuideLodgingTabs view="rules" onNavigate={() => {}} />)
-    expect(screen.getByRole('button', { name: 'Consignes' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Équipements' })).toHaveAttribute(
       'aria-current',
       'page',
     )

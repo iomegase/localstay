@@ -5,6 +5,7 @@ import {
   Clock3,
   Copy,
   DoorOpen,
+  HousePlug,
   Info,
   KeyRound,
   ListOrdered,
@@ -48,6 +49,10 @@ const cardClass =
 
 const navyCardClass =
   'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
+
+function equipmentCountLabel(count: number): string {
+  return `${count} équipement${count === 1 ? '' : 's'}`
+}
 
 /** Lien du point de tri : URL directe si déjà un lien, sinon recherche Google Maps. */
 function trashLocationHref(location: string): string {
@@ -114,7 +119,7 @@ export function GuideLodgingViews({
     return (
       <GuideSubPage
         eyebrow="Avant de partir"
-        title={`Départ avant ${lodging.checkOut}`}
+        title="Checklist du départ"
         icon={LogOut}
         view="departure"
         onNavigate={onNavigate}
@@ -130,8 +135,8 @@ export function GuideLodgingViews({
     return (
       <GuideSubPage
         eyebrow="Le nécessaire"
-        title="Consignes du logement"
-        icon={ScrollText}
+        title="Les Équipements"
+        icon={HousePlug}
         view="rules"
         onNavigate={onNavigate}
       >
@@ -141,11 +146,11 @@ export function GuideLodgingViews({
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
                 <ScrollText className="h-5 w-5" />
               </span>
-              <h2 className="text-sm font-semibold text-white">Règlement intérieur</h2>
+              <h2 className="text-sm font-semibold text-white tracking-wide">Règlement intérieur</h2>
             </div>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-4">
               {lodging.houseRules.map(rule => (
-                <li key={rule} className="flex items-center gap-2 text-xs leading-5 text-white/70">
+                <li key={rule} className="flex items-center gap-2 text-xs tracking-wider leading-5 text-white/90">
                   <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
                   <span>{inlineMarkdown(rule)}</span>
                 </li>
@@ -303,9 +308,9 @@ export function GuideLodgingViews({
           onClick={() => onNavigate('practical')}
         />
         <GuideLink
-          icon={ScrollText}
-          title="Consignes du logement"
-          copy={`${lodging.houseRules.length} règles`}
+          icon={HousePlug}
+          title="Équipements"
+          copy={equipmentCountLabel(lodging.practicalCards.length)}
           onClick={() => onNavigate('rules')}
         />
         <GuideLink
@@ -591,14 +596,12 @@ function InfoCard({
         >
           <Icon className="h-4 w-4" />
         </span>
-        <div>
-          <h2 className={`text-sm font-semibold leading-9 ${navy ? 'text-white' : 'text-slate-900'}`}>
-            {title}
-          </h2>
-          <div className="mt-1">
-            <GuideDarkMarkdown source={description} />
-          </div>
-        </div>
+        <h2 className={`text-sm font-semibold leading-9 ${navy ? 'text-white' : 'text-slate-900'}`}>
+          {title}
+        </h2>
+      </div>
+      <div className="mt-3 pl-12">
+        <GuideDarkMarkdown source={description} />
       </div>
     </article>
   )

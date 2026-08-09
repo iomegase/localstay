@@ -32,18 +32,24 @@ export function DepartureChecklist({ items }: { items: string[] }) {
   }
 
   return (
-    <div>
-      <div className="flex items-start justify-between gap-4">
+    <div className="tracking-wide">
+
+      <div className="flex items-center justify-between gap-4 ">
+
         <div className="min-w-0">
-          <p className="text-base font-semibold text-white">Avant votre départ</p>
-          <p className="mt-1 text-center text-xs leading-5 text-white/60">
+          <div className="flex items-center gap-2">
+  <p className="text-base font-semibold text-white">Avant votre départ</p>
+  <span className="shrink-0 text-xs font-bold text-pink-400">
+          {checked.size} / {tasks.length}
+        </span>
+            </div>
+
+          <p className="mt-1 text-center py-4 text-xs leading-5 text-white/100 tracking-wider">
             Afin de faciliter la préparation du logement pour les prochains
             voyageurs, nous vous remercions de bien vouloir&nbsp;:
           </p>
         </div>
-        <span className="shrink-0 text-xs font-bold text-pink-400">
-          {checked.size} / {tasks.length}
-        </span>
+
       </div>
       <progress
         aria-label="Progression des consignes de départ"
@@ -56,7 +62,7 @@ export function DepartureChecklist({ items }: { items: string[] }) {
         {tasks.map((item, index) => (
           <label
             key={`${item}-${index}`}
-            className="flex cursor-pointer items-center gap-3 py-3 text-sm text-white/80"
+            className="flex cursor-pointer items-center font-light gap-3 py-3 text-xs tracking-widest leading-4 text-white"
           >
             <input
               type="checkbox"
@@ -67,13 +73,13 @@ export function DepartureChecklist({ items }: { items: string[] }) {
             <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md border border-white/30 text-transparent transition-colors peer-checked:border-pink-600 peer-checked:text-pink-600">
               <Check className="h-3.5 w-3.5" />
             </span>
-            <span className="peer-checked:text-white/40 peer-checked:line-through">
+            <span className="peer-checked:text-white/60 peer-checked:line-through">
               {item}
             </span>
           </label>
         ))}
       </div>
-      <p className="mt-4 border-t border-white/10 pt-4 text-center text-xs leading-5 text-white/60">
+      <p className="mt-4 border-t border-white/10 pt-4 text-center tracking-wider text-xs leading-5 text-white">
         Merci pour votre séjour et votre attention. Nous vous souhaitons un
         excellent retour&nbsp;!
       </p>
