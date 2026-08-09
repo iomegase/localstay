@@ -48,9 +48,9 @@ dupliquer son interface et sans modifier les pages enfants historiques.
 - **AC-01-02**: Given la page affichée, Then elle reprend le header MyStay, deux
   cartes Arrivée/Départ, quatre cartes d'accès bleu nuit et la navigation basse
   de la démonstration, avec l'onglet Guide actif.
-- **AC-01-03**: Given les données du Lodging, Then les heures, le nombre
-  d'équipements et le nombre de règles affichés proviennent du modèle privé
-  adapté et aucune donnée de démonstration n'est chargée.
+- **AC-01-03**: Given les données du Lodging, Then les heures et le nombre
+  d'équipements affichés proviennent du modèle privé adapté et aucune donnée de
+  démonstration n'est chargée.
 - **AC-01-04**: Given aucun séjour valide, When la route est demandée, Then
   l'écran d'accès réservé est utilisé avant tout chargement de données privées.
 
@@ -66,7 +66,7 @@ dupliquer son interface et sans modifier les pages enfants historiques.
   l'onglet Guide est activé, Then la destination est `/sejour/logement`.
 - **AC-02-02**: Given le menu privé, When « Livret d'accueil » est activé, Then
   la destination est `/sejour/logement`.
-- **AC-02-03**: Given un accès Arrivée, Informations pratiques, Consignes ou
+- **AC-02-03**: Given un accès Arrivée, Informations pratiques, Équipements ou
   Départ, Then la fonctionnalité historique correspondante reste accessible
   jusqu'à la migration de chaque page enfant.
 
@@ -82,6 +82,10 @@ dupliquer son interface et sans modifier les pages enfants historiques.
 - **BR-05**: Les routes enfants historiques restent actives pendant cet
   incrément pour éviter toute régression avant leur migration.
 - **BR-06**: Aucune migration Prisma, API ou modification du contrôle d'accès.
+- **BR-07**: La vue interne `rules` est présentée au Tourist sous le libellé
+  `Équipements`. La carte du hub affiche le nombre de blocs pratiques avec la
+  forme `1 équipement` au singulier et `N équipements` dans tous les autres
+  cas. La route `/sejour/logement/consignes` reste inchangée.
 
 ## Data Model
 
@@ -97,7 +101,7 @@ Aucune nouvelle API. La route est un Server Component privé.
 - Header MyStay et menu partagé.
 - Rangée de deux cartes blanches arrondies : `Arrivée` et `Départ`.
 - Quatre cartes bleu nuit : `Accéder au logement`, `Informations pratiques`,
-  `Consignes du logement`, `Préparer le départ`.
+  `Équipements`, `Préparer le départ`.
 - Icônes circulaires roses, flèche à droite, ombre et espacements identiques à
   la démonstration.
 - Navigation basse : onglet `Guide` actif.
@@ -114,10 +118,11 @@ Aucune nouvelle API. La route est un Server Component privé.
 | AC-02-01 | integration |
 | AC-02-02 | integration |
 | AC-02-03 | regression |
+| BR-07 | unit + integration |
 
 ## Out of Scope
 
-- Migration des pages Arrivée, Informations pratiques, Consignes et Départ.
+- Migration des pages Arrivée, Informations pratiques, Équipements et Départ.
 - Refonte du contenu ou ajout de nouvelles données logement.
 - Suppression immédiate de `/le-logement`.
 
