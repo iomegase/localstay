@@ -18,11 +18,13 @@ logement.
 - L'onglet du livret affiche `Équipements` à la place de `Consignes`.
 - La carte du hub logement affiche `Équipements` à la place de
   `Consignes du logement`.
+- L'icône Lucide `HousePlug` remplace `ScrollText` dans l'onglet, la carte du
+  hub et l'en-tête de la sous-page Équipements.
 - Son sous-texte affiche `0 équipements`, `1 équipement` ou `N équipements`
   selon `lodging.practicalCards.length`.
 - Le titre principal de la sous-page reste `Les Équipements`.
 - Le titre `Règlement intérieur` et son contenu restent inchangés.
-- Les icônes, couleurs, espacements et interactions existants sont conservés.
+- Les couleurs, espacements et interactions existants sont conservés.
 
 ## Architecture et compatibilité
 
@@ -43,6 +45,7 @@ la valeur `1`.
 Les tests vérifient :
 
 - le libellé `Équipements` dans l'onglet ;
+- l'icône `HousePlug` sur les trois surfaces Équipements ;
 - le titre `Équipements` de la carte du hub ;
 - le compteur basé sur les blocs pratiques et sa pluralisation ;
 - la navigation inchangée vers la vue interne `rules` ;
@@ -53,5 +56,5 @@ Les tests vérifient :
 - renommage de la route `/sejour/logement/consignes` ;
 - renommage du type technique `rules` ;
 - modification du règlement intérieur ;
-- changement d'icône ou de disposition ;
+- changement de disposition ;
 - modification des blocs pratiques ou de leur ordre.
