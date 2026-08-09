@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Remplacer les libellés visibles `Consignes` par `Équipements` et afficher le nombre de blocs pratiques sur le hub du guide privé.
+**Goal:** Remplacer les libellés visibles `Consignes` par `Équipements`, afficher le nombre de blocs pratiques et utiliser l'icône `HousePlug` sur les surfaces concernées.
 
-**Architecture:** Conserver la vue interne `rules` et la route `/sejour/logement/consignes`, puis modifier uniquement les libellés de `GuideLodgingTabs` et `GuideLodgingViews`. Le compteur utilise `lodging.practicalCards.length` avec une pluralisation locale, sans modifier les données ni le routage.
+**Architecture:** Conserver la vue interne `rules` et la route `/sejour/logement/consignes`, puis modifier les libellés et icônes de `GuideLodgingTabs` et `GuideLodgingViews`. Le compteur utilise `lodging.practicalCards.length` avec une pluralisation locale, sans modifier les données ni le routage.
 
 **Tech Stack:** Next.js 16, TypeScript, React, Tailwind CSS, Jest, Testing Library.
 
@@ -27,7 +27,8 @@ Ajouter après BR-06 :
 - **BR-07**: La vue interne `rules` est présentée au Tourist sous le libellé
   `Équipements`. La carte du hub affiche le nombre de blocs pratiques avec la
   forme `1 équipement` au singulier et `N équipements` dans tous les autres
-  cas. La route `/sejour/logement/consignes` reste inchangée.
+  cas. L'icône Lucide `HousePlug` identifie cette vue dans l'onglet, la carte du
+  hub et l'en-tête. La route `/sejour/logement/consignes` reste inchangée.
 ```
 
 - [ ] **Step 2: Ajouter BR-07 à la table des tests**
@@ -74,6 +75,7 @@ describe('036 BR-07 — libellés Équipements', () => {
 
     const equipmentTab = screen.getByRole('button', { name: 'Équipements' })
     expect(equipmentTab).toHaveAttribute('aria-current', 'page')
+    expect(equipmentTab.querySelector('.lucide-house-plug')).toBeInTheDocument()
     fireEvent.click(equipmentTab)
     expect(onNavigate).toHaveBeenCalledWith('rules')
   })
@@ -104,6 +106,7 @@ describe('036 BR-07 — libellés Équipements', () => {
     const equipmentLink = screen.getByRole('button', {
       name: new RegExp(`Équipements.*${label}`, 'i'),
     })
+    expect(equipmentLink.querySelector('.lucide-house-plug')).toBeInTheDocument()
     expect(screen.queryByText('3 règles')).not.toBeInTheDocument()
     fireEvent.click(equipmentLink)
     expect(onNavigate).toHaveBeenCalledWith('rules')
@@ -115,6 +118,17 @@ describe('036 BR-07 — libellés Équipements', () => {
       'utf8',
     )
     expect(source).toContain("rules: '/sejour/logement/consignes'")
+  })
+
+  it('uses HousePlug in the equipment page header', () => {
+    const { container } = render(
+      <GuideLodgingViews
+        view="rules"
+        lodging={{ ...demoLodging, houseRules: [], practicalCards: [] }}
+        onNavigate={jest.fn()}
+      />,
+    )
+    expect(container.querySelectorAll('.lucide-house-plug')).toHaveLength(2)
   })
 })
 ```
@@ -130,7 +144,7 @@ npm test -- --runInBand tests/unit/guide-app.equipment-labels.test.tsx
 Expected: FAIL car l'onglet et la carte utilisent encore `Consignes`, et le
 compteur lit encore `houseRules.length`.
 
-### Task 3: Implémenter les libellés et le compteur
+### Task 3: Implémenter les libellés, l'icône et le compteur
 
 **Files:**
 - Modify: `src/features/guide-app/components/GuideLodgingTabs.tsx`
@@ -142,15 +156,17 @@ compteur lit encore `houseRules.length`.
 
 - [ ] **Step 1: Renommer l'onglet visible**
 
-Dans `GuideLodgingTabs.tsx` :
+Dans `GuideLodgingTabs.tsx`, importer `HousePlug` à la place de `ScrollText`,
+puis utiliser :
 
 ```tsx
-{ view: 'rules', label: 'Équipements', icon: ScrollText },
+{ view: 'rules', label: 'Équipements', icon: HousePlug },
 ```
 
-- [ ] **Step 2: Renommer la carte et calculer son compteur**
+- [ ] **Step 2: Renommer la carte, remplacer son icône et calculer son compteur**
 
-Ajouter dans `GuideLodgingViews.tsx` :
+Dans `GuideLodgingViews.tsx`, importer `HousePlug` en conservant `ScrollText`
+pour le règlement intérieur, puis ajouter :
 
 ```tsx
 function equipmentCountLabel(count: number): string {
@@ -162,7 +178,7 @@ Puis utiliser :
 
 ```tsx
 <GuideLink
-  icon={ScrollText}
+  icon={HousePlug}
   title="Équipements"
   copy={equipmentCountLabel(lodging.practicalCards.length)}
   onClick={() => onNavigate('rules')}
@@ -173,6 +189,7 @@ Conserver le titre local déjà présent :
 
 ```tsx
 title="Les Équipements"
+icon={HousePlug}
 ```
 
 - [ ] **Step 3: Aligner les tests historiques visibles**
