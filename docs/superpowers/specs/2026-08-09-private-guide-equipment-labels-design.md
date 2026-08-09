@@ -18,7 +18,7 @@ logement.
 - L'onglet du livret affiche `Équipements` à la place de `Consignes`.
 - La carte du hub logement affiche `Équipements` à la place de
   `Consignes du logement`.
-- Son sous-texte affiche `0 équipement`, `1 équipement` ou `N équipements`
+- Son sous-texte affiche `0 équipements`, `1 équipement` ou `N équipements`
   selon `lodging.practicalCards.length`.
 - Le titre principal de la sous-page reste `Les Équipements`.
 - Le titre `Règlement intérieur` et son contenu restent inchangés.
