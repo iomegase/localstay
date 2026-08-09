@@ -5,7 +5,7 @@ import { Eye, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 import { extractYouTubeId } from '@/shared/lib/youtube'
-import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
+import { GuideDarkMarkdown } from '@/features/guide-app/components/GuideDarkMarkdown'
 
 type Props = {
   icon: LucideIcon
@@ -49,9 +49,9 @@ export function PracticalMediaCard({
         </span>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-white/60">
-            {inlineMarkdown(description)}
-          </p>
+          <div className="mt-1">
+            <GuideDarkMarkdown source={description} />
+          </div>
         </div>
       </div>
 

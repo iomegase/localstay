@@ -25,6 +25,7 @@ import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { PracticalMediaCard } from '@/features/guide-app/components/PracticalMediaCard'
 import { ArrivalInstructionCard } from '@/features/guide-app/components/ArrivalInstructionCard'
 import { DepartureChecklist } from '@/features/guide-app/components/DepartureChecklist'
+import { GuideDarkMarkdown } from '@/features/guide-app/components/GuideDarkMarkdown'
 import { GuideLodgingTabs } from '@/features/guide-app/components/GuideLodgingTabs'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
@@ -483,7 +484,9 @@ function WasteCard({
         </span>
         <div>
           <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-white/60">{inlineMarkdown(description)}</p>
+          <div className="mt-1">
+            <GuideDarkMarkdown source={description} />
+          </div>
         </div>
       </div>
       <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
@@ -534,7 +537,9 @@ function ContactCard({
         </span>
         <div>
           <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-white/60">{inlineMarkdown(description)}</p>
+          <div className="mt-1">
+            <GuideDarkMarkdown source={description} />
+          </div>
         </div>
       </div>
       <a
@@ -590,9 +595,9 @@ function InfoCard({
           <h2 className={`text-sm font-semibold leading-9 ${navy ? 'text-white' : 'text-slate-900'}`}>
             {title}
           </h2>
-          <p className={`mt-1 text-xs leading-5 ${navy ? 'text-white/60' : 'text-slate-500'}`}>
-            {description}
-          </p>
+          <div className="mt-1">
+            <GuideDarkMarkdown source={description} />
+          </div>
         </div>
       </div>
     </article>
