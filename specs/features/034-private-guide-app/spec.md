@@ -65,8 +65,9 @@ les routes privées historiques existantes.
   contrôle d'accès privé existant affiche l'écran d'accès réservé sans charger
   de données de logement.
 - **AC-01-03**: Given la home privée, When elle s'affiche à 375 px, Then elle
-  conserve le header MyStay, le menu, le titre de bienvenue, trois accès rapides
-  et la navigation basse sans débordement horizontal.
+  conserve le header MyStay, le titre de bienvenue, trois accès rapides et la
+  navigation basse sans débordement horizontal. En production, le bouton menu
+  est absent ; hors production, il reste disponible pour les vérifications.
 - **AC-01-04**: Given la home privée, When le Tourist active « Explorer », Then
   il atteint temporairement `/nos-recommandations`. When il active « Découvrir
   le livret d'accueil », Then il atteint temporairement `/le-logement`.
@@ -132,6 +133,10 @@ les routes privées historiques existantes.
   `/sejour` appartient à l'incrément `/sejour/coups-de-coeur`.
 - **BR-12**: La largeur privée historique reste limitée à 430 px hors modal de
   démonstration. Aucun `zoom` ni `transform: scale()` n'est autorisé.
+- **BR-13**: Dans le `GuideApp` partagé par le guide privé et le guide démo, le
+  bouton burger et `GuideMenuOverlay` ne sont pas rendus lorsque
+  `NODE_ENV === 'production'`. Ils restent disponibles hors production. Les
+  autres menus publics ne sont pas concernés.
 
 ## Data Model
 
@@ -177,7 +182,8 @@ des specs 001, 004, 005, 012 et 021 restent inchangés.
 ### Page `/sejour`
 
 - Surface mobile privée `max-w-[430px]`, hauteur dynamique et fond blanc.
-- Header partagé : logo MyStay approuvé, ville et bouton du nouveau menu.
+- Header partagé : logo MyStay approuvé ; le bouton menu est rendu uniquement
+  hors production.
 - Titre : `Bienvenue au {nom du logement sans article initial}`.
 - CTA 1 : `Explorer {ville courte}` avec le nombre de recommandations réelles ;
   destination temporaire `/nos-recommandations` vers la vue historique.
