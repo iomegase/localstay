@@ -150,7 +150,7 @@ export function GuideLodgingViews({
             </div>
             <ul className="mt-4 space-y-4">
               {lodging.houseRules.map(rule => (
-                <li key={rule} className="flex items-center gap-2 text-xs tracking-wider leading-5 text-white/90">
+                <li key={rule} className="flex items-center gap-2 text-xs tracking-wide leading-5 text-white/90">
                   <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
                   <span>{inlineMarkdown(rule)}</span>
                 </li>
