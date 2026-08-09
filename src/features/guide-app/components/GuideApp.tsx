@@ -27,6 +27,7 @@ import type {
   GuideRouteMap,
   GuideView,
 } from '@/features/guide-app/types'
+import { isGuideMenuEnabled } from '@/features/guide-app/lib/guide-menu-visibility'
 
 const GuideMapView = dynamic(
   () => import('./GuideMapView').then(module => module.GuideMapView),
@@ -51,6 +52,7 @@ type GuideAppProps = {
   lodgings?: GuideLodgingCard[]
   blogPosts?: GuideBlogPost[]
   contact?: GuideContactInfo
+  menuEnabled?: boolean
 }
 
 export function GuideApp(props: GuideAppProps) {
@@ -96,6 +98,7 @@ function GuideAppShell({
   lodgings,
   blogPosts,
   contact,
+  menuEnabled = isGuideMenuEnabled(),
   onOpenRoute,
   onStartTrail,
 }: GuideAppProps & {
@@ -201,6 +204,7 @@ function GuideAppShell({
           city={lodging.city}
           onOpenHome={() => navigate('home')}
           onOpenMenu={() => setMenuOpen(true)}
+          menuEnabled={menuEnabled}
         />
       )}
 
@@ -280,13 +284,15 @@ function GuideAppShell({
         />
       )}
 
-      <GuideMenuOverlay
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onNavigate={navigate}
-        lodgingName={lodging.name}
-        items={menuItems}
-      />
+      {menuEnabled ? (
+        <GuideMenuOverlay
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          onNavigate={navigate}
+          lodgingName={lodging.name}
+          items={menuItems}
+        />
+      ) : null}
     </div>
   )
 }
