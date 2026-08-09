@@ -115,6 +115,10 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
   `Skis` (`mountain-snow`) et `Terrasse` (`umbrella`). Ces slugs Lucide sont
   acceptés par la validation API et rendus dans le dashboard Owner comme dans
   le guide privé.
+- **BR-23**: Dans la page privée `Consignes du logement`, la description de
+  chaque bloc pratique est rendue avec le moteur Markdown sécurisé du guide,
+  pour toutes les variantes de carte (standard, média, téléphone et
+  recyclage). Le titre reste du texte simple et le HTML brut est ignoré.
 
 ---
 
@@ -489,6 +493,7 @@ components:
 | BR-20 | Message de bienvenue conservé côté données mais absent du rendu de `/le-logement` | integration |
 | BR-21 | Récapitulatif limité aux horaires ; Wi-Fi rendu uniquement dans sa carte détaillée | integration |
 | BR-22 | Catalogue d'icônes d'équipements disponible et sélectionnable | unit |
+| BR-23 | Markdown rendu dans toutes les variantes de blocs pratiques privés | unit |
 | BR-07 | Owner isolation sur GET/PUT customization | contract |
 | BR-08/09 | Bucketing local/inter-ville sans étendre les listes du Guide | unit |
 | BR-10 | Catégories invalides isolées et non sauvegardées | unit |
