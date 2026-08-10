@@ -1316,6 +1316,7 @@ model LodgingArrivalInstruction {
 
   lodging_id String
   lodging    Lodging @relation(fields: [lodging_id], references: [id])
+  title      String?
   text       String
   video_url  String?
   photos     String[]

@@ -142,6 +142,7 @@ export function normalizePracticalBlocks(
 }
 
 export interface NormalizedArrivalInstruction {
+  title: string | null
   text: string
   video_url: string | null
   photos: string[]
@@ -164,6 +165,7 @@ export function normalizeArrivalInstructions(
   return instructions
     .filter(instruction => clean(instruction.text) !== null)
     .map((instruction, index) => ({
+      title: clean(instruction.title),
       text: clean(instruction.text) as string,
       video_url: clean(instruction.video_url),
       photos: (instruction.photos ?? [])

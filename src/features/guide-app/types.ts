@@ -152,6 +152,7 @@ export type GuideUsefulNumber = {
 }
 
 export type GuideArrivalInstruction = {
+  title?: string | null
   text: string
   videoUrl: string | null
   photos: string[]

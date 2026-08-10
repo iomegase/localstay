@@ -41,7 +41,7 @@ describe('saveLodgingCustomization — arrival instructions', () => {
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([
-      { id: 'i1', text: 'Ouvrez le portail', video_url: null, photos: ['a.jpg'], sort_order: 0 },
+      { id: 'i1', title: null, text: 'Ouvrez le portail', video_url: null, photos: ['a.jpg'], sort_order: 0 },
     ] as never)
   })
 
@@ -63,6 +63,7 @@ describe('saveLodgingCustomization — arrival instructions', () => {
       data: [
         {
           lodging_id: 'lodging-1',
+          title: null,
           text: 'Ouvrez le portail',
           video_url: null,
           photos: ['a.jpg'],
@@ -71,7 +72,7 @@ describe('saveLodgingCustomization — arrival instructions', () => {
       ],
     })
     expect(result.arrival_instructions).toEqual([
-      { id: 'i1', text: 'Ouvrez le portail', video_url: null, photos: ['a.jpg'], sort_order: 0 },
+      { id: 'i1', title: null, text: 'Ouvrez le portail', video_url: null, photos: ['a.jpg'], sort_order: 0 },
     ])
   })
 })

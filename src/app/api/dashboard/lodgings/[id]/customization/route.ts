@@ -90,6 +90,13 @@ const practicalBlockSchema = z.object({
 
 const arrivalInstructionSchema = z.object({
   id: z.string().optional(),
+  title: z
+    .string()
+    .trim()
+    .max(120, "Le titre de l'étape doit faire 120 caractères maximum.")
+    .nullable()
+    .optional()
+    .transform(value => (value && value.trim().length > 0 ? value.trim() : null)),
   text: z
     .string()
     .trim()

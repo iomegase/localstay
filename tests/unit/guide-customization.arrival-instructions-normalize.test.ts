@@ -1,11 +1,12 @@
 import { normalizeArrivalInstructions } from '@/features/guide-customization/lib/validation'
 
 describe('normalizeArrivalInstructions', () => {
-  it('drops instructions without text, trims, cleans photos and reindexes order', () => {
+  it('drops instructions without text, trims title, cleans photos and reindexes order', () => {
     expect(
       normalizeArrivalInstructions([
-        { text: '   ', video_url: null, photos: [], sort_order: 0 },
+        { title: '   ', text: '   ', video_url: null, photos: [], sort_order: 0 },
         {
+          title: '  Bienvenue à la Pieuca  ',
           text: '  Ouvrez le portail avec le badge  ',
           video_url: '  https://youtu.be/abc  ',
           photos: ['  a.jpg ', '', 'b.jpg'],
@@ -14,6 +15,7 @@ describe('normalizeArrivalInstructions', () => {
       ]),
     ).toEqual([
       {
+        title: 'Bienvenue à la Pieuca',
         text: 'Ouvrez le portail avec le badge',
         video_url: 'https://youtu.be/abc',
         photos: ['a.jpg', 'b.jpg'],

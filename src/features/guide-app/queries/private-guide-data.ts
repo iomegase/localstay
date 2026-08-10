@@ -56,7 +56,7 @@ export async function getPrivateGuideData(
       arrival_instructions: {
         where: { deleted_at: null },
         orderBy: { sort_order: 'asc' },
-        select: { text: true, video_url: true, photos: true },
+        select: { title: true, text: true, video_url: true, photos: true },
       },
     },
   })
@@ -131,6 +131,7 @@ export async function getPrivateGuideData(
       wifiName: customization?.wifi_ssid ?? '',
       wifiPassword: customization?.wifi_password ?? '',
       arrivalInstructions: lodging.arrival_instructions.map(instruction => ({
+        title: instruction.title,
         text: instruction.text,
         videoUrl: instruction.video_url,
         photos: instruction.photos,

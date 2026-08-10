@@ -45,6 +45,7 @@ export interface PracticalBlockResponse {
 
 export interface ArrivalInstructionInput {
   id?: string
+  title?: string | null
   text: string
   video_url: string | null
   photos: string[]
@@ -53,6 +54,7 @@ export interface ArrivalInstructionInput {
 
 export interface ArrivalInstructionResponse {
   id: string
+  title: string | null
   text: string
   video_url: string | null
   photos: string[]

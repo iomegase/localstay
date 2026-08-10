@@ -12,9 +12,17 @@ type Lightbox =
   | { kind: 'video' }
   | null
 
-function splitInstructionText(source: string, index: number): { title: string; body: string } {
+function splitInstructionText(
+  source: string,
+  index: number,
+  overrideTitle?: string | null,
+): { title: string; body: string } {
   const normalized = source.replace(/^(#{1,3})(?!#)(?=\S)/, '$1 ')
   const heading = normalized.match(/^\s*#{1,3}\s+(.+?)\s*(?:\r?\n|$)/)
+
+  if (overrideTitle && overrideTitle.trim().length > 0) {
+    return { title: overrideTitle.trim(), body: source }
+  }
 
   if (!heading) {
     return { title: `Instruction ${index + 1}`, body: source }
@@ -38,7 +46,7 @@ export function ArrivalInstructionCard({
   const videoId = instruction.videoUrl
     ? extractYouTubeId(instruction.videoUrl)
     : null
-  const { title, body } = splitInstructionText(instruction.text, index)
+  const { title, body } = splitInstructionText(instruction.text, index, instruction.title)
 
   return (
     <div className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]">
@@ -46,7 +54,7 @@ export function ArrivalInstructionCard({
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
           {index + 1}
         </span>
-        <h3 className="min-w-0 text-sm font-bold uppercase tracking-[0.14em] text-white">
+        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-white">
           {title}
         </h3>
       </div>

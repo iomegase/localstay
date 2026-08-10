@@ -274,7 +274,7 @@ export async function getLodgingCustomization(
   const arrivalInstructions = await prisma.lodgingArrivalInstruction.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, text: true, video_url: true, photos: true, sort_order: true },
+    select: { id: true, title: true, text: true, video_url: true, photos: true, sort_order: true },
   })
 
   return {
@@ -420,6 +420,7 @@ export async function saveLodgingCustomization(
       await tx.lodgingArrivalInstruction.createMany({
         data: arrivalInstructions.map(instruction => ({
           lodging_id: lodgingId,
+          title: instruction.title,
           text: instruction.text,
           video_url: instruction.video_url,
           photos: instruction.photos,
@@ -438,7 +439,7 @@ export async function saveLodgingCustomization(
   const savedInstructions = await prisma.lodgingArrivalInstruction.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, text: true, video_url: true, photos: true, sort_order: true },
+    select: { id: true, title: true, text: true, video_url: true, photos: true, sort_order: true },
   })
 
   return {
@@ -478,30 +479,35 @@ export async function validateFeaturedPois(
     },
   })
 
-  if (rows.length !== requestedByPoiId.size) {
-    raise('INVALID_FEATURED_POI', 'Un POI selectionne est introuvable')
-  }
+  const validRows = new Map(rows.map(row => [row.id, row]))
+  const validated = [] as Array<{
+    poi_id: string
+    category_id: string
+    owner_note: string | null
+    sort_order: number
+    city_id: string
+  }>
 
-  const validated = rows.map(row => {
-    const requested = requestedByPoiId.get(row.id)
-    if (!requested) raise('INVALID_FEATURED_POI', 'Un POI selectionne est invalide')
-    if (row.deleted_at !== null || !row.is_active) {
-      raise('INVALID_FEATURED_POI', 'Un POI selectionne est indisponible')
-    }
+  for (const [poiId, requested] of requestedByPoiId.entries()) {
+    const row = validRows.get(poiId)
+    if (!row) continue
+    if (row.deleted_at !== null || !row.is_active) continue
 
     const ownerNote = normalizeOwnerNote(requested.owner_note)
     if (ownerNote !== null && countWords(ownerNote) > OWNER_NOTE_MAX_WORDS) {
       raise('INVALID_FEATURED_POI', 'Le commentaire Owner depasse 300 mots')
     }
 
-    return {
+    validated.push({
       poi_id: row.id,
       category_id: row.category_id,
       owner_note: ownerNote,
       sort_order: requested.sort_order,
       city_id: row.city_id,
-    }
-  })
+    })
+  }
+
+  if (validated.length === 0) return []
 
   // Bucket local → max 5 par catégorie (règle inchangée).
   const localForLimit = validated
