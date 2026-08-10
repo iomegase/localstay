@@ -5,6 +5,7 @@ import type {
   GuidePoi,
   GuideView,
 } from '@/features/guide-app/types'
+import { formatFrenchWelcomeLine } from '@/shared/lib/french-place'
 
 export function GuideHome({
   lodging,
@@ -15,16 +16,16 @@ export function GuideHome({
   pois: GuidePoi[]
   onNavigate: (view: GuideView) => void
 }) {
-  const welcomeName = lodging.name.replace(/^(le|la|les|l['’])\s*/i, '')
+  const welcomeTitle = formatFrenchWelcomeLine(lodging.name)
 
   return (
     <div className="flex min-h-full flex-col gap-4 px-4 pb-36 pt-6">
       {/* Conteneur 1 — accueil, centré */}
       <div className="flex flex-1 items-center justify-center">
         <h1 className="text-center text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
-          Bienvenue
+          {welcomeTitle.split(' ').slice(0, 2).join(' ')}
           <br />
-          au {welcomeName}
+          {welcomeTitle.replace(/^Bienvenue\s+/i, '')}
         </h1>
       </div>
 

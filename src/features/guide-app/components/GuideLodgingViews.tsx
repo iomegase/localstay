@@ -74,7 +74,7 @@ export function GuideLodgingViews({
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lodging.latitude},${lodging.longitude}`
     return (
       <GuideSubPage
-        eyebrow="Votre séjour commence ici"
+        eyebrow=""
         title="Bienvenue"
         icon={DoorOpen}
         view="arrival"
