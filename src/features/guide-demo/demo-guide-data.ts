@@ -1,4 +1,8 @@
 import type { GuideLodging } from '@/features/guide-app/types'
+import {
+  FIXED_DEPARTURE_INSTRUCTIONS,
+  FIXED_HOUSE_RULES,
+} from '@/features/guide-app/lib/fixed-lodging-content'
 
 export const demoLodging: GuideLodging = {
   id: 'demo-refuge-mont-blanc',
@@ -38,18 +42,8 @@ export const demoLodging: GuideLodging = {
       photos: [],
     },
   ],
-  departureInstructions: [
-    'Libérer le logement avant 10 h.',
-    'Fermer les fenêtres et éteindre les lumières.',
-    'Déposer les déchets dans les conteneurs adaptés.',
-    'Laisser les clés à l’emplacement indiqué dans votre véritable guide.',
-  ],
-  houseRules: [
-    'Logement non-fumeur',
-    'Respecter le calme de la résidence après 22 h',
-    'Les fêtes ne sont pas autorisées',
-    'Signaler rapidement toute anomalie à la conciergerie',
-  ],
+  departureInstructions: [...FIXED_DEPARTURE_INSTRUCTIONS],
+  houseRules: [...FIXED_HOUSE_RULES],
   practicalCards: [
     {
       id: 'demo-parking',

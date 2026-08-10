@@ -2,6 +2,10 @@ import type { Prisma } from '@prisma/client'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
+import {
+  FIXED_DEPARTURE_INSTRUCTIONS,
+  FIXED_HOUSE_RULES,
+} from '@/features/guide-app/lib/fixed-lodging-content'
 import type {
   GuidePoi,
   GuideTrailSummary,
@@ -31,8 +35,6 @@ export async function getPrivateGuideData(
           lodging_longitude: true,
           wifi_ssid: true,
           wifi_password: true,
-          checkout_instructions: true,
-          house_rules: true,
           emergency_contacts: true,
           useful_services: true,
           trash_bins: true,
@@ -133,10 +135,8 @@ export async function getPrivateGuideData(
         videoUrl: instruction.video_url,
         photos: instruction.photos,
       })),
-      departureInstructions: splitContent(
-        customization?.checkout_instructions,
-      ),
-      houseRules: splitContent(customization?.house_rules),
+      departureInstructions: [...FIXED_DEPARTURE_INSTRUCTIONS],
+      houseRules: [...FIXED_HOUSE_RULES],
       practicalCards: lodging.practical_blocks.map(block => ({
         id: block.id,
         title: block.title,

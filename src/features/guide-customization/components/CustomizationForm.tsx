@@ -642,29 +642,11 @@ const PRACTICAL_SECTIONS: PracticalSection[] = [
     maxLength: 120,
   },
   {
-    key: 'checkout_instructions',
-    label: 'Consignes de départ',
-    placeholder: 'Merci de vider le frigo, lancer le lave-vaisselle, fermer les volets et déposer les clés dans la boîte à l’entrée.',
-    type: 'textarea',
-    maxLength: 4000,
-    rows: 4,
-    markdown: true,
-  },
-  {
     key: 'trash_location',
     label: 'Localisation du point de tri (adresse ou lien Google Maps)',
     placeholder: '12 rue des Alpages, Saint-Gervais — ou https://maps.app.goo.gl/abcd',
     type: 'input',
     maxLength: 500,
-  },
-  {
-    key: 'house_rules',
-    label: 'Règlement intérieur',
-    placeholder: 'Non-fumeur. Animaux acceptés sur demande. Soirées calmes après 22h.',
-    type: 'textarea',
-    maxLength: 4000,
-    rows: 4,
-    markdown: true,
   },
   // « Urgences » est désormais une carte en dur côté guide (aucune saisie).
   // Les « Numéros utiles » (ex-`useful_services`) sont édités via

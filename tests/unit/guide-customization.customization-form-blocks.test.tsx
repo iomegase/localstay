@@ -35,6 +35,29 @@ describe('CustomizationForm — practical blocks payload', () => {
     }) as jest.Mock
   })
 
+  it('does not expose fixed departure instructions or house rules', () => {
+    render(
+      <CustomizationForm
+        lodgingId="lodging-1"
+        citySlug="saint-gervais"
+        categories={[]}
+        pois={[]}
+        initialCustomization={{
+          ...baseCustomization,
+          checkout_instructions: 'Ancienne consigne',
+          house_rules: 'Ancienne règle',
+        }}
+      />,
+    )
+
+    expect(
+      screen.queryByRole('textbox', { name: 'Consignes de départ' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: 'Règlement intérieur' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('adds a block and includes practical_blocks in the PUT payload', async () => {
     const user = userEvent.setup()
     render(

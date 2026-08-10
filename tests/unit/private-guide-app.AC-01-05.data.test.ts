@@ -8,6 +8,10 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { getPrivateGuideData } from '@/features/guide-app/queries/private-guide-data'
+import {
+  FIXED_DEPARTURE_INSTRUCTIONS,
+  FIXED_HOUSE_RULES,
+} from '@/features/guide-app/lib/fixed-lodging-content'
 import { prisma } from '@/shared/lib/prisma'
 
 const lodgingFindFirst = prisma.lodging.findFirst as jest.Mock
@@ -97,7 +101,7 @@ describe('034-private-guide-app private data adapter', () => {
     )
   })
 
-  it('maps useful numbers from useful_services and house rules from house_rules', async () => {
+  it('maps useful numbers but ignores customized departure instructions and house rules', async () => {
     lodgingFindFirst.mockResolvedValue({
       id: 'lodging-1',
       name: 'Le Chalet Hygge',
@@ -110,8 +114,8 @@ describe('034-private-guide-app private data adapter', () => {
         lodging_longitude: null,
         wifi_ssid: null,
         wifi_password: null,
-        checkout_instructions: null,
-        house_rules: 'Non-fumeur\nAnimaux sur demande',
+        checkout_instructions: 'Ancienne consigne personnalisée',
+        house_rules: 'Ancienne règle personnalisée',
         emergency_contacts: 'Pompiers: 18', // ne doit PAS alimenter les numéros utiles
         useful_services: 'Office de tourisme: 04 50 47 76 08\nPharmacie: 04 50 78 12 34',
       },
@@ -126,10 +130,10 @@ describe('034-private-guide-app private data adapter', () => {
       { label: 'Office de tourisme', number: '04 50 47 76 08' },
       { label: 'Pharmacie', number: '04 50 78 12 34' },
     ])
-    expect(result?.lodging.houseRules).toEqual([
-      'Non-fumeur',
-      'Animaux sur demande',
-    ])
+    expect(result?.lodging.departureInstructions).toEqual(
+      FIXED_DEPARTURE_INSTRUCTIONS,
+    )
+    expect(result?.lodging.houseRules).toEqual(FIXED_HOUSE_RULES)
   })
 
   it('maps a practical block photo and video onto its card', async () => {

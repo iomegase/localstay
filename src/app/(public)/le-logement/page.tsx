@@ -29,6 +29,10 @@ import { getTrashBin, isTrashBinType, type TrashBin } from '@/features/guide-cus
 import { DepartureChecklist } from './_components/DepartureChecklist'
 import { WifiCredentials } from './_components/WifiCredentials'
 import { GuideAccordions, GUIDE_CARD, type GuideSection } from './_components/GuideAccordions'
+import {
+  FIXED_DEPARTURE_INSTRUCTIONS,
+  FIXED_HOUSE_RULES,
+} from '@/features/guide-app/lib/fixed-lodging-content'
 
 type PracticalBlock = {
   id: string
@@ -66,10 +70,8 @@ export default async function LeLogementPage() {
         lodging_address: true,
         wifi_ssid: true,
         wifi_password: true,
-        checkout_instructions: true,
         trash_location: true,
         trash_bins: true,
-        house_rules: true,
         emergency_contacts: true,
         useful_services: true,
       },
@@ -88,7 +90,9 @@ export default async function LeLogementPage() {
   const has = (value: string | null | undefined) => Boolean(value?.trim())
   const trashBins = parseTrashBins(customization?.trash_bins)
   const hasContent = Boolean(
-    practicalBlocks.length
+    FIXED_DEPARTURE_INSTRUCTIONS.length
+    || FIXED_HOUSE_RULES.length
+    || practicalBlocks.length
     || customization && Object.entries(customization).some(([key, value]) => key !== 'trash_bins' && has(typeof value === 'string' ? value : null))
     || trashBins.length,
   )
@@ -108,7 +112,7 @@ export default async function LeLogementPage() {
 
   const mapUrl = customization?.lodging_address ? buildMapsUrl(customization.lodging_address) : null
   const trashMapUrl = customization?.trash_location ? buildMapsUrl(customization.trash_location) : null
-  const checklistItems = extractChecklistItems(customization?.checkout_instructions)
+  const checklistItems = [...FIXED_DEPARTURE_INSTRUCTIONS]
   const hasWifi = has(customization?.wifi_ssid) || has(customization?.wifi_password)
 
   const stats: { icon: React.ReactNode; value: string; label: string }[] = []
@@ -150,13 +154,11 @@ export default async function LeLogementPage() {
   for (const block of practicalBlocks) {
     discoverContent.push(<PracticalBlockDetail key={block.id} block={block} />)
   }
-  if (customization?.house_rules) {
-    discoverContent.push(
-      <PanelDetail key="rules" icon={<ScrollText className="h-5 w-5" />} accent="blue" title="Règlement">
-        <MarkdownText source={customization.house_rules} />
-      </PanelDetail>,
-    )
-  }
+  discoverContent.push(
+    <PanelDetail key="rules" icon={<ScrollText className="h-5 w-5" />} accent="blue" title="Règlement">
+      <MarkdownText source={FIXED_HOUSE_RULES.map(rule => `- ${rule}`).join('\n')} />
+    </PanelDetail>,
+  )
   if (customization?.useful_services) {
     discoverContent.push(
       <PanelDetail key="services" icon={<Sparkles className="h-5 w-5" />} accent="orange" title="Services">
@@ -180,13 +182,11 @@ export default async function LeLogementPage() {
 
   // ─── Accordéon 4 : départ ────────────────────────────────────────────────
   const departureContent: React.ReactNode[] = []
-  if (customization?.checkout_instructions) {
-    departureContent.push(
-      <div key="departure" className={BODY}>
-        {checklistItems.length > 0 ? <DepartureChecklist items={checklistItems} /> : <MarkdownText source={customization.checkout_instructions} />}
-      </div>,
-    )
-  }
+  departureContent.push(
+    <div key="departure" className={BODY}>
+      <DepartureChecklist items={checklistItems} />
+    </div>,
+  )
   if (trashBins.length > 0 || customization?.trash_location) {
     departureContent.push(
       <PanelDetail key="trash" icon={<Trash2 className="h-5 w-5" />} accent="green" title="Poubelles">
@@ -365,11 +365,6 @@ function buildMapsUrl(value: string) {
   const trimmed = value.trim()
   if (/^https?:\/\//i.test(trimmed) && /(google\.[a-z]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(trimmed)) return trimmed
   return `https://www.google.com/maps?q=${encodeURIComponent(trimmed)}`
-}
-
-function extractChecklistItems(value: string | null | undefined) {
-  if (!value) return []
-  return value.split('\n').map(line => line.match(/^\s*[-*]\s+(.+?)\s*$/)?.[1]).filter((item): item is string => Boolean(item))
 }
 
 function parseTrashBins(value: unknown): TrashBin[] {

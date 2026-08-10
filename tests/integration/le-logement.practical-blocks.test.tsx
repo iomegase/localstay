@@ -101,7 +101,9 @@ describe('/le-logement — guide en accordéons', () => {
 
     // Le contenu de départ (checklist + tri) vit dans l'onglet Départ, pas dans Infos pratiques
     const departureAccordion = screen.getByRole('button', { name: /Départ/i }).closest('article') as HTMLElement
-    expect(within(departureAccordion).getByRole('checkbox', { name: 'Vider le réfrigérateur' })).toBeInTheDocument()
+    expect(within(departureAccordion).getByRole('checkbox', {
+      name: 'Déposer vos déchets au point de recyclage indiqué ci-dessous.',
+    })).toBeInTheDocument()
     expect(within(departureAccordion).getByRole('heading', { name: 'Poubelles' })).toBeInTheDocument()
     const practicalAccordion = screen.getByRole('button', { name: /Infos pratiques/i }).closest('article') as HTMLElement
     expect(within(practicalAccordion).queryByRole('checkbox')).not.toBeInTheDocument()
@@ -115,7 +117,9 @@ describe('/le-logement — guide en accordéons', () => {
     expect(screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' })).toBeInTheDocument()
     expect(screen.getByText('Le local à skis')).toBeInTheDocument()
     expect(screen.getByAltText('Le local à skis')).toHaveAttribute('src', 'https://cdn.test/skis.webp')
-    expect(screen.getByRole('checkbox', { name: 'Vider le réfrigérateur' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', {
+      name: "Vérifier que vous n'avez rien oublié dans le logement.",
+    })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Poubelles' })).toBeInTheDocument()
     expect(screen.getByTestId('lodging-emergency-number')).toHaveTextContent('112')
 
@@ -168,8 +172,14 @@ describe('/le-logement — guide en accordéons', () => {
 
     expect(screen.getByText('1 rue des Alpes')).toBeInTheDocument()
     expect(screen.queryByText('Réseau Wi-Fi')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Découvrir le logement/i })).not.toBeInTheDocument()
-    expect(screen.queryByText('Votre checklist')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Découvrir le logement/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Règlement' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', {
+      name: 'Déposer vos déchets au point de recyclage indiqué ci-dessous.',
+    })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', {
+      name: "Vérifier que vous n'avez rien oublié dans le logement.",
+    })).toBeInTheDocument()
     // Pas de stats sans profil showcase
     expect(screen.queryByText('Voyageurs')).not.toBeInTheDocument()
   })
