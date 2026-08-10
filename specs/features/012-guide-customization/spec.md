@@ -119,6 +119,11 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
   chaque bloc pratique est rendue avec le moteur Markdown sécurisé du guide,
   pour toutes les variantes de carte (standard, média, téléphone et
   recyclage). Le titre reste du texte simple et le HTML brut est ignoré.
+- **BR-24**: Les champs `checkout_instructions` et `house_rules` restent dans
+  le modèle pour compatibilité, mais ne sont plus éditables par l'Owner et ne
+  pilotent plus les contenus affichés. Les guides utilisent les listes fixes
+  MyStay définies par les specs 036 et 039. Une sauvegarde d'autres champs ne
+  supprime pas les anciennes valeurs persistées.
 
 ---
 
@@ -436,7 +441,9 @@ components:
 ### Page `/dashboard/lodgings/[id]/customize`
 - Section "Message d'accueil" : textarea Shadcn, compteur mots
 - Section "Photo du logement" : upload image Owner, validation serveur, URL publique sauvegardée
-- Section "Infos pratiques" : adresse, Wi-Fi, parking, équipements, checkout, déchets, règles, contacts d'urgence, services utiles
+- Section "Infos pratiques" : adresse, Wi-Fi, parking, équipements, déchets,
+  contacts d'urgence et services utiles. Les consignes de départ et le
+  règlement intérieur fixes ne possèdent aucun champ de saisie Owner.
 - Les erreurs de validation du payload de personnalisation sont affichées avec le champ concerné ; le dashboard ne doit pas se limiter au message générique "Payload invalide"
 - Section "Mes recommandations" : liste des catégories, chaque catégorie expand pour voir/sélectionner les POI favoris
 - Les POI locaux proposés à la sélection appartiennent à la City du Lodging
@@ -454,7 +461,7 @@ components:
 - `/le-logement` affiche un guide vertical mobile-first en quatre sections successives : `Bienvenue`, `Infos pratiques`, `Bon à savoir` et `Départ`. Le hero présente la photo, le nom du Lodging, la City et le CTA d'itinéraire lorsque l'adresse existe, sans salutation ni message Owner. Le récapitulatif supérieur affiche uniquement les horaires constants `Arrivée à partir de 16 h` et `Départ à 10 h`, sans doublon Wi-Fi. Une navigation d'ancrage sticky permet d'atteindre les quatre sections.
 - La section `Bienvenue` conserve son titre et ses raccourcis vers les autres sections, mais n'affiche aucune carte de message. Le `welcome_message` reste intact en base et continue d'être rendu sur les autres surfaces qui le prévoient.
 - Sur `/le-logement` uniquement, le bouton du menu mobile ouvre un tiroir plein écran intitulé `Guide du logement`, contenant les quatre mêmes destinations avec icônes. Un choix ferme le tiroir puis positionne la section demandée. Le menu public des autres routes est inchangé.
-- La section `Infos pratiques` affiche les données Owner disponibles sous forme de bento cards : adresse et itinéraire, vidéo, parking, Wi-Fi, règlement, services et urgences. La section `Bon à savoir` affiche les équipements et les blocs pratiques personnalisés. La section `Départ` affiche les consignes et les poubelles. Les blocs sans donnée sont omis sans créer de contenu fictif.
+- La section `Infos pratiques` affiche les données Owner disponibles sous forme de bento cards : adresse et itinéraire, vidéo, parking, Wi-Fi, services et urgences. La section `Bon à savoir` affiche les équipements et les blocs pratiques personnalisés. La section `Départ` affiche toujours les consignes fixes et les poubelles. Le règlement intérieur fixe est affiché dans la vue `Équipements` du guide privé. Les autres blocs sans donnée sont omis sans créer de contenu fictif.
 - La palette de `/le-logement` utilise un bleu principal et des accents joyeux jaune, vert et rose/corail, tout en conservant une lisibilité WCAG et la charte globale des autres pages.
 - Les consignes de départ peuvent être cochées localement lorsqu'elles sont structurées en liste. Cet état n'est ni persisté ni envoyé au serveur.
 - `/nos-recommandations` affiche les recommandations locales groupées par catégorie puis une section "À découvrir ailleurs" groupée par City, avec le commentaire Owner lorsqu'il est renseigné. Les titres de groupes utilisent une graisse light/thin ; les titres de catégories locales affichent l'icône de leur Category à côté du libellé, dans une pastille colorée assez grande pour être un repère visuel. Les titres de City de cette section contractent le préfixe "À" avec les noms commençant par "Les" : "Les Contamines-Montjoie" devient "Aux Contamines-Montjoie".

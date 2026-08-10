@@ -87,6 +87,13 @@ dupliquer son interface et sans modifier les pages enfants historiques.
   forme `1 équipement` au singulier et `N équipements` dans tous les autres
   cas. L'icône Lucide `HousePlug` identifie cette vue dans l'onglet, la carte du
   hub et l'en-tête. La route `/sejour/logement/consignes` reste inchangée.
+- **BR-08**: Le règlement intérieur est fixe pour tous les logements et contient
+  dans cet ordre : `Merci de respecter le logement, son mobilier ainsi que le
+  voisinage pendant toute la durée de votre séjour.`, `Les fêtes et nuisances
+  sonores, notamment entre 22 h et 8 h, ne sont pas autorisées.`, puis `Merci
+  d'utiliser les équipements conformément à leur destination et de nous
+  signaler rapidement tout incident ou dommage.`. Le guide privé et la démo
+  ignorent toute ancienne valeur `house_rules` persistée.
 
 ## Data Model
 

@@ -47,9 +47,9 @@ langage visuel du téléphone de la page Notre concept et du modal de démo.
 - **AC-01-01**: Given un séjour actif, When `/sejour/logement/depart` est
   demandé, Then le `GuideApp` partagé est rendu en `mode="private"` avec
   `initialView="departure"`.
-- **AC-01-02**: Given des consignes de départ structurées, Then la page affiche
-  la checklist partagée, une progression `cochées / total` et une case par
-  consigne réelle.
+- **AC-01-02**: Given la page de départ, Then elle affiche les neuf consignes
+  fixes MyStay dans leur ordre contractuel, la checklist partagée, une
+  progression `cochées / total` et une case par consigne.
 - **AC-01-03**: Given une case activée, Then son état et la progression changent
   localement sans requête serveur ni persistance.
 - **AC-01-04**: Given aucun séjour valide, Then aucune consigne privée n'est
@@ -82,8 +82,17 @@ langage visuel du téléphone de la page Notre concept et du modal de démo.
   `departure` de `GuideLodgingViews`.
 - **BR-03**: La checklist historique est extraite dans un composant partagé ;
   elle ne doit pas être dupliquée.
-- **BR-04**: Les consignes proviennent de `getPrivateGuideData` et aucune donnée
-  de démonstration n'est importée.
+- **BR-04**: Les consignes proviennent de la constante partagée
+  `FIXED_DEPARTURE_INSTRUCTIONS`. Le guide privé, la démo et la page historique
+  utilisent ces neuf phrases et ignorent toute ancienne valeur
+  `checkout_instructions` persistée : `Déposer vos déchets au point de
+  recyclage indiqué ci-dessous.`, `Faire la vaisselle ou lancer le
+  lave-vaisselle avant votre départ.`, `Rassembler le linge de toilette utilisé
+  dans la salle de bain.`, `Laisser les draps en place sur les lits.`, `Remettre
+  les meubles, chaises et objets déplacés à leur emplacement d'origine.`,
+  `Fermer les fenêtres et les Velux.`, `Éteindre les lumières ainsi que les
+  appareils électriques inutiles.`, `Ne pas éteindre le chauffage.`, puis
+  `Vérifier que vous n'avez rien oublié dans le logement.`.
 - **BR-05**: L'état coché reste en mémoire React locale, n'est ni persisté ni
   envoyé à une API.
 - **BR-06**: La frame utilise une largeur maximale de 430 px, une hauteur
@@ -96,7 +105,9 @@ langage visuel du téléphone de la page Notre concept et du modal de démo.
 ## Data Model
 
 Aucune migration. La page utilise `departureInstructions` du `GuideLodging`,
-adapté depuis `LodgingCustomization.checkout_instructions`.
+alimenté par la constante applicative fixe. La colonne historique
+`LodgingCustomization.checkout_instructions` reste en base mais n'est plus une
+source d'affichage.
 
 ## API Contract
 
