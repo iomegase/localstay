@@ -2,12 +2,13 @@ import 'server-only'
 
 import type { Prisma } from '@prisma/client'
 import { cache } from 'react'
-import { isUsableAdminPhotoUrl } from '@/features/admin-pois/lib/admin-poi-rules'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
 import type { DayHours, PoiHours } from '@/features/categories/types'
-import { haversineKm } from '@/features/geolocation/lib/user-location'
 import { prisma } from '@/shared/lib/prisma'
-import { getPoiDiscoveryEligibility } from '../lib/eligibility'
+import {
+  getDiscoveryPoiVisibility,
+  isCanonicalDiscoverySlug,
+} from '../lib/visibility'
 import type {
   DiscoveryCategory,
   DiscoveryCity,
@@ -15,12 +16,8 @@ import type {
   DiscoveryPoiCard,
   DiscoveryPoiDetail,
   DiscoveryTaxonomy,
-  DiscoveryZone,
 } from '../types'
 
-const PRIMARY_RADIUS_KM = 15
-const NEARBY_RADIUS_KM = 30
-const ROUTE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const frenchNameCollator = new Intl.Collator('fr', { sensitivity: 'base' })
 
 const discoveryPoiListSelect = {
@@ -108,7 +105,7 @@ type MappedPoi = {
 
 function normalizeRouteSlug(value: string): string | null {
   const normalized = value.trim().toLowerCase()
-  return ROUTE_SLUG_PATTERN.test(normalized) ? normalized : null
+  return isCanonicalDiscoverySlug(normalized) ? normalized : null
 }
 
 function buildDiscoveryWhere(route: DiscoveryRoute): Prisma.PointOfInterestWhereInput {
@@ -207,65 +204,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function normalizeUsablePhotoUrls(values: string[]): string[] {
-  const photos: string[] = []
-  const seen = new Set<string>()
-
-  for (const value of values) {
-    const trimmed = value.trim()
-    if (!isUsableAdminPhotoUrl(trimmed)) continue
-    const canonical = new URL(trimmed).toString()
-    if (seen.has(canonical)) continue
-    seen.add(canonical)
-    photos.push(canonical)
-  }
-
-  return photos
-}
-
 function stableNameCompare(
   left: { name: string; slug: string },
   right: { name: string; slug: string },
 ): number {
   return frenchNameCollator.compare(left.name, right.name)
     || left.slug.localeCompare(right.slug)
-}
-
-function distanceAndZone(row: DiscoveryPoiRow): { distance: number; zone: DiscoveryZone } | null {
-  if (
-    !isValidLatitude(row.city.latitude)
-    || !isValidLongitude(row.city.longitude)
-    || !isValidLatitude(row.latitude)
-    || !isValidLongitude(row.longitude)
-  ) {
-    return null
-  }
-
-  const rawDistance = haversineKm(
-    row.city.latitude,
-    row.city.longitude,
-    row.latitude,
-    row.longitude,
-  )
-  if (!Number.isFinite(rawDistance) || rawDistance < 0) return null
-
-  const zone = getDiscoveryZone(rawDistance)
-  return zone ? { distance: rawDistance, zone } : null
-}
-
-export function getDiscoveryZone(distanceKm: number): DiscoveryZone | null {
-  if (!Number.isFinite(distanceKm) || distanceKm < 0) return null
-  if (distanceKm <= PRIMARY_RADIUS_KM) return 'primary'
-  if (distanceKm <= NEARBY_RADIUS_KM) return 'nearby'
-  return null
-}
-
-function isValidLatitude(value: number): boolean {
-  return Number.isFinite(value) && value >= -90 && value <= 90
-}
-
-function isValidLongitude(value: number): boolean {
-  return Number.isFinite(value) && value >= -180 && value <= 180
 }
 
 function matchesRoute(row: DiscoveryPoiRow, route: DiscoveryRoute): boolean {
@@ -275,48 +219,20 @@ function matchesRoute(row: DiscoveryPoiRow, route: DiscoveryRoute): boolean {
 }
 
 function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi | null {
-  if (
-    !matchesRoute(row, route)
-    || row.discovery_status !== 'PUBLISHED'
-    || !row.discovery_published_at
-    || (row.subcategory_id !== null && !row.subcategory)
-    || (row.subcategory && row.subcategory.category_id !== row.category.id)
-    || !row.name.trim()
-    || !ROUTE_SLUG_PATTERN.test(row.slug)
-  ) {
-    return null
-  }
+  if (!matchesRoute(row, route)) return null
 
-  const rawPhotos = Array.isArray(row.photos)
+  const photos = Array.isArray(row.photos)
     ? row.photos.filter((photo): photo is string => typeof photo === 'string')
     : []
-  const photos = normalizeUsablePhotoUrls(rawPhotos)
-  const eligibility = getPoiDiscoveryEligibility({
-    is_active: row.is_active,
-    deleted_at: row.deleted_at,
-    description: row.description,
-    address: row.address,
-    latitude: row.latitude,
-    longitude: row.longitude,
-    geocode_status: row.geocode_status,
-    phone: row.phone,
-    website: row.website,
-    photos,
-    city: row.city,
-    category: row.category,
-    subcategory: row.subcategory,
-  })
-  if (!eligibility.eligible) return null
+  const visibility = getDiscoveryPoiVisibility({ ...row, photos })
+  if (!visibility) return null
 
-  const metric = distanceAndZone(row)
-  if (!metric) return null
-
-  const hero = photos[0]
+  const hero = visibility.photos[0]
   if (!hero) return null
 
   return {
     row,
-    photos,
+    photos: visibility.photos,
     card: {
       name: row.name.trim(),
       slug: row.slug,
@@ -336,11 +252,13 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
       photo_url: hero,
       category: toTaxonomy(row.category),
       subcategory: row.subcategory ? toTaxonomy(row.subcategory) : null,
-      distance_km: metric.distance,
-      zone: metric.zone,
+      distance_km: visibility.distanceKm,
+      zone: visibility.zone,
     },
   }
 }
+
+export { getDiscoveryZone } from '../lib/visibility'
 
 function sortedMappedPois(rows: DiscoveryPoiRow[], route: DiscoveryRoute): MappedPoi[] {
   return rows
