@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import AdminPoiDetailPage from '@/app/admin/pois/[id]/page'
 import AdminPoisPage from '@/app/admin/pois/page'
@@ -61,11 +61,20 @@ function renderCard(
   )
 }
 
-function successfulResponse() {
+function successfulResponse(status: 'DRAFT' | 'PUBLISHED') {
+  const published = status === 'PUBLISHED'
   return {
     ok: true,
     status: 200,
-    json: jest.fn(async () => ({ data: { id: poiId } })),
+    json: jest.fn(async () => ({
+      data: {
+        id: poiId,
+        discovery_status: status,
+        discovery_published_at: published ? '2026-08-20T15:00:00.000Z' : null,
+        public_url: published ? '/decouvrir/saint-gervais/culture/le-musee' : null,
+        eligibility: completeEligibility,
+      },
+    })),
   } as unknown as Response
 }
 
@@ -106,7 +115,7 @@ describe('041 AC-04 Admin publication controls', () => {
     })
 
     expect(screen.getByRole('heading', { name: 'Découverte publique' })).toBeInTheDocument()
-    expect(screen.getByText('Publié', { selector: '[data-slot="badge"]' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Statut Découverte : Publié')).toBeInTheDocument()
     expect(screen.getByText(/20 août 2026/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Voir la fiche publique/i })).toHaveAttribute(
       'href',
@@ -140,7 +149,7 @@ describe('041 AC-04 Admin publication controls', () => {
       },
     })
 
-    expect(screen.getByText('Brouillon', { selector: '[data-slot="badge"]' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Statut Découverte : Brouillon')).toBeInTheDocument()
     expect(screen.getByLabelText('Description : manquant')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeDisabled()
     expect(screen.queryByRole('link', { name: /Voir la fiche publique/i })).not.toBeInTheDocument()
@@ -154,23 +163,27 @@ describe('041 AC-04 Admin publication controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Publier dans Découvrir' }))
 
     expect(window.confirm).toHaveBeenCalledTimes(1)
-    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/pois/${poiId}/discovery-publication`, {
+    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/pois/${poiId}/discovery-publication`, expect.objectContaining({
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'PUBLISHED' }),
-    })
+      signal: expect.any(AbortSignal),
+    }))
     expect(screen.getByRole('button', { name: 'Publication en cours…' })).toBeDisabled()
     fireEvent.click(screen.getByRole('button', { name: 'Publication en cours…' }))
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(mockRefresh).not.toHaveBeenCalled()
 
-    deferred.resolve(successfulResponse())
+    deferred.resolve(successfulResponse('PUBLISHED'))
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1))
-    expect(screen.getByText('Brouillon', { selector: '[data-slot="badge"]' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Statut Découverte : Publié')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retirer de Découvrir' })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Publier dans Découvrir' })).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('AC-04-04: confirms and unpublishes with the strict PATCH payload', async () => {
-    const fetchMock = jest.mocked(global.fetch).mockResolvedValue(successfulResponse())
+    const fetchMock = jest.mocked(global.fetch).mockResolvedValue(successfulResponse('DRAFT'))
     renderCard({
       status: 'PUBLISHED',
       publishedAt: '2026-08-20T15:00:00.000Z',
@@ -180,11 +193,15 @@ describe('041 AC-04 Admin publication controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Retirer de Découvrir' }))
 
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1))
-    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/pois/${poiId}/discovery-publication`, {
+    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/pois/${poiId}/discovery-publication`, expect.objectContaining({
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'DRAFT' }),
-    })
+      signal: expect.any(AbortSignal),
+    }))
+    expect(screen.getByLabelText('Statut Découverte : Brouillon')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeEnabled()
+    expect(screen.queryByRole('link', { name: /Voir la fiche publique/i })).not.toBeInTheDocument()
   })
 
   it('does not call the API when either publication confirmation is cancelled', () => {
@@ -217,7 +234,7 @@ describe('041 AC-04 Admin publication controls', () => {
         error: {
           code: 'DISCOVERY_PUBLICATION_INCOMPLETE',
           message: 'La fiche doit être complétée avant publication.',
-          details: { missing: ['photo'] },
+          details: { missing: ['photo', 'unknown-check', 42] },
         },
       })),
     } as unknown as Response)
@@ -228,6 +245,55 @@ describe('041 AC-04 Admin publication controls', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'La fiche doit être complétée avant publication.',
     )
+    expect(screen.getByLabelText('Photo exploitable : manquant')).toBeInTheDocument()
+    expect(screen.getByLabelText('Description : satisfait')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeDisabled()
+    expect(mockRefresh).not.toHaveBeenCalled()
+  })
+
+  it('uses later server props as the authoritative publication state', async () => {
+    jest.mocked(global.fetch).mockResolvedValue(successfulResponse('DRAFT'))
+    const { rerender } = renderCard({
+      status: 'PUBLISHED',
+      publishedAt: '2026-08-20T15:00:00.000Z',
+      publicUrl: '/decouvrir/saint-gervais/culture/le-musee',
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retirer de Découvrir' }))
+    await screen.findByLabelText('Statut Découverte : Brouillon')
+
+    rerender(
+      <AdminPoiDiscoveryCard
+        poiId={poiId}
+        status="PUBLISHED"
+        publishedAt="2026-08-21T10:00:00.000Z"
+        publicUrl="/decouvrir/saint-gervais/culture/le-musee"
+        eligibility={completeEligibility}
+      />,
+    )
+
+    expect(screen.getByLabelText('Statut Découverte : Publié')).toBeInTheDocument()
+    expect(screen.getByText(/21 août 2026/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retirer de Découvrir' })).toBeEnabled()
+  })
+
+  it('aborts an in-flight publication when unmounted without refreshing', async () => {
+    let requestSignal: AbortSignal | null = null
+    jest.mocked(global.fetch).mockImplementation((_input, init) => new Promise((_resolve, reject) => {
+      requestSignal = init?.signal ?? null
+      requestSignal?.addEventListener('abort', () => {
+        reject(new DOMException('Aborted', 'AbortError'))
+      })
+    }))
+    const { unmount } = renderCard()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Publier dans Découvrir' }))
+    expect(requestSignal).not.toBeNull()
+    expect(requestSignal?.aborted).toBe(false)
+
+    unmount()
+    expect(requestSignal?.aborted).toBe(true)
+    await act(async () => Promise.resolve())
     expect(mockRefresh).not.toHaveBeenCalled()
   })
 
@@ -236,6 +302,10 @@ describe('041 AC-04 Admin publication controls', () => {
     [
       'une réponse JSON invalide',
       () => Promise.resolve({ ok: false, status: 500, json: () => Promise.reject(new SyntaxError()) } as Response),
+    ],
+    [
+      'un DTO de succès incomplet',
+      () => Promise.resolve({ ok: true, status: 200, json: async () => ({ data: { id: poiId } }) } as Response),
     ],
   ])('survit à %s et affiche une erreur accessible', async (_label, responseFactory) => {
     jest.mocked(global.fetch).mockImplementation(responseFactory)
@@ -296,12 +366,43 @@ describe('041 AC-04 Admin publication controls', () => {
       page: 3,
       limit: 50,
     }))
-    expect(screen.getByLabelText('Découverte')).toHaveAttribute('name', 'discovery_status')
-    expect(screen.getByLabelText('Découverte')).toHaveValue('PUBLISHED')
+    const discoverySelect = screen.getByLabelText('Découverte')
+    expect(discoverySelect).toHaveTextContent('Publiés')
+    const filtersForm = discoverySelect.closest('form')
+    expect(filtersForm).not.toBeNull()
+    expect(new FormData(filtersForm as HTMLFormElement).get('discovery_status')).toBe('PUBLISHED')
     expect(screen.getByDisplayValue('3')).toHaveAttribute('name', 'page')
     expect(screen.getByDisplayValue('50')).toHaveAttribute('name', 'limit')
     expect(screen.getByLabelText('POI brouillon — Découverte : Brouillon')).toBeInTheDocument()
     expect(screen.getByLabelText('POI publié — Découverte : Publié')).toBeInTheDocument()
+  })
+
+  it('AC-04-06: normalizes the inactive ALL discovery sentinel out of query filters', async () => {
+    mockListAdminPois.mockResolvedValue({
+      data: [],
+      pagination: { page: 1, limit: 25, total: 0, total_pages: 0 },
+      kpis: {
+        active_count: 0,
+        inactive_count: 0,
+        archived_count: 0,
+        without_photos_count: 0,
+        pending_geocode_count: 0,
+      },
+      acquisition_runs: [],
+    })
+
+    render(await AdminPoisPage({
+      searchParams: Promise.resolve({ city_id: cityId, discovery_status: 'ALL' }),
+    }))
+
+    expect(mockListAdminPois).toHaveBeenCalledWith(expect.objectContaining({
+      city_id: cityId,
+      discovery_status: undefined,
+    }))
+    const discoverySelect = screen.getByLabelText('Découverte')
+    expect(discoverySelect).toHaveTextContent('Tous')
+    const filtersForm = discoverySelect.closest('form')
+    expect(new FormData(filtersForm as HTMLFormElement).get('discovery_status')).toBe('ALL')
   })
 })
 

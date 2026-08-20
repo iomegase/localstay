@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, ExternalLink, XCircle } from 'lucide-react'
@@ -27,8 +27,31 @@ type AdminPoiDiscoveryCardProps = {
   eligibility: AdminPoiDiscoveryEligibility
 }
 
+type EligibilityKey = keyof AdminPoiDiscoveryEligibility['checks']
+
+type PublicationState = {
+  status: AdminPoiDiscoveryStatus
+  publishedAt: string | null
+  publicUrl: string | null
+  eligibility: AdminPoiDiscoveryEligibility
+}
+
+const ELIGIBILITY_KEYS = [
+  'active',
+  'city',
+  'category',
+  'subcategory',
+  'description',
+  'photo',
+  'address',
+  'geocode',
+  'contact',
+] as const satisfies readonly EligibilityKey[]
+
+const ELIGIBILITY_KEY_SET = new Set<string>(ELIGIBILITY_KEYS)
+
 const CHECK_LABELS: Array<{
-  key: keyof AdminPoiDiscoveryEligibility['checks']
+  key: EligibilityKey
   label: string
 }> = [
   { key: 'active', label: 'POI actif' },
@@ -51,12 +74,56 @@ export function AdminPoiDiscoveryCard({
   publicUrl,
   eligibility,
 }: AdminPoiDiscoveryCardProps) {
+  const reconciliationKey = JSON.stringify([
+    poiId,
+    status,
+    publishedAt,
+    publicUrl,
+    eligibility.eligible,
+    ...ELIGIBILITY_KEYS.map(key => eligibility.checks[key]),
+  ])
+
+  return (
+    <AdminPoiDiscoveryCardStateful
+      key={reconciliationKey}
+      poiId={poiId}
+      status={status}
+      publishedAt={publishedAt}
+      publicUrl={publicUrl}
+      eligibility={eligibility}
+    />
+  )
+}
+
+function AdminPoiDiscoveryCardStateful({
+  poiId,
+  status,
+  publishedAt,
+  publicUrl,
+  eligibility,
+}: AdminPoiDiscoveryCardProps) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const isPublished = status === 'PUBLISHED'
+  const [publication, setPublication] = useState<PublicationState>({
+    status,
+    publishedAt,
+    publicUrl,
+    eligibility,
+  })
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const mountedRef = useRef(true)
+  const isPublished = publication.status === 'PUBLISHED'
   const actionLabel = isPublished ? 'Retirer de Découvrir' : 'Publier dans Découvrir'
   const pendingLabel = isPublished ? 'Retrait en cours…' : 'Publication en cours…'
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
   async function updatePublication() {
     if (pending) return
@@ -70,30 +137,47 @@ export function AdminPoiDiscoveryCard({
 
     setPending(true)
     setError(null)
+    const controller = new AbortController()
+    abortControllerRef.current = controller
 
     try {
       const response = await fetch(`/api/admin/pois/${poiId}/discovery-publication`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: isPublished ? 'DRAFT' : 'PUBLISHED' }),
+        signal: controller.signal,
       })
       const payload: unknown = await response.json()
+      if (controller.signal.aborted || !mountedRef.current) return
 
       if (!response.ok) {
         setError(readApiErrorMessage(payload) ?? GENERIC_ERROR)
+        if (response.status === 409) {
+          const missing = readApiMissingKeys(payload)
+          if (missing.length > 0) {
+            setPublication(current => overlayMissingEligibility(current, missing))
+          }
+        }
         return
       }
 
-      if (!hasDataObject(payload)) {
+      const updated = readPublicationState(payload, poiId)
+      if (!updated) {
         setError(GENERIC_ERROR)
         return
       }
 
+      setPublication(updated)
       router.refresh()
-    } catch {
+    } catch (caught) {
+      if (controller.signal.aborted || isAbortError(caught)) return
+      if (!mountedRef.current) return
       setError(GENERIC_ERROR)
     } finally {
-      setPending(false)
+      if (mountedRef.current && abortControllerRef.current === controller) {
+        abortControllerRef.current = null
+        setPending(false)
+      }
     }
   }
 
@@ -105,8 +189,8 @@ export function AdminPoiDiscoveryCard({
             <h2 className="text-lg font-bold text-slate-900">Découverte publique</h2>
           </CardTitle>
           <Badge
-            data-slot="badge"
             variant="outline"
+            aria-label={`Statut Découverte : ${isPublished ? 'Publié' : 'Brouillon'}`}
             className={isPublished
               ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
               : 'border-slate-200 bg-slate-50 text-slate-600'}
@@ -120,15 +204,15 @@ export function AdminPoiDiscoveryCard({
       </CardHeader>
 
       <CardContent className="space-y-5">
-        {publishedAt && (
+        {publication.publishedAt && (
           <p className="text-sm text-slate-600">
-            Publié le <span className="font-semibold text-slate-800">{formatPublishedAt(publishedAt)}</span>
+            Publié le <span className="font-semibold text-slate-800">{formatPublishedAt(publication.publishedAt)}</span>
           </p>
         )}
 
-        {publicUrl && (
+        {publication.publicUrl && (
           <Button asChild variant="outline" size="sm">
-            <Link href={publicUrl}>
+            <Link href={publication.publicUrl}>
               Voir la fiche publique
               <ExternalLink aria-hidden="true" />
             </Link>
@@ -141,7 +225,7 @@ export function AdminPoiDiscoveryCard({
           </p>
           <ul aria-label="Checklist de publication" className="space-y-2">
             {CHECK_LABELS.map(({ key, label }) => {
-              const satisfied = eligibility.checks[key]
+              const satisfied = publication.eligibility.checks[key]
               return (
                 <li
                   key={key}
@@ -177,7 +261,7 @@ export function AdminPoiDiscoveryCard({
           type="button"
           variant={isPublished ? 'outline' : 'default'}
           className="w-full"
-          disabled={pending || (!isPublished && !eligibility.eligible)}
+          disabled={pending || (!isPublished && !publication.eligibility.eligible)}
           aria-label={pending ? pendingLabel : actionLabel}
           aria-busy={pending}
           onClick={updatePublication}
@@ -200,8 +284,61 @@ function formatPublishedAt(value: string): string {
   }).format(date)
 }
 
-function hasDataObject(value: unknown): boolean {
-  return isRecord(value) && isRecord(value.data)
+function readPublicationState(value: unknown, expectedPoiId: string): PublicationState | null {
+  if (!isRecord(value) || !isRecord(value.data)) return null
+  const data = value.data
+  if (data.id !== expectedPoiId) return null
+  if (data.discovery_status !== 'DRAFT' && data.discovery_status !== 'PUBLISHED') return null
+  if (!isNullableString(data.discovery_published_at) || !isNullableString(data.public_url)) return null
+  if (data.discovery_status === 'DRAFT' && data.discovery_published_at !== null) return null
+  if (data.discovery_status === 'PUBLISHED' && !isValidDateTime(data.discovery_published_at)) return null
+
+  const eligibility = readEligibility(data.eligibility)
+  if (!eligibility) return null
+
+  return {
+    status: data.discovery_status,
+    publishedAt: data.discovery_published_at,
+    publicUrl: data.public_url,
+    eligibility,
+  }
+}
+
+function readEligibility(value: unknown): AdminPoiDiscoveryEligibility | null {
+  if (!isRecord(value) || typeof value.eligible !== 'boolean' || !isRecord(value.checks)) {
+    return null
+  }
+
+  const checks = {} as AdminPoiDiscoveryEligibility['checks']
+  for (const key of ELIGIBILITY_KEYS) {
+    if (typeof value.checks[key] !== 'boolean') return null
+    checks[key] = value.checks[key]
+  }
+
+  return { eligible: value.eligible, checks }
+}
+
+function readApiMissingKeys(value: unknown): EligibilityKey[] {
+  if (!isRecord(value) || !isRecord(value.error) || !isRecord(value.error.details)) return []
+  const missing = value.error.details.missing
+  if (!Array.isArray(missing)) return []
+
+  return missing.filter(
+    (key): key is EligibilityKey => typeof key === 'string' && ELIGIBILITY_KEY_SET.has(key),
+  )
+}
+
+function overlayMissingEligibility(
+  current: PublicationState,
+  missing: EligibilityKey[],
+): PublicationState {
+  const checks = { ...current.eligibility.checks }
+  for (const key of missing) checks[key] = false
+
+  return {
+    ...current,
+    eligibility: { eligible: false, checks },
+  }
 }
 
 function readApiErrorMessage(value: unknown): string | null {
@@ -209,6 +346,18 @@ function readApiErrorMessage(value: unknown): string | null {
   return typeof value.error.message === 'string' && value.error.message.trim().length > 0
     ? value.error.message
     : null
+}
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === 'string'
+}
+
+function isValidDateTime(value: string | null): value is string {
+  return typeof value === 'string' && !Number.isNaN(new Date(value).getTime())
+}
+
+function isAbortError(value: unknown): boolean {
+  return isRecord(value) && value.name === 'AbortError'
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

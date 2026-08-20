@@ -5,6 +5,13 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
 import { Badge } from '@/shared/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import type { AdminPoiListFilters } from '@/features/admin-pois/types'
 
 type PageProps = {
@@ -156,21 +163,22 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
 
             <div className="space-y-2 md:col-span-2">
               <label htmlFor="discovery_status" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Découverte</label>
-              <div className="relative">
-                <select
+              <Select
+                name="discovery_status"
+                defaultValue={parseDiscoveryStatus(firstParam(params.discovery_status)) ?? 'ALL'}
+              >
+                <SelectTrigger
                   id="discovery_status"
-                  name="discovery_status"
-                  defaultValue={firstParam(params.discovery_status) ?? ''}
-                  className="w-full h-[48px] appearance-none rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+                  className="h-[48px] rounded-xl border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-neutral-900 focus:border-[#0B1437] focus:bg-white focus:ring-[#0B1437]"
                 >
-                  <option value="">Tous</option>
-                  <option value="DRAFT">Brouillons</option>
-                  <option value="PUBLISHED">Publiés</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
-                  <ChevronDownIcon />
-                </div>
-              </div>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tous</SelectItem>
+                  <SelectItem value="DRAFT">Brouillons</SelectItem>
+                  <SelectItem value="PUBLISHED">Publiés</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="md:col-span-2">
