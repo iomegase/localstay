@@ -28,6 +28,19 @@ const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/', '/decouvrir/']
 // catégories, météo…) est renvoyé vers l'accueil séjour.
 const GUEST_ALLOWED_GUIDE_SEGMENTS = new Set(['logements', 'agenda', 'mes-favoris', 'contact'])
 
+function isLegacyDiscoveryGuidePath(pathname: string): boolean {
+  const segments = pathname.split('/').filter(Boolean)
+  if (segments[0] !== 'guide' || !segments[1]) return false
+
+  if (segments.length === 2) return true
+  if (segments.length > 4) return false
+
+  const guideSegment = segments[2]
+  return Boolean(
+    guideSegment && !GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment),
+  )
+}
+
 export function isAnonymousMarketingPath(pathname: string) {
   const segments = pathname.split('/').filter(Boolean)
   const isPublicLodgingDetail =
@@ -78,14 +91,14 @@ export async function proxy(request: NextRequest) {
         path: '/',
       }
 
-      // Atterrissage du QR séjour = /guide/{ville} (2 segments exactement).
-      // On dépose alors le guest sur la home privée canonique (/sejour).
-      // ?lodging= est transporté pour que cette page enregistre l'évènement
-      // qr_scan. La navigation interne plus profonde
-      // (/guide/{ville}/{categorie}…) porte aussi ?lodging= : on se contente
-      // alors de rafraîchir le cookie, sans rediriger.
-      const isCityLanding = path.split('/').filter(Boolean).length === 2
-      if (isCityLanding) {
+      // Toute entrée QR sur une ancienne surface générique City/Category/POI
+      // rejoint la home privée avant le rendu App Router. Le cookie posé sur la
+      // réponse n'est pas encore visible par le Server Component de la requête
+      // courante : le laisser continuer déclencherait à tort la migration SEO
+      // anonyme. Les routes réservées logement, agenda et démarrage randonnée
+      // conservent leur comportement historique et rafraîchissent seulement le
+      // cookie.
+      if (isLegacyDiscoveryGuidePath(path)) {
         const destination = new URL('/sejour', request.url)
         destination.searchParams.set('lodging', lodgingFromQuery)
         const redirect = NextResponse.redirect(destination)
