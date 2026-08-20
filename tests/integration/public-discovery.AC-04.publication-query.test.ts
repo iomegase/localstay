@@ -150,6 +150,18 @@ describe('041 AC-04 transactional publication query', () => {
     expect(mockAuditCreate).not.toHaveBeenCalled()
   })
 
+  it('refuses publication when successful geocoding contains out-of-range coordinates', async () => {
+    mockPoiFindFirst.mockResolvedValue({ ...completePoi, latitude: 91, longitude: -181 })
+
+    await expect(updatePoiDiscoveryPublication('poi-1', 'PUBLISHED', 'admin-1')).rejects.toMatchObject({
+      code: 'DISCOVERY_PUBLICATION_INCOMPLETE',
+      status: 409,
+      details: { missing: ['geocode'] },
+    } satisfies Partial<PoiAcquisitionError>)
+    expect(mockPoiUpdate).not.toHaveBeenCalled()
+    expect(mockAuditCreate).not.toHaveBeenCalled()
+  })
+
   it('unpublishes by clearing the date and recording the exact action', async () => {
     const published = {
       ...completePoi,

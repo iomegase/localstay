@@ -1,5 +1,6 @@
 import { isUsableAdminPhotoUrl } from '@/features/admin-pois/lib/admin-poi-rules'
 import type { PoiDiscoveryEligibility } from '../types'
+import { isValidLatitude, isValidLongitude } from './coordinates'
 
 type EligibilityInput = {
   is_active: boolean
@@ -31,8 +32,8 @@ export function getPoiDiscoveryEligibility(input: EligibilityInput): PoiDiscover
   if (!input.address.trim()) missing.push('address')
   if (
     input.geocode_status !== 'success'
-    || !Number.isFinite(input.latitude)
-    || !Number.isFinite(input.longitude)
+    || !isValidLatitude(input.latitude)
+    || !isValidLongitude(input.longitude)
   ) {
     missing.push('geocode')
   }

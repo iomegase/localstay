@@ -54,10 +54,24 @@ describe('041 BR-04 POI discovery eligibility', () => {
     ['failed geocoding', { geocode_status: 'failed' }],
     ['a non-finite latitude', { latitude: Number.NaN }],
     ['a non-finite longitude', { longitude: Number.POSITIVE_INFINITY }],
+    ['a latitude below -90', { latitude: -90.000001 }],
+    ['a latitude above 90', { latitude: 90.000001 }],
+    ['a longitude below -180', { longitude: -180.000001 }],
+    ['a longitude above 180', { longitude: 180.000001 }],
   ])('rejects %s', (_label, patch) => {
     expect(getPoiDiscoveryEligibility({ ...completePoi, ...patch })).toEqual({
       eligible: false,
       missing: ['geocode'],
+    })
+  })
+
+  it.each([
+    ['the south-west coordinate boundary', { latitude: -90, longitude: -180 }],
+    ['the north-east coordinate boundary', { latitude: 90, longitude: 180 }],
+  ])('accepts %s', (_label, patch) => {
+    expect(getPoiDiscoveryEligibility({ ...completePoi, ...patch })).toEqual({
+      eligible: true,
+      missing: [],
     })
   })
 

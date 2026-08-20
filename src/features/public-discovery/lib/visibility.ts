@@ -1,6 +1,7 @@
 import { isUsableAdminPhotoUrl } from '@/features/admin-pois/lib/admin-poi-rules'
 import { haversineKm } from '@/features/geolocation/lib/user-location'
 import { getPoiDiscoveryEligibility } from './eligibility'
+import { isValidLatitude, isValidLongitude } from './coordinates'
 import type { DiscoveryZone } from '../types'
 
 const PRIMARY_RADIUS_KM = 15
@@ -127,12 +128,4 @@ export function getDiscoveryPoiVisibility(
   )
   const zone = getDiscoveryZone(distanceKm)
   return zone ? { photos, distanceKm, zone } : null
-}
-
-function isValidLatitude(value: number): boolean {
-  return Number.isFinite(value) && value >= -90 && value <= 90
-}
-
-function isValidLongitude(value: number): boolean {
-  return Number.isFinite(value) && value >= -180 && value <= 180
 }
