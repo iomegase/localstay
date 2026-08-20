@@ -10,7 +10,7 @@ export function computeIsOpenNow(hours: PoiHours | null | undefined, now: Date =
   const yesterdayIndex = (paris.dayIndex + 6) % 7
 
   const today = readSlot(hours, paris.dayIndex)
-  if (today && withinWindow(todayMinutes, today.openMin, today.closeMin)) return true
+  if (today && withinTodayWindow(todayMinutes, today.openMin, today.closeMin)) return true
 
   const yesterday = readSlot(hours, yesterdayIndex)
   if (yesterday && yesterday.closeMin < yesterday.openMin && todayMinutes < yesterday.closeMin) {
@@ -79,9 +79,11 @@ function readSlot(hours: PoiHours, dayIndex: number): Slot | null {
   return { openMin, closeMin }
 }
 
-function withinWindow(t: number, openMin: number, closeMin: number): boolean {
+function withinTodayWindow(t: number, openMin: number, closeMin: number): boolean {
   if (closeMin > openMin) return t >= openMin && t < closeMin
-  if (closeMin < openMin) return t >= openMin || t < closeMin
+  // For an overnight slot, the early-morning portion belongs to yesterday's
+  // schedule and is handled explicitly in computeIsOpenNow.
+  if (closeMin < openMin) return t >= openMin
   return false
 }
 

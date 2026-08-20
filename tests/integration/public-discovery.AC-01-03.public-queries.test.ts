@@ -1,5 +1,7 @@
 const mockPoiFindMany = jest.fn()
 
+jest.mock('server-only', () => ({}), { virtual: true })
+
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     pointOfInterest: { findMany: (...args: unknown[]) => mockPoiFindMany(...args) },
@@ -108,6 +110,37 @@ function expectStrictPublicQuery(call: unknown, expected: Record<string, string>
   }
 }
 
+function expectExactPrismaContract(call: unknown, detail: boolean) {
+  const args = call as { where: Record<string, unknown>; select: Record<string, unknown>; take?: number }
+  const whereKeys = [
+    'OR', 'category', 'city', 'deleted_at', 'discovery_published_at',
+    'discovery_status', 'geocode_status', 'is_active',
+    ...(detail ? ['slug'] : []),
+  ]
+  const listSelectKeys = [
+    'address', 'category', 'deleted_at', 'description', 'discovery_published_at',
+    'discovery_status', 'geocode_status', 'id', 'is_active', 'is_open_now',
+    'latitude', 'longitude', 'name', 'phone', 'photos', 'rating', 'rating_count',
+    'slug', 'subcategory', 'subcategory_id', 'website', 'city',
+  ]
+  expect(Object.keys(args.where).sort()).toEqual(whereKeys.sort())
+  expect(Object.keys(args.select).sort()).toEqual([
+    ...listSelectKeys,
+    ...(detail ? ['hours'] : []),
+  ].sort())
+  expect(Object.keys((args.select.city as { select: object }).select).sort()).toEqual([
+    'deleted_at', 'department', 'id', 'is_active', 'latitude', 'longitude',
+    'name', 'postal_code', 'region', 'slug',
+  ].sort())
+  expect(Object.keys((args.select.category as { select: object }).select).sort()).toEqual([
+    'deleted_at', 'icon', 'id', 'is_active', 'name', 'slug', 'sort_order',
+  ].sort())
+  expect(Object.keys((args.select.subcategory as { select: object }).select).sort()).toEqual([
+    'category_id', 'deleted_at', 'id', 'is_active', 'name', 'slug', 'sort_order',
+  ].sort())
+  expect(args.take).toBe(detail ? 1 : undefined)
+}
+
 function expectNoForbiddenFields(value: unknown) {
   const forbidden = new Set([
     'id', 'lodging_id', 'owner_note', 'featured_by_lodgings', 'recommendation',
@@ -128,6 +161,52 @@ function expectNoForbiddenFields(value: unknown) {
   }
 
   walk(value)
+}
+
+function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detail') {
+  const object = value as Record<string, unknown>
+  const cityKeys = ['categories', 'department', 'name', 'postal_code', 'region', 'slug']
+  const citySummaryKeys = ['department', 'name', 'postal_code', 'region', 'slug']
+  const taxonomyKeys = ['name', 'slug']
+  const cardKeys = [
+    'address', 'category', 'distance_km', 'is_open_now', 'latitude', 'longitude',
+    'name', 'photo_url', 'rating', 'rating_count', 'slug', 'subcategory', 'zone',
+  ]
+  const categoryKeys = ['city', 'icon', 'name', 'pois', 'slug', 'sort_order', 'subcategories']
+  const detailKeys = [
+    'address', 'category', 'city', 'description', 'distance_km', 'hero_photo_url',
+    'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photos',
+    'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
+  ]
+  const exact = (candidate: unknown, keys: string[]) => {
+    expect(candidate).not.toBeNull()
+    expect(Object.keys(candidate as Record<string, unknown>).sort()).toEqual([...keys].sort())
+  }
+  const exactTaxonomy = (candidate: unknown) => exact(candidate, taxonomyKeys)
+  const exactCard = (candidate: unknown) => {
+    exact(candidate, cardKeys)
+    const card = candidate as Record<string, unknown>
+    exactTaxonomy(card.category)
+    if (card.subcategory) exactTaxonomy(card.subcategory)
+  }
+
+  if (kind === 'city') {
+    exact(object, cityKeys)
+    for (const category of object.categories as Array<Record<string, unknown>>) {
+      exact(category, ['icon', 'name', 'poi_count', 'pois', 'slug', 'sort_order'])
+      for (const poi of category.pois as unknown[]) exactCard(poi)
+    }
+  } else if (kind === 'category') {
+    exact(object, categoryKeys)
+    exact(object.city, citySummaryKeys)
+    for (const subcategory of object.subcategories as unknown[]) exactTaxonomy(subcategory)
+    for (const poi of object.pois as unknown[]) exactCard(poi)
+  } else {
+    exact(object, detailKeys)
+    exact(object.city, citySummaryKeys)
+    exactTaxonomy(object.category)
+    if (object.subcategory) exactTaxonomy(object.subcategory)
+  }
 }
 
 describe('041 AC-01-03 public discovery Prisma read model', () => {
@@ -151,6 +230,15 @@ describe('041 AC-01-03 public discovery Prisma read model', () => {
     expectStrictPublicQuery(mockPoiFindMany.mock.calls[2]?.[0], {
       city: 'saint-gervais-les-bains', category: 'culture', poi: 'le-musee-alpin',
     })
+    expect(mockPoiFindMany.mock.calls[0]?.[0]).not.toHaveProperty('select.hours')
+    expect(mockPoiFindMany.mock.calls[1]?.[0]).not.toHaveProperty('select.hours')
+    expect(mockPoiFindMany.mock.calls[2]?.[0]).toMatchObject({
+      select: { hours: true },
+      take: 1,
+    })
+    expectExactPrismaContract(mockPoiFindMany.mock.calls[0]?.[0], false)
+    expectExactPrismaContract(mockPoiFindMany.mock.calls[1]?.[0], false)
+    expectExactPrismaContract(mockPoiFindMany.mock.calls[2]?.[0], true)
   })
 
   it('defensively excludes every stale BR-04 variant, allows no subcategory, filters photos and returns only public DTO fields', async () => {
@@ -170,7 +258,7 @@ describe('041 AC-01-03 public discovery Prisma read model', () => {
         id: 'subcategory',
         subcategory_id: 'sub-1',
         subcategory: {
-          id: 'sub-1', name: 'Musées', slug: 'musees', sort_order: 1,
+          id: 'sub-1', category_id: 'category-1', name: 'Musées', slug: 'musees', sort_order: 1,
           is_active: false, deleted_at: null,
         },
       }),
@@ -188,6 +276,7 @@ describe('041 AC-01-03 public discovery Prisma read model', () => {
       subcategory: null,
     })
     expectNoForbiddenFields(city)
+    expectExactPublicDto(city, 'city')
   })
 
   it('orders non-empty categories by sort order then French name and POIs by zone, distance then French name', async () => {
@@ -270,5 +359,96 @@ describe('041 AC-01-03 public discovery Prisma read model', () => {
     expect(websiteOnly?.hero_photo_url).toBe('https://example.com/musee-hero.jpg')
     expect(websiteOnly).not.toHaveProperty('photo_url')
     expectNoForbiddenFields(websiteOnly)
+    expectExactPublicDto(websiteOnly, 'detail')
+  })
+
+  it('parses hours through a strict day/time/key allowlist and derives open state only from accepted hours', async () => {
+    mockPoiFindMany.mockResolvedValue([row({
+      is_open_now: true,
+      hours: {
+        '0': { open: '08:00', close: '12:00', owner_note: 'secret' },
+        '1': { open: '09:00', close: '18:30' },
+        '2': null,
+        '3': { open: '25:00', close: '18:00' },
+        '4': { open: '9:00', close: '17:00' },
+        '5': { open: '09:60', close: '17:00' },
+        '6': { open: '24:00', close: '24:00' },
+        '7': { open: '09:00', close: '17:00' },
+        private: { nested: { lodging_id: 'secret' } },
+      },
+    })])
+
+    const detail = await getDiscoveryPoi('saint-gervais-les-bains', 'culture', 'le-musee-alpin')
+
+    expect(detail?.hours).toEqual({
+      '1': { open: '09:00', close: '18:30' },
+      '2': null,
+    })
+    expect(Object.keys(detail?.hours ?? {})).toEqual(['1', '2'])
+    expect(Object.keys(detail?.hours?.['1'] ?? {}).sort()).toEqual(['close', 'open'])
+    expect(JSON.stringify(detail)).not.toContain('owner_note')
+    expect(JSON.stringify(detail)).not.toContain('lodging_id')
+    expectExactPublicDto(detail, 'detail')
+
+    mockPoiFindMany.mockResolvedValue([row({
+      is_open_now: false,
+      hours: Object.fromEntries(
+        Array.from({ length: 7 }, (_, day) => [String(day), { open: '00:00', close: '24:00' }]),
+      ),
+    })])
+    const alwaysOpen = await getDiscoveryPoi(
+      'saint-gervais-les-bains',
+      'culture',
+      'le-musee-alpin',
+    )
+    expect(alwaysOpen?.is_open_now).toBe(true)
+
+    mockPoiFindMany.mockResolvedValue([row({
+      is_open_now: false,
+      hours: { private: { open: '00:00', close: '24:00' } },
+    })])
+    const noSchedule = await getDiscoveryPoi(
+      'saint-gervais-les-bains',
+      'culture',
+      'le-musee-alpin',
+    )
+    expect(noSchedule).toMatchObject({ hours: null, is_open_now: false })
+  })
+
+  it('canonicalizes and deduplicates usable photos and nulls corrupt optional rating facts', async () => {
+    mockPoiFindMany.mockResolvedValue([row({
+      rating: 5.1,
+      rating_count: -2,
+      photos: [
+        'https://EXAMPLE.com:443/photo.jpg',
+        'https://example.com/photo.jpg',
+        ' https://example.com/gallery.jpg ',
+        'https://example.com/logo.svg',
+      ],
+    })])
+
+    const detail = await getDiscoveryPoi('saint-gervais-les-bains', 'culture', 'le-musee-alpin')
+
+    expect(detail).toMatchObject({
+      hero_photo_url: 'https://example.com/photo.jpg',
+      photos: ['https://example.com/photo.jpg', 'https://example.com/gallery.jpg'],
+      rating: null,
+      rating_count: null,
+    })
+    expectExactPublicDto(detail, 'detail')
+  })
+
+  it('returns the exact category DTO allowlist including only active represented subcategories', async () => {
+    mockPoiFindMany.mockResolvedValue([row({
+      subcategory_id: 'sub-1',
+      subcategory: {
+        id: 'sub-1', category_id: 'category-1', name: 'Musées', slug: 'musees',
+        sort_order: 1, is_active: true, deleted_at: null,
+      },
+    })])
+
+    const category = await getDiscoveryCategory('saint-gervais-les-bains', 'culture')
+
+    expectExactPublicDto(category, 'category')
   })
 })

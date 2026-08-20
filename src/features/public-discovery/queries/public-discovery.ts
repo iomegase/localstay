@@ -1,6 +1,10 @@
+import 'server-only'
+
 import type { Prisma } from '@prisma/client'
 import { cache } from 'react'
 import { isUsableAdminPhotoUrl } from '@/features/admin-pois/lib/admin-poi-rules'
+import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
+import type { DayHours, PoiHours } from '@/features/categories/types'
 import { haversineKm } from '@/features/geolocation/lib/user-location'
 import { prisma } from '@/shared/lib/prisma'
 import { getPoiDiscoveryEligibility } from '../lib/eligibility'
@@ -19,7 +23,7 @@ const NEARBY_RADIUS_KM = 30
 const ROUTE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const frenchNameCollator = new Intl.Collator('fr', { sensitivity: 'base' })
 
-const discoveryPoiSelect = {
+const discoveryPoiListSelect = {
   id: true,
   name: true,
   slug: true,
@@ -32,7 +36,6 @@ const discoveryPoiSelect = {
   rating: true,
   rating_count: true,
   is_open_now: true,
-  hours: true,
   photos: true,
   discovery_status: true,
   discovery_published_at: true,
@@ -78,8 +81,17 @@ const discoveryPoiSelect = {
   },
 } satisfies Prisma.PointOfInterestSelect
 
+const discoveryPoiDetailSelect = {
+  ...discoveryPoiListSelect,
+  hours: true,
+} satisfies Prisma.PointOfInterestSelect
+
 type DiscoveryPoiRow = Prisma.PointOfInterestGetPayload<{
-  select: typeof discoveryPoiSelect
+  select: typeof discoveryPoiListSelect
+}>
+
+type DiscoveryPoiDetailRow = Prisma.PointOfInterestGetPayload<{
+  select: typeof discoveryPoiDetailSelect
 }>
 
 type DiscoveryRoute = {
@@ -124,10 +136,14 @@ function buildDiscoveryWhere(route: DiscoveryRoute): Prisma.PointOfInterestWhere
   }
 }
 
-async function findDiscoveryRows(route: DiscoveryRoute): Promise<DiscoveryPoiRow[]> {
+async function findDiscoveryRows<TSelect extends Prisma.PointOfInterestSelect>(
+  route: DiscoveryRoute,
+  options: { select: TSelect; take?: number },
+): Promise<Array<Prisma.PointOfInterestGetPayload<{ select: TSelect }>>> {
   return prisma.pointOfInterest.findMany({
     where: buildDiscoveryWhere(route),
-    select: discoveryPoiSelect,
+    select: options.select,
+    ...(options.take ? { take: options.take } : {}),
   })
 }
 
@@ -157,9 +173,54 @@ function sanitizeWebsite(value: string | null): string | null {
   }
 }
 
-function toPublicHours(value: Prisma.JsonValue | null): Readonly<Record<string, unknown>> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-  return { ...value }
+const PUBLIC_HOUR_DAY_KEYS = ['0', '1', '2', '3', '4', '5', '6'] as const
+const PUBLIC_OPEN_TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/
+const PUBLIC_CLOSE_TIME_PATTERN = /^(?:(?:[01]\d|2[0-3]):[0-5]\d|24:00)$/
+
+function toPublicHours(value: Prisma.JsonValue | null): PoiHours | null {
+  if (!isRecord(value)) return null
+
+  const hours: PoiHours = {}
+  for (const key of PUBLIC_HOUR_DAY_KEYS) {
+    const day = value[key]
+    if (day === null) {
+      hours[key] = null
+      continue
+    }
+    if (!isRecord(day) || Object.keys(day).length !== 2) continue
+    if (!Object.hasOwn(day, 'open') || !Object.hasOwn(day, 'close')) continue
+    if (
+      typeof day.open !== 'string'
+      || typeof day.close !== 'string'
+      || !PUBLIC_OPEN_TIME_PATTERN.test(day.open)
+      || !PUBLIC_CLOSE_TIME_PATTERN.test(day.close)
+    ) {
+      continue
+    }
+    hours[key] = { open: day.open, close: day.close } satisfies DayHours
+  }
+
+  return Object.keys(hours).length > 0 ? hours : null
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function normalizeUsablePhotoUrls(values: string[]): string[] {
+  const photos: string[] = []
+  const seen = new Set<string>()
+
+  for (const value of values) {
+    const trimmed = value.trim()
+    if (!isUsableAdminPhotoUrl(trimmed)) continue
+    const canonical = new URL(trimmed).toString()
+    if (seen.has(canonical)) continue
+    seen.add(canonical)
+    photos.push(canonical)
+  }
+
+  return photos
 }
 
 function stableNameCompare(
@@ -188,11 +249,14 @@ function distanceAndZone(row: DiscoveryPoiRow): { distance: number; zone: Discov
   )
   if (!Number.isFinite(rawDistance) || rawDistance < 0) return null
 
-  // Geographic source values are floating point; normalizing sub-millimetre
-  // noise keeps the exact 15 km and 30 km business boundaries deterministic.
-  const distance = Math.round(rawDistance * 1_000_000_000) / 1_000_000_000
-  if (distance <= PRIMARY_RADIUS_KM) return { distance, zone: 'primary' }
-  if (distance <= NEARBY_RADIUS_KM) return { distance, zone: 'nearby' }
+  const zone = getDiscoveryZone(rawDistance)
+  return zone ? { distance: rawDistance, zone } : null
+}
+
+export function getDiscoveryZone(distanceKm: number): DiscoveryZone | null {
+  if (!Number.isFinite(distanceKm) || distanceKm < 0) return null
+  if (distanceKm <= PRIMARY_RADIUS_KM) return 'primary'
+  if (distanceKm <= NEARBY_RADIUS_KM) return 'nearby'
   return null
 }
 
@@ -226,6 +290,7 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
   const rawPhotos = Array.isArray(row.photos)
     ? row.photos.filter((photo): photo is string => typeof photo === 'string')
     : []
+  const photos = normalizeUsablePhotoUrls(rawPhotos)
   const eligibility = getPoiDiscoveryEligibility({
     is_active: row.is_active,
     deleted_at: row.deleted_at,
@@ -236,7 +301,7 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
     geocode_status: row.geocode_status,
     phone: row.phone,
     website: row.website,
-    photos: rawPhotos,
+    photos,
     city: row.city,
     category: row.category,
     subcategory: row.subcategory,
@@ -246,7 +311,6 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
   const metric = distanceAndZone(row)
   if (!metric) return null
 
-  const photos = rawPhotos.filter(isUsableAdminPhotoUrl)
   const hero = photos[0]
   if (!hero) return null
 
@@ -259,10 +323,15 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
       address: row.address.trim(),
       latitude: row.latitude,
       longitude: row.longitude,
-      rating: Number.isFinite(row.rating) ? row.rating : null,
+      rating: typeof row.rating === 'number'
+        && Number.isFinite(row.rating)
+        && row.rating >= 0
+        && row.rating <= 5
+        ? row.rating
+        : null,
       rating_count: Number.isInteger(row.rating_count) && row.rating_count >= 0
         ? row.rating_count
-        : 0,
+        : null,
       is_open_now: typeof row.is_open_now === 'boolean' ? row.is_open_now : null,
       photo_url: hero,
       category: toTaxonomy(row.category),
@@ -292,7 +361,10 @@ export const getDiscoveryCity: (citySlug: string) => Promise<DiscoveryCity | nul
     if (!normalizedCitySlug) return null
 
     const route = { citySlug: normalizedCitySlug }
-    const mapped = sortedMappedPois(await findDiscoveryRows(route), route)
+    const mapped = sortedMappedPois(
+      await findDiscoveryRows(route, { select: discoveryPoiListSelect }),
+      route,
+    )
     const first = mapped[0]
     if (!first) return null
 
@@ -333,7 +405,10 @@ export const getDiscoveryCategory: (
       citySlug: normalizedCitySlug,
       categorySlug: normalizedCategorySlug,
     }
-    const mapped = sortedMappedPois(await findDiscoveryRows(route), route)
+    const mapped = sortedMappedPois(
+      await findDiscoveryRows(route, { select: discoveryPoiListSelect }),
+      route,
+    )
     const first = mapped[0]
     if (!first) return null
 
@@ -376,17 +451,23 @@ export const getDiscoveryPoi: (
       categorySlug: normalizedCategorySlug,
       poiSlug: normalizedPoiSlug,
     }
-    const mapped = sortedMappedPois(await findDiscoveryRows(route), route)[0]
+    const rows: DiscoveryPoiDetailRow[] = await findDiscoveryRows(route, {
+      select: discoveryPoiDetailSelect,
+      take: 1,
+    })
+    const mapped = sortedMappedPois(rows, route)[0]
     if (!mapped) return null
 
     const { photo_url: heroPhotoUrl, ...detailCard } = mapped.card
+    const hours = toPublicHours(rows[0]?.hours ?? null)
 
     return {
       ...detailCard,
+      is_open_now: computeIsOpenNow(hours) ?? detailCard.is_open_now,
       description: mapped.row.description!.trim(),
       phone: mapped.row.phone?.trim() || null,
       website: sanitizeWebsite(mapped.row.website),
-      hours: toPublicHours(mapped.row.hours),
+      hours,
       photos: mapped.photos,
       hero_photo_url: heroPhotoUrl,
       city: toCitySummary(mapped.row),

@@ -1,20 +1,19 @@
 const mockPoiFindMany = jest.fn()
 
+jest.mock('server-only', () => ({}), { virtual: true })
+
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     pointOfInterest: { findMany: (...args: unknown[]) => mockPoiFindMany(...args) },
   },
 }))
 
-import { getDiscoveryCategory } from '@/features/public-discovery/queries/public-discovery'
+import {
+  getDiscoveryCategory,
+  getDiscoveryZone,
+} from '@/features/public-discovery/queries/public-discovery'
 
-const EARTH_RADIUS_KM = 6371
-
-function longitudeAtDistance(distanceKm: number): number {
-  return distanceKm / EARTH_RADIUS_KM * 180 / Math.PI
-}
-
-function eligibleRow(id: string, distanceKm: number) {
+function eligibleRow(id: string, longitude: number) {
   return {
     id,
     name: id,
@@ -22,7 +21,7 @@ function eligibleRow(id: string, distanceKm: number) {
     description: 'Description',
     address: 'Adresse',
     latitude: 0,
-    longitude: longitudeAtDistance(distanceKm),
+    longitude,
     phone: '+33450000000',
     website: null,
     rating: null,
@@ -53,39 +52,44 @@ describe('041 AC-02-03 global discovery zones', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('keeps 15 km primary, puts just above 15 through 30 km nearby, and excludes just above 30 km', async () => {
+    expect(getDiscoveryZone(15)).toBe('primary')
+    expect(getDiscoveryZone(15 + Number.EPSILON * 16)).toBe('nearby')
+    expect(getDiscoveryZone(30)).toBe('nearby')
+    expect(getDiscoveryZone(30 + Number.EPSILON * 32)).toBeNull()
+  })
+
+  it('classifies fixed known coordinates with the shared Haversine implementation', async () => {
     mockPoiFindMany.mockResolvedValue([
-      eligibleRow('at-15', 15),
-      eligibleRow('above-15', 15.0001),
-      eligibleRow('at-30', 30),
-      eligibleRow('above-30', 30.0001),
+      eligibleRow('primary-fixed', 0.1),
+      eligibleRow('nearby-fixed', 0.2),
+      eligibleRow('excluded-fixed', 0.4),
     ])
 
     const category = await getDiscoveryCategory('ville', 'categorie')
 
     expect(category?.pois.map(poi => [poi.slug, poi.zone])).toEqual([
-      ['at-15', 'primary'],
-      ['above-15', 'nearby'],
-      ['at-30', 'nearby'],
+      ['primary-fixed', 'primary'],
+      ['nearby-fixed', 'nearby'],
     ])
   })
 
   it('excludes non-finite POI and city metrics safely', async () => {
     mockPoiFindMany.mockResolvedValue([
-      { ...eligibleRow('nan-poi', 1), latitude: Number.NaN },
-      { ...eligibleRow('infinite-poi', 1), longitude: Number.POSITIVE_INFINITY },
+      { ...eligibleRow('nan-poi', 0.01), latitude: Number.NaN },
+      { ...eligibleRow('infinite-poi', 0.01), longitude: Number.POSITIVE_INFINITY },
       {
-        ...eligibleRow('invalid-city', 1),
-        city: { ...eligibleRow('x', 1).city, latitude: Number.NaN },
+        ...eligibleRow('invalid-city', 0.01),
+        city: { ...eligibleRow('x', 0.01).city, latitude: Number.NaN },
       },
       {
-        ...eligibleRow('latitude-out-of-range', 1),
+        ...eligibleRow('latitude-out-of-range', 0.01),
         latitude: 91,
-        city: { ...eligibleRow('x', 1).city, latitude: 91 },
+        city: { ...eligibleRow('x', 0.01).city, latitude: 91 },
       },
       {
-        ...eligibleRow('longitude-out-of-range', 1),
+        ...eligibleRow('longitude-out-of-range', 0.01),
         longitude: 181,
-        city: { ...eligibleRow('x', 1).city, longitude: 181 },
+        city: { ...eligibleRow('x', 0.01).city, longitude: 181 },
       },
     ])
 

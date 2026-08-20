@@ -1,3 +1,5 @@
+import type { PoiHours } from '@/features/categories/types'
+
 export type PoiDiscoveryStatus = 'DRAFT' | 'PUBLISHED'
 
 export type PoiDiscoveryEligibility = {
@@ -37,7 +39,7 @@ export type DiscoveryPoiCard = {
   latitude: number
   longitude: number
   rating: number | null
-  rating_count: number
+  rating_count: number | null
   is_open_now: boolean | null
   photo_url: string
   category: DiscoveryTaxonomy
@@ -67,7 +69,7 @@ export type DiscoveryPoiDetail = Omit<DiscoveryPoiCard, 'photo_url'> & {
   description: string
   phone: string | null
   website: string | null
-  hours: Readonly<Record<string, unknown>> | null
+  hours: PoiHours | null
   photos: string[]
   hero_photo_url: string
   city: DiscoveryCitySummary
