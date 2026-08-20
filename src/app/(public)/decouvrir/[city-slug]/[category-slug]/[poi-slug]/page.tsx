@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { DiscoveryPoiView } from '@/features/public-discovery/components/DiscoveryPoiView'
 import { getDiscoveryPoi } from '@/features/public-discovery/queries/public-discovery'
 import { discoveryPoiMetadata } from '@/features/seo/lib/metadata'
-import { breadcrumbSchema, localBusinessSchema } from '@/features/seo/lib/structured-data'
+import { breadcrumbSchema, discoveryPoiSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 
 type PageProps = {
@@ -52,23 +52,7 @@ export default async function DiscoveryPoiPage({ params }: PageProps) {
           { name: poi.category.name, path: categoryPath },
           { name: poi.name, path: poiPath },
         ]),
-        localBusinessSchema({
-          name: poi.name,
-          description: poi.description,
-          address: poi.address,
-          latitude: poi.latitude,
-          longitude: poi.longitude,
-          phone: poi.phone,
-          website: poi.website,
-          rating: poi.rating,
-          ratingCount: poi.rating_count ?? 0,
-          hours: poi.hours,
-          photos: poi.photos,
-          cityName: poi.city.name,
-          cityRegion: poi.city.region,
-          postalCode: poi.city.postal_code,
-          path: poiPath,
-        }),
+        discoveryPoiSchema(poi),
       ]} />
       <DiscoveryPoiView poi={poi} />
     </>

@@ -4,6 +4,9 @@ const citySlug = process.env.PUBLIC_DISCOVERY_E2E_CITY_SLUG
 const categorySlug = process.env.PUBLIC_DISCOVERY_E2E_CATEGORY_SLUG
 const poiSlug = process.env.PUBLIC_DISCOVERY_E2E_POI_SLUG
 const hasPublishedFixture = Boolean(citySlug && categorySlug && poiSlug)
+const fixtureCitySlug = citySlug ?? 'published-city-fixture-required'
+const fixtureCategorySlug = categorySlug ?? 'published-category-fixture-required'
+const fixturePoiSlug = poiSlug ?? 'published-poi-fixture-required'
 
 test.describe('041 public discovery responsive pages', () => {
   test.skip(
@@ -17,9 +20,9 @@ test.describe('041 public discovery responsive pages', () => {
     { name: 'desktop', width: 1440, height: 1000 },
   ] as const) {
     for (const route of [
-      `/decouvrir/${citySlug}`,
-      `/decouvrir/${citySlug}/${categorySlug}`,
-      `/decouvrir/${citySlug}/${categorySlug}/${poiSlug}`,
+      `/decouvrir/${fixtureCitySlug}`,
+      `/decouvrir/${fixtureCitySlug}/${fixtureCategorySlug}`,
+      `/decouvrir/${fixtureCitySlug}/${fixtureCategorySlug}/${fixturePoiSlug}`,
     ]) {
       test(`${route} uses the marketing surface without overflow on ${viewport.name}`, async ({ page }) => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height })

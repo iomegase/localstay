@@ -155,6 +155,19 @@ describe('041 public discovery pages', () => {
     ])
   })
 
+  it('omits the nearby section when the Category has no nearby public POI', async () => {
+    mockedCategory.mockResolvedValue({ ...category, pois: [primaryPoi] })
+    const { default: CategoryPage } = await import(
+      '@/app/(public)/decouvrir/[city-slug]/[category-slug]/page'
+    )
+
+    render(await CategoryPage({
+      params: Promise.resolve({ 'city-slug': city.slug, 'category-slug': category.slug }),
+    }))
+
+    expect(screen.queryByRole('heading', { name: 'Aux alentours' })).not.toBeInTheDocument()
+  })
+
   it('renders the public POI facts, conditional actions, map and POI schema', async () => {
     mockedPoi.mockResolvedValue(poi)
     const { default: PoiPage } = await import(
@@ -180,8 +193,54 @@ describe('041 public discovery pages', () => {
     expect(screen.getByTestId('mini-map')).toBeInTheDocument()
     expect(jsonLd(container).map(item => item['@type'])).toEqual([
       'BreadcrumbList',
-      'LocalBusiness',
+      'TouristAttraction',
     ])
+  })
+
+  it('omits unavailable POI actions and falls back to coordinates for the itinerary', async () => {
+    const coordinateOnlyPoi = { ...poi, address: '', phone: null, website: null }
+    mockedPoi.mockResolvedValue(coordinateOnlyPoi)
+    const { default: PoiPage } = await import(
+      '@/app/(public)/decouvrir/[city-slug]/[category-slug]/[poi-slug]/page'
+    )
+
+    render(await PoiPage({
+      params: Promise.resolve({
+        'city-slug': city.slug,
+        'category-slug': category.slug,
+        'poi-slug': poi.slug,
+      }),
+    }))
+
+    expect(screen.queryByRole('link', { name: /Appeler/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Site officiel/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Itinéraire/i }).getAttribute('href')).toContain(
+      encodeURIComponent(`${poi.latitude},${poi.longitude}`),
+    )
+  })
+
+  it('wires each route metadata to its public DTO and canonical discovery URL', async () => {
+    mockedCity.mockResolvedValue(city)
+    mockedCategory.mockResolvedValue(category)
+    mockedPoi.mockResolvedValue(poi)
+    const [{ generateMetadata: cityMetadata }, { generateMetadata: categoryMetadata }, { generateMetadata: poiMetadata }] = await Promise.all([
+      import('@/app/(public)/decouvrir/[city-slug]/page'),
+      import('@/app/(public)/decouvrir/[city-slug]/[category-slug]/page'),
+      import('@/app/(public)/decouvrir/[city-slug]/[category-slug]/[poi-slug]/page'),
+    ])
+
+    const [cityResult, categoryResult, poiResult] = await Promise.all([
+      cityMetadata({ params: Promise.resolve({ 'city-slug': city.slug }) }),
+      categoryMetadata({ params: Promise.resolve({ 'city-slug': city.slug, 'category-slug': category.slug }) }),
+      poiMetadata({ params: Promise.resolve({ 'city-slug': city.slug, 'category-slug': category.slug, 'poi-slug': poi.slug }) }),
+    ])
+
+    expect(cityResult.alternates?.canonical).toBe(`/decouvrir/${city.slug}`)
+    expect(categoryResult.alternates?.canonical).toBe(`/decouvrir/${city.slug}/${category.slug}`)
+    expect(poiResult.alternates?.canonical).toBe(`/decouvrir/${city.slug}/${category.slug}/${poi.slug}`)
+    expect(cityResult.openGraph?.url).toBe(cityResult.alternates?.canonical)
+    expect(categoryResult.openGraph?.url).toBe(categoryResult.alternates?.canonical)
+    expect(poiResult.openGraph?.url).toBe(poiResult.alternates?.canonical)
   })
 
   it.each([

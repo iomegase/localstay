@@ -1,8 +1,10 @@
 import {
+  discoveryPoiSchema,
   discoveryItemListSchema,
   localBusinessSchema,
   touristAttractionSchema,
 } from '@/features/seo/lib/structured-data'
+import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const BASE = 'https://mystay.example.com'
 const discoveryPath = '/decouvrir/saint-gervais-les-bains/culture/le-musee-alpin'
@@ -23,6 +25,37 @@ const poiInput = {
   cityRegion: 'Auvergne-Rhône-Alpes',
   postalCode: '74170',
   path: discoveryPath,
+}
+
+const discoveryPoi: DiscoveryPoiDetail = {
+  name: 'Le Musée Alpin',
+  slug: 'le-musee-alpin',
+  description: 'Un musée consacré à l’histoire locale.',
+  address: '1 rue du Mont-Blanc',
+  latitude: 45.8921,
+  longitude: 6.7085,
+  phone: '+33450000000',
+  website: 'https://musee.example.com',
+  rating: 4.7,
+  rating_count: 32,
+  is_open_now: true,
+  hours: null,
+  photos: [
+    'https://images.example.com/musee.jpg',
+    'https://images.example.com/musee-cachee.jpg',
+  ],
+  hero_photo_url: 'https://images.example.com/musee.jpg',
+  category: { name: 'Culture', slug: 'culture' },
+  subcategory: { name: 'Musées', slug: 'musees' },
+  distance_km: 0.4,
+  zone: 'primary',
+  city: {
+    name: 'Saint-Gervais-les-Bains',
+    slug: 'saint-gervais-les-bains',
+    postal_code: '74170',
+    department: 'Haute-Savoie',
+    region: 'Auvergne-Rhône-Alpes',
+  },
 }
 
 describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
@@ -117,5 +150,34 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
   it('uses the caller-provided /decouvrir path for every supported POI schema', () => {
     expect(localBusinessSchema(poiInput).url).toBe(`${BASE}${discoveryPath}`)
     expect(touristAttractionSchema(poiInput).url).toBe(`${BASE}${discoveryPath}`)
+  })
+
+  it.each([
+    [{ category: { name: 'Culture', slug: 'culture' }, subcategory: { name: 'Musées', slug: 'musees' } }, 'TouristAttraction'],
+    [{ category: { name: 'Randonnées', slug: 'rando' }, subcategory: { name: 'Randonnée', slug: 'hiking' } }, 'TouristAttraction'],
+    [{ category: { name: 'Restaurants', slug: 'restaurants' }, subcategory: { name: 'Bistrot', slug: 'bistrot' } }, 'LocalBusiness'],
+  ] as const)('chooses the schema type from visible category facts: %j', (taxonomy, expectedType) => {
+    const schema = discoveryPoiSchema({ ...discoveryPoi, ...taxonomy })
+
+    expect(schema['@type']).toBe(expectedType)
+  })
+
+  it('emits only POI facts visible on the public detail page', () => {
+    const schema = discoveryPoiSchema(discoveryPoi)
+    const serialized = JSON.stringify(schema)
+
+    expect(schema).toMatchObject({
+      '@type': 'TouristAttraction',
+      name: discoveryPoi.name,
+      description: discoveryPoi.description,
+      image: [discoveryPoi.hero_photo_url],
+      address: {
+        streetAddress: discoveryPoi.address,
+        addressLocality: discoveryPoi.city.name,
+      },
+    })
+    expect(serialized).not.toContain(discoveryPoi.city.postal_code)
+    expect(serialized).not.toContain(discoveryPoi.city.region)
+    expect(serialized).not.toContain(discoveryPoi.photos[1]!)
   })
 })
