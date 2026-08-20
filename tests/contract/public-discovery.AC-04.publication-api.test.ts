@@ -188,4 +188,37 @@ describe('041 AC-04 Admin discovery publication API', () => {
     expect(response.status).toBe(status)
     await expect(response.json()).resolves.toEqual({ error: { code, message, details: {} } })
   })
+
+  it('maps unexpected infrastructure failures to a truthful 500 response', async () => {
+    mockUpdatePoiDiscoveryPublication.mockRejectedValue(new Error('database unavailable'))
+
+    const response = await PATCH(request({ status: 'DRAFT' }), context)
+
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      error: { code: 'INTERNAL_ERROR', message: 'Erreur interne', details: {} },
+    })
+  })
+
+  it('returns committed success when post-commit cache invalidation fails', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    mockUpdatePoiDiscoveryPublication.mockResolvedValue({
+      id: poiId,
+      discovery_status: 'DRAFT',
+      discovery_published_at: null,
+      public_url: null,
+      eligibility: { eligible: true, checks: { active: true } },
+      invalidation_paths: ['/decouvrir/saint-gervais'],
+    })
+    mockRevalidatePath.mockImplementationOnce(() => {
+      throw new Error('cache unavailable')
+    })
+
+    const response = await PATCH(request({ status: 'DRAFT' }), context)
+
+    expect(response.status).toBe(200)
+    expect(mockUpdatePoiDiscoveryPublication).toHaveBeenCalledTimes(1)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    consoleError.mockRestore()
+  })
 })

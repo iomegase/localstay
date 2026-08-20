@@ -1,9 +1,11 @@
-import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
 import { parsedOrValidationError, readJson, responseFromPoiAcquisitionError } from '@/features/poi-acquisition/lib/api'
 import { updatePoiDiscoveryPublication } from '@/features/public-discovery/queries/admin-publication'
+import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
+import { apiError } from '@/features/merchant/lib/responses'
+import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
 
 const PoiDiscoveryPublicationPatchSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED']),
@@ -31,8 +33,7 @@ export async function PATCH(req: NextRequest, context: RouteContext): Promise<Ne
   try {
     const result = await updatePoiDiscoveryPublication(params, parsed.status, session.user.id)
     const invalidationPaths = result.invalidation_paths ?? pathsFromPublicUrl(result.public_url)
-    for (const path of invalidationPaths) revalidatePath(path, 'page')
-    revalidatePath('/sitemap.xml')
+    safelyRevalidateDiscoveryPaths(invalidationPaths)
 
     return NextResponse.json({
       data: {
@@ -44,7 +45,8 @@ export async function PATCH(req: NextRequest, context: RouteContext): Promise<Ne
       },
     })
   } catch (error) {
-    return responseFromPoiAcquisitionError(error)
+    if (error instanceof PoiAcquisitionError) return responseFromPoiAcquisitionError(error)
+    return apiError('INTERNAL_ERROR', 'Erreur interne', 500)
   }
 }
 

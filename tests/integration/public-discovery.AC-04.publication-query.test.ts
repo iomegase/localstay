@@ -171,6 +171,24 @@ describe('041 AC-04 transactional publication query', () => {
     expect(result.public_url).toBeNull()
   })
 
+  it.each([
+    ['PUBLISHED', new Date('2026-08-20T15:00:00.000Z')],
+    ['DRAFT', null],
+  ] as const)('is idempotent for %s without changing date or creating audit', async (status, date) => {
+    mockPoiFindFirst.mockResolvedValue({
+      ...completePoi,
+      discovery_status: status,
+      discovery_published_at: date,
+    })
+
+    const result = await updatePoiDiscoveryPublication('poi-1', status, 'admin-1')
+
+    expect(result.discovery_status).toBe(status)
+    expect(result.discovery_published_at).toBe(date?.toISOString() ?? null)
+    expect(mockPoiUpdate).not.toHaveBeenCalled()
+    expect(mockAuditCreate).not.toHaveBeenCalled()
+  })
+
   it('maps a missing POI to the established not-found domain error', async () => {
     mockPoiFindFirst.mockResolvedValue(null)
 
@@ -260,6 +278,51 @@ describe('041 AC-04 transactional publication query', () => {
     expect(mockAuditCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ action: 'poi_discovery_auto_unpublished' }),
     })
+  })
+
+  it('revalidates a previously published POI after an eligible content edit', async () => {
+    const published = {
+      ...completeAdminPoi,
+      discovery_status: 'PUBLISHED' as const,
+      discovery_published_at: new Date('2026-08-20T15:00:00.000Z'),
+    }
+    mockPoiFindFirst.mockResolvedValue(published)
+    mockPoiUpdate.mockResolvedValue({ ...published, name: 'Nouveau nom' })
+
+    const result = await updateAdminPoi('poi-1', { name: 'Nouveau nom' }, 'admin-1')
+
+    expect(result.data.discovery_status).toBe('PUBLISHED')
+    expect(result.discovery_revalidation_paths).toEqual([
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ])
+  })
+
+  it('revalidates the deduped union of old and new routes after an eligible category move', async () => {
+    const published = {
+      ...completeAdminPoi,
+      discovery_status: 'PUBLISHED' as const,
+      discovery_published_at: new Date('2026-08-20T15:00:00.000Z'),
+    }
+    mockPoiFindFirst.mockResolvedValue(published)
+    mockCategoryFindFirst.mockResolvedValue({ id: 'category-2' })
+    mockPoiUpdate.mockResolvedValue({
+      ...published,
+      category_id: 'category-2',
+      category: { ...published.category, id: 'category-2', name: 'Sortir', slug: 'sortir' },
+    })
+
+    const result = await updateAdminPoi('poi-1', { category_id: 'category-2' }, 'admin-1')
+
+    expect(result.data.discovery_status).toBe('PUBLISHED')
+    expect(result.discovery_revalidation_paths).toEqual([
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      '/decouvrir/saint-gervais/sortir',
+      '/decouvrir/saint-gervais/sortir/brasserie-du-mont-blanc',
+    ])
   })
 
   it('invalidates only the pre-mutation published route when category changes while becoming ineligible', async () => {

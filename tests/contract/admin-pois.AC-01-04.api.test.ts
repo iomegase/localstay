@@ -93,7 +93,11 @@ describe('022 admin POI API', () => {
   it('AC-02-02: validates and patches editable POI fields', async () => {
     mockUpdateAdminPoi.mockResolvedValue({
       data: { id: poiId, name: 'Nom corrigé' },
-      discovery_revalidation_paths: [],
+      discovery_revalidation_paths: [
+        '/decouvrir/saint-gervais',
+        '/decouvrir/saint-gervais/manger',
+        '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      ],
     })
 
     const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
@@ -117,7 +121,12 @@ describe('022 admin POI API', () => {
       'admin-1',
     )
     await expect(res.json()).resolves.toEqual({ data: { id: poiId, name: 'Nom corrigé' } })
-    expect(mockRevalidatePath).not.toHaveBeenCalled()
+    expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir/saint-gervais', 'page'],
+      ['/decouvrir/saint-gervais/manger', 'page'],
+      ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
+      ['/sitemap.xml'],
+    ])
   })
 
   it('AC-02-05: returns TRAIL_FIELDS_LOCKED for trail-specific PATCH fields', async () => {
@@ -213,6 +222,27 @@ describe('022 admin POI API', () => {
       '/decouvrir/saint-gervais/nouvelle-categorie/brasserie-du-mont-blanc',
       'page',
     )
+  })
+
+  it('returns committed PATCH success when post-commit revalidation fails', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    mockUpdateAdminPoi.mockResolvedValue({
+      data: { id: poiId, name: 'Nom persisté' },
+      discovery_revalidation_paths: ['/decouvrir/saint-gervais'],
+    })
+    mockRevalidatePath.mockImplementationOnce(() => {
+      throw new Error('cache unavailable')
+    })
+
+    const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
+      name: 'Nom persisté',
+    }), params)
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: { id: poiId, name: 'Nom persisté' } })
+    expect(mockUpdateAdminPoi).toHaveBeenCalledTimes(1)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    consoleError.mockRestore()
   })
 
   it('AC-03-02/03-03: refreshes official photos without blocking on zero additions', async () => {

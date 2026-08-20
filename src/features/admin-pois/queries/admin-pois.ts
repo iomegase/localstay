@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
+import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
 import { geocodeForAcquisition } from '@/features/poi-acquisition/lib/geocode'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
 import { getPoiDiscoveryEligibility } from '@/features/public-discovery/lib/eligibility'
@@ -287,7 +288,7 @@ export async function updateAdminPoi(
     data.geocode_attempts = { increment: 1 }
   }
 
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
     const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
@@ -312,7 +313,7 @@ export async function updateAdminPoi(
 
 export async function disableAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
     const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
@@ -338,7 +339,7 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
   const before = await getPoiForMutation(id)
   if (before.deleted_at) throw new PoiAcquisitionError('POI_ALREADY_DELETED', 409)
 
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
     const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
@@ -370,7 +371,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
     subcategoryId: before.subcategory_id,
   })
 
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
     const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
@@ -621,7 +622,14 @@ async function autoUnpublishIneligiblePoi(
   }
 
   const eligibility = getPoiDiscoveryEligibility(poi)
-  if (eligibility.eligible) return { poi, discoveryRevalidationPaths: [] }
+  if (eligibility.eligible) {
+    const contexts = [publishedRouteContext, publishedDiscoveryRouteContextFromPoi(poi)]
+      .filter((context): context is PublishedDiscoveryRouteContext => context !== null)
+    return {
+      poi,
+      discoveryRevalidationPaths: discoveryPathsForPublishedContexts(contexts),
+    }
+  }
 
   const unpublished = await tx.pointOfInterest.update({
     where: { id: poi.id },
@@ -690,6 +698,17 @@ function discoveryPathsForPublishedContexts(contexts: PublishedDiscoveryRouteCon
     paths.add(`/decouvrir/${context.citySlug}/${context.categorySlug}/${context.poiSlug}`)
   }
   return Array.from(paths)
+}
+
+function publishedDiscoveryRouteContextFromPoi(
+  poi: AdminPoiRow,
+): PublishedDiscoveryRouteContext | null {
+  if (poi.discovery_status !== 'PUBLISHED') return null
+  return {
+    citySlug: poi.city.slug,
+    categorySlug: poi.category.slug,
+    poiSlug: poi.slug,
+  }
 }
 
 function mapAdminPoiMutationResult(result: AutoUnpublishResult): AdminPoiMutationResult {

@@ -1,5 +1,10 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
+import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
+import {
+  findPublishedDependencyPois,
+  unpublishPoisForDependency,
+} from '@/features/public-discovery/queries/dependency-unpublication'
 import type {
   AdminCategory,
   AdminSubCategory,
@@ -48,6 +53,11 @@ type AuditPayload = Prisma.InputJsonObject
 type TaxonomyLockMaps = {
   categoryLocks: Set<string>
   subCategoryLocks: Set<string>
+}
+
+export type TaxonomyMutationResult<T> = {
+  data: T
+  discovery_revalidation_paths: string[]
 }
 
 export async function getCategorySlugLock(category: CategoryLockInput): Promise<boolean> {
@@ -166,7 +176,7 @@ export async function updateCategory(
   id: string,
   input: CategoryPatchInput,
   adminId: string,
-): Promise<AdminCategory> {
+): Promise<TaxonomyMutationResult<AdminCategory>> {
   const existing = await prisma.category.findFirst({
     where: { id, deleted_at: null },
     select: {
@@ -186,7 +196,10 @@ export async function updateCategory(
     await assertCategorySlugAvailable(input.slug, existing.id)
   }
 
-  const updated = await prisma.$transaction(async tx => {
+  const mutation = await runSerializableTransaction(async tx => {
+    const publishedPois = input.is_active === false
+      ? await findPublishedDependencyPois(tx, { category_id: id })
+      : []
     const category = await tx.category.update({
       where: { id },
       data: {
@@ -215,10 +228,21 @@ export async function updateCategory(
       after: categoryAuditPayload(category),
     })
 
-    return category
+    const discoveryRevalidationPaths = input.is_active === false
+      ? await unpublishPoisForDependency(tx, publishedPois, adminId, {
+          type: 'category',
+          id,
+          reason: 'inactive',
+        })
+      : []
+
+    return { category, discoveryRevalidationPaths }
   })
 
-  return getCategoryById(updated.id)
+  return {
+    data: await getCategoryById(mutation.category.id),
+    discovery_revalidation_paths: mutation.discoveryRevalidationPaths,
+  }
 }
 
 export async function createSubCategory(
@@ -274,7 +298,7 @@ export async function updateSubCategory(
   id: string,
   input: SubCategoryPatchInput,
   adminId: string,
-): Promise<AdminSubCategory> {
+): Promise<TaxonomyMutationResult<AdminSubCategory>> {
   const existing = await prisma.subCategory.findFirst({
     where: { id, deleted_at: null },
     select: {
@@ -294,7 +318,10 @@ export async function updateSubCategory(
     await assertSubCategorySlugAvailable(input.slug, existing.id)
   }
 
-  const updated = await prisma.$transaction(async tx => {
+  const mutation = await runSerializableTransaction(async tx => {
+    const publishedPois = input.is_active === false
+      ? await findPublishedDependencyPois(tx, { subcategory_id: id })
+      : []
     const subcategory = await tx.subCategory.update({
       where: { id },
       data: {
@@ -322,15 +349,26 @@ export async function updateSubCategory(
       after: subCategoryAuditPayload(subcategory),
     })
 
-    return subcategory
+    const discoveryRevalidationPaths = input.is_active === false
+      ? await unpublishPoisForDependency(tx, publishedPois, adminId, {
+          type: 'subcategory',
+          id,
+          reason: 'inactive',
+        })
+      : []
+
+    return { subcategory, discoveryRevalidationPaths }
   })
 
   return {
-    ...updated,
-    slug_locked: await getSubCategorySlugLock(updated.id),
-    poi_count: await prisma.pointOfInterest.count({
-      where: { subcategory_id: updated.id, is_active: true, deleted_at: null },
-    }),
+    data: {
+      ...mutation.subcategory,
+      slug_locked: await getSubCategorySlugLock(mutation.subcategory.id),
+      poi_count: await prisma.pointOfInterest.count({
+        where: { subcategory_id: mutation.subcategory.id, is_active: true, deleted_at: null },
+      }),
+    },
+    discovery_revalidation_paths: mutation.discoveryRevalidationPaths,
   }
 }
 

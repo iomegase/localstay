@@ -1,6 +1,6 @@
 import { Prisma, type PoiDiscoveryStatus } from '@prisma/client'
-import { prisma } from '@/shared/lib/prisma'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
+import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
 import { getPoiDiscoveryEligibility } from '../lib/eligibility'
 
 const eligibilityKeys = [
@@ -67,7 +67,7 @@ export async function updatePoiDiscoveryPublication(
   status: PoiDiscoveryStatus,
   adminId: string,
 ): Promise<PoiDiscoveryPublicationResult> {
-  return prisma.$transaction(async tx => {
+  return runSerializableTransaction(async tx => {
     const before = await tx.pointOfInterest.findFirst({
       where: { id },
       select: poiDiscoveryEligibilitySelect,
@@ -80,6 +80,8 @@ export async function updatePoiDiscoveryPublication(
         missing: eligibility.missing,
       })
     }
+
+    if (before.discovery_status === status) return mapPoiDiscoveryPublication(before)
 
     const publishedAt = status === 'PUBLISHED' ? new Date() : null
     const updated = await tx.pointOfInterest.update({

@@ -6,9 +6,14 @@ const mockCreateCategory = jest.fn()
 const mockUpdateCategory = jest.fn()
 const mockCreateSubCategory = jest.fn()
 const mockUpdateSubCategory = jest.fn()
+const mockRevalidatePath = jest.fn()
 
 jest.mock('@/features/merchant/lib/session', () => ({
   getSessionAdmin: () => mockGetSessionAdmin(),
+}))
+
+jest.mock('next/cache', () => ({
+  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }))
 
 jest.mock('@/features/admin-taxonomy/queries/taxonomy', () => ({
@@ -125,6 +130,31 @@ describe('017 admin taxonomy API', () => {
     expect(json.error.code).toBe('SLUG_LOCKED')
   })
 
+  it('041 BR-05: revalidates affected discovery routes after Category deactivation without leaking context', async () => {
+    mockUpdateCategory.mockResolvedValue({
+      data: { id: 'cat-1', is_active: false },
+      discovery_revalidation_paths: [
+        '/decouvrir/saint-gervais',
+        '/decouvrir/saint-gervais/diner',
+        '/decouvrir/saint-gervais/diner/la-table',
+      ],
+    })
+
+    const res = await categoryPATCH(
+      request('PATCH', 'http://localhost/api/admin/taxonomy/categories/cat-1', { is_active: false }),
+      { params: Promise.resolve({ id: 'cat-1' }) },
+    )
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: { id: 'cat-1', is_active: false } })
+    expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir/saint-gervais', 'page'],
+      ['/decouvrir/saint-gervais/diner', 'page'],
+      ['/decouvrir/saint-gervais/diner/la-table', 'page'],
+      ['/sitemap.xml'],
+    ])
+  })
+
   it('AC-04-01: creates a SubCategory attached to its Category', async () => {
     mockCreateSubCategory.mockResolvedValue({ id: 'sub-1', slug: 'bar-a-vin', category_id: 'cat-1' })
 
@@ -146,7 +176,10 @@ describe('017 admin taxonomy API', () => {
   })
 
   it('AC-05-02: updates SubCategory status without physical deletion', async () => {
-    mockUpdateSubCategory.mockResolvedValue({ id: 'sub-1', is_active: false })
+    mockUpdateSubCategory.mockResolvedValue({
+      data: { id: 'sub-1', is_active: false },
+      discovery_revalidation_paths: [],
+    })
 
     const res = await subCategoryPATCH(
       request('PATCH', 'http://localhost/api/admin/taxonomy/subcategories/sub-1', { is_active: false }),
