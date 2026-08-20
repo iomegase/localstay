@@ -2,6 +2,11 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { geocodeForAcquisition } from '@/features/poi-acquisition/lib/geocode'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
+import { getPoiDiscoveryEligibility } from '@/features/public-discovery/lib/eligibility'
+import {
+  buildPoiDiscoveryPublicUrl,
+  toEligibilityDto,
+} from '@/features/public-discovery/queries/admin-publication'
 import {
   fetchOfficialWebsitePhotoEnrichmentDetailed,
   mergeOfficialWebsitePhotos,
@@ -36,9 +41,11 @@ type AdminPoiRow = {
   review_source: 'MANUAL' | 'GOOGLE'
   photos_status: string
   updated_at: Date
-  city: { id: string; name: string; slug: string }
-  category: { id: string; name: string; slug: string }
-  subcategory: { id: string; name: string; slug: string } | null
+  discovery_status: 'DRAFT' | 'PUBLISHED'
+  discovery_published_at: Date | null
+  city: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null }
+  category: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null }
+  subcategory: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null } | null
   merchant_profile: { id: string } | null
   trail_detail: {
     id: string
@@ -81,9 +88,11 @@ const adminPoiSelect = {
   review_source: true,
   photos_status: true,
   updated_at: true,
-  city: { select: { id: true, name: true, slug: true } },
-  category: { select: { id: true, name: true, slug: true } },
-  subcategory: { select: { id: true, name: true, slug: true } },
+  discovery_status: true,
+  discovery_published_at: true,
+  city: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
+  category: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
+  subcategory: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
   merchant_profile: { select: { id: true } },
   trail_detail: {
     select: {
@@ -278,7 +287,7 @@ export async function updateAdminPoi(
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
 
   return mapAdminPoiDetail(updated as AdminPoiRow)
@@ -302,7 +311,7 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
   return mapAdminPoiDetail(updated as AdminPoiRow)
 }
@@ -327,7 +336,7 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
   return mapAdminPoiDetail(updated as AdminPoiRow)
 }
@@ -358,7 +367,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
   return mapAdminPoiDetail(updated as AdminPoiRow)
 }
@@ -517,6 +526,7 @@ async function validatePoiDependencies(input: {
 }
 
 function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
+  const eligibility = getPoiDiscoveryEligibility(row)
   return {
     id: row.id,
     name: row.name,
@@ -534,11 +544,21 @@ function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
     merchant_attached: Boolean(row.merchant_profile),
     has_trail_detail: Boolean(row.trail_detail && !row.trail_detail.deleted_at),
     updated_at: row.updated_at.toISOString(),
-    public_url: `/guide/${row.city.slug}/${row.category.slug}/${row.slug}`,
+    discovery_status: row.discovery_status,
+    discovery_published_at: row.discovery_published_at?.toISOString() ?? null,
+    public_url:
+      row.discovery_status === 'PUBLISHED' && eligibility.eligible
+        ? buildPoiDiscoveryPublicUrl(row)
+        : null,
   }
 }
 
 function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
+  const eligibility = getPoiDiscoveryEligibility(row)
+  const discoveryPublicUrl =
+    row.discovery_status === 'PUBLISHED' && eligibility.eligible
+      ? buildPoiDiscoveryPublicUrl(row)
+      : null
   return {
     ...mapAdminPoiListItem(row),
     description: row.description,
@@ -550,6 +570,8 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
     longitude: row.longitude,
     slug_editable: false,
     trail_fields_locked: Boolean(row.trail_detail && !row.trail_detail.deleted_at),
+    discovery_eligibility: toEligibilityDto(eligibility),
+    discovery_public_url: discoveryPublicUrl,
     trail_detail:
       row.trail_detail && !row.trail_detail.deleted_at
         ? {
@@ -564,6 +586,47 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
           }
         : null,
   }
+}
+
+async function autoUnpublishIneligiblePoi(
+  tx: Prisma.TransactionClient,
+  poi: AdminPoiRow,
+  adminId: string,
+): Promise<AdminPoiRow> {
+  if (poi.discovery_status !== 'PUBLISHED') return poi
+
+  const eligibility = getPoiDiscoveryEligibility(poi)
+  if (eligibility.eligible) return poi
+
+  const unpublished = await tx.pointOfInterest.update({
+    where: { id: poi.id },
+    data: {
+      discovery_status: 'DRAFT',
+      discovery_published_at: null,
+    },
+    select: adminPoiSelect,
+  })
+
+  await tx.poiAcquisitionAuditLog.create({
+    data: {
+      admin_id: adminId,
+      action: 'poi_discovery_auto_unpublished',
+      target_type: 'poi',
+      target_id: poi.id,
+      before: buildAuditSnapshot({
+        discovery_status: poi.discovery_status,
+        discovery_published_at: poi.discovery_published_at,
+        missing: eligibility.missing,
+      }),
+      after: buildAuditSnapshot({
+        discovery_status: unpublished.discovery_status,
+        discovery_published_at: unpublished.discovery_published_at,
+        missing: eligibility.missing,
+      }),
+    },
+  })
+
+  return unpublished as AdminPoiRow
 }
 
 function buildAuditSnapshot(value: unknown): Prisma.InputJsonValue {

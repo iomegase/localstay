@@ -55,7 +55,7 @@ describe('022 admin POI API', () => {
     mockListAdminPois.mockResolvedValue({ data: [], pagination: { page: 2, limit: 10, total: 0, total_pages: 0 }, kpis: {} })
 
     const res = await listGET(new NextRequest(
-      `http://localhost/api/admin/pois?city_id=${cityId}&status=archived&page=2&limit=10&q=expo`,
+      `http://localhost/api/admin/pois?city_id=${cityId}&status=archived&discovery_status=PUBLISHED&page=2&limit=10&q=expo`,
     ))
 
     expect(res.status).toBe(200)
@@ -65,6 +65,7 @@ describe('022 admin POI API', () => {
       page: 2,
       limit: 10,
       q: 'expo',
+      discovery_status: 'PUBLISHED',
     })
   })
 
