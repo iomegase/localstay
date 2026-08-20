@@ -171,15 +171,17 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
 
   <div
     data-testid="editorial-highlight-grid"
-    className="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:mt-[88px] xl:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))] xl:grid-rows-[repeat(2,minmax(205px,auto))] xl:gap-[14px]"
+    className="mt-12 grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1051px]:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))] xl:mt-[88px] xl:grid-rows-[repeat(2,minmax(205px,auto))] xl:gap-[14px]"
   >
     {serviceHighlights.map(({ icon: Icon, label, copy }, index) => (
       <article
         key={label}
         data-testid={`editorial-highlight-${index}`}
         className={`relative flex min-h-[205px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[205px] xl:rounded-[22px] xl:px-6 xl:py-[22px] ${
-          index === 0 ? 'lg:row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1' : ''
-        } ${index === serviceHighlights.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
+          index === 0
+            ? 'min-[761px]:col-span-2 min-[1051px]:col-span-1 min-[1051px]:col-start-1 min-[1051px]:row-start-1 min-[1051px]:row-span-1'
+            : ''
+        }`}
       >
         <span
           aria-hidden="true"
@@ -210,7 +212,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         </p>
       </article>
     ))}
-    <div className="col-span-2 mt-5 hidden items-center justify-center lg:col-span-3 lg:flex xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0">
+    <div className="col-span-1 mt-5 flex min-h-[82px] items-center justify-center min-[761px]:col-span-2 min-[1051px]:col-span-1 min-[1051px]:col-start-1 min-[1051px]:row-start-2 min-[1051px]:mt-0 min-[1051px]:min-h-0">
       <Link href="/concept" className={marketingDarkButtonClass}>
         Comprendre notre approche <span aria-hidden="true">→</span>
       </Link>

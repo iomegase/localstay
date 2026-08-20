@@ -47,13 +47,18 @@ describe('031-public-marketing-site home', () => {
       'xl:max-w-[744px]',
       'xl:px-6',
     )
-    expect(screen.getByTestId('editorial-highlight-grid')).toHaveClass(
+    const highlightGrid = screen.getByTestId('editorial-highlight-grid')
+    expect(highlightGrid).toHaveClass(
+      'grid-cols-1',
+      'min-[761px]:grid-cols-2',
+      'min-[1051px]:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))]',
       'xl:mt-[88px]',
-      'xl:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))]',
       'xl:gap-[14px]',
       'xl:grid-rows-[repeat(2,minmax(205px,auto))]',
     )
-    expect(screen.getByTestId('editorial-highlight-0')).toHaveClass(
+    expect(highlightGrid).not.toHaveClass('grid-cols-2', 'lg:grid-cols-3')
+    const featuredHighlight = screen.getByTestId('editorial-highlight-0')
+    expect(featuredHighlight).toHaveClass(
       'flex',
       'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
       'bg-[#f7f6f4]',
@@ -61,11 +66,24 @@ describe('031-public-marketing-site home', () => {
       'xl:rounded-[22px]',
       'xl:px-6',
       'xl:py-[22px]',
-      'xl:col-start-1',
-      'xl:row-start-1',
+      'min-[761px]:col-span-2',
+      'min-[1051px]:col-span-1',
+      'min-[1051px]:col-start-1',
+      'min-[1051px]:row-start-1',
     )
-    expect(screen.getByTestId('editorial-highlight-0').querySelector('svg')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Comprendre notre approche/i })).toBeInTheDocument()
+    expect(featuredHighlight.querySelector('svg')).toBeInTheDocument()
+    expect(screen.getByTestId('editorial-highlight-4')).not.toHaveClass('col-span-2')
+    const approachAction = screen.getByRole('link', { name: /Comprendre notre approche/i })
+      .parentElement
+    expect(approachAction).toHaveClass(
+      'flex',
+      'col-span-1',
+      'min-[761px]:col-span-2',
+      'min-[1051px]:col-span-1',
+      'min-[1051px]:col-start-1',
+      'min-[1051px]:row-start-2',
+    )
+    expect(approachAction).not.toHaveClass('hidden', 'lg:flex')
     expect(screen.getByTestId('editorial-services')).toHaveClass(
       'xl:pb-[42px]',
       'xl:pt-[82px]',
