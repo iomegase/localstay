@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink, MapPin, Tag } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoi, getAdminPoiOptions } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiEditForm } from '@/features/admin-pois/components/AdminPoiEditForm'
+import { AdminPoiDiscoveryCard } from '@/features/admin-pois/components/AdminPoiDiscoveryCard'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
 
 type PageProps = {
@@ -84,8 +85,19 @@ export default async function AdminPoiDetailPage({ params }: PageProps) {
       </header>
 
       <div className="px-6 mt-8 md:px-10">
-        <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-200">
-          <AdminPoiEditForm poi={poi} categories={options.categories} />
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-200">
+            <AdminPoiEditForm poi={poi} categories={options.categories} />
+          </div>
+          <aside>
+            <AdminPoiDiscoveryCard
+              poiId={poi.id}
+              status={poi.discovery_status}
+              publishedAt={poi.discovery_published_at}
+              publicUrl={poi.discovery_public_url}
+              eligibility={poi.discovery_eligibility}
+            />
+          </aside>
         </div>
       </div>
     </div>
