@@ -176,7 +176,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
     }))
   })
 
-  it('ignores stale invalid POIs instead of blocking the whole save', async () => {
+  it('rejects stale invalid POIs before starting the transaction', async () => {
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       {
         id: 'poi-1',
@@ -197,16 +197,12 @@ describe('saveLodgingCustomization — practical blocks', () => {
         { poi_id: 'poi-1', owner_note: 'Très bon coin', sort_order: 1 },
       ],
       practical_blocks: [],
-    })).resolves.toEqual(expect.objectContaining({
-      featured_pois: expect.arrayContaining([
-        expect.objectContaining({ poi_id: 'poi-1', owner_note: 'Très bon coin' }),
-      ]),
+    })).rejects.toEqual(expect.objectContaining<Partial<GuideCustomizationError>>({
+      code: 'INVALID_FEATURED_POI',
+      message: expect.stringMatching(/indisponible/i),
     }))
 
-    expect(tx.lodgingFeaturedPoi.upsert).toHaveBeenCalledTimes(1)
-    expect(tx.lodgingFeaturedPoi.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { lodging_id_poi_id: { lodging_id: 'lodging-1', poi_id: 'poi-1' } },
-    }))
+    expect(prisma.$transaction).not.toHaveBeenCalled()
   })
 
   it('rejects an owner note over 300 words before starting the transaction', async () => {

@@ -22,7 +22,7 @@ export default async function LodgingsPage() {
         <div className={marketingContainerClass}>
           <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
           <h1 className="max-w-4xl text-4xl py-8 font-bold leading-[1.03] tracking-[-0.05em] sm:text-6xl">
-            Des lieux suivis avec attention.
+            Des séjours choisis, des lieux suivis avec attention.
           </h1>
           <p className="mt-6 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
             Chaque logement est accompagné par notre conciergerie et dispose de son propre guide

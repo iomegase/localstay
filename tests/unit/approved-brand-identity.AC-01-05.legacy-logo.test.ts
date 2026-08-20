@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const activeBrandFiles = [
-  'src/app/(auth)/layout.tsx',
+  'src/app/auth/layout.tsx',
   'src/app/(dashboard)/layout.tsx',
   'src/app/admin/layout.tsx',
 ] as const

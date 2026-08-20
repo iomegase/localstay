@@ -47,4 +47,14 @@ describe('validateFeaturedPois — cross-city', () => {
       validateFeaturedPois(lodging as never, [{ poi_id: 'p1', sort_order: 0 }]),
     ).rejects.toThrow(/indisponible/i)
   })
+
+  it('rejects a soft-deleted POI', async () => {
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      poiRow('p1', 'cityB', 'c1', { deleted_at: new Date('2026-08-20') }),
+    ] as never)
+
+    await expect(
+      validateFeaturedPois(lodging as never, [{ poi_id: 'p1', sort_order: 0 }]),
+    ).rejects.toThrow(/indisponible/i)
+  })
 })

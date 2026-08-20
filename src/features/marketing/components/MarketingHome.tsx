@@ -1,4 +1,4 @@
-// import Image from 'next/image'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   BedDouble,
@@ -91,20 +91,29 @@ const guideSteps = [
 export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }) {
   return (
     <MarketingShell>
-     <section
-  data-testid="editorial-hero-shell"
-  className={`${marketingContainerClass} relative mt-0 sm:mt-8 xl:mt-0 xl:max-w-[944px]`}
->
-  <div
-    data-testid="editorial-hero"
-    className="relative min-h-[560px] bg-white"
-  >
-    <div
-      data-testid="editorial-hero-content"
-      className="relative flex min-h-[560px] flex-col px-9 pb-14 pt-16 text-slate-800 min-[761px]:px-[46px] min-[761px]:pt-[76px] min-[1051px]:px-16 xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
-    >
+      <section
+        data-testid="editorial-hero-shell"
+        className={`${marketingContainerClass} relative mt-0 overflow-hidden sm:mt-8 sm:rounded-[30px] xl:mt-0 xl:max-w-[944px]`}
+      >
+        <div
+          data-testid="editorial-hero"
+          className="relative min-h-[720px] overflow-hidden rounded-[26px] bg-slate-800 min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:rounded-[32px] min-[1051px]:min-h-[700px] xl:min-h-[560px] xl:rounded-[26px]"
+        >
+          <Image
+            src="/marketing/hero-chalet-v2.png"
+            alt="Chalet MyStay face aux montagnes"
+            fill
+            priority
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 1180px"
+          />
+          <div aria-hidden="true" className="absolute inset-0 bg-black/60" />
+          <div
+            data-testid="editorial-hero-content"
+            className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-white min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
+          >
       <div className="max-w-[745px] xl:max-w-[600px] xl:[&>span:first-child]:mb-[19px]">
-        <MarketingEyebrow>
+        <MarketingEyebrow light>
           Conciergerie en Haute-Savoie
         </MarketingEyebrow>
 
@@ -120,7 +129,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           </span>
         </h1>
 
-        <p className="mt-6 max-w-[560px] text-[15px] leading-[1.65] text-slate-600 xl:max-w-[450px] xl:text-[14px] xl:leading-[1.6]">
+        <p className="mt-6 max-w-[560px] text-[15px] leading-[1.65] text-slate-200 xl:max-w-[450px] xl:text-[14px] xl:leading-[1.6]">
           MyStay accompagne les propriétaires dans la gestion de leur
           location saisonnière, de la mise en valeur du bien jusqu’au départ
           des voyageurs.
@@ -129,15 +138,15 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         <div className="mt-7 flex items-start xl:mt-[30px]">
           <Link
             href="/confier-mon-logement"
-            className={marketingPrimaryButtonClass}
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 text-xs font-bold text-slate-800 transition-colors hover:bg-pink-600 hover:text-white xl:min-h-[42px]"
           >
             Confier mon logement
           </Link>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+          </div>
+        </div>
+      </section>
 
 <section
   className={`${marketingContainerClass} pb-16 pt-24 sm:pb-24 sm:pt-28 xl:pb-20 xl:pt-[88px]`}
@@ -169,7 +178,8 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
       lg:grid-cols-3
       xl:mt-[60px]
       xl:grid-cols-5
-      xl:gap-4
+      xl:grid-rows-[repeat(2,minmax(205px,auto))]
+      xl:gap-[14px]
     "
   >
     {serviceHighlights.map(({ label, copy }, index) => (
@@ -180,11 +190,15 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           group
           relative
           min-h-[165px]
+          xl:min-h-[205px]
           overflow-hidden
           rounded-[22px]
+          xl:rounded-[22px]
           bg-[#ffffff]
           px-5
+          xl:px-6
           py-[18px]
+          xl:py-[22px]
           shadow-[0_6px_20px_rgba(15,23,42,0.035)]
           transition-all
           duration-300
@@ -299,7 +313,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           <article
   key={service.number}
   data-testid={`editorial-service-${service.number}`}
-  className={`group relative min-h-[165px] overflow-hidden rounded-[22px]
+  className={`group relative min-h-[165px] overflow-hidden rounded-[22px] xl:min-h-[198px] xl:rounded-[20px]
     bg-[#f8f7f5] px-5 py-[18px]
     shadow-[0_6px_20px_rgba(15,23,42,0.035)]
     transition-all duration-300
@@ -429,7 +443,7 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         <article
   key={label}
   data-testid={`editorial-process-card-${index}`}
-  className={`group relative min-h-[165px] overflow-hidden rounded-[22px]
+  className={`group relative min-h-[165px] overflow-hidden rounded-[22px] xl:min-h-[234px] xl:rounded-[22px]
     bg-[#f8f7f5] px-5 py-[18px]
     shadow-[0_6px_20px_rgba(15,23,42,0.035)]
     transition-all duration-300

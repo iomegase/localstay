@@ -23,7 +23,7 @@ export function GuideHome({
       {/* Conteneur 1 — accueil, centré */}
       <div className="flex flex-1 items-center justify-center">
         <h1 className="text-center text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
-          {welcomeTitle.split(' ').slice(0, 2).join(' ')}
+          Bienvenue
           <br />
           {welcomeTitle.replace(/^Bienvenue\s+/i, '')}
         </h1>
