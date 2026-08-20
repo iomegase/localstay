@@ -57,7 +57,7 @@ export function responseFromTaxonomyError(error: unknown): NextResponse {
     const code = typeof codeValue === 'string' ? codeValue : error.message
     return apiError(code, messageForCode(code), error.status, error.details ?? {})
   }
-  return apiError('VALIDATION_ERROR', 'Paramètre manquant ou invalide', 400)
+  return apiError('INTERNAL_ERROR', 'Erreur interne', 500)
 }
 
 export function parsedOrValidationError<T>(

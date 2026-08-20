@@ -275,6 +275,33 @@ describe('022 admin POI API', () => {
     })
   })
 
+  it.each([
+    ['PATCH', mockUpdateAdminPoi, () => detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
+      name: 'Nom corrigé',
+    }), params)],
+    ['disable', mockDisableAdminPoi, () => disablePOST(
+      new NextRequest(`http://localhost/api/admin/pois/${poiId}/disable`),
+      params,
+    )],
+    ['archive', mockDeleteAdminPoi, () => deletePOST(
+      new NextRequest(`http://localhost/api/admin/pois/${poiId}/delete`),
+      params,
+    )],
+    ['restore', mockRestoreAdminPoi, () => restorePOST(
+      new NextRequest(`http://localhost/api/admin/pois/${poiId}/restore`),
+      params,
+    )],
+  ])('maps an unexpected %s infrastructure failure to INTERNAL_ERROR', async (_action, query, invoke) => {
+    query.mockRejectedValue(Object.assign(new Error('serialization conflict'), { code: 'P2034' }))
+
+    const res = await invoke()
+
+    expect(res.status).toBe(500)
+    await expect(res.json()).resolves.toEqual({
+      error: { code: 'INTERNAL_ERROR', message: 'Erreur interne', details: {} },
+    })
+  })
+
   it('keeps POST /api/admin/pois available for the existing 018 manual creation contract', () => {
     expect(typeof createPOST).toBe('function')
   })

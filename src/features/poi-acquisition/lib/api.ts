@@ -72,7 +72,7 @@ export function responseFromPoiAcquisitionError(error: unknown): NextResponse {
       isRecord(details) ? details : {},
     )
   }
-  return apiError('VALIDATION_ERROR', 'Paramètre manquant ou invalide', 400)
+  return apiError('INTERNAL_ERROR', 'Erreur interne', 500)
 }
 
 function isPoiAcquisitionErrorLike(error: unknown): error is Error & { status: number } {

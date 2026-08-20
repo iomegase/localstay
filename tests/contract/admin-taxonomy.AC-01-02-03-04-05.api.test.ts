@@ -130,6 +130,22 @@ describe('017 admin taxonomy API', () => {
     expect(json.error.code).toBe('SLUG_LOCKED')
   })
 
+  it('maps an exhausted Category serialization conflict to INTERNAL_ERROR', async () => {
+    mockUpdateCategory.mockRejectedValue(
+      Object.assign(new Error('serialization conflict'), { code: 'P2034' }),
+    )
+
+    const res = await categoryPATCH(
+      request('PATCH', 'http://localhost/api/admin/taxonomy/categories/cat-1', { is_active: false }),
+      { params: Promise.resolve({ id: 'cat-1' }) },
+    )
+
+    expect(res.status).toBe(500)
+    await expect(res.json()).resolves.toEqual({
+      error: { code: 'INTERNAL_ERROR', message: 'Erreur interne', details: {} },
+    })
+  })
+
   it('041 BR-05: revalidates affected discovery routes after Category deactivation without leaking context', async () => {
     mockUpdateCategory.mockResolvedValue({
       data: { id: 'cat-1', is_active: false },
@@ -188,5 +204,19 @@ describe('017 admin taxonomy API', () => {
 
     expect(res.status).toBe(200)
     expect(mockUpdateSubCategory).toHaveBeenCalledWith('sub-1', { is_active: false }, 'admin-1')
+  })
+
+  it('maps an unexpected SubCategory infrastructure failure to INTERNAL_ERROR', async () => {
+    mockUpdateSubCategory.mockRejectedValue(new Error('database unavailable'))
+
+    const res = await subCategoryPATCH(
+      request('PATCH', 'http://localhost/api/admin/taxonomy/subcategories/sub-1', { is_active: false }),
+      { params: Promise.resolve({ id: 'sub-1' }) },
+    )
+
+    expect(res.status).toBe(500)
+    await expect(res.json()).resolves.toEqual({
+      error: { code: 'INTERNAL_ERROR', message: 'Erreur interne', details: {} },
+    })
   })
 })
