@@ -6,7 +6,10 @@ import '@testing-library/jest-dom'
 import AdminPoiDetailPage from '@/app/admin/pois/[id]/page'
 import AdminPoisPage from '@/app/admin/pois/page'
 import { AdminPoiDiscoveryCard } from '@/features/admin-pois/components/AdminPoiDiscoveryCard'
-import type { AdminPoiDiscoveryEligibility } from '@/features/admin-pois/types'
+import type {
+  AdminPoiDetail,
+  AdminPoiDiscoveryEligibility,
+} from '@/features/admin-pois/types'
 
 const mockRefresh = jest.fn()
 const mockListAdminPois = jest.fn()
@@ -320,6 +323,33 @@ describe('041 AC-04 Admin publication controls', () => {
     expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeEnabled()
   })
 
+  it('rejects a malformed successful DTO without adopting its unsafe link or status', async () => {
+    jest.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          id: poiId,
+          discovery_status: 'PUBLISHED',
+          discovery_published_at: '2026-08-20T15:00:00.000Z',
+          public_url: 'javascript:alert(1)',
+          eligibility: completeEligibility,
+        },
+      }),
+    } as Response)
+    renderCard()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Publier dans Découvrir' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'La mise à jour de la publication a échoué. Veuillez réessayer.',
+    )
+    expect(screen.getByLabelText('Statut Découverte : Brouillon')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeEnabled()
+    expect(screen.queryByRole('link', { name: /Voir la fiche publique/i })).not.toBeInTheDocument()
+    expect(mockRefresh).not.toHaveBeenCalled()
+  })
+
   it('AC-04-01: wires the server publication DTO beside the existing edit form', async () => {
     mockGetAdminPoi.mockResolvedValue(buildPoi({ discovery_status: 'DRAFT' }))
 
@@ -406,7 +436,7 @@ describe('041 AC-04 Admin publication controls', () => {
   })
 })
 
-function buildPoi(overrides: Record<string, unknown> = {}) {
+function buildPoi(overrides: Partial<AdminPoiDetail> = {}): AdminPoiDetail {
   return {
     id: poiId,
     name: 'Le Musée',

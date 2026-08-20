@@ -18,6 +18,13 @@ import type {
   AdminPoiDiscoveryEligibility,
   AdminPoiDiscoveryStatus,
 } from '@/features/admin-pois/types'
+import {
+  ADMIN_POI_DISCOVERY_ELIGIBILITY_KEYS,
+  parseAdminPoiDiscoveryMissingKeys,
+  parseAdminPoiDiscoveryPublicationResponse,
+  type AdminPoiDiscoveryEligibilityKey,
+  type AdminPoiDiscoveryPublicationState,
+} from '@/features/admin-pois/lib/discovery-publication-response'
 
 type AdminPoiDiscoveryCardProps = {
   poiId: string
@@ -27,31 +34,8 @@ type AdminPoiDiscoveryCardProps = {
   eligibility: AdminPoiDiscoveryEligibility
 }
 
-type EligibilityKey = keyof AdminPoiDiscoveryEligibility['checks']
-
-type PublicationState = {
-  status: AdminPoiDiscoveryStatus
-  publishedAt: string | null
-  publicUrl: string | null
-  eligibility: AdminPoiDiscoveryEligibility
-}
-
-const ELIGIBILITY_KEYS = [
-  'active',
-  'city',
-  'category',
-  'subcategory',
-  'description',
-  'photo',
-  'address',
-  'geocode',
-  'contact',
-] as const satisfies readonly EligibilityKey[]
-
-const ELIGIBILITY_KEY_SET = new Set<string>(ELIGIBILITY_KEYS)
-
 const CHECK_LABELS: Array<{
-  key: EligibilityKey
+  key: AdminPoiDiscoveryEligibilityKey
   label: string
 }> = [
   { key: 'active', label: 'POI actif' },
@@ -80,7 +64,7 @@ export function AdminPoiDiscoveryCard({
     publishedAt,
     publicUrl,
     eligibility.eligible,
-    ...ELIGIBILITY_KEYS.map(key => eligibility.checks[key]),
+    ...ADMIN_POI_DISCOVERY_ELIGIBILITY_KEYS.map(key => eligibility.checks[key]),
   ])
 
   return (
@@ -105,7 +89,7 @@ function AdminPoiDiscoveryCardStateful({
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [publication, setPublication] = useState<PublicationState>({
+  const [publication, setPublication] = useState<AdminPoiDiscoveryPublicationState>({
     status,
     publishedAt,
     publicUrl,
@@ -153,7 +137,7 @@ function AdminPoiDiscoveryCardStateful({
       if (!response.ok) {
         setError(readApiErrorMessage(payload) ?? GENERIC_ERROR)
         if (response.status === 409) {
-          const missing = readApiMissingKeys(payload)
+          const missing = parseAdminPoiDiscoveryMissingKeys(payload)
           if (missing.length > 0) {
             setPublication(current => overlayMissingEligibility(current, missing))
           }
@@ -161,7 +145,7 @@ function AdminPoiDiscoveryCardStateful({
         return
       }
 
-      const updated = readPublicationState(payload, poiId)
+      const updated = parseAdminPoiDiscoveryPublicationResponse(payload, poiId)
       if (!updated) {
         setError(GENERIC_ERROR)
         return
@@ -284,54 +268,10 @@ function formatPublishedAt(value: string): string {
   }).format(date)
 }
 
-function readPublicationState(value: unknown, expectedPoiId: string): PublicationState | null {
-  if (!isRecord(value) || !isRecord(value.data)) return null
-  const data = value.data
-  if (data.id !== expectedPoiId) return null
-  if (data.discovery_status !== 'DRAFT' && data.discovery_status !== 'PUBLISHED') return null
-  if (!isNullableString(data.discovery_published_at) || !isNullableString(data.public_url)) return null
-  if (data.discovery_status === 'DRAFT' && data.discovery_published_at !== null) return null
-  if (data.discovery_status === 'PUBLISHED' && !isValidDateTime(data.discovery_published_at)) return null
-
-  const eligibility = readEligibility(data.eligibility)
-  if (!eligibility) return null
-
-  return {
-    status: data.discovery_status,
-    publishedAt: data.discovery_published_at,
-    publicUrl: data.public_url,
-    eligibility,
-  }
-}
-
-function readEligibility(value: unknown): AdminPoiDiscoveryEligibility | null {
-  if (!isRecord(value) || typeof value.eligible !== 'boolean' || !isRecord(value.checks)) {
-    return null
-  }
-
-  const checks = {} as AdminPoiDiscoveryEligibility['checks']
-  for (const key of ELIGIBILITY_KEYS) {
-    if (typeof value.checks[key] !== 'boolean') return null
-    checks[key] = value.checks[key]
-  }
-
-  return { eligible: value.eligible, checks }
-}
-
-function readApiMissingKeys(value: unknown): EligibilityKey[] {
-  if (!isRecord(value) || !isRecord(value.error) || !isRecord(value.error.details)) return []
-  const missing = value.error.details.missing
-  if (!Array.isArray(missing)) return []
-
-  return missing.filter(
-    (key): key is EligibilityKey => typeof key === 'string' && ELIGIBILITY_KEY_SET.has(key),
-  )
-}
-
 function overlayMissingEligibility(
-  current: PublicationState,
-  missing: EligibilityKey[],
-): PublicationState {
+  current: AdminPoiDiscoveryPublicationState,
+  missing: AdminPoiDiscoveryEligibilityKey[],
+): AdminPoiDiscoveryPublicationState {
   const checks = { ...current.eligibility.checks }
   for (const key of missing) checks[key] = false
 
@@ -346,14 +286,6 @@ function readApiErrorMessage(value: unknown): string | null {
   return typeof value.error.message === 'string' && value.error.message.trim().length > 0
     ? value.error.message
     : null
-}
-
-function isNullableString(value: unknown): value is string | null {
-  return value === null || typeof value === 'string'
-}
-
-function isValidDateTime(value: string | null): value is string {
-  return typeof value === 'string' && !Number.isNaN(new Date(value).getTime())
 }
 
 function isAbortError(value: unknown): boolean {
