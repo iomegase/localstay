@@ -91,6 +91,16 @@ describe('041 AC-01-05 discovery metadata', () => {
     expect(metadata.description).toContain('Auvergne-Rhône-Alpes')
   })
 
+  it('omits unavailable geographic labels from the city description', () => {
+    const metadata = discoveryCityMetadata({ ...city, department: null, region: null })
+
+    expect(metadata.description).toBe(
+      'Découvrez la sélection locale MyStay à Saint-Gervais-les-Bains : adresses et lieux validés pour préparer votre séjour.',
+    )
+    expect(metadata.openGraph?.images).toEqual([poiCard.photo_url])
+    expect(JSON.stringify(metadata)).not.toContain('null')
+  })
+
   it('builds category metadata from visible category and city facts', () => {
     const metadata = discoveryCategoryMetadata(category)
 

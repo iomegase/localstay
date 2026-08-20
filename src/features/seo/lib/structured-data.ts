@@ -3,6 +3,7 @@ import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/com
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
 
 const SCHEMA = 'https://schema.org'
+const DISCOVERY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 // Index = jour (0 = dimanche … 6 = samedi), aligné sur le format hours stocké.
 const DAY_URIS = [
@@ -75,17 +76,26 @@ export function discoveryItemListSchema(input: {
   name: string
   items: Array<{ name: string; path: string }>
 }): JsonLdObject {
+  const publicItems = input.items.filter(item => isCanonicalDiscoveryPath(item.path))
+
   return {
     '@context': SCHEMA,
     '@type': 'ItemList',
     name: input.name,
-    itemListElement: input.items.map((item, index) => ({
+    itemListElement: publicItems.map((item, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
       url: `${siteBaseUrl()}${item.path}`,
     })),
   }
+}
+
+function isCanonicalDiscoveryPath(path: string): boolean {
+  const segments = path.split('/')
+  if (segments.length < 3 || segments.length > 5) return false
+  if (segments[0] !== '' || segments[1] !== 'decouvrir') return false
+  return segments.slice(2).every(segment => DISCOVERY_SLUG_PATTERN.test(segment))
 }
 
 function openingHoursSpecification(hours: PoiSchemaInput['hours']): JsonLdObject[] | undefined {
