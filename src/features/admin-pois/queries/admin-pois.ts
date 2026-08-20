@@ -80,6 +80,12 @@ type AutoUnpublishResult = {
   discoveryRevalidationPaths: string[]
 }
 
+type PublishedDiscoveryRouteContext = {
+  citySlug: string
+  categorySlug: string
+  poiSlug: string
+}
+
 const adminPoiSelect = {
   id: true,
   name: true,
@@ -282,6 +288,7 @@ export async function updateAdminPoi(
   }
 
   const updated = await prisma.$transaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data,
@@ -297,7 +304,7 @@ export async function updateAdminPoi(
         after: buildAuditSnapshot(poi),
       },
     })
-    return autoUnpublishIneligiblePoi(tx, poi, adminId)
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
 
   return mapAdminPoiMutationResult(updated)
@@ -306,6 +313,7 @@ export async function updateAdminPoi(
 export async function disableAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   const updated = await prisma.$transaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data: { is_active: false, deleted_at: null },
@@ -321,7 +329,7 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
         after: buildAuditSnapshot(poi),
       },
     })
-    return autoUnpublishIneligiblePoi(tx, poi, adminId)
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
   return mapAdminPoiMutationResult(updated)
 }
@@ -331,6 +339,7 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
   if (before.deleted_at) throw new PoiAcquisitionError('POI_ALREADY_DELETED', 409)
 
   const updated = await prisma.$transaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data: { is_active: false, deleted_at: new Date() },
@@ -346,7 +355,7 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
         after: buildAuditSnapshot(poi),
       },
     })
-    return autoUnpublishIneligiblePoi(tx, poi, adminId)
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
   return mapAdminPoiMutationResult(updated)
 }
@@ -362,6 +371,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
   })
 
   const updated = await prisma.$transaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data: { is_active: false, deleted_at: null },
@@ -377,7 +387,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
         after: buildAuditSnapshot(poi),
       },
     })
-    return autoUnpublishIneligiblePoi(tx, poi, adminId)
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
   return mapAdminPoiMutationResult(updated)
 }
@@ -604,6 +614,7 @@ async function autoUnpublishIneligiblePoi(
   tx: Prisma.TransactionClient,
   poi: AdminPoiRow,
   adminId: string,
+  publishedRouteContext: PublishedDiscoveryRouteContext | null,
 ): Promise<AutoUnpublishResult> {
   if (poi.discovery_status !== 'PUBLISHED') {
     return { poi, discoveryRevalidationPaths: [] }
@@ -642,12 +653,43 @@ async function autoUnpublishIneligiblePoi(
 
   return {
     poi: unpublished as AdminPoiRow,
-    discoveryRevalidationPaths: [
-      `/decouvrir/${poi.city.slug}`,
-      `/decouvrir/${poi.city.slug}/${poi.category.slug}`,
-      buildPoiDiscoveryPublicUrl(poi),
-    ],
+    discoveryRevalidationPaths: publishedRouteContext
+      ? discoveryPathsForPublishedContexts([publishedRouteContext])
+      : [],
   }
+}
+
+async function getPublishedDiscoveryRouteContext(
+  tx: Prisma.TransactionClient,
+  id: string,
+): Promise<PublishedDiscoveryRouteContext | null> {
+  const poi = await tx.pointOfInterest.findFirst({
+    where: { id },
+    select: {
+      slug: true,
+      discovery_status: true,
+      city: { select: { slug: true } },
+      category: { select: { slug: true } },
+    },
+  })
+  if (!poi) throw new PoiAcquisitionError('POI_NOT_FOUND', 404)
+  if (poi.discovery_status !== 'PUBLISHED') return null
+
+  return {
+    citySlug: poi.city.slug,
+    categorySlug: poi.category.slug,
+    poiSlug: poi.slug,
+  }
+}
+
+function discoveryPathsForPublishedContexts(contexts: PublishedDiscoveryRouteContext[]): string[] {
+  const paths = new Set<string>()
+  for (const context of contexts) {
+    paths.add(`/decouvrir/${context.citySlug}`)
+    paths.add(`/decouvrir/${context.citySlug}/${context.categorySlug}`)
+    paths.add(`/decouvrir/${context.citySlug}/${context.categorySlug}/${context.poiSlug}`)
+  }
+  return Array.from(paths)
 }
 
 function mapAdminPoiMutationResult(result: AutoUnpublishResult): AdminPoiMutationResult {

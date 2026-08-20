@@ -197,6 +197,7 @@ describe('022 admin POI API', () => {
 
     const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
       description: null,
+      category_id: categoryId,
     }), params)
 
     expect(res.status).toBe(200)
@@ -207,6 +208,11 @@ describe('022 admin POI API', () => {
       ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
       ['/sitemap.xml'],
     ])
+    expect(mockRevalidatePath).not.toHaveBeenCalledWith('/decouvrir/saint-gervais/nouvelle-categorie', 'page')
+    expect(mockRevalidatePath).not.toHaveBeenCalledWith(
+      '/decouvrir/saint-gervais/nouvelle-categorie/brasserie-du-mont-blanc',
+      'page',
+    )
   })
 
   it('AC-03-02/03-03: refreshes official photos without blocking on zero additions', async () => {

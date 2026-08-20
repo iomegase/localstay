@@ -262,6 +262,53 @@ describe('041 AC-04 transactional publication query', () => {
     })
   })
 
+  it('invalidates only the pre-mutation published route when category changes while becoming ineligible', async () => {
+    const published = {
+      ...completeAdminPoi,
+      discovery_status: 'PUBLISHED' as const,
+      discovery_published_at: new Date('2026-08-20T15:00:00.000Z'),
+    }
+    const movedAndIncomplete = {
+      ...published,
+      description: null,
+      category_id: 'category-2',
+      category: {
+        ...published.category,
+        id: 'category-2',
+        name: 'Sortir',
+        slug: 'sortir',
+      },
+    }
+    mockPoiFindFirst.mockResolvedValue(published)
+    mockCategoryFindFirst.mockResolvedValue({ id: 'category-2' })
+    mockPoiUpdate
+      .mockResolvedValueOnce(movedAndIncomplete)
+      .mockResolvedValueOnce({
+        ...movedAndIncomplete,
+        discovery_status: 'DRAFT',
+        discovery_published_at: null,
+      })
+
+    const result = await updateAdminPoi('poi-1', {
+      category_id: 'category-2',
+      description: null,
+    }, 'admin-1')
+
+    expect(mockPoiFindFirst).toHaveBeenCalledTimes(2)
+    expect(mockPoiFindFirst.mock.invocationCallOrder[1]).toBeLessThan(
+      mockPoiUpdate.mock.invocationCallOrder[0],
+    )
+    expect(result.discovery_revalidation_paths).toEqual([
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ])
+    expect(result.discovery_revalidation_paths).not.toContain('/decouvrir/saint-gervais/sortir')
+    expect(result.discovery_revalidation_paths).not.toContain(
+      '/decouvrir/saint-gervais/sortir/brasserie-du-mont-blanc',
+    )
+  })
+
   it('does not create a duplicate auto-unpublication audit for an already-DRAFT mutation', async () => {
     const draft = { ...completeAdminPoi, discovery_status: 'DRAFT' as const }
     mockPoiFindFirst.mockResolvedValue(draft)

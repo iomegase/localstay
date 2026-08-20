@@ -47,6 +47,9 @@ function poiRow(overrides: Partial<Record<string, unknown>> = {}) {
     geocode_status: 'success',
     geocode_provider: 'mapbox',
     geocoded_at: new Date('2026-05-20T08:00:00.000Z'),
+    discovery_status: 'DRAFT',
+    discovery_published_at: null,
+    photos_status: 'ok',
     review_source: 'MANUAL',
     updated_at: new Date('2026-05-25T08:00:00.000Z'),
     city_id: 'city-1',
@@ -61,7 +64,7 @@ function poiRow(overrides: Partial<Record<string, unknown>> = {}) {
       is_active: true,
       deleted_at: null,
     },
-    category: { id: 'cat-1', name: 'Culture', slug: 'culture' },
+    category: { id: 'cat-1', name: 'Culture', slug: 'culture', is_active: true, deleted_at: null },
     subcategory: null,
     merchant_profile: null,
     trail_detail: null,
@@ -76,7 +79,7 @@ describe('022 admin POI forced geocoding', () => {
     mockCategoryFindFirst.mockResolvedValue({ id: 'cat-1' })
     mockSubCategoryFindFirst.mockResolvedValue(null)
     mockTransaction.mockImplementation(async callback => callback({
-      pointOfInterest: { update: mockPoiUpdate },
+      pointOfInterest: { findFirst: mockPoiFindFirst, update: mockPoiUpdate },
       poiAcquisitionAuditLog: { create: mockAuditCreate },
     }))
   })
