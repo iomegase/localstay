@@ -576,9 +576,13 @@ Expected: FAIL because the routes/components do not exist.
 
 - [ ] **Step 3: Implement the shared public card**
 
-Use `next/image`, a 4:3 rounded hero, category eyebrow, address, optional rating
-and distance, and a full-card `Link` to the canonical discovery path. Provide
-responsive `sizes`, meaningful alt text and no `unoptimized` prop.
+Per BR-26 and the resolved spec 022 compatibility decision, use a native
+responsive `<img>` for arbitrary eligible remote `http(s)` URLs (not
+`next/image`, no proxy, no re-hosting and no host allowlist). Reserve a 4:3
+ratio with intrinsic dimensions, lazy-load cards, apply a restrictive referrer
+policy, meaningful alt text and reduced-motion handling. Keep the category
+eyebrow, address, optional rating/distance and full-card `Link` to the
+canonical discovery path.
 
 - [ ] **Step 4: Implement City and Category views**
 
@@ -589,7 +593,8 @@ sections independently and omits nearby when empty.
 
 - [ ] **Step 5: Implement the POI marketing view**
 
-Render the rounded hero, breadcrumb, H1, category, description, address,
+Render the rounded hero with the same BR-26 native-image exception (intrinsic
+dimensions, eager/high-priority loading, restrictive referrer policy), breadcrumb, H1, category, description, address,
 optional hours/rating and conditional `tel:`, official site and Google Maps
 links. Reuse the existing Static Map component when its prop contract accepts
 the public DTO; otherwise create a focused wrapper without loading interactive

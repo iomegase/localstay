@@ -1,4 +1,4 @@
-import Image from 'next/image'
+/* eslint-disable @next/next/no-img-element -- Spec 041 BR-26 preserves arbitrary remote http(s) images from spec 022. */
 import Link from 'next/link'
 import { ArrowUpRight, MapPin, Star } from 'lucide-react'
 import type { DiscoveryPoiCard as DiscoveryPoiCardDto } from '../types'
@@ -15,19 +15,22 @@ export function DiscoveryPoiCard({
   const href = `/decouvrir/${citySlug}/${poi.category.slug}/${poi.slug}`
 
   return (
-    <article className="group min-w-0 overflow-hidden rounded-[24px] border border-slate-100 bg-white shadow-[0_14px_38px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1">
+    <article className="group min-w-0 overflow-hidden rounded-[24px] border border-slate-100 bg-white shadow-[0_14px_38px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none">
       <Link
         href={href}
         aria-label={`Découvrir ${poi.name}`}
         className="block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-          <Image
+          <img
             src={poi.photo_url}
             alt={`${poi.name} à ${poi.address}`}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"
+            width={800}
+            height={600}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
           />
           <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-800 shadow-sm backdrop-blur-sm">
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />

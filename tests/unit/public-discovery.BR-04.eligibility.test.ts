@@ -39,6 +39,17 @@ describe('041 BR-04 POI discovery eligibility', () => {
   })
 
   it.each([
+    ['an arbitrary HTTP host', 'http://media.unlisted.test/poi.jpg'],
+    ['an arbitrary HTTPS host', 'https://media.unlisted.test/poi.jpg'],
+    ['a host configured for other optimized marketing images', 'https://images.unsplash.com/poi.jpg'],
+  ])('keeps spec 022 photo eligibility for %s', (_label, photo) => {
+    expect(getPoiDiscoveryEligibility({ ...completePoi, photos: [photo] })).toEqual({
+      eligible: true,
+      missing: [],
+    })
+  })
+
+  it.each([
     ['pending geocoding', { geocode_status: 'pending' }],
     ['failed geocoding', { geocode_status: 'failed' }],
     ['a non-finite latitude', { latitude: Number.NaN }],

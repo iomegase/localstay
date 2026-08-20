@@ -14,6 +14,7 @@ import {
   getDiscoveryCity,
   getDiscoveryPoi,
 } from '@/features/public-discovery/queries/public-discovery'
+import { buildDiscoveryDirectionsHref } from '@/features/public-discovery/lib/directions'
 
 jest.mock('next/navigation', () => ({ notFound: jest.fn() }))
 jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
@@ -124,8 +125,8 @@ describe('041 public discovery pages', () => {
       'href',
       '/decouvrir/saint-gervais-les-bains/culture',
     )
-    expect([...container.querySelectorAll('a')].map(link => link.getAttribute('href')))
-      .not.toContain(expect.stringContaining('/guide/'))
+    const hrefs = [...container.querySelectorAll('a')].map(link => link.getAttribute('href'))
+    expect(hrefs.some(href => href?.startsWith('/guide/'))).toBe(false)
     expect(jsonLd(container).map(item => item['@type'])).toEqual([
       'BreadcrumbList',
       'ItemList',
@@ -191,15 +192,18 @@ describe('041 public discovery pages', () => {
       encodeURIComponent(poi.address),
     )
     expect(screen.getByTestId('mini-map')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: `${poi.name} à ${poi.city.name}` })).toHaveAttribute(
+      'fetchpriority',
+      'high',
+    )
     expect(jsonLd(container).map(item => item['@type'])).toEqual([
       'BreadcrumbList',
       'TouristAttraction',
     ])
   })
 
-  it('omits unavailable POI actions and falls back to coordinates for the itinerary', async () => {
-    const coordinateOnlyPoi = { ...poi, address: '', phone: null, website: null }
-    mockedPoi.mockResolvedValue(coordinateOnlyPoi)
+  it('omits unavailable POI actions without constructing an invalid public DTO', async () => {
+    mockedPoi.mockResolvedValue({ ...poi, phone: null, website: null })
     const { default: PoiPage } = await import(
       '@/app/(public)/decouvrir/[city-slug]/[category-slug]/[poi-slug]/page'
     )
@@ -214,9 +218,49 @@ describe('041 public discovery pages', () => {
 
     expect(screen.queryByRole('link', { name: /Appeler/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Site officiel/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Itinéraire/i }).getAttribute('href')).toContain(
-      encodeURIComponent(`${poi.latitude},${poi.longitude}`),
-    )
+    expect(screen.getByRole('link', { name: /Itinéraire/i })).toBeInTheDocument()
+  })
+
+  it('uses coordinates as the attainable itinerary fallback when no address is supplied', () => {
+    expect(buildDiscoveryDirectionsHref({
+      address: null,
+      latitude: poi.latitude,
+      longitude: poi.longitude,
+    })).toContain(encodeURIComponent(`${poi.latitude},${poi.longitude}`))
+  })
+
+  it('renders eligible remote photos natively regardless of protocol or Next host configuration', async () => {
+    const photoUrls = [
+      'http://media.unlisted.test/http-photo.jpg',
+      'https://media.unlisted.test/https-photo.jpg',
+      'https://images.unsplash.com/configured-photo.jpg',
+    ]
+    mockedCity.mockResolvedValue({
+      ...city,
+      categories: [{
+        ...city.categories[0]!,
+        poi_count: photoUrls.length,
+        pois: photoUrls.map((photo_url, index) => ({
+          ...primaryPoi,
+          name: `Adresse photo ${index + 1}`,
+          slug: `adresse-photo-${index + 1}`,
+          photo_url,
+        })),
+      }],
+    })
+    const { default: CityPage } = await import('@/app/(public)/decouvrir/[city-slug]/page')
+
+    const { container } = render(await CityPage({
+      params: Promise.resolve({ 'city-slug': city.slug }),
+    }))
+
+    const discoveryImages = [...container.querySelectorAll('article img')]
+    expect(discoveryImages.map(image => image.getAttribute('src'))).toEqual(photoUrls)
+    for (const image of discoveryImages) {
+      expect(image).not.toHaveAttribute('data-nimg')
+      expect(image).toHaveAttribute('referrerpolicy', 'no-referrer')
+      expect(image.className).toContain('motion-reduce:transform-none')
+    }
   })
 
   it('wires each route metadata to its public DTO and canonical discovery URL', async () => {

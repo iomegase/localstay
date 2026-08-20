@@ -4,15 +4,24 @@ const citySlug = process.env.PUBLIC_DISCOVERY_E2E_CITY_SLUG
 const categorySlug = process.env.PUBLIC_DISCOVERY_E2E_CATEGORY_SLUG
 const poiSlug = process.env.PUBLIC_DISCOVERY_E2E_POI_SLUG
 const hasPublishedFixture = Boolean(citySlug && categorySlug && poiSlug)
+const explicitLocalSkip = process.env.PUBLIC_DISCOVERY_E2E_SKIP === '1' && !process.env.CI
 const fixtureCitySlug = citySlug ?? 'published-city-fixture-required'
 const fixtureCategorySlug = categorySlug ?? 'published-category-fixture-required'
 const fixturePoiSlug = poiSlug ?? 'published-poi-fixture-required'
 
 test.describe('041 public discovery responsive pages', () => {
   test.skip(
-    !hasPublishedFixture,
-    'Requires PUBLIC_DISCOVERY_E2E_CITY_SLUG, CATEGORY_SLUG and POI_SLUG for an eligible published POI.',
+    explicitLocalSkip,
+    'Explicit local opt-out: PUBLIC_DISCOVERY_E2E_SKIP=1. AC-01-04 remains unverified.',
   )
+
+  test.beforeAll(() => {
+    if (!hasPublishedFixture) {
+      throw new Error(
+        'AC-01-04 requires PUBLIC_DISCOVERY_E2E_CITY_SLUG, PUBLIC_DISCOVERY_E2E_CATEGORY_SLUG and PUBLIC_DISCOVERY_E2E_POI_SLUG for an eligible isolated PUBLISHED fixture. Use PUBLIC_DISCOVERY_E2E_SKIP=1 only for an explicit local opt-out; CI cannot skip.',
+      )
+    }
+  })
 
   for (const viewport of [
     { name: 'mobile', width: 375, height: 812 },

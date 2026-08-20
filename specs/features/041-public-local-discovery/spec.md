@@ -275,6 +275,15 @@ destination publique existe. Les routes QR et le séjour privé restent sous
   002, 003 et 004 pour les accès anonymes. Leurs contrats de données, actions
   POI et règles géographiques restent applicables lorsqu'ils ne contredisent
   pas 041.
+- **BR-26**: La découverte publique préserve le contrat photo de la spec 022 :
+  toute URL distante `http(s)` exploitable reste admissible, sans allowlist
+  d'hôtes, re-hébergement ni proxy d'optimisation. Les photos `/decouvrir`
+  utilisent donc un élément `<img>` natif responsive plutôt que `next/image`,
+  avec dimensions intrinsèques, ratio réservé, texte alternatif et politique
+  de référent restrictive. Cette exception explicite à BR-13/au standard
+  marketing évite de rendre un POI inéligible uniquement selon l'hôte de sa
+  photo ; les contrôles favicon/logo/placeholder de la spec 022 restent
+  applicables.
 
 ---
 
@@ -497,6 +506,9 @@ Extensions du contrat `022` :
 - Erreur serveur transitoire : erreur générique sans détail Prisma.
 - Images absentes : impossibilité de publier, donc aucun fallback éditorial ne
   rend une fiche éligible à lui seul.
+- Images distantes : rendu natif responsive conformément à BR-26 ; les cards
+  chargent paresseusement et la hero prioritaire réserve son ratio sans
+  débordement.
 - Responsive : 375 px minimum, aucun scroll horizontal.
 
 ---
@@ -561,3 +573,6 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
 - les pages City et Category sont publiées dès le premier POI validé ;
 - la migration des anciennes URL publiques est immédiate avec redirections SEO ;
 - la découverte publique et le séjour privé restent strictement séparés.
+- les photos publiques conservent les URLs `http(s)` arbitraires autorisées par
+  la spec 022 ; le rendu natif `<img>` est l'exception validée à `next/image`,
+  sans re-hébergement ni réduction de l'éligibilité par allowlist.

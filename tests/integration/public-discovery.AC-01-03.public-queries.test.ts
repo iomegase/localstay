@@ -438,6 +438,25 @@ describe('041 AC-01-03 public discovery Prisma read model', () => {
     expectExactPublicDto(detail, 'detail')
   })
 
+  it('preserves eligible HTTP, unlisted HTTPS and configured-host photos for native public rendering', async () => {
+    mockPoiFindMany.mockResolvedValue([row({
+      photos: [
+        'http://media.unlisted.test/http-photo.jpg',
+        'https://media.unlisted.test/https-photo.jpg',
+        'https://images.unsplash.com/configured-photo.jpg',
+      ],
+    })])
+
+    const detail = await getDiscoveryPoi('saint-gervais-les-bains', 'culture', 'le-musee-alpin')
+
+    expect(detail?.photos).toEqual([
+      'http://media.unlisted.test/http-photo.jpg',
+      'https://media.unlisted.test/https-photo.jpg',
+      'https://images.unsplash.com/configured-photo.jpg',
+    ])
+    expect(detail?.hero_photo_url).toBe('http://media.unlisted.test/http-photo.jpg')
+  })
+
   it('returns the exact category DTO allowlist including only active represented subcategories', async () => {
     mockPoiFindMany.mockResolvedValue([row({
       subcategory_id: 'sub-1',
