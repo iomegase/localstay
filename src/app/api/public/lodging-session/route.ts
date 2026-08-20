@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server'
-import { LODGING_COOKIE_NAME } from '@/features/public-menu/lib/lodging-mode'
+import { lodgingBearerCookie } from '@/features/public-menu/lib/lodging-cookie'
 
 export async function DELETE(): Promise<NextResponse> {
   const response = NextResponse.json({ data: { cleared: true } })
-  response.cookies.set({
-    name: LODGING_COOKIE_NAME,
-    value: '',
-    maxAge: 0,
-    path: '/',
-  })
+  response.cookies.set(lodgingBearerCookie('', 0))
   return response
 }

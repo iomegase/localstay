@@ -53,7 +53,9 @@ export default async function PoiDetailPage({ params }: Props) {
       notFound()
       return null
     }
-    permanentRedirect(`/decouvrir/${citySlug}/${categorySlug}/${poiSlug}`)
+    permanentRedirect(
+      `/decouvrir/${publicPoi.city.slug}/${publicPoi.category.slug}/${publicPoi.slug}`,
+    )
   }
 
   const poi = await getPoiDetail(citySlug, categorySlug, poiSlug, lodgingContext?.lodgingId ?? null)

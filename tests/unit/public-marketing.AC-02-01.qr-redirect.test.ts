@@ -26,6 +26,25 @@ describe('031-public-marketing-site QR landing', () => {
     )
     expect(response.cookies.get('lodging_id')?.value).toBe(lodgingId)
     expect(response.headers.get('x-middleware-next')).toBeNull()
+    const setCookie = response.headers.get('set-cookie') ?? ''
+    expect(setCookie).toContain('Path=/')
+    expect(setCookie).toContain('Max-Age=604800')
+    expect(setCookie).toContain('HttpOnly')
+    expect(setCookie).toContain('SameSite=lax')
+    expect(setCookie).not.toContain('Secure')
+  })
+
+  it('keeps the City QR landing redirect even when the same cookie already exists', async () => {
+    const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+    const response = await proxy(new NextRequest(
+      `http://localhost:3000/guide/saint-gervais-les-bains?lodging=${lodgingId}`,
+      { headers: { cookie: `lodging_id=${lodgingId}` } },
+    ))
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      `http://localhost:3000/sejour?lodging=${lodgingId}`,
+    )
   })
 
   it.each([
@@ -66,5 +85,54 @@ describe('031-public-marketing-site QR landing', () => {
     expect(response.headers.get('location')).toBe(
       `http://localhost:3000/sejour?lodging=${lodgingId}`,
     )
+  })
+
+  it.each([
+    '/guide/saint-gervais-les-bains/diner',
+    '/guide/saint-gervais-les-bains/diner/le-serac',
+  ])('keeps matching-cookie private navigation on %s and refreshes the bearer cookie', async path => {
+    const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+    const response = await proxy(new NextRequest(
+      `http://localhost:3000${path}?lodging=${lodgingId}`,
+      { headers: { cookie: `lodging_id=${lodgingId}` } },
+    ))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('location')).toBeNull()
+    const setCookie = response.headers.get('set-cookie') ?? ''
+    expect(setCookie).toContain(`lodging_id=${lodgingId}`)
+    expect(setCookie).toContain('Path=/')
+    expect(setCookie).toContain('Max-Age=604800')
+    expect(setCookie).toContain('HttpOnly')
+    expect(setCookie).toContain('SameSite=lax')
+    expect(setCookie).not.toContain('Secure')
+  })
+
+  it('hands a different-cookie deep request through the canonical stay landing', async () => {
+    const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+    const response = await proxy(new NextRequest(
+      `http://localhost:3000/guide/saint-gervais-les-bains/diner/le-serac?lodging=${lodgingId}`,
+      { headers: { cookie: 'lodging_id=11111111-1111-1111-1111-111111111111' } },
+    ))
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      `http://localhost:3000/sejour?lodging=${lodgingId}`,
+    )
+  })
+
+  it('marks the lodging bearer cookie Secure in production', async () => {
+    const previousNodeEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    try {
+      const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+      const response = await proxy(new NextRequest(
+        `https://www.mystay.city/guide/saint-gervais-les-bains?lodging=${lodgingId}`,
+      ))
+
+      expect(response.headers.get('set-cookie')).toContain('Secure')
+    } finally {
+      process.env.NODE_ENV = previousNodeEnv
+    }
   })
 })

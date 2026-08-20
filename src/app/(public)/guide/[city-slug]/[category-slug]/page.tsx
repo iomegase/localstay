@@ -75,7 +75,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       notFound()
       return null
     }
-    permanentRedirect(`/decouvrir/${citySlug}/${categorySlug}`)
+    permanentRedirect(
+      `/decouvrir/${publicCategory.city.slug}/${publicCategory.slug}`,
+    )
   }
 
   const lodgingId = lodgingContext.lodgingId

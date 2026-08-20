@@ -53,7 +53,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
       notFound()
       return null
     }
-    permanentRedirect(`/decouvrir/${slug}`)
+    permanentRedirect(`/decouvrir/${publicCity.slug}`)
   }
 
   const lodging = lodgingContext.lodgingId

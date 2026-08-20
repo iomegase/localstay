@@ -105,6 +105,14 @@ describe('041 public discovery — AC-05 legacy redirects', () => {
     expect(mockGetAllPoiCards).not.toHaveBeenCalled()
   })
 
+  it('uses canonical DTO slugs instead of mixed-case legacy City parameters', async () => {
+    mockGetDiscoveryCity.mockResolvedValue({ slug: citySlug })
+
+    await expect(GuidePage({
+      params: Promise.resolve({ 'city-slug': 'Saint-Gervais-Les-Bains' }),
+    })).rejects.toThrow(`NEXT_PERMANENT_REDIRECT:/decouvrir/${citySlug}`)
+  })
+
   it('returns 404 for an anonymous legacy City without a public destination', async () => {
     mockGetDiscoveryCity.mockResolvedValue(null)
 
@@ -117,7 +125,10 @@ describe('041 public discovery — AC-05 legacy redirects', () => {
   })
 
   it('redirects an anonymous legacy Category only when its public destination exists', async () => {
-    mockGetDiscoveryCategory.mockResolvedValue({ slug: categorySlug })
+    mockGetDiscoveryCategory.mockResolvedValue({
+      slug: categorySlug,
+      city: { slug: citySlug },
+    })
 
     await expect(CategoryPage({
       params: Promise.resolve({
@@ -133,6 +144,23 @@ describe('041 public discovery — AC-05 legacy redirects', () => {
     expect(mockGetCategoryDetail).not.toHaveBeenCalled()
     expect(mockGetPoiCards).not.toHaveBeenCalled()
     expect(mockGetCategoriesForCity).not.toHaveBeenCalled()
+  })
+
+  it('uses canonical DTO slugs instead of mixed-case legacy Category parameters', async () => {
+    mockGetDiscoveryCategory.mockResolvedValue({
+      slug: categorySlug,
+      city: { slug: citySlug },
+    })
+
+    await expect(CategoryPage({
+      params: Promise.resolve({
+        'city-slug': 'Saint-Gervais-Les-Bains',
+        'category-slug': 'Diner',
+      }),
+      searchParams: Promise.resolve({}),
+    })).rejects.toThrow(
+      `NEXT_PERMANENT_REDIRECT:/decouvrir/${citySlug}/${categorySlug}`,
+    )
   })
 
   it('returns 404 for an anonymous legacy Category without a public destination', async () => {
@@ -151,7 +179,11 @@ describe('041 public discovery — AC-05 legacy redirects', () => {
   })
 
   it('redirects an anonymous legacy POI before loading any private POI or Owner note', async () => {
-    mockGetDiscoveryPoi.mockResolvedValue({ slug: poiSlug })
+    mockGetDiscoveryPoi.mockResolvedValue({
+      slug: poiSlug,
+      city: { slug: citySlug },
+      category: { slug: categorySlug },
+    })
 
     await expect(PoiDetailPage({ params: Promise.resolve({
       'city-slug': citySlug,
@@ -164,6 +196,22 @@ describe('041 public discovery — AC-05 legacy redirects', () => {
     expect(mockGetDiscoveryPoi).toHaveBeenCalledWith(citySlug, categorySlug, poiSlug)
     expect(mockGetPoiDetail).not.toHaveBeenCalled()
     expect(mockGetContextualOwnerNote).not.toHaveBeenCalled()
+  })
+
+  it('uses canonical DTO slugs instead of mixed-case legacy POI parameters', async () => {
+    mockGetDiscoveryPoi.mockResolvedValue({
+      slug: poiSlug,
+      city: { slug: citySlug },
+      category: { slug: categorySlug },
+    })
+
+    await expect(PoiDetailPage({ params: Promise.resolve({
+      'city-slug': 'Saint-Gervais-Les-Bains',
+      'category-slug': 'Diner',
+      'poi-slug': 'Le-Serac',
+    }) })).rejects.toThrow(
+      `NEXT_PERMANENT_REDIRECT:/decouvrir/${citySlug}/${categorySlug}/${poiSlug}`,
+    )
   })
 
   it('returns 404 for an anonymous unpublished POI without loading private data', async () => {

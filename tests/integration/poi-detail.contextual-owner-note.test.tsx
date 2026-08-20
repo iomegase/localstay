@@ -125,7 +125,11 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
 
   it('does not resolve or render an Owner note without active Lodging context', async () => {
     mockGetActiveLodgingContext.mockResolvedValue(null)
-    mockGetDiscoveryPoi.mockResolvedValue({ slug: 'la-vieille-auberge' })
+    mockGetDiscoveryPoi.mockResolvedValue({
+      slug: 'la-vieille-auberge',
+      city: { slug: 'les-contamines-montjoie' },
+      category: { slug: 'diner' },
+    })
 
     await expect(PoiDetailPage({ params })).rejects.toThrow(
       'NEXT_PERMANENT_REDIRECT:/decouvrir/les-contamines-montjoie/diner/la-vieille-auberge',

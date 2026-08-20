@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers'
 import { prisma } from '@/shared/lib/prisma'
+import { LODGING_COOKIE_NAME } from './lodging-cookie'
 
-export const LODGING_COOKIE_NAME = 'lodging_id'
+export { LODGING_COOKIE_NAME } from './lodging-cookie'
 
 export type LodgingModeContext = {
   lodgingId: string

@@ -43,13 +43,13 @@ describe('proxy — confinement du guest en séjour', () => {
     expect(redirectPathname(res)).toBeNull()
   })
 
-  it('redirige une entrée QR générique profonde avant tout rendu de page', async () => {
+  it('conserve une navigation privée profonde quand le cookie correspond au paramètre', async () => {
     const req = new NextRequest(
       `http://localhost:3000/guide/paris/restaurants?lodging=${LODGING_ID}`,
       { headers: { cookie: `lodging_id=${LODGING_ID}` } },
     )
     const res = await proxy(req)
-    expect(redirectPathname(res)).toBe('/sejour')
+    expect(redirectPathname(res)).toBeNull()
     expect(res.cookies.get('lodging_id')?.value).toBe(LODGING_ID)
   })
 
