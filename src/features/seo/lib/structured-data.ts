@@ -71,6 +71,23 @@ export function breadcrumbSchema(items: Array<{ name: string; path: string }>): 
   }
 }
 
+export function discoveryItemListSchema(input: {
+  name: string
+  items: Array<{ name: string; path: string }>
+}): JsonLdObject {
+  return {
+    '@context': SCHEMA,
+    '@type': 'ItemList',
+    name: input.name,
+    itemListElement: input.items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      url: `${siteBaseUrl()}${item.path}`,
+    })),
+  }
+}
+
 function openingHoursSpecification(hours: PoiSchemaInput['hours']): JsonLdObject[] | undefined {
   if (!hours) return undefined
   const specs: JsonLdObject[] = []
