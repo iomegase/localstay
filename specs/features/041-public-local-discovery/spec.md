@@ -5,7 +5,7 @@
 ```yaml
 id: 041-public-local-discovery
 title: "Découverte locale publique et sélection éditoriale SEO des POI"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
@@ -20,7 +20,7 @@ depends_on:
   - 032-approved-brand-identity
   - 034-private-guide-app
 bounded_context: public-discovery
-implementation_gate: "Architecture et règles métier validées par le Product Owner le 2026-08-20 ; revue finale de cette spec requise avant implémentation"
+implementation_gate: "Spec approuvée par le Product Owner le 2026-08-20"
 ```
 
 ---
