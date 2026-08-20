@@ -19,8 +19,9 @@ const ANONYMOUS_MARKETING_EXACT_PATHS = new Set([
   '/connexion',
   '/logements',
   '/blog',
+  '/decouvrir',
 ])
-const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/']
+const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/', '/decouvrir/']
 
 // Confinement guest : sous /guide/{ville}, seuls ces 2ᵉ segments sont autorisés
 // pour un visiteur en séjour (hors entrée QR ?lodging=). Tout le reste (page ville,

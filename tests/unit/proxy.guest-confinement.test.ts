@@ -57,6 +57,28 @@ describe('proxy — confinement du guest en séjour', () => {
     expect(redirectPathname(res)).toBeNull()
   })
 
+  it.each([
+    '/decouvrir/saint-gervais-les-bains',
+    '/decouvrir/saint-gervais-les-bains/diner',
+    '/decouvrir/saint-gervais-les-bains/diner/le-serac',
+  ])('laisse la découverte publique accessible et dans le shell marketing sur %s', async path => {
+    const anonymousResponse = await proxy(anonRequest(path))
+    expect(anonymousResponse.headers.get('x-middleware-rewrite')).toBeNull()
+    expect(
+      anonymousResponse.headers.get(
+        'x-middleware-request-x-staylocal-marketing-route',
+      ),
+    ).toBe('1')
+
+    const guestResponse = await proxy(guestRequest(path))
+    expect(redirectPathname(guestResponse)).toBeNull()
+    expect(
+      guestResponse.headers.get(
+        'x-middleware-request-x-staylocal-marketing-route',
+      ),
+    ).toBe('1')
+  })
+
   it('garde /sejour privé et marque sa requête pour le nouveau shell', async () => {
     const guestResponse = await proxy(guestRequest('/sejour'))
     expect(redirectPathname(guestResponse)).toBeNull()

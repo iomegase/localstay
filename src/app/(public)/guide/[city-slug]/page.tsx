@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getCityGuide } from '@/features/city-guide/queries/cities'
 import { CategoryRow } from '@/features/city-guide/components/CategoryRow'
 import { t } from '@/shared/lib/i18n'
@@ -10,14 +10,15 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { SortControl } from '@/features/categories/components/SortControl'
 import { AllPoisList } from '@/features/categories/components/AllPoisList'
 import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { ChevronRight, CalendarDays } from 'lucide-react'
 import type { Metadata } from 'next'
-import { cityMetadata } from '@/features/seo/lib/metadata'
+import { cityMetadata, discoveryCityMetadata } from '@/features/seo/lib/metadata'
 import { getCityForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
 import { GeolocationPrompt } from '@/features/geolocation/components/GeolocationPrompt'
 import { cityHasUpcomingEventsBySlug } from '@/features/events-public/queries/agenda'
+import { getDiscoveryCity } from '@/features/public-discovery/queries/public-discovery'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -26,6 +27,14 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': slug } = await params
+  const lodgingContext = await getActiveLodgingContext()
+  if (!lodgingContext) {
+    const city = await getDiscoveryCity(slug)
+    return city
+      ? discoveryCityMetadata(city)
+      : { title: 'Ville introuvable', robots: { index: false, follow: false } }
+  }
+
   const city = await getCityForSeo(slug)
   if (!city) return { title: 'Ville introuvable', robots: { index: false } }
   return cityMetadata({ name: city.name, region: city.region, slug: city.slug })
@@ -36,8 +45,18 @@ export default async function GuidePage({ params, searchParams }: Props) {
   const sp = (await searchParams) ?? {}
   const lodgingFromQuery = sp.lodging
   const sort = sp.sort === 'rating' ? 'rating' : 'distance'
-  const lodgingFromCookie = await getActiveLodgingContext()
-  const lodging = lodgingFromQuery ?? lodgingFromCookie?.lodgingId
+  const lodgingContext = await getActiveLodgingContext()
+
+  if (!lodgingContext) {
+    const publicCity = await getDiscoveryCity(slug)
+    if (!publicCity) {
+      notFound()
+      return null
+    }
+    permanentRedirect(`/decouvrir/${slug}`)
+  }
+
+  const lodging = lodgingContext.lodgingId
   void recordQrScanIfPresent(lodgingFromQuery ?? null)
   const [guide, allPois] = await Promise.all([
     getCityGuide(slug, { lodgingId: lodging }),

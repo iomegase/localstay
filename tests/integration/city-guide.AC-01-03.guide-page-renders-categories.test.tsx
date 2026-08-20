@@ -27,7 +27,13 @@ jest.mock('@/features/analytics/lib/record-qr-scan', () => ({
   recordQrScanIfPresent: jest.fn().mockResolvedValue(undefined),
 }))
 jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
-  getActiveLodgingContext: jest.fn().mockResolvedValue(null),
+  getActiveLodgingContext: jest.fn().mockResolvedValue({
+    lodgingId: '11111111-1111-1111-1111-111111111111',
+    lodgingName: 'Chalet MyStay',
+    citySlug: 'saint-gervais-les-bains',
+    cityName: 'Saint-Gervais-les-Bains',
+    ownerName: 'Marie',
+  }),
 }))
 jest.mock('@/features/categories/queries/all-poi-cards', () => ({
   getAllPoiCards: jest.fn().mockResolvedValue({ items: [], meta: { page: 1, limit: 10, total: 0, total_pages: 0 } }),

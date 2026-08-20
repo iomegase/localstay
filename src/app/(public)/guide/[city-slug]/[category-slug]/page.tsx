@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getCategoryDetail, getCategoriesForCity } from '@/features/categories/queries/categories'
 import { getPoiCards } from '@/features/categories/queries/poi-cards'
 import { CategoryRow } from '@/features/city-guide/components/CategoryRow'
@@ -9,10 +9,11 @@ import { CategoryViewWrapper } from '@/features/categories/components/CategoryVi
 import { getCategoryColor } from '@/features/categories/lib/category-style'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import type { Metadata } from 'next'
-import { categoryMetadata } from '@/features/seo/lib/metadata'
+import { categoryMetadata, discoveryCategoryMetadata } from '@/features/seo/lib/metadata'
 import { getCategoryForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
+import { getDiscoveryCategory } from '@/features/public-discovery/queries/public-discovery'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string }>
@@ -21,6 +22,14 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'category-slug': categorySlug } = await params
+  const lodgingContext = await getActiveLodgingContext()
+  if (!lodgingContext) {
+    const category = await getDiscoveryCategory(citySlug, categorySlug)
+    return category
+      ? discoveryCategoryMetadata(category)
+      : { title: 'Catégorie introuvable', robots: { index: false, follow: false } }
+  }
+
   const seo = await getCategoryForSeo(citySlug, categorySlug)
   if (!seo) return { title: 'Catégorie introuvable', robots: { index: false } }
   return categoryMetadata({
@@ -58,8 +67,18 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const sort = resolvedSearch.sort === 'rating' ? 'rating' : 'distance'
   const page = Math.max(1, Number.parseInt(resolvedSearch.page ?? '1', 10) || 1)
   const limit = Math.min(50, Math.max(1, Number.parseInt(resolvedSearch.limit ?? '20', 10) || 20))
-  const lodgingFromCookie = await getActiveLodgingContext()
-  const lodgingId = resolvedSearch.lodging ?? lodgingFromCookie?.lodgingId
+  const lodgingContext = await getActiveLodgingContext()
+
+  if (!lodgingContext) {
+    const publicCategory = await getDiscoveryCategory(citySlug, categorySlug)
+    if (!publicCategory) {
+      notFound()
+      return null
+    }
+    permanentRedirect(`/decouvrir/${citySlug}/${categorySlug}`)
+  }
+
+  const lodgingId = lodgingContext.lodgingId
 
   const [detail, poiGroups, categories] = await Promise.all([
     getCategoryDetail(citySlug, categorySlug),
