@@ -7,6 +7,7 @@ import {
   parseAdminPoiPatchInput,
 } from '@/features/admin-pois/lib/admin-poi-rules'
 import { getAdminPoi, updateAdminPoi } from '@/features/admin-pois/queries/admin-pois'
+import { revalidateAutoUnpublishedDiscovery } from '@/features/public-discovery/lib/revalidation'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -39,8 +40,9 @@ export async function PATCH(req: NextRequest, context: RouteContext): Promise<Ne
 
   try {
     const { id } = await context.params
-    const data = await updateAdminPoi(id, parsed, session.user.id)
-    return NextResponse.json({ data })
+    const result = await updateAdminPoi(id, parsed, session.user.id)
+    revalidateAutoUnpublishedDiscovery(result.discovery_revalidation_paths)
+    return NextResponse.json({ data: result.data })
   } catch (error) {
     return responseFromPoiAcquisitionError(error)
   }

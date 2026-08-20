@@ -9,6 +9,7 @@ const mockDisableAdminPoi = jest.fn()
 const mockDeleteAdminPoi = jest.fn()
 const mockRestoreAdminPoi = jest.fn()
 const mockRefreshOfficialPhotos = jest.fn()
+const mockRevalidatePath = jest.fn()
 
 jest.mock('@/features/merchant/lib/session', () => ({
   getSessionAdmin: () => mockGetSessionAdmin(),
@@ -22,6 +23,10 @@ jest.mock('@/features/admin-pois/queries/admin-pois', () => ({
   deleteAdminPoi: (...args: unknown[]) => mockDeleteAdminPoi(...args),
   restoreAdminPoi: (...args: unknown[]) => mockRestoreAdminPoi(...args),
   refreshAdminPoiOfficialPhotos: (...args: unknown[]) => mockRefreshOfficialPhotos(...args),
+}))
+
+jest.mock('next/cache', () => ({
+  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }))
 
 import { GET as listGET, POST as createPOST } from '@/app/api/admin/pois/route'
@@ -86,7 +91,10 @@ describe('022 admin POI API', () => {
   })
 
   it('AC-02-02: validates and patches editable POI fields', async () => {
-    mockUpdateAdminPoi.mockResolvedValue({ id: poiId, name: 'Nom corrigé' })
+    mockUpdateAdminPoi.mockResolvedValue({
+      data: { id: poiId, name: 'Nom corrigé' },
+      discovery_revalidation_paths: [],
+    })
 
     const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
       name: 'Nom corrigé',
@@ -108,6 +116,8 @@ describe('022 admin POI API', () => {
       },
       'admin-1',
     )
+    await expect(res.json()).resolves.toEqual({ data: { id: poiId, name: 'Nom corrigé' } })
+    expect(mockRevalidatePath).not.toHaveBeenCalled()
   })
 
   it('AC-02-05: returns TRAIL_FIELDS_LOCKED for trail-specific PATCH fields', async () => {
@@ -123,20 +133,80 @@ describe('022 admin POI API', () => {
   })
 
   it('AC-04-01/04-02/04-04: routes sensitive status actions', async () => {
-    mockDisableAdminPoi.mockResolvedValue({ id: poiId, status: 'inactive' })
-    mockDeleteAdminPoi.mockResolvedValue({ id: poiId, status: 'archived' })
-    mockRestoreAdminPoi.mockResolvedValue({ id: poiId, status: 'inactive' })
+    const paths = [
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ]
+    mockDisableAdminPoi.mockResolvedValue({
+      data: { id: poiId, status: 'inactive' },
+      discovery_revalidation_paths: paths,
+    })
+    mockDeleteAdminPoi.mockResolvedValue({
+      data: { id: poiId, status: 'archived' },
+      discovery_revalidation_paths: paths,
+    })
+    mockRestoreAdminPoi.mockResolvedValue({
+      data: { id: poiId, status: 'inactive' },
+      discovery_revalidation_paths: paths,
+    })
 
-    await expect(disablePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/disable`), params))
-      .resolves.toHaveProperty('status', 200)
-    await expect(deletePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/delete`), params))
-      .resolves.toHaveProperty('status', 200)
-    await expect(restorePOST(new NextRequest(`http://localhost/api/admin/pois/${poiId}/restore`), params))
-      .resolves.toHaveProperty('status', 200)
+    const disableResponse = await disablePOST(
+      new NextRequest(`http://localhost/api/admin/pois/${poiId}/disable`),
+      params,
+    )
+    const deleteResponse = await deletePOST(
+      new NextRequest(`http://localhost/api/admin/pois/${poiId}/delete`),
+      params,
+    )
+    const restoreResponse = await restorePOST(
+      new NextRequest(`http://localhost/api/admin/pois/${poiId}/restore`),
+      params,
+    )
+
+    expect(disableResponse.status).toBe(200)
+    expect(deleteResponse.status).toBe(200)
+    expect(restoreResponse.status).toBe(200)
+    await expect(disableResponse.json()).resolves.toEqual({ data: { id: poiId, status: 'inactive' } })
+    await expect(deleteResponse.json()).resolves.toEqual({ data: { id: poiId, status: 'archived' } })
+    await expect(restoreResponse.json()).resolves.toEqual({ data: { id: poiId, status: 'inactive' } })
 
     expect(mockDisableAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
     expect(mockDeleteAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
     expect(mockRestoreAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
+    expect(mockRevalidatePath).toHaveBeenCalledTimes(12)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais/manger', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith(
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      'page',
+    )
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
+  })
+
+  it('revalidates discovery paths after an automatic unpublication from PATCH', async () => {
+    const paths = [
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ]
+    mockUpdateAdminPoi.mockResolvedValue({
+      data: { id: poiId, discovery_status: 'DRAFT' },
+      discovery_revalidation_paths: paths,
+    })
+
+    const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
+      description: null,
+    }), params)
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: { id: poiId, discovery_status: 'DRAFT' } })
+    expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir/saint-gervais', 'page'],
+      ['/decouvrir/saint-gervais/manger', 'page'],
+      ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
+      ['/sitemap.xml'],
+    ])
   })
 
   it('AC-03-02/03-03: refreshes official photos without blocking on zero additions', async () => {

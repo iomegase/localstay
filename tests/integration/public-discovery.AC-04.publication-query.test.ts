@@ -5,17 +5,23 @@ const mockTransaction = jest.fn()
 const mockCityFindFirst = jest.fn()
 const mockCategoryFindFirst = jest.fn()
 const mockSubcategoryFindFirst = jest.fn()
+const mockPoiFindMany = jest.fn()
+const mockPoiCount = jest.fn()
+const mockRunFindMany = jest.fn()
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     pointOfInterest: {
       findFirst: (...args: unknown[]) => mockPoiFindFirst(...args),
       update: (...args: unknown[]) => mockPoiUpdate(...args),
+      findMany: (...args: unknown[]) => mockPoiFindMany(...args),
+      count: (...args: unknown[]) => mockPoiCount(...args),
     },
     poiAcquisitionAuditLog: { create: (...args: unknown[]) => mockAuditCreate(...args) },
     city: { findFirst: (...args: unknown[]) => mockCityFindFirst(...args) },
     category: { findFirst: (...args: unknown[]) => mockCategoryFindFirst(...args) },
     subCategory: { findFirst: (...args: unknown[]) => mockSubcategoryFindFirst(...args) },
+    poiAcquisitionRun: { findMany: (...args: unknown[]) => mockRunFindMany(...args) },
     $transaction: (callback: (tx: unknown) => unknown) => mockTransaction(callback),
   },
 }))
@@ -37,6 +43,7 @@ import {
   restoreAdminPoi,
   updateAdminPoi,
   getAdminPoi,
+  listAdminPois,
 } from '@/features/admin-pois/queries/admin-pois'
 
 const completePoi = {
@@ -96,6 +103,8 @@ describe('041 AC-04 transactional publication query', () => {
     mockCityFindFirst.mockResolvedValue({ id: 'city-1' })
     mockCategoryFindFirst.mockResolvedValue({ id: 'category-1' })
     mockSubcategoryFindFirst.mockResolvedValue(null)
+    mockPoiCount.mockResolvedValue(0)
+    mockRunFindMany.mockResolvedValue([])
   })
 
   it('publishes with a fresh date and audit in the same transaction', async () => {
@@ -202,8 +211,13 @@ describe('041 AC-04 transactional publication query', () => {
 
     const result = await mutation('poi-1', 'admin-1')
 
-    expect(result.discovery_status).toBe('DRAFT')
-    expect(result.discovery_published_at).toBeNull()
+    expect(result.data.discovery_status).toBe('DRAFT')
+    expect(result.data.discovery_published_at).toBeNull()
+    expect(result.discovery_revalidation_paths).toEqual([
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ])
     expect(mockAuditCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ action: mutationAction }),
     })
@@ -234,7 +248,12 @@ describe('041 AC-04 transactional publication query', () => {
 
     const result = await updateAdminPoi('poi-1', { description: null }, 'admin-1')
 
-    expect(result.discovery_status).toBe('DRAFT')
+    expect(result.data.discovery_status).toBe('DRAFT')
+    expect(result.discovery_revalidation_paths).toEqual([
+      '/decouvrir/saint-gervais',
+      '/decouvrir/saint-gervais/manger',
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ])
     expect(mockAuditCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ action: 'poi_updated' }),
     })
@@ -248,12 +267,13 @@ describe('041 AC-04 transactional publication query', () => {
     mockPoiFindFirst.mockResolvedValue(draft)
     mockPoiUpdate.mockResolvedValue({ ...draft, is_active: false })
 
-    await disableAdminPoi('poi-1', 'admin-1')
+    const result = await disableAdminPoi('poi-1', 'admin-1')
 
     expect(mockAuditCreate).toHaveBeenCalledTimes(1)
     expect(mockAuditCreate).not.toHaveBeenCalledWith({
       data: expect.objectContaining({ action: 'poi_discovery_auto_unpublished' }),
     })
+    expect(result.discovery_revalidation_paths).toEqual([])
   })
 
   it.each([
@@ -270,11 +290,49 @@ describe('041 AC-04 transactional publication query', () => {
 
     const result = await getAdminPoi('poi-1')
 
-    expect(result).toEqual(expect.objectContaining({
-      discovery_status: status,
-      public_url: publicUrl,
-      discovery_public_url: publicUrl,
-      discovery_eligibility: expect.objectContaining({ eligible: true }),
-    }))
+    expect(result?.city).toEqual({ id: 'city-1', name: 'Saint-Gervais', slug: 'saint-gervais' })
+    expect(result?.category).toEqual({ id: 'category-1', name: 'Manger', slug: 'manger' })
+    expect(result?.subcategory).toBeNull()
+    expect(result).not.toHaveProperty('city.is_active')
+    expect(result).not.toHaveProperty('city.deleted_at')
+    expect(result).not.toHaveProperty('category.is_active')
+    expect(result).not.toHaveProperty('category.deleted_at')
+    expect(result?.discovery_status).toBe(status)
+    expect(result?.public_url).toBe(publicUrl)
+    expect(result?.discovery_public_url).toBe(publicUrl)
+  })
+
+  it('maps list relation DTOs exactly without internal eligibility fields', async () => {
+    mockPoiFindMany.mockResolvedValue([{
+      ...completeAdminPoi,
+      discovery_status: 'DRAFT',
+      subcategory: {
+        id: 'subcategory-1',
+        name: 'Brasseries',
+        slug: 'brasseries',
+        is_active: true,
+        deleted_at: null,
+      },
+    }])
+    mockPoiCount
+      .mockResolvedValueOnce(1)
+      .mockResolvedValue(0)
+
+    const result = await listAdminPois({ city_id: 'city-1', page: 1, limit: 25 })
+
+    expect(result.data).toHaveLength(1)
+    expect(result.data[0].city).toEqual({ id: 'city-1', name: 'Saint-Gervais', slug: 'saint-gervais' })
+    expect(result.data[0].category).toEqual({ id: 'category-1', name: 'Manger', slug: 'manger' })
+    expect(result.data[0].subcategory).toEqual({
+      id: 'subcategory-1',
+      name: 'Brasseries',
+      slug: 'brasseries',
+    })
+    expect(result.data[0].city).not.toHaveProperty('is_active')
+    expect(result.data[0].city).not.toHaveProperty('deleted_at')
+    expect(result.data[0].category).not.toHaveProperty('is_active')
+    expect(result.data[0].category).not.toHaveProperty('deleted_at')
+    expect(result.data[0].subcategory).not.toHaveProperty('is_active')
+    expect(result.data[0].subcategory).not.toHaveProperty('deleted_at')
   })
 })

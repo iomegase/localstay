@@ -70,6 +70,16 @@ type AcquisitionRunRow = {
   candidates: Array<{ review_status: string }>
 }
 
+export type AdminPoiMutationResult = {
+  data: AdminPoiDetail
+  discovery_revalidation_paths: string[]
+}
+
+type AutoUnpublishResult = {
+  poi: AdminPoiRow
+  discoveryRevalidationPaths: string[]
+}
+
 const adminPoiSelect = {
   id: true,
   name: true,
@@ -198,7 +208,7 @@ export async function updateAdminPoi(
   id: string,
   input: AdminPoiPatchInput,
   adminId: string,
-): Promise<AdminPoiDetail> {
+): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   const targetCategoryId = input.category_id ?? before.category_id
 
@@ -290,10 +300,10 @@ export async function updateAdminPoi(
     return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
 
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
-export async function disableAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function disableAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   const updated = await prisma.$transaction(async tx => {
     const poi = await tx.pointOfInterest.update({
@@ -313,10 +323,10 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
     })
     return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
-export async function deleteAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function deleteAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   if (before.deleted_at) throw new PoiAcquisitionError('POI_ALREADY_DELETED', 409)
 
@@ -338,10 +348,10 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
     })
     return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
-export async function restoreAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function restoreAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   if (!before.deleted_at) throw new PoiAcquisitionError('POI_NOT_DELETED', 409)
 
@@ -369,7 +379,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
     })
     return autoUnpublishIneligiblePoi(tx, poi, adminId)
   })
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
 export async function refreshAdminPoiOfficialPhotos(
@@ -532,9 +542,11 @@ function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
     name: row.name,
     slug: row.slug,
     status: getAdminPoiStatus(row),
-    city: row.city,
-    category: row.category,
-    subcategory: row.subcategory,
+    city: { id: row.city.id, name: row.city.name, slug: row.city.slug },
+    category: { id: row.category.id, name: row.category.name, slug: row.category.slug },
+    subcategory: row.subcategory
+      ? { id: row.subcategory.id, name: row.subcategory.name, slug: row.subcategory.slug }
+      : null,
     address: row.address,
     geocode_status: row.geocode_status,
     photo_count: row.photos.length,
@@ -592,11 +604,13 @@ async function autoUnpublishIneligiblePoi(
   tx: Prisma.TransactionClient,
   poi: AdminPoiRow,
   adminId: string,
-): Promise<AdminPoiRow> {
-  if (poi.discovery_status !== 'PUBLISHED') return poi
+): Promise<AutoUnpublishResult> {
+  if (poi.discovery_status !== 'PUBLISHED') {
+    return { poi, discoveryRevalidationPaths: [] }
+  }
 
   const eligibility = getPoiDiscoveryEligibility(poi)
-  if (eligibility.eligible) return poi
+  if (eligibility.eligible) return { poi, discoveryRevalidationPaths: [] }
 
   const unpublished = await tx.pointOfInterest.update({
     where: { id: poi.id },
@@ -626,7 +640,21 @@ async function autoUnpublishIneligiblePoi(
     },
   })
 
-  return unpublished as AdminPoiRow
+  return {
+    poi: unpublished as AdminPoiRow,
+    discoveryRevalidationPaths: [
+      `/decouvrir/${poi.city.slug}`,
+      `/decouvrir/${poi.city.slug}/${poi.category.slug}`,
+      buildPoiDiscoveryPublicUrl(poi),
+    ],
+  }
+}
+
+function mapAdminPoiMutationResult(result: AutoUnpublishResult): AdminPoiMutationResult {
+  return {
+    data: mapAdminPoiDetail(result.poi),
+    discovery_revalidation_paths: result.discoveryRevalidationPaths,
+  }
 }
 
 function buildAuditSnapshot(value: unknown): Prisma.InputJsonValue {
