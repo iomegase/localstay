@@ -1,4 +1,4 @@
-import Image from 'next/image'
+// import Image from 'next/image'
 import Link from 'next/link'
 import {
   BedDouble,
@@ -91,132 +91,193 @@ const guideSteps = [
 export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }) {
   return (
     <MarketingShell>
-      <section
-        data-testid="editorial-hero-shell"
-        className={`${marketingContainerClass} relative mt-0 overflow-hidden sm:mt-8 sm:rounded-[30px] xl:mt-0 xl:max-w-[944px]`}
-      >
-        <div
-          data-testid="editorial-hero"
-          className="relative min-h-[720px] overflow-hidden rounded-[26px] bg-slate-800 min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:rounded-[32px] min-[1051px]:min-h-[700px] xl:min-h-[560px] xl:rounded-[26px]"
-        >
-          <Image
-            src="/marketing/hero-chalet-v2.png"
-            alt="Chalet MyStay face aux montagnes"
-            
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 1180px"
-          />
-          <div className="absolute inset-0 bg-black/60" />
-          <div
-            data-testid="editorial-hero-content"
-            className="relative z-10 flex min-h-[720px] flex-col px-9 pb-14 pt-16 text-blq min-[431px]:min-h-[690px] min-[761px]:min-h-[590px] min-[761px]:px-[46px] min-[761px]:pb-[54px] min-[761px]:pt-[76px] min-[1051px]:min-h-[700px] min-[1051px]:px-16 xl:min-h-[560px] xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
-          >
-            <div className="max-w-[745px] xl:max-w-[600px] xl:[&>span:first-child]:mb-[19px]">
-              <MarketingEyebrow light>Conciergerie en Haute-Savoie</MarketingEyebrow>
-              <h1 className="max-w-[690px] text-[43px] font-bold leading-[1.08] tracking-[-0.055em] sm:text-5xl lg:text-[50px] xl:max-w-[600px] xl:text-[50px]">
-                Votre logement,
-                <br /> géré avec soin.
-                <span className="mt-2 block font-serif font-normal italic tracking-[-0.02em]">
-                  Vos voyageurs,
-                  <br /> accueillis autrement.
-                </span>
-              </h1>
-              <p className="mt-6 max-w-[560px] text-[15px] leading-[1.65] text-slate-200 xl:max-w-[450px] xl:text-[14px] xl:leading-[1.6]">
-                MyStay accompagne les propriétaires dans la gestion de leur location saisonnière,
-                de la mise en valeur du bien jusqu’au départ des voyageurs.
-              </p>
-              <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center xl:mt-[30px] xl:gap-[22px]">
-                <Link
-                  href="/confier-mon-logement"
-                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 text-xs font-bold text-slate-800 transition-colors hover:bg-pink-600 hover:text-white xl:min-h-[42px]"
-                >
-                  Confier mon logement
-                </Link>
-              </div>
-            </div>
-            <div className="mt-auto flex flex-col items-start gap-3 pt-[30px] text-[11px] font-bold uppercase tracking-[0.04em] text-slate-200 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-[34px] xl:gap-x-[27px] xl:pt-8 xl:text-[9px]">
-              {['Gestion complète', 'Présence locale', 'Guide digital inclus'].map(item => (
-                <span key={item} className="flex items-center gap-2 xl:gap-1.5">
-                  <b className="grid h-5 w-5 place-items-center rounded-full border border-white/50 text-[9px] xl:h-[17px] xl:w-[17px] xl:text-[8px]">
-                    ✓
-                  </b>
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+     <section
+  data-testid="editorial-hero-shell"
+  className={`${marketingContainerClass} relative mt-0 sm:mt-8 xl:mt-0 xl:max-w-[944px]`}
+>
+  <div
+    data-testid="editorial-hero"
+    className="relative min-h-[560px] bg-white"
+  >
+    <div
+      data-testid="editorial-hero-content"
+      className="relative flex min-h-[560px] flex-col px-9 pb-14 pt-16 text-slate-800 min-[761px]:px-[46px] min-[761px]:pt-[76px] min-[1051px]:px-16 xl:px-[52px] xl:pb-[43px] xl:pt-[60px]"
+    >
+      <div className="max-w-[745px] xl:max-w-[600px] xl:[&>span:first-child]:mb-[19px]">
+        <MarketingEyebrow>
+          Conciergerie en Haute-Savoie
+        </MarketingEyebrow>
 
-      <section
-        className={`${marketingContainerClass} pb-16 pt-24 sm:pb-24 sm:pt-28 xl:pb-0 xl:pt-[88px]`}
+        <h1 className="max-w-[690px] text-[43px] font-bold leading-[1.08] tracking-[-0.055em] sm:text-5xl lg:text-[50px] xl:max-w-[600px] xl:text-[50px]">
+          Votre logement,
+          <br />
+          géré avec soin.
+
+          <span className="mt-4 block font-serif font-normal italic tracking-[-0.02em]">
+            Vos voyageurs,
+            <br />
+            accueillis autrement.
+          </span>
+        </h1>
+
+        <p className="mt-6 max-w-[560px] text-[15px] leading-[1.65] text-slate-600 xl:max-w-[450px] xl:text-[14px] xl:leading-[1.6]">
+          MyStay accompagne les propriétaires dans la gestion de leur
+          location saisonnière, de la mise en valeur du bien jusqu’au départ
+          des voyageurs.
+        </p>
+
+        <div className="mt-7 flex items-start xl:mt-[30px]">
+          <Link
+            href="/confier-mon-logement"
+            className={marketingPrimaryButtonClass}
+          >
+            Confier mon logement
+          </Link>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section
+  className={`${marketingContainerClass} pb-16 pt-24 sm:pb-24 sm:pt-28 xl:pb-20 xl:pt-[88px]`}
+>
+  <div
+    data-testid="editorial-intro-copy"
+    className="max-w-2xl xl:max-w-[744px] xl:px-6"
+  >
+    <MarketingEyebrow>La conciergerie MyStay</MarketingEyebrow>
+
+    <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:max-w-[660px] xl:text-[40px] xl:leading-[1.1]">
+      Votre bien mérite plus qu’une
+      <br className="hidden sm:block" /> simple remise de clés.
+    </h2>
+
+    <p className="mt-7 max-w-xl text-sm leading-7 text-slate-500 xl:mt-8 xl:max-w-[600px] xl:text-[13px] xl:leading-[1.7]">
+      Nous prenons soin du logement, de son image et de chaque voyageur.
+      Notre accompagnement associe une présence humaine locale à des outils
+      simples, pensés pour fluidifier le séjour.
+    </p>
+  </div>
+
+  <div
+    data-testid="editorial-highlight-grid"
+    className="
+      mt-12
+      grid grid-cols-1 gap-4
+      sm:grid-cols-2
+      lg:grid-cols-3
+      xl:mt-[60px]
+      xl:grid-cols-5
+      xl:gap-4
+    "
+  >
+    {serviceHighlights.map(({ label, copy }, index) => (
+      <article
+        key={label}
+        data-testid={`editorial-highlight-${index}`}
+        className="
+          group
+          relative
+          min-h-[165px]
+          overflow-hidden
+          rounded-[22px]
+          bg-[#ffffff]
+          px-5
+          py-[18px]
+          shadow-[0_6px_20px_rgba(15,23,42,0.035)]
+          transition-all
+          duration-300
+          hover:-translate-y-[3px]
+          hover:bg-white
+          hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+          border-slate-900/20
+        "
       >
-        <div
-          data-testid="editorial-intro-copy"
-          className="max-w-2xl xl:max-w-[744px] xl:px-6"
+        {/* Accent */}
+        <span
+          aria-hidden="true"
+          className="
+            absolute
+            left-5
+            top-0
+            h-[3px]
+            w-10
+            rounded-b-full
+            bg-pink-600
+          "
+        />
+
+        {/* Numéro décoratif */}
+        <span
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-[26px]
+            -right-[3px]
+            select-none
+            text-[100px]
+            font-bold
+            leading-none
+            tracking-[-0.09em]
+            text-slate-900/[0.03]
+            transition-transform
+            duration-500
+            group-hover:-translate-x-1
+            group-hover:-translate-y-1
+          "
         >
-          <MarketingEyebrow>La conciergerie MyStay</MarketingEyebrow>
-          <h2 className="text-3xl font-bold leading-[1.2] tracking-[-0.05em] sm:text-[44px] xl:max-w-[660px] xl:text-[40px] xl:leading-[1.1]">
-            Votre bien mérite plus qu’une
-            <br className="hidden sm:block" /> simple remise de clés.
-          </h2>
-          <p className="mt-7 max-w-xl text-sm leading-7 text-slate-500 xl:mt-8 xl:max-w-[560px] xl:text-[13px] xl:leading-[1.7]">
-            Nous prenons soin du logement, de son image et de chaque voyageur. Notre accompagnement
-            associe une présence humaine locale à des outils simples, pensés pour fluidifier le
-            séjour.
+          {String(index + 1).padStart(2, '0')}
+        </span>
+
+        {/* Contenu */}
+        <div className="relative z-10">
+          <h3
+            className="
+              whitespace-nowrap
+              text-[15px]
+              font-bold
+              leading-none
+              tracking-[-0.01em]
+              text-slate-600
+            "
+          >
+            {label}
+          </h3>
+
+          <p
+            className="
+              mt-5
+              max-w-[185px]
+              text-[12.5px]
+              leading-[1.55]
+              text-slate-500
+            "
+          >
+            {copy}
           </p>
         </div>
+      </article>
+    ))}
+  </div>
 
-        <div
-          data-testid="editorial-highlight-grid"
-          className="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:mt-[88px] xl:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))] xl:grid-rows-[repeat(2,minmax(205px,auto))] xl:gap-[14px]"
-        >
-          {serviceHighlights.map(({ icon: Icon, label, copy }, index) => (
-            <article
-              key={label}
-              data-testid={`editorial-highlight-${index}`}
-              className={`relative flex min-h-[205px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[205px] xl:rounded-[22px] xl:px-6 xl:py-[22px] ${
-                index === 0 ? 'lg:row-span-2 xl:col-start-1 xl:row-start-1 xl:row-span-1' : ''
-              } ${index === serviceHighlights.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
-            >
-              <span
-                aria-hidden="true"
-                className="absolute left-6 top-0 h-[3px] w-[50px] rounded-b-full bg-pink-600"
-              />
-              <div className="flex items-center gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white xl:h-11 xl:w-11 xl:rounded-[14px]">
-                  <Icon
-                    aria-hidden="true"
-                    className="h-[18px] w-[18px] xl:h-[22px] xl:w-[22px]"
-                    strokeWidth={1.7}
-                  />
-                </span>
-                <h3
-                  className={`font-bold tracking-[-0.035em] xl:leading-[1.18] ${
-                    index === 0 ? 'text-lg xl:text-[26px]' : 'text-lg xl:text-[17px]'
-                  }`}
-                >
-                  {label}
-                </h3>
-              </div>
-              <p
-                className={`mt-3 text-xs leading-5 text-slate-500 xl:mt-[13px] xl:text-[12px] ${
-                  index === 0 ? 'xl:max-w-[220px]' : 'xl:max-w-[265px]'
-                }`}
-              >
-                {copy}
-              </p>
-            </article>
-          ))}
-          <div className="col-span-2 mt-5 hidden items-center justify-center lg:col-span-3 lg:flex xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0">
-            <Link href="/concept" className={marketingDarkButtonClass}>
-              Comprendre notre approche <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+  <div className="mt-7 flex justify-start xl:justify-end">
+    <Link
+      href="/concept"
+    className={marketingPrimaryButtonClass}
+    >
+      Notre approche
+
+      {/* <span
+        aria-hidden="true"
+        className="transition-transform duration-300 group-hover:translate-x-1"
+      >
+        →
+      </span> */}
+    </Link>
+  </div>
+</section>
 
       <section
         id="services"
@@ -235,29 +296,81 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
         </div>
         <div className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:mt-0 xl:gap-[14px]">
           {conciergeServices.map((service, index) => (
-            <article
-              key={service.number}
-              data-testid={`editorial-service-${service.number}`}
-              className={`relative flex min-h-[210px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[198px] xl:rounded-[20px] xl:px-6 xl:pb-6 xl:pt-[27px] ${
-                index === 2 ? 'col-span-2 lg:col-span-1' : ''
-              }`}
-            >
-              <span
-                aria-hidden="true"
-                className="absolute left-6 top-0 h-[3px] w-11 rounded-b-full bg-pink-600"
-              />
-              <div className="flex items-center gap-4">
-                <span className="text-[44px] font-bold leading-[0.9] tracking-[-0.07em] text-slate-400">
-                  {service.number}
-                </span>
-                <h3 className="text-base font-semibold xl:text-[18px] xl:leading-[1.08]">
-                  {service.title}
-                </h3>
-              </div>
-              <p className="mt-4 text-xs leading-5 text-slate-500 xl:mt-4 xl:text-[12px] xl:leading-[1.62]">
-                {service.copy}
-              </p>
-            </article>
+          <article
+  key={service.number}
+  data-testid={`editorial-service-${service.number}`}
+  className={`group relative min-h-[165px] overflow-hidden rounded-[22px]
+    bg-[#f8f7f5] px-5 py-[18px]
+    shadow-[0_6px_20px_rgba(15,23,42,0.035)]
+    transition-all duration-300
+    hover:-translate-y-[3px]
+    hover:bg-white
+    hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+    ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}
+  `}
+>
+  {/* Accent supérieur */}
+  <span
+    aria-hidden="true"
+    className="
+      absolute left-5 top-0
+      h-[3px] w-10
+      rounded-b-full
+      bg-[#bd9254]
+    "
+  />
+
+  {/* Numéro décoratif en arrière-plan */}
+  <span
+    aria-hidden="true"
+    className="
+      pointer-events-none
+      absolute
+      -bottom-[26px]
+      -right-[3px]
+      select-none
+      text-[100px]
+      font-bold
+      leading-none
+      tracking-[-0.09em]
+      text-slate-900/[0.03]
+      transition-transform
+      duration-500
+      group-hover:-translate-x-1
+      group-hover:-translate-y-1
+    "
+  >
+    {service.number}
+  </span>
+
+  {/* Contenu */}
+  <div className="relative z-10">
+    <h3
+      className="
+        whitespace-nowrap
+        text-[15px]
+        font-bold
+        leading-none
+        tracking-[-0.05em]
+        text-slate-900
+      "
+    >
+      {service.title}
+    </h3>
+
+    <p
+      className="
+        mt-5
+        max-w-[220px]
+        text-[12.5px]
+        leading-[1.55]
+        text-slate-500
+      "
+    >
+      {service.copy}
+    </p>
+  </div>
+</article>
           ))}
         </div>
       </section>
@@ -312,37 +425,94 @@ export function MarketingHome({ lodgings }: { lodgings: MarketingLodgingCard[] }
           <GuideDemoLauncher />
         </div>
         <div className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:mt-0 xl:gap-[14px]">
-          {guideSteps.map(({ icon: Icon, label, title, copy }, index) => (
-            <article
-              key={label}
-              data-testid={`editorial-process-card-${index}`}
-              className={`relative flex min-h-[260px] flex-col overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)] bg-[#f7f6f4] p-6 xl:min-h-[234px] xl:rounded-[22px] xl:px-6 xl:pb-6 xl:pt-[26px] ${
-                index === 2 ? 'col-span-2 lg:col-span-1' : ''
-              }`}
-            >
-              <span
-                aria-hidden="true"
-                className="absolute left-6 top-0 h-[3px] w-[50px] rounded-b-full bg-pink-600"
-              />
-              <div className="flex items-center gap-4 xl:gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white xl:h-11 xl:w-11 xl:rounded-[14px]">
-                  <Icon
-                    aria-hidden="true"
-                    className="h-[18px] w-[18px] xl:h-[22px] xl:w-[22px]"
-                    strokeWidth={1.7}
-                  />
-                </span>
-                <span className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600 xl:text-[9px]">
-                  {label}
-                </span>
-              </div>
-              <h3 className="mt-6 text-base font-semibold xl:mt-7 xl:text-[17px] xl:leading-[1.18]">
-                {title}
-              </h3>
-              <p className="mt-4 text-xs leading-6 text-slate-500 xl:mt-[13px] xl:max-w-[265px] xl:text-[12px]">
-                {copy}
-              </p>
-            </article>
+          {guideSteps.map(({ label, title, copy }, index) => (
+        <article
+  key={label}
+  data-testid={`editorial-process-card-${index}`}
+  className={`group relative min-h-[165px] overflow-hidden rounded-[22px]
+    bg-[#f8f7f5] px-5 py-[18px]
+    shadow-[0_6px_20px_rgba(15,23,42,0.035)]
+    transition-all duration-300
+    hover:-translate-y-[3px]
+    hover:bg-white
+    hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+    ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}
+  `}
+>
+  {/* Accent supérieur */}
+  <span
+    aria-hidden="true"
+    className="
+      absolute left-5 top-0
+      h-[3px] w-10
+      rounded-b-full
+      bg-[#bd9254]
+    "
+  />
+
+  {/* Numéro décoratif */}
+  <span
+    aria-hidden="true"
+    className="
+      pointer-events-none
+      absolute
+      -bottom-[26px]
+      -right-[3px]
+      select-none
+      text-[100px]
+      font-bold
+      leading-none
+      tracking-[-0.09em]
+      text-slate-900/[0.03]
+      transition-transform
+      duration-500
+      group-hover:-translate-x-1
+      group-hover:-translate-y-1
+    "
+  >
+    {String(index + 1).padStart(2, '0')}
+  </span>
+
+  {/* Contenu */}
+  <div className="relative z-10">
+    <span
+      className="
+        text-[10px]
+        font-semibold
+        uppercase
+        tracking-[0.14em]
+        text-slate-400
+      "
+    >
+      {label}
+    </span>
+
+    <h3
+      className="
+        mt-3
+        text-[15px]
+        font-bold
+        leading-[1.15]
+        tracking-[-0.045em]
+        text-slate-900
+      "
+    >
+      {title}
+    </h3>
+
+    <p
+      className="
+        mt-4
+        max-w-[220px]
+        text-[12.5px]
+        leading-[1.55]
+        text-slate-500
+      "
+    >
+      {copy}
+    </p>
+  </div>
+</article>
           ))}
         </div>
       </section>

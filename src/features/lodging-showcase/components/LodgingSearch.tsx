@@ -125,7 +125,7 @@ export function LodgingSearch({ lodgings }: { lodgings: MarketingLodgingCard[] }
       {/* ---------- Barre desktop (segmentée) ---------- */}
       <div
         data-testid="lodging-filters"
-        className="hidden items-stretch rounded-full border border-slate-200/80 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.07)] lg:flex"
+        className="hidden items-stretch rounded-full border border-slate-200/30 bg-white p-2 shadow-[0_18px_45px_rgba(15,23,42,0.07)] lg:flex"
       >
         <div className="flex min-w-[190px] flex-col justify-center gap-0.5 px-6 py-1.5">
           <span className={labelClass}>Ville</span>

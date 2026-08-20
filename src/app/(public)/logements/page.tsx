@@ -18,13 +18,13 @@ export default async function LodgingsPage() {
 
   return (
     <MarketingShell>
-      <section className="bg-slate-50 py-16 sm:py-24">
+      <section className="py-16 sm:py-24">
         <div className={marketingContainerClass}>
           <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
-          <h1 className="max-w-3xl text-4xl font-bold leading-[1.03] tracking-[-0.055em] sm:text-6xl">
-            Des séjours choisis, des lieux suivis avec attention.
+          <h1 className="max-w-4xl text-4xl py-8 font-bold leading-[1.03] tracking-[-0.05em] sm:text-6xl">
+            Des lieux suivis avec attention.
           </h1>
-          <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
+          <p className="mt-6 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
             Chaque logement est accompagné par notre conciergerie et dispose de son propre guide
             d’arrivée MyStay.
           </p>
