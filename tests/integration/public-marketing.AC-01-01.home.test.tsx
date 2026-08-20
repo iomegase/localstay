@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MarketingHome } from '@/features/marketing/components/MarketingHome'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 
@@ -48,31 +48,57 @@ describe('031-public-marketing-site home', () => {
       'xl:px-6',
     )
     expect(screen.getByTestId('editorial-highlight-grid')).toHaveClass(
+      'xl:mt-[88px]',
+      'xl:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))]',
       'xl:gap-[14px]',
       'xl:grid-rows-[repeat(2,minmax(205px,auto))]',
     )
     expect(screen.getByTestId('editorial-highlight-0')).toHaveClass(
+      'flex',
+      'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
+      'bg-[#f7f6f4]',
       'xl:min-h-[205px]',
       'xl:rounded-[22px]',
       'xl:px-6',
       'xl:py-[22px]',
+      'xl:col-start-1',
+      'xl:row-start-1',
     )
+    expect(screen.getByTestId('editorial-highlight-0').querySelector('svg')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Comprendre notre approche/i })).toBeInTheDocument()
     expect(screen.getByTestId('editorial-services')).toHaveClass(
       'xl:pb-[42px]',
       'xl:pt-[82px]',
     )
     expect(screen.getByTestId('editorial-service-01')).toHaveClass(
+      'flex',
+      'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
+      'bg-[#f7f6f4]',
       'xl:min-h-[198px]',
       'xl:rounded-[20px]',
+      'xl:px-6',
+      'xl:pb-6',
+      'xl:pt-[27px]',
+    )
+    expect(within(screen.getByTestId('editorial-service-01')).getByText('01')).toHaveClass(
+      'text-[44px]',
+      'tracking-[-0.07em]',
     )
     expect(screen.getByTestId('editorial-process')).toHaveClass(
       'xl:pb-[88px]',
       'xl:pt-8',
     )
     expect(screen.getByTestId('editorial-process-card-0')).toHaveClass(
+      'flex',
+      'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
+      'bg-[#f7f6f4]',
       'xl:min-h-[234px]',
       'xl:rounded-[22px]',
+      'xl:px-6',
+      'xl:pb-6',
+      'xl:pt-[26px]',
     )
+    expect(screen.getByTestId('editorial-process-card-0').querySelector('svg')).toBeInTheDocument()
     expect(screen.getByTestId('editorial-cta')).toHaveClass(
       'xl:gap-16',
       'xl:rounded-[24px]',
