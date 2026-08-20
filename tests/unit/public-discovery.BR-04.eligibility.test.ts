@@ -120,6 +120,35 @@ describe('041 BR-04 POI discovery eligibility', () => {
     })
   })
 
+  it('accumulates simultaneous defects in deterministic checklist order', () => {
+    expect(getPoiDiscoveryEligibility({
+      ...completePoi,
+      is_active: false,
+      city: { is_active: false, deleted_at: null },
+      category: { is_active: true, deleted_at: new Date('2026-08-20T15:00:00.000Z') },
+      subcategory: { is_active: false, deleted_at: null },
+      description: ' ',
+      photos: ['https://example.com/placeholder.jpg'],
+      address: ' ',
+      geocode_status: 'failed',
+      phone: null,
+      website: 'ftp://example.com',
+    })).toEqual({
+      eligible: false,
+      missing: [
+        'active',
+        'city',
+        'category',
+        'subcategory',
+        'description',
+        'photo',
+        'address',
+        'geocode',
+        'contact',
+      ],
+    })
+  })
+
   it('rejects a blank address after trimming', () => {
     expect(getPoiDiscoveryEligibility({ ...completePoi, address: ' \t ' })).toEqual({
       eligible: false,
