@@ -221,7 +221,7 @@ describe('041 public discovery pages', () => {
     expect(screen.getByRole('link', { name: /Itinéraire/i })).toBeInTheDocument()
   })
 
-  it('uses coordinates as the attainable itinerary fallback when no address is supplied', () => {
+  it('keeps the inherited coordinate fallback as a defensive utility outside the strict published DTO path', () => {
     expect(buildDiscoveryDirectionsHref({
       address: null,
       latitude: poi.latitude,

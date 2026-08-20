@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element -- Spec 041 BR-26 preserves arbitrary remote http(s) images from spec 022. */
 import Link from 'next/link'
 import { ArrowLeft, ChevronRight, Clock3, ExternalLink, MapPin, Navigation, Phone, Star } from 'lucide-react'
 import { MiniMap } from '@/features/categories/components/MiniMap'
@@ -10,6 +9,7 @@ import {
 } from '@/features/marketing/components/MarketingShell'
 import type { DiscoveryPoiDetail } from '../types'
 import { buildDiscoveryDirectionsHref } from '../lib/directions'
+import { RemotePoiImage } from './RemotePoiImage'
 
 const DAY_NAMES = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as const
 const decimalFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
@@ -37,15 +37,13 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
             Retour à la sélection
           </Link>
           <div className="relative mt-7 aspect-[4/3] overflow-hidden rounded-[26px] bg-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.14)] sm:aspect-[16/9] lg:max-h-[570px]">
-            <img
+            <RemotePoiImage
               src={poi.hero_photo_url}
               alt={`${poi.name} à ${poi.city.name}`}
               width={1200}
               height={900}
               loading="eager"
               fetchPriority="high"
-              decoding="async"
-              referrerPolicy="no-referrer"
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>

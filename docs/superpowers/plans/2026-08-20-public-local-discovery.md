@@ -582,7 +582,9 @@ responsive `<img>` for arbitrary eligible remote `http(s)` URLs (not
 ratio with intrinsic dimensions, lazy-load cards, apply a restrictive referrer
 policy, meaningful alt text and reduced-motion handling. Keep the category
 eyebrow, address, optional rating/distance and full-card `Link` to the
-canonical discovery path.
+canonical discovery path. Use a focused client `RemotePoiImage` only to switch
+once to the existing local MyStay OG asset when the native remote request fails
+or is blocked; do not proxy, re-host or claim every HTTP source will load.
 
 - [ ] **Step 4: Implement City and Category views**
 
@@ -598,7 +600,8 @@ dimensions, eager/high-priority loading, restrictive referrer policy), breadcrum
 optional hours/rating and conditional `tel:`, official site and Google Maps
 links. Reuse the existing Static Map component when its prop contract accepts
 the public DTO; otherwise create a focused wrapper without loading interactive
-Mapbox. End with the `/confier-mon-logement` CTA.
+Mapbox. The shared `RemotePoiImage` fallback preserves the hero ratio and alt
+text and must not retry recursively. End with the `/confier-mon-logement` CTA.
 
 - [ ] **Step 6: Implement page modules and `generateMetadata`**
 

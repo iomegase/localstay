@@ -280,10 +280,13 @@ destination publique existe. Les routes QR et le séjour privé restent sous
   d'hôtes, re-hébergement ni proxy d'optimisation. Les photos `/decouvrir`
   utilisent donc un élément `<img>` natif responsive plutôt que `next/image`,
   avec dimensions intrinsèques, ratio réservé, texte alternatif et politique
-  de référent restrictive. Cette exception explicite à BR-13/au standard
-  marketing évite de rendre un POI inéligible uniquement selon l'hôte de sa
-  photo ; les contrôles favicon/logo/placeholder de la spec 022 restent
-  applicables.
+  de référent restrictive. Le navigateur tente l'URL distante telle quelle ;
+  si elle échoue ou est bloquée (notamment après traitement mixed-content
+  d'une source HTTP), le composant affiche une ressource locale MyStay
+  déterministe sans modifier l'URL stockée ni republier l'image. Cette
+  exception explicite à BR-13 et au standard marketing évite de rendre un POI
+  inéligible uniquement selon l'hôte de sa photo ; les contrôles
+  favicon/logo/placeholder de la spec 022 restent applicables.
 
 ---
 
@@ -508,7 +511,9 @@ Extensions du contrat `022` :
   rend une fiche éligible à lui seul.
 - Images distantes : rendu natif responsive conformément à BR-26 ; les cards
   chargent paresseusement et la hero prioritaire réserve son ratio sans
-  débordement.
+  débordement. L'éligibilité garantit une URL exploitable, pas sa disponibilité
+  réseau dans chaque navigateur ; un échec bascule une seule fois sur le
+  fallback MyStay local.
 - Responsive : 375 px minimum, aucun scroll horizontal.
 
 ---
@@ -575,4 +580,6 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
 - la découverte publique et le séjour privé restent strictement séparés.
 - les photos publiques conservent les URLs `http(s)` arbitraires autorisées par
   la spec 022 ; le rendu natif `<img>` est l'exception validée à `next/image`,
-  sans re-hébergement ni réduction de l'éligibilité par allowlist.
+  sans re-hébergement ni réduction de l'éligibilité par allowlist ; chaque URL
+  est tentée nativement et un échec navigateur affiche le fallback MyStay
+  local, sans promettre que toute source HTTP distante peut être chargée.
