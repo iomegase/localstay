@@ -1,0 +1,563 @@
+# Spec — 041 Public Local Discovery
+
+## Metadata
+
+```yaml
+id: 041-public-local-discovery
+title: "Découverte locale publique et sélection éditoriale SEO des POI"
+status: review
+mvp: 2
+owner: "Product Owner"
+created_at: 2026-08-20
+updated_at: 2026-08-20
+depends_on:
+  - 001-city-guide
+  - 002-categories
+  - 003-poi-list
+  - 004-poi-detail
+  - 022-admin-poi-management
+  - 031-public-marketing-site
+  - 032-approved-brand-identity
+  - 034-private-guide-app
+bounded_context: public-discovery
+implementation_gate: "Architecture et règles métier validées par le Product Owner le 2026-08-20 ; revue finale de cette spec requise avant implémentation"
+```
+
+---
+
+## Context
+
+MyStay est d'abord une conciergerie locative en Haute-Savoie dont le site
+public vise l'acquisition de propriétaires. Le guide d'arrivée numérique est
+un élément différenciant de cette offre et l'expérience réelle du voyageur
+reste privée sous `/sejour`, après activation par QR code.
+
+Les routes historiques `/guide/{ville}`, `/guide/{ville}/{categorie}` et
+`/guide/{ville}/{categorie}/{poi}` mélangent actuellement découverte publique
+et expérience de séjour. Cette feature crée une surface éditoriale publique
+séparée sous `/decouvrir`, indexable et intégrée au site marketing MyStay :
+
+- `/decouvrir/[city-slug]` pour la destination locale ;
+- `/decouvrir/[city-slug]/[category-slug]` pour une sélection thématique ;
+- `/decouvrir/[city-slug]/[category-slug]/[poi-slug]` pour une fiche POI
+  sélectionnée et enrichie.
+
+Tous les POI actifs du Guide ne sont pas publiés automatiquement. Le
+Super-admin valide séparément chaque POI destiné à la découverte publique. Une
+validation stricte de complétude bloque toute publication insuffisante.
+
+La migration est immédiate : les anciennes URL publiques génériques
+`/guide/...` redirigent de manière permanente vers `/decouvrir/...` lorsqu'une
+destination publique existe. Les routes QR et le séjour privé restent sous
+`/guide/{city}?lodging={uuid}` puis `/sejour`.
+
+---
+
+## Glossary References
+
+- **City** : ville de rattachement de la découverte locale
+- **Category** : regroupement thématique de POI
+- **SubCategory** : filtre éditorial secondaire d'une Category
+- **POI** : lieu ou activité locale validé dans MyStay
+- **Guide** : contenu de séjour historique, désormais distinct de la découverte publique
+- **Tourist** : visiteur anonyme ou voyageur en séjour
+- **QR Code** : autorité d'activation du séjour privé
+- **GEO** : optimisation de contenus publics factuels, structurés et citables
+- **Soft Delete** : archivage logique via `deleted_at`
+- **Server Component** : rendu serveur par défaut des pages publiques
+
+---
+
+## User Stories
+
+### US-01 — Découvrir une ville publiquement
+
+**As a** visiteur anonyme  
+**I want to** consulter une sélection locale MyStay par ville  
+**So that** je prépare mon séjour et découvre l'expertise locale de la conciergerie
+
+#### Acceptance Criteria
+
+- **AC-01-01**: Given une City active contenant au moins un POI au statut
+  `PUBLISHED`, When `/decouvrir/{city}` est ouverte, Then la page répond HTTP
+  200 et affiche le nom de la ville, une introduction locale, les catégories
+  publiées et leurs POI.
+- **AC-01-02**: Given une City inexistante, inactive, supprimée ou sans POI
+  `PUBLISHED`, When `/decouvrir/{city}` est ouverte, Then la route répond 404 et
+  n'est pas présente dans le sitemap.
+- **AC-01-03**: Given plusieurs catégories publiées, When la page ville est
+  rendue, Then elles sont ordonnées par `Category.sort_order` et chaque lien
+  pointe vers `/decouvrir/{city}/{category}`.
+- **AC-01-04**: Given une largeur de 375, 768 ou 1440 px, When la page ville
+  s'affiche, Then elle utilise le `MarketingShell` MyStay sans débordement
+  horizontal et sans reprendre la coque privée de 430 px.
+- **AC-01-05**: Given la page ville publique, When son HTML est inspecté, Then
+  elle possède un H1 unique, une canonical auto-référente, des metadata Open
+  Graph/Twitter propres et un JSON-LD `BreadcrumbList` avec un `ItemList` des
+  POI visibles.
+
+### US-02 — Consulter une sélection éditoriale par catégorie
+
+**As a** visiteur anonyme  
+**I want to** parcourir les adresses sélectionnées d'une catégorie  
+**So that** je trouve rapidement des lieux locaux pertinents
+
+#### Acceptance Criteria
+
+- **AC-02-01**: Given au moins un POI `PUBLISHED` dans une Category active pour
+  la City, When `/decouvrir/{city}/{category}` est ouverte, Then la page répond
+  HTTP 200 et affiche exclusivement les POI publiés de cette paire.
+- **AC-02-02**: Given aucun POI publié pour la paire City/Category, When la
+  route est demandée, Then elle répond 404 et reste absente du sitemap.
+- **AC-02-03**: Given des POI publiés dans les zones primaire et alentours,
+  When la page catégorie s'affiche, Then les règles géographiques globales
+  restent appliquées : liste principale jusqu'à 15 km et section « Aux
+  alentours » entre 15 et 30 km uniquement si non vide.
+- **AC-02-04**: Given la page catégorie, When elle est rendue, Then son H1
+  exprime la catégorie et la ville, ses cards affichent uniquement des faits
+  existants et chaque card pointe vers `/decouvrir/{city}/{category}/{poi}`.
+- **AC-02-05**: Given la page catégorie, When son HTML est inspecté, Then elle
+  possède une canonical auto-référente, des metadata sociales propres et les
+  JSON-LD `BreadcrumbList` et `ItemList` correspondant au contenu visible.
+
+### US-03 — Consulter une fiche POI publique enrichie
+
+**As a** visiteur anonyme  
+**I want to** consulter une fiche locale fiable  
+**So that** je puisse décider de visiter ce lieu
+
+#### Acceptance Criteria
+
+- **AC-03-01**: Given un POI actif et `PUBLISHED` dont la City et la Category
+  sont actives, When sa route `/decouvrir/{city}/{category}/{poi}` est ouverte,
+  Then la page répond HTTP 200 et affiche son nom, sa description, sa photo
+  principale, son adresse et les actions réellement disponibles.
+- **AC-03-02**: Given un POI qui n'est pas `PUBLISHED`, inactif, archivé ou
+  rattaché à une City/Category inactive, When sa route publique est demandée,
+  Then elle répond 404 sans exposer ses données.
+- **AC-03-03**: Given un téléphone ou un site officiel absent, When la fiche
+  s'affiche, Then l'action correspondante est absente. L'itinéraire utilise
+  l'adresse puis les coordonnées en fallback conformément à la spec 004.
+- **AC-03-04**: Given la fiche publique, When son HTML est inspecté, Then elle
+  possède un H1 unique, une canonical auto-référente, des metadata sociales
+  propres, un `BreadcrumbList` et un type JSON-LD POI approprié dont les
+  données correspondent au contenu visible.
+- **AC-03-05**: Given aucun séjour actif, When une fiche publique est affichée,
+  Then aucun commentaire Owner, identifiant de Lodging, contenu privé ou
+  information propre à un séjour n'est chargé ni rendu.
+
+### US-04 — Piloter la publication SEO depuis l'administration
+
+**As an** Admin  
+**I want to** publier ou retirer un POI de la découverte publique  
+**So that** seules les fiches éditorialement complètes soient indexables
+
+#### Acceptance Criteria
+
+- **AC-04-01**: Given un Admin sur `/admin/pois/{id}`, When la section
+  « Découverte publique » s'affiche, Then elle indique le statut `DRAFT` ou
+  `PUBLISHED`, la date de publication éventuelle et une checklist de
+  complétude.
+- **AC-04-02**: Given un POI satisfaisant toutes les règles de complétude, When
+  l'Admin confirme « Publier dans Découvrir », Then le statut passe à
+  `PUBLISHED`, `discovery_published_at` est renseigné et un audit log est créé.
+- **AC-04-03**: Given au moins une règle de complétude non satisfaite, When
+  l'Admin tente de publier, Then la mutation est refusée avec
+  `409 DISCOVERY_PUBLICATION_INCOMPLETE`, la checklist indique les champs
+  manquants et aucune valeur n'est modifiée.
+- **AC-04-04**: Given un POI `PUBLISHED`, When l'Admin confirme « Retirer de
+  Découvrir », Then son statut repasse à `DRAFT`, sa date de publication est
+  vidée, ses URL disparaissent du sitemap et deviennent 404.
+- **AC-04-05**: Given un POI publié dont une modification rend la fiche
+  incomplète, inactive ou archivée, When la sauvegarde est appliquée, Then le
+  POI est automatiquement retiré de Découvrir dans la même transaction et
+  l'audit explique la cause.
+- **AC-04-06**: Given la liste `/admin/pois`, When elle s'affiche, Then un badge
+  et un filtre `discovery_status` permettent d'identifier les POI `DRAFT` et
+  `PUBLISHED` pour la City sélectionnée.
+
+### US-05 — Migrer les anciennes URL sans casser le séjour
+
+**As a** moteur de recherche ou visiteur anonyme  
+**I want to** atteindre la nouvelle URL publique canonique  
+**So that** les signaux SEO soient consolidés sur `/decouvrir`
+
+#### Acceptance Criteria
+
+- **AC-05-01**: Given un accès anonyme à une ancienne page ville disposant
+  d'au moins un POI public, When `/guide/{city}` est demandée sans paramètre
+  `lodging`, Then une redirection permanente cible `/decouvrir/{city}`.
+- **AC-05-02**: Given un accès anonyme à une ancienne catégorie ou fiche dont
+  l'équivalent public existe, When l'ancienne URL est demandée, Then une
+  redirection permanente conserve les slugs et cible l'URL `/decouvrir`
+  équivalente.
+- **AC-05-03**: Given un accès anonyme à une ancienne catégorie ou fiche sans
+  équivalent `PUBLISHED`, When l'ancienne URL est demandée, Then elle répond
+  404 et n'expose pas le contenu privé.
+- **AC-05-04**: Given `/guide/{city}?lodging={uuid}` avec un Lodging valide,
+  When le QR est ouvert, Then le cookie est posé et la redirection vers
+  `/sejour?lodging={uuid}` reste inchangée.
+- **AC-05-05**: Given un séjour valide, When le voyageur ouvre une fiche POI
+  depuis `/sejour`, Then les routes privées existantes restent accessibles et
+  peuvent afficher le commentaire de son hôte.
+- **AC-05-06**: Given le sitemap, When il est généré, Then les anciennes pages
+  ville/catégorie/POI sous `/guide` en sont absentes et seules les URL
+  `/decouvrir` dérivées de POI `PUBLISHED` y sont ajoutées, sans doublon.
+
+---
+
+## Business Rules
+
+- **BR-01**: `discovery_status` est indépendant de `is_active`. Un POI doit être
+  actif, non supprimé et `PUBLISHED` pour apparaître sous `/decouvrir`.
+- **BR-02**: Le statut par défaut est `DRAFT`. Aucune migration ne publie
+  automatiquement les POI existants.
+- **BR-03**: Seul un Admin actif peut modifier `discovery_status`.
+- **BR-04**: La publication est autorisée uniquement lorsque toutes les
+  conditions suivantes sont vraies :
+  - POI actif et `deleted_at = null` ;
+  - City active et non supprimée ;
+  - Category active et non supprimée ;
+  - SubCategory active et non supprimée lorsqu'elle est renseignée ;
+  - description non vide après trim ;
+  - au moins une URL photo exploitable selon la règle de la spec 022 ;
+  - adresse non vide ;
+  - `geocode_status = success` et coordonnées numériques valides ;
+  - téléphone non vide ou site officiel HTTP(S) valide.
+- **BR-05**: Toute perte d'une condition BR-04 retire automatiquement le POI
+  de la découverte publique dans la même transaction.
+- **BR-06**: Une City devient publique dès son premier POI `PUBLISHED`. Une
+  Category devient publique pour une City dès son premier POI `PUBLISHED`.
+- **BR-07**: Les pages publiques n'utilisent jamais de POI `DRAFT` comme
+  contenu, JSON-LD, lien interne, compteur ou entrée de sitemap.
+- **BR-08**: Les queries publiques filtrent également `deleted_at`,
+  `is_active`, `geocode_status`, City, Category et SubCategory afin qu'un
+  statut périmé ne suffise jamais à exposer une fiche invalide.
+- **BR-09**: Le tri ville et catégorie utilise `Category.sort_order`, puis
+  distance depuis le centre-ville, puis nom. Aucun contexte Lodging n'influence
+  ce tri public.
+- **BR-10**: Les zones géographiques globales restent : principale jusqu'à
+  15 km, alentours entre 15 et 30 km, exclusion au-delà de 30 km.
+- **BR-11**: La surface `/decouvrir` n'utilise aucun cookie de séjour, aucun
+  commentaire Owner, aucune recommandation de Lodging et aucune donnée privée.
+- **BR-12**: Aucune géolocalisation n'est déclenchée automatiquement. Toute
+  activation GPS future exige une action explicite du visiteur.
+- **BR-13**: Le style public réutilise `MarketingShell`, le header, le footer,
+  `MyStayLogo`, les couleurs, rayons, ombres, largeurs et CTA de la spec 031.
+- **BR-14**: Les pages sont des Server Components par défaut. Les composants
+  clients sont limités aux interactions explicitement nécessaires.
+- **BR-15**: Les textes factuels proviennent exclusivement des champs MyStay
+  validés. Gemini ne calcule aucune donnée géographique et ne publie rien.
+- **BR-16**: Les metadata et JSON-LD ne contiennent que des informations
+  visibles sur la page et utilisent `/decouvrir` comme URL canonique.
+- **BR-17**: Les anciennes URL génériques `/guide` redirigent de manière
+  permanente seulement lorsqu'un équivalent public existe. Sans équivalent,
+  elles répondent 404 pour un visiteur anonyme.
+- **BR-18**: La branche QR `?lodging={uuid}` reste prioritaire sur toute
+  redirection SEO et continue vers `/sejour`.
+- **BR-19**: Un séjour valide conserve l'accès aux fiches POI privées et à
+  leurs données contextuelles. La migration publique ne modifie pas le contrat
+  de `/sejour`.
+- **BR-20**: Les routes logement publiques existantes sous
+  `/guide/{city}/logements/*` restent inchangées dans cette feature, selon la
+  spec 031. Leur migration future vers `/logements/*` est hors périmètre.
+- **BR-21**: Les routes agenda, carte et randonnée de séjour ne sont pas
+  déplacées par cette feature. Elles ne sont jamais ajoutées au sitemap par
+  041.
+- **BR-22**: Une désactivation ou un archivage remet
+  `discovery_status = DRAFT` et `discovery_published_at = null`. Une restauration
+  ne republie jamais automatiquement le POI.
+- **BR-23**: Chaque publication, retrait ou retrait automatique crée un
+  `PoiAcquisitionAuditLog` avec une action explicite et les valeurs avant/après.
+- **BR-24**: La publication publique utilise le français canonique existant.
+  L'ajout de versions multilingues reste régi par la spec 027.
+- **BR-25**: Cette spec remplace les URL publiques définies par les specs 001,
+  002, 003 et 004 pour les accès anonymes. Leurs contrats de données, actions
+  POI et règles géographiques restent applicables lorsqu'ils ne contredisent
+  pas 041.
+
+---
+
+## Data Model
+
+Cette feature ajoute un statut de publication éditoriale distinct sur
+`PointOfInterest`. Elle ne crée aucune nouvelle table.
+
+```prisma
+enum PoiDiscoveryStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model PointOfInterest {
+  id                       String             @id @default(uuid())
+  created_at               DateTime           @default(now())
+  updated_at               DateTime           @updatedAt
+  deleted_at               DateTime?
+
+  // Champs existants conservés sans modification
+  name                     String
+  slug                     String
+  description              String?
+  address                  String
+  latitude                 Float
+  longitude                Float
+  phone                    String?
+  website                  String?
+  photos                   String[]
+  is_active                Boolean            @default(true)
+  geocode_status           String             @default("pending")
+
+  // Spec 041
+  discovery_status         PoiDiscoveryStatus @default(DRAFT)
+  discovery_published_at   DateTime?
+
+  @@index([discovery_status, deleted_at, is_active, updated_at])
+  @@index([city_id, category_id, discovery_status, deleted_at, is_active])
+}
+```
+
+Invariants :
+
+- `DRAFT` implique `discovery_published_at = null` ;
+- `PUBLISHED` implique `discovery_published_at != null` ;
+- une mutation qui enfreint BR-04 force `DRAFT` dans la même transaction ;
+- aucune suppression physique n'est introduite.
+
+---
+
+## API Contract
+
+La lecture publique reste réalisée directement par des Server Components et
+des queries Prisma dédiées. Une route admin est ajoutée pour isoler la mutation
+de publication du PATCH généraliste de la spec 022.
+
+```yaml
+paths:
+  /api/admin/pois/{id}/discovery-publication:
+    patch:
+      summary: "Publier ou retirer un POI de la découverte publique"
+      tags: [admin-pois, public-discovery]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [DRAFT, PUBLISHED]
+      responses:
+        "200":
+          description: "Statut appliqué"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/PoiDiscoveryPublication"
+        "400":
+          description: "Payload ou UUID invalide"
+        "401":
+          description: "Session absente ou expirée"
+        "403":
+          description: "Rôle Admin requis"
+        "404":
+          description: "POI introuvable"
+        "409":
+          description: "Publication impossible car la fiche est incomplète"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    PoiDiscoveryPublication:
+      type: object
+      required: [id, discovery_status, discovery_published_at, eligibility]
+      properties:
+        id: { type: string, format: uuid }
+        discovery_status:
+          type: string
+          enum: [DRAFT, PUBLISHED]
+        discovery_published_at:
+          type: string
+          format: date-time
+          nullable: true
+        public_url:
+          type: string
+          nullable: true
+        eligibility:
+          $ref: "#/components/schemas/PoiDiscoveryEligibility"
+
+    PoiDiscoveryEligibility:
+      type: object
+      required: [eligible, checks]
+      properties:
+        eligible: { type: boolean }
+        checks:
+          type: object
+          additionalProperties:
+            type: boolean
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details]
+          properties:
+            code:
+              type: string
+              enum: [DISCOVERY_PUBLICATION_INCOMPLETE]
+            message: { type: string }
+            details:
+              type: object
+              properties:
+                missing:
+                  type: array
+                  items: { type: string }
+```
+
+Extensions du contrat `022` :
+
+- `GET /api/admin/pois` accepte `discovery_status = DRAFT | PUBLISHED` ;
+- `AdminPoiListItem` expose `discovery_status` et
+  `discovery_published_at` ;
+- `AdminPoiDetail` expose également `discovery_eligibility` et
+  `discovery_public_url` ;
+- les payloads sont validés par Zod avant toute mutation.
+
+---
+
+## UI Behaviour
+
+### Page `/decouvrir/[city-slug]`
+
+- Utilise `MarketingShell`, `MarketingHeader` et `MarketingFooter`.
+- Hero éditorial clair avec eyebrow « Découvrir », H1
+  `Découvrir {ville}` et introduction factuelle construite à partir du nom,
+  département et région disponibles.
+- Grille de catégories publiée avec nom, icône, nombre de POI et lien public.
+- Sélection de POI illustrés utilisant la première photo exploitable.
+- Bloc final sombre avec CTA principal `Confier mon logement` et lien vers
+  `/concept` pour relier l'expertise locale à l'offre de conciergerie.
+- Aucun menu, bottom navigation ou contenu appartenant au séjour privé.
+
+### Page `/decouvrir/[city-slug]/[category-slug]`
+
+- Breadcrumb visible Accueil → Ville → Catégorie.
+- Eyebrow « Les adresses MyStay », H1 `{catégorie} à {ville}` et introduction
+  courte sans fait inventé.
+- Cards publiques responsive avec photo, nom, sous-catégorie, adresse, note si
+  présente et distance depuis le centre-ville.
+- Section « Aux alentours » distincte uniquement lorsqu'elle contient au moins
+  un POI publié.
+- Aucun accordéon contenant des informations privées et aucune personnalisation
+  Lodging.
+
+### Page `/decouvrir/[city-slug]/[category-slug]/[poi-slug]`
+
+- Breadcrumb visible et lien de retour vers la sélection de catégorie.
+- Hero photo arrondi cohérent avec les pages logement et article marketing.
+- Titre, catégorie, description, adresse, horaires et données publiques
+  présentes uniquement si renseignées.
+- Actions compactes Appeler, Itinéraire et Site officiel selon disponibilité.
+- Mini-carte statique ou composant existant conforme à ADR-001.
+- Bloc final de conversion vers `/confier-mon-logement`, sans recommandation
+  Owner ni données de séjour.
+
+### Administration `/admin/pois`
+
+- Filtre `Découverte : tous / brouillons / publiés` dans la liste par City.
+- Badge `Découvrir` avec variantes `Brouillon` et `Publié` dans chaque ligne.
+- La fiche `/admin/pois/{id}` ajoute une Card Shadcn « Découverte publique ».
+- La Card affiche une checklist lisible de BR-04, l'URL publique éventuelle,
+  la date de publication et une action confirmée Publier/Retirer.
+- En cas de `409`, les éléments manquants sont affichés sans perdre les champs
+  actuellement saisis dans le formulaire.
+
+### États communs
+
+- Slug inconnu ou contenu non publié : `notFound()` et metadata non indexables.
+- Erreur serveur transitoire : erreur générique sans détail Prisma.
+- Images absentes : impossibilité de publier, donc aucun fallback éditorial ne
+  rend une fiche éligible à lui seul.
+- Responsive : 375 px minimum, aucun scroll horizontal.
+
+---
+
+## Acceptance Criteria Summary
+
+| ID | Description | Test type |
+|---|---|---|
+| AC-01-01 | Ville avec au moins un POI publié → 200 et contenu public | integration |
+| AC-01-02 | Ville invalide ou sans POI publié → 404 et hors sitemap | integration + contract |
+| AC-01-03 | Catégories triées et liens `/decouvrir` | unit + integration |
+| AC-01-04 | `MarketingShell` responsive | integration + e2e |
+| AC-01-05 | H1, canonical, OG/Twitter et JSON-LD ville | integration |
+| AC-02-01 | Catégorie affiche seulement ses POI publiés | integration |
+| AC-02-02 | Catégorie vide/non publiée → 404 | integration |
+| AC-02-03 | Zones primaire et alentours respectées | unit + integration |
+| AC-02-04 | H1 descriptif et cards vers les fiches publiques | integration |
+| AC-02-05 | Metadata et JSON-LD catégorie cohérents | integration |
+| AC-03-01 | Fiche publiée rend uniquement ses données publiques | integration |
+| AC-03-02 | POI non publié/invalide → 404 sans fuite | security regression + integration |
+| AC-03-03 | Actions conditionnelles et itinéraire | unit + e2e |
+| AC-03-04 | Metadata et JSON-LD POI cohérents | integration |
+| AC-03-05 | Aucun contenu Owner/Lodging | security regression |
+| AC-04-01 | Statut, date et checklist admin visibles | integration |
+| AC-04-02 | Publication éligible transactionnelle et auditée | contract + integration |
+| AC-04-03 | Publication incomplète refusée en 409 | unit + contract |
+| AC-04-04 | Retrait supprime sitemap et rend les URL 404 | contract + integration |
+| AC-04-05 | Perte d'éligibilité retire automatiquement | unit + integration |
+| AC-04-06 | Filtre et badge admin | unit + integration |
+| AC-05-01 | Ancienne ville → redirection permanente | e2e |
+| AC-05-02 | Ancienne catégorie/fiche publiée → redirection permanente | e2e |
+| AC-05-03 | Ancienne URL non publiée → 404 | security regression + e2e |
+| AC-05-04 | QR → cookie et `/sejour` inchangés | regression + e2e |
+| AC-05-05 | Séjour valide conserve les fiches privées | regression + e2e |
+| AC-05-06 | Sitemap uniquement `/decouvrir` publié, sans doublon | unit + contract |
+
+---
+
+## Out of Scope
+
+- Route racine `/decouvrir` sans ville.
+- Migration des fiches logement publiques vers `/logements/{slug}`.
+- Refonte des pages `/logements`, `/seminaires`, `/concept` ou du blog.
+- Déplacement des routes agenda, carte ou navigation randonnée.
+- Nouveau contenu éditorial spécifique par City ou Category en base.
+- Éditeur SEO distinct pour les titres et descriptions des POI.
+- Publication automatique selon un score ou un seuil supérieur à un POI.
+- Géolocalisation automatique, compte Tourist ou favoris publics.
+- Réservation, prix, disponibilité ou paiement.
+- Modification des données privées du séjour ou des recommandations Owner.
+- Traductions supplémentaires.
+
+---
+
+## Open Questions
+
+Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
+
+- seuls les POI validés séparément sont publiés sur `/decouvrir` ;
+- le contrôle et le statut de publication sont intégrés à l'administration ;
+- la complétude stricte est obligatoire avant publication ;
+- les pages City et Category sont publiées dès le premier POI validé ;
+- la migration des anciennes URL publiques est immédiate avec redirections SEO ;
+- la découverte publique et le séjour privé restent strictement séparés.
