@@ -62,6 +62,7 @@ export async function updateTrailDetailFromGpx(
       await tx.poiAcquisitionAuditLog.create({
         data: {
           admin_id: adminId,
+          actor_type: 'ADMIN',
           action: 'poi_trail_gpx_uploaded',
           target_type: 'poi',
           target_id: poiId,
@@ -100,6 +101,7 @@ export async function updateTrailDetailFromGpx(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_trail_gpx_created',
         target_type: 'poi',
         target_id: poiId,

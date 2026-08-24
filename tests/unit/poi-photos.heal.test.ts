@@ -1,12 +1,23 @@
 const mockFindUnique = jest.fn()
+const mockFindFirst = jest.fn()
 const mockUpdate = jest.fn()
+const mockAuditCreate = jest.fn()
+const mockTransaction = jest.fn()
+const mockRevalidate = jest.fn()
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     pointOfInterest: {
       findUnique: (...a: unknown[]) => mockFindUnique(...a),
+      findFirst: (...a: unknown[]) => mockFindFirst(...a),
       update: (...a: unknown[]) => mockUpdate(...a),
     },
+    poiAcquisitionAuditLog: { create: (...a: unknown[]) => mockAuditCreate(...a) },
+    $transaction: (callback: (tx: unknown) => unknown) => mockTransaction(callback),
   },
+}))
+
+jest.mock('@/features/public-discovery/lib/revalidation', () => ({
+  safelyRevalidateDiscoveryPaths: (...args: unknown[]) => mockRevalidate(...args),
 }))
 
 const mockFetch = jest.fn()
@@ -20,8 +31,24 @@ import { healPoiPhotos } from '@/features/poi-photos/services/heal-poi-photos'
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockFindFirst.mockResolvedValue(null)
   mockUpdate.mockResolvedValue({ id: 'p1' })
+  mockTransaction.mockImplementation(async callback => callback({
+    pointOfInterest: { findFirst: mockFindFirst, update: mockUpdate },
+    poiAcquisitionAuditLog: { create: mockAuditCreate },
+  }))
 })
+
+const publishedPoi = {
+  id: 'p1', slug: 'poi', description: 'Description', address: 'Adresse',
+  latitude: 45.89, longitude: 6.71, phone: '+33450000000', website: null,
+  photos: ['dead.jpg'], is_active: true, deleted_at: null, geocode_status: 'success',
+  discovery_status: 'PUBLISHED',
+  discovery_published_at: new Date('2026-08-20T15:00:00.000Z'),
+  city: { id: 'city-1', slug: 'ville', is_active: true, deleted_at: null },
+  category: { id: 'category-1', slug: 'categorie', is_active: true, deleted_at: null },
+  subcategory: null,
+}
 
 it('removes the dead url, keeps remaining photos, and stays ok (>=1 photo)', async () => {
   mockFindUnique.mockResolvedValue({ photos: ['alive.jpg', 'dead.jpg'], website: null })
@@ -71,4 +98,53 @@ it('no-ops when the POI is missing', async () => {
   const result = await healPoiPhotos({ poiId: 'missing', deadUrls: ['x'] })
   expect(result).toEqual({ removed: 0, status: 'ok' })
   expect(mockUpdate).not.toHaveBeenCalled()
+})
+
+it('atomically unpublishes with a SYSTEM audit after removing the last usable photo', async () => {
+  mockFindUnique.mockResolvedValue({ photos: ['https://example.com/dead.jpg'], website: null })
+  mockFetch.mockResolvedValue({ status: 'no_website' })
+  mockFindFirst
+    .mockResolvedValueOnce({ ...publishedPoi, photos: ['https://example.com/dead.jpg'] })
+    .mockResolvedValueOnce({ ...publishedPoi, photos: [] })
+  mockUpdate
+    .mockResolvedValueOnce({ id: 'p1' })
+    .mockResolvedValueOnce({ discovery_status: 'DRAFT', discovery_published_at: null })
+
+  await healPoiPhotos({ poiId: 'p1', deadUrls: ['https://example.com/dead.jpg'] })
+
+  expect(mockTransaction).toHaveBeenCalledTimes(1)
+  expect(mockAuditCreate).toHaveBeenCalledWith({
+    data: expect.objectContaining({
+      admin_id: null,
+      actor_type: 'SYSTEM',
+      action: 'poi_discovery_auto_unpublished',
+      target_id: 'p1',
+    }),
+  })
+  expect(mockRevalidate).toHaveBeenCalledWith([
+    '/decouvrir/ville',
+    '/decouvrir/ville/categorie',
+    '/decouvrir/ville/categorie/poi',
+  ])
+})
+
+it('keeps an eligible published POI and revalidates without a withdrawal audit', async () => {
+  mockFindUnique.mockResolvedValue({
+    photos: ['https://example.com/alive.jpg', 'https://example.com/dead.jpg'],
+    website: null,
+  })
+  mockFetch.mockResolvedValue({ status: 'no_website' })
+  mockFindFirst
+    .mockResolvedValueOnce({
+      ...publishedPoi,
+      photos: ['https://example.com/alive.jpg', 'https://example.com/dead.jpg'],
+    })
+    .mockResolvedValueOnce({ ...publishedPoi, photos: ['https://example.com/alive.jpg'] })
+  mockUpdate.mockResolvedValueOnce({ id: 'p1' })
+
+  await healPoiPhotos({ poiId: 'p1', deadUrls: ['https://example.com/dead.jpg'] })
+
+  expect(mockUpdate).toHaveBeenCalledTimes(1)
+  expect(mockAuditCreate).not.toHaveBeenCalled()
+  expect(mockRevalidate).toHaveBeenCalledTimes(1)
 })

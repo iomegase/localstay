@@ -2,6 +2,8 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import type { GeminiRawPoi } from '../types'
+import { runPoiMutationWithDiscoveryReconciliation } from '@/features/public-discovery/queries/mutation-reconciliation'
+import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
 
 function toSlug(name: string): string {
   return name
@@ -25,6 +27,7 @@ export async function persistPois(
   ctx: PersistContext,
 ): Promise<number> {
   let count = 0
+  const discoveryRevalidationPaths = new Set<string>()
 
   for (const poi of pois) {
     const slug = toSlug(poi.name)
@@ -45,36 +48,48 @@ export async function persistPois(
       subcategoryId = sub?.id ?? null
     }
 
-    await prisma.pointOfInterest.upsert({
-      where: { city_id_slug: { city_id: ctx.cityId, slug } },
-      create: {
-        name: poi.name,
-        slug,
-        description: poi.description,
-        address: poi.address,
-        latitude: ctx.cityLatitude,   // placeholder — enriched by Mapbox in MVP 2+
-        longitude: ctx.cityLongitude, // placeholder
-        phone: poi.phone,
-        website: poi.website,
-        hours: poi.hours ?? undefined,
-        tags: poi.tags,
-        is_active: true,
-        city_id: ctx.cityId,
-        category_id: ctx.categoryId,
-        subcategory_id: subcategoryId,
-      },
-      update: {
-        name: poi.name,
-        description: poi.description,
-        address: poi.address,
-        phone: poi.phone,
-        website: poi.website,
-        hours: poi.hours ?? Prisma.JsonNull,
-        tags: poi.tags,
-        subcategory_id: subcategoryId,
-      },
+    const mutation = await runPoiMutationWithDiscoveryReconciliation({
+      poiWhere: { city_id: ctx.cityId, slug },
+      auditActor: { type: 'SYSTEM' },
+      cause: { source: 'gemini_legacy_persister', reason: 'poi_content_upserted' },
+      mutate: tx => tx.pointOfInterest.upsert({
+        where: { city_id_slug: { city_id: ctx.cityId, slug } },
+        create: {
+          name: poi.name,
+          slug,
+          description: poi.description,
+          address: poi.address,
+          latitude: ctx.cityLatitude,   // placeholder — enriched by Mapbox in MVP 2+
+          longitude: ctx.cityLongitude, // placeholder
+          phone: poi.phone,
+          website: poi.website,
+          hours: poi.hours ?? undefined,
+          tags: poi.tags,
+          is_active: true,
+          city_id: ctx.cityId,
+          category_id: ctx.categoryId,
+          subcategory_id: subcategoryId,
+        },
+        update: {
+          name: poi.name,
+          description: poi.description,
+          address: poi.address,
+          phone: poi.phone,
+          website: poi.website,
+          hours: poi.hours ?? Prisma.JsonNull,
+          tags: poi.tags,
+          subcategory_id: subcategoryId,
+        },
+      }),
     })
+    for (const path of mutation.discoveryRevalidationPaths) {
+      discoveryRevalidationPaths.add(path)
+    }
     count++
+  }
+
+  if (discoveryRevalidationPaths.size > 0) {
+    safelyRevalidateDiscoveryPaths([...discoveryRevalidationPaths])
   }
 
   return count

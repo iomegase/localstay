@@ -8,6 +8,14 @@
 
 **Tech Stack:** Next.js 16 App Router, React Server Components, TypeScript strict, Prisma/PostgreSQL, Zod, Tailwind CSS, Shadcn/ui, Jest, Testing Library, Playwright.
 
+**Décision résolue — 2026-08-24 :** les retraits automatiques sans utilisateur
+emploient un acteur d'audit explicite `SYSTEM`. `PoiAcquisitionAuditLog` reçoit
+un `actor_type` typé (`ADMIN | MERCHANT | SYSTEM`) ; le champ historique
+`admin_id` devient nullable uniquement pour `SYSTEM`, tandis que les acteurs
+`ADMIN` et `MERCHANT` restent reliés à leur `User`. La migration backfill les
+lignes existantes en `ADMIN`, ajoute la contrainte PostgreSQL correspondante et
+n'est pas appliquée automatiquement pendant l'implémentation.
+
 ---
 
 ## File map

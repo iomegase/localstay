@@ -298,6 +298,7 @@ export async function updateAdminPoi(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_updated',
         target_type: 'poi',
         target_id: id,
@@ -323,6 +324,7 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_disabled',
         target_type: 'poi',
         target_id: id,
@@ -349,6 +351,7 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_deleted',
         target_type: 'poi',
         target_id: id,
@@ -381,6 +384,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_restored',
         target_type: 'poi',
         target_id: id,
@@ -418,6 +422,7 @@ export async function refreshAdminPoiOfficialPhotos(
     await prisma.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_photos_refreshed',
         target_type: 'poi',
         target_id: id,
@@ -437,6 +442,7 @@ export async function refreshAdminPoiOfficialPhotos(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_photos_refreshed',
         target_type: 'poi',
         target_id: id,
@@ -641,9 +647,10 @@ async function autoUnpublishIneligiblePoi(
   })
 
   await tx.poiAcquisitionAuditLog.create({
-    data: {
-      admin_id: adminId,
-      action: 'poi_discovery_auto_unpublished',
+      data: {
+        admin_id: adminId,
+        actor_type: 'ADMIN',
+        action: 'poi_discovery_auto_unpublished',
       target_type: 'poi',
       target_id: poi.id,
       before: buildAuditSnapshot({

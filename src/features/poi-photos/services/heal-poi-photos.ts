@@ -4,6 +4,8 @@ import {
   fetchOfficialWebsitePhotoEnrichmentDetailed,
   mergeOfficialWebsitePhotos,
 } from '@/features/poi-acquisition/services/official-website-photos'
+import { runPoiMutationWithDiscoveryReconciliation } from '@/features/public-discovery/queries/mutation-reconciliation'
+import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
 
 export type HealResult = { removed: number; status: 'ok' | 'needs_refresh' }
 
@@ -30,11 +32,19 @@ export async function healPoiPhotos(input: { poiId: string; deadUrls: string[] }
 
   const status: HealResult['status'] = photos.length > 0 ? 'ok' : 'needs_refresh'
 
-  await prisma.pointOfInterest.update({
-    where: { id: input.poiId },
-    data: { photos, photos_status: status, photos_checked_at: new Date() },
-    select: { id: true },
+  const mutation = await runPoiMutationWithDiscoveryReconciliation({
+    poiWhere: { id: input.poiId },
+    auditActor: { type: 'SYSTEM' },
+    cause: { source: 'photo_healer', reason: 'dead_photos_removed' },
+    mutate: tx => tx.pointOfInterest.update({
+      where: { id: input.poiId },
+      data: { photos, photos_status: status, photos_checked_at: new Date() },
+      select: { id: true },
+    }),
   })
+  if (mutation.discoveryRevalidationPaths.length > 0) {
+    safelyRevalidateDiscoveryPaths(mutation.discoveryRevalidationPaths)
+  }
 
   return { removed, status }
 }

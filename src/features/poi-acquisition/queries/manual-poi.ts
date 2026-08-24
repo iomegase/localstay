@@ -143,6 +143,7 @@ export async function createManualPoi(input: ManualPoiInput, adminId: string) {
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'manual_poi_created',
         target_type: 'poi',
         target_id: poi.id,

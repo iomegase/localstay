@@ -46,6 +46,7 @@ export async function unpublishPoisForDependency(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_discovery_auto_unpublished',
         target_type: 'poi',
         target_id: poi.id,

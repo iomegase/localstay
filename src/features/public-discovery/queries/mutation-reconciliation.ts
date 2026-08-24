@@ -1,6 +1,11 @@
 import { Prisma } from '@prisma/client'
 import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
 import { getPoiDiscoveryEligibility } from '../lib/eligibility'
+import {
+  parsePoiDiscoveryAuditActor,
+  toPoiDiscoveryAuditActorData,
+  type PoiDiscoveryAuditActor,
+} from '../lib/audit-actor'
 import { poiDiscoveryEligibilitySelect } from './admin-publication'
 
 type DiscoveryMutationCause = {
@@ -18,14 +23,15 @@ type PublishedPoiSnapshot = Prisma.PointOfInterestGetPayload<{
 }>
 
 export async function runPoiMutationWithDiscoveryReconciliation<T>(input: {
-  poiId: string
-  auditActorId: string
+  poiWhere: Prisma.PointOfInterestWhereInput
+  auditActor: PoiDiscoveryAuditActor
   cause: DiscoveryMutationCause
   mutate: (tx: Prisma.TransactionClient) => Promise<T>
 }): Promise<ReconciledMutation<T>> {
+  const auditActor = parsePoiDiscoveryAuditActor(input.auditActor)
   return runSerializableTransaction(async tx => {
     const before = await tx.pointOfInterest.findFirst({
-      where: { id: input.poiId, discovery_status: 'PUBLISHED' },
+      where: { ...input.poiWhere, discovery_status: 'PUBLISHED' },
       select: poiDiscoveryEligibilitySelect,
     })
 
@@ -33,7 +39,7 @@ export async function runPoiMutationWithDiscoveryReconciliation<T>(input: {
     if (!before) return { result, discoveryRevalidationPaths: [] }
 
     const after = await tx.pointOfInterest.findFirst({
-      where: { id: input.poiId },
+      where: { id: before.id },
       select: poiDiscoveryEligibilitySelect,
     })
     if (!after) return { result, discoveryRevalidationPaths: discoveryPaths(before) }
@@ -54,16 +60,16 @@ export async function runPoiMutationWithDiscoveryReconciliation<T>(input: {
     }
 
     const unpublished = await tx.pointOfInterest.update({
-      where: { id: input.poiId },
+      where: { id: before.id },
       data: { discovery_status: 'DRAFT', discovery_published_at: null },
       select: { discovery_status: true, discovery_published_at: true },
     })
     await tx.poiAcquisitionAuditLog.create({
       data: {
-        admin_id: input.auditActorId,
+        ...toPoiDiscoveryAuditActorData(auditActor),
         action: 'poi_discovery_auto_unpublished',
         target_type: 'poi',
-        target_id: input.poiId,
+        target_id: before.id,
         before: publicationSnapshot(before, eligibility.missing, input.cause),
         after: {
           discovery_status: unpublished.discovery_status,

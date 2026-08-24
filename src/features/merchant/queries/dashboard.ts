@@ -110,8 +110,8 @@ export async function updateMerchantDashboardProfile(
     ...(input.hours !== undefined ? { hours: input.hours === null ? Prisma.DbNull : input.hours as Prisma.InputJsonObject } : {}),
   }
   const mutation = await runPoiMutationWithDiscoveryReconciliation({
-    poiId: profile.poi_id,
-    auditActorId: merchantId,
+    poiWhere: { id: profile.poi_id },
+    auditActor: { type: 'MERCHANT', userId: merchantId },
     cause: { source: 'merchant_dashboard', reason: 'poi_profile_updated' },
     mutate: tx => tx.pointOfInterest.update({
       where: { id: profile.poi_id },

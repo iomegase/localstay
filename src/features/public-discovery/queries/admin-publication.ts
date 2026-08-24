@@ -96,6 +96,7 @@ export async function updatePoiDiscoveryPublication(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: status === 'PUBLISHED'
           ? 'poi_discovery_published'
           : 'poi_discovery_unpublished',

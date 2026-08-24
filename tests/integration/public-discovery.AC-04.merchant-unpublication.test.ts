@@ -88,6 +88,7 @@ describe('041 AC-04-05 merchant mutation guard', () => {
     expect(mockAuditCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         admin_id: 'merchant-1',
+        actor_type: 'MERCHANT',
         action: 'poi_discovery_auto_unpublished',
         target_type: 'poi',
         target_id: 'poi-1',

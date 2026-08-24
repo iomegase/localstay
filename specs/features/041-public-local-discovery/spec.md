@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
-updated_at: 2026-08-20
+updated_at: 2026-08-24
 depends_on:
   - 001-city-guide
   - 002-categories
@@ -268,7 +268,14 @@ destination publique existe. Les routes QR et le séjour privé restent sous
   `discovery_status = DRAFT` et `discovery_published_at = null`. Une restauration
   ne republie jamais automatiquement le POI.
 - **BR-23**: Chaque publication, retrait ou retrait automatique crée un
-  `PoiAcquisitionAuditLog` avec une action explicite et les valeurs avant/après.
+  `PoiAcquisitionAuditLog` avec une action explicite, les valeurs avant/après
+  et un acteur typé `ADMIN`, `MERCHANT` ou `SYSTEM`. `ADMIN` et `MERCHANT`
+  référencent obligatoirement le `User` ayant déclenché la mutation via le
+  champ historique `admin_id`. `SYSTEM` est réservé aux automatisations sans
+  session utilisateur (photo healer, persister Gemini legacy, géocodage) et
+  impose `admin_id = null`. Une mutation et son éventuel retrait automatique
+  sont atomiques ; la revalidation des URL publiques intervient uniquement
+  après le commit.
 - **BR-24**: La publication publique utilise le français canonique existant.
   L'ajout de versions multilingues reste régi par la spec 027.
 - **BR-25**: Cette spec remplace les URL publiques définies par les specs 001,
@@ -301,6 +308,12 @@ enum PoiDiscoveryStatus {
   PUBLISHED
 }
 
+enum PoiAuditActorType {
+  ADMIN
+  MERCHANT
+  SYSTEM
+}
+
 model PointOfInterest {
   id                       String             @id @default(uuid())
   created_at               DateTime           @default(now())
@@ -327,6 +340,25 @@ model PointOfInterest {
   @@index([discovery_status, deleted_at, is_active, updated_at])
   @@index([city_id, category_id, discovery_status, deleted_at, is_active])
 }
+
+model PoiAcquisitionAuditLog {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  // Nom de colonne historique conservé pour compatibilité.
+  admin_id  String?
+  admin     User?             @relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id])
+  actor_type PoiAuditActorType @default(ADMIN)
+
+  // Champs existants conservés sans modification.
+  action       String
+  target_type  String
+  target_id    String?
+  before       Json?
+  after        Json?
+}
 ```
 
 Invariants :
@@ -335,6 +367,10 @@ Invariants :
 - `PUBLISHED` implique `discovery_published_at != null` ;
 - une mutation qui enfreint BR-04 force `DRAFT` dans la même transaction ;
 - aucune suppression physique n'est introduite.
+- `actor_type = SYSTEM` implique `admin_id = null` ;
+- `actor_type IN (ADMIN, MERCHANT)` implique `admin_id != null` ; cette
+  contrainte est ajoutée par la migration PostgreSQL et également construite
+  explicitement par les services TypeScript.
 
 ---
 
@@ -453,6 +489,10 @@ Extensions du contrat `022` :
 - `AdminPoiDetail` expose également `discovery_eligibility` et
   `discovery_public_url` ;
 - les payloads sont validés par Zod avant toute mutation.
+
+Le type d'acteur d'audit est interne et n'ajoute aucun champ aux DTO publics ou
+aux réponses de l'API de publication. Les automatisations sans utilisateur
+écrivent `actor_type = SYSTEM` et `admin_id = null`.
 
 ---
 
@@ -583,3 +623,6 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
   sans re-hébergement ni réduction de l'éligibilité par allowlist ; chaque URL
   est tentée nativement et un échec navigateur affiche le fallback MyStay
   local, sans promettre que toute source HTTP distante peut être chargée.
+- les dépublications automatiques sans session sont auditées avec
+  `actor_type = SYSTEM` et `admin_id = null`; les actions Admin/Merchant
+  conservent l'identifiant du `User` déclencheur.
