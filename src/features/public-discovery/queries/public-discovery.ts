@@ -13,6 +13,7 @@ import type {
   DiscoveryCategory,
   DiscoveryCity,
   DiscoveryCitySummary,
+  DiscoveryIndexCity,
   DiscoveryPoiCard,
   DiscoveryPoiDetail,
   DiscoveryTaxonomy,
@@ -92,7 +93,7 @@ type DiscoveryPoiDetailRow = Prisma.PointOfInterestGetPayload<{
 }>
 
 type DiscoveryRoute = {
-  citySlug: string
+  citySlug?: string
   categorySlug?: string
   poiSlug?: string
 }
@@ -116,9 +117,9 @@ function buildDiscoveryWhere(route: DiscoveryRoute): Prisma.PointOfInterestWhere
     deleted_at: null,
     geocode_status: 'success',
     city: {
-      slug: route.citySlug,
       is_active: true,
       deleted_at: null,
+      ...(route.citySlug ? { slug: route.citySlug } : {}),
     },
     category: {
       is_active: true,
@@ -213,7 +214,7 @@ function stableNameCompare(
 }
 
 function matchesRoute(row: DiscoveryPoiRow, route: DiscoveryRoute): boolean {
-  return row.city.slug === route.citySlug
+  return (!route.citySlug || row.city.slug === route.citySlug)
     && (!route.categorySlug || row.category.slug === route.categorySlug)
     && (!route.poiSlug || row.slug === route.poiSlug)
 }
@@ -272,6 +273,29 @@ function sortedMappedPois(rows: DiscoveryPoiRow[], route: DiscoveryRoute): Mappe
         || stableNameCompare(left.card, right.card)
     })
 }
+
+export const getDiscoveryIndex: () => Promise<DiscoveryIndexCity[]> = cache(
+  async (): Promise<DiscoveryIndexCity[]> => {
+    const mapped = sortedMappedPois(
+      await findDiscoveryRows({}, { select: discoveryPoiListSelect }),
+      {},
+    )
+    const cityGroups = new Map<string, MappedPoi[]>()
+
+    for (const poi of mapped) {
+      const group = cityGroups.get(poi.row.city.id) ?? []
+      group.push(poi)
+      cityGroups.set(poi.row.city.id, group)
+    }
+
+    return [...cityGroups.values()]
+      .map(group => ({
+        ...toCitySummary(group[0]!.row),
+        pois: group.slice(0, 5).map(poi => poi.card),
+      }))
+      .sort(stableNameCompare)
+  },
+)
 
 export const getDiscoveryCity: (citySlug: string) => Promise<DiscoveryCity | null> = cache(
   async (citySlug: string): Promise<DiscoveryCity | null> => {
