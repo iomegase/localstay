@@ -7,7 +7,7 @@ describe('buildSitemapEntries', () => {
   const base = 'https://mystay.example.com'
   const result = buildSitemapEntries({
     baseUrl: base,
-    staticPaths: ['/', '/contact'],
+    staticPaths: ['/', '/decouvrir', '/contact'],
     cities: [{ slug: 'saint-gervais-les-bains' }],
     pois: [
       { slug: 'jannett-glisse', city_slug: 'saint-gervais-les-bains', category_slug: 'commerces' },
@@ -27,7 +27,16 @@ describe('buildSitemapEntries', () => {
 
   it('includes the homepage and static paths', () => {
     expect(urls.filter(url => url === `${base}/`)).toHaveLength(1)
+    expect(urls.filter(url => url === `${base}/decouvrir`)).toHaveLength(1)
     expect(urls).toContain(`${base}/contact`)
+  })
+
+  it('uses the existing static metadata for the public discovery root', () => {
+    expect(result.find(entry => entry.url === `${base}/decouvrir`)).toEqual({
+      url: `${base}/decouvrir`,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    })
   })
 
   it('includes one canonical discovery entry per city without a misleading lastModified', () => {
@@ -103,6 +112,7 @@ describe('buildSitemapEntries', () => {
   it('returns a deterministic order within each sitemap group', () => {
     expect(urls).toEqual([
       `${base}/`,
+      `${base}/decouvrir`,
       `${base}/contact`,
       `${base}/decouvrir/saint-gervais-les-bains`,
       `${base}/decouvrir/saint-gervais-les-bains/commerces`,
