@@ -49,8 +49,8 @@ Ajouter `/decouvrir` avant les routes dynamiques :
 ```markdown
 ### US-06 — Parcourir les villes publiées
 
-**As a** visiteur anonyme  
-**I want to** voir les villes pour lesquelles MyStay possède une sélection publique  
+**As a** visiteur anonyme
+**I want to** voir les villes pour lesquelles MyStay possède une sélection publique
 **So that** j'accède directement aux bonnes adresses locales
 
 #### Acceptance Criteria
@@ -573,7 +573,7 @@ npm test -- --runInBand \
   tests/contract/public-discovery.AC-06.sitemap-route.test.ts
 ```
 
-Expected: 2 suites PASS; libellé exact et URL sitemap unique.
+Expected: 3 suites PASS; libellé exact et URL sitemap unique.
 
 - [ ] **Step 6: Commit navigation and sitemap**
 
