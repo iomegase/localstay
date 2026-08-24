@@ -105,13 +105,14 @@ export function discoveryIndexMetadata(): Metadata {
   const title = 'Découvrir les bonnes adresses locales — MyStay'
   const description = 'Découvrez les adresses locales sélectionnées par MyStay, dans les villes où elles sont actuellement publiées.'
   const path = '/decouvrir'
+  const images = ['/og-mystay.png']
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: path },
-    openGraph: openGraph({ title, description, path }),
-    twitter: { card: 'summary_large_image', title, description },
+    openGraph: openGraph({ title, description, path, images }),
+    twitter: { card: 'summary_large_image', title, description, images },
   }
 }
 

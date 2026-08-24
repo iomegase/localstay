@@ -65,16 +65,16 @@ describe('031-public-marketing-site public layout modes', () => {
     )
   })
 
-  it('keeps a marketing route outside the private shell even with an active stay', async () => {
+  it('keeps the /decouvrir marketing marker outside the private shell and lodging reads', async () => {
     mockHeaders.mockResolvedValue(
       new Headers({ 'x-staylocal-marketing-route': '1' }),
     )
 
-    render(await PublicLayout({ children: <div>Marketing with cookie</div> }))
+    render(await PublicLayout({ children: <div data-testid="discovery-root">Découvrir</div> }))
 
     expect(screen.queryByTestId('public-header')).not.toBeInTheDocument()
     expect(screen.queryByTestId('private-bottom-nav')).not.toBeInTheDocument()
-    expect(screen.getByText('Marketing with cookie')).toBeInTheDocument()
+    expect(screen.getByTestId('discovery-root')).toBeInTheDocument()
     expect(getActiveLodgingContext).not.toHaveBeenCalled()
   })
 })

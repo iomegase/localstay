@@ -168,7 +168,9 @@ describe('041 AC-06 public discovery index page', () => {
   it('exports the exact static metadata contract for the index', async () => {
     const { metadata } = await import('@/app/(public)/decouvrir/page')
 
-    expect(metadata.title).toBe('Découvrir les bonnes adresses locales — MyStay')
+    expect(metadata.title).toEqual({
+      absolute: 'Découvrir les bonnes adresses locales — MyStay',
+    })
     expect(metadata.description).toBe(
       'Découvrez les adresses locales sélectionnées par MyStay, dans les villes où elles sont actuellement publiées.',
     )
@@ -176,13 +178,15 @@ describe('041 AC-06 public discovery index page', () => {
     expect(metadata.openGraph).toMatchObject({
       type: 'website',
       url: '/decouvrir',
-      title: metadata.title,
+      title: 'Découvrir les bonnes adresses locales — MyStay',
       description: metadata.description,
+      images: ['/og-mystay.png'],
     })
     expect(metadata.twitter).toMatchObject({
       card: 'summary_large_image',
-      title: metadata.title,
+      title: 'Découvrir les bonnes adresses locales — MyStay',
       description: metadata.description,
+      images: ['/og-mystay.png'],
     })
   })
 })
