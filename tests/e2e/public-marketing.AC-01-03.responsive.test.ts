@@ -9,7 +9,10 @@ for (const viewport of [
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
     await page.goto('/')
 
+    const hero = page.getByTestId('editorial-hero')
     await expect(page.getByRole('heading', { level: 1, name: /Votre logement, géré avec soin/i })).toBeVisible()
+    await expect(hero.locator('img')).toHaveCount(0)
+    await expect(page.getByTestId('editorial-highlight-0')).toContainText('01')
 
     const dimensions = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
@@ -17,7 +20,6 @@ for (const viewport of [
     }))
     const surface = page.getByTestId('marketing-surface')
     const stage = page.getByTestId('marketing-stage')
-    const hero = page.getByTestId('editorial-hero')
     const heroContent = page.getByTestId('editorial-hero-content')
     const surfaceStyles = await surface.evaluate(element => {
       const styles = window.getComputedStyle(element)
@@ -32,6 +34,7 @@ for (const viewport of [
       const styles = window.getComputedStyle(element)
 
       return {
+        backgroundColor: styles.backgroundColor,
         borderRadius: styles.borderRadius,
         minHeight: styles.minHeight,
         width: element.getBoundingClientRect().width,
@@ -73,7 +76,8 @@ for (const viewport of [
 
       if (viewport.name === 'desktop') {
         expect(heroStyles).toEqual({
-          borderRadius: '26px',
+          backgroundColor: 'rgb(255, 255, 255)',
+          borderRadius: '0px',
           minHeight: '560px',
           width: 944,
         })
@@ -99,6 +103,19 @@ for (const viewport of [
 
     const seminarHero = page.getByTestId('seminar-hero')
     await expect(seminarHero).toBeVisible()
+    await expect(seminarHero.locator('img')).toHaveCount(0)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCSS(
+      'color',
+      'rgb(15, 23, 42)',
+    )
+    await expect(page.getByText('Séminaires en Haute-Savoie')).toHaveCSS(
+      'color',
+      'rgb(100, 116, 139)',
+    )
+    await expect(page.getByTestId('seminar-hero-facts')).toHaveCSS(
+      'color',
+      'rgb(71, 85, 105)',
+    )
     const seminarMetrics = await seminarHero.evaluate(element => {
       const styles = window.getComputedStyle(element)
       return {

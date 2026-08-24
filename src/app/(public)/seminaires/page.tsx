@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
@@ -113,35 +112,25 @@ export default function SeminarsPage() {
         <section className={`${marketingContainerClass} pt-0 sm:pt-8`}>
           <div
             data-testid="seminar-hero"
-            className="relative flex min-h-[690px] flex-col overflow-hidden rounded-[26px] px-7 pb-8 pt-12 text-white min-[761px]:min-h-[590px] min-[761px]:rounded-[30px] min-[761px]:px-[54px] min-[761px]:pb-[42px] min-[761px]:pt-[58px]"
+            className="relative flex min-h-[690px] flex-col overflow-hidden rounded-[26px] px-7 pb-8 pt-12 text-slate-900 min-[761px]:min-h-[590px] min-[761px]:rounded-[30px] min-[761px]:px-[54px] min-[761px]:pb-[42px] min-[761px]:pt-[58px]"
           >
-            <Image
-              alt="Chalet de séminaire MyStay en Haute-Savoie"
-              className="object-cover object-[62%_center] lg:object-[center_48%]"
-              fill
-              priority
-              sizes="(min-width: 1280px) 944px, (min-width: 768px) calc(100vw - 80px), 100vw"
-              src="/marketing/hero-chalet-v2.png"
-            />
-            <div aria-hidden="true" className="absolute inset-0 bg-black/60" />
-
             <div className="relative z-10 my-auto max-w-[650px]">
-              <MarketingEyebrow light>Séminaires en Haute-Savoie</MarketingEyebrow>
-              <h1 className="m-0 max-w-[640px] text-[clamp(42px,12vw,50px)] font-bold leading-[0.99] tracking-[-0.055em] text-white lg:text-[clamp(42px,4.8vw,50px)]">
+              <MarketingEyebrow>Séminaires en Haute-Savoie</MarketingEyebrow>
+              <h1 className="m-0 max-w-[640px] text-[clamp(42px,12vw,50px)] font-bold leading-[0.99] text-slate-900 tracking-[-0.055em] lg:text-[clamp(42px,4.8vw,50px)]">
                 Réunir vos équipes.
                 <br />
                 <em className="font-serif font-normal italic tracking-[-0.035em]">
                   Prendre de la hauteur.
                 </em>
               </h1>
-              <p className="mt-7 max-w-[590px] text-sm leading-[1.72] text-white/80 lg:text-[15px]">
+              <p className="mt-7 max-w-[590px] text-sm leading-[1.72] text-slate-900 lg:text-[15px]">
                 MyStay organise des séminaires résidentiels à taille humaine dans des lieux
                 inspirants, entre lac et montagne. Un seul interlocuteur coordonne le séjour, du
                 premier brief au départ de votre équipe.
               </p>
               <div className="mt-[30px] flex flex-col items-start gap-6 sm:flex-row sm:items-center">
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 text-xs font-bold text-slate-800 shadow-[0_12px_28px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+                  className={marketingPrimaryButtonClass}
                   href="/confier-mon-logement"
                 >
                   Parler de mon séminaire
@@ -149,7 +138,10 @@ export default function SeminarsPage() {
               </div>
             </div>
 
-            <div className="relative z-10 flex flex-col items-start gap-3 pt-8 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 sm:flex-row sm:items-center sm:gap-7">
+            <div
+              data-testid="seminar-hero-facts"
+              className="relative z-10 flex flex-col items-start gap-3 pt-8 text-[10px] font-bold uppercase tracking-[0.06em] text-slate-600 sm:flex-row sm:items-center sm:gap-7"
+            >
               <span className="inline-flex items-center gap-2">
                 <MapPin aria-hidden="true" className="h-[17px] w-[17px]" />
                 Haute-Savoie

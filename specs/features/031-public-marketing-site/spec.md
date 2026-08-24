@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-07-29
-updated_at: 2026-07-29
+updated_at: 2026-08-24
 depends_on:
   - 006-qr-code
   - 009-auth-owner
@@ -71,14 +71,15 @@ routes privées, l'authentification et les API existantes restent inchangées.
 - **AC-01-05**: Given une largeur d'au moins 1280 px, When la home marketing
   s'affiche, Then le calibrage desktop de la maquette est appliqué sans mise à
   l'échelle artificielle : surface de 1184 px avec rayon de 34 px, conteneurs
-  éditoriaux de 944 px, header de 62 px, logo de 118 px et hero de 560 px
-  minimum avec un padding `60px 52px 43px` et un rayon de 26 px.
+  éditoriaux de 944 px, header de 62 px, logo de 118 px et hero clair sans
+  image de fond de 560 px minimum avec un padding `60px 52px 43px`. Les cartes
+  de services et du processus reprennent la composition numérotée validée.
 - **AC-01-06**: Given la page `/seminaires`, When elle s'affiche, Then sa
-  composition reprend scrupuleusement la maquette Séminaires : hero chalet de
-  590 px minimum avec padding desktop `58px 54px 42px`, quatre cartes de
-  services, section sombre « Le bon cadre », trois formats, processus sombre
-  en quatre étapes et CTA final, avec les adaptations responsive prévues à
-  1050 px et 760 px.
+  composition reprend la version éditoriale validée : hero clair sans image de
+  fond de 590 px minimum avec padding desktop `58px 54px 42px`, texte sombre et
+  CTA rose, quatre cartes de services, section sombre « Le bon cadre », trois
+  formats, processus sombre en quatre étapes et CTA final, avec les adaptations
+  responsive prévues à 1050 px et 760 px.
 
 ### US-02 — Préserver le guide voyageur privé
 
@@ -305,8 +306,8 @@ routes privées, l'authentification et les API existantes restent inchangées.
   dynamiques. Les articles associés sont exclusivement `published`, distincts
   de l'article courant et limités à trois.
 - **BR-21**: La page Séminaires reprend la structure, les dimensions et les
-  ruptures responsive de
-  `references/mystay-maquette/app/seminaires/page.tsx`. Son CTA conserve le
+  ruptures responsive de la version pré-merge validée au commit `b5ed304`, avec
+  un hero clair sans image de fond. Son CTA conserve le
   `mailto:bonjour@mystay.city` et ne crée aucun stockage.
 - **BR-22**: Le guide de démonstration n'a aucune route dédiée. Il est monté
   uniquement dans un modal de la home marketing et sa navigation reste un état
@@ -340,7 +341,14 @@ routes privées, l'authentification et les API existantes restent inchangées.
   mécanismes visuels de fermeture.
 - **BR-35**: Lorsqu'un asset hero marketing déjà déployé est remplacé, son
   chemin public est versionné afin de créer une nouvelle clé `next/image` et
-  CDN ; le code actif ne conserve aucune référence à l'ancien chemin.
+  CDN ; le code actif ne conserve aucune référence à l'ancien chemin. Cette
+  règle ne force pas l'usage d'une image dans les heros clairs de la home et de
+  la page Séminaires.
+- **BR-36**: La décision Product Owner du 2026-08-24 restaure comme contrat
+  visuel la version pré-merge `b5ed304` pour la home et la page Séminaires :
+  heros clairs sans image de fond, texte sombre, CTA principal rose et cartes
+  éditoriales numérotées. Elle remplace la déclinaison ultérieure avec hero
+  chalet sombre et cartes à pictogrammes.
 - **BR-31**: La rangée de filtres de `GuideFavoritesPage` utilise le
   positionnement sticky CSS natif dans le conteneur scrollable du `GuideApp`.
   Aucun listener de scroll, observer, calcul JavaScript de hauteur ou état React
@@ -386,9 +394,10 @@ context `lodging-showcase`.
 - À partir de 1280 px, la home reprend les dimensions exactes du calibrage
   desktop de la maquette : shell 944 px, hero 560 px, padding
   `60px 52px 43px`, header 62 px et logo 118 px.
-- La home utilise le hero chalet sombre, les blocs de services, les cartes
-  logements dynamiques, la présentation du guide et le CTA propriétaire de la
-  maquette.
+- La home utilise un hero clair sans image de fond, du texte sombre, un CTA
+  rose et les cartes éditoriales numérotées de la version pré-merge `b5ed304`.
+  Les cartes logements dynamiques, la présentation du guide et le CTA
+  propriétaire restent inchangés.
 - Les fiches logement publiques réutilisent le header, la surface et le footer
   de la home. Leur contenu dynamique est recomposé selon la hiérarchie de la
   fiche `[slug]` de la maquette, sans modifier les queries, metadata, JSON-LD
@@ -408,9 +417,10 @@ context `lodging-showcase`.
   arrondie, un sommaire latéral, une colonne de lecture, un CTA sombre et des
   cartes liées, sans remplacer son Markdown dynamique par le contenu statique
   de la maquette.
-- La page Séminaires reprend le hero chalet, les quatre cartes de services, les
-  sections sombres « Le bon cadre » et « Une organisation simple », les trois
-  formats et le CTA final de la maquette.
+- La page Séminaires reprend le hero clair sans image de fond de la version
+  pré-merge `b5ed304`, les quatre cartes de services, les sections sombres
+  « Le bon cadre » et « Une organisation simple », les trois formats et le CTA
+  final.
 - « Voir le guide d'exemple » est un bouton de Dialog, jamais un lien. Son
   activation charge dynamiquement le modal puis rend `GuideApp` en mode
   `demo`, sans modifier l'URL.
@@ -468,6 +478,7 @@ context `lodging-showcase`.
 | AC-05-09 | unit + security regression |
 | AC-05-10 | integration + e2e |
 | BR-35 | unit |
+| BR-36 | integration + unit |
 
 ## Out of Scope
 

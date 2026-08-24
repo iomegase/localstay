@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }))
 
@@ -27,6 +27,16 @@ describe('031-public-marketing-site editorial routes', () => {
       'min-[761px]:pb-[42px]',
       'min-[761px]:pt-[58px]',
     )
+    expect(screen.getByTestId('seminar-hero').querySelector('img')).not.toBeInTheDocument()
+    expect(screen.getByTestId('seminar-hero')).toHaveClass('text-slate-900')
+    expect(screen.getByText('Séminaires en Haute-Savoie')).toHaveClass('text-slate-500')
+    expect(screen.getByTestId('seminar-hero-facts')).toHaveClass('text-slate-600')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-slate-900')
+    expect(
+      within(screen.getByTestId('seminar-hero')).getByRole('link', {
+        name: /Parler de mon séminaire/i,
+      }),
+    ).toHaveClass('bg-pink-600')
     expect(screen.getAllByTestId('seminar-service-card')).toHaveLength(4)
     expect(screen.getByTestId('seminar-place')).toHaveTextContent('Le bon cadre')
     expect(screen.getByTestId('seminar-process')).toHaveTextContent('Quatre étapes, aucun flou')

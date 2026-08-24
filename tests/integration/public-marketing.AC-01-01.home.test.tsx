@@ -34,11 +34,13 @@ describe('031-public-marketing-site home', () => {
       'xl:max-w-[944px]',
     )
     expect(screen.getByTestId('editorial-hero')).toHaveClass(
-      'xl:min-h-[560px]',
-      'xl:rounded-[26px]',
+      'bg-white',
+      'min-h-[560px]',
     )
+    expect(screen.getByTestId('editorial-hero').querySelector('img')).not.toBeInTheDocument()
     expect(screen.getByTestId('editorial-hero-content')).toHaveClass(
-      'xl:min-h-[560px]',
+      'text-slate-800',
+      'min-h-[560px]',
       'xl:px-[52px]',
       'xl:pb-[43px]',
       'xl:pt-[60px]',
@@ -50,73 +52,44 @@ describe('031-public-marketing-site home', () => {
     const highlightGrid = screen.getByTestId('editorial-highlight-grid')
     expect(highlightGrid).toHaveClass(
       'grid-cols-1',
-      'min-[761px]:grid-cols-2',
-      'min-[1051px]:grid-cols-[1.05fr_repeat(2,minmax(0,0.78fr))]',
-      'xl:mt-[88px]',
-      'xl:gap-[14px]',
-      'xl:grid-rows-[repeat(2,minmax(205px,auto))]',
+      'sm:grid-cols-2',
+      'lg:grid-cols-3',
+      'xl:grid-cols-5',
     )
-    expect(highlightGrid).not.toHaveClass('grid-cols-2', 'lg:grid-cols-3')
     const featuredHighlight = screen.getByTestId('editorial-highlight-0')
     expect(featuredHighlight).toHaveClass(
-      'flex',
-      'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
-      'bg-[#f7f6f4]',
-      'xl:min-h-[205px]',
-      'xl:rounded-[22px]',
-      'xl:px-6',
-      'xl:py-[22px]',
-      'min-[761px]:col-span-2',
-      'min-[1051px]:col-span-1',
-      'min-[1051px]:col-start-1',
-      'min-[1051px]:row-start-1',
+      'group',
+      'bg-[#ffffff]',
+      'min-h-[165px]',
     )
-    expect(featuredHighlight.querySelector('svg')).toBeInTheDocument()
-    expect(screen.getByTestId('editorial-highlight-4')).not.toHaveClass('col-span-2')
-    const approachAction = screen.getByRole('link', { name: /Comprendre notre approche/i })
-      .parentElement
-    expect(approachAction).toHaveClass(
-      'flex',
-      'col-span-1',
-      'min-[761px]:col-span-2',
-      'min-[1051px]:col-span-1',
-      'min-[1051px]:col-start-1',
-      'min-[1051px]:row-start-2',
-    )
-    expect(approachAction).not.toHaveClass('hidden', 'lg:flex')
+    expect(featuredHighlight).toHaveTextContent('01')
+    expect(featuredHighlight.querySelector('svg')).not.toBeInTheDocument()
+    expect(
+      screen
+        .getAllByRole('link', { name: /Notre approche/i })
+        .some(link => link.classList.contains('bg-pink-600')),
+    ).toBe(true)
     expect(screen.getByTestId('editorial-services')).toHaveClass(
       'xl:pb-[42px]',
       'xl:pt-[82px]',
     )
     expect(screen.getByTestId('editorial-service-01')).toHaveClass(
-      'flex',
-      'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
-      'bg-[#f7f6f4]',
-      'xl:min-h-[198px]',
-      'xl:rounded-[20px]',
-      'xl:px-6',
-      'xl:pb-6',
-      'xl:pt-[27px]',
+      'group',
+      'bg-[#f8f7f5]',
+      'min-h-[165px]',
     )
-    expect(within(screen.getByTestId('editorial-service-01')).getByText('01')).toHaveClass(
-      'text-[44px]',
-      'tracking-[-0.07em]',
-    )
+    expect(within(screen.getByTestId('editorial-service-01')).getByText('01')).toHaveClass('text-[100px]')
     expect(screen.getByTestId('editorial-process')).toHaveClass(
       'xl:pb-[88px]',
       'xl:pt-8',
     )
     expect(screen.getByTestId('editorial-process-card-0')).toHaveClass(
-      'flex',
-      'bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]',
-      'bg-[#f7f6f4]',
-      'xl:min-h-[234px]',
-      'xl:rounded-[22px]',
-      'xl:px-6',
-      'xl:pb-6',
-      'xl:pt-[26px]',
+      'group',
+      'bg-[#f8f7f5]',
+      'min-h-[165px]',
     )
-    expect(screen.getByTestId('editorial-process-card-0').querySelector('svg')).toBeInTheDocument()
+    expect(screen.getByTestId('editorial-process-card-0')).toHaveTextContent('01')
+    expect(screen.getByTestId('editorial-process-card-0').querySelector('svg')).not.toBeInTheDocument()
     expect(screen.getByTestId('editorial-cta')).toHaveClass(
       'xl:gap-16',
       'xl:rounded-[24px]',
