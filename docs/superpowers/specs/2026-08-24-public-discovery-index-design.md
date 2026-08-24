@@ -1,7 +1,7 @@
 # Hub public Découvrir
 
-Date : 2026-08-24  
-Feature : `041-public-local-discovery`  
+Date : 2026-08-24
+Feature : `041-public-local-discovery`
 Décision Product Owner : validée le 2026-08-24
 
 ## Objectif
