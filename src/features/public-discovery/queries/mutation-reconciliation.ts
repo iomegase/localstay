@@ -59,6 +59,7 @@ export async function runPoiMutationWithDiscoveryReconciliation<T>(input: {
       return { result, discoveryRevalidationPaths: discoveryPaths(before) }
     }
 
+    const beforeEligibility = getPoiDiscoveryEligibility(before)
     const unpublished = await tx.pointOfInterest.update({
       where: { id: before.id },
       data: { discovery_status: 'DRAFT', discovery_published_at: null },
@@ -70,7 +71,7 @@ export async function runPoiMutationWithDiscoveryReconciliation<T>(input: {
         action: 'poi_discovery_auto_unpublished',
         target_type: 'poi',
         target_id: before.id,
-        before: publicationSnapshot(before, eligibility.missing, input.cause),
+        before: publicationSnapshot(before, beforeEligibility.missing, input.cause),
         after: {
           discovery_status: unpublished.discovery_status,
           discovery_published_at: unpublished.discovery_published_at?.toISOString() ?? null,

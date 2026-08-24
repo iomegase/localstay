@@ -21,30 +21,37 @@ export async function healPoiPhotos(input: { poiId: string; deadUrls: string[] }
   })
   if (!poi) return { removed: 0, status: 'ok' }
 
-  const cleaned = removeDeadPhotos(poi.photos, input.deadUrls)
-  const removed = poi.photos.length - cleaned.length
-
-  let photos = cleaned
   const fetchResult = await fetchOfficialWebsitePhotoEnrichmentDetailed(poi.website)
-  if (fetchResult.status === 'ok') {
-    photos = mergeOfficialWebsitePhotos(cleaned, fetchResult.enrichment.photos)
-  }
-
-  const status: HealResult['status'] = photos.length > 0 ? 'ok' : 'needs_refresh'
 
   const mutation = await runPoiMutationWithDiscoveryReconciliation({
     poiWhere: { id: input.poiId },
     auditActor: { type: 'SYSTEM' },
     cause: { source: 'photo_healer', reason: 'dead_photos_removed' },
-    mutate: tx => tx.pointOfInterest.update({
-      where: { id: input.poiId },
-      data: { photos, photos_status: status, photos_checked_at: new Date() },
-      select: { id: true },
-    }),
+    mutate: async tx => {
+      const current = await tx.pointOfInterest.findUnique({
+        where: { id: input.poiId },
+        select: { photos: true, website: true },
+      })
+      if (!current) return { removed: 0, status: 'ok' } satisfies HealResult
+
+      const cleaned = removeDeadPhotos(current.photos, input.deadUrls)
+      const removed = current.photos.length - cleaned.length
+      const photos = fetchResult.status === 'ok' && current.website === poi.website
+        ? mergeOfficialWebsitePhotos(cleaned, fetchResult.enrichment.photos)
+        : cleaned
+      const status: HealResult['status'] = photos.length > 0 ? 'ok' : 'needs_refresh'
+
+      await tx.pointOfInterest.update({
+        where: { id: input.poiId },
+        data: { photos, photos_status: status, photos_checked_at: new Date() },
+        select: { id: true },
+      })
+      return { removed, status }
+    },
   })
   if (mutation.discoveryRevalidationPaths.length > 0) {
     safelyRevalidateDiscoveryPaths(mutation.discoveryRevalidationPaths)
   }
 
-  return { removed, status }
+  return mutation.result
 }

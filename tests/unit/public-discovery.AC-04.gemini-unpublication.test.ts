@@ -111,4 +111,25 @@ describe('041 AC-04-05 Gemini legacy mutation guard', () => {
     expect(mockAuditCreate).not.toHaveBeenCalled()
     expect(mockRevalidate).not.toHaveBeenCalled()
   })
+
+  it('still revalidates earlier committed POIs when a later upsert fails', async () => {
+    mockPoiFindFirst
+      .mockResolvedValueOnce(publishedPoi)
+      .mockResolvedValueOnce(publishedPoi)
+      .mockResolvedValueOnce(null)
+    mockPoiUpsert
+      .mockResolvedValueOnce({ id: 'poi-1' })
+      .mockRejectedValueOnce(new Error('second upsert failed'))
+
+    await expect(persistPois([
+      incomingPoi,
+      { ...incomingPoi, name: 'Deuxième adresse' },
+    ], context)).rejects.toThrow('second upsert failed')
+
+    expect(mockRevalidate).toHaveBeenCalledWith([
+      '/decouvrir/ville',
+      '/decouvrir/ville/categorie',
+      '/decouvrir/ville/categorie/adresse-locale',
+    ])
+  })
 })

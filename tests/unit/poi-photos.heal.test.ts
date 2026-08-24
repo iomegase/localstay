@@ -34,7 +34,7 @@ beforeEach(() => {
   mockFindFirst.mockResolvedValue(null)
   mockUpdate.mockResolvedValue({ id: 'p1' })
   mockTransaction.mockImplementation(async callback => callback({
-    pointOfInterest: { findFirst: mockFindFirst, update: mockUpdate },
+    pointOfInterest: { findFirst: mockFindFirst, findUnique: mockFindUnique, update: mockUpdate },
     poiAcquisitionAuditLog: { create: mockAuditCreate },
   }))
 })
@@ -147,4 +147,23 @@ it('keeps an eligible published POI and revalidates without a withdrawal audit',
   expect(mockUpdate).toHaveBeenCalledTimes(1)
   expect(mockAuditCreate).not.toHaveBeenCalled()
   expect(mockRevalidate).toHaveBeenCalledTimes(1)
+})
+
+it('preserves a photo added concurrently while the remote liveness check was running', async () => {
+  mockFindUnique
+    .mockResolvedValueOnce({ photos: ['https://example.com/dead.jpg'], website: null })
+    .mockResolvedValueOnce({
+      photos: ['https://example.com/dead.jpg', 'https://example.com/concurrent.jpg'],
+      website: null,
+    })
+  mockFetch.mockResolvedValue({ status: 'no_website' })
+  mockFindFirst.mockResolvedValue(null)
+  mockUpdate.mockResolvedValueOnce({ id: 'p1' })
+
+  const result = await healPoiPhotos({ poiId: 'p1', deadUrls: ['https://example.com/dead.jpg'] })
+
+  expect(result).toEqual({ removed: 1, status: 'ok' })
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+    data: expect.objectContaining({ photos: ['https://example.com/concurrent.jpg'] }),
+  }))
 })

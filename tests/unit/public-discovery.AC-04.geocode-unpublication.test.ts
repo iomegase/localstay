@@ -112,4 +112,38 @@ describe('041 AC-04-05 geocoding mutation guard', () => {
     expect(mockAuditCreate).not.toHaveBeenCalled()
     expect(mockRevalidate).not.toHaveBeenCalled()
   })
+
+  it('revalidates earlier committed POIs when a later reconciliation fails', async () => {
+    mockPoiFindMany.mockResolvedValue([
+      batchPoi,
+      { ...batchPoi, id: 'poi-2', address: '2 rue du Mont-Blanc' },
+    ])
+    mockGeocodeAddress
+      .mockResolvedValueOnce({
+        latitude: 45.9,
+        longitude: 6.72,
+        relevance: 0.9,
+        place_name: 'Adresse',
+      })
+      .mockRejectedValueOnce(new Error('Mapbox unavailable'))
+    mockValidateGeocode.mockReturnValue({ valid: true })
+    mockPoiFindFirst
+      .mockResolvedValueOnce(publishedPoi)
+      .mockResolvedValueOnce({ ...publishedPoi, latitude: 45.9, longitude: 6.72 })
+    mockPoiUpdate.mockResolvedValueOnce({ id: 'poi-1' })
+    mockTransaction
+      .mockImplementationOnce(async callback => callback({
+        pointOfInterest: { findFirst: mockPoiFindFirst, update: mockPoiUpdate },
+        poiAcquisitionAuditLog: { create: mockAuditCreate },
+      }))
+      .mockRejectedValueOnce(new Error('failed to persist fallback'))
+
+    await expect(runGeocodeBatch({ limit: 2 })).rejects.toThrow('failed to persist fallback')
+
+    expect(mockRevalidate).toHaveBeenCalledWith([
+      '/decouvrir/ville',
+      '/decouvrir/ville/categorie',
+      '/decouvrir/ville/categorie/adresse-locale',
+    ])
+  })
 })

@@ -92,8 +92,8 @@ describe('041 AC-04-05 merchant mutation guard', () => {
         action: 'poi_discovery_auto_unpublished',
         target_type: 'poi',
         target_id: 'poi-1',
-        before: expect.objectContaining({ discovery_status: 'PUBLISHED' }),
-        after: expect.objectContaining({ discovery_status: 'DRAFT' }),
+        before: expect.objectContaining({ discovery_status: 'PUBLISHED', missing: [] }),
+        after: expect.objectContaining({ discovery_status: 'DRAFT', missing: ['description'] }),
       }),
     })
     expect(mockRevalidate).toHaveBeenCalledWith([

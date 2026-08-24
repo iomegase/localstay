@@ -33,45 +33,47 @@ export async function runGeocodeBatch(params: {
     for (const path of paths) discoveryRevalidationPaths.add(path)
   }
 
-  for (const poi of pois) {
-    try {
-      const geocoded = await geocodeAddress(poi.address, {
-        longitude: poi.city.longitude,
-        latitude: poi.city.latitude,
-      })
+  try {
+    for (const poi of pois) {
+      try {
+        const geocoded = await geocodeAddress(poi.address, {
+          longitude: poi.city.longitude,
+          latitude: poi.city.latitude,
+        })
 
-      if (!geocoded) {
-        collectDiscoveryPaths(await markFailed(poi.id, 'No results from Mapbox'))
+        if (!geocoded) {
+          collectDiscoveryPaths(await markFailed(poi.id, 'No results from Mapbox'))
+          result.failed++
+          continue
+        }
+
+        const validation = validateGeocode(geocoded, {
+          latitude: poi.city.latitude,
+          longitude: poi.city.longitude,
+        })
+
+        if (!validation.valid) {
+          collectDiscoveryPaths(await markRejected(poi.id, validation.reason ?? 'Validation failed'))
+          result.rejected++
+          console.log(`[Geocoding] Rejected POI ${poi.id}: ${validation.reason}`)
+          continue
+        }
+
+        collectDiscoveryPaths(await markSuccess(poi.id, geocoded))
+        result.geocoded++
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(`[Geocoding] Error for POI ${poi.id}:`, message)
+        collectDiscoveryPaths(await markFailed(poi.id, message))
         result.failed++
-        continue
       }
-
-      const validation = validateGeocode(geocoded, {
-        latitude: poi.city.latitude,
-        longitude: poi.city.longitude,
-      })
-
-      if (!validation.valid) {
-        collectDiscoveryPaths(await markRejected(poi.id, validation.reason ?? 'Validation failed'))
-        result.rejected++
-        console.log(`[Geocoding] Rejected POI ${poi.id}: ${validation.reason}`)
-        continue
-      }
-
-      collectDiscoveryPaths(await markSuccess(poi.id, geocoded))
-      result.geocoded++
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error(`[Geocoding] Error for POI ${poi.id}:`, message)
-      collectDiscoveryPaths(await markFailed(poi.id, message))
-      result.failed++
+    }
+    return result
+  } finally {
+    if (discoveryRevalidationPaths.size > 0) {
+      safelyRevalidateDiscoveryPaths([...discoveryRevalidationPaths])
     }
   }
-
-  if (discoveryRevalidationPaths.size > 0) {
-    safelyRevalidateDiscoveryPaths([...discoveryRevalidationPaths])
-  }
-  return result
 }
 
 async function markSuccess(id: string, result: GeocodeResult): Promise<string[]> {

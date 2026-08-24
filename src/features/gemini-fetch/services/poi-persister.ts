@@ -29,68 +29,69 @@ export async function persistPois(
   let count = 0
   const discoveryRevalidationPaths = new Set<string>()
 
-  for (const poi of pois) {
-    const slug = toSlug(poi.name)
-    if (!slug) continue
+  try {
+    for (const poi of pois) {
+      const slug = toSlug(poi.name)
+      if (!slug) continue
 
-    // Resolve optional subcategory by name match within this category
-    let subcategoryId: string | null = null
-    if (poi.subcategory) {
-      const sub = await prisma.subCategory.findFirst({
-        where: {
-          category_id: ctx.categoryId,
-          name: { equals: poi.subcategory, mode: 'insensitive' },
-          is_active: true,
-          deleted_at: null,
-        },
-        select: { id: true },
+      // Resolve optional subcategory by name match within this category
+      let subcategoryId: string | null = null
+      if (poi.subcategory) {
+        const sub = await prisma.subCategory.findFirst({
+          where: {
+            category_id: ctx.categoryId,
+            name: { equals: poi.subcategory, mode: 'insensitive' },
+            is_active: true,
+            deleted_at: null,
+          },
+          select: { id: true },
+        })
+        subcategoryId = sub?.id ?? null
+      }
+
+      const mutation = await runPoiMutationWithDiscoveryReconciliation({
+        poiWhere: { city_id: ctx.cityId, slug },
+        auditActor: { type: 'SYSTEM' },
+        cause: { source: 'gemini_legacy_persister', reason: 'poi_content_upserted' },
+        mutate: tx => tx.pointOfInterest.upsert({
+          where: { city_id_slug: { city_id: ctx.cityId, slug } },
+          create: {
+            name: poi.name,
+            slug,
+            description: poi.description,
+            address: poi.address,
+            latitude: ctx.cityLatitude,   // placeholder — enriched by Mapbox in MVP 2+
+            longitude: ctx.cityLongitude, // placeholder
+            phone: poi.phone,
+            website: poi.website,
+            hours: poi.hours ?? undefined,
+            tags: poi.tags,
+            is_active: true,
+            city_id: ctx.cityId,
+            category_id: ctx.categoryId,
+            subcategory_id: subcategoryId,
+          },
+          update: {
+            name: poi.name,
+            description: poi.description,
+            address: poi.address,
+            phone: poi.phone,
+            website: poi.website,
+            hours: poi.hours ?? Prisma.JsonNull,
+            tags: poi.tags,
+            subcategory_id: subcategoryId,
+          },
+        }),
       })
-      subcategoryId = sub?.id ?? null
+      for (const path of mutation.discoveryRevalidationPaths) {
+        discoveryRevalidationPaths.add(path)
+      }
+      count++
     }
-
-    const mutation = await runPoiMutationWithDiscoveryReconciliation({
-      poiWhere: { city_id: ctx.cityId, slug },
-      auditActor: { type: 'SYSTEM' },
-      cause: { source: 'gemini_legacy_persister', reason: 'poi_content_upserted' },
-      mutate: tx => tx.pointOfInterest.upsert({
-        where: { city_id_slug: { city_id: ctx.cityId, slug } },
-        create: {
-          name: poi.name,
-          slug,
-          description: poi.description,
-          address: poi.address,
-          latitude: ctx.cityLatitude,   // placeholder — enriched by Mapbox in MVP 2+
-          longitude: ctx.cityLongitude, // placeholder
-          phone: poi.phone,
-          website: poi.website,
-          hours: poi.hours ?? undefined,
-          tags: poi.tags,
-          is_active: true,
-          city_id: ctx.cityId,
-          category_id: ctx.categoryId,
-          subcategory_id: subcategoryId,
-        },
-        update: {
-          name: poi.name,
-          description: poi.description,
-          address: poi.address,
-          phone: poi.phone,
-          website: poi.website,
-          hours: poi.hours ?? Prisma.JsonNull,
-          tags: poi.tags,
-          subcategory_id: subcategoryId,
-        },
-      }),
-    })
-    for (const path of mutation.discoveryRevalidationPaths) {
-      discoveryRevalidationPaths.add(path)
+    return count
+  } finally {
+    if (discoveryRevalidationPaths.size > 0) {
+      safelyRevalidateDiscoveryPaths([...discoveryRevalidationPaths])
     }
-    count++
   }
-
-  if (discoveryRevalidationPaths.size > 0) {
-    safelyRevalidateDiscoveryPaths([...discoveryRevalidationPaths])
-  }
-
-  return count
 }
