@@ -1,4 +1,8 @@
-import { getTodayCloseLabel, getNextOpenLabel } from '@/features/categories/lib/is-open-now'
+import {
+  computeIsOpenNow,
+  getTodayCloseLabel,
+  getNextOpenLabel,
+} from '@/features/categories/lib/is-open-now'
 import type { PoiHours } from '@/features/categories/types'
 
 // Monday 2026-06-01 at 14:00 Paris time
@@ -51,5 +55,24 @@ describe('getNextOpenLabel', () => {
       '2': { open: '09:30', close: '19:00' },
     }
     expect(getNextOpenLabel(hours, monday)).toBe('demain à 9h30')
+  })
+})
+
+describe('computeIsOpenNow overnight day ownership', () => {
+  const mondayOvernight: PoiHours = { '1': { open: '22:00', close: '02:00' } }
+
+  it('does not treat Monday 01:00 as part of the Monday night slot', () => {
+    const mondayAtOneParis = new Date('2026-05-31T23:00:00Z')
+    expect(computeIsOpenNow(mondayOvernight, mondayAtOneParis)).toBe(false)
+  })
+
+  it('opens after the Monday start and through early Tuesday only', () => {
+    const mondayAtElevenParis = new Date('2026-06-01T21:00:00Z')
+    const tuesdayAtOneParis = new Date('2026-06-01T23:00:00Z')
+    const tuesdayAtThreeParis = new Date('2026-06-02T01:00:00Z')
+
+    expect(computeIsOpenNow(mondayOvernight, mondayAtElevenParis)).toBe(true)
+    expect(computeIsOpenNow(mondayOvernight, tuesdayAtOneParis)).toBe(true)
+    expect(computeIsOpenNow(mondayOvernight, tuesdayAtThreeParis)).toBe(false)
   })
 })

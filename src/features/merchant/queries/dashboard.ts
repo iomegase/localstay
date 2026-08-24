@@ -6,6 +6,8 @@ import type {
   MerchantStatsDto,
 } from '../types'
 import type { MerchantOfferCreateInput, MerchantProfilePatchInput } from '../schemas'
+import { runPoiMutationWithDiscoveryReconciliation } from '@/features/public-discovery/queries/mutation-reconciliation'
+import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
 
 const merchantProfileSelect = {
   id: true,
@@ -107,13 +109,21 @@ export async function updateMerchantDashboardProfile(
     ...(input.website !== undefined ? { website: input.website } : {}),
     ...(input.hours !== undefined ? { hours: input.hours === null ? Prisma.DbNull : input.hours as Prisma.InputJsonObject } : {}),
   }
-  const poi = await prisma.pointOfInterest.update({
-    where: { id: profile.poi_id },
-    data,
-    select: poiSelect,
+  const mutation = await runPoiMutationWithDiscoveryReconciliation({
+    poiWhere: { id: profile.poi_id },
+    auditActor: { type: 'MERCHANT', userId: merchantId },
+    cause: { source: 'merchant_dashboard', reason: 'poi_profile_updated' },
+    mutate: tx => tx.pointOfInterest.update({
+      where: { id: profile.poi_id },
+      data,
+      select: poiSelect,
+    }),
   })
+  if (mutation.discoveryRevalidationPaths.length > 0) {
+    safelyRevalidateDiscoveryPaths(mutation.discoveryRevalidationPaths)
+  }
 
-  return toProfileDto({ ...profile, poi })
+  return toProfileDto({ ...profile, poi: mutation.result })
 }
 
 export async function appendMerchantPoiPhoto(

@@ -2,6 +2,7 @@ import {
   buildAdminPoiWhere,
   containsTrailLockedFields,
   getAdminPoiStatus,
+  parseAdminPoiListFilters,
   parseAdminPoiPatchInput,
 } from '@/features/admin-pois/lib/admin-poi-rules'
 
@@ -47,6 +48,25 @@ describe('022 admin POI rules', () => {
         { address: { contains: 'brasserie', mode: 'insensitive' } },
       ],
     })
+  })
+
+  it('041 AC-04-06: validates and applies the discovery publication filter', () => {
+    const parsed = parseAdminPoiListFilters({
+      city_id: cityId,
+      discovery_status: 'PUBLISHED',
+    })
+
+    expect(parsed.success).toBe(true)
+    if (!parsed.success) return
+    expect(buildAdminPoiWhere(parsed.data)).toEqual({
+      city_id: cityId,
+      deleted_at: null,
+      discovery_status: 'PUBLISHED',
+    })
+    expect(parseAdminPoiListFilters({
+      city_id: cityId,
+      discovery_status: 'ARCHIVED',
+    }).success).toBe(false)
   })
 
   it('BR-03: rejects slug edits from PATCH payloads', () => {

@@ -5,7 +5,7 @@
  * BR-04 — Cross-role access → redirect vers dashboard propre au rôle
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 // Mock createSupabaseMiddlewareClient before importing middleware
 const mockGetUser = jest.fn()
@@ -104,9 +104,12 @@ describe('middleware — QR séjour : /guide/:slug?lodging=:id', () => {
 
   it('does NOT redirect deeper in-guide navigation (category/POI) but keeps refreshing the cookie', async () => {
     // Les liens internes en mode séjour portent ?lodging= ; ils ne doivent pas
-    // renvoyer le guest vers la home, seulement rafraîchir le cookie.
+    // renvoyer le guest vers la home lorsque le cookie actif correspond.
     const res = await middleware(
-      makeRequest(`/guide/chamonix/boulangerie?lodging=${VALID_UUID}`),
+      new NextRequest(
+        `http://localhost:3000/guide/chamonix/boulangerie?lodging=${VALID_UUID}`,
+        { headers: { cookie: `lodging_id=${VALID_UUID}` } },
+      ),
     )
     expect(res.status).toBe(200)
     expect(res.cookies.get('lodging_id')?.value).toBe(VALID_UUID)

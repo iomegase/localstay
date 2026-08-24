@@ -1,4 +1,9 @@
 import type { Metadata } from 'next'
+import type {
+  DiscoveryCategory,
+  DiscoveryCity,
+  DiscoveryPoiDetail,
+} from '@/features/public-discovery/types'
 import { SITE } from './site'
 
 const MAX_DESCRIPTION = 160
@@ -89,6 +94,62 @@ export function categoryMetadata(input: {
     alternates: { canonical: path },
     openGraph: openGraph({ title, description, path }),
     twitter: { card: 'summary_large_image', title, description },
+  }
+}
+
+function discoverySocialImages(photo: string | null): string[] | undefined {
+  return photo ? [photo] : undefined
+}
+
+export function discoveryCityMetadata(city: DiscoveryCity): Metadata {
+  const title = `Découvrir ${city.name} — Sélection locale MyStay`
+  const location = [city.department, city.region].filter((part): part is string => Boolean(part))
+  const locationPart = location.length > 0 ? `, ${location.join(', ')}` : ''
+  const description = truncate(
+    `Découvrez la sélection locale MyStay à ${city.name}${locationPart} : adresses et lieux validés pour préparer votre séjour.`,
+  )
+  const path = `/decouvrir/${city.slug}`
+  const photo = city.categories.flatMap(category => category.pois)[0]?.photo_url ?? null
+  const images = discoverySocialImages(photo)
+
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images }),
+    twitter: { card: 'summary_large_image', title, description, ...(images ? { images } : {}) },
+  }
+}
+
+export function discoveryCategoryMetadata(category: DiscoveryCategory): Metadata {
+  const title = `${category.name} à ${category.city.name} — Adresses MyStay`
+  const description = truncate(
+    `Découvrez les adresses « ${category.name} » sélectionnées par MyStay à ${category.city.name}.`,
+  )
+  const path = `/decouvrir/${category.city.slug}/${category.slug}`
+  const images = discoverySocialImages(category.pois[0]?.photo_url ?? null)
+
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images }),
+    twitter: { card: 'summary_large_image', title, description, ...(images ? { images } : {}) },
+  }
+}
+
+export function discoveryPoiMetadata(poi: DiscoveryPoiDetail): Metadata {
+  const title = `${poi.name} à ${poi.city.name} — MyStay`
+  const description = truncate(poi.description)
+  const path = `/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`
+  const images = discoverySocialImages(poi.hero_photo_url)
+
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images, type: 'article' }),
+    twitter: { card: 'summary_large_image', title, description, ...(images ? { images } : {}) },
   }
 }
 

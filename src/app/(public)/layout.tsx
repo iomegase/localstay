@@ -13,13 +13,11 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode
 }) {
-  const lodgingContext = await getActiveLodgingContext()
   const requestHeaders = await headers()
   const isMarketingRoute =
     requestHeaders.get('x-staylocal-marketing-route') === '1'
   const isGuideAppRoute =
     requestHeaders.get('x-staylocal-guide-app-route') === '1'
-  const mode = lodgingContext ? 'lodging' : 'anonymous'
   const analytics = (
     <>
       <AnalyticsConsentBanner />
@@ -30,7 +28,20 @@ export default async function PublicLayout({
     </>
   )
 
-  if (!lodgingContext || isMarketingRoute || isGuideAppRoute) {
+  // Ces signaux sont produits par notre proxy depuis le pathname de la requête.
+  // Une page marketing (dont `/decouvrir`) ne doit jamais lire le cookie séjour
+  // ni charger Lodging/Owner, même si le navigateur porte encore un ancien cookie.
+  if (isMarketingRoute || isGuideAppRoute) {
+    return (
+      <>
+        {children}
+        {analytics}
+      </>
+    )
+  }
+
+  const lodgingContext = await getActiveLodgingContext()
+  if (!lodgingContext) {
     return (
       <>
         {children}
@@ -48,10 +59,10 @@ export default async function PublicLayout({
       >
         <div data-testid="public-header-menu-slot" className="ml-auto">
           <PublicMenu
-            mode={mode}
-            lodgingName={lodgingContext?.lodgingName ?? null}
-            ownerName={lodgingContext?.ownerName ?? null}
-            citySlug={lodgingContext?.citySlug ?? null}
+            mode="lodging"
+            lodgingName={lodgingContext.lodgingName}
+            ownerName={lodgingContext.ownerName}
+            citySlug={lodgingContext.citySlug}
           />
         </div>
       </header>
@@ -60,7 +71,7 @@ export default async function PublicLayout({
       <main className="pb-32 pt-6 immersive-main">{children}</main>
 
       {/* Floating bottom navigation bar — masqué en mode immersif */}
-      <PublicBottomNav mode={mode} citySlug={lodgingContext?.citySlug ?? null} />
+      <PublicBottomNav mode="lodging" citySlug={lodgingContext.citySlug} />
       {analytics}
     </div>
   )

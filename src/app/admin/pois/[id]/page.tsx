@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink, MapPin, Tag } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoi, getAdminPoiOptions } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiEditForm } from '@/features/admin-pois/components/AdminPoiEditForm'
+import { AdminPoiDiscoveryCard } from '@/features/admin-pois/components/AdminPoiDiscoveryCard'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
 
 type PageProps = {
@@ -63,13 +64,15 @@ export default async function AdminPoiDetailPage({ params }: PageProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mt-4 xl:mt-0">
-             <Link 
-                href={poi.public_url}
-                className="group/link inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md"
-              >
-                Voir public
-                <ExternalLink size={16} className="transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-              </Link>
+             {poi.public_url && (
+               <Link
+                  href={poi.public_url}
+                  className="group/link inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md"
+                >
+                  Voir public
+                  <ExternalLink size={16} className="transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
+                </Link>
+             )}
              <div className="inline-flex [&_button]:rounded-xl [&_button]:px-5 [&_button]:py-2.5 [&_button]:text-[13px] [&_button]:font-bold [&_button]:shadow-sm [&_button]:transition-all [&_button]:duration-300 hover:[&_button]:-translate-y-0.5 hover:[&_button]:shadow-md">
                <AdminPoiStatusActions
                  poiId={poi.id}
@@ -82,8 +85,19 @@ export default async function AdminPoiDetailPage({ params }: PageProps) {
       </header>
 
       <div className="px-6 mt-8 md:px-10">
-        <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-200">
-          <AdminPoiEditForm poi={poi} categories={options.categories} />
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-200">
+            <AdminPoiEditForm poi={poi} categories={options.categories} />
+          </div>
+          <aside>
+            <AdminPoiDiscoveryCard
+              poiId={poi.id}
+              status={poi.discovery_status}
+              publishedAt={poi.discovery_published_at}
+              publicUrl={poi.discovery_public_url}
+              eligibility={poi.discovery_eligibility}
+            />
+          </aside>
         </div>
       </div>
     </div>

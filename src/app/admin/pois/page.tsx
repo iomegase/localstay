@@ -4,6 +4,14 @@ import type { LucideIcon } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
+import { Badge } from '@/shared/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import type { AdminPoiListFilters } from '@/features/admin-pois/types'
 
 type PageProps = {
@@ -16,6 +24,15 @@ const STATUS_STYLES: Record<string, string> = {
   inactive: 'bg-gray-100/80 text-gray-500 border-gray-200/50',
   archived: 'bg-amber-50 text-amber-600 border-amber-100/50',
 }
+
+const PRESERVED_FILTER_KEYS = [
+  'subcategory_id',
+  'geocode_status',
+  'photo_status',
+  'review_source',
+  'page',
+  'limit',
+] as const
 
 export default async function AdminPoisPage({ searchParams }: PageProps) {
   await getPageAdmin()
@@ -65,9 +82,12 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
         
         {/* Filter Form */}
         <form action="/admin/pois" className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
+          {preservedFilterParams(params).map(({ key, name, value }) => (
+            <input key={key} type="hidden" name={name} value={value} />
+          ))}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-end">
             
-            <div className="space-y-2 md:col-span-3">
+            <div className="space-y-2 md:col-span-2">
               <label htmlFor="city_id" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Ville</label>
               <div className="relative">
                 <select
@@ -87,7 +107,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
               </div>
             </div>
 
-            <div className="space-y-2 md:col-span-3">
+            <div className="space-y-2 md:col-span-2">
               <label htmlFor="q" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Recherche</label>
               <div className="relative">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -101,7 +121,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
               </div>
             </div>
 
-            <div className="space-y-2 md:col-span-3">
+            <div className="space-y-2 md:col-span-2">
               <label htmlFor="category_id" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Catégorie</label>
               <div className="relative">
                 <select
@@ -141,7 +161,27 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
               </div>
             </div>
 
-            <div className="md:col-span-1">
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="discovery_status" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Découverte</label>
+              <Select
+                name="discovery_status"
+                defaultValue={parseDiscoveryStatus(firstParam(params.discovery_status)) ?? 'ALL'}
+              >
+                <SelectTrigger
+                  id="discovery_status"
+                  className="h-[48px] rounded-xl border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-neutral-900 focus:border-[#0B1437] focus:bg-white focus:ring-[#0B1437]"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tous</SelectItem>
+                  <SelectItem value="DRAFT">Brouillons</SelectItem>
+                  <SelectItem value="PUBLISHED">Publiés</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="md:col-span-2">
               <button 
                 type="submit" 
                 className="flex h-[48px] w-full items-center justify-center rounded-xl bg-[#0B1437] text-white transition-all hover:bg-gray-900 hover:shadow-md"
@@ -203,6 +243,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-3">
                                 {poi.primary_photo_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element -- URLs distantes non allowlistées par la spec 022.
                                   <img 
                                     src={poi.primary_photo_url} 
                                     alt="" 
@@ -216,12 +257,14 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                 <div className="flex flex-col">
                                   {/* Reduced text sizes: 14px -> 13px, 12px -> 11px */}
                                   <span className="text-[13px] font-bold text-neutral-900 max-w-[200px] truncate">{poi.name}</span>
-                                  <Link
-                                    href={poi.public_url}
-                                    className="text-[11px] font-semibold text-gray-400 transition-colors hover:text-[#0B1437]"
-                                  >
-                                    Voir la page publique
-                                  </Link>
+                                  {poi.public_url && (
+                                    <Link
+                                      href={poi.public_url}
+                                      className="text-[11px] font-semibold text-gray-400 transition-colors hover:text-[#0B1437]"
+                                    >
+                                      Voir la page publique
+                                    </Link>
+                                  )}
                                   {poi.photos_status === 'needs_refresh' && (
                                     <span className="mt-1 inline-flex w-fit items-center rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
                                       Photos à rafraîchir
@@ -239,6 +282,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                             <td className="px-5 py-3">
                               <div className="flex flex-col items-start gap-1">
                                 <StatusBadge status={poi.status} />
+                                <DiscoveryBadge name={poi.name} status={poi.discovery_status} />
                                 {poi.merchant_attached && (
                                   <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">Merchant Lié</span>
                                 )}
@@ -281,7 +325,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
 
               {/* Aside: Runs Acquisition (Moved below, displayed as a Grid) */}
               <div className="w-full rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-bold text-neutral-900 mb-6">Derniers Runs d'acquisition</h2>
+                <h2 className="text-base font-bold text-neutral-900 mb-6">Derniers Runs d&apos;acquisition</h2>
                 
                 {response.acquisition_runs.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-6 text-center text-sm font-medium text-gray-500">
@@ -368,6 +412,21 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+function DiscoveryBadge({ name, status }: { name: string; status: 'DRAFT' | 'PUBLISHED' }) {
+  const label = status === 'PUBLISHED' ? 'Publié' : 'Brouillon'
+  return (
+    <Badge
+      variant="outline"
+      aria-label={`${name} — Découverte : ${label}`}
+      className={status === 'PUBLISHED'
+        ? 'border-emerald-200 bg-emerald-50 text-[9px] uppercase tracking-wider text-emerald-700'
+        : 'border-slate-200 bg-slate-50 text-[9px] uppercase tracking-wider text-slate-600'}
+    >
+      {label}
+    </Badge>
+  )
+}
+
 function ChevronDownIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -388,6 +447,7 @@ function buildFilters(cityId: string, params: Record<string, string | string[] |
     geocode_status: firstParam(params.geocode_status),
     photo_status: parsePhotoStatus(firstParam(params.photo_status)),
     review_source: parseReviewSource(firstParam(params.review_source)),
+    discovery_status: parseDiscoveryStatus(firstParam(params.discovery_status)),
     page: Number(firstParam(params.page) ?? 1),
     limit: Number(firstParam(params.limit) ?? 25),
   }
@@ -396,6 +456,15 @@ function buildFilters(cityId: string, params: Record<string, string | string[] |
 function firstParam(value: string | string[] | undefined): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value
   return raw && raw.length > 0 ? raw : undefined
+}
+
+function preservedFilterParams(params: Record<string, string | string[] | undefined>) {
+  return PRESERVED_FILTER_KEYS.flatMap(name => {
+    const values = Array.isArray(params[name]) ? params[name] : [params[name]]
+    return values.flatMap((value, index) => value
+      ? [{ key: `${name}-${index}`, name, value }]
+      : [])
+  })
 }
 
 function parseStatus(value: string | undefined): AdminPoiListFilters['status'] {
@@ -410,5 +479,10 @@ function parsePhotoStatus(value: string | undefined): AdminPoiListFilters['photo
 
 function parseReviewSource(value: string | undefined): AdminPoiListFilters['review_source'] {
   if (value === 'MANUAL' || value === 'GOOGLE') return value
+  return undefined
+}
+
+function parseDiscoveryStatus(value: string | undefined): AdminPoiListFilters['discovery_status'] {
+  if (value === 'DRAFT' || value === 'PUBLISHED') return value
   return undefined
 }

@@ -7,6 +7,7 @@ import {
   responseFromTaxonomyError,
   SubCategoryPatchSchema,
 } from '@/features/admin-taxonomy/lib/api'
+import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
 
 export async function PATCH(
   req: NextRequest,
@@ -23,8 +24,9 @@ export async function PATCH(
 
   const { id } = await params
   try {
-    const data = await updateSubCategory(id, parsed, session.user.id)
-    return NextResponse.json({ data })
+    const result = await updateSubCategory(id, parsed, session.user.id)
+    safelyRevalidateDiscoveryPaths(result.discovery_revalidation_paths)
+    return NextResponse.json({ data: result.data })
   } catch (error) {
     return responseFromTaxonomyError(error)
   }

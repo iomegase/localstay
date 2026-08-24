@@ -1,8 +1,31 @@
 import { SITE, siteBaseUrl } from './site'
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
+import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const SCHEMA = 'https://schema.org'
+const DISCOVERY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const TOURIST_CATEGORY_SLUGS = new Set([
+  'activite',
+  'activites',
+  'culture',
+  'explorer',
+  'nature',
+  'patrimoine',
+  'rando',
+  'randonnee',
+  'randos',
+])
+const TOURIST_SUBCATEGORY_SLUGS = new Set([
+  'attraction',
+  'hiking',
+  'monument',
+  'monuments',
+  'musee',
+  'musees',
+  'rando',
+  'randonnee',
+])
 
 // Index = jour (0 = dimanche … 6 = samedi), aligné sur le format hours stocké.
 const DAY_URIS = [
@@ -69,6 +92,32 @@ export function breadcrumbSchema(items: Array<{ name: string; path: string }>): 
       item: `${base}${item.path}`,
     })),
   }
+}
+
+export function discoveryItemListSchema(input: {
+  name: string
+  items: Array<{ name: string; path: string }>
+}): JsonLdObject {
+  const publicItems = input.items.filter(item => isCanonicalDiscoveryPath(item.path))
+
+  return {
+    '@context': SCHEMA,
+    '@type': 'ItemList',
+    name: input.name,
+    itemListElement: publicItems.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      url: `${siteBaseUrl()}${item.path}`,
+    })),
+  }
+}
+
+function isCanonicalDiscoveryPath(path: string): boolean {
+  const segments = path.split('/')
+  if (segments.length < 3 || segments.length > 5) return false
+  if (segments[0] !== '' || segments[1] !== 'decouvrir') return false
+  return segments.slice(2).every(segment => DISCOVERY_SLUG_PATTERN.test(segment))
 }
 
 function openingHoursSpecification(hours: PoiSchemaInput['hours']): JsonLdObject[] | undefined {
@@ -139,6 +188,47 @@ export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
       addressCountry: 'FR',
     },
     geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
+  }
+}
+
+function isTouristDiscoveryPoi(poi: DiscoveryPoiDetail): boolean {
+  return TOURIST_CATEGORY_SLUGS.has(poi.category.slug)
+    || (poi.subcategory !== null && TOURIST_SUBCATEGORY_SLUGS.has(poi.subcategory.slug))
+}
+
+/**
+ * Schéma dédié à `/decouvrir`: la taxonomie visible choisit le type et seuls
+ * les faits effectivement rendus par DiscoveryPoiView sont balisés.
+ */
+export function discoveryPoiSchema(poi: DiscoveryPoiDetail): JsonLdObject {
+  const path = `/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`
+  const hoursSpec = openingHoursSpecification(poi.hours)
+
+  return {
+    '@context': SCHEMA,
+    '@type': isTouristDiscoveryPoi(poi) ? 'TouristAttraction' : 'LocalBusiness',
+    name: poi.name,
+    description: poi.description,
+    url: poiUrl(path),
+    image: [poi.hero_photo_url],
+    ...(poi.phone ? { telephone: poi.phone } : {}),
+    ...(poi.website ? { sameAs: [poi.website] } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: poi.address,
+      addressLocality: poi.city.name,
+    },
+    geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
+    ...(poi.rating !== null && poi.rating_count !== null && poi.rating_count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: poi.rating,
+            ratingCount: poi.rating_count,
+          },
+        }
+      : {}),
+    ...(hoursSpec ? { openingHoursSpecification: hoursSpec } : {}),
   }
 }
 

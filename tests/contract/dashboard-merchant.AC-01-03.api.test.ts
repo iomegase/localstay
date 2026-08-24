@@ -7,6 +7,8 @@ const mockUpdatePoi = jest.fn()
 const mockFindFirstPoi = jest.fn()
 const mockUpload = jest.fn()
 const mockGetPublicUrl = jest.fn()
+const mockDiscoveryAuditCreate = jest.fn()
+const mockTransaction = jest.fn()
 
 jest.mock('@/shared/lib/supabase', () => ({
   createSupabaseRouteClient: jest.fn(async function() {
@@ -36,6 +38,10 @@ jest.mock('@/shared/lib/prisma', () => ({
       update: function() { return mockUpdatePoi.apply(this, arguments as any) },
       findFirst: function() { return mockFindFirstPoi.apply(this, arguments as any) },
     },
+    poiAcquisitionAuditLog: {
+      create: function() { return mockDiscoveryAuditCreate.apply(this, arguments as any) },
+    },
+    $transaction: function() { return mockTransaction.apply(this, arguments as any) },
   },
 }))
 
@@ -83,7 +89,13 @@ describe('015 merchant profile and photos API', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'supa-merchant' } } })
     mockFindUser.mockResolvedValue(merchant)
     mockFindFirstProfile.mockResolvedValue(activeProfile)
-    mockFindFirstPoi.mockResolvedValue(activeProfile.poi)
+    mockFindFirstPoi.mockImplementation(async ({ where }: { where?: { discovery_status?: string } }) =>
+      where?.discovery_status === 'PUBLISHED' ? null : activeProfile.poi,
+    )
+    mockTransaction.mockImplementation(async callback => callback({
+      pointOfInterest: { findFirst: mockFindFirstPoi, update: mockUpdatePoi },
+      poiAcquisitionAuditLog: { create: mockDiscoveryAuditCreate },
+    }))
     mockGetPublicUrl.mockReturnValue({
       data: {
         publicUrl: 'https://storage.supabase.co/storage/v1/object/public/merchant-poi-photos/merchant-1/poi-1/photo.webp',

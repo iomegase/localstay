@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getPoiDetail } from '@/features/categories/queries/poi-detail'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import { getContextualOwnerNote } from '@/features/guide-customization/queries/contextual-owner-note'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
-import { poiMetadata } from '@/features/seo/lib/metadata'
+import { discoveryPoiMetadata, poiMetadata } from '@/features/seo/lib/metadata'
 import { JsonLd } from '@/shared/components/JsonLd'
 import {
   breadcrumbSchema,
@@ -12,6 +12,7 @@ import {
   touristAttractionSchema,
   type PoiSchemaInput,
 } from '@/features/seo/lib/structured-data'
+import { getDiscoveryPoi } from '@/features/public-discovery/queries/public-discovery'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string; 'poi-slug': string }>
@@ -19,6 +20,14 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
+  const lodgingContext = await getActiveLodgingContext()
+  if (!lodgingContext) {
+    const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
+    return publicPoi
+      ? discoveryPoiMetadata(publicPoi)
+      : { title: 'Adresse introuvable', robots: { index: false, follow: false } }
+  }
+
   const poi = await getPoiDetail(citySlug, categorySlug, poiSlug)
   if (!poi) return { title: 'Adresse introuvable', robots: { index: false } }
 
@@ -38,12 +47,21 @@ export default async function PoiDetailPage({ params }: Props) {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
 
   const lodgingContext = await getActiveLodgingContext()
+  if (!lodgingContext) {
+    const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
+    if (!publicPoi) {
+      notFound()
+      return null
+    }
+    permanentRedirect(
+      `/decouvrir/${publicPoi.city.slug}/${publicPoi.category.slug}/${publicPoi.slug}`,
+    )
+  }
+
   const poi = await getPoiDetail(citySlug, categorySlug, poiSlug, lodgingContext?.lodgingId ?? null)
   if (!poi) { notFound(); return null }
 
-  const ownerRecommendationNote = lodgingContext
-    ? await getContextualOwnerNote(lodgingContext.lodgingId, poi.id)
-    : null
+  const ownerRecommendationNote = await getContextualOwnerNote(lodgingContext.lodgingId, poi.id)
 
   const path = `/guide/${citySlug}/${categorySlug}/${poiSlug}`
   const schemaInput: PoiSchemaInput = {

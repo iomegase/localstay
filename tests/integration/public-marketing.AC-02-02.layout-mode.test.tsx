@@ -35,6 +35,7 @@ import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode
 
 describe('031-public-marketing-site public layout modes', () => {
   beforeEach(() => {
+    jest.clearAllMocks()
     mockHeaders.mockResolvedValue(new Headers())
   })
 
@@ -65,11 +66,6 @@ describe('031-public-marketing-site public layout modes', () => {
   })
 
   it('keeps a marketing route outside the private shell even with an active stay', async () => {
-    jest.mocked(getActiveLodgingContext).mockResolvedValue({
-      lodgingName: 'Chalet',
-      ownerName: 'Alice',
-      citySlug: 'saint-gervais-les-bains',
-    } as Awaited<ReturnType<typeof getActiveLodgingContext>>)
     mockHeaders.mockResolvedValue(
       new Headers({ 'x-staylocal-marketing-route': '1' }),
     )
@@ -79,5 +75,6 @@ describe('031-public-marketing-site public layout modes', () => {
     expect(screen.queryByTestId('public-header')).not.toBeInTheDocument()
     expect(screen.queryByTestId('private-bottom-nav')).not.toBeInTheDocument()
     expect(screen.getByText('Marketing with cookie')).toBeInTheDocument()
+    expect(getActiveLodgingContext).not.toHaveBeenCalled()
   })
 })

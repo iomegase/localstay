@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createSupabaseMiddlewareClient } from '@/shared/lib/supabase'
 import { DASHBOARD_ROUTES } from '@/shared/types/roles'
+import {
+  LODGING_COOKIE_NAME,
+  lodgingBearerCookie,
+} from '@/features/public-menu/lib/lodging-cookie'
 
-const LODGING_COOKIE_NAME = 'lodging_id'
-const LODGING_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 jours
 const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
 // Écran de blocage affiché quand on accède au site sans séjour actif.
@@ -19,13 +21,27 @@ const ANONYMOUS_MARKETING_EXACT_PATHS = new Set([
   '/connexion',
   '/logements',
   '/blog',
+  '/decouvrir',
 ])
-const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/']
+const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/', '/decouvrir/']
 
 // Confinement guest : sous /guide/{ville}, seuls ces 2ᵉ segments sont autorisés
 // pour un visiteur en séjour (hors entrée QR ?lodging=). Tout le reste (page ville,
 // catégories, météo…) est renvoyé vers l'accueil séjour.
 const GUEST_ALLOWED_GUIDE_SEGMENTS = new Set(['logements', 'agenda', 'mes-favoris', 'contact'])
+
+function isLegacyDiscoveryGuidePath(pathname: string): boolean {
+  const segments = pathname.split('/').filter(Boolean)
+  if (segments[0] !== 'guide' || !segments[1]) return false
+
+  if (segments.length === 2) return true
+  if (segments.length > 4) return false
+
+  const guideSegment = segments[2]
+  return Boolean(
+    guideSegment && !GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment),
+  )
+}
 
 export function isAnonymousMarketingPath(pathname: string) {
   const segments = pathname.split('/').filter(Boolean)
@@ -68,23 +84,26 @@ export async function proxy(request: NextRequest) {
   if (path.startsWith('/guide/')) {
     const lodgingFromQuery = request.nextUrl.searchParams.get('lodging')
     if (lodgingFromQuery && UUID_REGEX.test(lodgingFromQuery)) {
-      const cookie = {
-        name: LODGING_COOKIE_NAME,
-        value: lodgingFromQuery,
-        maxAge: LODGING_COOKIE_MAX_AGE_SECONDS,
-        sameSite: 'lax' as const,
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-      }
+      const cookie = lodgingBearerCookie(lodgingFromQuery)
 
-      // Atterrissage du QR séjour = /guide/{ville} (2 segments exactement).
-      // On dépose alors le guest sur la home privée canonique (/sejour).
-      // ?lodging= est transporté pour que cette page enregistre l'évènement
-      // qr_scan. La navigation interne plus profonde
-      // (/guide/{ville}/{categorie}…) porte aussi ?lodging= : on se contente
-      // alors de rafraîchir le cookie, sans rediriger.
-      const isCityLanding = path.split('/').filter(Boolean).length === 2
-      if (isCityLanding) {
+      // La City rejoint toujours la home privée. Une Category/fiche POI ne peut
+      // continuer que si le cookie de la requête porte déjà le même Lodging :
+      // un cookie posé sur la réponse n'est pas encore visible par le Server
+      // Component courant et déclencherait à tort la migration SEO anonyme.
+      // Les routes réservées logement, agenda et démarrage randonnée conservent
+      // leur comportement historique et rafraîchissent seulement le cookie.
+      if (isLegacyDiscoveryGuidePath(path)) {
+        const segments = path.split('/').filter(Boolean)
+        const isCityLanding = segments.length === 2
+        const currentLodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+        const canContinuePrivateNavigation =
+          !isCityLanding && currentLodgingCookie === lodgingFromQuery
+
+        if (canContinuePrivateNavigation) {
+          response.cookies.set(cookie)
+          return response
+        }
+
         const destination = new URL('/sejour', request.url)
         destination.searchParams.set('lodging', lodgingFromQuery)
         const redirect = NextResponse.redirect(destination)

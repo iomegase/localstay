@@ -1,7 +1,13 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
+import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
 import { geocodeForAcquisition } from '@/features/poi-acquisition/lib/geocode'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
+import { getPoiDiscoveryEligibility } from '@/features/public-discovery/lib/eligibility'
+import {
+  buildPoiDiscoveryPublicUrl,
+  toEligibilityDto,
+} from '@/features/public-discovery/queries/admin-publication'
 import {
   fetchOfficialWebsitePhotoEnrichmentDetailed,
   mergeOfficialWebsitePhotos,
@@ -36,9 +42,11 @@ type AdminPoiRow = {
   review_source: 'MANUAL' | 'GOOGLE'
   photos_status: string
   updated_at: Date
-  city: { id: string; name: string; slug: string }
-  category: { id: string; name: string; slug: string }
-  subcategory: { id: string; name: string; slug: string } | null
+  discovery_status: 'DRAFT' | 'PUBLISHED'
+  discovery_published_at: Date | null
+  city: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null }
+  category: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null }
+  subcategory: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null } | null
   merchant_profile: { id: string } | null
   trail_detail: {
     id: string
@@ -63,6 +71,22 @@ type AcquisitionRunRow = {
   candidates: Array<{ review_status: string }>
 }
 
+export type AdminPoiMutationResult = {
+  data: AdminPoiDetail
+  discovery_revalidation_paths: string[]
+}
+
+type AutoUnpublishResult = {
+  poi: AdminPoiRow
+  discoveryRevalidationPaths: string[]
+}
+
+type PublishedDiscoveryRouteContext = {
+  citySlug: string
+  categorySlug: string
+  poiSlug: string
+}
+
 const adminPoiSelect = {
   id: true,
   name: true,
@@ -81,9 +105,11 @@ const adminPoiSelect = {
   review_source: true,
   photos_status: true,
   updated_at: true,
-  city: { select: { id: true, name: true, slug: true } },
-  category: { select: { id: true, name: true, slug: true } },
-  subcategory: { select: { id: true, name: true, slug: true } },
+  discovery_status: true,
+  discovery_published_at: true,
+  city: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
+  category: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
+  subcategory: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
   merchant_profile: { select: { id: true } },
   trail_detail: {
     select: {
@@ -189,7 +215,7 @@ export async function updateAdminPoi(
   id: string,
   input: AdminPoiPatchInput,
   adminId: string,
-): Promise<AdminPoiDetail> {
+): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   const targetCategoryId = input.category_id ?? before.category_id
 
@@ -262,7 +288,8 @@ export async function updateAdminPoi(
     data.geocode_attempts = { increment: 1 }
   }
 
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data,
@@ -271,6 +298,7 @@ export async function updateAdminPoi(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_updated',
         target_type: 'poi',
         target_id: id,
@@ -278,15 +306,16 @@ export async function updateAdminPoi(
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
 
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
-export async function disableAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function disableAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data: { is_active: false, deleted_at: null },
@@ -295,6 +324,7 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_disabled',
         target_type: 'poi',
         target_id: id,
@@ -302,16 +332,17 @@ export async function disableAdminPoi(id: string, adminId: string): Promise<Admi
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
-export async function deleteAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function deleteAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   if (before.deleted_at) throw new PoiAcquisitionError('POI_ALREADY_DELETED', 409)
 
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data: { is_active: false, deleted_at: new Date() },
@@ -320,6 +351,7 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_deleted',
         target_type: 'poi',
         target_id: id,
@@ -327,12 +359,12 @@ export async function deleteAdminPoi(id: string, adminId: string): Promise<Admin
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
-export async function restoreAdminPoi(id: string, adminId: string): Promise<AdminPoiDetail> {
+export async function restoreAdminPoi(id: string, adminId: string): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   if (!before.deleted_at) throw new PoiAcquisitionError('POI_NOT_DELETED', 409)
 
@@ -342,7 +374,8 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
     subcategoryId: before.subcategory_id,
   })
 
-  const updated = await prisma.$transaction(async tx => {
+  const updated = await runSerializableTransaction(async tx => {
+    const publishedRouteContext = await getPublishedDiscoveryRouteContext(tx, id)
     const poi = await tx.pointOfInterest.update({
       where: { id },
       data: { is_active: false, deleted_at: null },
@@ -351,6 +384,7 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_restored',
         target_type: 'poi',
         target_id: id,
@@ -358,9 +392,9 @@ export async function restoreAdminPoi(id: string, adminId: string): Promise<Admi
         after: buildAuditSnapshot(poi),
       },
     })
-    return poi
+    return autoUnpublishIneligiblePoi(tx, poi, adminId, publishedRouteContext)
   })
-  return mapAdminPoiDetail(updated as AdminPoiRow)
+  return mapAdminPoiMutationResult(updated)
 }
 
 export async function refreshAdminPoiOfficialPhotos(
@@ -388,6 +422,7 @@ export async function refreshAdminPoiOfficialPhotos(
     await prisma.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_photos_refreshed',
         target_type: 'poi',
         target_id: id,
@@ -407,6 +442,7 @@ export async function refreshAdminPoiOfficialPhotos(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'poi_photos_refreshed',
         target_type: 'poi',
         target_id: id,
@@ -517,14 +553,17 @@ async function validatePoiDependencies(input: {
 }
 
 function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
+  const eligibility = getPoiDiscoveryEligibility(row)
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
     status: getAdminPoiStatus(row),
-    city: row.city,
-    category: row.category,
-    subcategory: row.subcategory,
+    city: { id: row.city.id, name: row.city.name, slug: row.city.slug },
+    category: { id: row.category.id, name: row.category.name, slug: row.category.slug },
+    subcategory: row.subcategory
+      ? { id: row.subcategory.id, name: row.subcategory.name, slug: row.subcategory.slug }
+      : null,
     address: row.address,
     geocode_status: row.geocode_status,
     photo_count: row.photos.length,
@@ -534,11 +573,21 @@ function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
     merchant_attached: Boolean(row.merchant_profile),
     has_trail_detail: Boolean(row.trail_detail && !row.trail_detail.deleted_at),
     updated_at: row.updated_at.toISOString(),
-    public_url: `/guide/${row.city.slug}/${row.category.slug}/${row.slug}`,
+    discovery_status: row.discovery_status,
+    discovery_published_at: row.discovery_published_at?.toISOString() ?? null,
+    public_url:
+      row.discovery_status === 'PUBLISHED' && eligibility.eligible
+        ? buildPoiDiscoveryPublicUrl(row)
+        : null,
   }
 }
 
 function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
+  const eligibility = getPoiDiscoveryEligibility(row)
+  const discoveryPublicUrl =
+    row.discovery_status === 'PUBLISHED' && eligibility.eligible
+      ? buildPoiDiscoveryPublicUrl(row)
+      : null
   return {
     ...mapAdminPoiListItem(row),
     description: row.description,
@@ -550,6 +599,8 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
     longitude: row.longitude,
     slug_editable: false,
     trail_fields_locked: Boolean(row.trail_detail && !row.trail_detail.deleted_at),
+    discovery_eligibility: toEligibilityDto(eligibility),
+    discovery_public_url: discoveryPublicUrl,
     trail_detail:
       row.trail_detail && !row.trail_detail.deleted_at
         ? {
@@ -563,6 +614,114 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
             data_quality_status: row.trail_detail.data_quality_status ?? 'incomplete',
           }
         : null,
+  }
+}
+
+async function autoUnpublishIneligiblePoi(
+  tx: Prisma.TransactionClient,
+  poi: AdminPoiRow,
+  adminId: string,
+  publishedRouteContext: PublishedDiscoveryRouteContext | null,
+): Promise<AutoUnpublishResult> {
+  if (poi.discovery_status !== 'PUBLISHED') {
+    return { poi, discoveryRevalidationPaths: [] }
+  }
+
+  const eligibility = getPoiDiscoveryEligibility(poi)
+  if (eligibility.eligible) {
+    const contexts = [publishedRouteContext, publishedDiscoveryRouteContextFromPoi(poi)]
+      .filter((context): context is PublishedDiscoveryRouteContext => context !== null)
+    return {
+      poi,
+      discoveryRevalidationPaths: discoveryPathsForPublishedContexts(contexts),
+    }
+  }
+
+  const unpublished = await tx.pointOfInterest.update({
+    where: { id: poi.id },
+    data: {
+      discovery_status: 'DRAFT',
+      discovery_published_at: null,
+    },
+    select: adminPoiSelect,
+  })
+
+  await tx.poiAcquisitionAuditLog.create({
+      data: {
+        admin_id: adminId,
+        actor_type: 'ADMIN',
+        action: 'poi_discovery_auto_unpublished',
+      target_type: 'poi',
+      target_id: poi.id,
+      before: buildAuditSnapshot({
+        discovery_status: poi.discovery_status,
+        discovery_published_at: poi.discovery_published_at,
+        missing: eligibility.missing,
+      }),
+      after: buildAuditSnapshot({
+        discovery_status: unpublished.discovery_status,
+        discovery_published_at: unpublished.discovery_published_at,
+        missing: eligibility.missing,
+      }),
+    },
+  })
+
+  return {
+    poi: unpublished as AdminPoiRow,
+    discoveryRevalidationPaths: publishedRouteContext
+      ? discoveryPathsForPublishedContexts([publishedRouteContext])
+      : [],
+  }
+}
+
+async function getPublishedDiscoveryRouteContext(
+  tx: Prisma.TransactionClient,
+  id: string,
+): Promise<PublishedDiscoveryRouteContext | null> {
+  const poi = await tx.pointOfInterest.findFirst({
+    where: { id },
+    select: {
+      slug: true,
+      discovery_status: true,
+      city: { select: { slug: true } },
+      category: { select: { slug: true } },
+    },
+  })
+  if (!poi) throw new PoiAcquisitionError('POI_NOT_FOUND', 404)
+  if (poi.discovery_status !== 'PUBLISHED') return null
+
+  return {
+    citySlug: poi.city.slug,
+    categorySlug: poi.category.slug,
+    poiSlug: poi.slug,
+  }
+}
+
+function discoveryPathsForPublishedContexts(contexts: PublishedDiscoveryRouteContext[]): string[] {
+  const paths = new Set<string>()
+  for (const context of contexts) {
+    paths.add(`/decouvrir/${context.citySlug}`)
+    paths.add(`/decouvrir/${context.citySlug}/${context.categorySlug}`)
+    paths.add(`/decouvrir/${context.citySlug}/${context.categorySlug}/${context.poiSlug}`)
+  }
+  return Array.from(paths)
+}
+
+function publishedDiscoveryRouteContextFromPoi(
+  poi: AdminPoiRow,
+): PublishedDiscoveryRouteContext | null {
+  if (poi.discovery_status !== 'PUBLISHED') return null
+  return {
+    citySlug: poi.city.slug,
+    categorySlug: poi.category.slug,
+    poiSlug: poi.slug,
+  }
+}
+
+function mapAdminPoiMutationResult(result: AutoUnpublishResult): AdminPoiMutationResult {
+  return {
+    data: mapAdminPoiDetail(result.poi),
+    discovery_revalidation_paths: result.discoveryRevalidationPaths,
   }
 }
 

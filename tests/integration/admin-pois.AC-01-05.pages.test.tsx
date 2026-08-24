@@ -83,7 +83,9 @@ describe('022 admin POI pages', () => {
           merchant_attached: true,
           has_trail_detail: false,
           updated_at: '2026-05-25T08:00:00.000Z',
-          public_url: '/guide/saint-gervais-les-bains/culture/le-pile-pont-expo',
+          discovery_status: 'DRAFT',
+          discovery_published_at: null,
+          public_url: null,
         },
       ],
       pagination: { page: 1, limit: 25, total: 1, total_pages: 1 },
@@ -129,9 +131,26 @@ describe('022 admin POI pages', () => {
       merchant_attached: true,
       has_trail_detail: true,
       updated_at: '2026-05-25T08:00:00.000Z',
-      public_url: '/guide/saint-gervais-les-bains/culture/le-pile-pont-expo',
+      discovery_status: 'DRAFT',
+      discovery_published_at: null,
+      public_url: null,
       slug_editable: false,
       trail_fields_locked: true,
+      discovery_eligibility: {
+        eligible: true,
+        checks: {
+          active: true,
+          city: true,
+          category: true,
+          subcategory: true,
+          description: true,
+          photo: true,
+          address: true,
+          geocode: true,
+          contact: true,
+        },
+      },
+      discovery_public_url: null,
     })
   })
 

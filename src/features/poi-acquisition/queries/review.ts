@@ -101,6 +101,7 @@ export async function publishCandidate(
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'candidate_published',
         target_type: 'candidate',
         target_id: candidate.id,
@@ -143,6 +144,7 @@ export async function mergeCandidate(candidateId: string, poiId: string, adminId
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'candidate_merged',
         target_type: 'candidate',
         target_id: candidate.id,
@@ -179,6 +181,7 @@ export async function rejectCandidate(candidateId: string, adminId: string, admi
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'candidate_rejected',
         target_type: 'candidate',
         target_id: candidate.id,

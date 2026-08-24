@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
-updated_at: 2026-08-20
+updated_at: 2026-08-24
 depends_on:
   - 001-city-guide
   - 002-categories
@@ -268,13 +268,32 @@ destination publique existe. Les routes QR et le séjour privé restent sous
   `discovery_status = DRAFT` et `discovery_published_at = null`. Une restauration
   ne republie jamais automatiquement le POI.
 - **BR-23**: Chaque publication, retrait ou retrait automatique crée un
-  `PoiAcquisitionAuditLog` avec une action explicite et les valeurs avant/après.
+  `PoiAcquisitionAuditLog` avec une action explicite, les valeurs avant/après
+  et un acteur typé `ADMIN`, `MERCHANT` ou `SYSTEM`. `ADMIN` et `MERCHANT`
+  référencent obligatoirement le `User` ayant déclenché la mutation via le
+  champ historique `admin_id`. `SYSTEM` est réservé aux automatisations sans
+  session utilisateur (photo healer, persister Gemini legacy, géocodage) et
+  impose `admin_id = null`. Une mutation et son éventuel retrait automatique
+  sont atomiques ; la revalidation des URL publiques intervient uniquement
+  après le commit.
 - **BR-24**: La publication publique utilise le français canonique existant.
   L'ajout de versions multilingues reste régi par la spec 027.
 - **BR-25**: Cette spec remplace les URL publiques définies par les specs 001,
   002, 003 et 004 pour les accès anonymes. Leurs contrats de données, actions
   POI et règles géographiques restent applicables lorsqu'ils ne contredisent
   pas 041.
+- **BR-26**: La découverte publique préserve le contrat photo de la spec 022 :
+  toute URL distante `http(s)` exploitable reste admissible, sans allowlist
+  d'hôtes, re-hébergement ni proxy d'optimisation. Les photos `/decouvrir`
+  utilisent donc un élément `<img>` natif responsive plutôt que `next/image`,
+  avec dimensions intrinsèques, ratio réservé, texte alternatif et politique
+  de référent restrictive. Le navigateur tente l'URL distante telle quelle ;
+  si elle échoue ou est bloquée (notamment après traitement mixed-content
+  d'une source HTTP), le composant affiche une ressource locale MyStay
+  déterministe sans modifier l'URL stockée ni republier l'image. Cette
+  exception explicite à BR-13 et au standard marketing évite de rendre un POI
+  inéligible uniquement selon l'hôte de sa photo ; les contrôles
+  favicon/logo/placeholder de la spec 022 restent applicables.
 
 ---
 
@@ -287,6 +306,12 @@ Cette feature ajoute un statut de publication éditoriale distinct sur
 enum PoiDiscoveryStatus {
   DRAFT
   PUBLISHED
+}
+
+enum PoiAuditActorType {
+  ADMIN
+  MERCHANT
+  SYSTEM
 }
 
 model PointOfInterest {
@@ -315,6 +340,25 @@ model PointOfInterest {
   @@index([discovery_status, deleted_at, is_active, updated_at])
   @@index([city_id, category_id, discovery_status, deleted_at, is_active])
 }
+
+model PoiAcquisitionAuditLog {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  // Nom de colonne historique conservé pour compatibilité.
+  admin_id  String?
+  admin     User?             @relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id], onDelete: Restrict)
+  actor_type PoiAuditActorType @default(ADMIN)
+
+  // Champs existants conservés sans modification.
+  action       String
+  target_type  String
+  target_id    String?
+  before       Json?
+  after        Json?
+}
 ```
 
 Invariants :
@@ -323,6 +367,13 @@ Invariants :
 - `PUBLISHED` implique `discovery_published_at != null` ;
 - une mutation qui enfreint BR-04 force `DRAFT` dans la même transaction ;
 - aucune suppression physique n'est introduite.
+- `actor_type = SYSTEM` implique `admin_id = null` ;
+- `actor_type IN (ADMIN, MERCHANT)` implique `admin_id != null` ; cette
+  contrainte est ajoutée par la migration PostgreSQL et également construite
+  explicitement par les services TypeScript.
+- la relation vers un acteur `User` utilise `ON DELETE RESTRICT` afin de
+  préserver l'identité historique de l'audit ; les comptes restent gérés par
+  soft delete.
 
 ---
 
@@ -442,6 +493,10 @@ Extensions du contrat `022` :
   `discovery_public_url` ;
 - les payloads sont validés par Zod avant toute mutation.
 
+Le type d'acteur d'audit est interne et n'ajoute aucun champ aux DTO publics ou
+aux réponses de l'API de publication. Les automatisations sans utilisateur
+écrivent `actor_type = SYSTEM` et `admin_id = null`.
+
 ---
 
 ## UI Behaviour
@@ -497,6 +552,11 @@ Extensions du contrat `022` :
 - Erreur serveur transitoire : erreur générique sans détail Prisma.
 - Images absentes : impossibilité de publier, donc aucun fallback éditorial ne
   rend une fiche éligible à lui seul.
+- Images distantes : rendu natif responsive conformément à BR-26 ; les cards
+  chargent paresseusement et la hero prioritaire réserve son ratio sans
+  débordement. L'éligibilité garantit une URL exploitable, pas sa disponibilité
+  réseau dans chaque navigateur ; un échec bascule une seule fois sur le
+  fallback MyStay local.
 - Responsive : 375 px minimum, aucun scroll horizontal.
 
 ---
@@ -561,3 +621,11 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
 - les pages City et Category sont publiées dès le premier POI validé ;
 - la migration des anciennes URL publiques est immédiate avec redirections SEO ;
 - la découverte publique et le séjour privé restent strictement séparés.
+- les photos publiques conservent les URLs `http(s)` arbitraires autorisées par
+  la spec 022 ; le rendu natif `<img>` est l'exception validée à `next/image`,
+  sans re-hébergement ni réduction de l'éligibilité par allowlist ; chaque URL
+  est tentée nativement et un échec navigateur affiche le fallback MyStay
+  local, sans promettre que toute source HTTP distante peut être chargée.
+- les dépublications automatiques sans session sont auditées avec
+  `actor_type = SYSTEM` et `admin_id = null`; les actions Admin/Merchant
+  conservent l'identifiant du `User` déclencheur.

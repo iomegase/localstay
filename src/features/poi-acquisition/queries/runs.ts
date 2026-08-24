@@ -186,6 +186,7 @@ export async function deleteAcquisitionRun(id: string, adminId: string): Promise
     prisma.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
+        actor_type: 'ADMIN',
         action: 'run_deleted',
         target_type: 'PoiAcquisitionRun',
         target_id: id,

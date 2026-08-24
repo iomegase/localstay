@@ -490,8 +490,9 @@ export async function validateFeaturedPois(
 
   for (const [poiId, requested] of requestedByPoiId.entries()) {
     const row = validRows.get(poiId)
-    if (!row) continue
-    if (row.deleted_at !== null || !row.is_active) continue
+    if (!row || row.deleted_at !== null || !row.is_active) {
+      raise('INVALID_FEATURED_POI', 'Le POI demandé est indisponible')
+    }
 
     const ownerNote = normalizeOwnerNote(requested.owner_note)
     if (ownerNote !== null && countWords(ownerNote) > OWNER_NOTE_MAX_WORDS) {

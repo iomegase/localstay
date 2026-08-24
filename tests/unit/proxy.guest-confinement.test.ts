@@ -43,18 +43,41 @@ describe('proxy — confinement du guest en séjour', () => {
     expect(redirectPathname(res)).toBeNull()
   })
 
-  it('ne confine pas une entrée QR (?lodging=) même sur une page ville profonde', async () => {
+  it('conserve une navigation privée profonde quand le cookie correspond au paramètre', async () => {
     const req = new NextRequest(
       `http://localhost:3000/guide/paris/restaurants?lodging=${LODGING_ID}`,
       { headers: { cookie: `lodging_id=${LODGING_ID}` } },
     )
     const res = await proxy(req)
     expect(redirectPathname(res)).toBeNull()
+    expect(res.cookies.get('lodging_id')?.value).toBe(LODGING_ID)
   })
 
   it('ne confine pas un visiteur anonyme (sans cookie) sur la page ville', async () => {
     const res = await proxy(anonRequest('/guide/paris'))
     expect(redirectPathname(res)).toBeNull()
+  })
+
+  it.each([
+    '/decouvrir/saint-gervais-les-bains',
+    '/decouvrir/saint-gervais-les-bains/diner',
+    '/decouvrir/saint-gervais-les-bains/diner/le-serac',
+  ])('laisse la découverte publique accessible et dans le shell marketing sur %s', async path => {
+    const anonymousResponse = await proxy(anonRequest(path))
+    expect(anonymousResponse.headers.get('x-middleware-rewrite')).toBeNull()
+    expect(
+      anonymousResponse.headers.get(
+        'x-middleware-request-x-staylocal-marketing-route',
+      ),
+    ).toBe('1')
+
+    const guestResponse = await proxy(guestRequest(path))
+    expect(redirectPathname(guestResponse)).toBeNull()
+    expect(
+      guestResponse.headers.get(
+        'x-middleware-request-x-staylocal-marketing-route',
+      ),
+    ).toBe('1')
   })
 
   it('garde /sejour privé et marque sa requête pour le nouveau shell', async () => {

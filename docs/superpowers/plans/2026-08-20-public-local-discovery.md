@@ -8,6 +8,14 @@
 
 **Tech Stack:** Next.js 16 App Router, React Server Components, TypeScript strict, Prisma/PostgreSQL, Zod, Tailwind CSS, Shadcn/ui, Jest, Testing Library, Playwright.
 
+**Décision résolue — 2026-08-24 :** les retraits automatiques sans utilisateur
+emploient un acteur d'audit explicite `SYSTEM`. `PoiAcquisitionAuditLog` reçoit
+un `actor_type` typé (`ADMIN | MERCHANT | SYSTEM`) ; le champ historique
+`admin_id` devient nullable uniquement pour `SYSTEM`, tandis que les acteurs
+`ADMIN` et `MERCHANT` restent reliés à leur `User`. La migration backfill les
+lignes existantes en `ADMIN`, ajoute la contrainte PostgreSQL correspondante et
+n'est pas appliquée automatiquement pendant l'implémentation.
+
 ---
 
 ## File map
@@ -57,7 +65,7 @@
 - Modify: `prisma/schema.prisma:90-150`
 - Create: `prisma/migrations/20260820150000_add_poi_discovery_publication/migration.sql`
 
-- [ ] **Step 1: Write the failing eligibility tests**
+- [x] **Step 1: Write the failing eligibility tests**
 
 ```ts
 import { getPoiDiscoveryEligibility } from '@/features/public-discovery/lib/eligibility'
@@ -96,13 +104,13 @@ describe('041 POI discovery eligibility', () => {
 })
 ```
 
-- [ ] **Step 2: Run the unit test and verify the expected failure**
+- [x] **Step 2: Run the unit test and verify the expected failure**
 
 Run: `npm test -- --runInBand tests/unit/public-discovery.BR-04.eligibility.test.ts`
 
 Expected: FAIL because `@/features/public-discovery/lib/eligibility` does not exist.
 
-- [ ] **Step 3: Define the strict typed eligibility contract**
+- [x] **Step 3: Define the strict typed eligibility contract**
 
 ```ts
 // src/features/public-discovery/types.ts
@@ -169,7 +177,7 @@ function isHttpUrl(value: string | null): boolean {
 }
 ```
 
-- [ ] **Step 4: Add Prisma enum, fields and indexes**
+- [x] **Step 4: Add Prisma enum, fields and indexes**
 
 ```prisma
 enum PoiDiscoveryStatus {
@@ -201,7 +209,7 @@ CREATE INDEX "PointOfInterest_city_id_category_id_discovery_status_deleted_at_is
 ON "PointOfInterest"("city_id", "category_id", "discovery_status", "deleted_at", "is_active");
 ```
 
-- [ ] **Step 5: Generate Prisma Client and run validation/tests**
+- [x] **Step 5: Generate Prisma Client and run validation/tests**
 
 Run: `npx prisma validate`
 
@@ -215,7 +223,7 @@ Run: `npm test -- --runInBand tests/unit/public-discovery.BR-04.eligibility.test
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the model and pure rule**
+- [x] **Step 6: Commit the model and pure rule**
 
 ```bash
 git add prisma/schema.prisma prisma/migrations/20260820150000_add_poi_discovery_publication/migration.sql src/features/public-discovery/types.ts src/features/public-discovery/lib/eligibility.ts tests/unit/public-discovery.BR-04.eligibility.test.ts
@@ -235,7 +243,7 @@ git commit -m "feat(discovery): add POI publication eligibility"
 - Modify: `src/features/admin-pois/lib/admin-poi-rules.ts`
 - Modify: `src/features/admin-pois/queries/admin-pois.ts`
 
-- [ ] **Step 1: Write failing API tests for publish, reject and unpublish**
+- [x] **Step 1: Write failing API tests for publish, reject and unpublish**
 
 ```ts
 const mockUpdatePublication = jest.fn()
@@ -262,13 +270,13 @@ it('rejects unknown fields with 400', async () => {
 })
 ```
 
-- [ ] **Step 2: Run the contract test and verify it fails**
+- [x] **Step 2: Run the contract test and verify it fails**
 
 Run: `npm test -- --runInBand tests/contract/public-discovery.AC-04.publication-api.test.ts`
 
 Expected: FAIL because the route does not exist.
 
-- [ ] **Step 3: Add strict Zod validation and the Admin route**
+- [x] **Step 3: Add strict Zod validation and the Admin route**
 
 ```ts
 const DiscoveryPublicationSchema = z.object({
@@ -291,7 +299,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 ```
 
-- [ ] **Step 4: Implement the transaction and audit**
+- [x] **Step 4: Implement the transaction and audit**
 
 `updatePoiDiscoveryPublication` must load the POI with City, Category and
 SubCategory, call `getPoiDiscoveryEligibility`, reject incomplete publication
@@ -319,20 +327,20 @@ await tx.poiAcquisitionAuditLog.create({
 })
 ```
 
-- [ ] **Step 5: Extend Admin filters and enforce automatic unpublication**
+- [x] **Step 5: Extend Admin filters and enforce automatic unpublication**
 
 Add `discovery_status` to `AdminPoiListQuerySchema`, `AdminPoiListFilters`, list
 selection and DTOs. In `updateAdminPoi`, `disableAdminPoi`, `deleteAdminPoi` and
 `restoreAdminPoi`, evaluate the post-mutation state inside the transaction. If
 BR-04 becomes false, set `DRAFT`, clear the date and append the automatic audit.
 
-- [ ] **Step 6: Run focused Admin tests**
+- [x] **Step 6: Run focused Admin tests**
 
 Run: `npm test -- --runInBand tests/unit/admin-pois.AC-01-04.status-filters.test.ts tests/contract/admin-pois.AC-01-04.api.test.ts tests/contract/public-discovery.AC-04.publication-api.test.ts tests/integration/public-discovery.AC-04.publication-query.test.ts`
 
 Expected: all suites PASS.
 
-- [ ] **Step 7: Commit the Admin backend**
+- [x] **Step 7: Commit the Admin backend**
 
 ```bash
 git add src/features/public-discovery/queries/admin-publication.ts src/app/api/admin/pois/[id]/discovery-publication/route.ts src/features/admin-pois/types.ts src/features/admin-pois/lib/admin-poi-rules.ts src/features/admin-pois/queries/admin-pois.ts tests/unit/admin-pois.AC-01-04.status-filters.test.ts tests/contract/admin-pois.AC-01-04.api.test.ts tests/contract/public-discovery.AC-04.publication-api.test.ts tests/integration/public-discovery.AC-04.publication-query.test.ts
@@ -349,7 +357,7 @@ git commit -m "feat(discovery): add Admin publication workflow"
 - Modify: `src/app/admin/pois/[id]/page.tsx`
 - Modify: `src/app/admin/pois/page.tsx`
 
-- [ ] **Step 1: Write failing UI tests**
+- [x] **Step 1: Write failing UI tests**
 
 Test that the detail page displays all checklist labels, the current status,
 publication date, public URL and the correct action. Test that the list page
@@ -363,13 +371,13 @@ expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeEnab
 expect(screen.getByLabelText('Découverte')).toBeInTheDocument()
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-04.admin-ui.test.tsx`
 
 Expected: FAIL because the card/filter do not exist.
 
-- [ ] **Step 3: Implement the focused client card**
+- [x] **Step 3: Implement the focused client card**
 
 `AdminPoiDiscoveryCard` receives only serializable props:
 
@@ -388,20 +396,20 @@ The component shows the nine BR-04 checks, sends a strict PATCH to
 publish/unpublish, displays the API error message and calls `router.refresh()`
 only after success.
 
-- [ ] **Step 4: Wire the detail and list pages**
+- [x] **Step 4: Wire the detail and list pages**
 
 Render the card beside `AdminPoiEditForm`. Add a GET filter named
 `discovery_status` to the list form and render the status badge in each row.
 Keep the existing City requirement, paging query parameters and Shadcn visual
 grammar.
 
-- [ ] **Step 5: Run Admin UI regressions**
+- [x] **Step 5: Run Admin UI regressions**
 
 Run: `npm test -- --runInBand tests/integration/admin-pois.AC-01-05.pages.test.tsx tests/integration/public-discovery.AC-04.admin-ui.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the Admin UI**
+- [x] **Step 6: Commit the Admin UI**
 
 ```bash
 git add src/features/admin-pois/components/AdminPoiDiscoveryCard.tsx src/app/admin/pois/[id]/page.tsx src/app/admin/pois/page.tsx tests/integration/admin-pois.AC-01-05.pages.test.tsx tests/integration/public-discovery.AC-04.admin-ui.test.tsx
@@ -418,27 +426,27 @@ git commit -m "feat(discovery): add publication controls to Admin POIs"
 - Modify: `src/features/public-discovery/types.ts`
 - Create: `src/features/public-discovery/queries/public-discovery.ts`
 
-- [ ] **Step 1: Write failing query tests**
+- [x] **Step 1: Write failing query tests**
 
 Mock Prisma and assert that every query includes `discovery_status: 'PUBLISHED'`,
 `is_active: true`, `deleted_at: null`, `geocode_status: 'success'` and active
 City/Category/SubCategory relations. Assert the returned DTO contains no
 `lodging_id`, Owner note or private recommendation field.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-01-03.public-queries.test.ts tests/unit/public-discovery.AC-02-03.zones.test.ts`
 
 Expected: FAIL because the query module does not exist.
 
-- [ ] **Step 3: Define minimal public DTOs**
+- [x] **Step 3: Define minimal public DTOs**
 
 Define `DiscoveryCity`, `DiscoveryCategory`, `DiscoveryPoiCard` and
 `DiscoveryPoiDetail`. Include only visible facts: slugs, names, description,
 address, coordinates, contact, rating, hours, usable photos, taxonomies and
 computed `distance_km`/zone.
 
-- [ ] **Step 4: Implement three cached server queries**
+- [x] **Step 4: Implement three cached server queries**
 
 ```ts
 export const getDiscoveryCity = cache(async (citySlug: string): Promise<DiscoveryCity | null> => {})
@@ -450,13 +458,13 @@ Return `null` for every invalid/non-published route. Reuse the existing
 Haversine/zone helper rather than creating a second distance formula. Sort
 categories by `sort_order`, POI by zone, distance and name.
 
-- [ ] **Step 5: Run focused query tests**
+- [x] **Step 5: Run focused query tests**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-01-03.public-queries.test.ts tests/unit/public-discovery.AC-02-03.zones.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the public read model**
+- [x] **Step 6: Commit the public read model**
 
 ```bash
 git add src/features/public-discovery/types.ts src/features/public-discovery/queries/public-discovery.ts tests/integration/public-discovery.AC-01-03.public-queries.test.ts tests/unit/public-discovery.AC-02-03.zones.test.ts
@@ -473,7 +481,7 @@ git commit -m "feat(discovery): add public POI read model"
 - Modify: `src/features/seo/lib/metadata.ts`
 - Modify: `src/features/seo/lib/structured-data.ts`
 
-- [ ] **Step 1: Write failing SEO tests**
+- [x] **Step 1: Write failing SEO tests**
 
 Assert exact canonical paths and self URLs:
 
@@ -488,13 +496,13 @@ expect(discoveryPoiMetadata(poi).twitter?.card).toBe('summary_large_image')
 Assert the ItemList contains only visible `/decouvrir` URLs and POI JSON-LD
 uses the `/decouvrir` path provided by the caller.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `npm test -- --runInBand tests/unit/public-discovery.AC-01-05.metadata.test.ts tests/unit/public-discovery.AC-03-04.structured-data.test.ts`
 
 Expected: FAIL because discovery helpers do not exist.
 
-- [ ] **Step 3: Add dedicated metadata builders**
+- [x] **Step 3: Add dedicated metadata builders**
 
 Add `discoveryCityMetadata`, `discoveryCategoryMetadata` and
 `discoveryPoiMetadata`; do not repurpose the historical `/guide` builders.
@@ -507,7 +515,7 @@ Titles must be:
 All functions must set description, canonical, Open Graph URL/content and
 Twitter content from the same path and visible facts.
 
-- [ ] **Step 4: Add the discovery ItemList helper**
+- [x] **Step 4: Add the discovery ItemList helper**
 
 ```ts
 export function discoveryItemListSchema(input: {
@@ -528,13 +536,13 @@ export function discoveryItemListSchema(input: {
 }
 ```
 
-- [ ] **Step 5: Run all SEO units**
+- [x] **Step 5: Run all SEO units**
 
 Run: `npm test -- --runInBand tests/unit/seo.metadata.test.ts tests/unit/seo.structured-data.test.ts tests/unit/public-discovery.AC-01-05.metadata.test.ts tests/unit/public-discovery.AC-03-04.structured-data.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit SEO helpers**
+- [x] **Step 6: Commit SEO helpers**
 
 ```bash
 git add src/features/seo/lib/metadata.ts src/features/seo/lib/structured-data.ts tests/unit/public-discovery.AC-01-05.metadata.test.ts tests/unit/public-discovery.AC-03-04.structured-data.test.ts
@@ -556,7 +564,7 @@ git commit -m "feat(discovery): add metadata and structured data"
 - Create: `src/app/(public)/decouvrir/[city-slug]/[category-slug]/page.tsx`
 - Create: `src/app/(public)/decouvrir/[city-slug]/[category-slug]/[poi-slug]/page.tsx`
 
-- [ ] **Step 1: Write failing page integration tests**
+- [x] **Step 1: Write failing page integration tests**
 
 Mock `public-discovery` queries and verify each page:
 
@@ -568,40 +576,48 @@ Mock `public-discovery` queries and verify each page:
 - does not render `ownerRecommendationNote`, `lodging_id`, bottom navigation or
   guest-specific wording.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-01-03.pages.test.tsx`
 
 Expected: FAIL because the routes/components do not exist.
 
-- [ ] **Step 3: Implement the shared public card**
+- [x] **Step 3: Implement the shared public card**
 
-Use `next/image`, a 4:3 rounded hero, category eyebrow, address, optional rating
-and distance, and a full-card `Link` to the canonical discovery path. Provide
-responsive `sizes`, meaningful alt text and no `unoptimized` prop.
+Per BR-26 and the resolved spec 022 compatibility decision, use a native
+responsive `<img>` for arbitrary eligible remote `http(s)` URLs (not
+`next/image`, no proxy, no re-hosting and no host allowlist). Reserve a 4:3
+ratio with intrinsic dimensions, lazy-load cards, apply a restrictive referrer
+policy, meaningful alt text and reduced-motion handling. Keep the category
+eyebrow, address, optional rating/distance and full-card `Link` to the
+canonical discovery path. Use a focused client `RemotePoiImage` only to switch
+once to the existing local MyStay OG asset when the native remote request fails
+or is blocked; do not proxy, re-host or claim every HTTP source will load.
 
-- [ ] **Step 4: Implement City and Category views**
+- [x] **Step 4: Implement City and Category views**
 
 Both views compose `MarketingShell`, `MarketingEyebrow`,
 `marketingContainerClass` and the shared card. The City view includes category
 cards and the owner-lead CTA. The Category view renders primary and nearby
 sections independently and omits nearby when empty.
 
-- [ ] **Step 5: Implement the POI marketing view**
+- [x] **Step 5: Implement the POI marketing view**
 
-Render the rounded hero, breadcrumb, H1, category, description, address,
+Render the rounded hero with the same BR-26 native-image exception (intrinsic
+dimensions, eager/high-priority loading, restrictive referrer policy), breadcrumb, H1, category, description, address,
 optional hours/rating and conditional `tel:`, official site and Google Maps
 links. Reuse the existing Static Map component when its prop contract accepts
 the public DTO; otherwise create a focused wrapper without loading interactive
-Mapbox. End with the `/confier-mon-logement` CTA.
+Mapbox. The shared `RemotePoiImage` fallback preserves the hero ratio and alt
+text and must not retry recursively. End with the `/confier-mon-logement` CTA.
 
-- [ ] **Step 6: Implement page modules and `generateMetadata`**
+- [x] **Step 6: Implement page modules and `generateMetadata`**
 
 Each Server Component loads exactly one public query, calls `notFound()` on
 `null`, and passes the same DTO to its metadata/JSON-LD and visible view. Do not
 read `cookies()` or `headers()` in the new route modules.
 
-- [ ] **Step 7: Run integration and responsive tests**
+- [x] **Step 7: Run integration and responsive tests**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-01-03.pages.test.tsx`
 
@@ -611,7 +627,7 @@ Run: `npx playwright test tests/e2e/public-discovery.AC-01-04.responsive.test.ts
 
 Expected: routes render at 375, 768 and 1440 px with no horizontal overflow.
 
-- [ ] **Step 8: Commit the public pages**
+- [x] **Step 8: Commit the public pages**
 
 ```bash
 git add src/features/public-discovery/components src/app/(public)/decouvrir tests/integration/public-discovery.AC-01-03.pages.test.tsx tests/e2e/public-discovery.AC-01-04.responsive.test.ts
@@ -630,7 +646,7 @@ git commit -m "feat(discovery): add public City Category and POI pages"
 - Modify: `src/app/(public)/guide/[city-slug]/[category-slug]/page.tsx`
 - Modify: `src/app/(public)/guide/[city-slug]/[category-slug]/[poi-slug]/page.tsx`
 
-- [ ] **Step 1: Write failing redirect/security tests**
+- [x] **Step 1: Write failing redirect/security tests**
 
 Cover these branches:
 
@@ -640,13 +656,13 @@ Cover these branches:
 4. valid stay cookie + POI → existing private detail and Owner note remain;
 5. lodging routes remain unaffected.
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-05.legacy-redirects.test.tsx tests/unit/public-marketing.AC-02-01.qr-redirect.test.ts tests/unit/proxy.guest-confinement.test.ts`
 
 Expected: anonymous routes still render historical public content, so new redirect assertions FAIL.
 
-- [ ] **Step 3: Add route-level anonymous migration guards**
+- [x] **Step 3: Add route-level anonymous migration guards**
 
 For City and Category pages, resolve the active lodging context first. When it
 is absent, call the matching discovery query; use `permanentRedirect()` if it
@@ -654,19 +670,19 @@ exists and `notFound()` otherwise. For POI detail, preserve the existing
 private query/note branch only when a valid lodging context exists; otherwise
 resolve the public POI and redirect or 404 before loading contextual data.
 
-- [ ] **Step 4: Verify QR priority and reserved routes**
+- [x] **Step 4: Verify QR priority and reserved routes**
 
 Do not move the QR branch below anonymous marketing checks in `proxy.ts`. Do
 not redirect `/guide/{city}/logements/*`, agenda or trail start routes as part
 of this task.
 
-- [ ] **Step 5: Run migration regressions**
+- [x] **Step 5: Run migration regressions**
 
 Run: `npm test -- --runInBand tests/integration/public-discovery.AC-05.legacy-redirects.test.tsx tests/unit/public-marketing.AC-02-01.qr-redirect.test.ts tests/unit/proxy.guest-confinement.test.ts tests/integration/private-guide-favorites.AC-01-01-05.page.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit route migration**
+- [x] **Step 6: Commit route migration**
 
 ```bash
 git add src/app/(public)/guide tests/integration/public-discovery.AC-05.legacy-redirects.test.tsx tests/unit/public-marketing.AC-02-01.qr-redirect.test.ts tests/unit/proxy.guest-confinement.test.ts
@@ -684,7 +700,7 @@ git commit -m "feat(discovery): migrate anonymous guide URLs"
 - Modify: `src/features/seo/lib/sitemap.ts`
 - Preserve: `src/app/sitemap.ts`
 
-- [ ] **Step 1: Change sitemap tests first**
+- [x] **Step 1: Change sitemap tests first**
 
 Expect City, Category and POI URLs under `/decouvrir`; explicitly assert the
 equivalent `/guide` URLs are absent. Assert City/Category are deduplicated and
@@ -697,34 +713,34 @@ expect(urls).not.toContain(`${base}/guide/saint-gervais-les-bains/diner/le-serac
 expect(urls.filter(url => url === `${base}/`)).toHaveLength(1)
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `npm test -- --runInBand tests/unit/seo.sitemap.test.ts tests/contract/public-discovery.AC-05-06.sitemap-data.test.ts`
 
 Expected: FAIL because the builder still creates `/guide` URLs and the query
 does not filter `PUBLISHED`.
 
-- [ ] **Step 3: Filter sitemap data at the database boundary**
+- [x] **Step 3: Filter sitemap data at the database boundary**
 
 `pointOfInterest.findMany` must apply the complete public predicate including
 `discovery_status: 'PUBLISHED'`. Derive distinct City entries from those POI so
 an active City without a published POI never enters the sitemap. Keep published
 lodgings and blog articles unchanged.
 
-- [ ] **Step 4: Build discovery paths and retain lodging paths**
+- [x] **Step 4: Build discovery paths and retain lodging paths**
 
 Change only generic City/Category/POI paths to `/decouvrir`. Keep
 `/guide/{city}/logements` and its published details per spec 031. Preserve the
 Product Owner's existing removal of `'/'` from `staticPaths`; homepage remains
 the single explicit entry created by `buildSitemapEntries`.
 
-- [ ] **Step 5: Run sitemap suites**
+- [x] **Step 5: Run sitemap suites**
 
 Run: `npm test -- --runInBand tests/unit/seo.sitemap.test.ts tests/unit/blog.AC-06-05.sitemap.test.ts tests/contract/public-discovery.AC-05-06.sitemap-data.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit sitemap migration without overwriting user work**
+- [x] **Step 6: Commit sitemap migration without overwriting user work**
 
 ```bash
 git add src/features/seo/queries/sitemap-data.ts src/features/seo/lib/sitemap.ts src/app/sitemap.ts tests/unit/seo.sitemap.test.ts tests/contract/public-discovery.AC-05-06.sitemap-data.test.ts
@@ -738,13 +754,19 @@ git commit -m "feat(discovery): publish canonical discovery sitemap URLs"
 **Files:**
 - Modify: `docs/traceability-matrix.md`
 
-- [ ] **Step 1: Add one traceability row per acceptance criterion group**
+> Vérification finale exécutée le 24 août 2026 sur un PostgreSQL 17 local
+> jetable reconstruit depuis le schéma pré-041 : migrations 041 appliquées sans
+> drift, build de production réussi, test transactionnel PostgreSQL réussi et
+> 9/9 scénarios Playwright passés avec une fixture `PUBLISHED`. La base Supabase
+> partagée n'a pas été modifiée.
+
+- [x] **Step 1: Add one traceability row per acceptance criterion group**
 
 Map AC-01 through AC-05 to the exact source and test files created above. Mark
 only verified criteria `✅ done`; every row must name its concrete source and
 test paths.
 
-- [ ] **Step 2: Validate Prisma and TypeScript build**
+- [x] **Step 2: Validate Prisma and TypeScript build**
 
 Run: `npx prisma validate`
 
@@ -762,13 +784,13 @@ Run: `npm run build`
 
 Expected: exit code 0 and all three `/decouvrir` route patterns listed.
 
-- [ ] **Step 3: Run all affected Jest suites**
+- [x] **Step 3: Run all affected Jest suites**
 
 Run: `npm test -- --runInBand tests/unit/public-discovery.BR-04.eligibility.test.ts tests/contract/public-discovery.AC-04.publication-api.test.ts tests/integration/public-discovery.AC-04.publication-query.test.ts tests/integration/public-discovery.AC-04.admin-ui.test.tsx tests/integration/public-discovery.AC-01-03.public-queries.test.ts tests/unit/public-discovery.AC-02-03.zones.test.ts tests/unit/public-discovery.AC-01-05.metadata.test.ts tests/unit/public-discovery.AC-03-04.structured-data.test.ts tests/integration/public-discovery.AC-01-03.pages.test.tsx tests/integration/public-discovery.AC-05.legacy-redirects.test.tsx tests/contract/public-discovery.AC-05-06.sitemap-data.test.ts tests/unit/seo.sitemap.test.ts tests/unit/seo.metadata.test.ts tests/unit/seo.structured-data.test.ts tests/contract/admin-pois.AC-01-04.api.test.ts tests/integration/admin-pois.AC-01-05.pages.test.tsx tests/unit/proxy.guest-confinement.test.ts`
 
 Expected: all suites PASS.
 
-- [ ] **Step 4: Run browser verification against a local production build**
+- [x] **Step 4: Run browser verification against a local production build**
 
 Start: `npm run start -- --port 3001`
 
@@ -781,7 +803,7 @@ Verify with Playwright:
 - widths 375, 768 and 1440 have no horizontal overflow;
 - page source contains one H1, self-canonical and matching JSON-LD.
 
-- [ ] **Step 5: Inspect the final diff for scope and secrets**
+- [x] **Step 5: Inspect the final diff for scope and secrets**
 
 Run: `git diff --check`
 
@@ -792,7 +814,7 @@ Run: `git status --short`
 Expected: only intended spec 041 implementation and traceability files; no
 `.env`, credentials, generated temporary files or unrelated user changes.
 
-- [ ] **Step 6: Commit traceability and final verification state**
+- [x] **Step 6: Commit traceability and final verification state**
 
 ```bash
 git add docs/traceability-matrix.md

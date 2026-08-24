@@ -8,8 +8,12 @@ import type { PoiDetail } from '@/features/categories/types'
 const mockGetPoiDetail = jest.fn()
 const mockGetActiveLodgingContext = jest.fn()
 const mockGetContextualOwnerNote = jest.fn()
+const mockGetDiscoveryPoi = jest.fn()
 const mockJsonLd = jest.fn()
 const mockNotFound = jest.fn()
+const mockPermanentRedirect = jest.fn((destination: string) => {
+  throw new Error(`NEXT_PERMANENT_REDIRECT:${destination}`)
+})
 
 jest.mock('@/features/categories/queries/poi-detail', () => ({
   getPoiDetail: (...args: unknown[]) => mockGetPoiDetail(...args),
@@ -21,6 +25,10 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 
 jest.mock('@/features/guide-customization/queries/contextual-owner-note', () => ({
   getContextualOwnerNote: (...args: unknown[]) => mockGetContextualOwnerNote(...args),
+}))
+
+jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
+  getDiscoveryPoi: (...args: unknown[]) => mockGetDiscoveryPoi(...args),
 }))
 
 jest.mock('@/features/categories/components/PoiDetailBody', () => ({
@@ -46,6 +54,7 @@ jest.mock('@/shared/components/JsonLd', () => ({
 
 jest.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
+  permanentRedirect: (destination: string) => mockPermanentRedirect(destination),
 }))
 
 const poi: PoiDetail = {
@@ -116,17 +125,23 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
 
   it('does not resolve or render an Owner note without active Lodging context', async () => {
     mockGetActiveLodgingContext.mockResolvedValue(null)
+    mockGetDiscoveryPoi.mockResolvedValue({
+      slug: 'la-vieille-auberge',
+      city: { slug: 'les-contamines-montjoie' },
+      category: { slug: 'diner' },
+    })
 
-    render(await PoiDetailPage({ params }))
+    await expect(PoiDetailPage({ params })).rejects.toThrow(
+      'NEXT_PERMANENT_REDIRECT:/decouvrir/les-contamines-montjoie/diner/la-vieille-auberge',
+    )
 
-    expect(mockGetPoiDetail).toHaveBeenCalledWith(
+    expect(mockGetDiscoveryPoi).toHaveBeenCalledWith(
       'les-contamines-montjoie',
       'diner',
       'la-vieille-auberge',
-      null,
     )
+    expect(mockGetPoiDetail).not.toHaveBeenCalled()
     expect(mockGetContextualOwnerNote).not.toHaveBeenCalled()
-    expect(screen.getByTestId('poi-detail-body')).toHaveAttribute('data-owner-note', '')
   })
 
   it('keeps the contextual Owner note out of metadata and JSON-LD', async () => {
@@ -142,7 +157,7 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
     const metadata = await generateMetadata({ params })
     render(await PoiDetailPage({ params }))
 
-    expect(mockGetActiveLodgingContext).toHaveBeenCalledTimes(1)
+    expect(mockGetActiveLodgingContext).toHaveBeenCalledTimes(2)
     expect(JSON.stringify(metadata)).not.toContain('Note strictement contextuelle.')
     expect(JSON.stringify(mockJsonLd.mock.calls[0][0])).not.toContain('Note strictement contextuelle.')
   })

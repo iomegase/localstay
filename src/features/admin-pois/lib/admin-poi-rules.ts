@@ -39,6 +39,7 @@ export const AdminPoiListQuerySchema = z.object({
   geocode_status: z.string().trim().min(1).max(40).optional(),
   photo_status: z.enum(['with_photos', 'without_photos']).optional(),
   review_source: z.enum(['MANUAL', 'GOOGLE']).optional(),
+  discovery_status: z.enum(['DRAFT', 'PUBLISHED']).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(10).max(100).default(25),
 })
@@ -93,7 +94,7 @@ export function getAdminPoiStatus(poi: { is_active: boolean; deleted_at: Date | 
 
 export function buildAdminPoiWhere(filters: Pick<
   AdminPoiListFilters,
-  'city_id' | 'q' | 'category_id' | 'subcategory_id' | 'status' | 'geocode_status' | 'photo_status' | 'review_source'
+  'city_id' | 'q' | 'category_id' | 'subcategory_id' | 'status' | 'geocode_status' | 'photo_status' | 'review_source' | 'discovery_status'
 >): Prisma.PointOfInterestWhereInput {
   const status = filters.status ?? 'current'
   const where: Prisma.PointOfInterestWhereInput = { city_id: filters.city_id }
@@ -110,6 +111,7 @@ export function buildAdminPoiWhere(filters: Pick<
   if (filters.subcategory_id) where.subcategory_id = filters.subcategory_id
   if (filters.geocode_status) where.geocode_status = filters.geocode_status
   if (filters.review_source) where.review_source = filters.review_source
+  if (filters.discovery_status) where.discovery_status = filters.discovery_status
   if (filters.photo_status === 'with_photos') where.photos = { isEmpty: false }
   if (filters.photo_status === 'without_photos') where.photos = { isEmpty: true }
 

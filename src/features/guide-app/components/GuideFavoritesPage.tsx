@@ -40,7 +40,7 @@ export function GuideFavoritesPage({
       </div>
 
       <div
-        className="sticky top-0 z-20 -mx-3 mt-5 flex gap-2 overflow-x-auto bg-white px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="sticky top-0 z-20 -mx-3 mt-5 flex gap-2 overflow-x-auto bg-white/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-label="Filtrer les catégories"
       >
         <FilterButton

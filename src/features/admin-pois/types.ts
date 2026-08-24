@@ -2,6 +2,23 @@ export type AdminPoiStatus = 'active' | 'inactive' | 'archived'
 export type AdminPoiStatusFilter = 'current' | AdminPoiStatus
 export type AdminPoiPhotoStatus = 'with_photos' | 'without_photos'
 export type AdminPoiReviewSource = 'MANUAL' | 'GOOGLE'
+export type AdminPoiDiscoveryStatus = 'DRAFT' | 'PUBLISHED'
+
+export type AdminPoiDiscoveryEligibility = {
+  eligible: boolean
+  checks: Record<
+    | 'active'
+    | 'city'
+    | 'category'
+    | 'subcategory'
+    | 'description'
+    | 'photo'
+    | 'address'
+    | 'geocode'
+    | 'contact',
+    boolean
+  >
+}
 
 export type AdminPoiCity = {
   id: string
@@ -39,7 +56,9 @@ export type AdminPoiListItem = {
   merchant_attached: boolean
   has_trail_detail: boolean
   updated_at: string
-  public_url: string
+  discovery_status: AdminPoiDiscoveryStatus
+  discovery_published_at: string | null
+  public_url: string | null
 }
 
 export type AdminPoiTrailDetail = {
@@ -64,6 +83,8 @@ export type AdminPoiDetail = AdminPoiListItem & {
   slug_editable: false
   trail_fields_locked: boolean
   trail_detail: AdminPoiTrailDetail | null
+  discovery_eligibility: AdminPoiDiscoveryEligibility
+  discovery_public_url: string | null
 }
 
 export type AdminPoiKpis = {
@@ -105,6 +126,7 @@ export type AdminPoiListFilters = {
   geocode_status?: string
   photo_status?: AdminPoiPhotoStatus
   review_source?: AdminPoiReviewSource
+  discovery_status?: AdminPoiDiscoveryStatus
   page: number
   limit: number
 }
