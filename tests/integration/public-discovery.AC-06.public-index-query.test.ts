@@ -187,9 +187,15 @@ describe('041 AC-06 public discovery index query', () => {
 
   it('keeps only the first five eligible POIs per city after hub-specific zone, distance, French-name and slug ordering', async () => {
     mockPoiFindMany.mockResolvedValue([
+      row({
+        id: 'invalid-first', slug: 'invalid-first', name: 'A invalid raw row',
+        description: ' ', longitude: 6.7095,
+      }),
       row({ id: 'bravo', slug: 'bravo', name: 'Bravo', longitude: 6.7135 }),
       row({ id: 'eclair-z', slug: 'eclair-z', name: 'Éclair', longitude: 6.7185 }),
       row({ id: 'eclair-a', slug: 'eclair-a', name: 'Eclair', longitude: 6.7185 }),
+      row({ id: 'ecomusee', slug: 'z-ecomusee', name: 'Écomusée', longitude: 6.7235 }),
+      row({ id: 'zoo', slug: 'a-zoo-alpin', name: 'Zoo alpin', longitude: 6.7235 }),
       row({ id: 'delta', slug: 'delta', name: 'Delta', longitude: 6.7385 }),
       row({ id: 'nearby-a', slug: 'nearby-a', name: 'Alpha alentours', longitude: 6.9185 }),
       row({ id: 'nearby-z', slug: 'nearby-z', name: 'Zulu alentours', longitude: 6.9285 }),
@@ -199,11 +205,12 @@ describe('041 AC-06 public discovery index query', () => {
 
     expect(index).toHaveLength(1)
     expect(index[0]?.pois.map(poi => poi.slug)).toEqual([
-      'bravo', 'eclair-a', 'eclair-z', 'delta', 'nearby-a',
+      'bravo', 'eclair-a', 'eclair-z', 'z-ecomusee', 'a-zoo-alpin',
     ])
     expect(index[0]?.pois.map(poi => poi.zone)).toEqual([
-      'primary', 'primary', 'primary', 'primary', 'nearby',
+      'primary', 'primary', 'primary', 'primary', 'primary',
     ])
+    expect(index[0]?.pois.map(poi => poi.slug)).not.toContain('invalid-first')
   })
 
   it('defensively omits every stale visibility variant and cities containing only invalid rows', async () => {
