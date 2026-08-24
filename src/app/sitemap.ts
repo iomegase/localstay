@@ -12,7 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lodgings,
     blogArticles,
     staticPaths: [
-      '/',
       '/concept',
       '/seminaires',
       '/confier-mon-logement',
