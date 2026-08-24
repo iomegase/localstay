@@ -37,6 +37,7 @@ Les routes historiques `/guide/{ville}`, `/guide/{ville}/{categorie}` et
 et expérience de séjour. Cette feature crée une surface éditoriale publique
 séparée sous `/decouvrir`, indexable et intégrée au site marketing MyStay :
 
+- `/decouvrir` comme hub des villes possédant du contenu public éligible ;
 - `/decouvrir/[city-slug]` pour la destination locale ;
 - `/decouvrir/[city-slug]/[category-slug]` pour une sélection thématique ;
 - `/decouvrir/[city-slug]/[category-slug]/[poi-slug]` pour une fiche POI
@@ -204,6 +205,37 @@ destination publique existe. Les routes QR et le séjour privé restent sous
   ville/catégorie/POI sous `/guide` en sont absentes et seules les URL
   `/decouvrir` dérivées de POI `PUBLISHED` y sont ajoutées, sans doublon.
 
+### US-06 — Parcourir les villes publiées
+
+**As a** visiteur anonyme
+**I want to** voir les villes pour lesquelles MyStay possède une sélection
+publique
+**So that** j'accède aux adresses locales
+
+#### Acceptance Criteria
+
+- **AC-06-01**: Given des POI `PUBLISHED` éligibles dans plusieurs villes,
+  When `/decouvrir` est ouverte, Then la page répond HTTP 200, les villes sont
+  triées par nom et seules les villes possédant au moins un POI visible sont
+  affichées.
+- **AC-06-02**: Given plus de cinq POI visibles dans une ville, When le hub est
+  rendu, Then seuls les cinq premiers selon l'ordre public (zone, distance,
+  nom) sont affichés, avec un lien canonique vers la ville et des liens
+  canoniques vers les fiches POI.
+- **AC-06-03**: Given aucun POI public éligible, When `/decouvrir` est ouverte,
+  Then la page répond HTTP 200 avec un état éditorial vide et n'invente aucune
+  ville.
+- **AC-06-04**: Given le hub public, When son HTML est inspecté, Then il utilise
+  le `MarketingShell`, possède exactement un H1, une canonical `/decouvrir`, des
+  metadata OG/Twitter et des JSON-LD `BreadcrumbList` et `ItemList` limités aux
+  villes visibles.
+- **AC-06-05**: Given le footer marketing, When son lien de découverte est
+  rendu, Then son libellé exact est « Découvrir », sa cible est `/decouvrir` et
+  cette URL apparaît exactement une fois dans le sitemap.
+- **AC-06-06**: Given une publication, un retrait, une dépublication automatique
+  ou un déplacement public de POI, When la mutation est commitée, Then le cache
+  de `/decouvrir` est invalidé avec les routes locales affectées.
+
 ---
 
 ## Business Rules
@@ -294,6 +326,20 @@ destination publique existe. Les routes QR et le séjour privé restent sous
   exception explicite à BR-13 et au standard marketing évite de rendre un POI
   inéligible uniquement selon l'hôte de sa photo ; les contrôles
   favicon/logo/placeholder de la spec 022 restent applicables.
+- **BR-27**: Le hub dérive ses villes uniquement des POI satisfaisant BR-04,
+  BR-08 et BR-10 au moment de la lecture ; une ville vide est omise et un POI
+  `DRAFT` ne contribue jamais au rendu ni au JSON-LD.
+- **BR-28**: Le hub effectue une seule lecture Prisma ; les villes sont triées
+  alphabétiquement en français et, dans chaque ville, les POI suivent la zone
+  primaire puis la zone alentours, la distance croissante puis le nom, avec un
+  maximum de cinq POI.
+- **BR-29**: La racine reste publique et répond HTTP 200 avec un état éditorial
+  vide lorsqu'elle ne contient aucun contenu ; elle ne lit aucun cookie, Lodging,
+  Owner ou séjour.
+- **BR-30**: Le libellé exact du lien footer est « Découvrir » ; le libellé
+  rejeté « Découvrir nos destinations » n'est jamais utilisé.
+- **BR-31**: Les mutations modifiant l'appartenance au hub invalident `/decouvrir`
+  après commit, ainsi que les chemins locaux et le sitemap affectés.
 
 ---
 
@@ -513,6 +559,17 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
   `/concept` pour relier l'expertise locale à l'offre de conciergerie.
 - Aucun menu, bottom navigation ou contenu appartenant au séjour privé.
 
+### Page `/decouvrir`
+
+- Utilise `MarketingShell`, `MarketingHeader` et `MarketingFooter`, sans coque
+  privée ni contenu de séjour.
+- Hero éditorial clair avec H1 exact `Découvrir les bonnes adresses locales.`.
+- Les villes éligibles sont affichées alphabétiquement ; chaque ville possède
+  un lien canonique vers `/decouvrir/{city-slug}` et au maximum cinq cards POI
+  canoniques vers `/decouvrir/{city-slug}/{category-slug}/{poi-slug}`.
+- Lorsqu'aucune ville n'est éligible, l'état éditorial affiche exactement
+  `De nouvelles adresses arrivent bientôt.`.
+
 ### Page `/decouvrir/[city-slug]/[category-slug]`
 
 - Breadcrumb visible Accueil → Ville → Catégorie.
@@ -592,12 +649,17 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
 | AC-05-04 | QR → cookie et `/sejour` inchangés | regression + e2e |
 | AC-05-05 | Séjour valide conserve les fiches privées | regression + e2e |
 | AC-05-06 | Sitemap uniquement `/decouvrir` publié, sans doublon | unit + contract |
+| AC-06-01 | Hub 200 avec uniquement les villes possédant des POI visibles | integration |
+| AC-06-02 | Cinq POI maximum, tri public et liens canoniques | unit + integration |
+| AC-06-03 | Hub vide → 200 et état éditorial | integration |
+| AC-06-04 | MarketingShell, H1, metadata et JSON-LD du hub | integration + e2e |
+| AC-06-05 | Footer exact et sitemap racine unique | unit + integration |
+| AC-06-06 | Invalidation du hub après changement d'appartenance | contract + integration |
 
 ---
 
 ## Out of Scope
 
-- Route racine `/decouvrir` sans ville.
 - Migration des fiches logement publiques vers `/logements/{slug}`.
 - Refonte des pages `/logements`, `/seminaires`, `/concept` ou du blog.
 - Déplacement des routes agenda, carte ou navigation randonnée.
@@ -629,3 +691,6 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
 - les dépublications automatiques sans session sont auditées avec
   `actor_type = SYSTEM` et `admin_id = null`; les actions Admin/Merchant
   conservent l'identifiant du `User` déclencheur.
+- le hub racine `/decouvrir`, son lien footer « Découvrir » et la limite de
+  cinq POI par ville ont été validés le 2026-08-24 ; le libellé « Découvrir nos
+  destinations » est exclu.
