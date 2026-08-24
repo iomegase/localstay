@@ -727,12 +727,12 @@ git commit -m "test(discovery): cover public index responsiveness"
 Utiliser ce format, avec les chemins réels créés par les tâches précédentes :
 
 ```markdown
-| 041 | Public discovery index | US-06 | AC-06-01 | `src/features/public-discovery/queries/public-discovery.ts`, `src/app/(public)/decouvrir/page.tsx` | `tests/integration/public-discovery.AC-06.public-index-query.test.ts`, `tests/integration/public-discovery.AC-06.public-index-page.test.tsx` | ✅ done |
+| 041 | Public discovery index | US-06 | AC-06-01 | `src/features/public-discovery/queries/public-discovery.ts`, `src/app/(public)/decouvrir/page.tsx` | `tests/integration/public-discovery.AC-06.public-index-query.test.ts`, `tests/integration/public-discovery.AC-06.public-index-page.test.tsx`, `tests/e2e/public-discovery.AC-06.responsive-index.test.ts` | ✅ done |
 | 041 | Public discovery index | US-06 | AC-06-02 | `src/features/public-discovery/queries/public-discovery.ts`, `src/features/public-discovery/components/DiscoveryIndexView.tsx` | `tests/integration/public-discovery.AC-06.public-index-query.test.ts`, `tests/integration/public-discovery.AC-06.public-index-page.test.tsx` | ✅ done |
-| 041 | Public discovery index | US-06 | AC-06-03 | `src/features/public-discovery/components/DiscoveryIndexView.tsx` | `tests/integration/public-discovery.AC-06.public-index-page.test.tsx` | ✅ done |
+| 041 | Public discovery index | US-06 | AC-06-03 | `src/features/public-discovery/components/DiscoveryIndexView.tsx` | `tests/integration/public-discovery.AC-06.public-index-page.test.tsx`, `tests/e2e/public-discovery.AC-06.responsive-index.test.ts` | ✅ done |
 | 041 | Public discovery index SEO | US-06 | AC-06-04 | `src/app/(public)/decouvrir/page.tsx`, `src/features/seo/lib/metadata.ts` | `tests/integration/public-discovery.AC-06.public-index-page.test.tsx`, `tests/e2e/public-discovery.AC-06.responsive-index.test.ts` | ✅ done only if Playwright passes; otherwise 🔵 in progress |
 | 041 | Public discovery navigation | US-06 | AC-06-05 | `src/features/marketing/components/MarketingFooter.tsx`, `src/app/sitemap.ts` | `tests/integration/public-marketing.AC-04-01.navigation.test.tsx`, `tests/unit/seo.sitemap.test.ts`, `tests/contract/public-discovery.AC-06.sitemap-route.test.ts` | ✅ done |
-| 041 | Public discovery cache | US-06 | AC-06-06 | `src/features/public-discovery/lib/revalidation.ts` | `tests/contract/public-discovery.AC-04.publication-api.test.ts`, `tests/contract/admin-pois.AC-01-04.api.test.ts` | ✅ done |
+| 041 | Public discovery cache | US-06 | AC-06-06 | `src/features/public-discovery/lib/revalidation.ts`, `src/app/api/admin/pois/[id]/discovery-publication/route.ts`, `src/features/public-discovery/queries/admin-publication.ts`, `src/app/api/admin/pois/[id]/route.ts`, `src/app/api/admin/pois/[id]/disable/route.ts`, `src/app/api/admin/pois/[id]/delete/route.ts`, `src/app/api/admin/pois/[id]/restore/route.ts`, `src/features/admin-pois/queries/admin-pois.ts`, `src/features/public-discovery/queries/mutation-reconciliation.ts`, `src/features/public-discovery/queries/dependency-unpublication.ts`, `src/features/admin-taxonomy/queries/taxonomy.ts`, `src/app/api/admin/taxonomy/categories/[id]/route.ts`, `src/app/api/admin/taxonomy/subcategories/[id]/route.ts`, `src/features/merchant/queries/dashboard.ts`, `src/features/poi-photos/services/heal-poi-photos.ts`, `src/features/gemini-fetch/services/poi-persister.ts`, `src/features/geocoding/services/geocode-runner.ts` | `tests/unit/public-discovery.AC-06-06.revalidation.test.ts`, `tests/contract/public-discovery.AC-04.publication-api.test.ts`, `tests/contract/admin-pois.AC-01-04.api.test.ts`, `tests/contract/admin-taxonomy.AC-01-02-03-04-05.api.test.ts`, `tests/integration/public-discovery.AC-04.publication-query.test.ts`, `tests/integration/public-discovery.AC-04.taxonomy-unpublication.test.ts`, `tests/integration/public-discovery.AC-04.merchant-unpublication.test.ts`, `tests/integration/public-discovery.AC-04.postgres-atomicity.test.ts`, `tests/unit/poi-photos.heal.test.ts`, `tests/unit/public-discovery.AC-04.gemini-unpublication.test.ts`, `tests/unit/public-discovery.AC-04.geocode-unpublication.test.ts` | ✅ done |
 ```
 
 - [ ] **Step 2: Run focused Jest gates**
@@ -758,7 +758,9 @@ npm test -- --runInBand \
   tests/integration/public-discovery.AC-04.merchant-unpublication.test.ts
 ```
 
-Expected: all selected suites PASS.
+Expected: sans `TEST_DATABASE_URL`, 14 suites passent et la suite PostgreSQL
+atomicity est intentionnellement ignorée ; avec une DB isolée, les 15 suites
+passent.
 
 - [ ] **Step 3: Run typecheck and focused lint**
 
@@ -806,15 +808,18 @@ générique est isolé. La suite complète n'est autorisée que si
 `TEST_DATABASE_URL` est explicitement défini pour une base jetable isolée :
 
 ```bash
-test -n "$TEST_DATABASE_URL"
-env \
-  NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co \
-  NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key \
-  SUPABASE_SERVICE_ROLE_KEY=test-service-key \
-  DATABASE_URL="$TEST_DATABASE_URL" \
-  GOOGLE_PLACES_API_KEY=test-key \
-  NEXT_PUBLIC_BASE_URL=http://localhost:3000 \
-  npm test -- --runInBand
+if [ -n "${TEST_DATABASE_URL:-}" ]; then
+  env \
+    NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co \
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key \
+    SUPABASE_SERVICE_ROLE_KEY=test-service-key \
+    DATABASE_URL="$TEST_DATABASE_URL" \
+    GOOGLE_PLACES_API_KEY=test-key \
+    NEXT_PUBLIC_BASE_URL=http://localhost:3000 \
+    npm test -- --runInBand
+else
+  echo "Full live-DB suite skipped: TEST_DATABASE_URL is not configured."
+fi
 ```
 
 Le build est un contrôle séparé en lecture seule de la configuration principale
