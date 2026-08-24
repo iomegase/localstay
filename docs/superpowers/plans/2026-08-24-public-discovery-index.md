@@ -698,12 +698,17 @@ même lorsque la query retourne une liste vide.
 Run:
 
 ```bash
+set -a
+source ../../.env
+source ../../.env.local
+set +a
 npx playwright test tests/e2e/public-discovery.AC-06.responsive-index.test.ts --project='Mobile Chrome'
 ```
 
 Expected: 3 tests PASS. Si l'environnement ne peut pas démarrer le webServer ou
 ne possède pas la migration 041, conserver l'échec exact comme limitation et
-ne jamais transformer ce fichier en suite ignorée.
+ne jamais transformer ce fichier en suite ignorée. Ces fichiers fournissent la
+configuration runtime seulement ; ne jamais afficher leurs valeurs.
 
 - [ ] **Step 3: Commit E2E coverage**
 
@@ -743,8 +748,14 @@ npm test -- --runInBand \
   tests/integration/public-marketing.AC-04-01.navigation.test.tsx \
   tests/unit/seo.sitemap.test.ts \
   tests/contract/public-discovery.AC-06.sitemap-route.test.ts \
+  tests/unit/public-discovery.AC-06-06.revalidation.test.ts \
   tests/contract/public-discovery.AC-04.publication-api.test.ts \
-  tests/contract/admin-pois.AC-01-04.api.test.ts
+  tests/contract/admin-pois.AC-01-04.api.test.ts \
+  tests/contract/admin-taxonomy.AC-01-02-03-04-05.api.test.ts \
+  tests/integration/public-discovery.AC-04.publication-query.test.ts \
+  tests/integration/public-discovery.AC-04.taxonomy-unpublication.test.ts \
+  tests/integration/public-discovery.AC-04.postgres-atomicity.test.ts \
+  tests/integration/public-discovery.AC-04.merchant-unpublication.test.ts
 ```
 
 Expected: all selected suites PASS.
@@ -773,22 +784,61 @@ Expected: exit 0 for all commands.
 
 - [ ] **Step 4: Run the repository regression suite with explicit environment**
 
-From this worktree, source the main worktree env without printing its values:
+Le défaut sûr ne source jamais les fichiers d'environnement principaux et ne
+doit donc jamais utiliser leur `DATABASE_URL` pour Jest :
+
+```bash
+env \
+  NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co \
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key \
+  SUPABASE_SERVICE_ROLE_KEY=test-service-key \
+  DATABASE_URL=postgresql://test:test@127.0.0.1:5432/test \
+  GOOGLE_PLACES_API_KEY=test-key \
+  NEXT_PUBLIC_BASE_URL=http://localhost:3000 \
+  npm test -- --runInBand \
+  --testPathIgnorePatterns='tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts'
+```
+
+Cette exclusion est volontairement limitée à
+`tests/integration/gemini-fetch.AC-01-03.cache-flow.test.ts`, la seule suite
+connue comme mutante sur DB live. Ne jamais conclure qu'un `DATABASE_URL`
+générique est isolé. La suite complète n'est autorisée que si
+`TEST_DATABASE_URL` est explicitement défini pour une base jetable isolée :
+
+```bash
+test -n "$TEST_DATABASE_URL"
+env \
+  NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co \
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key \
+  SUPABASE_SERVICE_ROLE_KEY=test-service-key \
+  DATABASE_URL="$TEST_DATABASE_URL" \
+  GOOGLE_PLACES_API_KEY=test-key \
+  NEXT_PUBLIC_BASE_URL=http://localhost:3000 \
+  npm test -- --runInBand
+```
+
+Le build est un contrôle séparé en lecture seule de la configuration principale
+(pas de migration, seed ni test mutant) :
 
 ```bash
 set -a
 source ../../.env
 source ../../.env.local
 set +a
-npm test -- --runInBand
-npm run lint
 npm run build
 ```
 
-Expected: Jest, lint and production build exit 0. Do not run a live-DB mutation
-suite unless `DATABASE_URL` identifies an isolated test database. If the only
-available database is production/shared, run all unit/contract suites plus the
-mocked 041 integration gates and document the skipped live-DB limitation.
+Puis exécuter `npm run lint`. Attendu : Jest, lint et build sans erreur.
+
+#### Execution record — 2026-08-24
+
+- Gate Jest sûre : 409 suites passées, 1 ignorée ; 1 728 tests passés, 1 en
+  attente. La cache-flow live-mutante a été délibérément exclue car
+  `TEST_DATABASE_URL` était absent.
+- `npx tsc --noEmit` est passé ; `npm run lint` a produit 0 erreur et 254
+  warnings existants ; le build de production a passé avec les env principaux
+  en lecture seule.
+- Playwright `Mobile Chrome` a passé 3/3 scénarios sans skip.
 
 - [ ] **Step 5: Review the final diff against the approved spec**
 
