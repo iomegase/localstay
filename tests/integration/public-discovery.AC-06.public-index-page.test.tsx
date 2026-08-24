@@ -4,6 +4,7 @@
 import { render, screen } from '@testing-library/react'
 import type { DiscoveryIndexCity, DiscoveryPoiCard } from '@/features/public-discovery/types'
 import { getDiscoveryIndex } from '@/features/public-discovery/queries/public-discovery'
+import { siteBaseUrl } from '@/features/seo/lib/site'
 
 jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
   getDiscoveryIndex: jest.fn(),
@@ -103,6 +104,7 @@ describe('041 AC-06 public discovery index page', () => {
   it('emits ordered city-only breadcrumbs and item-list JSON-LD from the rendered DTO', async () => {
     mockedGetDiscoveryIndex.mockResolvedValue(cities)
     const { default: DiscoveryIndexPage } = await import('@/app/(public)/decouvrir/page')
+    const baseUrl = siteBaseUrl()
 
     const { container } = render(await DiscoveryIndexPage())
 
@@ -115,13 +117,13 @@ describe('041 AC-06 public discovery index page', () => {
             '@type': 'ListItem',
             position: 1,
             name: 'Accueil',
-            item: 'https://www.mystay.city/',
+            item: `${baseUrl}/`,
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Découvrir',
-            item: 'https://www.mystay.city/decouvrir',
+            item: `${baseUrl}/decouvrir`,
           },
         ],
       },
@@ -134,13 +136,13 @@ describe('041 AC-06 public discovery index page', () => {
             '@type': 'ListItem',
             position: 1,
             name: 'Annecy',
-            url: 'https://www.mystay.city/decouvrir/annecy',
+            url: `${baseUrl}/decouvrir/annecy`,
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: 'Biarritz',
-            url: 'https://www.mystay.city/decouvrir/biarritz',
+            url: `${baseUrl}/decouvrir/biarritz`,
           },
         ],
       },
