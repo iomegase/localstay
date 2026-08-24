@@ -12,9 +12,20 @@ describe('031-public-marketing-site anonymous access policy', () => {
     '/logements/chalet-hygge',
     '/blog',
     '/blog/bien-preparer-son-sejour',
+    '/decouvrir',
     '/guide/saint-gervais-les-bains/logements/le-chalet-hygge',
   ])('allows the marketing route %s without a lodging cookie', pathname => {
     expect(isAnonymousMarketingPath(pathname)).toBe(true)
+  })
+
+  it('keeps the public discovery root outside the invitation gate', async () => {
+    const response = await proxy(new NextRequest('http://localhost:3000/decouvrir'))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('x-middleware-rewrite')).toBeNull()
+    expect(
+      response.headers.get('x-middleware-request-x-staylocal-marketing-route'),
+    ).toBe('1')
   })
 
   test.each([

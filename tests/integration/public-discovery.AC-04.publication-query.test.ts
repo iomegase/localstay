@@ -184,9 +184,13 @@ describe('041 AC-04 transactional publication query', () => {
   })
 
   it.each([
-    ['PUBLISHED', new Date('2026-08-20T15:00:00.000Z')],
-    ['DRAFT', null],
-  ] as const)('is idempotent for %s without changing date or creating audit', async (status, date) => {
+    [
+      'PUBLISHED',
+      new Date('2026-08-20T15:00:00.000Z'),
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ],
+    ['DRAFT', null, null],
+  ] as const)('is idempotent for %s without auditing, updating, or invalidating paths', async (status, date, publicUrl) => {
     mockPoiFindFirst.mockResolvedValue({
       ...completePoi,
       discovery_status: status,
@@ -197,8 +201,72 @@ describe('041 AC-04 transactional publication query', () => {
 
     expect(result.discovery_status).toBe(status)
     expect(result.discovery_published_at).toBe(date?.toISOString() ?? null)
+    expect(result.public_url).toBe(publicUrl)
+    expect(result.invalidation_paths).toEqual([])
     expect(mockPoiUpdate).not.toHaveBeenCalled()
     expect(mockAuditCreate).not.toHaveBeenCalled()
+  })
+
+  it('repairs a PUBLISHED row without a publication date and revalidates its visible routes', async () => {
+    const corruptedPublished = {
+      ...completePoi,
+      discovery_status: 'PUBLISHED' as const,
+      discovery_published_at: null,
+    }
+    mockPoiFindFirst.mockResolvedValue(corruptedPublished)
+    mockPoiUpdate.mockImplementation(async ({ data }) => ({ ...corruptedPublished, ...data }))
+
+    const result = await updatePoiDiscoveryPublication('poi-1', 'PUBLISHED', 'admin-1')
+
+    expect(mockPoiUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: { discovery_status: 'PUBLISHED', discovery_published_at: expect.any(Date) },
+    }))
+    expect(mockAuditCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'poi_discovery_publication_repaired',
+        before: { discovery_status: 'PUBLISHED', discovery_published_at: null },
+        after: { discovery_status: 'PUBLISHED', discovery_published_at: expect.any(String) },
+      }),
+    })
+    expect(result).toEqual(expect.objectContaining({
+      discovery_status: 'PUBLISHED',
+      discovery_published_at: expect.any(String),
+      public_url: '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      invalidation_paths: [
+        '/decouvrir/saint-gervais',
+        '/decouvrir/saint-gervais/manger',
+        '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      ],
+    }))
+  })
+
+  it('repairs a DRAFT row with a stale publication date without invalidating membership paths', async () => {
+    const staleDraft = {
+      ...completePoi,
+      discovery_status: 'DRAFT' as const,
+      discovery_published_at: new Date('2026-08-20T15:00:00.000Z'),
+    }
+    mockPoiFindFirst.mockResolvedValue(staleDraft)
+    mockPoiUpdate.mockImplementation(async ({ data }) => ({ ...staleDraft, ...data }))
+
+    const result = await updatePoiDiscoveryPublication('poi-1', 'DRAFT', 'admin-1')
+
+    expect(mockPoiUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: { discovery_status: 'DRAFT', discovery_published_at: null },
+    }))
+    expect(mockAuditCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'poi_discovery_publication_repaired',
+        before: { discovery_status: 'DRAFT', discovery_published_at: '2026-08-20T15:00:00.000Z' },
+        after: { discovery_status: 'DRAFT', discovery_published_at: null },
+      }),
+    })
+    expect(result).toEqual(expect.objectContaining({
+      discovery_status: 'DRAFT',
+      discovery_published_at: null,
+      public_url: null,
+      invalidation_paths: [],
+    }))
   })
 
   it('maps a missing POI to the established not-found domain error', async () => {
@@ -337,7 +405,7 @@ describe('041 AC-04 transactional publication query', () => {
     ])
   })
 
-  it('invalidates only the pre-mutation published route when category changes while becoming ineligible', async () => {
+  it('invalidates the deduped old and new contexts when a category move also becomes ineligible', async () => {
     const published = {
       ...completeAdminPoi,
       discovery_status: 'PUBLISHED' as const,
@@ -377,11 +445,9 @@ describe('041 AC-04 transactional publication query', () => {
       '/decouvrir/saint-gervais',
       '/decouvrir/saint-gervais/manger',
       '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
-    ])
-    expect(result.discovery_revalidation_paths).not.toContain('/decouvrir/saint-gervais/sortir')
-    expect(result.discovery_revalidation_paths).not.toContain(
+      '/decouvrir/saint-gervais/sortir',
       '/decouvrir/saint-gervais/sortir/brasserie-du-mont-blanc',
-    )
+    ])
   })
 
   it('does not create a duplicate auto-unpublication audit for an already-DRAFT mutation', async () => {

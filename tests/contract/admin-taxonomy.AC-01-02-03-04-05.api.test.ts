@@ -164,6 +164,7 @@ describe('017 admin taxonomy API', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ data: { id: 'cat-1', is_active: false } })
     expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir', 'page'],
       ['/decouvrir/saint-gervais', 'page'],
       ['/decouvrir/saint-gervais/diner', 'page'],
       ['/decouvrir/saint-gervais/diner/la-table', 'page'],

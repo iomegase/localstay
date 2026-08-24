@@ -22,6 +22,11 @@ describe('031-public-marketing-site navigation', () => {
   it('exposes the editorial routes and contact details in the footer', () => {
     render(<MarketingFooter />)
 
+    expect(screen.getByRole('link', { name: 'Découvrir', exact: true })).toHaveAttribute(
+      'href',
+      '/decouvrir',
+    )
+    expect(screen.queryByRole('link', { name: 'Découvrir nos destinations', exact: true })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Nos logements' })).toHaveAttribute('href', '/logements')
     expect(screen.getByRole('link', { name: 'Séminaires' })).toHaveAttribute('href', '/seminaires')
     expect(screen.getByRole('link', { name: 'Notre approche' })).toHaveAttribute('href', '/concept')

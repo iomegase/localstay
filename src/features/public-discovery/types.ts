@@ -27,6 +27,10 @@ export type DiscoveryCitySummary = {
   region: string | null
 }
 
+export type DiscoveryIndexCity = DiscoveryCitySummary & {
+  pois: DiscoveryPoiCard[]
+}
+
 export type DiscoveryTaxonomy = {
   name: string
   slug: string

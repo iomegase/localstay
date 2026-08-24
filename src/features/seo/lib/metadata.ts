@@ -101,6 +101,21 @@ function discoverySocialImages(photo: string | null): string[] | undefined {
   return photo ? [photo] : undefined
 }
 
+export function discoveryIndexMetadata(): Metadata {
+  const title = 'Découvrir les bonnes adresses locales — MyStay'
+  const description = 'Découvrez les adresses locales sélectionnées par MyStay, dans les villes où elles sont actuellement publiées.'
+  const path = '/decouvrir'
+  const images = ['/og-mystay.png']
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images }),
+    twitter: { card: 'summary_large_image', title, description, images },
+  }
+}
+
 export function discoveryCityMetadata(city: DiscoveryCity): Metadata {
   const title = `Découvrir ${city.name} — Sélection locale MyStay`
   const location = [city.department, city.region].filter((part): part is string => Boolean(part))
