@@ -235,12 +235,11 @@ publique\
 - **AC-06-05**: Given le footer marketing, When son lien de découverte est
   rendu, Then son libellé exact est « Découvrir », sa cible est `/decouvrir` et
   cette URL apparaît exactement une fois dans le sitemap.
-- **AC-06-06**: Given une publication, un retrait ou une dépublication
-  automatique, When la mutation est commitée, Then les caches de `/decouvrir`,
-  des chemins locaux affectés et de `/sitemap.xml` sont invalidés. Given un
-  déplacement de ville, catégorie ou slug, When la mutation est commitée, Then
-  les deux contextes de routes ville/catégorie/POI, ancien et nouveau, sont
-  invalidés, avec déduplication des chemins.
+- **AC-06-06**: Given une publication, un retrait, une dépublication automatique
+  ou un déplacement de ville, catégorie ou slug, When la mutation est commitée,
+  Then, après le commit, `/decouvrir`, `/sitemap.xml` et chaque route locale
+  affectée sont invalidés une seule fois. Pour un déplacement, les routes
+  invalidées incluent les deux contextes ville/catégorie/POI, ancien et nouveau.
 
 ---
 
