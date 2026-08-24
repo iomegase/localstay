@@ -349,7 +349,7 @@ model PoiAcquisitionAuditLog {
 
   // Nom de colonne historique conservé pour compatibilité.
   admin_id  String?
-  admin     User?             @relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id])
+  admin     User?             @relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id], onDelete: Restrict)
   actor_type PoiAuditActorType @default(ADMIN)
 
   // Champs existants conservés sans modification.
@@ -371,6 +371,9 @@ Invariants :
 - `actor_type IN (ADMIN, MERCHANT)` implique `admin_id != null` ; cette
   contrainte est ajoutée par la migration PostgreSQL et également construite
   explicitement par les services TypeScript.
+- la relation vers un acteur `User` utilise `ON DELETE RESTRICT` afin de
+  préserver l'identité historique de l'audit ; les comptes restent gérés par
+  soft delete.
 
 ---
 

@@ -46,6 +46,11 @@ describe('041 BR-23 typed discovery audit actors', () => {
     expect(migration).toContain(`ALTER COLUMN "actor_type" SET DEFAULT 'ADMIN'`)
     expect(migration).toContain(`ALTER COLUMN "actor_type" SET NOT NULL`)
     expect(migration).toContain(`ALTER COLUMN "admin_id" DROP NOT NULL`)
+    expect(migration).not.toContain(`ON DELETE SET NULL`)
+    const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8')
+    expect(schema).toContain(
+      `@relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id], onDelete: Restrict)`,
+    )
     expect(migration).toContain(`"actor_type" = 'SYSTEM' AND "admin_id" IS NULL`)
     expect(migration).toContain(`"actor_type" IN ('ADMIN', 'MERCHANT') AND "admin_id" IS NOT NULL`)
   })

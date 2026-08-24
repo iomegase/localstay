@@ -594,7 +594,7 @@ model PoiAcquisitionAuditLog {
   // Historical column name retained: ADMIN and MERCHANT reference their User,
   // while unauthenticated automations use SYSTEM with a null user id.
   admin_id     String?
-  admin        User?                    @relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id])
+  admin        User?                    @relation("PoiAcquisitionAuditLogs", fields: [admin_id], references: [id], onDelete: Restrict)
   actor_type   PoiAuditActorType        @default(ADMIN)
   action       String
   target_type  String
