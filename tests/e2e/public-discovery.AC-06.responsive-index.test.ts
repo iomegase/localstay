@@ -23,7 +23,7 @@ test.describe('041 public discovery index responsive page', () => {
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
       await expect(h1).toHaveCount(1)
       await expect(h1).toBeVisible()
-      await expect(page.getByTestId('bottom-navigation')).toHaveCount(0)
+      await expect(page.getByTestId('public-bottom-nav')).toHaveCount(0)
 
       const dimensions = await page.evaluate(() => ({
         clientWidth: document.documentElement.clientWidth,
