@@ -207,34 +207,40 @@ destination publique existe. Les routes QR et le séjour privé restent sous
 
 ### US-06 — Parcourir les villes publiées
 
-**As a** visiteur anonyme
-**I want to** voir les villes pour lesquelles MyStay possède une sélection
-publique
+**As a** visiteur anonyme\
+**I want to** voir les villes pour lesquelles MyStay possède une sélection\
+publique\
 **So that** j'accède aux adresses locales
 
 #### Acceptance Criteria
 
 - **AC-06-01**: Given des POI `PUBLISHED` éligibles dans plusieurs villes,
-  When `/decouvrir` est ouverte, Then la page répond HTTP 200, les villes sont
-  triées par nom et seules les villes possédant au moins un POI visible sont
-  affichées.
+  When `/decouvrir` est ouverte, Then une seule lecture Prisma dédiée est
+  effectuée, sans N+1, la page répond HTTP 200, les villes sont triées avec
+  `Intl.Collator('fr', { sensitivity: 'base' })` puis le slug canonique de la
+  ville, et seules les villes possédant au moins un POI visible sont affichées.
 - **AC-06-02**: Given plus de cinq POI visibles dans une ville, When le hub est
-  rendu, Then seuls les cinq premiers selon l'ordre public (zone, distance,
-  nom) sont affichés, avec un lien canonique vers la ville et des liens
-  canoniques vers les fiches POI.
+  rendu, Then seuls les cinq premiers selon l'ordre public du hub — zone
+  primaire puis zone alentours, distance croissante, comparaison du nom avec
+  `Intl.Collator('fr', { sensitivity: 'base' })`, puis slug canonique du POI
+  comme départage déterministe — sont affichés, avec un lien canonique vers la
+  ville et des liens canoniques vers les fiches POI.
 - **AC-06-03**: Given aucun POI public éligible, When `/decouvrir` est ouverte,
-  Then la page répond HTTP 200 avec un état éditorial vide et n'invente aucune
-  ville.
+  Then la page répond HTTP 200 avec l'état éditorial vide exact `De nouvelles adresses arrivent bientôt.` et n'invente aucune ville.
 - **AC-06-04**: Given le hub public, When son HTML est inspecté, Then il utilise
-  le `MarketingShell`, possède exactement un H1, une canonical `/decouvrir`, des
-  metadata OG/Twitter et des JSON-LD `BreadcrumbList` et `ItemList` limités aux
-  villes visibles.
+  le `MarketingShell`, possède exactement un H1 `Découvrir les bonnes adresses locales.`, une canonical `/decouvrir`, des metadata OG/Twitter, un
+  `BreadcrumbList` Accueil → Découvrir et un `ItemList` contenant exactement une
+  entrée par ville visible dans l'ordre rendu, avec uniquement des URLs de
+  villes canoniques.
 - **AC-06-05**: Given le footer marketing, When son lien de découverte est
   rendu, Then son libellé exact est « Découvrir », sa cible est `/decouvrir` et
   cette URL apparaît exactement une fois dans le sitemap.
-- **AC-06-06**: Given une publication, un retrait, une dépublication automatique
-  ou un déplacement public de POI, When la mutation est commitée, Then le cache
-  de `/decouvrir` est invalidé avec les routes locales affectées.
+- **AC-06-06**: Given une publication, un retrait ou une dépublication
+  automatique, When la mutation est commitée, Then les caches de `/decouvrir`,
+  des chemins locaux affectés et de `/sitemap.xml` sont invalidés. Given un
+  déplacement de ville, catégorie ou slug, When la mutation est commitée, Then
+  les deux contextes de routes ville/catégorie/POI, ancien et nouveau, sont
+  invalidés, avec déduplication des chemins.
 
 ---
 
@@ -329,17 +335,17 @@ publique
 - **BR-27**: Le hub dérive ses villes uniquement des POI satisfaisant BR-04,
   BR-08 et BR-10 au moment de la lecture ; une ville vide est omise et un POI
   `DRAFT` ne contribue jamais au rendu ni au JSON-LD.
-- **BR-28**: Le hub effectue une seule lecture Prisma ; les villes sont triées
-  alphabétiquement en français et, dans chaque ville, les POI suivent la zone
-  primaire puis la zone alentours, la distance croissante puis le nom, avec un
-  maximum de cinq POI.
+- **BR-28**: Par dérogation spécifique au hub à BR-09, le hub effectue une seule lecture Prisma ; les villes sont triées avec `Intl.Collator('fr', { sensitivity: 'base' })` puis le slug canonique de la ville et, dans chaque ville, les POI suivent la zone primaire puis la zone alentours, la distance croissante, la comparaison du nom avec `Intl.Collator('fr', { sensitivity: 'base' })`, puis le slug canonique du POI comme départage déterministe, avec un maximum de cinq POI.
 - **BR-29**: La racine reste publique et répond HTTP 200 avec un état éditorial
   vide lorsqu'elle ne contient aucun contenu ; elle ne lit aucun cookie, Lodging,
   Owner ou séjour.
 - **BR-30**: Le libellé exact du lien footer est « Découvrir » ; le libellé
   rejeté « Découvrir nos destinations » n'est jamais utilisé.
-- **BR-31**: Les mutations modifiant l'appartenance au hub invalident `/decouvrir`
-  après commit, ainsi que les chemins locaux et le sitemap affectés.
+- **BR-31**: Les mutations modifiant l'appartenance au hub invalident après
+  commit `/decouvrir`, les chemins locaux affectés et `/sitemap.xml`. Lors d'un
+  déplacement de ville, catégorie ou slug, les contextes de routes ville,
+  catégorie et POI anciens comme nouveaux sont tous invalidés, avec
+  déduplication des chemins.
 
 ---
 
