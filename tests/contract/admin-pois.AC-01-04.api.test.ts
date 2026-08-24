@@ -122,6 +122,7 @@ describe('022 admin POI API', () => {
     )
     await expect(res.json()).resolves.toEqual({ data: { id: poiId, name: 'Nom corrigé' } })
     expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir', 'page'],
       ['/decouvrir/saint-gervais', 'page'],
       ['/decouvrir/saint-gervais/manger', 'page'],
       ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
@@ -183,7 +184,8 @@ describe('022 admin POI API', () => {
     expect(mockDisableAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
     expect(mockDeleteAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
     expect(mockRestoreAdminPoi).toHaveBeenCalledWith(poiId, 'admin-1')
-    expect(mockRevalidatePath).toHaveBeenCalledTimes(12)
+    expect(mockRevalidatePath).toHaveBeenCalledTimes(15)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais/manger', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith(
@@ -212,6 +214,7 @@ describe('022 admin POI API', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ data: { id: poiId, discovery_status: 'DRAFT' } })
     expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir', 'page'],
       ['/decouvrir/saint-gervais', 'page'],
       ['/decouvrir/saint-gervais/manger', 'page'],
       ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],

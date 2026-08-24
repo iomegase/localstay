@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache'
 export function safelyRevalidateDiscoveryPaths(paths: string[]): void {
   if (paths.length === 0) return
 
-  for (const path of [...new Set(paths)]) safelyRevalidatePath(path, 'page')
+  for (const path of new Set(['/decouvrir', ...paths])) safelyRevalidatePath(path, 'page')
   safelyRevalidatePath('/sitemap.xml')
 }
 

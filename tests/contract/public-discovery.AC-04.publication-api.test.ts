@@ -71,6 +71,7 @@ describe('041 AC-04 Admin discovery publication API', () => {
       },
     })
     expect(mockUpdatePoiDiscoveryPublication).toHaveBeenCalledWith(poiId, 'PUBLISHED', 'admin-1')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais/manger', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith(
@@ -107,6 +108,13 @@ describe('041 AC-04 Admin discovery publication API', () => {
       },
     })
     expect(mockUpdatePoiDiscoveryPublication).toHaveBeenCalledWith(poiId, 'DRAFT', 'admin-1')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais/manger', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith(
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      'page',
+    )
     expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
