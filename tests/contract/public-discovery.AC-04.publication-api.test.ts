@@ -42,6 +42,11 @@ describe('041 AC-04 Admin discovery publication API', () => {
       discovery_status: 'PUBLISHED',
       discovery_published_at: '2026-08-20T16:00:00.000Z',
       public_url: '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      invalidation_paths: [
+        '/decouvrir/saint-gervais',
+        '/decouvrir/saint-gervais/manger',
+        '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      ],
       eligibility: {
         eligible: true,
         checks: {
@@ -71,14 +76,13 @@ describe('041 AC-04 Admin discovery publication API', () => {
       },
     })
     expect(mockUpdatePoiDiscoveryPublication).toHaveBeenCalledWith(poiId, 'PUBLISHED', 'admin-1')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir', 'page')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais', 'page')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/decouvrir/saint-gervais/manger', 'page')
-    expect(mockRevalidatePath).toHaveBeenCalledWith(
-      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
-      'page',
-    )
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
+    expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir', 'page'],
+      ['/decouvrir/saint-gervais', 'page'],
+      ['/decouvrir/saint-gervais/manger', 'page'],
+      ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
+      ['/sitemap.xml'],
+    ])
   })
 
   it('unpublishes to DRAFT, clears the date and preserves no public URL', async () => {
@@ -116,6 +120,34 @@ describe('041 AC-04 Admin discovery publication API', () => {
       'page',
     )
     expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
+  })
+
+  it('uses explicit old and new invalidation paths instead of deriving paths from the response URL', async () => {
+    mockUpdatePoiDiscoveryPublication.mockResolvedValue({
+      id: poiId,
+      discovery_status: 'PUBLISHED',
+      discovery_published_at: '2026-08-20T16:00:00.000Z',
+      public_url: '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      eligibility: { eligible: true, checks: { active: true } },
+      invalidation_paths: [
+        '/decouvrir/ancienne-ville',
+        '/decouvrir/saint-gervais',
+        '/decouvrir/saint-gervais/manger',
+        '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      ],
+    })
+
+    const response = await PATCH(request({ status: 'PUBLISHED' }), context)
+
+    expect(response.status).toBe(200)
+    expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir', 'page'],
+      ['/decouvrir/ancienne-ville', 'page'],
+      ['/decouvrir/saint-gervais', 'page'],
+      ['/decouvrir/saint-gervais/manger', 'page'],
+      ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
+      ['/sitemap.xml'],
+    ])
   })
 
   it('returns an idempotent publication response without revalidating cache paths', async () => {
@@ -241,7 +273,11 @@ describe('041 AC-04 Admin discovery publication API', () => {
       discovery_published_at: null,
       public_url: null,
       eligibility: { eligible: true, checks: { active: true } },
-      invalidation_paths: ['/decouvrir/saint-gervais'],
+      invalidation_paths: [
+        '/decouvrir/saint-gervais',
+        '/decouvrir/saint-gervais/manger',
+        '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      ],
     })
     mockRevalidatePath.mockImplementationOnce(() => {
       throw new Error('cache unavailable')
@@ -252,6 +288,13 @@ describe('041 AC-04 Admin discovery publication API', () => {
     expect(response.status).toBe(200)
     expect(mockUpdatePoiDiscoveryPublication).toHaveBeenCalledTimes(1)
     expect(consoleError).toHaveBeenCalledTimes(1)
+    expect(mockRevalidatePath.mock.calls).toEqual([
+      ['/decouvrir', 'page'],
+      ['/decouvrir/saint-gervais', 'page'],
+      ['/decouvrir/saint-gervais/manger', 'page'],
+      ['/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc', 'page'],
+      ['/sitemap.xml'],
+    ])
     consoleError.mockRestore()
   })
 })

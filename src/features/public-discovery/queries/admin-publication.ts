@@ -81,7 +81,8 @@ export async function updatePoiDiscoveryPublication(
       })
     }
 
-    if (before.discovery_status === status) {
+    const isSameStatus = before.discovery_status === status
+    if (isSameStatus && hasCoherentDiscoveryPublication(before)) {
       return {
         ...mapPoiDiscoveryPublication(before),
         invalidation_paths: [],
@@ -102,9 +103,11 @@ export async function updatePoiDiscoveryPublication(
       data: {
         admin_id: adminId,
         actor_type: 'ADMIN',
-        action: status === 'PUBLISHED'
-          ? 'poi_discovery_published'
-          : 'poi_discovery_unpublished',
+        action: isSameStatus
+          ? 'poi_discovery_publication_repaired'
+          : status === 'PUBLISHED'
+            ? 'poi_discovery_published'
+            : 'poi_discovery_unpublished',
         target_type: 'poi',
         target_id: id,
         before: publicationAuditSnapshot(before),
@@ -112,7 +115,10 @@ export async function updatePoiDiscoveryPublication(
       },
     })
 
-    return mapPoiDiscoveryPublication(updated)
+    const result = mapPoiDiscoveryPublication(updated)
+    return isSameStatus && status === 'DRAFT'
+      ? { ...result, invalidation_paths: [] }
+      : result
   })
 }
 
@@ -162,4 +168,13 @@ function publicationAuditSnapshot(row: PoiDiscoveryRow): Prisma.InputJsonValue {
     discovery_status: row.discovery_status,
     discovery_published_at: row.discovery_published_at?.toISOString() ?? null,
   }
+}
+
+function hasCoherentDiscoveryPublication(row: Pick<
+  PoiDiscoveryRow,
+  'discovery_status' | 'discovery_published_at'
+>): boolean {
+  return row.discovery_status === 'PUBLISHED'
+    ? row.discovery_published_at !== null
+    : row.discovery_published_at === null
 }

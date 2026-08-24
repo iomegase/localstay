@@ -668,9 +668,10 @@ async function autoUnpublishIneligiblePoi(
 
   return {
     poi: unpublished as AdminPoiRow,
-    discoveryRevalidationPaths: publishedRouteContext
-      ? discoveryPathsForPublishedContexts([publishedRouteContext])
-      : [],
+    discoveryRevalidationPaths: discoveryPathsForPublishedContexts(
+      [publishedRouteContext, publishedDiscoveryRouteContextFromPoi(poi)]
+        .filter((context): context is PublishedDiscoveryRouteContext => context !== null),
+    ),
   }
 }
 
