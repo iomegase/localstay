@@ -698,7 +698,7 @@ même lorsque la query retourne une liste vide.
 Run:
 
 ```bash
-npx playwright test tests/e2e/public-discovery.AC-06.responsive-index.test.ts --project=chromium
+npx playwright test tests/e2e/public-discovery.AC-06.responsive-index.test.ts --project='Mobile Chrome'
 ```
 
 Expected: 3 tests PASS. Si l'environnement ne peut pas démarrer le webServer ou
