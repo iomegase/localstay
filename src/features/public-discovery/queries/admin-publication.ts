@@ -81,7 +81,12 @@ export async function updatePoiDiscoveryPublication(
       })
     }
 
-    if (before.discovery_status === status) return mapPoiDiscoveryPublication(before)
+    if (before.discovery_status === status) {
+      return {
+        ...mapPoiDiscoveryPublication(before),
+        invalidation_paths: [],
+      }
+    }
 
     const publishedAt = status === 'PUBLISHED' ? new Date() : null
     const updated = await tx.pointOfInterest.update({

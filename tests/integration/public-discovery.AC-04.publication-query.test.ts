@@ -184,9 +184,13 @@ describe('041 AC-04 transactional publication query', () => {
   })
 
   it.each([
-    ['PUBLISHED', new Date('2026-08-20T15:00:00.000Z')],
-    ['DRAFT', null],
-  ] as const)('is idempotent for %s without changing date or creating audit', async (status, date) => {
+    [
+      'PUBLISHED',
+      new Date('2026-08-20T15:00:00.000Z'),
+      '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+    ],
+    ['DRAFT', null, null],
+  ] as const)('is idempotent for %s without auditing, updating, or invalidating paths', async (status, date, publicUrl) => {
     mockPoiFindFirst.mockResolvedValue({
       ...completePoi,
       discovery_status: status,
@@ -197,6 +201,8 @@ describe('041 AC-04 transactional publication query', () => {
 
     expect(result.discovery_status).toBe(status)
     expect(result.discovery_published_at).toBe(date?.toISOString() ?? null)
+    expect(result.public_url).toBe(publicUrl)
+    expect(result.invalidation_paths).toEqual([])
     expect(mockPoiUpdate).not.toHaveBeenCalled()
     expect(mockAuditCreate).not.toHaveBeenCalled()
   })

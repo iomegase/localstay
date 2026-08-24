@@ -118,6 +118,31 @@ describe('041 AC-04 Admin discovery publication API', () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
+  it('returns an idempotent publication response without revalidating cache paths', async () => {
+    mockUpdatePoiDiscoveryPublication.mockResolvedValue({
+      id: poiId,
+      discovery_status: 'PUBLISHED',
+      discovery_published_at: '2026-08-20T16:00:00.000Z',
+      public_url: '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+      eligibility: { eligible: true, checks: { active: true } },
+      invalidation_paths: [],
+    })
+
+    const response = await PATCH(request({ status: 'PUBLISHED' }), context)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      data: {
+        id: poiId,
+        discovery_status: 'PUBLISHED',
+        discovery_published_at: '2026-08-20T16:00:00.000Z',
+        public_url: '/decouvrir/saint-gervais/manger/brasserie-du-mont-blanc',
+        eligibility: { eligible: true, checks: { active: true } },
+      },
+    })
+    expect(mockRevalidatePath).not.toHaveBeenCalled()
+  })
+
   it.each([
     ['unknown fields', { status: 'DRAFT', private_note: 'secret' }],
     ['unsupported status', { status: 'ARCHIVED' }],
