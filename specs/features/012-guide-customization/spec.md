@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-07-21
+updated_at: 2026-08-25
 depends_on: [010-dashboard-owner, 011-qr-code-owner, 002-categories, 003-poi-list]
 ```
 
@@ -84,6 +84,10 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
 - **AC-04-03**: Given l'Owner renseigne une adresse de logement, When elle est sauvegardée, Then le serveur tente de la géocoder via Mapbox depuis le centre de la City et stocke les coordonnées du logement si le résultat est valide
 - **AC-04-04**: Given un Tourist en séjour actif, When il ouvre `/le-logement`, Then il consulte un guide vertical en quatre sections ancrées et le menu mobile de cette route navigue uniquement entre ces sections
 - **AC-04-05**: Given une photo JPEG dont l’orientation d’affichage est portée par les métadonnées EXIF, When l’Owner l’importe, Then le serveur applique cette orientation aux pixels avant la conversion WebP et l’image stockée conserve le cadrage visible attendu.
+- **AC-04-06**: Given des blocs pratiques ou instructions d'arrivée déjà
+  sauvegardés, When l'Owner modifie puis sauvegarde la liste, Then les éléments
+  conservés gardent leur UUID, les nouveaux éléments seuls sont créés et les
+  éléments réellement retirés seuls sont soft-deleted.
 
 ---
 
@@ -124,6 +128,12 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
   pilotent plus les contenus affichés. Les guides utilisent les listes fixes
   MyStay définies par les specs 036 et 039. Une sauvegarde d'autres champs ne
   supprime pas les anciennes valeurs persistées.
+- **BR-25**: La synchronisation des `LodgingPracticalBlock` et
+  `LodgingArrivalInstruction` est différentielle et transactionnelle. Un UUID
+  persistant reçu doit appartenir à un élément actif du Lodging ciblé ; un UUID
+  inconnu, archivé, dupliqué ou rattaché à un autre Lodging invalide toute la
+  sauvegarde. Les identifiants d'interface préfixés `tmp-` représentent des
+  créations et ne sont jamais persistés comme identifiants métier.
 
 ---
 
@@ -282,6 +292,22 @@ paths:
                 useful_services:
                   type: string
                   nullable: true
+                practical_blocks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: "UUID persistant existant ; absent ou préfixé tmp- pour une création"
+                arrival_instructions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: "UUID persistant existant ; absent ou préfixé tmp- pour une création"
       responses:
         "200":
           description: Personnalisation sauvegardée
@@ -497,6 +523,7 @@ components:
 | AC-04-03 / BR-16 / BR-17 | Adresse logement géocodée via Mapbox et distance POI affichée depuis appartement puis GPS | unit + integration |
 | AC-04-04 / BR-18 / BR-19 | `/le-logement` vertical, navigation d'ancrage et menu mobile contextuel limité à cette route, horaires constants et palette colorée | unit + integration |
 | AC-04-05 | Orientation EXIF appliquée avant conversion WebP | unit |
+| AC-04-06 / BR-25 | UUID enfants stables, créations et archivages ciblés, rejet des UUID étrangers ou dupliqués | unit + contract |
 | BR-20 | Message de bienvenue conservé côté données mais absent du rendu de `/le-logement` | integration |
 | BR-21 | Récapitulatif limité aux horaires ; Wi-Fi rendu uniquement dans sa carte détaillée | integration |
 | BR-22 | Catalogue d'icônes d'équipements disponible et sélectionnable | unit |
