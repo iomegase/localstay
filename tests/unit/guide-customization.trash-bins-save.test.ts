@@ -1,8 +1,8 @@
 const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
-  lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
-  lodgingArrivalInstruction: { updateMany: jest.fn(), createMany: jest.fn() },
+  lodgingPracticalBlock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
+  lodgingArrivalInstruction: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
 }
 
 jest.mock('@/shared/lib/prisma', () => ({
@@ -31,6 +31,8 @@ describe('saveLodgingCustomization — trash bins', () => {
     jest.mocked(prisma.category.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([] as never)
+    tx.lodgingPracticalBlock.findMany.mockResolvedValue([])
+    tx.lodgingArrivalInstruction.findMany.mockResolvedValue([])
   })
 
   it('normalizes and persists trash bins on the customization row', async () => {

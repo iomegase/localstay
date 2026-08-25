@@ -34,12 +34,12 @@ npm test -- tests/unit/guide-customization.practical-blocks-normalize.test.ts te
 
 Expected: failures because normalized results currently omit every `id`.
 
-- [ ] **Step 3: Implement identity normalization**
+- [x] **Step 3: Implement identity normalization**
 
 Add optional `id` to normalized child types, preserve trimmed IDs except those
 prefixed by `tmp-`, and make both editors always create `tmp-` IDs.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run the Task 1 command and expect both suites to pass.
 
@@ -68,13 +68,13 @@ npm test -- tests/unit/guide-customization.practical-blocks-save.test.ts tests/u
 Expected: failures because production still archives all rows and calls
 `createMany`.
 
-- [ ] **Step 3: Implement transactional synchronizers**
+- [x] **Step 3: Implement transactional synchronizers**
 
 Read active IDs through the transaction client, reject duplicate or unknown
 persisted IDs, update retained rows by UUID, create rows without persistent
 IDs, then soft-delete only the remaining active IDs.
 
-- [ ] **Step 4: Verify GREEN and regressions**
+- [x] **Step 4: Verify GREEN and regressions**
 
 Run the four Task 1 and Task 2 suites and the existing customization contract,
 media, trash-bin, editor and private-guide query suites.
@@ -86,17 +86,17 @@ media, trash-bin, editor and private-guide query suites.
 - Modify: `tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts`
 - Modify: `docs/traceability-matrix.md`
 
-- [ ] **Step 1: Add contract coverage**
+- [x] **Step 1: Add contract coverage**
 
 Assert an `INVALID_CHILD_ITEM_ID` domain error maps to a 400 response with the
 standard error envelope.
 
-- [ ] **Step 2: Implement the exact mapping**
+- [x] **Step 2: Implement the exact mapping**
 
 Return code `INVALID_CHILD_ITEM_ID`, message `Élément du guide invalide` and
 empty details with HTTP 400.
 
-- [ ] **Step 3: Run final verification**
+- [x] **Step 3: Run final verification**
 
 Run focused Jest suites, `npx tsc --noEmit`, scoped ESLint and
 `git diff --check`; then update the spec 012 traceability row and commit.

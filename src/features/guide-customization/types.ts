@@ -116,6 +116,7 @@ export type GuideCustomizationErrorCode =
   | 'NOT_FOUND'
   | 'FEATURED_POI_LIMIT_EXCEEDED'
   | 'INVALID_FEATURED_POI'
+  | 'INVALID_CHILD_ITEM_ID'
 
 export class GuideCustomizationError extends Error {
   constructor(readonly code: GuideCustomizationErrorCode, message: string) {

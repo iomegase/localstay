@@ -60,7 +60,7 @@ const practicalText = (max: number) =>
   z.string().max(max).nullable().optional()
 
 const practicalBlockSchema = z.object({
-  id: z.string().optional(), // identifiant client (dnd) — ignoré à la persistance
+  id: z.string().optional(), // UUID persistant ou identifiant UI préfixé tmp-
   title: z
     .string()
     .trim()
@@ -162,6 +162,10 @@ function mapCustomizationError(error: unknown): NextResponse {
 
   if (code === 'INVALID_FEATURED_POI') {
     return errorResponse('INVALID_FEATURED_POI', 'POI invalide pour ce guide', 400)
+  }
+
+  if (code === 'INVALID_CHILD_ITEM_ID') {
+    return errorResponse('INVALID_CHILD_ITEM_ID', 'Élément du guide invalide', 400)
   }
 
   return errorResponse('INTERNAL_ERROR', 'Erreur interne', 500)

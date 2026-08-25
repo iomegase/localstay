@@ -1,8 +1,8 @@
 const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
-  lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
-  lodgingArrivalInstruction: { updateMany: jest.fn(), createMany: jest.fn() },
+  lodgingPracticalBlock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
+  lodgingArrivalInstruction: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
 }
 
 const mockGeocodeAddress = jest.fn()
@@ -43,33 +43,37 @@ describe('saveLodgingCustomization — arrival instructions', () => {
     jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([
       { id: 'i1', title: null, text: 'Ouvrez le portail', video_url: null, photos: ['a.jpg'], sort_order: 0 },
     ] as never)
+    tx.lodgingPracticalBlock.findMany.mockResolvedValue([])
+    tx.lodgingArrivalInstruction.findMany.mockResolvedValue([
+      { id: 'i1' },
+      { id: 'i2' },
+    ])
   })
 
-  it('soft-deletes existing instructions then recreates one row per normalized instruction', async () => {
+  it('updates retained instructions and archives only removed instructions', async () => {
     const result = await saveLodgingCustomization('owner-1', 'lodging-1', {
       category_order: [],
       featured_pois: [],
       arrival_instructions: [
-        { text: '  Ouvrez le portail  ', video_url: null, photos: ['a.jpg', ''], sort_order: 5 },
+        { id: 'i1', text: '  Ouvrez le portail  ', video_url: null, photos: ['a.jpg', ''], sort_order: 5 },
         { text: '', video_url: null, photos: [], sort_order: 1 },
       ],
     })
 
-    expect(tx.lodgingArrivalInstruction.updateMany).toHaveBeenCalledWith({
-      where: { lodging_id: 'lodging-1', deleted_at: null },
-      data: { deleted_at: expect.any(Date) },
+    expect(tx.lodgingArrivalInstruction.update).toHaveBeenCalledWith({
+      where: { id: 'i1' },
+      data: {
+        title: null,
+        text: 'Ouvrez le portail',
+        video_url: null,
+        photos: ['a.jpg'],
+        sort_order: 0,
+      },
     })
-    expect(tx.lodgingArrivalInstruction.createMany).toHaveBeenCalledWith({
-      data: [
-        {
-          lodging_id: 'lodging-1',
-          title: null,
-          text: 'Ouvrez le portail',
-          video_url: null,
-          photos: ['a.jpg'],
-          sort_order: 0,
-        },
-      ],
+    expect(tx.lodgingArrivalInstruction.create).not.toHaveBeenCalled()
+    expect(tx.lodgingArrivalInstruction.updateMany).toHaveBeenCalledWith({
+      where: { lodging_id: 'lodging-1', deleted_at: null, id: { in: ['i2'] } },
+      data: { deleted_at: expect.any(Date) },
     })
     expect(result.arrival_instructions).toEqual([
       { id: 'i1', title: null, text: 'Ouvrez le portail', video_url: null, photos: ['a.jpg'], sort_order: 0 },

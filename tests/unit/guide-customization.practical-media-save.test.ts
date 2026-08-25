@@ -1,8 +1,8 @@
 const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
-  lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
-  lodgingArrivalInstruction: { updateMany: jest.fn(), createMany: jest.fn() },
+  lodgingPracticalBlock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
+  lodgingArrivalInstruction: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
 }
 
 jest.mock('@/shared/lib/prisma', () => ({
@@ -34,6 +34,8 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
     jest.mocked(prisma.category.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingPracticalBlock.findMany).mockResolvedValue([] as never)
     jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([] as never)
+    tx.lodgingPracticalBlock.findMany.mockResolvedValue([])
+    tx.lodgingArrivalInstruction.findMany.mockResolvedValue([])
   })
 
   it('persists the presentation video on the customization row', async () => {
@@ -58,8 +60,8 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
       ],
     })
 
-    expect(tx.lodgingPracticalBlock.createMany).toHaveBeenCalledWith({
-      data: [{
+    expect(tx.lodgingPracticalBlock.create).toHaveBeenCalledWith({
+      data: {
         lodging_id: 'lodging-1',
         title: 'Visite',
         body: null,
@@ -67,7 +69,7 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
         photo_url: null,
         video_url: 'https://youtu.be/dQw4w9WgXcQ',
         sort_order: 0,
-      }],
+      },
     })
   })
 })
