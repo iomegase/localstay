@@ -79,6 +79,10 @@ Lodging actif.
 - **BR-05**: Les vidéos, appels et liens existants conservent leur comportement.
 - **BR-06**: Le shell reste limité à 430 px sans zoom ni scale CSS.
 - **BR-07**: Aucune migration Prisma ni nouvelle API.
+- **BR-08**: Une carte pratique portant l'icône `recycle` appartient à
+  `Informations pratiques`. Elle n'est ni rendue dans `Équipements`, ni incluse
+  dans le compteur d'équipements du sommaire. Les autres cartes pratiques
+  restent dans `Équipements`.
 
 ## Data Model
 
@@ -109,6 +113,7 @@ Aucune nouvelle API. La route est un Server Component privé.
 | AC-02-01 | integration |
 | AC-02-02 | integration |
 | AC-02-03 | integration |
+| BR-08 | unit + integration |
 
 ## Out of Scope
 

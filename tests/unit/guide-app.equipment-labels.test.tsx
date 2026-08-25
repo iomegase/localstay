@@ -69,4 +69,34 @@ describe('036 BR-07 — libellés Équipements', () => {
     )
     expect(container.querySelectorAll('.lucide-house-plug')).toHaveLength(2)
   })
+
+  it('does not count recycling cards as equipment', () => {
+    render(
+      <GuideLodgingViews
+        view="lodging"
+        lodging={{
+          ...demoLodging,
+          practicalCards: [
+            {
+              id: 'television',
+              title: 'Télévision',
+              description: 'Smart TV',
+              icon: 'tv',
+            },
+            {
+              id: 'waste',
+              title: 'Tri des déchets',
+              description: 'Consignes de tri',
+              icon: 'recycle',
+            },
+          ],
+        }}
+        onNavigate={jest.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole('button', { name: /Équipements.*1 équipement/i }),
+    ).toBeInTheDocument()
+  })
 })

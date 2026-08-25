@@ -12,9 +12,9 @@ for (const viewport of [
     await page.goto('/')
     const initialUrl = page.url()
 
-    const trigger = page.getByRole('button', {
-      name: 'Voir le guide d’exemple',
-    })
+    const trigger = page
+      .getByTestId('editorial-process')
+      .getByRole('button', { name: 'Voir le guide d’exemple' })
     await trigger.scrollIntoViewIfNeeded()
     await trigger.click()
 
@@ -43,40 +43,37 @@ for (const viewport of [
     expect(metrics.borderRadius).toBe('40px')
     expect(metrics.boxShadow).not.toBe('none')
 
-    const carousel = dialog.getByTestId('guide-featured-carousel')
-    const featuredCards = dialog.getByTestId('guide-featured-card')
-    await expect(carousel).toBeVisible()
-    await expect(featuredCards).toHaveCount(3)
+    await expect(
+      dialog.getByRole('heading', { name: /bienvenue au 305/i }),
+    ).toBeVisible()
 
-    const featuredImages = [
-      'Rond de Carotte',
-      'Le Relais des Communailles',
-      'Maison forte de Hautetour',
-    ]
-    for (const poiName of featuredImages) {
-      const image = dialog.getByRole('img', { name: poiName })
-      await expect(image).toBeVisible()
-      await expect
-        .poll(() =>
-          image.evaluate(element => (element as HTMLImageElement).naturalWidth),
-        )
-        .toBeGreaterThan(0)
-    }
+    await dialog.getByRole('button', { name: /découvrir le livret/i }).click()
 
-    const scrollMetrics = await carousel.evaluate(element => ({
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      scrollbarWidth: getComputedStyle(element).scrollbarWidth,
-    }))
-    expect(scrollMetrics.scrollWidth).toBeGreaterThan(scrollMetrics.clientWidth)
-    expect(scrollMetrics.scrollbarWidth).toBe('none')
+    await expect(
+      dialog.getByRole('button', { name: 'Arrivée 16:00' }),
+    ).toBeVisible()
+    await expect(
+      dialog.getByRole('button', { name: 'Départ 10:00' }),
+    ).toBeVisible()
+    await expect(
+      dialog.getByRole('button', { name: /accéder au logement/i }),
+    ).toBeVisible()
+    await expect(
+      dialog.getByRole('button', { name: /informations pratiques/i }),
+    ).toBeVisible()
+    await expect(
+      dialog.getByRole('button', { name: /équipements.*3 équipements/i }),
+    ).toBeVisible()
+    await expect(
+      dialog.getByRole('button', { name: /préparer le départ/i }),
+    ).toBeVisible()
 
-    await carousel.evaluate(element => {
-      element.scrollLeft = 120
-    })
-    await expect
-      .poll(() => carousel.evaluate(element => element.scrollLeft))
-      .toBeGreaterThan(0)
+    await dialog.getByRole('button', { name: /informations pratiques/i }).click()
+    await expect(
+      dialog.getByRole('heading', { name: 'Informations pratiques' }),
+    ).toBeVisible()
+    await expect(dialog.getByText('MyStay-Demo')).toBeVisible()
+    await expect(page).toHaveURL(initialUrl)
 
     await dialog.getByRole('button', { name: 'Coups de cœur' }).click()
     const guideMain = dialog.locator('main')
