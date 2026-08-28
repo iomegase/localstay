@@ -9,6 +9,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { AMENITY_CATALOG, AMENITY_CATALOG_CODES } from '../lib/amenity-catalog'
 import { ROOM_TYPE_LABELS } from '../lib/detail-view'
 import { buildPhotoCategoryOptions, parsePhotoCategoryValue } from '../lib/photo-categories'
+import { publicLodgingPath, publicLodgingsPath } from '../lib/public-paths'
 import type { OwnerLodgingPublicProfileDto } from '../types'
 
 type ApiErrorPayload = {
@@ -861,7 +862,9 @@ export function LodgingShowcaseForm(props: {
               </div>
               <div className="rounded-xl border border-gray-100 bg-stone-50 p-4 text-sm">
                 <p className="font-medium text-[#1a0dab]">{seoPreview.title || 'Titre SEO'}</p>
-                <p className="mt-2 text-green-700">/guide/.../logements/...</p>
+                <p className="mt-2 text-green-700">
+                  {profile.slug ? publicLodgingPath(profile.slug) : `${publicLodgingsPath()}/...`}
+                </p>
                 <p className="mt-2 text-gray-600">{seoPreview.description || 'Description SEO'}</p>
               </div>
             </CardContent>

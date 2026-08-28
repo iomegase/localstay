@@ -83,8 +83,8 @@ describe('028 admin lodging moderation API', () => {
       id: 'profile-1',
       publication_status: 'published',
     })
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements', 'page')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements/[lodging-slug]', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/logements', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/logements/[lodging-slug]', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
@@ -109,8 +109,8 @@ describe('028 admin lodging moderation API', () => {
       publication_status: 'draft',
       admin_review_note: 'Ajouter des photos avec alt.',
     })
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements', 'page')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements/[lodging-slug]', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/logements', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/logements/[lodging-slug]', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
@@ -143,8 +143,8 @@ describe('028 admin lodging moderation API', () => {
     await expect(res.json()).resolves.toMatchObject({
       publication_status: 'archived',
     })
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements', 'page')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/guide/[city-slug]/logements/[lodging-slug]', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/logements', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/logements/[lodging-slug]', 'page')
     expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 

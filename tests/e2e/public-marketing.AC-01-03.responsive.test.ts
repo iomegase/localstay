@@ -172,9 +172,7 @@ for (const viewport of [
 ] as const) {
   test(`public lodging detail matches the marketing home width on ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
-    await page.goto(
-      '/guide/saint-gervais-les-bains/logements/le-chalet-hygge',
-    )
+    await page.goto('/logements/le-chalet-hygge')
 
     const surface = page.getByTestId('marketing-surface')
     await expect(surface).toBeVisible()

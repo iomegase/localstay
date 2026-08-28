@@ -22,6 +22,11 @@ describe('030 admin analytics city path mapping', () => {
       pageType: 'lodging_detail',
     })
 
+    expect(resolveAnalyticsCityContext('/logements/chalet-hygge')).toEqual({
+      citySlug: null,
+      pageType: 'lodging_detail',
+    })
+
     expect(resolveAnalyticsCityContext('/blog')).toEqual({
       citySlug: null,
       pageType: 'global',
