@@ -20,10 +20,34 @@ export function lodgingProfileSlug(title: string): string {
     .slice(0, 80) || 'logement'
 }
 
+const MAX_LODGING_SLUG_LENGTH = 80
+
+function appendReadableSlugSuffix(
+  base: string,
+  suffixParts: readonly string[],
+): string {
+  const suffix = `-${suffixParts.join('-')}`
+  const maximumBaseLength = MAX_LODGING_SLUG_LENGTH - suffix.length
+
+  if (maximumBaseLength < 1) {
+    throw new RangeError('The complete lodging slug suffix cannot fit within 80 characters.')
+  }
+
+  const truncatedBase = base
+    .slice(0, maximumBaseLength)
+    .replace(/-+$/g, '')
+
+  if (!truncatedBase) {
+    throw new RangeError('The lodging slug requires a readable title prefix.')
+  }
+
+  return `${truncatedBase}${suffix}`
+}
+
 export function lodgingSlugCandidates(title: string, city: string): string[] {
   const base = lodgingProfileSlug(title)
   const citySlug = lodgingProfileSlug(city)
-  const cityCandidate = lodgingProfileSlug(`${base}-${citySlug}`)
+  const cityCandidate = appendReadableSlugSuffix(base, [citySlug])
 
   return [...new Set([base, cityCandidate])]
 }
@@ -39,15 +63,12 @@ export async function allocateLodgingSlug(
     if (!(await isTaken(candidate))) return candidate
   }
 
-  const suffixBase = candidates[candidates.length - 1]
+  const base = lodgingProfileSlug(title)
+  const citySlug = lodgingProfileSlug(city)
   let suffix = 2
 
   while (true) {
-    const suffixText = String(suffix)
-    const trimmedBase = suffixBase
-      .slice(0, 80 - suffixText.length - 1)
-      .replace(/-+$/g, '')
-    const candidate = `${trimmedBase}-${suffixText}`
+    const candidate = appendReadableSlugSuffix(base, [citySlug, String(suffix)])
 
     if (!(await isTaken(candidate))) return candidate
     suffix += 1

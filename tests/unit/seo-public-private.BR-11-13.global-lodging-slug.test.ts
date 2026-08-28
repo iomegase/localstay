@@ -88,13 +88,17 @@ describe('042 SEO public/private architecture BR-11/BR-13 lodging slug allocatio
     ])
   })
 
-  it('does not return a duplicate candidate when normalization collapses the City suffix', () => {
-    const eightyCharacters = 'a'.repeat(80)
+  it.each([78, 80])(
+    'preserves the complete City suffix for a %i-character title base',
+    (titleLength) => {
+      const titleBase = 'a'.repeat(titleLength)
 
-    expect(lodgingSlugCandidates(eightyCharacters, 'Annecy')).toEqual([
-      eightyCharacters,
-    ])
-  })
+      expect(lodgingSlugCandidates(titleBase, 'Annecy')).toEqual([
+        titleBase,
+        `${'a'.repeat(73)}-annecy`,
+      ])
+    },
+  )
 
   it('allocates the base slug for a new draft when it is free', async () => {
     const isTaken = jest.fn<(candidate: string) => Promise<boolean>>()
@@ -138,6 +142,39 @@ describe('042 SEO public/private architecture BR-11/BR-13 lodging slug allocatio
 
     await expect(allocateLodgingSlug('Chalet Hygge', 'Annecy', isTaken))
       .resolves.toBe('chalet-hygge-annecy-4')
+  })
+
+  it('preserves the complete City and numeric suffixes within 80 characters', async () => {
+    const titleBase = 'a'.repeat(80)
+    const cityCandidate = `${'a'.repeat(73)}-annecy`
+    const taken = new Set([titleBase, cityCandidate])
+    const isTaken = jest.fn<(candidate: string) => Promise<boolean>>(async (candidate) =>
+      taken.has(candidate),
+    )
+
+    const allocated = await allocateLodgingSlug(titleBase, 'Annecy', isTaken)
+
+    expect(allocated).toBe(`${'a'.repeat(71)}-annecy-2`)
+    expect(allocated).toHaveLength(80)
+  })
+
+  it('rejects a City suffix that cannot fit with a readable title prefix', () => {
+    expect(() => lodgingSlugCandidates('Chalet Hygge', 'a'.repeat(79)))
+      .toThrow(RangeError)
+  })
+
+  it('rejects numeric fallback when the complete City and numeric suffix cannot fit', async () => {
+    const city = 'a'.repeat(77)
+    const candidates = [
+      'chalet-hygge',
+      `ch-${city}`,
+    ]
+    const isTaken = jest.fn<(candidate: string) => Promise<boolean>>(async (candidate) =>
+      candidates.includes(candidate),
+    )
+
+    await expect(allocateLodgingSlug('Chalet Hygge', city, isTaken))
+      .rejects.toThrow(RangeError)
   })
 })
 
