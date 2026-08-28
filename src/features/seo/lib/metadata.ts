@@ -187,7 +187,6 @@ export function lodgingListMetadata(input: { cityName: string; citySlug: string 
 export function lodgingDetailMetadata(input: {
   title: string
   shortDescription: string
-  citySlug: string
   lodgingSlug: string
   coverPhoto: string | null
 }): Metadata {

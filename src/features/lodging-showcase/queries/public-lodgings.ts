@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import { selectPrimaryPoiPhoto } from '@/features/categories/lib/photo-url'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
@@ -347,11 +348,11 @@ async function getPublishedLodgingDetailWhere(
   }
 }
 
-export async function getPublishedLodgingDetailBySlug(
+export const getPublishedLodgingDetailBySlug: (
   lodgingSlug: string,
-): Promise<PublicLodgingDetailQueryResult | null> {
-  return getPublishedLodgingDetailWhere({ slug: lodgingSlug })
-}
+) => Promise<PublicLodgingDetailQueryResult | null> = cache(async lodgingSlug =>
+  getPublishedLodgingDetailWhere({ slug: lodgingSlug }),
+)
 
 export async function getPublishedLodgingDetail(
   citySlug: string,

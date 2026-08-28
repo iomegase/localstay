@@ -240,7 +240,6 @@ export type LodgingSchemaInput = {
   description: string
   cityName: string
   cityRegion: string | null
-  citySlug: string
   slug: string
   propertyType: string
   maxGuests: number

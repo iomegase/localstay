@@ -14,7 +14,6 @@ describe('lodgingDetailMetadata', () => {
     const metadata = lodgingDetailMetadata({
       title: 'Chalet Hygge',
       shortDescription: 'Un chalet lumineux au calme pour profiter d Annecy.',
-      citySlug: 'annecy',
       lodgingSlug: 'chalet-hygge',
       coverPhoto: 'https://img.test/cover.webp',
     })
@@ -33,7 +32,6 @@ describe('lodgingDetailMetadata', () => {
       description: 'Une description visible et detaillee.',
       cityName: 'Annecy',
       cityRegion: 'Auvergne-Rhone-Alpes',
-      citySlug: 'annecy',
       slug: 'chalet-hygge',
       propertyType: 'Chalet',
       maxGuests: 4,

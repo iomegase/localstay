@@ -25,7 +25,6 @@ describe('lodging showcase structured data', () => {
     description: 'Une description detaillee du logement pour la page publique MyStay.',
     cityName: 'Annecy',
     cityRegion: 'Auvergne-Rhone-Alpes',
-    citySlug: 'annecy',
     slug: 'chalet-hygge',
     propertyType: 'Chalet',
     maxGuests: 4,

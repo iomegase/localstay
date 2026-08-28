@@ -44,7 +44,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return lodgingDetailMetadata({
     title: detail.title,
     shortDescription: detail.short_description,
-    citySlug: detail.city_slug,
     lodgingSlug: detail.slug,
     coverPhoto: detail.cover_photo_url,
   })
@@ -75,7 +74,6 @@ export default async function LodgingDetailPage({ params }: Props) {
     description: detail.description,
     cityName: detail.city_name,
     cityRegion: detail.city_region,
-    citySlug,
     slug: detail.slug,
     propertyType: detail.property_type,
     maxGuests: detail.max_guests,
