@@ -4,7 +4,7 @@ import type { LodgingPublicProfileInput } from '@/features/lodging-showcase/sche
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     lodging: { findFirst: jest.fn() },
-    lodgingPublicProfile: { upsert: jest.fn(), findUnique: jest.fn() },
+    lodgingPublicProfile: { upsert: jest.fn(), findUnique: jest.fn(), findFirst: jest.fn() },
     lodgingAmenity: { deleteMany: jest.fn(), createMany: jest.fn(), updateMany: jest.fn() },
     lodgingFaqItem: { deleteMany: jest.fn(), createMany: jest.fn(), updateMany: jest.fn() },
     lodgingPhoto: { updateMany: jest.fn() },
@@ -13,8 +13,31 @@ jest.mock('@/shared/lib/prisma', () => ({
 
 import { prisma } from '@/shared/lib/prisma'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const db = prisma as unknown as Record<string, any>
+type TestDatabase = {
+  lodging: {
+    findFirst: jest.MockedFunction<() => Promise<unknown>>
+  }
+  lodgingPublicProfile: {
+    upsert: jest.MockedFunction<() => Promise<{ id: string }>>
+    findUnique: jest.MockedFunction<() => Promise<unknown>>
+    findFirst: jest.MockedFunction<() => Promise<unknown>>
+  }
+  lodgingAmenity: {
+    deleteMany: jest.MockedFunction<() => Promise<{ count: number }>>
+    createMany: jest.MockedFunction<() => Promise<{ count: number }>>
+    updateMany: jest.MockedFunction<() => Promise<{ count: number }>>
+  }
+  lodgingFaqItem: {
+    deleteMany: jest.MockedFunction<() => Promise<{ count: number }>>
+    createMany: jest.MockedFunction<() => Promise<{ count: number }>>
+    updateMany: jest.MockedFunction<() => Promise<{ count: number }>>
+  }
+  lodgingPhoto: {
+    updateMany: jest.MockedFunction<() => Promise<{ count: number }>>
+  }
+}
+
+const db = prisma as unknown as TestDatabase
 
 const baseInput: LodgingPublicProfileInput = {
   title: 'Chalet test alpin',
@@ -51,6 +74,7 @@ describe('saveOwnerPublicProfile — child collection replacement', () => {
       city: { id: 'city-1', name: 'Chamonix', slug: 'chamonix' },
     })
     db.lodgingPublicProfile.upsert.mockResolvedValue({ id: 'profile-1' })
+    db.lodgingPublicProfile.findFirst.mockResolvedValue(null)
     db.lodgingAmenity.deleteMany.mockResolvedValue({ count: 1 })
     db.lodgingAmenity.createMany.mockResolvedValue({ count: 1 })
     db.lodgingFaqItem.deleteMany.mockResolvedValue({ count: 0 })

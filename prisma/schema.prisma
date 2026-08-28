@@ -881,7 +881,7 @@ model LodgingPublicProfile {
   city_id    String
   city       City    @relation(fields: [city_id], references: [id])
 
-  slug                    String
+  slug                    String                   @unique
   publication_status      LodgingPublicationStatus @default(draft)
   is_featured             Boolean                  @default(false)
   published_at            DateTime?
@@ -931,7 +931,6 @@ model LodgingPublicProfile {
   amenities LodgingAmenity[]
   faq_items LodgingFaqItem[]
 
-  @@unique([city_id, slug])
   @@index([publication_status, deleted_at])
   @@index([city_id, publication_status, deleted_at])
   @@index([published_at])

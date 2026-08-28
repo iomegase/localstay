@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import type { Prisma } from '@prisma/client'
 import { detectExternalListingSource } from '../lib/source-url'
 import { evaluateProfileCompleteness } from '../lib/completeness'
-import { lodgingProfileSlug } from '../lib/slug'
+import { allocateLodgingSlug, lodgingProfileSlug } from '../lib/slug'
 import type {
   LodgingPhotoRoomType,
   OwnerLodgingPublicProfileDto,
@@ -368,11 +368,34 @@ export async function getOwnedLodgingShowcasePageData(
 }
 
 async function writePublicProfileForLodging(
-  lodging: { id: string; city_id: string },
+  lodging: Pick<ShowcaseLodging, 'id' | 'city_id' | 'city'>,
   input: LodgingPublicProfileInput,
   options: { resetToDraft: boolean },
 ): Promise<OwnerLodgingPublicProfileDto | null> {
-  const slug = lodgingProfileSlug(input.title)
+  const currentProfile = await prisma.lodgingPublicProfile.findUnique({
+    where: { lodging_id: lodging.id },
+    select: {
+      slug: true,
+      publication_status: true,
+      published_at: true,
+    },
+  })
+  const slug = currentProfile && (
+    currentProfile.published_at !== null
+    || currentProfile.publication_status === 'published'
+  )
+    ? currentProfile.slug
+    : await allocateLodgingSlug(input.title, lodging.city.slug, async (candidate) => {
+        const conflict = await prisma.lodgingPublicProfile.findFirst({
+          where: {
+            slug: candidate,
+            lodging_id: { not: lodging.id },
+          },
+          select: { id: true },
+        })
+
+        return conflict !== null
+      })
   const externalBookingPlatform = inferExternalBookingPlatform(input.external_booking_url ?? null)
 
   const profile = await prisma.lodgingPublicProfile.upsert({
