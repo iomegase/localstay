@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import { selectPrimaryPoiPhoto } from '@/features/categories/lib/photo-url'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import type { PublicOwnerRecommendationDto } from '@/features/lodging-showcase/types'
 
 type PublicLodgingCardApi = {
@@ -147,7 +148,7 @@ function toCardApi(row: {
     bedroom_count: row.bedroom_count,
     public_area_label: row.public_area_label,
     amenities: row.amenities.map(amenity => amenity.label),
-    href: `/guide/${row.city.slug}/logements/${row.slug}`,
+    href: publicLodgingPath(row.slug),
   }
 }
 

@@ -7,7 +7,7 @@ import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/p
 const lodging: MarketingLodgingCard = {
   id: 'lodging-1',
   slug: 'chalet-hygge',
-  href: '/guide/chamonix/logements/chalet-hygge',
+  href: '/logements/chalet-hygge',
   title: 'Le Chalet Hygge',
   short_description: 'Un chalet chaleureux.',
   public_area_label: 'Saint-Gervais-les-Bains',
