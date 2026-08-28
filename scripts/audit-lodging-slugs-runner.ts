@@ -63,35 +63,45 @@ export async function runLodgingSlugAudit(
   let exitCode = 0
 
   try {
-    const profiles = await dependencies.readProfiles()
-    const collisions = findLodgingSlugCollisions(profiles)
+    try {
+      const profiles = await dependencies.readProfiles()
+      const collisions = findLodgingSlugCollisions(profiles)
 
-    dependencies.writeLine(`Audited lodging public profile slugs: ${profiles.length}`)
-    dependencies.writeLine(`Global slug collisions: ${collisions.length}`)
+      try {
+        dependencies.writeLine(`Audited lodging public profile slugs: ${profiles.length}`)
+        dependencies.writeLine(`Global slug collisions: ${collisions.length}`)
 
-    for (const collision of collisions) {
-      const profilesSummary = collision.profiles
-        .map((profile) => {
-          const deletedMarker = profile.deletedAt === null ? '' : ', soft-deleted'
-          return `${profile.id} (${profile.citySlug}${deletedMarker})`
-        })
-        .join(', ')
-      dependencies.writeLine(`- ${collision.slug}: ${profilesSummary}`)
-    }
+        for (const collision of collisions) {
+          const profilesSummary = collision.profiles
+            .map((profile) => {
+              const deletedMarker = profile.deletedAt === null ? '' : ', soft-deleted'
+              return `${profile.id} (${profile.citySlug}${deletedMarker})`
+            })
+            .join(', ')
+          dependencies.writeLine(`- ${collision.slug}: ${profilesSummary}`)
+        }
+      } catch {
+        dependencies.writeLine('Lodging slug audit failed while writing output.')
+        exitCode = 1
+      }
 
-    if (collisions.length > 0) {
+      if (collisions.length > 0) {
+        exitCode = 1
+      }
+    } catch {
+      dependencies.writeLine('Lodging slug audit failed while reading profiles.')
       exitCode = 1
     }
   } catch {
-    dependencies.writeLine('Lodging slug audit failed while reading profiles.')
+    // A failing diagnostic sink is surfaced after the lifecycle cleanup runs.
     exitCode = 1
-  }
-
-  try {
-    await dependencies.disconnect()
-  } catch {
-    dependencies.writeLine('Lodging slug audit failed while disconnecting Prisma.')
-    exitCode = 1
+  } finally {
+    try {
+      await dependencies.disconnect()
+    } catch {
+      dependencies.writeLine('Lodging slug audit failed while disconnecting Prisma.')
+      exitCode = 1
+    }
   }
 
   return exitCode

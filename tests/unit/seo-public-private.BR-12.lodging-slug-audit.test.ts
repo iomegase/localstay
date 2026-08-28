@@ -128,6 +128,20 @@ describe('042 SEO public/private architecture BR-12 lodging slug audit', () => {
     expect(lines.join('\n')).not.toContain('secret SQL details')
   })
 
+  it('returns failure on an output failure while still disconnecting exactly once', async () => {
+    const writeLine = jest.fn< (line: string) => void >(() => {
+      throw new Error('output sink failed')
+    })
+    const disconnect = jest.fn<() => Promise<void>>().mockResolvedValue(undefined)
+    const readProfiles = jest.fn<() => Promise<readonly AuditedLodgingSlug[]>>().mockResolvedValue([])
+
+    const exitCode = await runLodgingSlugAudit({ readProfiles, disconnect, writeLine })
+
+    expect(exitCode).toBe(1)
+    expect(writeLine).toHaveBeenCalled()
+    expect(disconnect).toHaveBeenCalledTimes(1)
+  })
+
   it('uses an unfiltered Prisma read with only the required audit fields', async () => {
     const findMany = jest.fn().mockResolvedValue([])
     const prisma = {
