@@ -2,7 +2,10 @@ import {
   allocateLodgingSlug,
   lodgingSlugCandidates,
 } from '@/features/lodging-showcase/lib/slug'
-import { saveOwnerPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
+import {
+  saveAdminPublicProfile,
+  saveOwnerPublicProfile,
+} from '@/features/lodging-showcase/queries/owner-public-profile'
 import type { LodgingPublicProfileInput } from '@/features/lodging-showcase/schemas'
 
 jest.mock('@/shared/lib/prisma', () => ({
@@ -266,4 +269,26 @@ describe('writePublicProfileForLodging slug stability and global lookup', () => 
       )
     },
   )
+
+  it('keeps an archived, previously published slug after an Admin title edit', async () => {
+    db.lodgingPublicProfile.findUnique
+      .mockResolvedValueOnce({
+        slug: 'admin-permanent-public-url',
+        publication_status: 'archived',
+        published_at: new Date('2026-08-20T12:00:00.000Z'),
+      })
+      .mockResolvedValueOnce(null)
+
+    await saveAdminPublicProfile('lodging-1', input)
+
+    expect(db.lodgingPublicProfile.findFirst).not.toHaveBeenCalled()
+    expect(db.lodgingPublicProfile.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: expect.objectContaining({
+          slug: 'admin-permanent-public-url',
+          title: 'Chalet Hygge',
+        }),
+      }),
+    )
+  })
 })
