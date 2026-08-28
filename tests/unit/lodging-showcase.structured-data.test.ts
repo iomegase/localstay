@@ -42,7 +42,7 @@ describe('lodging showcase structured data', () => {
   it('builds a LodgingBusiness fallback schema', () => {
     const schema = lodgingPlaceSchema(input)
     expect(schema['@type']).toBe('LodgingBusiness')
-    expect(schema.url).toBe(`${BASE}/guide/annecy/logements/chalet-hygge`)
+    expect(schema.url).toBe(`${BASE}/logements/chalet-hygge`)
   })
 
   it('does not emit VacationRental without public coordinates and enough classified photos', () => {
@@ -64,7 +64,7 @@ describe('lodging showcase structured data', () => {
           public_area_label: 'Annecy-le-Vieux',
           cover_photo_url: 'https://img.test/cover.webp',
           amenities: [],
-          href: '/guide/annecy/logements/chalet-hygge',
+          href: '/logements/chalet-hygge',
           bedroom_count: 2,
           external_booking_platform: null,
           public_contact_enabled: true,
@@ -84,5 +84,8 @@ describe('lodging showcase structured data', () => {
 
     expect(schema['@type']).toBe('ItemList')
     expect(schema.itemListElement).toHaveLength(1)
+    expect(schema.itemListElement).toEqual([
+      expect.objectContaining({ url: `${BASE}/logements/chalet-hygge` }),
+    ])
   })
 })

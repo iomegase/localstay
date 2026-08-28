@@ -4,6 +4,7 @@ import type {
   DiscoveryCity,
   DiscoveryPoiDetail,
 } from '@/features/public-discovery/types'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { SITE } from './site'
 
 const MAX_DESCRIPTION = 160
@@ -192,7 +193,7 @@ export function lodgingDetailMetadata(input: {
 }): Metadata {
   const title = `${input.title} — Logement MyStay`
   const description = truncate(input.shortDescription)
-  const path = `/guide/${input.citySlug}/logements/${input.lodgingSlug}`
+  const path = publicLodgingPath(input.lodgingSlug)
   const images = input.coverPhoto ? [input.coverPhoto] : undefined
 
   return {

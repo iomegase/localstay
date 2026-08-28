@@ -1,6 +1,7 @@
 import { SITE, siteBaseUrl } from './site'
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const SCHEMA = 'https://schema.org'
@@ -252,7 +253,7 @@ export type LodgingSchemaInput = {
 }
 
 export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
-  const path = `/guide/${input.citySlug}/logements/${input.slug}`
+  const path = publicLodgingPath(input.slug)
   return {
     '@context': SCHEMA,
     '@type': 'LodgingBusiness',

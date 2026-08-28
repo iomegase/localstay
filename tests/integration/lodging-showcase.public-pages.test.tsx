@@ -21,9 +21,11 @@ jest.mock('mapbox-gl', () => ({
 }))
 
 const mockNotFound = jest.fn()
+const mockPermanentRedirect = jest.fn()
 
 jest.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
+  permanentRedirect: (destination: string) => mockPermanentRedirect(destination),
 }))
 
 jest.mock('next/link', () => ({
@@ -50,19 +52,26 @@ jest.mock('@/features/seo/queries/page-data', () => ({
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgingsForCity: jest.fn(),
   getPublishedLodgingDetail: jest.fn(),
+  getPublishedLodgingDetailBySlug: jest.fn(),
 }))
 
 jest.mock('@/shared/components/JsonLd', () => ({
-  JsonLd: () => null,
+  JsonLd: ({ data }: { data: unknown }) => (
+    <script data-testid="json-ld">{JSON.stringify(data)}</script>
+  ),
 }))
 
 import { getCityForSeo } from '@/features/seo/queries/page-data'
 import {
   getPublishedLodgingDetail,
+  getPublishedLodgingDetailBySlug,
   listPublishedLodgingsForCity,
 } from '@/features/lodging-showcase/queries/public-lodgings'
-import LodgingListPage from '@/app/(public)/guide/[city-slug]/logements/page'
-import LodgingDetailPage from '@/app/(public)/guide/[city-slug]/logements/[lodging-slug]/page'
+import LegacyLodgingListPage from '@/app/(public)/guide/[city-slug]/logements/page'
+import LegacyLodgingDetailPage from '@/app/(public)/guide/[city-slug]/logements/[lodging-slug]/page'
+import LodgingDetailPage, {
+  generateMetadata as generateLodgingDetailMetadata,
+} from '@/app/(public)/logements/[lodging-slug]/page'
 import GuidePage from '@/app/(public)/guide/[city-slug]/page'
 
 jest.mock('@/features/city-guide/queries/cities', () => ({
@@ -116,7 +125,7 @@ const listResult = {
       bedroom_count: 2,
       public_area_label: 'Annecy-le-Vieux',
       amenities: ['Wi-Fi', 'Parking'],
-      href: '/guide/annecy/logements/chalet-hygge',
+      href: '/logements/chalet-hygge',
     },
   ],
   meta: { page: 1, limit: 12, total: 1, total_pages: 1 },
@@ -174,28 +183,29 @@ describe('lodging showcase public pages', () => {
     ;(getCityForSeo as jest.Mock).mockResolvedValue(city)
     ;(listPublishedLodgingsForCity as jest.Mock).mockResolvedValue(listResult)
     ;(getPublishedLodgingDetail as jest.Mock).mockResolvedValue(detailResult)
+    ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue(detailResult)
   })
 
-  it('renders the public city lodging list', async () => {
-    const jsx = await LodgingListPage({ params: Promise.resolve({ 'city-slug': 'annecy' }) })
-    render(jsx)
+  it('permanently redirects the legacy city lodging list without querying lodging data', async () => {
+    await LegacyLodgingListPage()
 
-    expect(screen.getByRole('heading', { name: 'Annecy' })).toBeInTheDocument()
-    expect(screen.getByText('Chalet Hygge')).toBeInTheDocument()
-
-    const card = screen.getByText('Chalet Hygge').closest('article')
-    expect(card).toHaveClass('w-full')
-    expect(card?.parentElement).toHaveClass('grid', 'grid-cols-1')
-    expect(card?.parentElement).not.toHaveClass('md:grid-cols-2')
-    expect(card?.parentElement).not.toHaveClass('xl:grid-cols-3')
+    expect(mockPermanentRedirect).toHaveBeenCalledWith('/logements')
+    expect(getCityForSeo).not.toHaveBeenCalled()
+    expect(listPublishedLodgingsForCity).not.toHaveBeenCalled()
   })
 
-  it('renders the public lodging detail page', async () => {
+  it('renders the public lodging detail page from its globally unique slug', async () => {
     const jsx = await LodgingDetailPage({
-      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+      params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
     })
     render(jsx)
 
+    expect(getPublishedLodgingDetailBySlug).toHaveBeenCalledWith('chalet-hygge')
+    expect(screen.getByTestId('json-ld')).toHaveTextContent(
+      'https://www.mystay.city/logements/chalet-hygge',
+    )
+    expect(screen.getByTestId('json-ld')).toHaveTextContent('"name":"Logements"')
+    expect(screen.getByTestId('json-ld')).not.toHaveTextContent('/guide/annecy/logements')
     expect(screen.getByTestId('marketing-stage')).toBeInTheDocument()
     expect(screen.getByTestId('marketing-surface')).toHaveClass(
       'md:max-w-[1184px]',
@@ -214,6 +224,7 @@ describe('lodging showcase public pages', () => {
       expect(contactLink).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
       expect(contactLink).toHaveAttribute('data-analytics-city-slug', 'annecy')
       expect(contactLink).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
+      expect(contactLink).toHaveAttribute('rel', 'nofollow')
     }
 
     for (const bookingLink of screen.getAllByRole('link', { name: 'Reserver sur Airbnb' })) {
@@ -225,7 +236,7 @@ describe('lodging showcase public pages', () => {
 
   it('follows the approved editorial property-detail hierarchy', async () => {
     const jsx = await LodgingDetailPage({
-      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+      params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
     })
     render(jsx)
 
@@ -248,7 +259,7 @@ describe('lodging showcase public pages', () => {
 
   it('renders a compact factual essentials band without invented stay details', async () => {
     const jsx = await LodgingDetailPage({
-      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+      params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
     })
     render(jsx)
 
@@ -269,7 +280,7 @@ describe('lodging showcase public pages', () => {
 
   it('does not render owner recommendation blocks on the marketing detail page', async () => {
     const jsx = await LodgingDetailPage({
-      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+      params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
     })
     render(jsx)
 
@@ -280,19 +291,64 @@ describe('lodging showcase public pages', () => {
   })
 
   it('hides external booking and contact CTAs when disabled', async () => {
-    ;(getPublishedLodgingDetail as jest.Mock).mockResolvedValue({
+    ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue({
       ...detailResult,
       external_booking_url: null,
       public_contact_enabled: false,
     })
 
     const jsx = await LodgingDetailPage({
-      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+      params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
     })
     render(jsx)
 
     expect(screen.queryByText('Reserver sur Airbnb')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Contacter' })).not.toBeInTheDocument()
+  })
+
+  it.each(['unknown', 'unpublished', 'inactive', 'deleted'])(
+    'returns notFound for an %s lodging profile',
+    async () => {
+      ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue(null)
+
+      const result = await LodgingDetailPage({
+        params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
+      })
+
+      expect(result).toBeNull()
+      expect(mockNotFound).toHaveBeenCalledTimes(1)
+    },
+  )
+
+  it('returns fully non-indexable metadata when the short lodging is unavailable', async () => {
+    ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue(null)
+
+    const metadata = await generateLodgingDetailMetadata({
+      params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),
+    })
+
+    expect(metadata.robots).toEqual({ index: false, follow: false, noarchive: true })
+  })
+
+  it('permanently redirects an eligible legacy detail to the short lodging URL', async () => {
+    await LegacyLodgingDetailPage({
+      params: Promise.resolve({ 'city-slug': 'annecy', 'lodging-slug': 'chalet-hygge' }),
+    })
+
+    expect(getPublishedLodgingDetail).toHaveBeenCalledWith('annecy', 'chalet-hygge')
+    expect(mockPermanentRedirect).toHaveBeenCalledWith('/logements/chalet-hygge')
+  })
+
+  it('returns notFound for a legacy detail without an eligible city/profile match', async () => {
+    ;(getPublishedLodgingDetail as jest.Mock).mockResolvedValue(null)
+
+    const result = await LegacyLodgingDetailPage({
+      params: Promise.resolve({ 'city-slug': 'wrong-city', 'lodging-slug': 'chalet-hygge' }),
+    })
+
+    expect(result).toBeNull()
+    expect(mockNotFound).toHaveBeenCalledTimes(1)
+    expect(mockPermanentRedirect).not.toHaveBeenCalled()
   })
 
   it('keeps the guide page free of lodging cards in the main flow', async () => {

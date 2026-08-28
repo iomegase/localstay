@@ -235,18 +235,25 @@ export async function listPublishedLodgingsForCity(
   }
 }
 
-export async function getPublishedLodgingDetail(
-  citySlug: string,
-  lodgingSlug: string,
-): Promise<PublicLodgingDetailQueryResult | null> {
-  const city = await getActiveCityBySlug(citySlug)
-  if (!city) return null
+type PublishedLodgingDetailIdentity = {
+  slug: string
+  city?: { slug: string }
+}
 
-  const where = buildPublishedWhere(city.id, citySlug)
+async function getPublishedLodgingDetailWhere(
+  identity: PublishedLodgingDetailIdentity,
+): Promise<PublicLodgingDetailQueryResult | null> {
   const row = await prisma.lodgingPublicProfile.findFirst({
     where: {
-      ...where,
-      slug: lodgingSlug,
+      ...identity,
+      publication_status: 'published',
+      deleted_at: null,
+      city: {
+        ...identity.city,
+        is_active: true,
+        deleted_at: null,
+      },
+      lodging: { is_active: true, deleted_at: null },
     },
     select: {
       id: true,
@@ -338,4 +345,20 @@ export async function getPublishedLodgingDetail(
     amenities_on_request: row.amenities.filter(a => a.availability === 'on_request').map(a => a.label),
     faq: row.faq_items.map(item => ({ id: item.id, question: item.question, answer: item.answer })),
   }
+}
+
+export async function getPublishedLodgingDetailBySlug(
+  lodgingSlug: string,
+): Promise<PublicLodgingDetailQueryResult | null> {
+  return getPublishedLodgingDetailWhere({ slug: lodgingSlug })
+}
+
+export async function getPublishedLodgingDetail(
+  citySlug: string,
+  lodgingSlug: string,
+): Promise<PublicLodgingDetailQueryResult | null> {
+  return getPublishedLodgingDetailWhere({
+    slug: lodgingSlug,
+    city: { slug: citySlug },
+  })
 }
