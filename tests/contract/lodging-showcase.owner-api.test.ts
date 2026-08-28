@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { LodgingSlugConflictError } from '@/features/lodging-showcase/lib/slug'
 
 const mockGetSessionOwner = jest.fn()
 const mockGetOwnerPublicProfile = jest.fn()
@@ -179,6 +180,36 @@ describe('028 owner lodging showcase API', () => {
     await expect(res.json()).resolves.toMatchObject({
       error: { code: 'LODGING_NOT_FOUND' },
     })
+  })
+
+  it('BR-13: returns a safe 409 when the database wins a lodging slug race', async () => {
+    mockSaveOwnerPublicProfile.mockRejectedValue(new LodgingSlugConflictError())
+
+    const res = await PUT(
+      jsonRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile', 'PUT', validPayload),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body).toEqual({
+      error: {
+        code: 'LODGING_SLUG_CONFLICT',
+        message: 'Cette URL de logement est déjà utilisée',
+        details: {},
+      },
+    })
+    expect(JSON.stringify(body)).not.toMatch(/P2002|Prisma|constraint|LodgingPublicProfile_slug_key|SELECT|INSERT|stack/i)
+  })
+
+  it('BR-13: rethrows unrelated owner profile save errors', async () => {
+    const error = new Error('database unavailable')
+    mockSaveOwnerPublicProfile.mockRejectedValue(error)
+
+    await expect(PUT(
+      jsonRequest('http://localhost/api/dashboard/lodgings/lodging-1/public-profile', 'PUT', validPayload),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )).rejects.toBe(error)
   })
 
   it('returns readable validation details when the owner draft payload is invalid', async () => {

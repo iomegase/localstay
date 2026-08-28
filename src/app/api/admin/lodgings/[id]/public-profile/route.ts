@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
 import { apiError } from '@/features/lodging-showcase/lib/http'
+import { LodgingSlugConflictError } from '@/features/lodging-showcase/lib/slug'
 import { LodgingPublicProfileInputSchema } from '@/features/lodging-showcase/schemas'
 import { saveAdminPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
 import { revalidatePublicLodgingPaths } from '@/features/lodging-showcase/lib/revalidation'
@@ -20,7 +21,21 @@ export async function PUT(
   }
 
   const { id } = await params
-  const profile = await saveAdminPublicProfile(id, parsed.data)
+  let profile
+
+  try {
+    profile = await saveAdminPublicProfile(id, parsed.data)
+  } catch (error) {
+    if (error instanceof LodgingSlugConflictError) {
+      return apiError(
+        'LODGING_SLUG_CONFLICT',
+        'Cette URL de logement est déjà utilisée',
+        409,
+      )
+    }
+
+    throw error
+  }
 
   if (!profile) {
     return apiError('LODGING_NOT_FOUND', 'Logement introuvable', 404)

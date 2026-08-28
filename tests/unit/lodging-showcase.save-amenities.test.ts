@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client'
+import { LodgingSlugConflictError } from '@/features/lodging-showcase/lib/slug'
 import { saveOwnerPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
 import type { LodgingPublicProfileInput } from '@/features/lodging-showcase/schemas'
 
@@ -97,5 +99,54 @@ describe('saveOwnerPublicProfile — child collection replacement', () => {
 
     expect(db.lodgingFaqItem.deleteMany).toHaveBeenCalledWith({ where: { profile_id: 'profile-1' } })
     expect(db.lodgingFaqItem.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('BR-13: translates only a slug P2002 race to the domain error', async () => {
+    db.lodgingPublicProfile.upsert.mockRejectedValue(new Prisma.PrismaClientKnownRequestError(
+      'Unique constraint failed on slug. SQL INSERT ...',
+      {
+        code: 'P2002',
+        clientVersion: Prisma.prismaVersion.client,
+        meta: { target: ['slug'] },
+      },
+    ))
+
+    await expect(saveOwnerPublicProfile('owner-1', 'lodging-1', baseInput))
+      .rejects.toBeInstanceOf(LodgingSlugConflictError)
+  })
+
+  it('BR-13: recognizes the named global slug constraint reported by Prisma', async () => {
+    db.lodgingPublicProfile.upsert.mockRejectedValue(new Prisma.PrismaClientKnownRequestError(
+      'Unique constraint failed.',
+      {
+        code: 'P2002',
+        clientVersion: Prisma.prismaVersion.client,
+        meta: { target: 'LodgingPublicProfile_slug_key' },
+      },
+    ))
+
+    await expect(saveOwnerPublicProfile('owner-1', 'lodging-1', baseInput))
+      .rejects.toBeInstanceOf(LodgingSlugConflictError)
+  })
+
+  it('BR-13: rethrows a P2002 for a different unique field unchanged', async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      'Unique constraint failed on lodging_id.',
+      {
+        code: 'P2002',
+        clientVersion: Prisma.prismaVersion.client,
+        meta: { target: ['lodging_id'] },
+      },
+    )
+    db.lodgingPublicProfile.upsert.mockRejectedValue(error)
+
+    await expect(saveOwnerPublicProfile('owner-1', 'lodging-1', baseInput)).rejects.toBe(error)
+  })
+
+  it('BR-13: rethrows unrelated database errors unchanged', async () => {
+    const error = new Error('database unavailable')
+    db.lodgingPublicProfile.upsert.mockRejectedValue(error)
+
+    await expect(saveOwnerPublicProfile('owner-1', 'lodging-1', baseInput)).rejects.toBe(error)
   })
 })

@@ -10,6 +10,13 @@ export type LodgingSlugCollision = {
   profiles: AuditedLodgingSlug[]
 }
 
+export class LodgingSlugConflictError extends Error {
+  constructor() {
+    super('LODGING_SLUG_CONFLICT')
+    this.name = 'LodgingSlugConflictError'
+  }
+}
+
 export function lodgingProfileSlug(title: string): string {
   return title
     .normalize('NFD')
