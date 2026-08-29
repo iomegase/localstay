@@ -50,11 +50,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
 
   if (!lodgingContext) {
     const publicCity = await getDiscoveryCity(slug)
-    if (!publicCity) {
-      notFound()
-      return null
-    }
-    permanentRedirect(`/decouvrir/${publicCity.slug}`)
+    permanentRedirect(publicCity ? `/decouvrir/${publicCity.slug}` : '/decouvrir')
   }
 
   const lodging = lodgingContext.lodgingId

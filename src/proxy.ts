@@ -6,8 +6,14 @@ import {
   LODGING_COOKIE_NAME,
   lodgingBearerCookie,
 } from '@/features/public-menu/lib/lodging-cookie'
-
-const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+import {
+  hasValidLodgingCookie,
+  isGuideCityLanding,
+  isGuidePath,
+  isLegacyDiscoveryGuidePath,
+  isPrivateGuideCompatibilityPath,
+  isValidLodgingId,
+} from '@/features/seo/lib/route-policy'
 
 // Écran de blocage affiché quand on accède au site sans séjour actif.
 const GATE_PATH = '/acces-reserve'
@@ -28,32 +34,22 @@ const ANONYMOUS_MARKETING_PREFIXES = ['/logements/', '/blog/', '/decouvrir/']
 // Confinement guest : sous /guide/{ville}, seuls ces 2ᵉ segments sont autorisés
 // pour un visiteur en séjour (hors entrée QR ?lodging=). Tout le reste (page ville,
 // catégories, météo…) est renvoyé vers l'accueil séjour.
-const GUEST_ALLOWED_GUIDE_SEGMENTS = new Set(['logements', 'agenda', 'mes-favoris', 'contact'])
+const GUEST_ALLOWED_GUIDE_SEGMENTS = new Set(['agenda', 'mes-favoris', 'contact'])
 
-function isLegacyDiscoveryGuidePath(pathname: string): boolean {
+function isLegacyPublicLodgingGuidePath(pathname: string): boolean {
   const segments = pathname.split('/').filter(Boolean)
-  if (segments[0] !== 'guide' || !segments[1]) return false
-
-  if (segments.length === 2) return true
-  if (segments.length > 4) return false
-
-  const guideSegment = segments[2]
-  return Boolean(
-    guideSegment && !GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment),
+  return (
+    segments[0] === 'guide' &&
+    Boolean(segments[1]) &&
+    segments[2] === 'logements' &&
+    (segments.length === 3 || segments.length === 4)
   )
 }
 
 export function isAnonymousMarketingPath(pathname: string) {
-  const segments = pathname.split('/').filter(Boolean)
-  const isPublicLodgingDetail =
-    segments.length === 4 &&
-    segments[0] === 'guide' &&
-    segments[2] === 'logements'
-
   return (
     ANONYMOUS_MARKETING_EXACT_PATHS.has(pathname) ||
-    ANONYMOUS_MARKETING_PREFIXES.some(prefix => pathname.startsWith(prefix)) ||
-    isPublicLodgingDetail
+    ANONYMOUS_MARKETING_PREFIXES.some(prefix => pathname.startsWith(prefix))
   )
 }
 
@@ -80,46 +76,49 @@ export async function proxy(request: NextRequest) {
       : undefined,
   )
 
-  // === Branche publique : /guide/:path* — point d'entrée séjour, jamais bloqué ===
-  if (path.startsWith('/guide/')) {
+  // === Espace hôte (auth) + écran de blocage : toujours accessibles ===
+  if (BYPASS_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`))) {
+    return response
+  }
+
+  // === Compatibilité /guide : l'entrée QR gagne toujours sur les redirects SEO ===
+  if (isGuidePath(path)) {
     const lodgingFromQuery = request.nextUrl.searchParams.get('lodging')
-    if (lodgingFromQuery && UUID_REGEX.test(lodgingFromQuery)) {
+    const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+
+    if (isValidLodgingId(lodgingFromQuery)) {
       const cookie = lodgingBearerCookie(lodgingFromQuery)
 
-      // La City rejoint toujours la home privée. Une Category/fiche POI ne peut
-      // continuer que si le cookie de la requête porte déjà le même Lodging :
-      // un cookie posé sur la réponse n'est pas encore visible par le Server
-      // Component courant et déclencherait à tort la migration SEO anonyme.
-      // Les routes réservées logement, agenda et démarrage randonnée conservent
-      // leur comportement historique et rafraîchissent seulement le cookie.
-      if (isLegacyDiscoveryGuidePath(path)) {
-        const segments = path.split('/').filter(Boolean)
-        const isCityLanding = segments.length === 2
-        const currentLodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
-        const canContinuePrivateNavigation =
-          !isCityLanding && currentLodgingCookie === lodgingFromQuery
-
-        if (canContinuePrivateNavigation) {
-          response.cookies.set(cookie)
-          return response
-        }
-
-        const destination = new URL('/sejour', request.url)
-        destination.searchParams.set('lodging', lodgingFromQuery)
-        const redirect = NextResponse.redirect(destination)
-        redirect.cookies.set(cookie)
-        return redirect
+      if (
+        isPrivateGuideCompatibilityPath(path) &&
+        hasValidLodgingCookie(lodgingCookie, lodgingFromQuery)
+      ) {
+        response.cookies.set(cookie)
+        return response
       }
 
-      response.cookies.set(cookie)
+      const destination = new URL('/sejour', request.url)
+      destination.search = ''
+      destination.searchParams.set('lodging', lodgingFromQuery)
+      const redirect = NextResponse.redirect(destination)
+      redirect.cookies.set(cookie)
+      return redirect
+    }
+
+    // Les anciennes routes publiques doivent atteindre leur Server Component,
+    // seul à pouvoir vérifier en base l'éligibilité de la destination 308.
+    if (isLegacyPublicLodgingGuidePath(path)) {
+      return response
+    }
+    if (!hasValidLodgingCookie(lodgingCookie) && isLegacyDiscoveryGuidePath(path)) {
       return response
     }
 
-    // Confinement : hors entrée QR (?lodging=), un guest en séjour ne peut ouvrir
-    // que les surfaces autorisées sous /guide/{ville} ; le reste redirige vers
-    // l'accueil privé du séjour.
-    const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
-    if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
+    if (hasValidLodgingCookie(lodgingCookie)) {
+      if (isGuideCityLanding(path)) {
+        return NextResponse.redirect(new URL('/sejour', request.url))
+      }
+
       const segments = path.split('/').filter(Boolean) // ['guide', ville, seg2?, seg3?…]
       const guideSegment = segments[2] ?? null
       // Fiche POI = /guide/{ville}/{categorie}/{poi} (≥ 4 segments) : autorisée
@@ -130,8 +129,10 @@ export async function proxy(request: NextRequest) {
       if (!allowed) {
         return NextResponse.redirect(new URL('/sejour', request.url))
       }
+      return response
     }
-    return response
+
+    return NextResponse.rewrite(new URL(GATE_PATH, request.url))
   }
 
   // === Branche authentifiée : dashboard/merchant/admin ===
@@ -170,11 +171,6 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
-  // === Espace hôte (auth) + écran de blocage : toujours accessibles ===
-  if (BYPASS_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`))) {
-    return response
-  }
-
   // === Site éditorial public : accessible sans séjour actif ===
   if (isMarketingRoute) {
     return response
@@ -184,7 +180,7 @@ export async function proxy(request: NextRequest) {
   // coups de cœur remplace l'interface historique sans rendre la route publique.
   if (path === '/nos-recommandations') {
     const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
-    if (lodgingCookie && UUID_REGEX.test(lodgingCookie)) {
+    if (hasValidLodgingCookie(lodgingCookie)) {
       return NextResponse.redirect(
         new URL('/sejour/coups-de-coeur', request.url),
       )
@@ -195,7 +191,7 @@ export async function proxy(request: NextRequest) {
   // Accès réservé : il faut un séjour actif (cookie lodging valide), sinon on
   // affiche l'écran « accès par lien » sans changer l'URL.
   const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
-  const hasActiveLodging = Boolean(lodgingCookie && UUID_REGEX.test(lodgingCookie))
+  const hasActiveLodging = hasValidLodgingCookie(lodgingCookie)
   if (!hasActiveLodging) {
     return NextResponse.rewrite(new URL(GATE_PATH, request.url))
   }

@@ -13,7 +13,6 @@ describe('031-public-marketing-site anonymous access policy', () => {
     '/blog',
     '/blog/bien-preparer-son-sejour',
     '/decouvrir',
-    '/guide/saint-gervais-les-bains/logements/le-chalet-hygge',
   ])('allows the marketing route %s without a lodging cookie', pathname => {
     expect(isAnonymousMarketingPath(pathname)).toBe(true)
   })
@@ -36,21 +35,22 @@ describe('031-public-marketing-site anonymous access policy', () => {
     '/services-prives',
     '/sejour',
     '/guide/saint-gervais-les-bains/logements',
-  ])('keeps the guest route %s behind the invitation gate', pathname => {
+    '/guide/saint-gervais-les-bains/logements/le-chalet-hygge',
+  ])('does not classify the private or historical guide route %s as current marketing', pathname => {
     expect(isAnonymousMarketingPath(pathname)).toBe(false)
   })
 
-  it('marks a public lodging detail request so the layout skips the 430px guide shell', async () => {
+  it('lets a historical lodging detail reach its 308 page without classifying it as public marketing', async () => {
     const response = await proxy(
       new NextRequest(
         'http://localhost:3000/guide/saint-gervais-les-bains/logements/le-chalet-hygge',
       ),
     )
 
-    expect(
-      response.headers.get(
-        'x-middleware-request-x-staylocal-marketing-route',
-      ),
-    ).toBe('1')
+    expect(response.headers.get('x-middleware-rewrite')).toBeNull()
+    expect(response.headers.get('x-middleware-next')).toBe('1')
+    expect(response.headers.get(
+      'x-middleware-request-x-staylocal-marketing-route',
+    )).toBeNull()
   })
 })

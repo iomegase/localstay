@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { proxy } from '../../src/proxy'
 
-const LODGING_ID = '11111111-1111-1111-1111-111111111111'
+const LODGING_ID = '11111111-1111-4111-8111-111111111111'
 
 function guestRequest(path: string): NextRequest {
   return new NextRequest(`http://localhost:3000${path}`, {
