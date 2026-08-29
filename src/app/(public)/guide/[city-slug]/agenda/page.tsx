@@ -5,6 +5,7 @@ import type { EventType } from '@/features/events-acquisition/types'
 import { getCityAgenda } from '@/features/events-public/queries/agenda'
 import { EventCard } from '@/features/events-public/components/EventCard'
 import { EventTypeFilter } from '@/features/events-public/components/EventTypeFilter'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -15,7 +16,7 @@ const VALID_TYPES: EventType[] = ['cultural', 'sport', 'market', 'festival', 'so
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': slug } = await params
-  return { title: `Agenda des sorties — ${slug}`, description: 'Sorties culturelles et manifestations à venir.' }
+  return privatePageMetadata(`Agenda des sorties — ${slug}`)
 }
 
 export default async function AgendaPage({ params, searchParams }: Props) {

@@ -12,7 +12,7 @@ import { AllPoisList } from '@/features/categories/components/AllPoisList'
 import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
 import { ChevronRight, CalendarDays } from 'lucide-react'
 import type { Metadata } from 'next'
-import { cityMetadata, discoveryCityMetadata } from '@/features/seo/lib/metadata'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { getCityForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
@@ -31,13 +31,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const city = await getDiscoveryCity(slug)
     return city
-      ? discoveryCityMetadata(city)
-      : { title: 'Ville introuvable', robots: { index: false, follow: false } }
+      ? privatePageMetadata(`Découvrir ${city.name} — Sélection locale MyStay`)
+      : privatePageMetadata('Ville introuvable')
   }
 
   const city = await getCityForSeo(slug)
-  if (!city) return { title: 'Ville introuvable', robots: { index: false } }
-  return cityMetadata({ name: city.name, region: city.region, slug: city.slug })
+  if (!city) return privatePageMetadata('Ville introuvable')
+  const regionPart = city.region ? ` (${city.region})` : ''
+  return privatePageMetadata(`${city.name}${regionPart} — Guide local`)
 }
 
 export default async function GuidePage({ params, searchParams }: Props) {

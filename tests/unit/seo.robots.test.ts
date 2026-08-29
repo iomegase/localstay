@@ -13,6 +13,17 @@ describe('robots.txt', () => {
     const rule = Array.isArray(result.rules) ? result.rules[0] : result.rules
     expect(rule.allow).toBe('/')
     expect(rule.disallow).toEqual(expect.arrayContaining(['/admin', '/dashboard', '/api', '/merchant']))
+    expect(rule.disallow).not.toEqual(expect.arrayContaining([
+      '/sejour',
+      '/guide',
+      '/acces-reserve',
+      '/le-logement',
+      '/nos-recommandations',
+      '/map',
+      '/mes-favoris',
+      '/contact',
+      '/services-prives',
+    ]))
   })
 
   it('points to the sitemap on the configured base URL', () => {

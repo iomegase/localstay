@@ -1,10 +1,13 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import { prisma } from '@/shared/lib/prisma'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { GuestMap, type GuestMapLodgingLocation, type GuestMapPoi } from './_components/GuestMap'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = privatePageMetadata('Carte — MyStay')
 
 export default async function GuestMapPage() {
   const lodgingContext = await getActiveLodgingContext()

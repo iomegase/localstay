@@ -1,7 +1,11 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { RecommendationsView } from './_components/RecommendationsView'
+
+export const metadata: Metadata = privatePageMetadata('Nos recommandations — MyStay')
 
 type NosRecommendationsPageProps = {
   searchParams?: Promise<{ lodging?: string }>

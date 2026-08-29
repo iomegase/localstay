@@ -1,4 +1,8 @@
+import type { Metadata } from 'next'
 import { FavoritesList } from '@/features/public-menu/components/FavoritesList'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+
+export const metadata: Metadata = privatePageMetadata('Mes favoris — MyStay')
 
 export default function MesFavorisPage() {
   return (

@@ -6,6 +6,7 @@ import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetai
 import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
 import { getEventBySlug } from '@/features/events-public/queries/agenda'
 import { typeLabel } from '@/features/events-public/lib/event-type-labels'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'event-slug': string }>
@@ -15,8 +16,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'event-slug': eventSlug } = await params
   const event = await getEventBySlug(citySlug, eventSlug)
-  if (!event) return { title: 'Événement introuvable', robots: { index: false } }
-  return { title: event.title, description: event.description ?? undefined }
+  if (!event) return privatePageMetadata('Événement introuvable')
+  return privatePageMetadata(event.title)
 }
 
 export default async function EventDetailPage({ params, searchParams }: Props) {

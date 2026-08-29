@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import {
   ArrowRight,
   ArrowUpRight,
@@ -33,6 +34,9 @@ import {
   FIXED_DEPARTURE_INSTRUCTIONS,
   FIXED_HOUSE_RULES,
 } from '@/features/guide-app/lib/fixed-lodging-content'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+
+export const metadata: Metadata = privatePageMetadata('Votre logement — MyStay')
 
 type PracticalBlock = {
   id: string

@@ -9,7 +9,7 @@ import { CategoryViewWrapper } from '@/features/categories/components/CategoryVi
 import { getCategoryColor } from '@/features/categories/lib/category-style'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import type { Metadata } from 'next'
-import { categoryMetadata, discoveryCategoryMetadata } from '@/features/seo/lib/metadata'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { getCategoryForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
@@ -26,18 +26,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const category = await getDiscoveryCategory(citySlug, categorySlug)
     return category
-      ? discoveryCategoryMetadata(category)
-      : { title: 'Catégorie introuvable', robots: { index: false, follow: false } }
+      ? privatePageMetadata(`${category.name} à ${category.city.name} — Adresses MyStay`)
+      : privatePageMetadata('Catégorie introuvable')
   }
 
   const seo = await getCategoryForSeo(citySlug, categorySlug)
-  if (!seo) return { title: 'Catégorie introuvable', robots: { index: false } }
-  return categoryMetadata({
-    cityName: seo.cityName,
-    categoryName: seo.categoryName,
-    citySlug,
-    categorySlug,
-  })
+  if (!seo) return privatePageMetadata('Catégorie introuvable')
+  return privatePageMetadata(`${seo.categoryName} à ${seo.cityName} — Guide local`)
 }
 
 async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {

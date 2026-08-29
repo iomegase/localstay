@@ -1,7 +1,11 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowRight } from 'lucide-react'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { ContactMessageForm } from '@/features/contact-messages/components/ContactMessageForm'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+
+export const metadata: Metadata = privatePageMetadata('Contact — MyStay')
 
 export default async function ContactPage() {
   const lodgingContext = await getActiveLodgingContext()
