@@ -34,6 +34,22 @@ function openGraph(input: {
   }
 }
 
+export function homeMetadata(): Metadata {
+  const title = 'Conciergerie en Haute-Savoie | MyStay'
+  const description =
+    'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.'
+  const path = '/'
+  const images = ['/og-mystay.png']
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images }),
+    twitter: { card: 'summary_large_image', title, description, images },
+  }
+}
+
 export function poiMetadata(input: {
   name: string
   description: string | null
