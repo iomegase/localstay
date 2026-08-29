@@ -31,11 +31,14 @@ export function buildSitemapEntries(input: {
   staticPaths: string[]
 }): MetadataRoute.Sitemap {
   const { baseUrl, cities, pois, lodgings, blogArticles = [], staticPaths } = input
-  const url = (path: string) => `${baseUrl}${path}`
+  const validatedBase = validateSitemapBaseUrl(baseUrl)
+  if (!validatedBase) return []
+
+  const url = (path: string) => new URL(path, validatedBase).toString()
   const entries: MetadataRoute.Sitemap = []
   const seenUrls = new Set<string>()
   const addEntry = (entry: MetadataRoute.Sitemap[number]) => {
-    if (!isCanonicalPublicSitemapUrl(entry.url)) return
+    if (!isCanonicalPublicSitemapUrl(entry.url, validatedBase.origin)) return
     if (seenUrls.has(entry.url)) return
     seenUrls.add(entry.url)
     entries.push(entry)
@@ -115,20 +118,59 @@ const PRIVATE_OR_NON_CANONICAL_SEGMENTS = new Set([
 
 const UUID_PATH_SEGMENT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-function isCanonicalPublicSitemapUrl(value: string): boolean {
+function validateSitemapBaseUrl(value: string): URL | null {
   try {
     const candidate = new URL(value)
-    if (candidate.search !== '') return false
+    if (
+      (candidate.protocol !== 'http:' && candidate.protocol !== 'https:')
+      || candidate.username !== ''
+      || candidate.password !== ''
+      || candidate.search !== ''
+      || candidate.hash !== ''
+      || candidate.href.includes('?')
+      || candidate.href.includes('#')
+    ) {
+      return null
+    }
 
-    return candidate.pathname
-      .split('/')
-      .filter(Boolean)
-      .every(segment => (
-        !PRIVATE_OR_NON_CANONICAL_SEGMENTS.has(segment)
-        && !UUID_PATH_SEGMENT.test(segment)
-      ))
+    candidate.pathname = '/'
+    return candidate
+  } catch {
+    return null
+  }
+}
+
+function isCanonicalPublicSitemapUrl(value: string, expectedOrigin: string): boolean {
+  try {
+    const candidate = new URL(value)
+    if (
+      (candidate.protocol !== 'http:' && candidate.protocol !== 'https:')
+      || candidate.origin !== expectedOrigin
+      || candidate.username !== ''
+      || candidate.password !== ''
+      || candidate.search !== ''
+      || candidate.hash !== ''
+      || candidate.href.includes('?')
+      || candidate.href.includes('#')
+    ) {
+      return false
+    }
+
+    const segments = decodePathSegments(candidate.pathname)
+    if (!segments) return false
+    if (segments[0] && PRIVATE_OR_NON_CANONICAL_SEGMENTS.has(segments[0])) return false
+
+    return segments.every(segment => !UUID_PATH_SEGMENT.test(segment))
   } catch {
     return false
+  }
+}
+
+function decodePathSegments(pathname: string): string[] | null {
+  try {
+    return pathname.split('/').filter(Boolean).map(segment => decodeURIComponent(segment))
+  } catch {
+    return null
   }
 }
 

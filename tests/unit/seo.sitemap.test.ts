@@ -6,6 +6,13 @@ const d2 = new Date('2026-06-02T00:00:00Z')
 
 describe('buildSitemapEntries', () => {
   const base = 'https://mystay.example.com'
+  const buildMinimalSitemap = (baseUrl: string) => buildSitemapEntries({
+    baseUrl,
+    staticPaths: ['/logements'],
+    cities: [],
+    pois: [],
+    lodgings: [],
+  })
   const result = buildSitemapEntries({
     baseUrl: base,
     staticPaths: [
@@ -124,6 +131,76 @@ describe('buildSitemapEntries', () => {
 
     expect(uuidUrls).not.toContain(`${base}${publicLodgingPath(exactUuid)}`)
     expect(uuidUrls).toContain(`${base}${publicLodgingPath(legitimateSlug)}`)
+  })
+
+  it('reserves private namespaces only at the root path segment', () => {
+    const namespaceResult = buildSitemapEntries({
+      baseUrl: base,
+      staticPaths: [
+        '/contact',
+        '/guide/legacy',
+        '/api/private',
+      ],
+      cities: [],
+      pois: [{ slug: 'contact', city_slug: 'annecy', category_slug: 'restaurants' }],
+      lodgings: [{ slug: 'contact', updated_at: d2 }],
+      blogArticles: [{ slug: 'map', updated_at: d2 }],
+    })
+    const namespaceUrls = namespaceResult.map(entry => entry.url)
+
+    expect(namespaceUrls).not.toContain(`${base}/contact`)
+    expect(namespaceUrls).not.toContain(`${base}/guide/legacy`)
+    expect(namespaceUrls).not.toContain(`${base}/api/private`)
+    expect(namespaceUrls).toContain(`${base}/logements/contact`)
+    expect(namespaceUrls).toContain(`${base}/blog/map`)
+    expect(namespaceUrls).toContain(`${base}/decouvrir/annecy/restaurants/contact`)
+  })
+
+  it.each([
+    'https://mystay.example.com/#token=secret',
+    'https://mystay.example.com/?preview=secret',
+    'https://user:password@mystay.example.com',
+    'ftp://mystay.example.com',
+    'javascript:alert("secret")',
+  ])('emits nothing for an unsafe base URL: %s', unsafeBaseUrl => {
+    const unsafeResult = buildMinimalSitemap(unsafeBaseUrl)
+
+    expect(unsafeResult).toEqual([])
+    expect(JSON.stringify(unsafeResult)).not.toContain('secret')
+  })
+
+  it.each([
+    ['https://mystay.example.com/nested/path///', 'https://mystay.example.com'],
+    ['http://localhost:3000/', 'http://localhost:3000'],
+  ])('normalizes a valid HTTP(S) base to its site origin: %s', (validBaseUrl, expectedOrigin) => {
+    expect(buildMinimalSitemap(validBaseUrl).map(entry => entry.url)).toEqual([
+      `${expectedOrigin}/`,
+      `${expectedOrigin}/logements`,
+    ])
+  })
+
+  it('decodes path segments before namespace and UUID validation without false positives', () => {
+    const encodedUuid = '550e8400%2De29b%2D41d4%2Da716%2D446655440000'
+    const encodedResult = buildSitemapEntries({
+      baseUrl: base,
+      staticPaths: [
+        '/g%75ide/legacy',
+        `/logements/${encodedUuid}`,
+        '/logements/c%6Fntact',
+        '/blog/%6Dap',
+        '/logements/%E0%A4%A',
+      ],
+      cities: [],
+      pois: [],
+      lodgings: [],
+    })
+    const encodedUrls = encodedResult.map(entry => entry.url)
+
+    expect(encodedUrls).not.toContain(`${base}/g%75ide/legacy`)
+    expect(encodedUrls).not.toContain(`${base}/logements/${encodedUuid}`)
+    expect(encodedUrls).not.toContain(`${base}/logements/%E0%A4%A`)
+    expect(encodedUrls).toContain(`${base}/logements/c%6Fntact`)
+    expect(encodedUrls).toContain(`${base}/blog/%6Dap`)
   })
 
   it('rejects private, historical, API, query-string, and UUID URLs defensively', () => {
