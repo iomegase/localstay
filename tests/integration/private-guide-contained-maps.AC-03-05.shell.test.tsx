@@ -19,6 +19,16 @@ jest.mock('@/features/trails-acquisition/queries/public-trails', () => ({
   getPublishedTrail: (...args: unknown[]) => mockGetPublishedTrail(...args),
 }))
 
+jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
+  getActiveLodgingContext: jest.fn(async () => ({
+    lodgingId: 'lodging-1',
+    lodgingName: 'Chalet MyStay',
+    citySlug: 'saint-gervais-les-bains',
+    cityName: 'Saint-Gervais-les-Bains',
+    ownerName: 'Alice',
+  })),
+}))
+
 jest.mock('@/features/trail-navigation/components/TrailNavigationMap', () => ({
   TrailNavigationMap: (
     props: ComponentProps<typeof TrailNavigationMap>,

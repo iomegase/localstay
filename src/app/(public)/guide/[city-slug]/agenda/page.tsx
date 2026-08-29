@@ -6,6 +6,7 @@ import { getCityAgenda } from '@/features/events-public/queries/agenda'
 import { EventCard } from '@/features/events-public/components/EventCard'
 import { EventTypeFilter } from '@/features/events-public/components/EventTypeFilter'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+import { requireActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
 
 interface Props {
   params: Promise<{ 'city-slug': string }>
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AgendaPage({ params, searchParams }: Props) {
   const { 'city-slug': slug } = await params
+  await requireActiveLodgingContext(slug)
   const sp = (await searchParams) ?? {}
   const type = VALID_TYPES.includes(sp.type as EventType) ? (sp.type as EventType) : undefined
   const lodging = sp.lodging

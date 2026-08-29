@@ -5,6 +5,7 @@ const lodgingSlug = process.env.SEO_ROUTING_E2E_LODGING_SLUG ?? 'le-chalet-hygge
 const categorySlug = process.env.SEO_ROUTING_E2E_CATEGORY_SLUG ?? 'rando'
 const poiSlug = process.env.SEO_ROUTING_E2E_POI_SLUG ?? 'col-de-tricot'
 const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+const absentLodgingId = 'a4f87d13-317b-4ce5-8c9f-1bc33581b194'
 
 function locationPath(response: { headers(): Record<string, string> }): string | null {
   const location = response.headers().location
@@ -44,17 +45,36 @@ test.describe('042 SEO public/private HTTP routing', () => {
     expect(response.status()).toBe(200)
   })
 
-  test('keeps private and rewritten access-gate HTML non-indexable', async ({ request }) => {
-    const privateResponse = await request.get('/contact', {
-      headers: { cookie: `lodging_id=${lodgingId}` },
+  test('keeps direct and rewritten access-gate HTML non-indexable', async ({ request }) => {
+    const directAccessGate = await request.get('/acces-reserve', {
       maxRedirects: 0,
     })
-    expect(privateResponse.status()).toBe(200)
-    expect(await privateResponse.text()).toContain('noindex')
+    expect(directAccessGate.status()).toBe(200)
+    expect(await directAccessGate.text()).toContain('noindex')
 
-    const accessGateResponse = await request.get('/sejour', { maxRedirects: 0 })
-    expect(accessGateResponse.status()).toBe(200)
-    expect(await accessGateResponse.text()).toContain('noindex')
+    const rewrittenAccessGate = await request.get('/sejour', {
+      maxRedirects: 0,
+    })
+    expect(rewrittenAccessGate.status()).toBe(200)
+    expect(await rewrittenAccessGate.text()).toContain('noindex')
+  })
+
+  test('rejects a syntactically valid but absent stay before private routes render', async ({ request }) => {
+    for (const path of [
+      '/contact',
+      '/mes-favoris',
+      `/guide/${citySlug}/agenda`,
+      `/guide/${citySlug}/agenda/evenement-inexistant`,
+      `/guide/${citySlug}/${categorySlug}/${poiSlug}/start`,
+    ]) {
+      const response = await request.get(path, {
+        headers: { cookie: `lodging_id=${absentLodgingId}` },
+        maxRedirects: 0,
+      })
+
+      expect(response.status(), path).toBe(307)
+      expect(locationPath(response), path).toBe('/acces-reserve')
+    }
   })
 
   test('routes a valid QR to the stay namespace before any public redirect', async ({ request }) => {

@@ -142,9 +142,10 @@ describe('031-public-marketing-site QR landing', () => {
 
   it('hands a different-cookie deep request through the canonical stay landing', async () => {
     const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+    const differentLodgingId = 'a4f87d13-317b-4ce5-8c9f-1bc33581b194'
     const response = await proxy(new NextRequest(
       `http://localhost:3000/guide/saint-gervais-les-bains/diner/le-serac?lodging=${lodgingId}`,
-      { headers: { cookie: 'lodging_id=11111111-1111-1111-1111-111111111111' } },
+      { headers: { cookie: `lodging_id=${differentLodgingId}` } },
     ))
 
     expect(response.status).toBe(307)

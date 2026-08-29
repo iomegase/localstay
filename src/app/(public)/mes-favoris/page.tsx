@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import { FavoritesList } from '@/features/public-menu/components/FavoritesList'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+import { requireActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
 
 export const metadata: Metadata = privatePageMetadata('Mes favoris')
 
-export default function MesFavorisPage() {
+export default async function MesFavorisPage() {
+  await requireActiveLodgingContext()
+
   return (
     <div className="pt-4">
       <div className="mb-6">

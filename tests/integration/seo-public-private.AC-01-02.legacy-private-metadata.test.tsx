@@ -221,6 +221,10 @@ describe('042 SEO private metadata — AC-01-02', () => {
   })
 
   it('applies the exact policy to legacy event metadata, including not-found', async () => {
+    mockGetActiveLodgingContext.mockResolvedValue({
+      lodgingId: 'lodging-1',
+      citySlug: 'annecy',
+    })
     mockGetEventBySlug.mockResolvedValueOnce({ title: 'Fête du lac', description: 'Événement local.' })
     expectPrivateMetadata(await generateEventMetadata({ params: Promise.resolve({
       'city-slug': 'annecy',
@@ -235,6 +239,10 @@ describe('042 SEO private metadata — AC-01-02', () => {
   })
 
   it('removes the canonical and follow override from trail-start metadata, including not-found', async () => {
+    mockGetActiveLodgingContext.mockResolvedValue({
+      lodgingId: 'lodging-1',
+      citySlug: 'annecy',
+    })
     mockGetPublishedTrail.mockResolvedValueOnce({ name: 'Tour du lac' })
     expectPrivateMetadata(await generateTrailStartMetadata({ params: Promise.resolve({
       'city-slug': 'annecy',

@@ -5,6 +5,7 @@ import { TrailNavigationMap } from '@/features/trail-navigation/components/Trail
 import { getPublishedTrail } from '@/features/trails-acquisition/queries/public-trails'
 import type { TrailNavigationData } from '@/features/trail-navigation/types'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+import { requireActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string; 'poi-slug': string }>
@@ -12,6 +13,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'poi-slug': poiSlug } = await params
+  await requireActiveLodgingContext(citySlug)
   const trail = await getPublishedTrail(citySlug, poiSlug)
   if (!trail) return privatePageMetadata('Randonnée introuvable')
   return privatePageMetadata(`Itinéraire — ${trail.name}`)
@@ -24,6 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function TrailNavigationStartPage({ params }: Props) {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
+  await requireActiveLodgingContext(citySlug)
   const trail = await getPublishedTrail(citySlug, poiSlug)
   if (!trail) {
     notFound()

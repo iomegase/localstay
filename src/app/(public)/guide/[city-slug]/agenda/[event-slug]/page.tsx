@@ -7,6 +7,7 @@ import { HeroShareButton } from '@/features/categories/components/HeroShareButto
 import { getEventBySlug } from '@/features/events-public/queries/agenda'
 import { typeLabel } from '@/features/events-public/lib/event-type-labels'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+import { requireActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'event-slug': string }>
@@ -15,6 +16,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'event-slug': eventSlug } = await params
+  await requireActiveLodgingContext(citySlug)
   const event = await getEventBySlug(citySlug, eventSlug)
   if (!event) return privatePageMetadata('Événement introuvable')
   return privatePageMetadata(event.title)
@@ -22,6 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params, searchParams }: Props) {
   const { 'city-slug': citySlug, 'event-slug': eventSlug } = await params
+  await requireActiveLodgingContext(citySlug)
   const sp = (await searchParams) ?? {}
   const lodging = sp.lodging
 
