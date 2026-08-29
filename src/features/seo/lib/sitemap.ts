@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { buildBlogArticlePath } from '@/features/blog/lib/slug'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 
 export type SitemapCity = { slug: string }
 export type SitemapPoi = {
@@ -80,7 +81,7 @@ export function buildSitemapEntries(input: {
   const sortedLodgings = [...lodgings].sort((left, right) => compareText(left.slug, right.slug))
   for (const lodging of sortedLodgings) {
     addEntry({
-      url: url(`/logements/${lodging.slug}`),
+      url: url(publicLodgingPath(lodging.slug)),
       lastModified: lodging.updated_at,
       changeFrequency: 'weekly',
       priority: 0.65,

@@ -1,4 +1,5 @@
 import { buildSitemapEntries } from '@/features/seo/lib/sitemap'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 
 const d1 = new Date('2026-06-01T00:00:00Z')
 const d2 = new Date('2026-06-02T00:00:00Z')
@@ -88,6 +89,41 @@ describe('buildSitemapEntries', () => {
     expect(urls.filter(u => u === `${base}/logements/chalet-hygge`)).toHaveLength(1)
     expect(urls).toContain(`${base}/logements/appartement-soleil`)
     expect(urls.some(url => url.includes('/guide/'))).toBe(false)
+  })
+
+  it('uses the canonical lodging path builder to keep reserved characters in one segment', () => {
+    const reservedSlug = 'cabane/été neige'
+    const reservedResult = buildSitemapEntries({
+      baseUrl: base,
+      staticPaths: [],
+      cities: [],
+      pois: [],
+      lodgings: [{ slug: reservedSlug, updated_at: d2 }],
+    })
+    const expectedUrl = `${base}${publicLodgingPath(reservedSlug)}`
+
+    expect(expectedUrl).toBe(`${base}/logements/cabane%2F%C3%A9t%C3%A9%20neige`)
+    expect(reservedResult.map(entry => entry.url)).toContain(expectedUrl)
+    expect(new URL(expectedUrl).pathname.split('/').filter(Boolean)).toHaveLength(2)
+  })
+
+  it('keeps a legitimate slug containing a UUID while excluding an exact UUID segment', () => {
+    const exactUuid = '550e8400-e29b-41d4-a716-446655440000'
+    const legitimateSlug = `chalet-${exactUuid}-alpin`
+    const uuidResult = buildSitemapEntries({
+      baseUrl: base,
+      staticPaths: [],
+      cities: [],
+      pois: [],
+      lodgings: [
+        { slug: exactUuid, updated_at: d2 },
+        { slug: legitimateSlug, updated_at: d2 },
+      ],
+    })
+    const uuidUrls = uuidResult.map(entry => entry.url)
+
+    expect(uuidUrls).not.toContain(`${base}${publicLodgingPath(exactUuid)}`)
+    expect(uuidUrls).toContain(`${base}${publicLodgingPath(legitimateSlug)}`)
   })
 
   it('rejects private, historical, API, query-string, and UUID URLs defensively', () => {
