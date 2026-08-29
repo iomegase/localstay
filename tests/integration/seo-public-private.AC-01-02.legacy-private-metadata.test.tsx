@@ -59,6 +59,7 @@ const expectedRobots = {
 }
 
 function expectPrivateMetadata(metadata: {
+  title?: unknown
   robots?: unknown
   alternates?: unknown
 }) {
@@ -86,27 +87,39 @@ describe('042 SEO private metadata — AC-01-02', () => {
 
   it('applies the exact policy to the legacy City metadata, including not-found', async () => {
     mockGetDiscoveryCity.mockResolvedValueOnce({ name: 'Annecy', slug: 'annecy', categories: [] })
-    expectPrivateMetadata(await generateCityMetadata({
+    const foundMetadata = await generateCityMetadata({
       params: Promise.resolve({ 'city-slug': 'annecy' }),
-    }))
+    })
+    expectPrivateMetadata(foundMetadata)
+    expect(foundMetadata.title).toBe('Découvrir Annecy — Sélection locale')
+    expect(foundMetadata.title).not.toContain('MyStay')
 
     mockGetDiscoveryCity.mockResolvedValueOnce(null)
-    expectPrivateMetadata(await generateCityMetadata({
+    const missingMetadata = await generateCityMetadata({
       params: Promise.resolve({ 'city-slug': 'missing' }),
-    }))
+    })
+    expectPrivateMetadata(missingMetadata)
+    expect(missingMetadata.title).toBe('Ville introuvable')
+    expect(missingMetadata.title).not.toContain('MyStay')
   })
 
   it('keeps both active-stay City metadata branches on the exact policy', async () => {
     mockGetActiveLodgingContext.mockResolvedValue({ lodgingId: 'lodging-1' })
     mockGetCityForSeo.mockResolvedValueOnce({ name: 'Annecy', region: 'Haute-Savoie', slug: 'annecy' })
-    expectPrivateMetadata(await generateCityMetadata({
+    const foundMetadata = await generateCityMetadata({
       params: Promise.resolve({ 'city-slug': 'annecy' }),
-    }))
+    })
+    expectPrivateMetadata(foundMetadata)
+    expect(foundMetadata.title).toBe('Annecy (Haute-Savoie) — Guide local')
+    expect(foundMetadata.title).not.toContain('MyStay')
 
     mockGetCityForSeo.mockResolvedValueOnce(null)
-    expectPrivateMetadata(await generateCityMetadata({
+    const missingMetadata = await generateCityMetadata({
       params: Promise.resolve({ 'city-slug': 'missing' }),
-    }))
+    })
+    expectPrivateMetadata(missingMetadata)
+    expect(missingMetadata.title).toBe('Ville introuvable')
+    expect(missingMetadata.title).not.toContain('MyStay')
   })
 
   it('applies the exact policy to the legacy category metadata, including not-found', async () => {
@@ -116,31 +129,43 @@ describe('042 SEO private metadata — AC-01-02', () => {
       city: { name: 'Annecy', slug: 'annecy' },
       pois: [],
     })
-    expectPrivateMetadata(await generateCategoryMetadata({
+    const foundMetadata = await generateCategoryMetadata({
       params: Promise.resolve({ 'city-slug': 'annecy', 'category-slug': 'restaurants' }),
       searchParams: Promise.resolve({}),
-    }))
+    })
+    expectPrivateMetadata(foundMetadata)
+    expect(foundMetadata.title).toBe('Restaurants à Annecy — Adresses')
+    expect(foundMetadata.title).not.toContain('MyStay')
 
     mockGetDiscoveryCategory.mockResolvedValueOnce(null)
-    expectPrivateMetadata(await generateCategoryMetadata({
+    const missingMetadata = await generateCategoryMetadata({
       params: Promise.resolve({ 'city-slug': 'annecy', 'category-slug': 'missing' }),
       searchParams: Promise.resolve({}),
-    }))
+    })
+    expectPrivateMetadata(missingMetadata)
+    expect(missingMetadata.title).toBe('Catégorie introuvable')
+    expect(missingMetadata.title).not.toContain('MyStay')
   })
 
   it('keeps both active-stay category metadata branches on the exact policy', async () => {
     mockGetActiveLodgingContext.mockResolvedValue({ lodgingId: 'lodging-1' })
     mockGetCategoryForSeo.mockResolvedValueOnce({ cityName: 'Annecy', categoryName: 'Restaurants' })
-    expectPrivateMetadata(await generateCategoryMetadata({
+    const foundMetadata = await generateCategoryMetadata({
       params: Promise.resolve({ 'city-slug': 'annecy', 'category-slug': 'restaurants' }),
       searchParams: Promise.resolve({}),
-    }))
+    })
+    expectPrivateMetadata(foundMetadata)
+    expect(foundMetadata.title).toBe('Restaurants à Annecy — Guide local')
+    expect(foundMetadata.title).not.toContain('MyStay')
 
     mockGetCategoryForSeo.mockResolvedValueOnce(null)
-    expectPrivateMetadata(await generateCategoryMetadata({
+    const missingMetadata = await generateCategoryMetadata({
       params: Promise.resolve({ 'city-slug': 'annecy', 'category-slug': 'missing' }),
       searchParams: Promise.resolve({}),
-    }))
+    })
+    expectPrivateMetadata(missingMetadata)
+    expect(missingMetadata.title).toBe('Catégorie introuvable')
+    expect(missingMetadata.title).not.toContain('MyStay')
   })
 
   it('applies the exact policy to legacy POI metadata, including not-found', async () => {

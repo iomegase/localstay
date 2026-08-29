@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const city = await getDiscoveryCity(slug)
     return city
-      ? privatePageMetadata(`Découvrir ${city.name} — Sélection locale MyStay`)
+      ? privatePageMetadata(`Découvrir ${city.name} — Sélection locale`)
       : privatePageMetadata('Ville introuvable')
   }
 

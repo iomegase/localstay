@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const category = await getDiscoveryCategory(citySlug, categorySlug)
     return category
-      ? privatePageMetadata(`${category.name} à ${category.city.name} — Adresses MyStay`)
+      ? privatePageMetadata(`${category.name} à ${category.city.name} — Adresses`)
       : privatePageMetadata('Catégorie introuvable')
   }
 
