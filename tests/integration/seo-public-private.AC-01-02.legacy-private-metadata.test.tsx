@@ -14,6 +14,11 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: () => mockGetActiveLodgingContext(),
 }))
 
+jest.mock('@/features/public-menu/lib/private-stay-guard', () => ({
+  getOptionalActiveLodgingContext: () => mockGetActiveLodgingContext(),
+  requireActiveLodgingContext: () => mockGetActiveLodgingContext(),
+}))
+
 jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
   getDiscoveryCity: (...args: unknown[]) => mockGetDiscoveryCity(...args),
   getDiscoveryCategory: (...args: unknown[]) => mockGetDiscoveryCategory(...args),

@@ -7,7 +7,7 @@ import { SubCategoryFilter } from '@/features/categories/components/SubCategoryF
 import { SortControl } from '@/features/categories/components/SortControl'
 import { CategoryViewWrapper } from '@/features/categories/components/CategoryViewWrapper'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
-import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { getOptionalActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
 import type { Metadata } from 'next'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { getCategoryForSeo } from '@/features/seo/queries/page-data'
@@ -22,7 +22,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'category-slug': categorySlug } = await params
-  const lodgingContext = await getActiveLodgingContext()
+  const lodgingContext = await getOptionalActiveLodgingContext(citySlug)
   if (!lodgingContext) {
     const category = await getDiscoveryCategory(citySlug, categorySlug)
     return category
@@ -62,7 +62,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const sort = resolvedSearch.sort === 'rating' ? 'rating' : 'distance'
   const page = Math.max(1, Number.parseInt(resolvedSearch.page ?? '1', 10) || 1)
   const limit = Math.min(50, Math.max(1, Number.parseInt(resolvedSearch.limit ?? '20', 10) || 20))
-  const lodgingContext = await getActiveLodgingContext()
+  const lodgingContext = await getOptionalActiveLodgingContext(citySlug)
 
   if (!lodgingContext) {
     const publicCategory = await getDiscoveryCategory(citySlug, categorySlug)

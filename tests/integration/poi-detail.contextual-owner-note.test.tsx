@@ -23,6 +23,10 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: () => mockGetActiveLodgingContext(),
 }))
 
+jest.mock('@/features/public-menu/lib/private-stay-guard', () => ({
+  getOptionalActiveLodgingContext: () => mockGetActiveLodgingContext(),
+}))
+
 jest.mock('@/features/guide-customization/queries/contextual-owner-note', () => ({
   getContextualOwnerNote: (...args: unknown[]) => mockGetContextualOwnerNote(...args),
 }))
@@ -102,8 +106,8 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
     mockGetActiveLodgingContext.mockResolvedValue({
       lodgingId: 'lodging-1',
       lodgingName: 'Chalet MyStay',
-      citySlug: 'saint-gervais-les-bains',
-      cityName: 'Saint-Gervais-les-Bains',
+      citySlug: 'les-contamines-montjoie',
+      cityName: 'Les Contamines-Montjoie',
       ownerName: 'Marie Martin',
     })
     mockGetContextualOwnerNote.mockResolvedValue('Demandez la table près du poêle.')
@@ -148,8 +152,8 @@ describe('POI detail page — AC-01-05/AC-01-06 contextual Owner note', () => {
     mockGetActiveLodgingContext.mockResolvedValue({
       lodgingId: 'lodging-1',
       lodgingName: 'Chalet MyStay',
-      citySlug: 'saint-gervais-les-bains',
-      cityName: 'Saint-Gervais-les-Bains',
+      citySlug: 'les-contamines-montjoie',
+      cityName: 'Les Contamines-Montjoie',
       ownerName: 'Marie Martin',
     })
     mockGetContextualOwnerNote.mockResolvedValue('Note strictement contextuelle.')

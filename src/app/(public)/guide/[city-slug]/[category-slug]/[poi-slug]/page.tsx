@@ -3,7 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { getPoiDetail } from '@/features/categories/queries/poi-detail'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import { getContextualOwnerNote } from '@/features/guide-customization/queries/contextual-owner-note'
-import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import { getOptionalActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { JsonLd } from '@/shared/components/JsonLd'
 import {
@@ -20,7 +20,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
-  const lodgingContext = await getActiveLodgingContext()
+  const lodgingContext = await getOptionalActiveLodgingContext(citySlug)
   if (!lodgingContext) {
     const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
     return publicPoi
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PoiDetailPage({ params }: Props) {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
 
-  const lodgingContext = await getActiveLodgingContext()
+  const lodgingContext = await getOptionalActiveLodgingContext(citySlug)
   if (!lodgingContext) {
     const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
     if (!publicPoi) {

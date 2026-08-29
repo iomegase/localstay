@@ -6,6 +6,7 @@ const categorySlug = process.env.SEO_ROUTING_E2E_CATEGORY_SLUG ?? 'rando'
 const poiSlug = process.env.SEO_ROUTING_E2E_POI_SLUG ?? 'col-de-tricot'
 const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
 const absentLodgingId = 'a4f87d13-317b-4ce5-8c9f-1bc33581b194'
+const forgedLodgingCookie = 'forged-cookie'
 
 function locationPath(response: { headers(): Record<string, string> }): string | null {
   const location = response.headers().location
@@ -65,10 +66,26 @@ test.describe('042 SEO public/private HTTP routing', () => {
       '/mes-favoris',
       `/guide/${citySlug}/agenda`,
       `/guide/${citySlug}/agenda/evenement-inexistant`,
+      `/guide/${citySlug}/${categorySlug}/${poiSlug}`,
       `/guide/${citySlug}/${categorySlug}/${poiSlug}/start`,
     ]) {
       const response = await request.get(path, {
         headers: { cookie: `lodging_id=${absentLodgingId}` },
+        maxRedirects: 0,
+      })
+
+      expect(response.status(), path).toBe(307)
+      expect(locationPath(response), path).toBe('/acces-reserve')
+    }
+  })
+
+  test('does not treat a forged stay cookie as anonymous public discovery', async ({ request }) => {
+    for (const path of [
+      `/guide/${citySlug}/${categorySlug}`,
+      `/guide/${citySlug}/${categorySlug}/${poiSlug}`,
+    ]) {
+      const response = await request.get(path, {
+        headers: { cookie: `lodging_id=${forgedLodgingCookie}` },
         maxRedirects: 0,
       })
 
