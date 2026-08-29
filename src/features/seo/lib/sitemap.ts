@@ -9,7 +9,6 @@ export type SitemapPoi = {
 }
 export type SitemapLodging = {
   slug: string
-  city_slug: string
   updated_at: Date
 }
 export type SitemapBlogArticle = {
@@ -35,6 +34,7 @@ export function buildSitemapEntries(input: {
   const entries: MetadataRoute.Sitemap = []
   const seenUrls = new Set<string>()
   const addEntry = (entry: MetadataRoute.Sitemap[number]) => {
+    if (!isCanonicalPublicSitemapUrl(entry.url)) return
     if (seenUrls.has(entry.url)) return
     seenUrls.add(entry.url)
     entries.push(entry)
@@ -77,23 +77,10 @@ export function buildSitemapEntries(input: {
     })
   }
 
-  const seenLodgingLists = new Set<string>()
-  const sortedLodgings = [...lodgings].sort((left, right) => (
-    compareText(left.city_slug, right.city_slug) || compareText(left.slug, right.slug)
-  ))
+  const sortedLodgings = [...lodgings].sort((left, right) => compareText(left.slug, right.slug))
   for (const lodging of sortedLodgings) {
-    const listPath = `/guide/${lodging.city_slug}/logements`
-    if (!seenLodgingLists.has(listPath)) {
-      seenLodgingLists.add(listPath)
-      addEntry({
-        url: url(listPath),
-        changeFrequency: 'weekly',
-        priority: 0.75,
-      })
-    }
-
     addEntry({
-      url: url(`/guide/${lodging.city_slug}/logements/${lodging.slug}`),
+      url: url(`/logements/${lodging.slug}`),
       lastModified: lodging.updated_at,
       changeFrequency: 'weekly',
       priority: 0.65,
@@ -110,6 +97,38 @@ export function buildSitemapEntries(input: {
   }
 
   return entries
+}
+
+const PRIVATE_OR_NON_CANONICAL_SEGMENTS = new Set([
+  'guide',
+  'sejour',
+  'acces-reserve',
+  'contact',
+  'le-logement',
+  'nos-recommandations',
+  'map',
+  'mes-favoris',
+  'services-prives',
+  'api',
+])
+
+const UUID_PATH_SEGMENT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isCanonicalPublicSitemapUrl(value: string): boolean {
+  try {
+    const candidate = new URL(value)
+    if (candidate.search !== '') return false
+
+    return candidate.pathname
+      .split('/')
+      .filter(Boolean)
+      .every(segment => (
+        !PRIVATE_OR_NON_CANONICAL_SEGMENTS.has(segment)
+        && !UUID_PATH_SEGMENT.test(segment)
+      ))
+  } catch {
+    return false
+  }
 }
 
 function compareText(left: string, right: string): number {

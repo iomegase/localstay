@@ -213,8 +213,17 @@ describe('041 AC-05-06 sitemap data contract', () => {
     ])
   })
 
-  it('keeps the published lodging and blog contracts unchanged', async () => {
-    await getSitemapData()
+  it('selects only eligible lodging fields and keeps the published blog contract', async () => {
+    const lodgingUpdatedAt = new Date('2026-08-28T12:00:00Z')
+    mockLodgingFindMany.mockResolvedValue([
+      {
+        slug: 'chalet-hygge',
+        updated_at: lodgingUpdatedAt,
+        city: { slug: 'saint-gervais-les-bains' },
+      },
+    ])
+
+    const result = await getSitemapData()
 
     expect(mockLodgingFindMany).toHaveBeenCalledWith({
       where: {
@@ -226,9 +235,11 @@ describe('041 AC-05-06 sitemap data contract', () => {
       select: {
         slug: true,
         updated_at: true,
-        city: { select: { slug: true } },
       },
     })
+    expect(result.lodgings).toEqual([
+      { slug: 'chalet-hygge', updated_at: lodgingUpdatedAt },
+    ])
     expect(mockBlogFindMany).toHaveBeenCalledWith({
       where: {
         status: 'published',

@@ -7,7 +7,22 @@ describe('buildSitemapEntries', () => {
   const base = 'https://mystay.example.com'
   const result = buildSitemapEntries({
     baseUrl: base,
-    staticPaths: ['/', '/decouvrir', '/contact'],
+    staticPaths: [
+      '/',
+      '/decouvrir',
+      '/logements',
+      '/guide/legacy',
+      '/contact',
+      '/sejour',
+      '/acces-reserve',
+      '/le-logement',
+      '/nos-recommandations',
+      '/map',
+      '/mes-favoris',
+      '/services-prives',
+      '/api/private',
+      '/concept?lodging=secret',
+    ],
     cities: [{ slug: 'saint-gervais-les-bains' }],
     pois: [
       { slug: 'jannett-glisse', city_slug: 'saint-gervais-les-bains', category_slug: 'commerces' },
@@ -15,8 +30,9 @@ describe('buildSitemapEntries', () => {
       { slug: 'autre-magasin', city_slug: 'saint-gervais-les-bains', category_slug: 'commerces' },
     ],
     lodgings: [
-      { slug: 'chalet-hygge', city_slug: 'saint-gervais-les-bains', updated_at: d2 },
-      { slug: 'appartement-soleil', city_slug: 'saint-gervais-les-bains', updated_at: d2 },
+      { slug: 'chalet-hygge', updated_at: d2 },
+      { slug: 'appartement-soleil', updated_at: d2 },
+      { slug: '550e8400-e29b-41d4-a716-446655440000', updated_at: d2 },
     ],
     blogArticles: [
       { slug: 'week-end-alpin', updated_at: d1 },
@@ -28,7 +44,7 @@ describe('buildSitemapEntries', () => {
   it('includes the homepage and static paths', () => {
     expect(urls.filter(url => url === `${base}/`)).toHaveLength(1)
     expect(urls.filter(url => url === `${base}/decouvrir`)).toHaveLength(1)
-    expect(urls).toContain(`${base}/contact`)
+    expect(urls).toContain(`${base}/logements`)
   })
 
   it('uses the existing static metadata for the public discovery root', () => {
@@ -68,10 +84,33 @@ describe('buildSitemapEntries', () => {
     expect(urls).not.toContain(`${base}/guide/saint-gervais-les-bains/commerces/jannett-glisse`)
   })
 
-  it('includes one lodging list per city and each published lodging detail', () => {
-    expect(urls.filter(u => u === `${base}/guide/saint-gervais-les-bains/logements`)).toHaveLength(1)
-    expect(urls).toContain(`${base}/guide/saint-gervais-les-bains/logements/chalet-hygge`)
-    expect(urls).toContain(`${base}/guide/saint-gervais-les-bains/logements/appartement-soleil`)
+  it('includes each published lodging once under its canonical short URL', () => {
+    expect(urls.filter(u => u === `${base}/logements/chalet-hygge`)).toHaveLength(1)
+    expect(urls).toContain(`${base}/logements/appartement-soleil`)
+    expect(urls.some(url => url.includes('/guide/'))).toBe(false)
+  })
+
+  it('rejects private, historical, API, query-string, and UUID URLs defensively', () => {
+    const forbiddenFragments = [
+      '/guide',
+      '/sejour',
+      '/acces-reserve',
+      '/contact',
+      '/le-logement',
+      '/nos-recommandations',
+      '/map',
+      '/mes-favoris',
+      '/services-prives',
+      '/api/',
+      '?',
+    ]
+
+    for (const url of urls) {
+      for (const fragment of forbiddenFragments) {
+        expect(url).not.toContain(fragment)
+      }
+      expect(new URL(url).pathname.split('/')).not.toContain('550e8400-e29b-41d4-a716-446655440000')
+    }
   })
 
   it('preserves explicit sitemap metadata without inventing discovery dates', () => {
@@ -96,14 +135,9 @@ describe('buildSitemapEntries', () => {
     for (const entry of result.filter(item => item.url.includes('/decouvrir/'))) {
       expect(Object.hasOwn(entry, 'lastModified')).toBe(false)
     }
-    expect(result.find(entry => entry.url === `${base}/guide/saint-gervais-les-bains/logements/chalet-hygge`)).toEqual(expect.objectContaining({
+    expect(result.find(entry => entry.url === `${base}/logements/chalet-hygge`)).toEqual(expect.objectContaining({
       lastModified: d2, changeFrequency: 'weekly', priority: 0.65,
     }))
-    expect(result.find(entry => entry.url === `${base}/guide/saint-gervais-les-bains/logements`)).toEqual({
-      url: `${base}/guide/saint-gervais-les-bains/logements`,
-      changeFrequency: 'weekly',
-      priority: 0.75,
-    })
     expect(result.find(entry => entry.url === `${base}/blog/adresses-locales`)).toEqual(expect.objectContaining({
       lastModified: d2, changeFrequency: 'weekly', priority: 0.65,
     }))
@@ -113,16 +147,15 @@ describe('buildSitemapEntries', () => {
     expect(urls).toEqual([
       `${base}/`,
       `${base}/decouvrir`,
-      `${base}/contact`,
+      `${base}/logements`,
       `${base}/decouvrir/saint-gervais-les-bains`,
       `${base}/decouvrir/saint-gervais-les-bains/commerces`,
       `${base}/decouvrir/saint-gervais-les-bains/commerces/autre-magasin`,
       `${base}/decouvrir/saint-gervais-les-bains/commerces/jannett-glisse`,
       `${base}/decouvrir/saint-gervais-les-bains/rando`,
       `${base}/decouvrir/saint-gervais-les-bains/rando/col-de-voza`,
-      `${base}/guide/saint-gervais-les-bains/logements`,
-      `${base}/guide/saint-gervais-les-bains/logements/appartement-soleil`,
-      `${base}/guide/saint-gervais-les-bains/logements/chalet-hygge`,
+      `${base}/logements/appartement-soleil`,
+      `${base}/logements/chalet-hygge`,
       `${base}/blog/adresses-locales`,
       `${base}/blog/week-end-alpin`,
     ])

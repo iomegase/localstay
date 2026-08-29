@@ -17,7 +17,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '/seminaires',
       '/confier-mon-logement',
       '/logements',
-      '/contact',
       '/blog',
     ],
   })
