@@ -36,7 +36,7 @@ import {
 } from '@/features/guide-app/lib/fixed-lodging-content'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 
-export const metadata: Metadata = privatePageMetadata('Votre logement — MyStay')
+export const metadata: Metadata = privatePageMetadata('Votre logement')
 
 type PracticalBlock = {
   id: string

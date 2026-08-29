@@ -19,11 +19,12 @@ describe('042 SEO private metadata — AC-01-01', () => {
   })
 
   it.each([
-    ['sejour', sejourMetadata],
-    ['guide compatibility', guideMetadata],
-  ])('applies the exact policy to the %s layout', (_name, metadata) => {
+    ['sejour', sejourMetadata, 'Votre séjour'],
+    ['guide compatibility', guideMetadata, 'Guide privé'],
+  ])('applies the exact policy to the %s layout', (_name, metadata, title) => {
     expect(metadata.robots).toEqual(expectedRobots)
     expect(metadata.alternates).toBeUndefined()
+    expect(metadata.title).toBe(title)
   })
 
   it('keeps both private layouts transparent Server Components', () => {

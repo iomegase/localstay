@@ -7,7 +7,7 @@ import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { GuestMap, type GuestMapLodgingLocation, type GuestMapPoi } from './_components/GuestMap'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = privatePageMetadata('Carte — MyStay')
+export const metadata: Metadata = privatePageMetadata('Carte')
 
 export default async function GuestMapPage() {
   const lodgingContext = await getActiveLodgingContext()

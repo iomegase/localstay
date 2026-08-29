@@ -73,14 +73,15 @@ describe('042 SEO private metadata — AC-01-02', () => {
   })
 
   it.each([
-    ['/le-logement', leLogementMetadata],
-    ['/nos-recommandations', recommendationsMetadata],
-    ['/map', mapMetadata],
-    ['/mes-favoris', favoritesMetadata],
-    ['/services-prives', privateServicesMetadata],
-    ['/contact', contactMetadata],
-  ])('applies the exact policy to historical private route %s', (_path, metadata) => {
+    ['/le-logement', leLogementMetadata, 'Votre logement'],
+    ['/nos-recommandations', recommendationsMetadata, 'Nos recommandations'],
+    ['/map', mapMetadata, 'Carte'],
+    ['/mes-favoris', favoritesMetadata, 'Mes favoris'],
+    ['/services-prives', privateServicesMetadata, 'Services privés'],
+    ['/contact', contactMetadata, 'Contact'],
+  ])('applies the exact policy to historical private route %s', (_path, metadata, title) => {
     expectPrivateMetadata(metadata)
+    expect(metadata.title).toBe(title)
   })
 
   it('applies the exact policy to the legacy City metadata, including not-found', async () => {
@@ -151,11 +152,13 @@ describe('042 SEO private metadata — AC-01-02', () => {
       city: { name: 'Annecy', slug: 'annecy' },
       category: { name: 'Activités', slug: 'activites' },
     })
-    expectPrivateMetadata(await generatePoiMetadata({ params: Promise.resolve({
+    const metadata = await generatePoiMetadata({ params: Promise.resolve({
       'city-slug': 'annecy',
       'category-slug': 'activites',
       'poi-slug': 'le-semnoz',
-    }) }))
+    }) })
+    expectPrivateMetadata(metadata)
+    expect(metadata.title).toBe('Le Semnoz à Annecy')
 
     mockGetDiscoveryPoi.mockResolvedValueOnce(null)
     expectPrivateMetadata(await generatePoiMetadata({ params: Promise.resolve({

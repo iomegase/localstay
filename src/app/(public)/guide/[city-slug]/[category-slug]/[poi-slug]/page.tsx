@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
     return publicPoi
-      ? privatePageMetadata(`${publicPoi.name} à ${publicPoi.city.name} — MyStay`)
+      ? privatePageMetadata(`${publicPoi.name} à ${publicPoi.city.name}`)
       : privatePageMetadata('Adresse introuvable')
   }
 

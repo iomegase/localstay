@@ -3,7 +3,7 @@ import { QrCode } from 'lucide-react'
 import type { Metadata } from 'next'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 
-export const metadata: Metadata = privatePageMetadata('Accès par lien — MyStay')
+export const metadata: Metadata = privatePageMetadata('Accès par lien')
 
 export default function AccesReservePage() {
   return (
