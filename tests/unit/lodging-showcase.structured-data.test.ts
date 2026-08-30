@@ -4,7 +4,7 @@ import {
   vacationRentalSchema,
 } from '@/features/seo/lib/structured-data'
 
-const BASE = 'https://mystay.example.com'
+const BASE = 'https://www.mystay.city'
 
 describe('lodging showcase structured data', () => {
   const realBase = process.env.NEXT_PUBLIC_BASE_URL
@@ -42,6 +42,28 @@ describe('lodging showcase structured data', () => {
     const schema = lodgingPlaceSchema(input)
     expect(schema['@type']).toBe('LodgingBusiness')
     expect(schema.url).toBe(`${BASE}/logements/chalet-hygge`)
+    expect(schema.provider).toEqual({ '@id': `${BASE}/#organization` })
+  })
+
+  it('uses the same stable provider and short URL for an eligible VacationRental', () => {
+    const eligibleInput = {
+      ...input,
+      preciseLocationPublic: true,
+      publicLatitude: 45.899,
+      publicLongitude: 6.129,
+      photos: Array.from({ length: 8 }, (_, index) => ({
+        url: `https://img.test/photo-${index}.webp`,
+        alt: `Photo ${index}`,
+        is_cover: index === 0,
+        room_type: index === 0 ? 'common_area' : index === 1 ? 'bedroom' : index === 2 ? 'bathroom' : 'exterior',
+      })),
+    }
+
+    const schema = vacationRentalSchema(eligibleInput)
+
+    expect(schema).not.toBeNull()
+    expect(schema?.url).toBe(`${BASE}/logements/chalet-hygge`)
+    expect(schema?.provider).toEqual({ '@id': `${BASE}/#organization` })
   })
 
   it('does not emit VacationRental without public coordinates and enough classified photos', () => {

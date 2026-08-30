@@ -1,4 +1,4 @@
-import { SITE, siteBaseUrl } from './site'
+import { organizationId, SITE, siteBaseUrl } from './site'
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
@@ -6,27 +6,26 @@ import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const SCHEMA = 'https://schema.org'
 const DISCOVERY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-const TOURIST_CATEGORY_SLUGS = new Set([
-  'activite',
-  'activites',
-  'culture',
-  'explorer',
-  'nature',
-  'patrimoine',
-  'rando',
-  'randonnee',
-  'randos',
-])
-const TOURIST_SUBCATEGORY_SLUGS = new Set([
-  'attraction',
-  'hiking',
-  'monument',
-  'monuments',
-  'musee',
-  'musees',
-  'rando',
-  'randonnee',
-])
+type MappedPoiSchemaType =
+  | 'Restaurant'
+  | 'Bakery'
+  | 'BarOrPub'
+  | 'Hotel'
+  | 'Store'
+  | 'DaySpa'
+  | 'Museum'
+  | 'TouristAttraction'
+
+const POI_SCHEMA_TYPE_SLUGS: ReadonlyArray<readonly [MappedPoiSchemaType, ReadonlySet<string>]> = [
+  ['Restaurant', new Set(['restaurant'])],
+  ['Bakery', new Set(['boulangerie'])],
+  ['BarOrPub', new Set(['bar'])],
+  ['Hotel', new Set(['hotel'])],
+  ['Store', new Set(['magasin'])],
+  ['DaySpa', new Set(['spa'])],
+  ['Museum', new Set(['musee', 'musees'])],
+  ['TouristAttraction', new Set(['activite-touristique'])],
+]
 
 // Index = jour (0 = dimanche … 6 = samedi), aligné sur le format hours stocké.
 const DAY_URIS = [
@@ -65,8 +64,14 @@ export function organizationSchema(): JsonLdObject {
   return {
     '@context': SCHEMA,
     '@type': 'Organization',
+    '@id': organizationId(),
     name: SITE.name,
     url: base,
+    logo: `${base}/mystay-logo-approved/mystay-logo-approved.png`,
+    description:
+      'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.',
+    email: 'bonjour@mystay.city',
+    areaServed: 'Haute-Savoie, France',
   }
 }
 
@@ -78,6 +83,7 @@ export function websiteSchema(): JsonLdObject {
     name: SITE.name,
     url: base,
     inLanguage: 'fr-FR',
+    publisher: { '@id': organizationId() },
   }
 }
 
@@ -192,9 +198,29 @@ export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
   }
 }
 
-function isTouristDiscoveryPoi(poi: DiscoveryPoiDetail): boolean {
-  return TOURIST_CATEGORY_SLUGS.has(poi.category.slug)
-    || (poi.subcategory !== null && TOURIST_SUBCATEGORY_SLUGS.has(poi.subcategory.slug))
+function normalizeTaxonomySlug(slug: string): string {
+  return slug
+    .trim()
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_]+/g, '-')
+}
+
+function mappedPoiType(slug: string): MappedPoiSchemaType | null {
+  const normalizedSlug = normalizeTaxonomySlug(slug)
+  return POI_SCHEMA_TYPE_SLUGS.find(([, slugs]) => slugs.has(normalizedSlug))?.[0] ?? null
+}
+
+function discoveryPoiType(poi: DiscoveryPoiDetail): string {
+  const subcategoryType = poi.subcategory === null ? null : mappedPoiType(poi.subcategory.slug)
+  const categoryType = mappedPoiType(poi.category.slug)
+
+  if (subcategoryType === null) return categoryType ?? 'LocalBusiness'
+  if (categoryType === null || categoryType === subcategoryType) return subcategoryType
+  if (subcategoryType === 'TouristAttraction') return categoryType
+  if (categoryType === 'TouristAttraction') return subcategoryType
+  return 'LocalBusiness'
 }
 
 /**
@@ -207,7 +233,7 @@ export function discoveryPoiSchema(poi: DiscoveryPoiDetail): JsonLdObject {
 
   return {
     '@context': SCHEMA,
-    '@type': isTouristDiscoveryPoi(poi) ? 'TouristAttraction' : 'LocalBusiness',
+    '@type': discoveryPoiType(poi),
     name: poi.name,
     description: poi.description,
     url: poiUrl(path),
@@ -260,6 +286,7 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
     name: input.title,
     description: input.shortDescription,
     url: `${siteBaseUrl()}${path}`,
+    provider: { '@id': organizationId() },
     image: input.photos.map(photo => photo.url),
     amenityFeature: input.amenities.map(amenity => ({
       '@type': 'LocationFeatureSpecification',
@@ -269,7 +296,6 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
     address: {
       '@type': 'PostalAddress',
       addressLocality: input.publicAreaLabel ?? input.cityName,
-      ...(input.cityRegion ? { addressRegion: input.cityRegion } : {}),
       addressCountry: 'FR',
     },
     ...(input.preciseLocationPublic && input.publicLatitude != null && input.publicLongitude != null

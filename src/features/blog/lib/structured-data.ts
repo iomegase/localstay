@@ -1,4 +1,4 @@
-import { siteBaseUrl } from '@/features/seo/lib/site'
+import { organizationId, siteBaseUrl } from '@/features/seo/lib/site'
 import { buildBlogArticlePath } from './slug'
 
 export function blogPostingSchema(input: {
@@ -18,14 +18,8 @@ export function blogPostingSchema(input: {
     datePublished: input.publishedAt.toISOString(),
     mainEntityOfPage: `${siteBaseUrl()}${buildBlogArticlePath(input.slug)}`,
     ...(input.coverUrl ? { image: [input.coverUrl] } : {}),
-    author: {
-      '@type': 'Organization',
-      name: 'MyStay',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'MyStay',
-    },
+    author: { '@id': organizationId() },
+    publisher: { '@id': organizationId() },
     ...(input.cityName ? { contentLocation: { '@type': 'Place', name: input.cityName } } : {}),
     ...(input.coverAlt ? { alternativeHeadline: input.coverAlt } : {}),
   }

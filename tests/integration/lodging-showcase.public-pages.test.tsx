@@ -219,6 +219,36 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
     expect(screen.getByText('Réserver ce logement')).toBeInTheDocument()
 
+    const structuredData = JSON.parse(
+      screen.getByTestId('json-ld').textContent ?? '[]',
+    ) as Array<Record<string, unknown>>
+    const lodgingSchema = structuredData.find(item => item['@type'] === 'VacationRental')
+      ?? structuredData.find(item => item['@type'] === 'LodgingBusiness')
+
+    expect(lodgingSchema).toMatchObject({
+      name: detailResult.title,
+      description: detailResult.short_description,
+      url: 'https://www.mystay.city/logements/chalet-hygge',
+      provider: { '@id': 'https://www.mystay.city/#organization' },
+      image: detailResult.photos.map(photo => photo.url),
+      address: {
+        addressLocality: detailResult.public_area_label,
+      },
+    })
+    expect(JSON.stringify(lodgingSchema)).not.toContain(detailResult.city_region)
+    for (const photo of detailResult.photos) {
+      expect(screen.getAllByRole('img', { name: photo.alt }).length).toBeGreaterThan(0)
+    }
+    for (const amenity of detailResult.amenities) {
+      expect(screen.getAllByText(amenity).length).toBeGreaterThan(0)
+    }
+    expect(screen.getAllByText(detailResult.public_area_label).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: 'bonjour@mystay.city' })).toHaveAttribute(
+      'href',
+      'mailto:bonjour@mystay.city',
+    )
+    expect(screen.getByText('Haute-Savoie, France')).toBeInTheDocument()
+
     for (const contactLink of screen.getAllByRole('link', { name: 'Contacter' })) {
       expect(contactLink).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
       expect(contactLink).toHaveAttribute('data-analytics-event', 'lodging_contact_click')

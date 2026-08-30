@@ -5,8 +5,9 @@ import {
   localBusinessSchema,
   touristAttractionSchema,
 } from '@/features/seo/lib/structured-data'
+import { organizationId } from '@/features/seo/lib/site'
 
-const BASE = 'https://mystay.example.com'
+const BASE = 'https://www.mystay.city'
 
 const poiInput = {
   name: 'Jannett Glisse',
@@ -34,18 +35,30 @@ describe('structured-data', () => {
     else process.env.NEXT_PUBLIC_BASE_URL = realBase
   })
 
-  it('organizationSchema is a schema.org Organization', () => {
+  it('emits the single verified MyStay Organization identity', () => {
     const s = organizationSchema()
-    expect(s['@context']).toBe('https://schema.org')
-    expect(s['@type']).toBe('Organization')
-    expect(s.name).toBe('MyStay')
-    expect(s.url).toBe(BASE)
+    expect(organizationId()).toBe('https://www.mystay.city/#organization')
+    expect(s).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      '@id': 'https://www.mystay.city/#organization',
+      name: 'MyStay',
+      url: BASE,
+      logo: `${BASE}/mystay-logo-approved/mystay-logo-approved.png`,
+      description:
+        'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.',
+      email: 'bonjour@mystay.city',
+      areaServed: 'Haute-Savoie, France',
+    })
+    expect(s.telephone).toBeUndefined()
+    expect(s.sameAs).toBeUndefined()
   })
 
-  it('websiteSchema is a schema.org WebSite', () => {
+  it('references the stable Organization as the WebSite publisher', () => {
     const s = websiteSchema()
     expect(s['@type']).toBe('WebSite')
     expect(s.url).toBe(BASE)
+    expect(s.publisher).toEqual({ '@id': 'https://www.mystay.city/#organization' })
   })
 
   it('breadcrumbSchema builds an ordered list with absolute item URLs', () => {

@@ -196,10 +196,37 @@ describe('041 public discovery pages', () => {
       'fetchpriority',
       'high',
     )
-    expect(jsonLd(container).map(item => item['@type'])).toEqual([
+    const schemas = jsonLd(container)
+    expect(schemas.map(item => item['@type'])).toEqual([
       'BreadcrumbList',
-      'TouristAttraction',
+      'Museum',
     ])
+    const poiSchema = schemas[1]
+    expect(poiSchema).toMatchObject({
+      name: poi.name,
+      description: poi.description,
+      url: `https://www.mystay.city/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`,
+      image: [poi.hero_photo_url],
+      telephone: poi.phone,
+      sameAs: [poi.website],
+      address: {
+        streetAddress: poi.address,
+        addressLocality: poi.city.name,
+      },
+      geo: { latitude: poi.latitude, longitude: poi.longitude },
+      aggregateRating: { ratingValue: poi.rating, ratingCount: poi.rating_count },
+    })
+    expect(screen.getByTestId('mini-map')).toHaveAttribute(
+      'src',
+      expect.stringContaining(`${poi.longitude},${poi.latitude}`),
+    )
+    expect(screen.getByText(`${poi.rating?.toLocaleString('fr-FR')} / 5 · ${poi.rating_count} avis`)).toBeInTheDocument()
+    expect(screen.getByText('09:00–18:00')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'bonjour@mystay.city' })).toHaveAttribute(
+      'href',
+      'mailto:bonjour@mystay.city',
+    )
+    expect(screen.getByText('Haute-Savoie, France')).toBeInTheDocument()
   })
 
   it('omits unavailable POI actions without constructing an invalid public DTO', async () => {
