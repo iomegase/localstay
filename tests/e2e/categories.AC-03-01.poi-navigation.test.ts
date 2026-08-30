@@ -7,17 +7,13 @@ import { test, expect } from '@playwright/test'
  * Run: npm run test:e2e
  */
 
-test('AC-03-01: clicking a POI card navigates to the POI detail URL', async ({ page }) => {
-  await page.goto('/guide/saint-gervais-les-bains/restaurants')
-  await page.waitForLoadState('networkidle')
-
-  const card = page.getByTestId('poi-card-restaurants-gastro-demo')
-  await expect(card).toBeVisible()
-
-  await Promise.all([
-    page.waitForURL('**/restaurants/restaurants-gastro-demo'),
-    card.click(),
-  ])
-
-  expect(page.url()).toContain('/guide/saint-gervais-les-bains/restaurants/restaurants-gastro-demo')
+test('042: legacy POI navigation permanently reaches its canonical detail', async ({ request }) => {
+  const response = await request.get(
+    '/guide/saint-gervais-les-bains/rando/col-de-tricot',
+    { maxRedirects: 0 },
+  )
+  expect(response.status()).toBe(308)
+  expect(new URL(response.headers().location, 'http://staylocal.test').pathname).toBe(
+    '/decouvrir/saint-gervais-les-bains/rando/col-de-tricot',
+  )
 })
