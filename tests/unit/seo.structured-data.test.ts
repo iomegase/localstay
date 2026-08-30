@@ -30,6 +30,7 @@ const poiInput = {
 describe('structured-data', () => {
   const realBase = process.env.NEXT_PUBLIC_BASE_URL
   beforeAll(() => { process.env.NEXT_PUBLIC_BASE_URL = BASE })
+  afterEach(() => { process.env.NEXT_PUBLIC_BASE_URL = BASE })
   afterAll(() => {
     if (realBase === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
     else process.env.NEXT_PUBLIC_BASE_URL = realBase
@@ -59,6 +60,23 @@ describe('structured-data', () => {
     expect(s['@type']).toBe('WebSite')
     expect(s.url).toBe(BASE)
     expect(s.publisher).toEqual({ '@id': 'https://www.mystay.city/#organization' })
+  })
+
+  it('keeps the production identity while page and asset URLs follow a preview base', () => {
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://preview.mystay.vercel.app/'
+
+    const organization = organizationSchema()
+    const website = websiteSchema()
+
+    expect(organization).toMatchObject({
+      '@id': 'https://www.mystay.city/#organization',
+      url: 'https://preview.mystay.vercel.app',
+      logo: 'https://preview.mystay.vercel.app/mystay-logo-approved/mystay-logo-approved.png',
+    })
+    expect(website).toMatchObject({
+      url: 'https://preview.mystay.vercel.app',
+      publisher: { '@id': 'https://www.mystay.city/#organization' },
+    })
   })
 
   it('breadcrumbSchema builds an ordered list with absolute item URLs', () => {

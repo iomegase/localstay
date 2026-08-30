@@ -140,6 +140,9 @@ const detailResult = {
     { id: 'photo-1', url: 'https://img.test/cover.webp', alt: 'Salon', room_type: 'common_area', room_label: 'Salon', sort_order: 0, is_cover: true },
     { id: 'photo-2', url: 'https://img.test/bedroom.webp', alt: 'Chambre', room_type: 'bedroom', room_label: 'Chambre', sort_order: 1, is_cover: false },
     { id: 'photo-3', url: 'https://img.test/exterior.webp', alt: 'Extérieur', room_type: 'exterior', room_label: 'Extérieur', sort_order: 2, is_cover: false },
+    { id: 'photo-4', url: 'https://img.test/hidden-null.webp', alt: 'Photo sans pièce', room_type: null, room_label: null, sort_order: 3, is_cover: false },
+    { id: 'photo-5', url: 'https://img.test/hidden-other.webp', alt: 'Photo autre', room_type: 'other', room_label: 'Autre', sort_order: 4, is_cover: false },
+    { id: 'photo-6', url: 'https://img.test/kitchen.webp', alt: 'Cuisine', room_type: 'kitchen', room_label: 'Cuisine', sort_order: 5, is_cover: false },
   ],
   bathroom_count: 1,
   bed_count: 3,
@@ -230,15 +233,24 @@ describe('lodging showcase public pages', () => {
       description: detailResult.short_description,
       url: 'https://www.mystay.city/logements/chalet-hygge',
       provider: { '@id': 'https://www.mystay.city/#organization' },
-      image: detailResult.photos.map(photo => photo.url),
+      image: [
+        'https://img.test/cover.webp',
+        'https://img.test/bedroom.webp',
+        'https://img.test/exterior.webp',
+        'https://img.test/kitchen.webp',
+      ],
       address: {
         addressLocality: detailResult.public_area_label,
       },
     })
     expect(JSON.stringify(lodgingSchema)).not.toContain(detailResult.city_region)
-    for (const photo of detailResult.photos) {
+    for (const photo of detailResult.photos.filter(photo => !['photo-4', 'photo-5'].includes(photo.id))) {
       expect(screen.getAllByRole('img', { name: photo.alt }).length).toBeGreaterThan(0)
     }
+    expect(screen.queryByRole('img', { name: 'Photo sans pièce' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Photo autre' })).not.toBeInTheDocument()
+    expect(JSON.stringify(lodgingSchema)).not.toContain('hidden-null.webp')
+    expect(JSON.stringify(lodgingSchema)).not.toContain('hidden-other.webp')
     for (const amenity of detailResult.amenities) {
       expect(screen.getAllByText(amenity).length).toBeGreaterThan(0)
     }

@@ -13,6 +13,10 @@ describe('lodging showcase structured data', () => {
     process.env.NEXT_PUBLIC_BASE_URL = BASE
   })
 
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_BASE_URL = BASE
+  })
+
   afterAll(() => {
     if (realBase === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
     else process.env.NEXT_PUBLIC_BASE_URL = realBase
@@ -64,6 +68,15 @@ describe('lodging showcase structured data', () => {
     expect(schema).not.toBeNull()
     expect(schema?.url).toBe(`${BASE}/logements/chalet-hygge`)
     expect(schema?.provider).toEqual({ '@id': `${BASE}/#organization` })
+  })
+
+  it('uses the preview page URL but keeps the production provider identity', () => {
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://preview.mystay.vercel.app'
+
+    const schema = lodgingPlaceSchema(input)
+
+    expect(schema.url).toBe('https://preview.mystay.vercel.app/logements/chalet-hygge')
+    expect(schema.provider).toEqual({ '@id': 'https://www.mystay.city/#organization' })
   })
 
   it('does not emit VacationRental without public coordinates and enough classified photos', () => {

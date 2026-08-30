@@ -199,7 +199,7 @@ describe('041 public discovery pages', () => {
     const schemas = jsonLd(container)
     expect(schemas.map(item => item['@type'])).toEqual([
       'BreadcrumbList',
-      'Museum',
+      'LocalBusiness',
     ])
     const poiSchema = schemas[1]
     expect(poiSchema).toMatchObject({

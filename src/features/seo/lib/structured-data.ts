@@ -2,6 +2,7 @@ import { organizationId, SITE, siteBaseUrl } from './site'
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
+import { selectVisibleLodgingPhotos } from '@/features/lodging-showcase/lib/detail-view'
 import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const SCHEMA = 'https://schema.org'
@@ -23,7 +24,7 @@ const POI_SCHEMA_TYPE_SLUGS: ReadonlyArray<readonly [MappedPoiSchemaType, Readon
   ['Hotel', new Set(['hotel'])],
   ['Store', new Set(['magasin'])],
   ['DaySpa', new Set(['spa'])],
-  ['Museum', new Set(['musee', 'musees'])],
+  ['Museum', new Set(['musee'])],
   ['TouristAttraction', new Set(['activite-touristique'])],
 ]
 
@@ -200,11 +201,9 @@ export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
 
 function normalizeTaxonomySlug(slug: string): string {
   return slug
-    .trim()
     .toLocaleLowerCase('fr-FR')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\s_]+/g, '-')
 }
 
 function mappedPoiType(slug: string): MappedPoiSchemaType | null {
@@ -287,7 +286,7 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
     description: input.shortDescription,
     url: `${siteBaseUrl()}${path}`,
     provider: { '@id': organizationId() },
-    image: input.photos.map(photo => photo.url),
+    image: selectVisibleLodgingPhotos(input.photos).map(photo => photo.url),
     amenityFeature: input.amenities.map(amenity => ({
       '@type': 'LocationFeatureSpecification',
       name: amenity.label,

@@ -160,7 +160,7 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
     ['magasin', 'Store'],
     ['spa', 'DaySpa'],
     ['musée', 'Museum'],
-    ['activité touristique', 'TouristAttraction'],
+    ['ACTIVITÉ-TOURISTIQUE', 'TouristAttraction'],
     ['inconnu', 'LocalBusiness'],
   ] as const)('maps the canonical subcategory slug %s to %s', (subcategorySlug, expectedType) => {
     const schema = discoveryPoiSchema({
@@ -172,15 +172,18 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
     expect(schema['@type']).toBe(expectedType)
   })
 
-  it('normalizes canonical slug accents, case, spaces and underscores deterministically', () => {
-    const schema = discoveryPoiSchema({
-      ...discoveryPoi,
-      category: { name: 'Sélection', slug: 'selection' },
-      subcategory: { name: 'Activité touristique', slug: '  ACTIVITÉ_TOURISTIQUE  ' },
-    })
+  it.each(['ACTIVITÉ_TOURISTIQUE', 'activité touristique', 'musees', 'restaurants'])(
+    'rejects the non-canonical taxonomy alias %s',
+    subcategorySlug => {
+      const schema = discoveryPoiSchema({
+        ...discoveryPoi,
+        category: { name: 'Sélection', slug: 'selection' },
+        subcategory: { name: subcategorySlug, slug: subcategorySlug },
+      })
 
-    expect(schema['@type']).toBe('TouristAttraction')
-  })
+      expect(schema['@type']).toBe('LocalBusiness')
+    },
+  )
 
   it.each([
     {
@@ -243,7 +246,7 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
     const serialized = JSON.stringify(schema)
 
     expect(schema).toMatchObject({
-      '@type': 'Museum',
+      '@type': 'LocalBusiness',
       name: discoveryPoi.name,
       description: discoveryPoi.description,
       image: [discoveryPoi.hero_photo_url],

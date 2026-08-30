@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { selectLodgingGalleryPhotos } from '../lib/detail-view'
 
 type GalleryPhoto = {
   id: string
@@ -13,7 +14,7 @@ export function LodgingMarketingGallery({
   title: string
   photos: GalleryPhoto[]
 }) {
-  const visiblePhotos = photos.slice(0, 3)
+  const visiblePhotos = selectLodgingGalleryPhotos(photos)
 
   if (visiblePhotos.length === 0) {
     return (
