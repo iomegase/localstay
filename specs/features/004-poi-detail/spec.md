@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-07-09
+updated_at: 2026-08-31
 depends_on: [001-city-guide, 002-categories, 003-poi-list, 012-guide-customization]
 ```
 
@@ -18,6 +18,12 @@ depends_on: [001-city-guide, 002-categories, 003-poi-list, 012-guide-customizati
 ## Context
 
 La fiche POI est l'écran central de l'expérience Tourist. Elle doit donner toutes les informations nécessaires pour qu'il décide d'y aller, et lui permettre d'agir immédiatement : appeler, obtenir un itinéraire, visiter le site web, réserver. Pour les randonnées, des informations spécifiques supplémentaires sont affichées.
+
+Décision Product Owner du 2026-08-31 : l'action Partager de l'AC-02-04 reste
+un contrat de la fiche POI du séjour privé et n'est pas exposée par la fiche
+publique `/decouvrir`. La découverte publique conserve uniquement les actions
+Appeler, Itinéraire et Site officiel réellement disponibles, conformément à la
+spec `041-public-local-discovery`.
 
 ---
 
@@ -343,3 +349,4 @@ components:
 |---|---|---|---|---|
 | OQ-01 | Afficher les avis Google Places dans la fiche MVP 1 ? | Product Owner | 2026-05-22 | **Résolu** : rating/count depuis la DB uniquement. Les champs `google_place_id`, `review_source`, `reviews_synced_at` sont ajoutés à `PointOfInterest` comme scaffold pour l'intégration MVP 3+. |
 | OQ-02 | Fallback itinéraire : Google Maps ou Apple Maps selon le device ? | Product Owner | 2026-05-22 | **Résolu** : Google Maps URL universelle — `https://www.google.com/maps/dir/?api=1&destination={address}` ; fallback `{lat},{lng}` uniquement si adresse absente. Fonctionne iOS + Android sans détection de device. |
+| OQ-03 | L'action Partager historique doit-elle être restaurée sur la fiche `/decouvrir` ? | Product Owner | 2026-08-31 | **Résolu** — Non. Elle reste propre à la fiche du séjour privé ; la fiche publique conserve Appeler, Itinéraire et Site officiel selon disponibilité. |

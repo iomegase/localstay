@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
-updated_at: 2026-08-24
+updated_at: 2026-08-31
 depends_on:
   - 001-city-guide
   - 002-categories
@@ -316,9 +316,14 @@ publique\
 - **BR-24**: La publication publique utilise le français canonique existant.
   L'ajout de versions multilingues reste régi par la spec 027.
 - **BR-25**: Cette spec remplace les URL publiques définies par les specs 001,
-  002, 003 et 004 pour les accès anonymes. Leurs contrats de données, actions
-  POI et règles géographiques restent applicables lorsqu'ils ne contredisent
-  pas 041.
+  002, 003 et 004 pour les accès anonymes. Leurs contrats de données et règles
+  géographiques restent applicables lorsqu'ils ne contredisent pas 041. La
+  décision Product Owner du 2026-08-31 limite explicitement les actions de la
+  fiche publique à Appeler, Itinéraire et Site officiel selon disponibilité :
+  le partage de la spec 004 reste privé. Les filtres de sous-catégorie des
+  specs 002/003 et la carte interactive de catégorie de la spec 005 restent
+  également propres au guide de séjour privé et ne sont pas déplacés sous
+  `/decouvrir`.
 - **BR-26**: La découverte publique préserve le contrat photo de la spec 022 :
   toute URL distante `http(s)` exploitable reste admissible, sans allowlist
   d'hôtes, re-hébergement ni proxy d'optimisation. Les photos `/decouvrir`
@@ -582,6 +587,10 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
   courte sans fait inventé.
 - Cards publiques responsive avec photo, nom, sous-catégorie, adresse, note si
   présente et distance depuis le centre-ville.
+- La sélection publique est éditoriale et non filtrable : aucun filtre ou chip
+  de sous-catégorie n'est exposé.
+- Aucune carte interactive, marker ou popup de catégorie n'est exposé ; ces
+  interactions restent dans le guide de séjour privé.
 - Section « Aux alentours » distincte uniquement lorsqu'elle contient au moins
   un POI publié.
 - Aucun accordéon contenant des informations privées et aucune personnalisation
@@ -594,6 +603,8 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
 - Titre, catégorie, description, adresse, horaires et données publiques
   présentes uniquement si renseignées.
 - Actions compactes Appeler, Itinéraire et Site officiel selon disponibilité.
+- Aucune action Partager n'est exposée sur la fiche publique ; elle reste dans
+  le guide de séjour privé.
 - Mini-carte statique ou composant existant conforme à ADR-001.
 - Bloc final de conversion vers `/confier-mon-logement`, sans recommandation
   Owner ni données de séjour.
@@ -668,6 +679,8 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
 - Migration des fiches logement publiques vers `/logements/{slug}`.
 - Refonte des pages `/logements`, `/seminaires`, `/concept` ou du blog.
 - Déplacement des routes agenda, carte ou navigation randonnée.
+- Filtres de sous-catégorie, partage natif et carte interactive de catégorie
+  sur les routes publiques `/decouvrir`.
 - Nouveau contenu éditorial spécifique par City ou Category en base.
 - Éditeur SEO distinct pour les titres et descriptions des POI.
 - Publication automatique selon un score ou un seuil supérieur à un POI.
@@ -699,3 +712,7 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
 - le hub racine `/decouvrir`, son lien footer « Découvrir » et la limite de
   cinq POI par ville ont été validés le 2026-08-24 ; le libellé « Découvrir nos
   destinations » est exclu.
+- le 2026-08-31, les filtres de sous-catégorie, l'action Partager et la carte
+  interactive de catégorie ont été confirmés comme fonctionnalités du guide de
+  séjour privé uniquement. Ils ne sont pas restaurés sur `/decouvrir`, qui
+  conserve Appeler, Itinéraire, Site officiel et la mini-carte statique de fiche.
