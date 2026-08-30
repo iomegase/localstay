@@ -27,9 +27,48 @@ test('AC-07 keeps page zoom available and the guest discovery map interactive', 
   await expect(zoomIn).toBeVisible()
   await expect(zoomOut).toBeVisible()
 
+  await expect(map).toHaveAttribute('data-map-zoom', /^\d+(?:\.\d+)?$/)
+  const initialZoom = Number(await map.getAttribute('data-map-zoom'))
+  expect(initialZoom).toBeGreaterThan(0)
+
   await zoomIn.click()
 
+  await expect
+    .poll(async () => Number(await map.getAttribute('data-map-zoom')))
+    .toBeGreaterThan(initialZoom)
   await expect(canvas).toBeVisible()
   await expect(zoomIn).toBeEnabled()
   await expect(zoomOut).toBeEnabled()
+})
+
+test('AC-07 preserves the active sans, serif and decorative families', async ({ page }) => {
+  test.setTimeout(60_000)
+  await page.goto(`/guide/${citySlug}?lodging=${lodgingId}`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await expect(page).toHaveURL(new RegExp(`/sejour\\?lodging=${lodgingId}$`))
+
+  const lodging = await page.goto('/sejour/logement', {
+    waitUntil: 'domcontentloaded',
+  })
+  expect(lodging?.status()).toBe(200)
+
+  const bodyFont = await page.locator('body').evaluate(
+    element => getComputedStyle(element).fontFamily,
+  )
+  const decorativeFont = await page
+    .locator('[class*="font-big-shoulders"]')
+    .first()
+    .evaluate(element => getComputedStyle(element).fontFamily)
+
+  expect(bodyFont.toLocaleLowerCase()).toContain('jakarta')
+  expect(decorativeFont.toLocaleLowerCase()).toContain('big shoulders')
+
+  const contact = await page.goto('/contact', { waitUntil: 'domcontentloaded' })
+  expect(contact?.status()).toBe(200)
+
+  const serifFont = await page.getByRole('heading', { level: 1 }).evaluate(
+    element => getComputedStyle(element).fontFamily,
+  )
+  expect(serifFont.toLocaleLowerCase()).toContain('playfair')
 })

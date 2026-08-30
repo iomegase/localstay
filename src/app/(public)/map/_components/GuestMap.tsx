@@ -132,6 +132,7 @@ export function GuestMap({
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
   const [hasLoadedMap, setHasLoadedMap] = useState(false)
+  const [mapZoom, setMapZoom] = useState<number | null>(null)
 
   // Plein écran immersif : masque header + bottom-nav du layout public.
   useEffect(() => {
@@ -215,14 +216,19 @@ export function GuestMap({
   }, [active, visiblePois])
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden bg-white" data-testid="guest-map">
+    <div
+      className="relative h-[100dvh] w-full overflow-hidden bg-white"
+      data-map-zoom={mapZoom ?? undefined}
+      data-testid="guest-map"
+    >
       <Map
         ref={mapRef}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{ ...center, zoom: 12, pitch: 0 }}
         maxPitch={75}
         terrain={{ source: 'mapbox-dem', exaggeration: 1.4 }}
-        onLoad={() => {
+        onLoad={event => {
+          setMapZoom(event.target.getZoom())
           setHasLoadedMap(true)
           fitToPois(visiblePois)
         }}
@@ -231,6 +237,7 @@ export function GuestMap({
           const map = event.target
           const zoom = map.getZoom()
           const pitch = map.getPitch()
+          setMapZoom(zoom)
           if (zoom >= 14 && pitch < 10) {
             map.easeTo({ pitch: 60, duration: 600 })
           } else if (zoom < 13 && pitch > 10) {
