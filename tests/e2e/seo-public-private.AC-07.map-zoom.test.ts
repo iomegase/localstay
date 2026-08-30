@@ -27,6 +27,7 @@ test('AC-07 keeps page zoom available and the guest discovery map interactive', 
   await expect(zoomIn).toBeVisible()
   await expect(zoomOut).toBeVisible()
 
+  await expect(map).toHaveAttribute('data-map-ready', 'true')
   await expect(map).toHaveAttribute('data-map-zoom', /^\d+(?:\.\d+)?$/)
   const initialZoom = Number(await map.getAttribute('data-map-zoom'))
   expect(initialZoom).toBeGreaterThan(0)

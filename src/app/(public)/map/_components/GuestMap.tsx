@@ -127,12 +127,27 @@ export function GuestMap({
   lodgingLocation?: GuestMapLodgingLocation | null
 }) {
   const mapRef = useRef<MapRef | null>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapInitializationPhaseRef = useRef<'waiting-for-load' | 'waiting-for-fit' | 'ready'>(
+    'waiting-for-load',
+  )
   const [active, setActive] = useState<GuestMapPoi | null>(null)
   const [baseLayer, setBaseLayer] = useState<BaseLayer>('plan')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
   const [hasLoadedMap, setHasLoadedMap] = useState(false)
-  const [mapZoom, setMapZoom] = useState<number | null>(null)
+
+  function observeMapZoom(zoom: number): void {
+    if (mapContainerRef.current) {
+      mapContainerRef.current.dataset.mapZoom = String(zoom)
+    }
+  }
+
+  function markMapReady(ready: boolean): void {
+    if (mapContainerRef.current) {
+      mapContainerRef.current.dataset.mapReady = String(ready)
+    }
+  }
 
   // Plein écran immersif : masque header + bottom-nav du layout public.
   useEffect(() => {
@@ -206,7 +221,21 @@ export function GuestMap({
   }, [])
 
   useEffect(() => {
-    if (hasLoadedMap) fitToPois(visiblePois, 300)
+    if (!hasLoadedMap) return
+
+    const map = mapRef.current
+    if (!map) return
+
+    if (visiblePois.length === 0) {
+      mapInitializationPhaseRef.current = 'ready'
+      observeMapZoom(map.getZoom())
+      markMapReady(true)
+      return
+    }
+
+    mapInitializationPhaseRef.current = 'waiting-for-fit'
+    markMapReady(false)
+    fitToPois(visiblePois, 300)
   }, [fitToPois, hasLoadedMap, visiblePois])
 
   useEffect(() => {
@@ -217,8 +246,8 @@ export function GuestMap({
 
   return (
     <div
+      ref={mapContainerRef}
       className="relative h-[100dvh] w-full overflow-hidden bg-white"
-      data-map-zoom={mapZoom ?? undefined}
       data-testid="guest-map"
     >
       <Map
@@ -228,16 +257,24 @@ export function GuestMap({
         maxPitch={75}
         terrain={{ source: 'mapbox-dem', exaggeration: 1.4 }}
         onLoad={event => {
-          setMapZoom(event.target.getZoom())
+          observeMapZoom(event.target.getZoom())
+          markMapReady(false)
           setHasLoadedMap(true)
           fitToPois(visiblePois)
+        }}
+        onIdle={event => {
+          observeMapZoom(event.target.getZoom())
+          if (mapInitializationPhaseRef.current === 'waiting-for-fit') {
+            mapInitializationPhaseRef.current = 'ready'
+            markMapReady(true)
+          }
         }}
         onZoomEnd={event => {
           // Bascule en vue 3D inclinée dès qu'on s'approche (relief + bâtiments).
           const map = event.target
           const zoom = map.getZoom()
           const pitch = map.getPitch()
-          setMapZoom(zoom)
+          observeMapZoom(zoom)
           if (zoom >= 14 && pitch < 10) {
             map.easeTo({ pitch: 60, duration: 600 })
           } else if (zoom < 13 && pitch > 10) {
