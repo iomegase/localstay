@@ -189,7 +189,7 @@ export function discoveryPoiMetadata(poi: DiscoveryPoiDetail): Metadata {
 }
 
 export function lodgingListMetadata(): Metadata {
-  const title = 'Nos logements — MyStay'
+  const title = 'Nos logements'
   const description = truncate(
     'Découvrez les logements accompagnés par la conciergerie MyStay en Haute-Savoie.',
   )
