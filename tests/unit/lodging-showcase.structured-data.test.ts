@@ -68,6 +68,35 @@ describe('lodging showcase structured data', () => {
     expect(schema).not.toBeNull()
     expect(schema?.url).toBe(`${BASE}/logements/chalet-hygge`)
     expect(schema?.provider).toEqual({ '@id': `${BASE}/#organization` })
+    expect(schema?.image).toEqual(eligibleInput.photos.map(photo => photo.url))
+  })
+
+  it('falls back when eight source photos contain fewer than eight visible photos', () => {
+    const photos = [
+      { url: 'https://img.test/visible-1.webp', alt: 'Salon', is_cover: true, room_type: 'common_area' },
+      { url: 'https://img.test/visible-2.webp', alt: 'Chambre', is_cover: false, room_type: 'bedroom' },
+      { url: 'https://img.test/visible-3.webp', alt: 'Salle de bain', is_cover: false, room_type: 'bathroom' },
+      { url: 'https://img.test/hidden-null.webp', alt: 'Sans pièce', is_cover: false, room_type: null },
+      { url: 'https://img.test/hidden-other.webp', alt: 'Autre', is_cover: false, room_type: 'other' },
+      { url: 'https://img.test/visible-4.webp', alt: 'Cuisine', is_cover: false, room_type: 'kitchen' },
+      { url: 'https://img.test/visible-5.webp', alt: 'Extérieur 1', is_cover: false, room_type: 'exterior' },
+      { url: 'https://img.test/visible-6.webp', alt: 'Extérieur 2', is_cover: false, room_type: 'exterior' },
+    ]
+    const partiallyVisibleInput = {
+      ...input,
+      preciseLocationPublic: true,
+      publicLatitude: 45.899,
+      publicLongitude: 6.129,
+      photos,
+    }
+
+    expect(vacationRentalSchema(partiallyVisibleInput)).toBeNull()
+    expect(lodgingPlaceSchema(partiallyVisibleInput)).toMatchObject({
+      '@type': 'LodgingBusiness',
+      image: photos
+        .filter(photo => !['hidden-null.webp', 'hidden-other.webp'].some(name => photo.url.endsWith(name)))
+        .map(photo => photo.url),
+    })
   })
 
   it('uses the preview page URL but keeps the production provider identity', () => {

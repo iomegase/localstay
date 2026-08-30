@@ -277,6 +277,14 @@ export type LodgingSchemaInput = {
 }
 
 export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
+  const visiblePhotos = selectVisibleLodgingPhotos(input.photos)
+  return lodgingPlaceSchemaWithVisiblePhotos(input, visiblePhotos)
+}
+
+function lodgingPlaceSchemaWithVisiblePhotos(
+  input: LodgingSchemaInput,
+  visiblePhotos: LodgingSchemaInput['photos'],
+): JsonLdObject {
   const path = publicLodgingPath(input.slug)
   return {
     '@context': SCHEMA,
@@ -286,7 +294,7 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
     description: input.shortDescription,
     url: `${siteBaseUrl()}${path}`,
     provider: { '@id': organizationId() },
-    image: selectVisibleLodgingPhotos(input.photos).map(photo => photo.url),
+    image: visiblePhotos.map(photo => photo.url),
     amenityFeature: input.amenities.map(amenity => ({
       '@type': 'LocationFeatureSpecification',
       name: amenity.label,
@@ -304,13 +312,14 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
 }
 
 export function vacationRentalSchema(input: LodgingSchemaInput): JsonLdObject | null {
+  const visiblePhotos = selectVisibleLodgingPhotos(input.photos)
   const canEmit = canEmitVacationRentalSchema({
     title: input.title,
     short_description: input.shortDescription,
     description: input.description,
     property_type: input.propertyType,
     max_guests: input.maxGuests,
-    photos: input.photos,
+    photos: visiblePhotos,
     amenities: input.amenities,
     precise_location_public: input.preciseLocationPublic,
     public_latitude: input.publicLatitude,
@@ -320,7 +329,7 @@ export function vacationRentalSchema(input: LodgingSchemaInput): JsonLdObject | 
   if (!canEmit) return null
 
   return {
-    ...lodgingPlaceSchema(input),
+    ...lodgingPlaceSchemaWithVisiblePhotos(input, visiblePhotos),
     '@type': 'VacationRental',
     occupancy: {
       '@type': 'QuantitativeValue',
