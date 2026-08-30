@@ -59,8 +59,6 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-jakarta)', 'sans-serif'],
         serif: ['var(--font-playfair)', 'serif'],
-        lobster: ['var(--font-lobster)', 'cursive'],
-        quicksand: ['var(--font-quicksand)', 'sans-serif'],
         hand: ['var(--font-story)', 'cursive'],
       },
       boxShadow: {

@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import {
   Big_Shoulders_Inline,
-  Lobster,
   Playfair_Display,
   Plus_Jakarta_Sans,
-  Quicksand,
   Story_Script,
 } from 'next/font/google'
 import { MobileBrowserChromeCollapser } from '@/shared/components/MobileBrowserChromeCollapser'
@@ -26,19 +24,6 @@ const playfairDisplay = Playfair_Display({
   display: 'swap',
 })
 
-const quicksand = Quicksand({
-  subsets: ['latin'],
-  variable: '--font-quicksand',
-  display: 'swap',
-})
-
-const lobster = Lobster({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-lobster',
-  display: 'swap',
-})
-
 const storyScript = Story_Script({
   subsets: ['latin'],
   weight: '400',
@@ -46,6 +31,7 @@ const storyScript = Story_Script({
   display: 'swap',
   fallback: ['cursive'],
   adjustFontFallback: false,
+  preload: false,
 })
 
 const bigShouldersInline = Big_Shoulders_Inline({
@@ -54,6 +40,7 @@ const bigShouldersInline = Big_Shoulders_Inline({
   display: 'swap',
   fallback: ['sans-serif'],
   adjustFontFallback: false,
+  preload: false,
 })
 
 export const metadata: Metadata = {
@@ -113,10 +100,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Rendu « app » : on bloque le pinch-zoom de page. Les cartes Mapbox gèrent
-  // leur propre zoom (canvas + boutons +/−) et restent donc zoomables.
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#FAF9F6',
 }
@@ -129,7 +112,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${jakartaSans.variable} ${playfairDisplay.variable} ${quicksand.variable} ${lobster.variable} ${storyScript.variable} ${bigShouldersInline.variable}`}
+      className={`${jakartaSans.variable} ${playfairDisplay.variable} ${storyScript.variable} ${bigShouldersInline.variable}`}
     >
       <body
         className="bg-white text-charcoal font-sans antialiased"
