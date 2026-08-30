@@ -4,7 +4,10 @@ import type {
   DiscoveryCity,
   DiscoveryPoiDetail,
 } from '@/features/public-discovery/types'
-import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
+import {
+  publicLodgingPath,
+  publicLodgingsPath,
+} from '@/features/lodging-showcase/lib/public-paths'
 import { SITE } from './site'
 
 const MAX_DESCRIPTION = 160
@@ -185,12 +188,12 @@ export function discoveryPoiMetadata(poi: DiscoveryPoiDetail): Metadata {
   }
 }
 
-export function lodgingListMetadata(input: { cityName: string; citySlug: string }): Metadata {
-  const title = `Logements à ${input.cityName} — MyStay`
+export function lodgingListMetadata(): Metadata {
+  const title = 'Nos logements — MyStay'
   const description = truncate(
-    `Découvrez les logements à ${input.cityName} avec photos, équipements, recommandations locales et lien de réservation.`,
+    'Découvrez les logements accompagnés par la conciergerie MyStay en Haute-Savoie.',
   )
-  const path = `/guide/${input.citySlug}/logements`
+  const path = publicLodgingsPath()
   return {
     title,
     description,

@@ -2,10 +2,10 @@ import { lodgingDetailMetadata, lodgingListMetadata } from '@/features/seo/lib/m
 import { lodgingPlaceSchema } from '@/features/seo/lib/structured-data'
 
 describe('lodgingListMetadata', () => {
-  it('builds a title and canonical for the city lodging list', () => {
-    const metadata = lodgingListMetadata({ cityName: 'Annecy', citySlug: 'annecy' })
-    expect(metadata.title).toContain('Logements à Annecy')
-    expect(metadata.alternates?.canonical).toBe('/guide/annecy/logements')
+  it('builds metadata for the canonical global lodging list', () => {
+    const metadata = lodgingListMetadata()
+    expect(metadata.title).toContain('Nos logements')
+    expect(metadata.alternates?.canonical).toBe('/logements')
   })
 })
 
