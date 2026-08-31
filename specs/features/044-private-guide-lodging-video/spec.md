@@ -39,8 +39,8 @@ lecteur concurrent.
 
 ### US-01 — Regarder la vidéo du logement depuis la home privée
 
-**As a** Tourist disposant d'un séjour actif  
-**I want to** ouvrir la vidéo de présentation du logement depuis `/sejour`  
+**As a** Tourist disposant d'un séjour actif
+**I want to** ouvrir la vidéo de présentation du logement depuis `/sejour`
 **So that** je découvre rapidement le logement sans quitter le guide privé
 
 #### Acceptance Criteria
