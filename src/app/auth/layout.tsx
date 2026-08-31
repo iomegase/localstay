@@ -1,5 +1,9 @@
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
+
+export const metadata: Metadata = privatePageMetadata('Authentification')
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
