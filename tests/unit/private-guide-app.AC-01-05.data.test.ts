@@ -177,6 +177,46 @@ describe('034-private-guide-app private data adapter', () => {
     })
   })
 
+  it('maps the existing presentation video URL onto the private guide lodging', async () => {
+    lodgingFindFirst.mockResolvedValue({
+      id: 'lodging-1',
+      name: 'Le Chalet Hygge',
+      city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
+      customization: {
+        welcome_message: null,
+        cover_photo_url: null,
+        lodging_address: null,
+        lodging_latitude: null,
+        lodging_longitude: null,
+        wifi_ssid: null,
+        wifi_password: null,
+        emergency_contacts: null,
+        useful_services: null,
+        trash_bins: null,
+        trash_location: null,
+        presentation_video_url: '  https://youtu.be/dQw4w9WgXcQ  ',
+      },
+      practical_blocks: [],
+      arrival_instructions: [],
+    })
+    featuredFindMany.mockResolvedValue([])
+
+    const result = await getPrivateGuideData('lodging-1')
+
+    expect(result?.lodging.presentationVideoUrl).toBe(
+      'https://youtu.be/dQw4w9WgXcQ',
+    )
+    expect(lodgingFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          customization: expect.objectContaining({
+            select: expect.objectContaining({ presentation_video_url: true }),
+          }),
+        }),
+      }),
+    )
+  })
+
   it('maps arrival instructions (text + video + photos) in order', async () => {
     lodgingFindFirst.mockResolvedValue({
       id: 'lodging-1',

@@ -173,6 +173,8 @@ export type GuideLodging = {
   checkOut: string
   wifiName: string
   wifiPassword: string
+  /** Vidéo YouTube de présentation configurée par l'Owner. */
+  presentationVideoUrl?: string
   arrivalInstructions: GuideArrivalInstruction[]
   departureInstructions: string[]
   houseRules: string[]

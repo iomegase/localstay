@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, Heart } from 'lucide-react'
 import { GuideGpsCard } from '@/features/guide-app/components/GuideGpsCard'
+import { GuideLodgingVideoButton } from '@/features/guide-app/components/GuideLodgingVideoButton'
 import type {
   GuideLodging,
   GuidePoi,
@@ -31,6 +32,8 @@ export function GuideHome({
 
       {/* Conteneur 2 — navigation, centré */}
       <div className="flex flex-1 flex-col justify-center gap-3">
+        <GuideLodgingVideoButton url={lodging.presentationVideoUrl} />
+
         <button
           type="button"
           onClick={() => onNavigate('lodging')}
