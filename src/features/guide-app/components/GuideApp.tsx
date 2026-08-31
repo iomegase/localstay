@@ -271,6 +271,7 @@ function GuideAppShell({
             selectedCategorySlug={selectedCategorySlug}
             onFilter={filterCategory}
             onSelectPoi={poi => setSelectedPoiId(poi.id)}
+            onDeselectPoi={() => setSelectedPoiId(null)}
             onOpenPoi={openPoi}
           />
         )}

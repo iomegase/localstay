@@ -102,6 +102,7 @@ export function GuideMapView({
   selectedCategorySlug,
   onFilter,
   onSelectPoi,
+  onDeselectPoi,
   onOpenPoi,
 }: {
   lodging: GuideLodging
@@ -110,6 +111,7 @@ export function GuideMapView({
   selectedCategorySlug: string | null
   onFilter: (categorySlug: string | null) => void
   onSelectPoi: (poi: GuidePoi) => void
+  onDeselectPoi: () => void
   onOpenPoi: (poi: GuidePoi) => void
 }) {
   const mapRef = useRef<MapRef | null>(null)
@@ -363,6 +365,7 @@ export function GuideMapView({
           pitch: 0,
         }}
         maxPitch={62}
+        onClick={onDeselectPoi}
         onLoad={handleMapLoad}
         onZoomEnd={handleZoomEnd}
         mapStyle="mapbox://styles/mapbox/light-v11"

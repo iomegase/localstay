@@ -14,7 +14,8 @@ export function SubCategoryFilter({ subcategories }: { subcategories: SubCategor
     const params = new URLSearchParams(searchParams.toString())
     if (slug) params.set('sub', slug)
     else params.delete('sub')
-    router.push(`${pathname}?${params.toString()}`)
+    const query = params.toString()
+    router.push(query ? `${pathname}?${query}` : pathname)
   }
 
   return (

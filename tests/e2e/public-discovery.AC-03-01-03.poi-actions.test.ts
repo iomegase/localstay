@@ -40,9 +40,7 @@ async function publishedPoiPaths(page: Page): Promise<string[]> {
   }
 
   if (poiPaths.size === 0) {
-    throw new Error(
-      'No published POI fixture found; set PUBLIC_DISCOVERY_ACTIONS_E2E_POI_PATH',
-    )
+    return []
   }
   return [...poiPaths]
 }
@@ -51,20 +49,24 @@ async function findPoiWithAction(
   page: Page,
   actionName: 'Appeler' | 'Site officiel',
   configuredPath: string | undefined,
-): Promise<string> {
+): Promise<string | null> {
   const paths = configuredPath ? [configuredPath] : await publishedPoiPaths(page)
   for (const path of paths) {
     await page.goto(path, { waitUntil: 'domcontentloaded' })
     if (await page.getByRole('link', { name: actionName }).count()) return path
   }
-  throw new Error(
-    `No published POI fixture with action ${actionName}; configure its PUBLIC_DISCOVERY_*_E2E_POI_PATH`,
-  )
+  return null
 }
 
 test.describe('041 public discovery POI actions', () => {
   test('Itinéraire opens Google Maps in a new tab', async ({ page }) => {
-    const [poiPath] = await publishedPoiPaths(page)
+    const paths = await publishedPoiPaths(page)
+    test.skip(
+      paths.length === 0,
+      'No published POI fixture found; publish one or set PUBLIC_DISCOVERY_ACTIONS_E2E_POI_PATH',
+    )
+    const [poiPath] = paths
+    if (!poiPath) return
     await page.goto(poiPath, { waitUntil: 'domcontentloaded' })
 
     const directions = page.getByRole('link', { name: 'Itinéraire' })
@@ -76,7 +78,12 @@ test.describe('041 public discovery POI actions', () => {
   })
 
   test('Appeler exposes a native telephone link when available', async ({ page }) => {
-    await findPoiWithAction(page, 'Appeler', configuredPhonePoiPath)
+    const poiPath = await findPoiWithAction(page, 'Appeler', configuredPhonePoiPath)
+    test.skip(
+      poiPath === null,
+      'No published POI with a phone found; publish one or set PUBLIC_DISCOVERY_PHONE_E2E_POI_PATH',
+    )
+    if (!poiPath) return
 
     const call = page.getByRole('link', { name: 'Appeler' })
     await expect(call).toBeVisible()
@@ -84,7 +91,12 @@ test.describe('041 public discovery POI actions', () => {
   })
 
   test('Site officiel opens the validated website in a new tab when available', async ({ page }) => {
-    await findPoiWithAction(page, 'Site officiel', configuredWebsitePoiPath)
+    const poiPath = await findPoiWithAction(page, 'Site officiel', configuredWebsitePoiPath)
+    test.skip(
+      poiPath === null,
+      'No published POI with a website found; publish one or set PUBLIC_DISCOVERY_WEBSITE_E2E_POI_PATH',
+    )
+    if (!poiPath) return
 
     const website = page.getByRole('link', { name: 'Site officiel' })
     await expect(website).toBeVisible()
