@@ -39,6 +39,7 @@ export async function getPrivateGuideData(
           useful_services: true,
           trash_bins: true,
           trash_location: true,
+          presentation_video_url: true,
         },
       },
       practical_blocks: {
@@ -130,6 +131,8 @@ export async function getPrivateGuideData(
       checkOut: '10:00',
       wifiName: customization?.wifi_ssid ?? '',
       wifiPassword: customization?.wifi_password ?? '',
+      presentationVideoUrl:
+        customization?.presentation_video_url?.trim() || undefined,
       arrivalInstructions: lodging.arrival_instructions.map(instruction => ({
         title: instruction.title,
         text: instruction.text,
