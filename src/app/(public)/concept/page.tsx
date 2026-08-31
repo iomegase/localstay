@@ -226,7 +226,6 @@ export default function ConceptPage() {
                 <div className="h-[1px] w-8 bg-pink-400 lg:hidden" />
                 <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
                   <h3 className="font-bold text-white">{principle}</h3>
-                  <p>description des principes</p>
                 </div>
               </div>
             ))}
@@ -283,4 +282,3 @@ export default function ConceptPage() {
     </MarketingShell>
   )
 }
-  

@@ -13,7 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:generate": "prisma generate",
     "storage:setup": "tsx scripts/setup-storage-buckets.ts",
-    "audit:lodging-slugs": "tsx scripts/audit-lodging-slugs.ts"
+    "audit:lodging-slugs": "tsx scripts/audit-lodging-slugs.ts",
+    "audit:seo-content": "tsx scripts/audit-seo-content.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
