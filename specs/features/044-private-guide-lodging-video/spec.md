@@ -5,7 +5,7 @@
 ```yaml
 id: 044-private-guide-lodging-video
 title: "Vidéo du logement sur la home privée"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-31
