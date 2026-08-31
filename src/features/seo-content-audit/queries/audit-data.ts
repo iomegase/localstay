@@ -1,5 +1,3 @@
-import 'server-only'
-
 import type { Prisma } from '@prisma/client'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { getDiscoveryPoiVisibility } from '@/features/public-discovery/lib/visibility'

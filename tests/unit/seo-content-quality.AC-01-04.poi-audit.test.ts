@@ -110,4 +110,23 @@ describe('043 POI content audit', () => {
     expect(finding?.evidence.join(' ')).toContain('texte source présent')
     expect(finding?.evidence.join(' ')).not.toContain(secretSourceText)
   })
+
+  it('deduplicates identical acquisition provenance evidence', () => {
+    const provenance = {
+      source: 'google_places',
+      candidateDescriptionPresent: true,
+      website: 'https://source.example.com/page',
+      runSource: 'google_places_primary',
+    }
+    const finding = auditPublicPois([
+      poi({ provenance: [provenance, { ...provenance }] }),
+    ]).find(({ code }) => code === 'EXTERNAL_SOURCE_REVIEW_REQUIRED')
+
+    expect(
+      finding?.evidence.filter(value => value.startsWith('Provenance déclarée')),
+    ).toHaveLength(1)
+    expect(
+      finding?.evidence.filter(value => value.startsWith('Site source déclaré')),
+    ).toHaveLength(1)
+  })
 })

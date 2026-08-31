@@ -108,6 +108,17 @@ function numericTextFindings(row: PublicLodgingAuditRow): SeoContentAuditFinding
   for (const descriptor of NUMERIC_DESCRIPTORS) {
     const globalPattern = new RegExp(descriptor.pattern.source, `${descriptor.pattern.flags}g`)
     for (const match of text.matchAll(globalPattern)) {
+      if (descriptor.field === 'surface_m2') {
+        const nearbyPrefix = normalizeAuditText(
+          text.slice(Math.max(0, match.index - 80), match.index),
+        )
+        if (
+          /\b(?:terrasse|balcon|jardin|garage|chambre|cuisine|salon|sejour|salle de bain|piscine|spa)\b[^.!?]*$/u
+            .test(nearbyPrefix)
+        ) {
+          continue
+        }
+      }
       const mentioned = Number(match[1].replace(',', '.'))
       const structured = descriptor.structured(row)
       if (structured !== null && mentioned === structured) continue

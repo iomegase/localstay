@@ -83,6 +83,19 @@ describe('043 lodging text and JSON-LD audit', () => {
     )
   })
 
+  it('does not confuse an explicitly named terrace area with the lodging floor size', () => {
+    const findings = auditPublicLodgings([
+      lodging({
+        description:
+          'L’appartement dispose d’une terrasse plein sud de 10 m², idéale après une journée en montagne.',
+      }),
+    ])
+
+    expect(findings).not.toContainEqual(
+      expect.objectContaining({ code: 'LODGING_STRUCTURED_TEXT_CONFLICT' }),
+    )
+  })
+
   it('flags a different known City only after an explicit location cue', () => {
     const annecy = lodging({ description: 'Ce chalet est situé à Chamonix, près des sentiers.' })
     const chamonix = lodging({

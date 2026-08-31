@@ -36,12 +36,24 @@ function safeWebsiteHost(value: string | null): string | null {
 }
 
 function provenanceEvidence(row: PublicPoiAuditRow): string[] | null {
-  const relevant = row.provenance.filter((source) => (
-    source.candidateDescriptionPresent
-    || source.website !== null
-    || !['', 'manual'].includes(source.source.trim().toLowerCase())
-    || !['', 'manual'].includes(source.runSource.trim().toLowerCase())
-  ))
+  const relevant = [...new Map(
+    row.provenance
+      .filter((source) => (
+        source.candidateDescriptionPresent
+        || source.website !== null
+        || !['', 'manual'].includes(source.source.trim().toLowerCase())
+        || !['', 'manual'].includes(source.runSource.trim().toLowerCase())
+      ))
+      .map(source => [
+        JSON.stringify([
+          source.source,
+          source.runSource,
+          source.website,
+          source.candidateDescriptionPresent,
+        ]),
+        source,
+      ]),
+  ).values()]
   if (relevant.length === 0) return null
 
   return relevant.flatMap((source) => {
