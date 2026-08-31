@@ -4,6 +4,7 @@ const mockPoiUpdate = jest.fn()
 const mockPoiUpsert = jest.fn()
 const mockPoiDelete = jest.fn()
 const mockPoiDeleteMany = jest.fn()
+const mockLodgingFindMany = jest.fn()
 
 jest.mock('server-only', () => ({}), { virtual: true })
 
@@ -17,10 +18,16 @@ jest.mock('@/shared/lib/prisma', () => ({
       delete: (...args: unknown[]) => mockPoiDelete(...args),
       deleteMany: (...args: unknown[]) => mockPoiDeleteMany(...args),
     },
+    lodgingPublicProfile: {
+      findMany: (...args: unknown[]) => mockLodgingFindMany(...args),
+    },
   },
 }))
 
-import { getPublicPoiAuditRows } from '@/features/seo-content-audit/queries/audit-data'
+import {
+  getPublicLodgingAuditRows,
+  getPublicPoiAuditRows,
+} from '@/features/seo-content-audit/queries/audit-data'
 
 function eligiblePoi(overrides: Record<string, unknown> = {}) {
   return {
@@ -74,6 +81,82 @@ describe('043 public audit data boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockPoiFindMany.mockResolvedValue([])
+    mockLodgingFindMany.mockResolvedValue([])
+  })
+
+  it('reads only active published lodging profiles without selecting a private lodging id', async () => {
+    await getPublicLodgingAuditRows()
+
+    expect(mockLodgingFindMany).toHaveBeenCalledWith({
+      where: {
+        publication_status: 'published',
+        deleted_at: null,
+        city: { is_active: true, deleted_at: null },
+        lodging: { is_active: true, deleted_at: null },
+      },
+      select: expect.objectContaining({
+        id: true,
+        slug: true,
+        title: true,
+        short_description: true,
+        description: true,
+        property_type: true,
+        max_guests: true,
+        bedroom_count: true,
+        bathroom_count: true,
+        bed_count: true,
+        surface_m2: true,
+        public_area_label: true,
+        updated_at: true,
+        city: { select: { name: true, region: true } },
+        amenities: {
+          where: { deleted_at: null },
+          orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
+          select: { code: true, label: true, availability: true },
+        },
+      }),
+    })
+
+    expect(JSON.stringify(mockLodgingFindMany.mock.calls[0][0].select)).not.toContain(
+      'lodging_id',
+    )
+  })
+
+  it('maps the public lodging profile id and visible facts only', async () => {
+    mockLodgingFindMany.mockResolvedValue([
+      {
+        id: 'profile-1',
+        slug: 'chalet-hygge',
+        title: 'Chalet Hygge',
+        short_description: 'Un chalet lumineux.',
+        description: '70 m² pour 6 voyageurs.',
+        property_type: 'Chalet',
+        max_guests: 6,
+        bedroom_count: 3,
+        bathroom_count: 2,
+        bed_count: 4,
+        surface_m2: 70,
+        public_area_label: 'Annecy-le-Vieux',
+        precise_location_public: false,
+        public_latitude: null,
+        public_longitude: null,
+        updated_at: new Date('2026-08-21T10:00:00.000Z'),
+        city: { name: 'Annecy', region: 'Auvergne-Rhône-Alpes' },
+        photos: [],
+        amenities: [
+          { code: 'wifi', label: 'Wi-Fi', availability: 'included' },
+        ],
+      },
+    ])
+
+    await expect(getPublicLodgingAuditRows()).resolves.toEqual([
+      expect.objectContaining({
+        id: 'profile-1',
+        publicUrl: '/logements/chalet-hygge',
+        updatedAt: '2026-08-21T10:00:00.000Z',
+        amenities: [{ code: 'wifi', label: 'Wi-Fi', availability: 'included' }],
+      }),
+    ])
   })
 
   it('reads only eligible public POIs and the minimal acquisition provenance', async () => {
@@ -167,4 +250,3 @@ describe('043 public audit data boundary', () => {
     }
   })
 })
-

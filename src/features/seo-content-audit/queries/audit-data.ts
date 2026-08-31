@@ -1,6 +1,7 @@
 import 'server-only'
 
 import type { Prisma } from '@prisma/client'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { getDiscoveryPoiVisibility } from '@/features/public-discovery/lib/visibility'
 import { prisma } from '@/shared/lib/prisma'
 
@@ -82,6 +83,78 @@ export type PublicPoiAuditRow = {
   provenance: PublicPoiAuditProvenance[]
 }
 
+const publicLodgingAuditSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  short_description: true,
+  description: true,
+  property_type: true,
+  max_guests: true,
+  bedroom_count: true,
+  bathroom_count: true,
+  bed_count: true,
+  surface_m2: true,
+  public_area_label: true,
+  precise_location_public: true,
+  public_latitude: true,
+  public_longitude: true,
+  updated_at: true,
+  city: { select: { name: true, region: true } },
+  photos: {
+    where: { deleted_at: null },
+    orderBy: [{ sort_order: 'asc' as const }, { created_at: 'asc' as const }],
+    select: {
+      url: true,
+      alt: true,
+      is_cover: true,
+      room_type: true,
+    },
+  },
+  amenities: {
+    where: { deleted_at: null },
+    orderBy: [{ sort_order: 'asc' as const }, { created_at: 'asc' as const }],
+    select: { code: true, label: true, availability: true },
+  },
+} satisfies Prisma.LodgingPublicProfileSelect
+
+type PublicLodgingAuditDatabaseRow = Prisma.LodgingPublicProfileGetPayload<{
+  select: typeof publicLodgingAuditSelect
+}>
+
+export type PublicLodgingAuditRow = {
+  id: string
+  slug: string
+  publicUrl: string
+  title: string
+  shortDescription: string
+  description: string
+  propertyType: string
+  maxGuests: number
+  bedroomCount: number | null
+  bathroomCount: number | null
+  bedCount: number | null
+  surfaceM2: number | null
+  publicAreaLabel: string | null
+  preciseLocationPublic: boolean
+  publicLatitude: number | null
+  publicLongitude: number | null
+  cityName: string
+  cityRegion: string | null
+  photos: Array<{
+    url: string
+    alt: string
+    is_cover: boolean
+    room_type: string | null
+  }>
+  amenities: Array<{
+    code: string
+    label: string
+    availability: 'included' | 'on_request'
+  }>
+  updatedAt: string
+}
+
 export async function getPublicPoiAuditRows(): Promise<PublicPoiAuditRow[]> {
   const rows: PublicPoiAuditDatabaseRow[] = await prisma.pointOfInterest.findMany({
     where: {
@@ -120,3 +193,40 @@ export async function getPublicPoiAuditRows(): Promise<PublicPoiAuditRow[]> {
     .sort((left, right) => left.publicUrl.localeCompare(right.publicUrl, 'fr'))
 }
 
+export async function getPublicLodgingAuditRows(): Promise<PublicLodgingAuditRow[]> {
+  const rows: PublicLodgingAuditDatabaseRow[] = await prisma.lodgingPublicProfile.findMany({
+    where: {
+      publication_status: 'published',
+      deleted_at: null,
+      city: { is_active: true, deleted_at: null },
+      lodging: { is_active: true, deleted_at: null },
+    },
+    select: publicLodgingAuditSelect,
+  })
+
+  return rows
+    .map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      publicUrl: publicLodgingPath(row.slug),
+      title: row.title,
+      shortDescription: row.short_description,
+      description: row.description,
+      propertyType: row.property_type,
+      maxGuests: row.max_guests,
+      bedroomCount: row.bedroom_count,
+      bathroomCount: row.bathroom_count,
+      bedCount: row.bed_count,
+      surfaceM2: row.surface_m2,
+      publicAreaLabel: row.public_area_label,
+      preciseLocationPublic: row.precise_location_public,
+      publicLatitude: row.public_latitude,
+      publicLongitude: row.public_longitude,
+      cityName: row.city.name,
+      cityRegion: row.city.region,
+      photos: row.photos,
+      amenities: row.amenities,
+      updatedAt: row.updated_at.toISOString(),
+    }))
+    .sort((left, right) => left.publicUrl.localeCompare(right.publicUrl, 'fr'))
+}
