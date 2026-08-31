@@ -191,6 +191,7 @@ describe('041 public discovery pages', () => {
     expect(screen.getByRole('link', { name: /Itinéraire/i }).getAttribute('href')).toContain(
       encodeURIComponent(poi.address),
     )
+    expect(screen.queryByRole('button', { name: /Partager/i })).not.toBeInTheDocument()
     expect(screen.getByTestId('mini-map')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: `${poi.name} à ${poi.city.name}` })).toHaveAttribute(
       'fetchpriority',
