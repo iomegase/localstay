@@ -62,4 +62,3 @@ export function resolveAuditOutputPath(output: string, cwd = process.cwd()): str
   }
   return target
 }
-

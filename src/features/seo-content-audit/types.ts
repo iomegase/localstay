@@ -14,4 +14,3 @@ export type SeoContentAuditFinding = {
   updatedAt: string | null
   requiresOwnerDecision: boolean
 }
-
