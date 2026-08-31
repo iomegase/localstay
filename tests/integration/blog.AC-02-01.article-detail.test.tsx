@@ -84,7 +84,7 @@ describe('029 blog article detail page', () => {
     expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Guide Saint-Gervais-les-Bains' })).toHaveAttribute(
       'href',
-      '/guide/saint-gervais-les-bains',
+      '/decouvrir/saint-gervais-les-bains',
     )
     expect(
       screen

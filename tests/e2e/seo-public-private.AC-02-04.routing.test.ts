@@ -5,6 +5,8 @@ const lodgingSlug = process.env.SEO_ROUTING_E2E_LODGING_SLUG ?? 'le-chalet-hygge
 const categorySlug = process.env.SEO_ROUTING_E2E_CATEGORY_SLUG ?? 'rando'
 const poiSlug = process.env.SEO_ROUTING_E2E_POI_SLUG ?? 'col-de-tricot'
 const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+const activeStayLodgingId =
+  process.env.SEO_MAP_E2E_LODGING_ID ?? '6700c643-053d-43b9-9ee4-22c3d832acd7'
 const absentLodgingId = 'a4f87d13-317b-4ce5-8c9f-1bc33581b194'
 const forgedLodgingCookie = 'forged-cookie'
 
@@ -36,6 +38,62 @@ test.describe('042 SEO public/private HTTP routing', () => {
     expect(locationPath(oldPoi)).toBe(
       `/decouvrir/${citySlug}/${categorySlug}/${poiSlug}`,
     )
+
+    const oldCategory = await request.get(
+      `/guide/${citySlug}/${categorySlug}?sub=historical-filter`,
+      { maxRedirects: 0 },
+    )
+    expect(oldCategory.status()).toBe(308)
+    expect(oldCategory.headers().location).toBe(
+      `/decouvrir/${citySlug}/${categorySlug}`,
+    )
+  })
+
+  test('renders canonical discovery without private navigation or legacy links', async ({ page }) => {
+    await page.goto(`/decouvrir/${citySlug}/${categorySlug}`)
+
+    await expect(page.getByTestId('marketing-surface')).toBeVisible()
+    await expect(page.getByTestId('bottom-navigation')).toHaveCount(0)
+    await expect(page.locator('a[href^="/guide/"]')).toHaveCount(0)
+
+    await page.goto(`/decouvrir/${citySlug}/${categorySlug}/${poiSlug}?lodging=${lodgingId}`)
+    expect(new URL(page.url()).pathname).toBe(
+      `/decouvrir/${citySlug}/${categorySlug}/${poiSlug}`,
+    )
+    await expect(page.getByTestId('marketing-surface')).toBeVisible()
+    await expect(page.getByTestId('bottom-navigation')).toHaveCount(0)
+  })
+
+  test('returns 404 for a legacy POI without a published equivalent', async ({ request }) => {
+    const response = await request.get(
+      `/guide/${citySlug}/${categorySlug}/poi-prive-inexistant`,
+      { maxRedirects: 0 },
+    )
+    expect(response.status()).toBe(404)
+  })
+
+  test('keeps historical City, category and POI routes private for an active stay', async ({ request }) => {
+    for (const path of [
+      `/guide/${citySlug}`,
+      `/guide/${citySlug}/${categorySlug}`,
+    ]) {
+      const response = await request.get(path, {
+        headers: { cookie: `lodging_id=${activeStayLodgingId}` },
+        maxRedirects: 0,
+      })
+      expect(response.status(), path).toBe(307)
+      expect(locationPath(response), path).toBe('/sejour')
+    }
+
+    const privatePoi = await request.get(
+      `/guide/${citySlug}/${categorySlug}/${poiSlug}`,
+      {
+        headers: { cookie: `lodging_id=${activeStayLodgingId}` },
+        maxRedirects: 0,
+      },
+    )
+    expect(privatePoi.status()).toBe(200)
+    expect(await privatePoi.text()).toContain('noindex')
   })
 
   test('serves the canonical lodging detail', async ({ request }) => {
