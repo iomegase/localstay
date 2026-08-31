@@ -34,7 +34,7 @@ interface Props {
 
 function instructionUid(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
+    ? `tmp-${crypto.randomUUID()}`
     : `tmp-${Math.random().toString(36).slice(2)}-${Date.now()}`
 }
 

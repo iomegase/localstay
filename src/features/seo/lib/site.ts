@@ -7,6 +7,11 @@ export const SITE = {
     'MyStay référence les meilleures adresses, randonnées et activités autour de votre lieu de séjour : restaurants, commerces, sentiers et bons plans locaux.',
 } as const
 
+/** Identifiant public stable de l'organisation, indépendant de l'environnement d'exécution. */
+export function organizationId(): string {
+  return 'https://www.mystay.city/#organization'
+}
+
 /** URL de base sans slash final. Utilisée pour canonical, sitemap, OG, JSON-LD. */
 export function siteBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.mystay.city').replace(/\/+$/, '')

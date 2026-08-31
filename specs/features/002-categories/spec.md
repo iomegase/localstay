@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-06-06
+updated_at: 2026-08-31
 depends_on: [001-city-guide]
 ```
 
@@ -18,6 +18,12 @@ depends_on: [001-city-guide]
 ## Context
 
 Le Tourist, une fois sur le guide d'une ville, navigue via un menu de catégories thématiques (Manger, Explorer, Sport, etc.). Ces catégories sont dynamiques : elles ne s'affichent que si elles contiennent au moins un POI pour la ville concernée. Ce mécanisme garantit une interface toujours pertinente, sans catégories vides ou trompeuses.
+
+Décision Product Owner du 2026-08-31 : les filtres de sous-catégorie définis
+par cette spec restent un contrat du guide de séjour privé. Ils sont remplacés,
+pour la découverte publique anonyme, par la sélection éditoriale sans filtre de
+la spec `041-public-local-discovery`. Les AC-02-02 et AC-03-01 à AC-03-03 ne
+s'appliquent donc pas aux routes `/decouvrir`.
 
 ---
 
@@ -294,3 +300,4 @@ components:
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
 | OQ-01 | Faut-il une page catégorie dédiée ou un drawer/modal sur mobile ? | owner | 2026-05-21 | ✅ **Résolu** — Page dédiée. Chaque catégorie navigue vers `/guide/[city-slug]/[category-slug]`. Le bouton retour revient à `/guide/[city-slug]`. Pas de drawer ni de modal. |
+| OQ-02 | Les filtres de sous-catégorie historiques doivent-ils être restaurés sur `/decouvrir` ? | Product Owner | 2026-08-31 | **Résolu** — Non. Ils restent propres au guide de séjour privé ; la sélection publique de la spec 041 est volontairement sans filtre. |

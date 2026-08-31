@@ -7,12 +7,15 @@ const clearHeroConsumers = [
 ] as const
 
 const imageHeroConsumers = [
-  'src/features/guide-demo/demo-guide-data.ts',
   'src/features/guide-app/queries/private-guide-data.ts',
 ] as const
 
+const retiredImageHeroConsumers = [
+  'src/features/guide-demo/demo-guide-data.ts',
+] as const
+
 describe('031 public marketing BR-35 — versioned hero cache key', () => {
-  it.each([...clearHeroConsumers, ...imageHeroConsumers])('%s uses no stale hero-chalet.png cache key', relativePath => {
+  it.each([...clearHeroConsumers, ...imageHeroConsumers, ...retiredImageHeroConsumers])('%s uses no stale hero-chalet.png cache key', relativePath => {
     const source = readFileSync(join(process.cwd(), relativePath), 'utf8')
     expect(source).not.toContain('/marketing/hero-chalet.png')
   })

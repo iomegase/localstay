@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: "Product Owner"
 created_at: 2026-05-20
-updated_at: 2026-07-09
+updated_at: 2026-08-31
 depends_on: [001-city-guide, 002-categories]
 ```
 
@@ -18,6 +18,12 @@ depends_on: [001-city-guide, 002-categories]
 ## Context
 
 Après avoir sélectionné une catégorie, le Tourist consulte la liste des POI disponibles. Cette liste doit être triée par pertinence (distance, note), filtrable, et afficher suffisamment d'informations pour permettre un choix rapide sans ouvrir chaque fiche. L'expérience doit être fluide sur mobile.
+
+Décision Product Owner du 2026-08-31 : le filtrage et sa remise à zéro
+restent applicables aux listes du guide de séjour privé. Pour un accès anonyme,
+la spec `041-public-local-discovery` remplace cette interaction par une
+sélection éditoriale publique sans filtre. Les AC-02-02 et AC-02-03 ne sont
+donc pas des exigences de `/decouvrir`.
 
 ---
 
@@ -365,3 +371,4 @@ components:
 |---|---|---|---|---|
 | OQ-01 | Infinite scroll ou pagination classique sur mobile ? | owner | 2026-05-24 / 2026-06-04 | Catégories : pagination progressive via bouton "Charger plus". Home Guide "Tous les POI" : infinite scroll par lots de 10. |
 | OQ-02 | Afficher la distance depuis le centre ville ou proposer l'accès GPS optionnel ? | owner | 2026-05-24 / 2026-07-09 | Zones et tri serveur depuis centre-ville ; distance affichée depuis GPS après opt-in, fallback logement en mode séjour si coordonnées connues, sinon centre-ville |
+| OQ-03 | Les filtres historiques doivent-ils être exposés sur `/decouvrir` ? | Product Owner | 2026-08-31 | **Résolu** — Non. Ils restent dans le guide privé ; `/decouvrir` présente la sélection éditoriale non filtrable définie par la spec 041. |

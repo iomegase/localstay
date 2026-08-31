@@ -6,12 +6,9 @@ import {
   MarketingShell,
   marketingContainerClass,
 } from '@/features/marketing/components/MarketingShell'
+import { lodgingListMetadata } from '@/features/seo/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Nos logements',
-  description: 'Découvrez les logements accompagnés par la conciergerie MyStay en Haute-Savoie.',
-  alternates: { canonical: '/logements' },
-}
+export const metadata: Metadata = lodgingListMetadata()
 
 export default async function LodgingsPage() {
   const lodgings = await listPublishedLodgings()

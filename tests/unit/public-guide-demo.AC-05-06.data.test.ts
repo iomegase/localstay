@@ -1,4 +1,8 @@
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
+import {
+  APPROVED_DEMO_LODGING_MEDIA,
+  isApprovedDemoLodgingMedia,
+} from '@/features/guide-demo/demo-media-policy'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
 
@@ -44,5 +48,54 @@ describe('public guide demo data', () => {
       reliability: 'reliable',
       trackingEnabled: false,
     })
+  })
+
+  it('presents Le 305 with the complete fictitious lodging guide data', () => {
+    expect(demoLodging).toMatchObject({
+      id: 'demo-le-305',
+      name: 'Le 305',
+      city: 'Saint-Gervais-les-Bains',
+      addressLabel: 'Résidence de démonstration, 74170 Saint-Gervais-les-Bains',
+      checkIn: '16:00',
+      checkOut: '10:00',
+      wifiName: 'MyStay-Demo',
+      wifiPassword: 'Demo-Uniquement',
+    })
+    expect(demoLodging.arrivalInstructions).toHaveLength(3)
+    expect(demoLodging.practicalCards).toHaveLength(3)
+    expect(demoLodging.houseRules.length).toBeGreaterThanOrEqual(3)
+    expect(demoLodging.departureInstructions).toHaveLength(9)
+  })
+
+  it('contains no real access secret or private lodging location', () => {
+    const serialized = JSON.stringify(demoLodging)
+
+    expect(serialized).not.toMatch(
+      /300 route du Mont-Blanc|1789|Bienvenue2026|Refuge-Mont-Blanc/i,
+    )
+    expect(serialized).not.toMatch(
+      /bo[iî]te (?:à|a) cl[ée]s|digicode|code d['’]acc[eè]s|garage/i,
+    )
+    expect(serialized).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+    )
+  })
+
+  it('uses only the closed allowlist of reviewed non-sensitive lodging media', () => {
+    const media = [
+      demoLodging.coverImage,
+      ...demoLodging.gallery,
+      ...demoLodging.arrivalInstructions.flatMap(item => [
+        ...(item.videoUrl ? [item.videoUrl] : []),
+        ...item.photos,
+      ]),
+      ...demoLodging.practicalCards.flatMap(item => [
+        ...(item.photoUrl ? [item.photoUrl] : []),
+        ...(item.videoUrl ? [item.videoUrl] : []),
+      ]),
+    ]
+
+    expect(APPROVED_DEMO_LODGING_MEDIA).toHaveLength(4)
+    expect(media.every(isApprovedDemoLodgingMedia)).toBe(true)
   })
 })

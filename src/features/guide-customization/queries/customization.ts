@@ -15,6 +15,10 @@ import {
   OWNER_NOTE_MAX_WORDS,
 } from '../lib/validation'
 import type {
+  NormalizedArrivalInstruction,
+  NormalizedPracticalBlock,
+} from '../lib/validation'
+import type {
   FeaturedPoiInput,
   FeaturedPoiResponse,
   GuideCustomizationErrorCode,
@@ -86,6 +90,101 @@ type PublicCustomization = {
 
 function raise(code: GuideCustomizationErrorCode, message: string): never {
   throw new GuideCustomizationError(code, message)
+}
+
+function validateChildItemIds(
+  requestedIds: string[],
+  existingIds: Set<string>,
+): void {
+  const uniqueIds = new Set(requestedIds)
+  if (uniqueIds.size !== requestedIds.length) {
+    raise('INVALID_CHILD_ITEM_ID', 'Un élément du guide est présent plusieurs fois')
+  }
+  for (const id of uniqueIds) {
+    if (!existingIds.has(id)) {
+      raise('INVALID_CHILD_ITEM_ID', "Un élément du guide n'appartient pas au logement")
+    }
+  }
+}
+
+async function syncPracticalBlocks(
+  tx: Prisma.TransactionClient,
+  lodgingId: string,
+  blocks: NormalizedPracticalBlock[],
+): Promise<void> {
+  const existing = await tx.lodgingPracticalBlock.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    select: { id: true },
+  })
+  const existingIds = new Set(existing.map(item => item.id))
+  const requestedIds = blocks.flatMap(block => (block.id ? [block.id] : []))
+  validateChildItemIds(requestedIds, existingIds)
+
+  for (const block of blocks) {
+    const { id, ...data } = block
+    if (id) {
+      await tx.lodgingPracticalBlock.update({ where: { id }, data })
+    } else {
+      await tx.lodgingPracticalBlock.create({
+        data: { lodging_id: lodgingId, ...data },
+      })
+    }
+  }
+
+  const removedIds = existing
+    .map(item => item.id)
+    .filter(id => !requestedIds.includes(id))
+  if (removedIds.length > 0) {
+    await tx.lodgingPracticalBlock.updateMany({
+      where: {
+        lodging_id: lodgingId,
+        deleted_at: null,
+        id: { in: removedIds },
+      },
+      data: { deleted_at: new Date() },
+    })
+  }
+}
+
+async function syncArrivalInstructions(
+  tx: Prisma.TransactionClient,
+  lodgingId: string,
+  instructions: NormalizedArrivalInstruction[],
+): Promise<void> {
+  const existing = await tx.lodgingArrivalInstruction.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    select: { id: true },
+  })
+  const existingIds = new Set(existing.map(item => item.id))
+  const requestedIds = instructions.flatMap(instruction =>
+    instruction.id ? [instruction.id] : [],
+  )
+  validateChildItemIds(requestedIds, existingIds)
+
+  for (const instruction of instructions) {
+    const { id, ...data } = instruction
+    if (id) {
+      await tx.lodgingArrivalInstruction.update({ where: { id }, data })
+    } else {
+      await tx.lodgingArrivalInstruction.create({
+        data: { lodging_id: lodgingId, ...data },
+      })
+    }
+  }
+
+  const removedIds = existing
+    .map(item => item.id)
+    .filter(id => !requestedIds.includes(id))
+  if (removedIds.length > 0) {
+    await tx.lodgingArrivalInstruction.updateMany({
+      where: {
+        lodging_id: lodgingId,
+        deleted_at: null,
+        id: { in: removedIds },
+      },
+      data: { deleted_at: new Date() },
+    })
+  }
 }
 
 async function resolveLodgingAddressCoordinates(
@@ -392,42 +491,8 @@ export async function saveLodgingCustomization(
       })
     }
 
-    await tx.lodgingPracticalBlock.updateMany({
-      where: { lodging_id: lodgingId, deleted_at: null },
-      data: { deleted_at: new Date() },
-    })
-
-    if (practicalBlocks.length > 0) {
-      await tx.lodgingPracticalBlock.createMany({
-        data: practicalBlocks.map(block => ({
-          lodging_id: lodgingId,
-          title: block.title,
-          body: block.body,
-          icon: block.icon,
-          photo_url: block.photo_url,
-          video_url: block.video_url,
-          sort_order: block.sort_order,
-        })),
-      })
-    }
-
-    await tx.lodgingArrivalInstruction.updateMany({
-      where: { lodging_id: lodgingId, deleted_at: null },
-      data: { deleted_at: new Date() },
-    })
-
-    if (arrivalInstructions.length > 0) {
-      await tx.lodgingArrivalInstruction.createMany({
-        data: arrivalInstructions.map(instruction => ({
-          lodging_id: lodgingId,
-          title: instruction.title,
-          text: instruction.text,
-          video_url: instruction.video_url,
-          photos: instruction.photos,
-          sort_order: instruction.sort_order,
-        })),
-      })
-    }
+    await syncPracticalBlocks(tx, lodgingId, practicalBlocks)
+    await syncArrivalInstructions(tx, lodgingId, arrivalInstructions)
   }, { timeout: SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS })
 
   const savedBlocks = await prisma.lodgingPracticalBlock.findMany({

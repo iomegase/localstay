@@ -9,6 +9,8 @@ describe('mobile browser immersive mode', () => {
     expect(layout).toContain('export const viewport')
     expect(layout).toContain("viewportFit: 'cover'")
     expect(layout).toContain("themeColor: '#FAF9F6'")
+    expect(layout).not.toMatch(/maximumScale\s*:/)
+    expect(layout).not.toMatch(/userScalable\s*:/)
     expect(layout).toContain('<MobileBrowserChromeCollapser />')
   })
 

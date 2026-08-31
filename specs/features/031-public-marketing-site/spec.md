@@ -241,6 +241,13 @@ routes privées, l'authentification et les API existantes restent inchangées.
   bouton « Commencer la randonnée », Then il possède les états natifs
   `disabled` et `aria-disabled`, ne contient aucun lien de démarrage et ne
   déclenche aucune navigation, géolocalisation ou route privée.
+- **AC-05-15**: Given le guide de démonstration, When il s'ouvre puis que le
+  visiteur active « Découvrir le livret d'accueil », Then l'accueil affiche
+  « Bienvenue au 305 » et le sommaire affiche les horaires 16:00 / 10:00 ainsi
+  que les quatre entrées `Accéder au logement`, `Informations pratiques`,
+  `Équipements` et `Préparer le départ`. Given l'ouverture de chaque entrée,
+  Then elle rend la vue MyStay partagée correspondante avec des données
+  fictives et sans navigation vers une route privée.
 
 ## Business Rules
 
@@ -369,6 +376,13 @@ routes privées, l'authentification et les API existantes restent inchangées.
   sans UUID Prisma ni fetch navigateur. Sa variante non interactive ne rend ni
   `Link` vers `/start`, ni gestionnaire de démarrage. La variante privée
   interactive historique de `TrailPreviewMap` reste inchangée par défaut.
+- **BR-37**: La démo logement utilise uniquement des textes fictifs et une
+  liste fermée d'assets locaux vérifiés comme non sensibles. Elle exclut toute
+  photo de serrure, digicode, boîte à clés, clé identifiable, accès garage,
+  entrée privée, plaque, adresse, document, code, mot de passe ou numéro privé
+  provenant d'un séjour réel. Le nom de présentation est `Le 305`, l'adresse
+  est un libellé de démonstration non navigable et les coordonnées restent le
+  point générique du centre-ville défini par BR-24.
 
 ## Data Model
 
@@ -477,6 +491,12 @@ context `lodging-showcase`.
 | AC-05-08 | integration |
 | AC-05-09 | unit + security regression |
 | AC-05-10 | integration + e2e |
+| AC-05-11 | integration + e2e |
+| AC-05-12 | integration |
+| AC-05-13 | integration + unit |
+| AC-05-14 | integration + unit |
+| AC-05-15 | unit + integration + e2e |
+| BR-37 | unit + security regression |
 | BR-35 | unit |
 | BR-36 | integration + unit |
 

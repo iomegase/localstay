@@ -48,17 +48,31 @@ describe('031-public-marketing-site QR landing', () => {
   })
 
   it.each([
-    '/guide/saint-gervais-les-bains/logements/chalet-hygge',
     '/guide/saint-gervais-les-bains/agenda/fete-du-village',
     '/guide/saint-gervais-les-bains/rando/mont-joux/start',
-  ])('keeps the reserved route %s unchanged while refreshing a valid stay cookie', async path => {
+  ])('redirects a private compatibility route %s through the stay home without a matching cookie', async path => {
     const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
     const response = await proxy(
       new NextRequest(`http://localhost:3000${path}?lodging=${lodgingId}`),
     )
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get('location')).toBeNull()
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      `http://localhost:3000/sejour?lodging=${lodgingId}`,
+    )
+    expect(response.cookies.get('lodging_id')?.value).toBe(lodgingId)
+  })
+
+  it('evaluates a valid QR before the historical lodging redirect', async () => {
+    const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+    const response = await proxy(new NextRequest(
+      `http://localhost:3000/guide/saint-gervais-les-bains/logements/chalet-hygge?lodging=${lodgingId}`,
+    ))
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      `http://localhost:3000/sejour?lodging=${lodgingId}`,
+    )
     expect(response.cookies.get('lodging_id')?.value).toBe(lodgingId)
   })
 
@@ -71,6 +85,21 @@ describe('031-public-marketing-site QR landing', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get('location')).toBeNull()
+    expect(response.cookies.get('lodging_id')).toBeUndefined()
+  })
+
+  it('applies the normal access gate to an invalid lodging identifier on a private compatibility route', async () => {
+    const response = await proxy(
+      new NextRequest(
+        'http://localhost:3000/guide/saint-gervais-les-bains/contact?lodging=not-a-uuid',
+      ),
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('location')).toBeNull()
+    expect(response.headers.get('x-middleware-rewrite')).toBe(
+      'http://localhost:3000/acces-reserve',
+    )
     expect(response.cookies.get('lodging_id')).toBeUndefined()
   })
 
@@ -90,6 +119,9 @@ describe('031-public-marketing-site QR landing', () => {
   it.each([
     '/guide/saint-gervais-les-bains/diner',
     '/guide/saint-gervais-les-bains/diner/le-serac',
+    '/guide/saint-gervais-les-bains/contact',
+    '/guide/saint-gervais-les-bains/agenda/fete-du-village',
+    '/guide/saint-gervais-les-bains/rando/mont-joux/start',
   ])('keeps matching-cookie private navigation on %s and refreshes the bearer cookie', async path => {
     const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
     const response = await proxy(new NextRequest(
@@ -110,9 +142,10 @@ describe('031-public-marketing-site QR landing', () => {
 
   it('hands a different-cookie deep request through the canonical stay landing', async () => {
     const lodgingId = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
+    const differentLodgingId = 'a4f87d13-317b-4ce5-8c9f-1bc33581b194'
     const response = await proxy(new NextRequest(
       `http://localhost:3000/guide/saint-gervais-les-bains/diner/le-serac?lodging=${lodgingId}`,
-      { headers: { cookie: 'lodging_id=11111111-1111-1111-1111-111111111111' } },
+      { headers: { cookie: `lodging_id=${differentLodgingId}` } },
     ))
 
     expect(response.status).toBe(307)

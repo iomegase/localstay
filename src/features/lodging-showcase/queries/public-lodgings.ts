@@ -1,5 +1,7 @@
+import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import { selectPrimaryPoiPhoto } from '@/features/categories/lib/photo-url'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import type { PublicOwnerRecommendationDto } from '@/features/lodging-showcase/types'
 
 type PublicLodgingCardApi = {
@@ -147,7 +149,7 @@ function toCardApi(row: {
     bedroom_count: row.bedroom_count,
     public_area_label: row.public_area_label,
     amenities: row.amenities.map(amenity => amenity.label),
-    href: `/guide/${row.city.slug}/logements/${row.slug}`,
+    href: publicLodgingPath(row.slug),
   }
 }
 
@@ -234,18 +236,25 @@ export async function listPublishedLodgingsForCity(
   }
 }
 
-export async function getPublishedLodgingDetail(
-  citySlug: string,
-  lodgingSlug: string,
-): Promise<PublicLodgingDetailQueryResult | null> {
-  const city = await getActiveCityBySlug(citySlug)
-  if (!city) return null
+type PublishedLodgingDetailIdentity = {
+  slug: string
+  city?: { slug: string }
+}
 
-  const where = buildPublishedWhere(city.id, citySlug)
+async function getPublishedLodgingDetailWhere(
+  identity: PublishedLodgingDetailIdentity,
+): Promise<PublicLodgingDetailQueryResult | null> {
   const row = await prisma.lodgingPublicProfile.findFirst({
     where: {
-      ...where,
-      slug: lodgingSlug,
+      ...identity,
+      publication_status: 'published',
+      deleted_at: null,
+      city: {
+        ...identity.city,
+        is_active: true,
+        deleted_at: null,
+      },
+      lodging: { is_active: true, deleted_at: null },
     },
     select: {
       id: true,
@@ -337,4 +346,20 @@ export async function getPublishedLodgingDetail(
     amenities_on_request: row.amenities.filter(a => a.availability === 'on_request').map(a => a.label),
     faq: row.faq_items.map(item => ({ id: item.id, question: item.question, answer: item.answer })),
   }
+}
+
+export const getPublishedLodgingDetailBySlug: (
+  lodgingSlug: string,
+) => Promise<PublicLodgingDetailQueryResult | null> = cache(async lodgingSlug =>
+  getPublishedLodgingDetailWhere({ slug: lodgingSlug }),
+)
+
+export async function getPublishedLodgingDetail(
+  citySlug: string,
+  lodgingSlug: string,
+): Promise<PublicLodgingDetailQueryResult | null> {
+  return getPublishedLodgingDetailWhere({
+    slug: lodgingSlug,
+    city: { slug: citySlug },
+  })
 }

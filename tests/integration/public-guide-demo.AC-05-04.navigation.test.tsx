@@ -18,7 +18,7 @@ describe('GuideApp demo navigation', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: /bienvenue au refuge du mont-blanc/i }),
+      screen.getByRole('heading', { name: /bienvenue au 305/i }),
     ).toBeInTheDocument()
 
     fireEvent.click(
@@ -30,7 +30,7 @@ describe('GuideApp demo navigation', () => {
     fireEvent.click(
       screen.getByRole('button', { name: /informations pratiques/i }),
     )
-    expect(screen.getByText('Refuge-Mont-Blanc')).toBeInTheDocument()
+    expect(screen.getByText('MyStay-Demo')).toBeInTheDocument()
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Coups de cœur' }),
@@ -42,6 +42,52 @@ describe('GuideApp demo navigation', () => {
       screen.getByRole('button', { name: /ouvrir rond de carotte/i }),
     ).toBeInTheDocument()
     expect(window.location.pathname).toBe('/')
+  })
+
+  it('opens the four shared lodging sections from the MyStay guide summary', () => {
+    const views = [
+      {
+        button: /accéder au logement/i,
+        heading: 'Bienvenue',
+        visibleText: 'Résidence de démonstration',
+      },
+      {
+        button: /informations pratiques/i,
+        heading: 'Informations pratiques',
+        visibleText: 'MyStay-Demo',
+      },
+      {
+        button: /^équipements/i,
+        heading: 'Les Équipements',
+        visibleText: 'Télévision',
+      },
+      {
+        button: /préparer le départ/i,
+        heading: 'Checklist du départ',
+        visibleText: '0 / 9',
+      },
+    ] as const
+
+    for (const view of views) {
+      const rendered = render(
+        <GuideApp mode="demo" lodging={demoLodging} pois={demoPois} />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
+      expect(
+        screen.getByRole('button', { name: /accéder au logement/i }),
+      ).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: view.button }))
+      expect(
+        screen.getByRole('heading', { name: view.heading }),
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(view.visibleText, { exact: false }),
+      ).toBeInTheDocument()
+
+      rendered.unmount()
+    }
   })
 
   it('opens a complete POI sheet and keeps trail tracking disabled', () => {

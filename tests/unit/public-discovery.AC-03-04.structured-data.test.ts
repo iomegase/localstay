@@ -153,10 +153,89 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
   })
 
   it.each([
-    [{ category: { name: 'Culture', slug: 'culture' }, subcategory: { name: 'Musées', slug: 'musees' } }, 'TouristAttraction'],
-    [{ category: { name: 'Randonnées', slug: 'rando' }, subcategory: { name: 'Randonnée', slug: 'hiking' } }, 'TouristAttraction'],
+    ['restaurant', 'Restaurant'],
+    ['boulangerie', 'Bakery'],
+    ['bar', 'BarOrPub'],
+    ['HÔTEL', 'Hotel'],
+    ['magasin', 'Store'],
+    ['spa', 'DaySpa'],
+    ['musée', 'Museum'],
+    ['ACTIVITÉ-TOURISTIQUE', 'TouristAttraction'],
+    ['inconnu', 'LocalBusiness'],
+  ] as const)('maps the canonical subcategory slug %s to %s', (subcategorySlug, expectedType) => {
+    const schema = discoveryPoiSchema({
+      ...discoveryPoi,
+      category: { name: 'Sélection', slug: 'selection' },
+      subcategory: { name: subcategorySlug, slug: subcategorySlug },
+    })
+
+    expect(schema['@type']).toBe(expectedType)
+  })
+
+  it.each(['ACTIVITÉ_TOURISTIQUE', 'activité touristique', 'musees', 'restaurants'])(
+    'rejects the non-canonical taxonomy alias %s',
+    subcategorySlug => {
+      const schema = discoveryPoiSchema({
+        ...discoveryPoi,
+        category: { name: 'Sélection', slug: 'selection' },
+        subcategory: { name: subcategorySlug, slug: subcategorySlug },
+      })
+
+      expect(schema['@type']).toBe('LocalBusiness')
+    },
+  )
+
+  it.each([
+    {
+      category: { name: 'Activité touristique', slug: 'activite-touristique' },
+      subcategory: { name: 'Restaurant', slug: 'restaurant' },
+    },
+    {
+      category: { name: 'Restaurant', slug: 'restaurant' },
+      subcategory: { name: 'Activité touristique', slug: 'activite-touristique' },
+    },
+  ])('lets a specific type win over a broad tourist taxonomy: %j', taxonomy => {
+    const schema = discoveryPoiSchema({ ...discoveryPoi, ...taxonomy })
+
+    expect(schema['@type']).toBe('Restaurant')
+  })
+
+  it('uses the category only when the subcategory mapping is unknown', () => {
+    const schema = discoveryPoiSchema({
+      ...discoveryPoi,
+      category: { name: 'Boulangerie', slug: 'boulangerie' },
+      subcategory: { name: 'Artisan', slug: 'artisan' },
+    })
+
+    expect(schema['@type']).toBe('Bakery')
+  })
+
+  it('falls back to LocalBusiness for two conflicting specific taxonomy types', () => {
+    const schema = discoveryPoiSchema({
+      ...discoveryPoi,
+      category: { name: 'Restaurant', slug: 'restaurant' },
+      subcategory: { name: 'Spa', slug: 'spa' },
+    })
+
+    expect(schema['@type']).toBe('LocalBusiness')
+  })
+
+  it('never derives a specialized type from the description', () => {
+    const schema = discoveryPoiSchema({
+      ...discoveryPoi,
+      description: 'Restaurant, hôtel, spa et musée avec activités touristiques.',
+      category: { name: 'Services', slug: 'services' },
+      subcategory: { name: 'Autre', slug: 'autre' },
+    })
+
+    expect(schema['@type']).toBe('LocalBusiness')
+  })
+
+  it.each([
+    [{ category: { name: 'Culture', slug: 'culture' }, subcategory: { name: 'Musée', slug: 'musee' } }, 'Museum'],
+    [{ category: { name: 'Activité touristique', slug: 'activite-touristique' }, subcategory: null }, 'TouristAttraction'],
     [{ category: { name: 'Restaurants', slug: 'restaurants' }, subcategory: { name: 'Bistrot', slug: 'bistrot' } }, 'LocalBusiness'],
-  ] as const)('chooses the schema type from visible category facts: %j', (taxonomy, expectedType) => {
+  ] as const)('chooses the schema type only from canonical taxonomy slugs: %j', (taxonomy, expectedType) => {
     const schema = discoveryPoiSchema({ ...discoveryPoi, ...taxonomy })
 
     expect(schema['@type']).toBe(expectedType)
@@ -167,7 +246,7 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
     const serialized = JSON.stringify(schema)
 
     expect(schema).toMatchObject({
-      '@type': 'TouristAttraction',
+      '@type': 'LocalBusiness',
       name: discoveryPoi.name,
       description: discoveryPoi.description,
       image: [discoveryPoi.hero_photo_url],

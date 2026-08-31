@@ -9,21 +9,25 @@ import { test, expect } from '@playwright/test'
  */
 
 const GUIDE_URL = '/guide/saint-gervais-les-bains'
+const LODGING_ID = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
 
-test.describe('QR Code redirect (AC-01-01, AC-01-02)', () => {
-  test('AC-01-01: public guide URL loads and shows city name', async ({ page }) => {
-    await page.goto(GUIDE_URL)
-    await page.waitForLoadState('networkidle')
-    await expect(page.getByRole('heading', { name: /saint-gervais/i })).toBeVisible()
-    expect(page.url()).toContain('/guide/saint-gervais-les-bains')
+test.describe('042 QR compatibility', () => {
+  test('historical City QR without Lodging permanently redirects to discovery', async ({ request }) => {
+    const response = await request.get(GUIDE_URL, { maxRedirects: 0 })
+    expect(response.status()).toBe(308)
+    expect(new URL(response.headers().location, 'http://staylocal.test').pathname).toBe(
+      '/decouvrir/saint-gervais-les-bains',
+    )
   })
 
-  test('AC-01-02: guide page requires no login (no auth form in DOM)', async ({ page }) => {
-    await page.goto(GUIDE_URL)
-    await page.waitForLoadState('networkidle')
-    expect(await page.locator('input[type="password"]').count()).toBe(0)
-    expect(await page.locator('form[action*="login"]').count()).toBe(0)
-    expect(page.url()).not.toContain('/login')
-    expect(page.url()).not.toContain('/auth')
+  test('QR with a valid Lodging activates the stay before the public redirect', async ({ request }) => {
+    const response = await request.get(`${GUIDE_URL}?lodging=${LODGING_ID}`, {
+      maxRedirects: 0,
+    })
+    expect(response.status()).toBe(307)
+    const location = new URL(response.headers().location, 'http://staylocal.test')
+    expect(location.pathname).toBe('/sejour')
+    expect(location.searchParams.get('lodging')).toBe(LODGING_ID)
+    expect(response.headers()['set-cookie']).toContain(`lodging_id=${LODGING_ID}`)
   })
 })

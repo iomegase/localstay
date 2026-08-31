@@ -7,23 +7,14 @@ import { test, expect } from '@playwright/test'
  * Run: npm run test:e2e
  */
 
-test.describe('Categories — navigation (AC-02-01)', () => {
-  test('AC-02-01: clicking a category link navigates to the category page', async ({ page }) => {
-    await page.goto('/guide/saint-gervais-les-bains')
-    await page.waitForLoadState('networkidle')
-
-    // Pick the first category link on the guide page
-    const categoryLink = page.locator('a[href*="/guide/saint-gervais-les-bains/"]').first()
-    const href = await categoryLink.getAttribute('href')
-    expect(href).toMatch(/\/guide\/saint-gervais-les-bains\/\w/)
-
-    await Promise.all([
-      page.waitForURL(`**${href}`),
-      categoryLink.click(),
-    ])
-
-    expect(page.url()).toContain(href)
-    // The category page title should be visible
-    await expect(page.locator('h1')).toBeVisible()
+test.describe('042 legacy category compatibility', () => {
+  test('published legacy category permanently redirects to /decouvrir', async ({ request }) => {
+    const response = await request.get('/guide/saint-gervais-les-bains/rando', {
+      maxRedirects: 0,
+    })
+    expect(response.status()).toBe(308)
+    expect(new URL(response.headers().location, 'http://staylocal.test').pathname).toBe(
+      '/decouvrir/saint-gervais-les-bains/rando',
+    )
   })
 })

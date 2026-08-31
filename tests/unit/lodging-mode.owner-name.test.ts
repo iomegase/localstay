@@ -36,5 +36,12 @@ describe('getActiveLodgingContext owner display name', () => {
     await expect(getActiveLodgingContext()).resolves.toMatchObject({
       ownerName: 'Marlene',
     })
+    expect(mockFindFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: lodgingId,
+        deleted_at: null,
+        is_active: true,
+      },
+    }))
   })
 })

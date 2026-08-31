@@ -66,6 +66,32 @@ describe('028 lodging showcase owner form', () => {
     expect(screen.getByText(/Le brouillon MyStay a ete applique localement/i)).toBeInTheDocument()
   })
 
+  it.each([
+    ['owner', undefined],
+    ['admin', 'admin' as const],
+  ])('shows the canonical short public preview in %s mode', (_label, mode) => {
+    render(
+      <LodgingShowcaseForm
+        lodgingId="lodging-1"
+        initialProfile={baseProfile}
+        mode={mode}
+      />,
+    )
+
+    expect(screen.getByText('/logements/chalet-hygge')).toBeInTheDocument()
+  })
+
+  it('keeps a new profile preview under the short public namespace before slug allocation', () => {
+    render(
+      <LodgingShowcaseForm
+        lodgingId="lodging-1"
+        initialProfile={{ ...baseProfile, slug: null }}
+      />,
+    )
+
+    expect(screen.getByText('/logements/...')).toBeInTheDocument()
+  })
+
   it('shows field-level validation guidance when draft save is rejected', async () => {
     global.fetch = jest.fn().mockResolvedValue(
       {

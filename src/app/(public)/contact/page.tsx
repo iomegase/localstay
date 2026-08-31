@@ -1,63 +1,13 @@
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
-import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
+import type { Metadata } from 'next'
 import { ContactMessageForm } from '@/features/contact-messages/components/ContactMessageForm'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+import { requireActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
+
+export const metadata: Metadata = privatePageMetadata('Contact')
 
 export default async function ContactPage() {
-  const lodgingContext = await getActiveLodgingContext()
-
-  if (lodgingContext) {
-    return <LodgingContact lodgingContext={lodgingContext} />
-  }
-
-  return <PublicContact />
-}
-
-function PublicContact() {
-  return (
-    <div className="px-6 pt-8 pb-24 max-w-md mx-auto">
-      {/* En-tête */}
-      <div className="mb-10">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-          Contact
-        </p>
-        <h1 className="uppercase text-[34px] font-light leading-tight text-[#111827]">
-          Une question ?
-        </h1>
-        <p className="mt-3 text-[12px] leading-relaxed text-gray-500">
-          MyStay accompagne les hôtes et leurs voyageurs en Haute-Savoie pour des séjours inoubliables.
-        </p>
-      </div>
-
-
-      <div className="mb-12">
-        <ContactMessageForm
-          lodgingId={null}
-          lodgingName={null}
-          allowOwnerDestination={false}
-        />
-      </div>
-
-      {/* Encart Call-to-Action Hôte (Style Premium) */}
-      <div className="rounded-md bg-[#5A6B5D]/5 p-8 text-center relative overflow-hidden">
-        <div className="relative z-10">
-          <p className="uppercase text-[22px] font-thin tracking-wider text-[#111827] mb-2">
-            Vous êtes hôte ?
-          </p>
-          <p className="text-[13px] text-gray-600 mb-6 leading-relaxed px-2">
-            Créez un guide local digital, élégant et personnalisé pour vos voyageurs.
-          </p>
-          <Link
-            href="/auth/login"
-            className="inline-flex uppercase tracking-wider items-center justify-center gap-2 rounded-md bg-[#111827] px-6 py-3.5 text-[12px] font-medium text-white transition-transform hover:scale-105 active:scale-95"
-          >
-            Espace hôte
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
+  const lodgingContext = await requireActiveLodgingContext()
+  return <LodgingContact lodgingContext={lodgingContext} />
 }
 
 function LodgingContact({

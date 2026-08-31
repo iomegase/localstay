@@ -1,4 +1,5 @@
 const LODGING_DETAIL_ROUTE = /^\/guide\/([^/]+)\/logements\/([^/]+)$/
+const GLOBAL_LODGING_DETAIL_ROUTE = /^\/logements\/[^/]+$/
 const CITY_LODGINGS_ROUTE = /^\/guide\/([^/]+)\/logements$/
 const CITY_CONTACT_ROUTE = /^\/guide\/([^/]+)\/contact$/
 const CITY_GUIDE_ROUTE = /^\/guide\/([^/]+)$/
@@ -15,6 +16,13 @@ export function resolveAnalyticsCityContext(pathname: string): {
   pageType: AnalyticsPageType
 } {
   const normalizedPath = pathname.split('?')[0].replace(/\/+$/, '') || '/'
+
+  if (GLOBAL_LODGING_DETAIL_ROUTE.test(normalizedPath)) {
+    return {
+      citySlug: null,
+      pageType: 'lodging_detail',
+    }
+  }
 
   let match = normalizedPath.match(LODGING_DETAIL_ROUTE)
   if (match) {

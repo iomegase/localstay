@@ -4,6 +4,10 @@ import type {
   DiscoveryCity,
   DiscoveryPoiDetail,
 } from '@/features/public-discovery/types'
+import {
+  publicLodgingPath,
+  publicLodgingsPath,
+} from '@/features/lodging-showcase/lib/public-paths'
 import { SITE } from './site'
 
 const MAX_DESCRIPTION = 160
@@ -30,6 +34,22 @@ function openGraph(input: {
     locale: SITE.locale,
     type: input.type ?? 'website',
     ...(input.images ? { images: input.images } : {}),
+  }
+}
+
+export function homeMetadata(): Metadata {
+  const title = 'Conciergerie en Haute-Savoie | MyStay'
+  const description =
+    'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.'
+  const path = '/'
+  const images = ['/og-mystay.png']
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: path },
+    openGraph: openGraph({ title, description, path, images }),
+    twitter: { card: 'summary_large_image', title, description, images },
   }
 }
 
@@ -168,12 +188,12 @@ export function discoveryPoiMetadata(poi: DiscoveryPoiDetail): Metadata {
   }
 }
 
-export function lodgingListMetadata(input: { cityName: string; citySlug: string }): Metadata {
-  const title = `Logements à ${input.cityName} — MyStay`
+export function lodgingListMetadata(): Metadata {
+  const title = 'Nos logements'
   const description = truncate(
-    `Découvrez les logements à ${input.cityName} avec photos, équipements, recommandations locales et lien de réservation.`,
+    'Découvrez les logements accompagnés par la conciergerie MyStay en Haute-Savoie.',
   )
-  const path = `/guide/${input.citySlug}/logements`
+  const path = publicLodgingsPath()
   return {
     title,
     description,
@@ -186,13 +206,12 @@ export function lodgingListMetadata(input: { cityName: string; citySlug: string 
 export function lodgingDetailMetadata(input: {
   title: string
   shortDescription: string
-  citySlug: string
   lodgingSlug: string
   coverPhoto: string | null
 }): Metadata {
   const title = `${input.title} — Logement MyStay`
   const description = truncate(input.shortDescription)
-  const path = `/guide/${input.citySlug}/logements/${input.lodgingSlug}`
+  const path = publicLodgingPath(input.lodgingSlug)
   const images = input.coverPhoto ? [input.coverPhoto] : undefined
 
   return {

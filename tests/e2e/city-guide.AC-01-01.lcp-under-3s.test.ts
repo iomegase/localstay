@@ -8,8 +8,8 @@ import { test, expect } from '@playwright/test'
  * Run: npm run test:e2e
  */
 
-test.describe('City guide — QR code access (AC-01-01, AC-01-02)', () => {
-  test('AC-01-01: LCP < 3000ms on /guide/saint-gervais-les-bains at Fast 4G', async ({
+test.describe('042 historical City URL compatibility', () => {
+  test('published historical City reaches /decouvrir within the LCP budget', async ({
     page,
     context,
   }) => {
@@ -17,6 +17,7 @@ test.describe('City guide — QR code access (AC-01-01, AC-01-02)', () => {
     // navigation reflects only network + render time, not one-time compilation cost.
     await page.goto('/guide/saint-gervais-les-bains')
     await page.waitForLoadState('networkidle')
+    expect(new URL(page.url()).pathname).toBe('/decouvrir/saint-gervais-les-bains')
 
     // Throttle to Fast 4G: 4 Mbps down, 3 Mbps up, 20ms RTT
     const cdp = await context.newCDPSession(page)
@@ -47,11 +48,9 @@ test.describe('City guide — QR code access (AC-01-01, AC-01-02)', () => {
     expect(lcp).toBeLessThan(3000)
   })
 
-  test('AC-01-02: invalid slug shows 404 page with back-to-home link', async ({ page }) => {
+  test('an ineligible historical City falls back to the public discovery hub', async ({ page }) => {
     await page.goto('/guide/this-city-does-not-exist-xyz')
-
-    await expect(page.getByText(/ville introuvable/i)).toBeVisible()
-    await expect(page.getByRole('link', { name: /retour/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /retour/i })).toHaveAttribute('href', '/')
+    expect(new URL(page.url()).pathname).toBe('/decouvrir')
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Découvrir')
   })
 })

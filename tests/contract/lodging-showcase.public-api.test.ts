@@ -20,6 +20,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 
 import { GET } from '@/app/api/cities/[slug]/lodgings/route'
 import { GET as DETAIL_GET } from '@/app/api/cities/[slug]/lodgings/[lodgingSlug]/route'
+import { getPublishedLodgingDetailBySlug } from '@/features/lodging-showcase/queries/public-lodgings'
 
 const publishedProfile = {
   id: 'profile-1',
@@ -176,7 +177,13 @@ describe('GET /api/cities/[slug]/lodgings/[lodgingSlug]', () => {
       }),
     ])
     expect(mockFindFirstProfile).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ city_id: 'city-1', slug: 'chalet-hygge', publication_status: 'published', deleted_at: null }),
+      where: expect.objectContaining({
+        slug: 'chalet-hygge',
+        publication_status: 'published',
+        deleted_at: null,
+        city: { slug: 'annecy', is_active: true, deleted_at: null },
+        lodging: { is_active: true, deleted_at: null },
+      }),
     }))
     const detailCall = mockFindFirstProfile.mock.calls[0][0]
     expect(
@@ -202,5 +209,29 @@ describe('GET /api/cities/[slug]/lodgings/[lodgingSlug]', () => {
     expect(res.status).toBe(404)
     const json = await res.json()
     expect(json.error.code).toBe('NOT_FOUND')
+  })
+})
+
+describe('getPublishedLodgingDetailBySlug', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('loads a globally unique slug with every public eligibility filter', async () => {
+    mockFindFirstProfile.mockResolvedValue(publishedProfile)
+
+    const result = await getPublishedLodgingDetailBySlug('chalet-hygge')
+
+    expect(result?.slug).toBe('chalet-hygge')
+    expect(mockFindCity).not.toHaveBeenCalled()
+    expect(mockFindFirstProfile).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        slug: 'chalet-hygge',
+        publication_status: 'published',
+        deleted_at: null,
+        city: { is_active: true, deleted_at: null },
+        lodging: { is_active: true, deleted_at: null },
+      },
+    }))
   })
 })

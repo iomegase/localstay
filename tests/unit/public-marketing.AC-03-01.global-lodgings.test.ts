@@ -50,7 +50,7 @@ describe('031-public-marketing-site global lodging list', () => {
         city_name: 'Saint-Gervais-les-Bains',
         bathroom_count: 2,
         surface_m2: 170,
-        href: '/guide/saint-gervais-les-bains/logements/chalet-hygge',
+        href: '/logements/chalet-hygge',
       }),
     ])
   })

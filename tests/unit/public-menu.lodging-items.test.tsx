@@ -26,7 +26,7 @@ describe('PublicMenu — mode séjour', () => {
     await openLodgingMenu()
 
     expect(screen.getByRole('link', { name: /vos favoris/i })).toHaveAttribute('href', '/guide/saint-gervais/mes-favoris')
-    expect(screen.getByRole('link', { name: /tous nos logements/i })).toHaveAttribute('href', '/guide/saint-gervais/logements')
+    expect(screen.getByRole('link', { name: /tous nos logements/i })).toHaveAttribute('href', '/logements')
     expect(screen.getByRole('link', { name: /agenda/i })).toHaveAttribute('href', '/guide/saint-gervais/agenda')
     expect(screen.getByRole('link', { name: /blog/i })).toHaveAttribute('href', '/blog')
     expect(screen.getByRole('link', { name: /contacter/i })).toBeInTheDocument()
@@ -42,6 +42,18 @@ describe('PublicMenu — mode séjour', () => {
     expect(screen.getByRole('link', { name: /chalet rémy/i })).toHaveAttribute(
       'href',
       '/nos-recommandations',
+    )
+  })
+})
+
+describe('PublicMenu — mode anonyme', () => {
+  it('links the City lodging item to the global public listing', async () => {
+    render(<PublicMenu mode="anonymous" citySlug="saint-gervais" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+
+    expect(screen.getByRole('link', { name: /tous nos logements/i })).toHaveAttribute(
+      'href',
+      '/logements',
     )
   })
 })

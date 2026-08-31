@@ -16,7 +16,9 @@ describe('041 AC-06-05 application sitemap route', () => {
     mockGetSitemapData.mockResolvedValue({
       cities: [],
       pois: [],
-      lodgings: [],
+      lodgings: [
+        { slug: 'chalet-hygge', updated_at: new Date('2026-08-28T12:00:00Z') },
+      ],
       blogArticles: [],
     })
   })
@@ -28,5 +30,9 @@ describe('041 AC-06-05 application sitemap route', () => {
     expect(mockGetSitemapData).toHaveBeenCalledTimes(1)
     expect(urls.filter(url => url === 'https://mystay.test/decouvrir')).toHaveLength(1)
     expect(urls.filter(url => url === 'https://mystay.test/')).toHaveLength(1)
+    expect(urls.filter(url => url === 'https://mystay.test/logements')).toHaveLength(1)
+    expect(urls.filter(url => url === 'https://mystay.test/logements/chalet-hygge')).toHaveLength(1)
+    expect(urls).not.toContain('https://mystay.test/contact')
+    expect(urls.some(url => url.includes('/guide'))).toBe(false)
   })
 })

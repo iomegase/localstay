@@ -107,6 +107,28 @@ describe('practical block cards live in Équipements, not in Informations pratiq
     renderView('practical', { practicalCards: blocks })
     expect(screen.queryByText('Écran de cinéma')).not.toBeInTheDocument()
   })
+
+  it('routes recycling cards to Informations pratiques instead of Équipements', () => {
+    const recyclingCard = {
+      id: 'waste',
+      title: 'Tri des déchets',
+      description: 'Verre, emballages et ordures ménagères.',
+      icon: 'recycle',
+    }
+
+    const { unmount } = render(
+      <GuideLodgingViews
+        view="rules"
+        lodging={{ ...demoLodging, practicalCards: [recyclingCard] }}
+        onNavigate={jest.fn()}
+      />,
+    )
+    expect(screen.queryByText('Tri des déchets')).not.toBeInTheDocument()
+
+    unmount()
+    renderView('practical', { practicalCards: [recyclingCard], trashBins: [] })
+    expect(screen.getByText('Tri des déchets')).toBeInTheDocument()
+  })
 })
 
 describe('Équipements view (rules)', () => {

@@ -19,47 +19,62 @@ describe('BR-23 — Markdown des blocs pratiques privés', () => {
       'Triez les **emballages**.',
     ]
 
-    render(
+    const lodging = {
+      ...demoLodging,
+      houseRules: [],
+      trashBins: [],
+      practicalCards: [
+        {
+          id: 'standard',
+          title: 'Salle de bain',
+          description: descriptions[0],
+          icon: 'bath',
+        },
+        {
+          id: 'media',
+          title: 'Télévision',
+          description: descriptions[1],
+          icon: 'tv',
+          photoUrl: '/tv.jpg',
+        },
+        {
+          id: 'phone',
+          title: 'Assistance',
+          description: descriptions[2],
+          icon: 'phone',
+          phone: '0450000000',
+        },
+        {
+          id: 'recycle',
+          title: 'Recyclage',
+          description: descriptions[3],
+          icon: 'recycle',
+        },
+      ],
+    }
+
+    const { unmount } = render(
       <GuideLodgingViews
         view="rules"
-        lodging={{
-          ...demoLodging,
-          houseRules: [],
-          practicalCards: [
-            {
-              id: 'standard',
-              title: 'Salle de bain',
-              description: descriptions[0],
-              icon: 'bath',
-            },
-            {
-              id: 'media',
-              title: 'Télévision',
-              description: descriptions[1],
-              icon: 'tv',
-              photoUrl: '/tv.jpg',
-            },
-            {
-              id: 'phone',
-              title: 'Assistance',
-              description: descriptions[2],
-              icon: 'phone',
-              phone: '0450000000',
-            },
-            {
-              id: 'recycle',
-              title: 'Recyclage',
-              description: descriptions[3],
-              icon: 'recycle',
-            },
-          ],
-        }}
+        lodging={lodging}
         onNavigate={jest.fn()}
       />,
     )
 
     expect(
       screen.getAllByTestId('guide-dark-markdown').map(node => node.textContent),
-    ).toEqual(descriptions)
+    ).toEqual(descriptions.slice(0, 3))
+
+    unmount()
+    render(
+      <GuideLodgingViews
+        view="practical"
+        lodging={lodging}
+        onNavigate={jest.fn()}
+      />,
+    )
+    expect(
+      screen.getAllByTestId('guide-dark-markdown').map(node => node.textContent),
+    ).toEqual([descriptions[3]])
   })
 })

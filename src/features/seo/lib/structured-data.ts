@@ -1,31 +1,32 @@
-import { SITE, siteBaseUrl } from './site'
+import { organizationId, SITE, siteBaseUrl } from './site'
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
+import { selectVisibleLodgingPhotos } from '@/features/lodging-showcase/lib/detail-view'
 import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const SCHEMA = 'https://schema.org'
 const DISCOVERY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-const TOURIST_CATEGORY_SLUGS = new Set([
-  'activite',
-  'activites',
-  'culture',
-  'explorer',
-  'nature',
-  'patrimoine',
-  'rando',
-  'randonnee',
-  'randos',
-])
-const TOURIST_SUBCATEGORY_SLUGS = new Set([
-  'attraction',
-  'hiking',
-  'monument',
-  'monuments',
-  'musee',
-  'musees',
-  'rando',
-  'randonnee',
-])
+type MappedPoiSchemaType =
+  | 'Restaurant'
+  | 'Bakery'
+  | 'BarOrPub'
+  | 'Hotel'
+  | 'Store'
+  | 'DaySpa'
+  | 'Museum'
+  | 'TouristAttraction'
+
+const POI_SCHEMA_TYPE_SLUGS: ReadonlyArray<readonly [MappedPoiSchemaType, ReadonlySet<string>]> = [
+  ['Restaurant', new Set(['restaurant'])],
+  ['Bakery', new Set(['boulangerie'])],
+  ['BarOrPub', new Set(['bar'])],
+  ['Hotel', new Set(['hotel'])],
+  ['Store', new Set(['magasin'])],
+  ['DaySpa', new Set(['spa'])],
+  ['Museum', new Set(['musee'])],
+  ['TouristAttraction', new Set(['activite-touristique'])],
+]
 
 // Index = jour (0 = dimanche … 6 = samedi), aligné sur le format hours stocké.
 const DAY_URIS = [
@@ -64,8 +65,14 @@ export function organizationSchema(): JsonLdObject {
   return {
     '@context': SCHEMA,
     '@type': 'Organization',
+    '@id': organizationId(),
     name: SITE.name,
     url: base,
+    logo: `${base}/mystay-logo-approved/mystay-logo-approved.png`,
+    description:
+      'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.',
+    email: 'bonjour@mystay.city',
+    areaServed: 'Haute-Savoie, France',
   }
 }
 
@@ -77,6 +84,7 @@ export function websiteSchema(): JsonLdObject {
     name: SITE.name,
     url: base,
     inLanguage: 'fr-FR',
+    publisher: { '@id': organizationId() },
   }
 }
 
@@ -191,9 +199,27 @@ export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
   }
 }
 
-function isTouristDiscoveryPoi(poi: DiscoveryPoiDetail): boolean {
-  return TOURIST_CATEGORY_SLUGS.has(poi.category.slug)
-    || (poi.subcategory !== null && TOURIST_SUBCATEGORY_SLUGS.has(poi.subcategory.slug))
+function normalizeTaxonomySlug(slug: string): string {
+  return slug
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function mappedPoiType(slug: string): MappedPoiSchemaType | null {
+  const normalizedSlug = normalizeTaxonomySlug(slug)
+  return POI_SCHEMA_TYPE_SLUGS.find(([, slugs]) => slugs.has(normalizedSlug))?.[0] ?? null
+}
+
+function discoveryPoiType(poi: DiscoveryPoiDetail): string {
+  const subcategoryType = poi.subcategory === null ? null : mappedPoiType(poi.subcategory.slug)
+  const categoryType = mappedPoiType(poi.category.slug)
+
+  if (subcategoryType === null) return categoryType ?? 'LocalBusiness'
+  if (categoryType === null || categoryType === subcategoryType) return subcategoryType
+  if (subcategoryType === 'TouristAttraction') return categoryType
+  if (categoryType === 'TouristAttraction') return subcategoryType
+  return 'LocalBusiness'
 }
 
 /**
@@ -206,7 +232,7 @@ export function discoveryPoiSchema(poi: DiscoveryPoiDetail): JsonLdObject {
 
   return {
     '@context': SCHEMA,
-    '@type': isTouristDiscoveryPoi(poi) ? 'TouristAttraction' : 'LocalBusiness',
+    '@type': discoveryPoiType(poi),
     name: poi.name,
     description: poi.description,
     url: poiUrl(path),
@@ -239,7 +265,6 @@ export type LodgingSchemaInput = {
   description: string
   cityName: string
   cityRegion: string | null
-  citySlug: string
   slug: string
   propertyType: string
   maxGuests: number
@@ -252,7 +277,15 @@ export type LodgingSchemaInput = {
 }
 
 export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
-  const path = `/guide/${input.citySlug}/logements/${input.slug}`
+  const visiblePhotos = selectVisibleLodgingPhotos(input.photos)
+  return lodgingPlaceSchemaWithVisiblePhotos(input, visiblePhotos)
+}
+
+function lodgingPlaceSchemaWithVisiblePhotos(
+  input: LodgingSchemaInput,
+  visiblePhotos: LodgingSchemaInput['photos'],
+): JsonLdObject {
+  const path = publicLodgingPath(input.slug)
   return {
     '@context': SCHEMA,
     '@type': 'LodgingBusiness',
@@ -260,7 +293,8 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
     name: input.title,
     description: input.shortDescription,
     url: `${siteBaseUrl()}${path}`,
-    image: input.photos.map(photo => photo.url),
+    provider: { '@id': organizationId() },
+    image: visiblePhotos.map(photo => photo.url),
     amenityFeature: input.amenities.map(amenity => ({
       '@type': 'LocationFeatureSpecification',
       name: amenity.label,
@@ -269,7 +303,6 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
     address: {
       '@type': 'PostalAddress',
       addressLocality: input.publicAreaLabel ?? input.cityName,
-      ...(input.cityRegion ? { addressRegion: input.cityRegion } : {}),
       addressCountry: 'FR',
     },
     ...(input.preciseLocationPublic && input.publicLatitude != null && input.publicLongitude != null
@@ -279,13 +312,14 @@ export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
 }
 
 export function vacationRentalSchema(input: LodgingSchemaInput): JsonLdObject | null {
+  const visiblePhotos = selectVisibleLodgingPhotos(input.photos)
   const canEmit = canEmitVacationRentalSchema({
     title: input.title,
     short_description: input.shortDescription,
     description: input.description,
     property_type: input.propertyType,
     max_guests: input.maxGuests,
-    photos: input.photos,
+    photos: visiblePhotos,
     amenities: input.amenities,
     precise_location_public: input.preciseLocationPublic,
     public_latitude: input.publicLatitude,
@@ -295,7 +329,7 @@ export function vacationRentalSchema(input: LodgingSchemaInput): JsonLdObject | 
   if (!canEmit) return null
 
   return {
-    ...lodgingPlaceSchema(input),
+    ...lodgingPlaceSchemaWithVisiblePhotos(input, visiblePhotos),
     '@type': 'VacationRental',
     occupancy: {
       '@type': 'QuantitativeValue',

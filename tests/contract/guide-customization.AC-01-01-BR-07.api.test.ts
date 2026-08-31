@@ -237,4 +237,36 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     })
     expect(mockSaveCustomization).not.toHaveBeenCalled()
   })
+
+  it('returns 400 when a child item id does not belong to the lodging', async () => {
+    mockSaveCustomization.mockRejectedValue(new Error('INVALID_CHILD_ITEM_ID'))
+
+    const res = await PUT(
+      makeRequest('PUT', {
+        category_order: [],
+        featured_pois: [],
+        practical_blocks: [
+          {
+            id: 'b75f5a56-4e3d-42c1-9af2-28dc88d7cc5c',
+            title: 'Bloc étranger',
+            body: null,
+            icon: 'info',
+            photo_url: null,
+            video_url: null,
+            sort_order: 0,
+          },
+        ],
+      }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({
+      error: {
+        code: 'INVALID_CHILD_ITEM_ID',
+        message: 'Élément du guide invalide',
+        details: {},
+      },
+    })
+  })
 })

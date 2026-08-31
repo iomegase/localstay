@@ -5,8 +5,9 @@ import {
   localBusinessSchema,
   touristAttractionSchema,
 } from '@/features/seo/lib/structured-data'
+import { organizationId } from '@/features/seo/lib/site'
 
-const BASE = 'https://mystay.example.com'
+const BASE = 'https://www.mystay.city'
 
 const poiInput = {
   name: 'Jannett Glisse',
@@ -29,23 +30,53 @@ const poiInput = {
 describe('structured-data', () => {
   const realBase = process.env.NEXT_PUBLIC_BASE_URL
   beforeAll(() => { process.env.NEXT_PUBLIC_BASE_URL = BASE })
+  afterEach(() => { process.env.NEXT_PUBLIC_BASE_URL = BASE })
   afterAll(() => {
     if (realBase === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
     else process.env.NEXT_PUBLIC_BASE_URL = realBase
   })
 
-  it('organizationSchema is a schema.org Organization', () => {
+  it('emits the single verified MyStay Organization identity', () => {
     const s = organizationSchema()
-    expect(s['@context']).toBe('https://schema.org')
-    expect(s['@type']).toBe('Organization')
-    expect(s.name).toBe('MyStay')
-    expect(s.url).toBe(BASE)
+    expect(organizationId()).toBe('https://www.mystay.city/#organization')
+    expect(s).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      '@id': 'https://www.mystay.city/#organization',
+      name: 'MyStay',
+      url: BASE,
+      logo: `${BASE}/mystay-logo-approved/mystay-logo-approved.png`,
+      description:
+        'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.',
+      email: 'bonjour@mystay.city',
+      areaServed: 'Haute-Savoie, France',
+    })
+    expect(s.telephone).toBeUndefined()
+    expect(s.sameAs).toBeUndefined()
   })
 
-  it('websiteSchema is a schema.org WebSite', () => {
+  it('references the stable Organization as the WebSite publisher', () => {
     const s = websiteSchema()
     expect(s['@type']).toBe('WebSite')
     expect(s.url).toBe(BASE)
+    expect(s.publisher).toEqual({ '@id': 'https://www.mystay.city/#organization' })
+  })
+
+  it('keeps the production identity while page and asset URLs follow a preview base', () => {
+    process.env.NEXT_PUBLIC_BASE_URL = 'https://preview.mystay.vercel.app/'
+
+    const organization = organizationSchema()
+    const website = websiteSchema()
+
+    expect(organization).toMatchObject({
+      '@id': 'https://www.mystay.city/#organization',
+      url: 'https://preview.mystay.vercel.app',
+      logo: 'https://preview.mystay.vercel.app/mystay-logo-approved/mystay-logo-approved.png',
+    })
+    expect(website).toMatchObject({
+      url: 'https://preview.mystay.vercel.app',
+      publisher: { '@id': 'https://www.mystay.city/#organization' },
+    })
   })
 
   it('breadcrumbSchema builds an ordered list with absolute item URLs', () => {

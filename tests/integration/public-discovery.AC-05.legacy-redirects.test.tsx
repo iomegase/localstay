@@ -29,6 +29,10 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: () => mockGetActiveLodgingContext(),
 }))
 
+jest.mock('@/features/public-menu/lib/private-stay-guard', () => ({
+  getOptionalActiveLodgingContext: () => mockGetActiveLodgingContext(),
+}))
+
 jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
   getDiscoveryCity: (...args: unknown[]) => mockGetDiscoveryCity(...args),
   getDiscoveryCategory: (...args: unknown[]) => mockGetDiscoveryCategory(...args),
@@ -113,14 +117,14 @@ describe('041 public discovery — AC-05 legacy redirects', () => {
     })).rejects.toThrow(`NEXT_PERMANENT_REDIRECT:/decouvrir/${citySlug}`)
   })
 
-  it('returns 404 for an anonymous legacy City without a public destination', async () => {
+  it('redirects an anonymous legacy City without a public destination to the discovery hub', async () => {
     mockGetDiscoveryCity.mockResolvedValue(null)
 
     await expect(GuidePage({
       params: Promise.resolve({ 'city-slug': citySlug }),
-    })).rejects.toThrow('NEXT_NOT_FOUND')
+    })).rejects.toThrow('NEXT_PERMANENT_REDIRECT:/decouvrir')
 
-    expect(mockPermanentRedirect).not.toHaveBeenCalled()
+    expect(mockPermanentRedirect).toHaveBeenCalledWith('/decouvrir')
     expect(mockGetCityGuide).not.toHaveBeenCalled()
   })
 

@@ -3,8 +3,8 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { getPoiDetail } from '@/features/categories/queries/poi-detail'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import { getContextualOwnerNote } from '@/features/guide-customization/queries/contextual-owner-note'
-import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
-import { discoveryPoiMetadata, poiMetadata } from '@/features/seo/lib/metadata'
+import { getOptionalActiveLodgingContext } from '@/features/public-menu/lib/private-stay-guard'
+import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
 import { JsonLd } from '@/shared/components/JsonLd'
 import {
   breadcrumbSchema,
@@ -20,33 +20,24 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
-  const lodgingContext = await getActiveLodgingContext()
+  const lodgingContext = await getOptionalActiveLodgingContext(citySlug)
   if (!lodgingContext) {
     const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
     return publicPoi
-      ? discoveryPoiMetadata(publicPoi)
-      : { title: 'Adresse introuvable', robots: { index: false, follow: false } }
+      ? privatePageMetadata(`${publicPoi.name} à ${publicPoi.city.name}`)
+      : privatePageMetadata('Adresse introuvable')
   }
 
   const poi = await getPoiDetail(citySlug, categorySlug, poiSlug)
-  if (!poi) return { title: 'Adresse introuvable', robots: { index: false } }
+  if (!poi) return privatePageMetadata('Adresse introuvable')
 
-  return poiMetadata({
-    name: poi.name,
-    description: poi.description,
-    cityName: poi.city.name,
-    categoryName: poi.category.name,
-    citySlug,
-    categorySlug,
-    poiSlug,
-    photo: poi.photos[0] ?? null,
-  })
+  return privatePageMetadata(`${poi.name} — ${poi.category.name} à ${poi.city.name}`)
 }
 
 export default async function PoiDetailPage({ params }: Props) {
   const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
 
-  const lodgingContext = await getActiveLodgingContext()
+  const lodgingContext = await getOptionalActiveLodgingContext(citySlug)
   if (!lodgingContext) {
     const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
     if (!publicPoi) {

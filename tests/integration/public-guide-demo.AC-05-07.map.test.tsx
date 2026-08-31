@@ -9,10 +9,10 @@ import { demoPois } from '@/features/guide-demo/demo-pois'
 jest.mock('react-map-gl/mapbox', () => {
   const MockMap = React.forwardRef<
     { flyTo: jest.Mock },
-    { children: React.ReactNode }
-  >(({ children }, ref) => {
+    { children: React.ReactNode; onClick?: () => void }
+  >(({ children, onClick }, ref) => {
     React.useImperativeHandle(ref, () => ({ flyTo: jest.fn() }))
-    return <div data-testid="mapbox-map">{children}</div>
+    return <div data-testid="mapbox-map" onClick={onClick}>{children}</div>
   })
   MockMap.displayName = 'MockMap'
 
@@ -21,9 +21,21 @@ jest.mock('react-map-gl/mapbox', () => {
     default: MockMap,
     Marker: ({
       children,
+      onClick,
     }: {
       children: React.ReactNode
-    }) => <div data-testid="mapbox-marker">{children}</div>,
+      onClick?: (event: { originalEvent: { stopPropagation: () => void } }) => void
+    }) => (
+      <div
+        data-testid="mapbox-marker"
+        onClick={event => {
+          event.stopPropagation()
+          onClick?.({ originalEvent: { stopPropagation: jest.fn() } })
+        }}
+      >
+        {children}
+      </div>
+    ),
     NavigationControl: () => <div data-testid="mapbox-navigation" />,
     Source: ({ children }: { children?: React.ReactNode }) => (
       <div data-testid="mapbox-source">{children}</div>
@@ -42,6 +54,7 @@ describe('GuideMapView demo', () => {
         selectedCategorySlug={null}
         onFilter={jest.fn()}
         onSelectPoi={jest.fn()}
+        onDeselectPoi={jest.fn()}
         onOpenPoi={jest.fn()}
       />,
     )
@@ -68,6 +81,7 @@ describe('GuideMapView demo', () => {
         selectedCategorySlug={null}
         onFilter={jest.fn()}
         onSelectPoi={onSelectPoi}
+        onDeselectPoi={jest.fn()}
         onOpenPoi={onOpenPoi}
       />,
     )
@@ -86,6 +100,7 @@ describe('GuideMapView demo', () => {
         selectedCategorySlug={null}
         onFilter={jest.fn()}
         onSelectPoi={onSelectPoi}
+        onDeselectPoi={jest.fn()}
         onOpenPoi={onOpenPoi}
       />,
     )
@@ -95,5 +110,31 @@ describe('GuideMapView demo', () => {
       }),
     )
     expect(onOpenPoi).toHaveBeenCalledWith(porcherey)
+  })
+
+  it('005 AC-02-03: closes the selected POI preview when the map background is clicked', () => {
+    const porcherey = demoPois.find(poi => poi.slug === 'alpage-de-porcherey')
+    expect(porcherey).toBeDefined()
+    const onDeselectPoi = jest.fn()
+
+    render(
+      <GuideMapView
+        lodging={demoLodging}
+        pois={demoPois}
+        selectedPoiId={porcherey?.id ?? null}
+        selectedCategorySlug={null}
+        onFilter={jest.fn()}
+        onSelectPoi={jest.fn()}
+        onDeselectPoi={onDeselectPoi}
+        onOpenPoi={jest.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole('button', { name: `Ouvrir la fiche ${porcherey?.name}` }),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('mapbox-map'))
+
+    expect(onDeselectPoi).toHaveBeenCalledTimes(1)
   })
 })

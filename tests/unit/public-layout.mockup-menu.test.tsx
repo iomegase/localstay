@@ -66,7 +66,7 @@ describe('PublicLayout mockup menu', () => {
     )
     expect(screen.getByRole('link', { name: 'Tous nos logements' })).toHaveAttribute(
       'href',
-      '/guide/saint-gervais/logements',
+      '/logements',
     )
     expect(
       within(screen.getByTestId('public-menu-overlay')).getByRole('link', {

@@ -108,6 +108,7 @@ export function groupFeaturedPoisByCategory(
 }
 
 export interface NormalizedPracticalBlock {
+  id?: string
   title: string
   body: string | null
   icon: string
@@ -128,20 +129,29 @@ export function normalizePracticalBlocks(
   if (!blocks || blocks.length === 0) return []
   const clean = (value: string | null | undefined): string | null =>
     typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+  const persistentId = (value: string | undefined): string | undefined => {
+    const id = clean(value)
+    return id && !id.startsWith('tmp-') ? id : undefined
+  }
 
   return blocks
     .filter(block => clean(block.title) !== null)
-    .map((block, index) => ({
-      title: clean(block.title) as string,
-      body: clean(block.body),
-      icon: block.icon,
-      photo_url: clean(block.photo_url),
-      video_url: clean(block.video_url),
-      sort_order: index,
-    }))
+    .map((block, index) => {
+      const id = persistentId(block.id)
+      return {
+        ...(id ? { id } : {}),
+        title: clean(block.title) as string,
+        body: clean(block.body),
+        icon: block.icon,
+        photo_url: clean(block.photo_url),
+        video_url: clean(block.video_url),
+        sort_order: index,
+      }
+    })
 }
 
 export interface NormalizedArrivalInstruction {
+  id?: string
   title: string | null
   text: string
   video_url: string | null
@@ -161,18 +171,26 @@ export function normalizeArrivalInstructions(
   if (!instructions || instructions.length === 0) return []
   const clean = (value: string | null | undefined): string | null =>
     typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+  const persistentId = (value: string | undefined): string | undefined => {
+    const id = clean(value)
+    return id && !id.startsWith('tmp-') ? id : undefined
+  }
 
   return instructions
     .filter(instruction => clean(instruction.text) !== null)
-    .map((instruction, index) => ({
-      title: clean(instruction.title),
-      text: clean(instruction.text) as string,
-      video_url: clean(instruction.video_url),
-      photos: (instruction.photos ?? [])
-        .map(photo => photo.trim())
-        .filter(Boolean),
-      sort_order: index,
-    }))
+    .map((instruction, index) => {
+      const id = persistentId(instruction.id)
+      return {
+        ...(id ? { id } : {}),
+        title: clean(instruction.title),
+        text: clean(instruction.text) as string,
+        video_url: clean(instruction.video_url),
+        photos: (instruction.photos ?? [])
+          .map(photo => photo.trim())
+          .filter(Boolean),
+        sort_order: index,
+      }
+    })
 }
 
 /** Déplace l'élément `activeId` à la position de `overId` (immutable, identité préservée si no-op). */

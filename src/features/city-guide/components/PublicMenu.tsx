@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Info, LogOut, Settings, X } from 'lucide-react'
 import { contextualContactPath, contextualFavoritesPath } from '@/features/city-guide/lib/public-paths'
+import { publicLodgingsPath } from '@/features/lodging-showcase/lib/public-paths'
 
 type MenuItem = { href: string; label: string }
 
@@ -41,7 +42,7 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
     ? [
       { href: '/', label: 'Bienvenue' },
       { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
-      { href: `/guide/${citySlug}/logements`, label: 'Tous nos logements' },
+      { href: publicLodgingsPath(), label: 'Tous nos logements' },
       { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
       { href: contextualContactPath(citySlug), label: 'Contact' },
     ]
@@ -58,7 +59,7 @@ function lodgingItems(citySlug?: string | null): MenuItem[] {
   return [
     welcome,
     { href: contextualFavoritesPath(citySlug), label: 'Vos favoris' },
-    { href: `/guide/${citySlug}/logements`, label: 'Tous nos logements' },
+    { href: publicLodgingsPath(), label: 'Tous nos logements' },
     { href: `/guide/${citySlug}/agenda`, label: 'Agenda' },
     blog,
     contact,

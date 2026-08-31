@@ -15,6 +15,16 @@ jest.mock('@/features/seo/queries/page-data', () => ({
   getCityForSeo: jest.fn(async () => ({ name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains', region: 'Auvergne-Rhone-Alpes' })),
 }))
 
+jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
+  getActiveLodgingContext: jest.fn(async () => ({
+    lodgingId: 'lodging-1',
+    lodgingName: 'Chalet MyStay',
+    citySlug: 'saint-gervais-les-bains',
+    cityName: 'Saint-Gervais-les-Bains',
+    ownerName: 'Alice',
+  })),
+}))
+
 jest.mock('@/features/public-menu/components/FavoritesList', () => ({
   FavoritesList: () => <div>FavoritesList mock</div>,
 }))

@@ -92,6 +92,47 @@ describe('getPoiCards', () => {
     expect(result!.primary[1].slug).toBe('low-rated')
   })
 
+  it('AC-02-02: resolves the selected subcategory and constrains the private POI query', async () => {
+    jest.mocked(prisma.subCategory.findFirst).mockResolvedValue({ id: 'sub-gastro' } as never)
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      makePoi({ id: 'gastro', slug: 'gastro', latitude: 45.89, longitude: 6.71 }),
+    ] as never)
+
+    const result = await getPoiCards('saint-gervais', 'restaurants', {
+      subcategorySlug: 'gastronomique',
+    })
+
+    expect(prisma.subCategory.findFirst).toHaveBeenCalledWith({
+      where: {
+        slug: 'gastronomique',
+        category_id: 'cat-1',
+        is_active: true,
+        deleted_at: null,
+      },
+      select: { id: true },
+    })
+    expect(prisma.pointOfInterest.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ subcategory_id: 'sub-gastro' }),
+      }),
+    )
+    expect(result?.primary.map(poi => poi.slug)).toEqual(['gastro'])
+  })
+
+  it('AC-02-03: omits the subcategory constraint when the private filter is reset', async () => {
+    jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
+      makePoi({ id: 'gastro', slug: 'gastro', latitude: 45.89, longitude: 6.71 }),
+      makePoi({ id: 'snack', slug: 'snack', latitude: 45.90, longitude: 6.71 }),
+    ] as never)
+
+    const result = await getPoiCards('saint-gervais', 'restaurants')
+
+    expect(prisma.subCategory.findFirst).not.toHaveBeenCalled()
+    const query = jest.mocked(prisma.pointOfInterest.findMany).mock.calls[0]?.[0]
+    expect(query?.where).not.toHaveProperty('subcategory_id')
+    expect(result?.primary.map(poi => poi.slug)).toEqual(['gastro', 'snack'])
+  })
+
   it('maps photo_url to first photo in array', async () => {
     jest.mocked(prisma.pointOfInterest.findMany).mockResolvedValue([
       { ...makePoi({ id: '1', slug: 'p', latitude: 45.89, longitude: 6.71 }), photos: ['https://example.com/photo.jpg'] },

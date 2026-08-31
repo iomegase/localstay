@@ -17,9 +17,29 @@ export const ROOM_TYPE_LABELS: Record<string, string> = {
   other: 'Autre',
 }
 
+const LODGING_GALLERY_PHOTO_LIMIT = 3
+
+export function selectLodgingGalleryPhotos<T>(photos: readonly T[]): T[] {
+  return photos.slice(0, LODGING_GALLERY_PHOTO_LIMIT)
+}
+
+export function isRenderableRoomPhoto(photo: { room_type: string | null }): boolean {
+  return photo.room_type != null
+    && photo.room_type !== 'other'
+    && ROOM_TYPE_LABELS[photo.room_type] != null
+}
+
+export function selectVisibleLodgingPhotos<T extends { room_type: string | null }>(
+  photos: readonly T[],
+): T[] {
+  return photos.filter((photo, index) => (
+    index < LODGING_GALLERY_PHOTO_LIMIT || isRenderableRoomPhoto(photo)
+  ))
+}
+
 export function selectRoomPhotos(photos: Photo[]): Array<{ id: string; url: string; alt: string; label: string }> {
   return photos
-    .filter(photo => photo.room_type != null && photo.room_type !== 'other' && ROOM_TYPE_LABELS[photo.room_type] != null)
+    .filter(isRenderableRoomPhoto)
     .map(photo => ({ id: photo.id, url: photo.url, alt: photo.alt, label: photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type as string] }))
 }
 

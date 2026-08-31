@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { buildBlogArticlePath } from '@/features/blog/lib/slug'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 
 export type SitemapCity = { slug: string }
 export type SitemapPoi = {
@@ -9,7 +10,6 @@ export type SitemapPoi = {
 }
 export type SitemapLodging = {
   slug: string
-  city_slug: string
   updated_at: Date
 }
 export type SitemapBlogArticle = {
@@ -31,10 +31,14 @@ export function buildSitemapEntries(input: {
   staticPaths: string[]
 }): MetadataRoute.Sitemap {
   const { baseUrl, cities, pois, lodgings, blogArticles = [], staticPaths } = input
-  const url = (path: string) => `${baseUrl}${path}`
+  const validatedBase = validateSitemapBaseUrl(baseUrl)
+  if (!validatedBase) return []
+
+  const url = (path: string) => new URL(path, validatedBase).toString()
   const entries: MetadataRoute.Sitemap = []
   const seenUrls = new Set<string>()
   const addEntry = (entry: MetadataRoute.Sitemap[number]) => {
+    if (!isCanonicalPublicSitemapUrl(entry.url, validatedBase.origin)) return
     if (seenUrls.has(entry.url)) return
     seenUrls.add(entry.url)
     entries.push(entry)
@@ -77,23 +81,10 @@ export function buildSitemapEntries(input: {
     })
   }
 
-  const seenLodgingLists = new Set<string>()
-  const sortedLodgings = [...lodgings].sort((left, right) => (
-    compareText(left.city_slug, right.city_slug) || compareText(left.slug, right.slug)
-  ))
+  const sortedLodgings = [...lodgings].sort((left, right) => compareText(left.slug, right.slug))
   for (const lodging of sortedLodgings) {
-    const listPath = `/guide/${lodging.city_slug}/logements`
-    if (!seenLodgingLists.has(listPath)) {
-      seenLodgingLists.add(listPath)
-      addEntry({
-        url: url(listPath),
-        changeFrequency: 'weekly',
-        priority: 0.75,
-      })
-    }
-
     addEntry({
-      url: url(`/guide/${lodging.city_slug}/logements/${lodging.slug}`),
+      url: url(publicLodgingPath(lodging.slug)),
       lastModified: lodging.updated_at,
       changeFrequency: 'weekly',
       priority: 0.65,
@@ -110,6 +101,77 @@ export function buildSitemapEntries(input: {
   }
 
   return entries
+}
+
+const PRIVATE_OR_NON_CANONICAL_SEGMENTS = new Set([
+  'guide',
+  'sejour',
+  'acces-reserve',
+  'contact',
+  'le-logement',
+  'nos-recommandations',
+  'map',
+  'mes-favoris',
+  'services-prives',
+  'api',
+])
+
+const UUID_PATH_SEGMENT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function validateSitemapBaseUrl(value: string): URL | null {
+  try {
+    const candidate = new URL(value)
+    if (
+      (candidate.protocol !== 'http:' && candidate.protocol !== 'https:')
+      || candidate.username !== ''
+      || candidate.password !== ''
+      || candidate.search !== ''
+      || candidate.hash !== ''
+      || candidate.href.includes('?')
+      || candidate.href.includes('#')
+    ) {
+      return null
+    }
+
+    candidate.pathname = '/'
+    return candidate
+  } catch {
+    return null
+  }
+}
+
+function isCanonicalPublicSitemapUrl(value: string, expectedOrigin: string): boolean {
+  try {
+    const candidate = new URL(value)
+    if (
+      (candidate.protocol !== 'http:' && candidate.protocol !== 'https:')
+      || candidate.origin !== expectedOrigin
+      || candidate.username !== ''
+      || candidate.password !== ''
+      || candidate.search !== ''
+      || candidate.hash !== ''
+      || candidate.href.includes('?')
+      || candidate.href.includes('#')
+    ) {
+      return false
+    }
+
+    const segments = decodePathSegments(candidate.pathname)
+    if (!segments) return false
+    if (segments[0] && PRIVATE_OR_NON_CANONICAL_SEGMENTS.has(segments[0])) return false
+
+    return segments.every(segment => !UUID_PATH_SEGMENT.test(segment))
+  } catch {
+    return false
+  }
+}
+
+function decodePathSegments(pathname: string): string[] | null {
+  try {
+    return pathname.split('/').filter(Boolean).map(segment => decodeURIComponent(segment))
+  } catch {
+    return null
+  }
 }
 
 function compareText(left: string, right: string): number {

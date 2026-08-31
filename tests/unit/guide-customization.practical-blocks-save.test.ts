@@ -1,8 +1,8 @@
 const tx = {
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
-  lodgingPracticalBlock: { updateMany: jest.fn(), createMany: jest.fn() },
-  lodgingArrivalInstruction: { updateMany: jest.fn(), createMany: jest.fn() },
+  lodgingPracticalBlock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
+  lodgingArrivalInstruction: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
 }
 
 const mockGeocodeAddress = jest.fn()
@@ -55,49 +55,86 @@ describe('saveLodgingCustomization — practical blocks', () => {
       { id: 'b1', title: 'La plage', body: 'À 5 min', icon: 'star', photo_url: null, sort_order: 0 },
     ] as never)
     jest.mocked(prisma.lodgingArrivalInstruction.findMany).mockResolvedValue([] as never)
+    tx.lodgingPracticalBlock.findMany.mockResolvedValue([
+      { id: 'b1' },
+      { id: 'b2' },
+    ])
+    tx.lodgingArrivalInstruction.findMany.mockResolvedValue([])
   })
 
-  it('soft-deletes existing blocks then recreates one row per normalized block', async () => {
+  it('updates retained blocks, creates new blocks and archives only removed blocks', async () => {
     const result = await saveLodgingCustomization('owner-1', 'lodging-1', {
       category_order: [],
       featured_pois: [],
       practical_blocks: [
-        { title: '  La plage  ', body: 'À 5 min', icon: 'star', photo_url: '', sort_order: 7 },
+        { id: 'b1', title: '  La plage  ', body: 'À 5 min', icon: 'star', photo_url: '', sort_order: 7 },
         { title: 'Local à skis', body: null, icon: 'info', photo_url: 'https://cdn.test/ski.jpg', sort_order: 8 },
         { title: '', body: 'orphan', icon: 'info', photo_url: null, sort_order: 2 },
       ],
     })
 
-    expect(tx.lodgingPracticalBlock.updateMany).toHaveBeenCalledWith({
-      where: { lodging_id: 'lodging-1', deleted_at: null },
-      data: { deleted_at: expect.any(Date) },
+    expect(tx.lodgingPracticalBlock.update).toHaveBeenCalledWith({
+      where: { id: 'b1' },
+      data: {
+        title: 'La plage',
+        body: 'À 5 min',
+        icon: 'star',
+        photo_url: null,
+        video_url: null,
+        sort_order: 0,
+      },
     })
-    expect(tx.lodgingPracticalBlock.createMany).toHaveBeenCalledTimes(1)
-    expect(tx.lodgingPracticalBlock.createMany).toHaveBeenCalledWith({
-      data: [
-        {
-          lodging_id: 'lodging-1',
-          title: 'La plage',
-          body: 'À 5 min',
-          icon: 'star',
-          photo_url: null,
-          video_url: null,
-          sort_order: 0,
-        },
-        {
-          lodging_id: 'lodging-1',
-          title: 'Local à skis',
-          body: null,
-          icon: 'info',
-          photo_url: 'https://cdn.test/ski.jpg',
-          video_url: null,
-          sort_order: 1,
-        },
-      ],
+    expect(tx.lodgingPracticalBlock.create).toHaveBeenCalledWith({
+      data: {
+        lodging_id: 'lodging-1',
+        title: 'Local à skis',
+        body: null,
+        icon: 'info',
+        photo_url: 'https://cdn.test/ski.jpg',
+        video_url: null,
+        sort_order: 1,
+      },
+    })
+    expect(tx.lodgingPracticalBlock.updateMany).toHaveBeenCalledWith({
+      where: { lodging_id: 'lodging-1', deleted_at: null, id: { in: ['b2'] } },
+      data: { deleted_at: expect.any(Date) },
     })
     expect(result.practical_blocks).toEqual([
       { id: 'b1', title: 'La plage', body: 'À 5 min', icon: 'star', photo_url: null, sort_order: 0 },
     ])
+  })
+
+  it('rejects an existing block id that does not belong to the active lodging', async () => {
+    await expect(saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [],
+      practical_blocks: [
+        { id: 'foreign-block', title: 'Intrus', body: null, icon: 'info', photo_url: null, video_url: null, sort_order: 0 },
+      ],
+    })).rejects.toMatchObject({ code: 'INVALID_CHILD_ITEM_ID' })
+
+    expect(tx.lodgingPracticalBlock.update).not.toHaveBeenCalled()
+    expect(tx.lodgingPracticalBlock.create).not.toHaveBeenCalled()
+  })
+
+  it('rejects duplicate persistent block ids', async () => {
+    const duplicate = {
+      id: 'b1',
+      title: 'Même bloc',
+      body: null,
+      icon: 'info',
+      photo_url: null,
+      video_url: null,
+      sort_order: 0,
+    }
+
+    await expect(saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [],
+      practical_blocks: [duplicate, { ...duplicate, sort_order: 1 }],
+    })).rejects.toMatchObject({ code: 'INVALID_CHILD_ITEM_ID' })
+
+    expect(tx.lodgingPracticalBlock.update).not.toHaveBeenCalled()
   })
 
   it('uses a longer transaction timeout for customization saves with many owner recommendations', async () => {

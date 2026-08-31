@@ -1,9 +1,13 @@
 import { prisma } from '@/shared/lib/prisma'
 import { createHash } from 'node:crypto'
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { detectExternalListingSource } from '../lib/source-url'
 import { evaluateProfileCompleteness } from '../lib/completeness'
-import { lodgingProfileSlug } from '../lib/slug'
+import {
+  allocateLodgingSlug,
+  LodgingSlugConflictError,
+  lodgingProfileSlug,
+} from '../lib/slug'
 import type {
   LodgingPhotoRoomType,
   OwnerLodgingPublicProfileDto,
@@ -368,66 +372,99 @@ export async function getOwnedLodgingShowcasePageData(
 }
 
 async function writePublicProfileForLodging(
-  lodging: { id: string; city_id: string },
+  lodging: Pick<ShowcaseLodging, 'id' | 'city_id' | 'city'>,
   input: LodgingPublicProfileInput,
   options: { resetToDraft: boolean },
 ): Promise<OwnerLodgingPublicProfileDto | null> {
-  const slug = lodgingProfileSlug(input.title)
+  const currentProfile = await prisma.lodgingPublicProfile.findUnique({
+    where: { lodging_id: lodging.id },
+    select: {
+      slug: true,
+      publication_status: true,
+      published_at: true,
+    },
+  })
+  const slug = currentProfile && (
+    currentProfile.published_at !== null
+    || currentProfile.publication_status === 'published'
+  )
+    ? currentProfile.slug
+    : await allocateLodgingSlug(input.title, lodging.city.slug, async (candidate) => {
+        const conflict = await prisma.lodgingPublicProfile.findFirst({
+          where: {
+            slug: candidate,
+            lodging_id: { not: lodging.id },
+          },
+          select: { id: true },
+        })
+
+        return conflict !== null
+      })
   const externalBookingPlatform = inferExternalBookingPlatform(input.external_booking_url ?? null)
 
-  const profile = await prisma.lodgingPublicProfile.upsert({
-    where: { lodging_id: lodging.id },
-    create: {
-      lodging_id: lodging.id,
-      city_id: lodging.city_id,
-      slug,
-      publication_status: 'draft',
-      title: input.title,
-      short_description: input.short_description,
-      description: input.description,
-      property_type: input.property_type,
-      max_guests: input.max_guests,
-      bedroom_count: input.bedroom_count ?? null,
-      bathroom_count: input.bathroom_count ?? null,
-      bed_count: input.bed_count ?? null,
-      surface_m2: input.surface_m2 ?? null,
-      public_area_label: input.public_area_label ?? null,
-      precise_location_public: input.precise_location_public ?? false,
-      public_latitude: input.public_latitude ?? null,
-      public_longitude: input.public_longitude ?? null,
-      external_booking_url: input.external_booking_url ?? null,
-      external_booking_platform: externalBookingPlatform,
-      public_contact_enabled: input.public_contact_enabled,
-      source_description_text: input.source_description_text ?? null,
-      seo_title: input.seo_title ?? null,
-      seo_description: input.seo_description ?? null,
-    },
-    update: {
-      city_id: lodging.city_id,
-      slug,
-      ...(options.resetToDraft ? { publication_status: 'draft' as const } : {}),
-      title: input.title,
-      short_description: input.short_description,
-      description: input.description,
-      property_type: input.property_type,
-      max_guests: input.max_guests,
-      bedroom_count: input.bedroom_count ?? null,
-      bathroom_count: input.bathroom_count ?? null,
-      bed_count: input.bed_count ?? null,
-      surface_m2: input.surface_m2 ?? null,
-      public_area_label: input.public_area_label ?? null,
-      precise_location_public: input.precise_location_public ?? false,
-      public_latitude: input.public_latitude ?? null,
-      public_longitude: input.public_longitude ?? null,
-      external_booking_url: input.external_booking_url ?? null,
-      external_booking_platform: externalBookingPlatform,
-      public_contact_enabled: input.public_contact_enabled,
-      source_description_text: input.source_description_text ?? null,
-      seo_title: input.seo_title ?? null,
-      seo_description: input.seo_description ?? null,
-    },
-    select: { id: true },
-  })
+  let profile: { id: string }
+
+  try {
+    profile = await prisma.lodgingPublicProfile.upsert({
+      where: { lodging_id: lodging.id },
+      create: {
+        lodging_id: lodging.id,
+        city_id: lodging.city_id,
+        slug,
+        publication_status: 'draft',
+        title: input.title,
+        short_description: input.short_description,
+        description: input.description,
+        property_type: input.property_type,
+        max_guests: input.max_guests,
+        bedroom_count: input.bedroom_count ?? null,
+        bathroom_count: input.bathroom_count ?? null,
+        bed_count: input.bed_count ?? null,
+        surface_m2: input.surface_m2 ?? null,
+        public_area_label: input.public_area_label ?? null,
+        precise_location_public: input.precise_location_public ?? false,
+        public_latitude: input.public_latitude ?? null,
+        public_longitude: input.public_longitude ?? null,
+        external_booking_url: input.external_booking_url ?? null,
+        external_booking_platform: externalBookingPlatform,
+        public_contact_enabled: input.public_contact_enabled,
+        source_description_text: input.source_description_text ?? null,
+        seo_title: input.seo_title ?? null,
+        seo_description: input.seo_description ?? null,
+      },
+      update: {
+        city_id: lodging.city_id,
+        slug,
+        ...(options.resetToDraft ? { publication_status: 'draft' as const } : {}),
+        title: input.title,
+        short_description: input.short_description,
+        description: input.description,
+        property_type: input.property_type,
+        max_guests: input.max_guests,
+        bedroom_count: input.bedroom_count ?? null,
+        bathroom_count: input.bathroom_count ?? null,
+        bed_count: input.bed_count ?? null,
+        surface_m2: input.surface_m2 ?? null,
+        public_area_label: input.public_area_label ?? null,
+        precise_location_public: input.precise_location_public ?? false,
+        public_latitude: input.public_latitude ?? null,
+        public_longitude: input.public_longitude ?? null,
+        external_booking_url: input.external_booking_url ?? null,
+        external_booking_platform: externalBookingPlatform,
+        public_contact_enabled: input.public_contact_enabled,
+        source_description_text: input.source_description_text ?? null,
+        seo_title: input.seo_title ?? null,
+        seo_description: input.seo_description ?? null,
+      },
+      select: { id: true },
+    })
+  } catch (error) {
+    if (isLodgingSlugConflict(error)) {
+      throw new LodgingSlugConflictError()
+    }
+
+    throw error
+  }
 
   // Amenities are a fully-replaced child collection. Hard-delete (not soft-delete)
   // so re-saving the same codes can't collide with leftover rows on the
@@ -485,6 +522,20 @@ async function writePublicProfileForLodging(
   })
 
   return fresh ? formatOwnerProfile(fresh) : null
+}
+
+function isLodgingSlugConflict(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') {
+    return false
+  }
+
+  const target = error.meta?.target
+
+  if (Array.isArray(target)) {
+    return target.length === 1 && target[0] === 'slug'
+  }
+
+  return target === 'slug' || target === 'LodgingPublicProfile_slug_key'
 }
 
 export async function saveOwnerPublicProfile(

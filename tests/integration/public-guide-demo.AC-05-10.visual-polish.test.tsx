@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
@@ -16,7 +16,7 @@ describe('GuideApp demo visual polish', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: /bienvenue au refuge du mont-blanc/i }),
+      screen.getByRole('heading', { name: /bienvenue au 305/i }),
     ).toBeInTheDocument()
 
     expect(
@@ -30,5 +30,28 @@ describe('GuideApp demo visual polish', () => {
     expect(
       screen.queryByRole('button', { name: /arrivée 16:00/i }),
     ).not.toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /découvrir le livret/i }),
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Arrivée 16:00' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Départ 10:00' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /accéder au logement/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /informations pratiques/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /équipements.*3 équipements/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /préparer le départ/i }),
+    ).toBeInTheDocument()
   })
 })

@@ -70,6 +70,13 @@ export function GuideLodgingViews({
   lodging: GuideLodging
   onNavigate: (view: GuideView) => void
 }) {
+  const recyclingCards = lodging.practicalCards.filter(
+    card => card.icon === 'recycle',
+  )
+  const equipmentCards = lodging.practicalCards.filter(
+    card => card.icon !== 'recycle',
+  )
+
   if (view === 'arrival') {
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lodging.latitude},${lodging.longitude}`
     return (
@@ -159,9 +166,9 @@ export function GuideLodgingViews({
           </section>
         )}
 
-        {lodging.practicalCards.length > 0 && (
+        {equipmentCards.length > 0 && (
           <div className="grid gap-3">
-            {lodging.practicalCards.map(card => (
+            {equipmentCards.map(card => (
               <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
             ))}
           </div>
@@ -226,6 +233,14 @@ export function GuideLodgingViews({
               ))}
             </div>
           </section>
+        )}
+
+        {recyclingCards.length > 0 && (
+          <div className="grid gap-3">
+            {recyclingCards.map(card => (
+              <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
+            ))}
+          </div>
         )}
 
         {lodging.trashBins.length > 0 && (
@@ -310,7 +325,7 @@ export function GuideLodgingViews({
         <GuideLink
           icon={HousePlug}
           title="Équipements"
-          copy={equipmentCountLabel(lodging.practicalCards.length)}
+          copy={equipmentCountLabel(equipmentCards.length)}
           onClick={() => onNavigate('rules')}
         />
         <GuideLink

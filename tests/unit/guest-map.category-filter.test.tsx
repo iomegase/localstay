@@ -19,16 +19,31 @@ jest.mock('react-map-gl/mapbox', () => {
 
   const MapMock = React.forwardRef(
     (
-      { children, onLoad }: { children: React.ReactNode; onLoad?: () => void },
-      ref: React.ForwardedRef<{ flyTo: jest.Mock; fitBounds: jest.Mock }>,
+      {
+        children,
+        onLoad,
+      }: {
+        children: React.ReactNode
+        onLoad?: (event: { target: { getZoom: () => number } }) => void
+      },
+      ref: React.ForwardedRef<{
+        flyTo: jest.Mock
+        fitBounds: jest.Mock
+        getZoom: () => number
+      }>,
     ) => {
-      React.useImperativeHandle(ref, () => ({
-        flyTo: jest.fn(),
-        fitBounds: jest.fn(),
-      }))
+      const map = React.useMemo(
+        () => ({
+          flyTo: jest.fn(),
+          fitBounds: jest.fn(),
+          getZoom: () => 12,
+        }),
+        [],
+      )
+      React.useImperativeHandle(ref, () => map, [map])
       React.useEffect(() => {
-        onLoad?.()
-      }, [onLoad])
+        onLoad?.({ target: map })
+      }, [map, onLoad])
 
       return <div data-testid="mapbox-map">{children}</div>
     },
@@ -90,6 +105,15 @@ const pois: GuestMapPoi[] = [
 describe('GuestMap category filter', () => {
   afterEach(() => {
     document.body.className = ''
+  })
+
+  it('marks an empty map ready without waiting for an initial POI fit', async () => {
+    render(<GuestMap pois={[]} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('guest-map')).toHaveAttribute('data-map-ready', 'true')
+    })
+    expect(screen.getByTestId('guest-map')).toHaveAttribute('data-map-zoom', '12')
   })
 
   it('keeps the map base layer selector readable when a layer is active', async () => {

@@ -9,7 +9,7 @@ status: approved
 mvp: 1
 owner: ""
 created_at: 2026-05-20
-updated_at: 2026-06-06
+updated_at: 2026-08-31
 depends_on: [003-poi-list, 004-poi-detail]
 ```
 
@@ -18,6 +18,12 @@ depends_on: [003-poi-list, 004-poi-detail]
 ## Context
 
 La carte est un accès alternatif aux POI, complémentaire à la liste. Elle permet au Tourist de visualiser spatialement les POI d'une catégorie, de voir ceux qui sont proches de lui, et d'accéder à leur fiche en cliquant sur un marker. Elle est accessible depuis la liste des POI et depuis la fiche détaillée. Chaque chargement de carte est une unité facturée par Mapbox — l'implémentation doit minimiser les rechargements inutiles.
+
+Décision Product Owner du 2026-08-31 : la carte interactive de catégorie, ses
+markers et ses popups restent des interactions du guide de séjour privé. Elles
+ne sont pas déplacées vers `/decouvrir`. La découverte publique conserve la
+mini-carte statique de la fiche POI prévue par la spec 041 ; les AC-01-01 et
+AC-02-01 à AC-02-03 ne s'appliquent pas à la liste publique `/decouvrir`.
 
 ---
 
@@ -195,3 +201,4 @@ La carte est un accès alternatif aux POI, complémentaire à la liste. Elle per
 |---|---|---|---|---|
 | OQ-01 | Style de carte Mapbox : streets, outdoors, ou custom ? | owner | - | **Resolved** : carte plein écran `outdoors` pour le contexte alpin ; mini-carte fiche POI `light-v11` monochrome avec marker rouge pour lisibilité. |
 | OQ-02 | Faut-il un toggle liste/carte sur la page catégorie ou une page carte dédiée ? | owner | - | **Resolved** : Toggle sur la page catégorie (même URL, état client) |
+| OQ-03 | La carte interactive de catégorie doit-elle être restaurée sur `/decouvrir` ? | Product Owner | 2026-08-31 | **Résolu** — Non. Elle reste dans le guide de séjour privé ; la fiche publique conserve uniquement sa mini-carte statique. |

@@ -1,4 +1,5 @@
 import {
+  discoveryIndexMetadata,
   discoveryCategoryMetadata,
   discoveryCityMetadata,
   discoveryPoiMetadata,
@@ -70,6 +71,16 @@ const poi: DiscoveryPoiDetail = {
 }
 
 describe('041 AC-01-05 discovery metadata', () => {
+  it('keeps the discovery hub self-canonical without accepting lodging context', () => {
+    expect(discoveryIndexMetadata).toHaveLength(0)
+
+    const metadata = discoveryIndexMetadata()
+
+    expect(metadata.alternates?.canonical).toBe('/decouvrir')
+    expect(metadata.openGraph?.url).toBe('/decouvrir')
+    expect(JSON.stringify(metadata).toLowerCase()).not.toContain('lodging')
+  })
+
   it('builds city metadata on the self-referencing /decouvrir URL', () => {
     const metadata = discoveryCityMetadata(city)
 
