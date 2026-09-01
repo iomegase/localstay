@@ -39,6 +39,7 @@ export function DemoMapView({
 }: DemoMapViewProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   const previewRef = useRef<HTMLElement>(null)
+  const markerRefs = useRef(new Map<DemoPoi['id'], HTMLButtonElement>())
 
   useEffect(() => {
     headingRef.current?.focus()
@@ -47,6 +48,15 @@ export function DemoMapView({
   useEffect(() => {
     if (selectedPoi) previewRef.current?.focus()
   }, [selectedPoi])
+
+  function closePreview() {
+    if (!selectedPoi) return
+    const markerId = selectedPoi.id
+    onDeselectPoi()
+    queueMicrotask(() => {
+      markerRefs.current.get(markerId)?.focus()
+    })
+  }
 
   return (
     <section data-testid="demo-map-root" className="relative flex min-h-full flex-1 flex-col overflow-hidden bg-[#faf9f6] pb-32 pt-6">
@@ -88,6 +98,13 @@ export function DemoMapView({
             aria-label={`Afficher ${poi.name} sur la carte`}
             aria-pressed={selectedPoi?.id === poi.id}
             onClick={() => onSelectPoi(poi)}
+            ref={element => {
+              if (element) {
+                markerRefs.current.set(poi.id, element)
+              } else {
+                markerRefs.current.delete(poi.id)
+              }
+            }}
             className={`absolute z-10 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white text-white shadow-lg transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#121212] ${markerPositions[index % markerPositions.length]} ${
               selectedPoi?.id === poi.id ? 'bg-[#121212] ring-4 ring-white/70' : 'bg-[#455e4c]'
             }`}
@@ -136,7 +153,7 @@ export function DemoMapView({
             </div>
             <button
               type="button"
-              onClick={onDeselectPoi}
+              onClick={closePreview}
               aria-label={`Fermer l’aperçu de ${selectedPoi.name}`}
               className="self-start rounded-full p-1 text-slate-500"
             >

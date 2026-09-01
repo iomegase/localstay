@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
 import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
@@ -92,8 +92,16 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const map = within(compactCard).getByRole('button', {
       name: 'Afficher Bistrotsérac sur la carte',
     })
-    expect(open).toHaveTextContent('Ouvrir')
-    expect(map).toHaveTextContent('Carte')
+    const title = within(compactCard).getByRole('heading', {
+      name: 'Bistrotsérac',
+    })
+    expect(title).toHaveClass('line-clamp-1', 'text-base')
+    expect(title.parentElement).toHaveClass('p-2')
+    expect(within(compactCard).queryByText('4.4')).not.toBeInTheDocument()
+    expect(open).toHaveClass('h-7', 'w-7')
+    expect(map).toHaveClass('h-7', 'w-7')
+    expect(open).toHaveTextContent('')
+    expect(map).toHaveTextContent('')
   })
 
   it('shows the public POI content while keeping effectful controls disabled', () => {
@@ -241,6 +249,52 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       .querySelector('img') as HTMLImageElement
     fireEvent.error(previewImage)
     expect(previewImage.getAttribute('src')).toBe('/fallback/fallback-restaurant.png')
+  })
+
+  it('restores marker focus after closing a marker-selected preview', async () => {
+    const user = userEvent.setup()
+    render(<DemoGuideApp />)
+    await user.click(screen.getByRole('button', { name: 'Carte' }))
+    const marker = screen.getByRole('button', {
+      name: 'Afficher Rond de Carotte sur la carte',
+    })
+
+    await user.click(marker)
+    expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Fermer l’aperçu de Rond de Carotte',
+      }),
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
+      expect(marker).toHaveFocus()
+    })
+  })
+
+  it('restores marker focus after closing a favorites-selected preview', async () => {
+    const user = userEvent.setup()
+    render(<DemoGuideApp />)
+    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Afficher Rond de Carotte sur la carte',
+      }),
+    )
+    const marker = screen.getByRole('button', {
+      name: 'Afficher Rond de Carotte sur la carte',
+    })
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Fermer l’aperçu de Rond de Carotte',
+      }),
+    )
+
+    await waitFor(() => {
+      expect(marker).toHaveFocus()
+    })
   })
 
   it('selects a POI on the static map from the favorites action', () => {

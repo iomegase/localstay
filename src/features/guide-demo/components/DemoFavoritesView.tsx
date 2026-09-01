@@ -1,6 +1,6 @@
 'use client'
 
-import { MapPinned, Star } from 'lucide-react'
+import { Eye, MapPinned, Star } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoPoi } from '@/features/guide-demo/types'
@@ -109,14 +109,14 @@ export function DemoFavoritesView({
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
+                <div className={`absolute inset-x-0 bottom-0 text-white ${big ? 'p-4' : 'p-2'}`}>
+                  <p className={`${big ? 'text-[10px]' : 'text-[8px]'} font-bold uppercase tracking-[0.18em] text-white/80`}>
                     {poi.category.name}
                   </p>
-                  <h2 className={`mt-1 font-serif italic leading-tight ${big ? 'text-3xl' : 'line-clamp-2 text-lg'}`}>
+                  <h2 className={`mt-1 font-serif italic leading-tight ${big ? 'text-3xl' : 'line-clamp-1 text-base'}`}>
                     {poi.name}
                   </h2>
-                  {poi.rating ? (
+                  {big && poi.rating ? (
                     <p className="mt-1 flex items-center gap-1 text-xs font-semibold">
                       <Star className="h-3 w-3 fill-current" aria-hidden="true" />
                       {poi.rating.toFixed(1)}
@@ -127,23 +127,23 @@ export function DemoFavoritesView({
                       {poi.shortDescription}
                     </p>
                   ) : null}
-                  <div className={`mt-3 flex gap-2 ${big ? 'flex-wrap' : ''}`}>
+                  <div className={`flex ${big ? 'mt-3 flex-wrap gap-2' : 'mt-2 gap-1'}`}>
                     <button
                       type="button"
                       onClick={() => onOpenPoi(poi)}
                       aria-label={big ? undefined : `Ouvrir ${poi.name}`}
-                      className={`rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-slate-900 ${big ? '' : 'min-h-8 flex-1'}`}
+                      className={`rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-slate-900 ${big ? '' : 'grid h-7 w-7 place-items-center p-0'}`}
                     >
-                      {big ? `Ouvrir ${poi.name}` : 'Ouvrir'}
+                      {big ? `Ouvrir ${poi.name}` : <Eye className="h-3.5 w-3.5" aria-hidden="true" />}
                     </button>
                     <button
                       type="button"
                       onClick={() => onShowOnMap(poi)}
                       aria-label={big ? undefined : `Afficher ${poi.name} sur la carte`}
-                      className={`inline-flex items-center gap-1 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-bold text-white ring-1 ring-white/40 ${big ? '' : 'min-h-8 flex-1 justify-center'}`}
+                      className={`inline-flex items-center gap-1 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-bold text-white ring-1 ring-white/40 ${big ? '' : 'h-7 w-7 justify-center p-0'}`}
                     >
                       <MapPinned className="h-3 w-3" aria-hidden="true" />
-                      {big ? `Afficher ${poi.name} sur la carte` : 'Carte'}
+                      {big ? `Afficher ${poi.name} sur la carte` : null}
                     </button>
                   </div>
                 </div>
