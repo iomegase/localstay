@@ -234,9 +234,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
           <section className={`${marketingContainerClass} pt-20 min-[701px]:pt-[110px]`}>
             <div className="flex flex-col items-start gap-5 min-[701px]:flex-row min-[701px]:items-end min-[701px]:justify-between">
               <MarketingEyebrow>À lire ensuite</MarketingEyebrow>
-              <h2 className="m-0 text-4xl font-bold tracking-[-0.045em] sm:text-[40px]">
-                Continuer la lecture.
-              </h2>
+              
             </div>
             <div className="mt-9 grid gap-4 min-[701px]:grid-cols-3">
               {relatedArticles.map(related => (
