@@ -13,7 +13,7 @@ export const demoLodging: DemoLodging = {
   longitude: 6.7085,
   addressLabel: 'Résidence de démonstration, centre de Saint-Gervais',
   maxGuests: 4,
-  bedrooms: 2,
+  bedroomCount: 2,
   surfaceM2: 62,
   checkIn: '16:00',
   checkOut: '10:00',
@@ -77,6 +77,8 @@ export const demoLodging: DemoLodging = {
   ],
   usefulNumbers: [
     { label: 'Office de tourisme', number: '04 50 47 76 08' },
+  ],
+  emergencyNumbers: [
     { label: 'Urgences européennes', number: '112' },
     { label: 'SAMU', number: '15' },
     { label: 'Pompiers', number: '18' },

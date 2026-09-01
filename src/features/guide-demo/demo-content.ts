@@ -1,4 +1,5 @@
 import { demoLodging } from './demo-guide-data'
+import { APPROVED_DEMO_LODGING_MEDIA } from './demo-media-policy'
 import { demoPois } from './demo-pois'
 import type {
   DemoBlogPost,
@@ -15,7 +16,7 @@ const demoLodgingCards = [
     title: 'Chalet des Cimes — démonstration',
     cityName: 'Saint-Gervais-les-Bains',
     propertyType: 'Chalet fictif',
-    coverPhotoUrl: '/marketing/demo-lodging-1.webp',
+    coverPhotoUrl: APPROVED_DEMO_LODGING_MEDIA[1],
     shortDescription: 'Un chalet fictif imaginé pour présenter le guide MyStay.',
     description:
       'Ce chalet de démonstration illustre une fiche locale complète sans correspondre à un hébergement réel.',
@@ -26,11 +27,11 @@ const demoLodgingCards = [
     publicAreaLabel: 'Secteur fictif des hauteurs',
     photos: [
       {
-        url: '/marketing/demo-lodging-1.webp',
+        url: APPROVED_DEMO_LODGING_MEDIA[1],
         alt: 'Intérieur fictif du Chalet des Cimes',
       },
       {
-        url: '/marketing/demo-lodging-2.webp',
+        url: APPROVED_DEMO_LODGING_MEDIA[2],
         alt: 'Salon fictif du Chalet des Cimes',
       },
     ],
@@ -44,7 +45,7 @@ const demoLodgingCards = [
     title: 'Studio du Parc — démonstration',
     cityName: 'Saint-Gervais-les-Bains',
     propertyType: 'Studio fictif',
-    coverPhotoUrl: '/marketing/demo-lodging-3.webp',
+    coverPhotoUrl: APPROVED_DEMO_LODGING_MEDIA[3],
     shortDescription: 'Un pied-à-terre fictif proche des services du centre.',
     description:
       'Ce studio entièrement fictif sert uniquement à montrer une seconde fiche logement dans la démonstration publique.',
@@ -55,7 +56,7 @@ const demoLodgingCards = [
     publicAreaLabel: 'Centre de Saint-Gervais',
     photos: [
       {
-        url: '/marketing/demo-lodging-3.webp',
+        url: APPROVED_DEMO_LODGING_MEDIA[3],
         alt: 'Pièce de vie fictive du Studio du Parc',
       },
     ],
@@ -72,7 +73,7 @@ const demoBlogPosts = [
     excerpt:
       'Un itinéraire éditorial fictif pour découvrir les vues blog du guide.',
     categoryLabel: 'Inspiration locale',
-    coverUrl: '/marketing/demo-lodging-2.webp',
+    coverUrl: APPROVED_DEMO_LODGING_MEDIA[2],
     cityName: 'Saint-Gervais-les-Bains',
     contentMarkdown:
       '## Une journée au village\n\nCommencez par le centre, puis choisissez une adresse publique parmi les recommandations de la démonstration.\n\n## Prendre le temps\n\nCe contenu est fictif et illustre la lecture d’un article local dans MyStay.',
@@ -84,7 +85,7 @@ const demoBlogPosts = [
     excerpt:
       'Quelques repères génériques pour illustrer un conseil de séjour local.',
     categoryLabel: 'Conseils voyage',
-    coverUrl: '/marketing/demo-lodging-1.webp',
+    coverUrl: APPROVED_DEMO_LODGING_MEDIA[1],
     cityName: 'Saint-Gervais-les-Bains',
     contentMarkdown:
       '## Avant de partir\n\nConsultez la météo et adaptez votre équipement à la saison.\n\n## Sur place\n\nPrivilégiez les informations publiques et les sentiers balisés. Cet article de démonstration ne remplace pas les consignes locales.',

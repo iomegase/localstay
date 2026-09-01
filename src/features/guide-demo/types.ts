@@ -103,7 +103,7 @@ export type DemoLodging = {
   longitude: number
   addressLabel: string
   maxGuests: number
-  bedrooms: number
+  bedroomCount: number
   surfaceM2: number
   checkIn: string
   checkOut: string
@@ -115,6 +115,10 @@ export type DemoLodging = {
   houseRules: string[]
   practicalCards: DemoPracticalCard[]
   usefulNumbers: {
+    label: string
+    number: string
+  }[]
+  emergencyNumbers: {
     label: string
     number: string
   }[]

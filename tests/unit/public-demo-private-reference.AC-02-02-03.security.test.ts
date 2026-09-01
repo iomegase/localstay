@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
+import { isApprovedDemoLodgingMedia } from '@/features/guide-demo/demo-media-policy'
 
 const GUIDE_DEMO_ROOT = join(process.cwd(), 'src/features/guide-demo')
 
@@ -87,6 +88,13 @@ function normalizePhoneNumber(value: string): string {
   return value.replace(/[^+\d]/g, '')
 }
 
+function readStaticImportSpecifiers(source: string): string[] {
+  const importPattern =
+    /^\s*import\s+(?:type\s+)?(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/gm
+
+  return [...source.matchAll(importPattern)].map(match => match[1])
+}
+
 describe('public demo private-guide isolation', () => {
   it('exposes complete deterministic demo fixtures', () => {
     expect(demoGuideData.favoritePois.length).toBeGreaterThan(0)
@@ -95,6 +103,16 @@ describe('public demo private-guide isolation', () => {
     expect(demoGuideData.contact.lodgingName).toBe(
       'Le 305 — démonstration',
     )
+    expect(demoGuideData.lodging).toHaveProperty('bedroomCount', 2)
+    expect(demoGuideData.lodging).not.toHaveProperty('bedrooms')
+    expect(demoGuideData.lodging.usefulNumbers).toEqual([
+      { label: 'Office de tourisme', number: '04 50 47 76 08' },
+    ])
+    expect(demoGuideData.lodging).toHaveProperty('emergencyNumbers', [
+      { label: 'Urgences européennes', number: '112' },
+      { label: 'SAMU', number: '15' },
+      { label: 'Pompiers', number: '18' },
+    ])
 
     const expectedEntities = [
       { path: 'demoGuideData.lodging', id: demoGuideData.lodging.id },
@@ -124,6 +142,34 @@ describe('public demo private-guide isolation', () => {
         id: expect.stringMatching(/^demo-/),
       })
     }
+
+    const fixtureIdGroups = {
+      favoritePois: demoGuideData.favoritePois.map(poi => poi.id),
+      lodgingCards: demoGuideData.lodgingCards.map(lodging => lodging.id),
+      blogPosts: demoGuideData.blogPosts.map(post => post.id),
+      practicalCards: demoGuideData.lodging.practicalCards.map(card => card.id),
+    }
+    for (const [group, ids] of Object.entries(fixtureIdGroups)) {
+      expect({ group, uniqueIds: new Set(ids).size }).toEqual({
+        group,
+        uniqueIds: ids.length,
+      })
+    }
+
+    expect(fixtureIdGroups.favoritePois).toEqual(
+      expect.arrayContaining([
+        'demo-poi-rond-de-carotte',
+        'demo-poi-porcherey',
+      ]),
+    )
+    expect(fixtureIdGroups.lodgingCards).toEqual([
+      'demo-chalet-des-cimes',
+      'demo-studio-du-parc',
+    ])
+    expect(fixtureIdGroups.blogPosts).toEqual([
+      'demo-blog-week-end-saint-gervais',
+      'demo-blog-escapade-montagne',
+    ])
   })
 
   it('contains no real identifiers or sensitive lodging-access details', () => {
@@ -138,12 +184,14 @@ describe('public demo private-guide isolation', () => {
     }
     const stayEntries = collectStringEntries(stayFixtures, 'stayFixtures')
     const stayValues = stayEntries.map(entry => entry.value)
-    const explicitlyFictional =
-      /(?:ficti(?:f|ve)|d[ée]monstration|exemple|non[- ]r[ée]el|aucun(?:e)?|ne\s+\S+\s+pas)/i
     const privateAddress =
       /\b\d{1,5}\s+(?:all[ée]e|avenue|boulevard|chemin|impasse|passage|place|route|rue)\b/i
     const accessLanguage =
       /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\s*(?::|=)\s*[a-z0-9-]{4,})/i
+    const explanatoryFictionalLanguage =
+      /(?:ficti(?:f|ve)|d[ée]monstration|exemple|non[- ]r[ée]el|aucun(?:e)?|ne\s+\S+\s+pas)/i
+    const numericAccessSecret =
+      /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\b)[^.!?\n]{0,48}\b\d{3,8}\b/i
     const vehiclePlate =
       /(?:plaque d['’]immatriculation|\bimmatriculation\b|\b[a-z]{2}-\d{3}-[a-z]{2}\b)/i
     const privateDocument =
@@ -151,17 +199,18 @@ describe('public demo private-guide isolation', () => {
     const knownPrivateDetails =
       /300 route du Mont-Blanc|1789|Bienvenue2026|Refuge-Mont-Blanc/i
     const sensitiveFixtureField =
-      /\.(?:accessCode|digicode|documentUrl|keyBox|lockCode|password|plateNumber|wifiPassword)$/i
+      /\.(?:accessCode|accessMedia|digicode|document(?:Id|Url)?|keyBox(?:Code)?|lock(?:Code)?|password|plaque|plateNumber|(?:host|owner|private)Phone)$/i
 
     const unsafeStayValues = stayEntries.filter(
       ({ path, value }) =>
         knownPrivateDetails.test(value) ||
-        (!explicitlyFictional.test(value) &&
-          (privateAddress.test(value) ||
-            accessLanguage.test(value) ||
-            vehiclePlate.test(value) ||
-            privateDocument.test(value) ||
-            sensitiveFixtureField.test(path))),
+        privateAddress.test(value) ||
+        numericAccessSecret.test(value) ||
+        vehiclePlate.test(value) ||
+        privateDocument.test(value) ||
+        sensitiveFixtureField.test(path) ||
+        (accessLanguage.test(value) &&
+          !explanatoryFictionalLanguage.test(value)),
     )
 
     const privatePhonePattern =
@@ -192,15 +241,23 @@ describe('public demo private-guide isolation', () => {
       ]),
       ...demoGuideData.blogPosts.map(post => post.coverUrl),
     ]
-    const sensitiveAccessMedia =
-      /\/(?:[^/]*(?:access|arrival|arriv[ée]e|digicode|document|door|entry|key|lock|plaque|private|serrure)[^/]*)\.(?:avif|jpe?g|pdf|png|webp|mov|mp4)(?:[?#]|$)/i
-
     expect(serialized).not.toMatch(uuidV1ToV5)
+    expect(demoGuideData.lodging.wifiName).toBe('MyStay-Demo')
+    expect(demoGuideData.lodging.wifiPassword).toBe('Exemple-Non-Reel')
+    expect(demoGuideData.lodging.addressLabel).toBe(
+      'Résidence de démonstration, centre de Saint-Gervais',
+    )
+    expect(demoGuideData.lodging.trashLocation).toBe(
+      'Point de tri public du centre de Saint-Gervais',
+    )
     expect(unsafeStayValues).toEqual([])
     expect(unexpectedPrivatePhones).toEqual([])
-    expect(stayMedia.filter(media => sensitiveAccessMedia.test(media))).toEqual(
-      [],
-    )
+    for (const media of stayMedia) {
+      expect({ media, approved: isApprovedDemoLodgingMedia(media) }).toEqual({
+        media,
+        approved: true,
+      })
+    }
   })
 
   it('keeps autonomous data modules independent from private and stateful sources', () => {
@@ -212,14 +269,40 @@ describe('public demo private-guide isolation', () => {
     expect(sources.map(file => file.path).sort()).toEqual(
       [...AUTONOMOUS_DATA_MODULES].sort(),
     )
-    expect(combinedSource).not.toMatch(/@\/features\/guide-app/i)
-    expect(combinedSource).not.toMatch(
-      /(?:@\/shared\/lib\/prisma|@prisma\/client|\bprisma\b)/i,
+
+    for (const file of sources) {
+      const importSpecifiers = readStaticImportSpecifiers(file.source)
+
+      for (const specifier of importSpecifiers) {
+        const resolvedImport = resolve(
+          GUIDE_DEMO_ROOT,
+          dirname(file.path),
+          specifier,
+        )
+        const pathFromDemoRoot = relative(GUIDE_DEMO_ROOT, resolvedImport)
+
+        expect({ file: file.path, specifier }).toEqual({
+          file: file.path,
+          specifier: expect.stringMatching(/^\.\.?\//),
+        })
+        expect(
+          pathFromDemoRoot.startsWith('..') || isAbsolute(pathFromDemoRoot),
+        ).toBe(false)
+      }
+
+      expect(file.source).not.toMatch(/\b(?:import|require)\s*\(/)
+    }
+
+    const demoContentSource = sources.find(
+      file => file.path === 'demo-content.ts',
     )
-    expect(combinedSource).not.toMatch(
-      /(?:\/queries\/|private-guide-data|\b(?:fetch|get|load|read)PrivateGuide(?:Data)?\b)/i,
+    expect(
+      readStaticImportSpecifiers(demoContentSource?.source ?? ''),
+    ).toContain('./demo-media-policy')
+    expect(demoContentSource?.source).not.toMatch(
+      /['"]\/marketing\/(?:guide-interior|demo-lodging-[^'"]*)['"]/,
     )
-    expect(combinedSource).not.toMatch(/next\/navigation/i)
+
     expect(combinedSource).not.toMatch(
       /(?:next\/headers|\bcookies?\s*\(|\bdocument\.cookie\b|\bcookieStore\b|\b(?:delete|get|parse|set)Cookies?\s*\()/i,
     )
