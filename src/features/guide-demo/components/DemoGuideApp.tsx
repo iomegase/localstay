@@ -3,14 +3,14 @@
 import { useRef, useState } from 'react'
 import { DemoGuideChrome } from './DemoGuideChrome'
 import { DemoHomeView } from './DemoHomeView'
+import { DemoLodgingGuideView } from './DemoLodgingGuideView'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import type { DemoGuideView } from '@/features/guide-demo/types'
 
 const PLACEHOLDER_HEADINGS: Record<
-  Exclude<DemoGuideView, 'home'>,
+  Exclude<DemoGuideView, 'home' | 'lodging'>,
   string
 > = {
-  lodging: 'Le 305',
   favorites: 'Nos coups de cœur',
   map: 'Carte',
   poi: 'Détail',
@@ -51,6 +51,8 @@ export function DemoGuideApp() {
           lodgingCity={demoGuideData.lodging.city}
           onNavigate={navigate}
         />
+      ) : activeView === 'lodging' ? (
+        <DemoLodgingGuideView lodging={demoGuideData.lodging} />
       ) : (
         <section className="grid min-h-full place-items-center px-6 pb-28 text-center">
           <h1 className="text-4xl font-bold tracking-[-0.04em] text-slate-900">
