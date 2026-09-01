@@ -80,12 +80,20 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     { destination: 'Guide du logement', heading: 'Le 305' },
     { destination: 'Coups de cœur', heading: 'Nos coups de cœur' },
     { destination: 'Carte', heading: 'Carte des coups de cœur' },
-    { destination: 'Nos logements', heading: 'Nos logements' },
-    { destination: 'Blog', heading: 'Blog' },
-    { destination: 'Nous contacter', heading: 'Votre hôte' },
+    {
+      destination: 'Nos logements',
+      heading: 'Nos logements',
+      focusHeading: true,
+    },
+    { destination: 'Blog', heading: 'Blog', focusHeading: true },
+    {
+      destination: 'Nous contacter',
+      heading: 'Votre hôte',
+      focusHeading: true,
+    },
   ])(
     'navigates to $destination from the local menu and closes it',
-    async ({ destination, heading }) => {
+    async ({ destination, focusHeading = false, heading }) => {
       const user = userEvent.setup()
       render(<DemoGuideApp />)
 
@@ -99,12 +107,17 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
         within(menu).getByRole('button', { name: destination }),
       )
 
-      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
+      const viewHeading = screen.getByRole('heading', { name: heading })
+      expect(viewHeading).toBeInTheDocument()
       expect(
         screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
       ).not.toBeInTheDocument()
       expect(window.location.pathname).toBe('/concept')
-      expect(opener).toHaveFocus()
+      if (focusHeading) {
+        expect(viewHeading).toHaveFocus()
+      } else {
+        expect(opener).toHaveFocus()
+      }
     },
   )
 

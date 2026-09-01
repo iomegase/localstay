@@ -2,6 +2,13 @@
 
 import { useRef, useState } from 'react'
 import { DemoGuideChrome } from './DemoGuideChrome'
+import {
+  DemoBlogDetailView,
+  DemoBlogView,
+  DemoContactView,
+  DemoLodgingDetailView,
+  DemoLodgingsView,
+} from './DemoEditorialViews'
 import { DemoFavoritesView } from './DemoFavoritesView'
 import { DemoHomeView } from './DemoHomeView'
 import { DemoLodgingGuideView } from './DemoLodgingGuideView'
@@ -9,24 +16,20 @@ import { DemoMapView } from './DemoMapView'
 import { DemoPoiDetailView } from './DemoPoiDetailView'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import { demoPois } from '@/features/guide-demo/demo-pois'
-import type { DemoGuideView, DemoPoi } from '@/features/guide-demo/types'
-
-const PLACEHOLDER_HEADINGS: Record<
-  Exclude<DemoGuideView, 'home' | 'lodging' | 'favorites' | 'map' | 'poi'>,
-  string
-> = {
-  lodgings: 'Nos logements',
-  'lodging-detail': 'Détail',
-  blog: 'Blog',
-  'blog-detail': 'Détail',
-  contact: 'Votre hôte',
-}
+import type {
+  DemoBlogPost,
+  DemoGuideView,
+  DemoLodgingCard,
+  DemoPoi,
+} from '@/features/guide-demo/types'
 
 export function DemoGuideApp() {
   const [activeView, setActiveView] = useState<DemoGuideView>('home')
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState<DemoPoi | null>(null)
   const [selectedMapPoi, setSelectedMapPoi] = useState<DemoPoi | null>(null)
+  const [selectedLodging, setSelectedLodging] = useState<DemoLodgingCard | null>(null)
+  const [selectedPost, setSelectedPost] = useState<DemoBlogPost | null>(null)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
   const [detailOrigin, setDetailOrigin] = useState<'favorites' | 'map'>('favorites')
   const mainRef = useRef<HTMLElement>(null)
@@ -53,6 +56,16 @@ export function DemoGuideApp() {
 
   function returnFromPoi() {
     navigate(detailOrigin)
+  }
+
+  function openLodging(lodging: DemoLodgingCard) {
+    setSelectedLodging(lodging)
+    navigate('lodging-detail')
+  }
+
+  function openPost(post: DemoBlogPost) {
+    setSelectedPost(post)
+    navigate('blog-detail')
   }
 
   return (
@@ -102,13 +115,23 @@ export function DemoGuideApp() {
           onBack={returnFromPoi}
           onShowOnMap={showOnMap}
         />
-      ) : activeView === 'poi' ? null : (
-        <section className="grid min-h-full place-items-center px-6 pb-28 text-center">
-          <h1 className="text-4xl font-bold tracking-[-0.04em] text-slate-900">
-            {PLACEHOLDER_HEADINGS[activeView]}
-          </h1>
-        </section>
-      )}
+      ) : activeView === 'lodgings' ? (
+        <DemoLodgingsView
+          lodgings={demoGuideData.lodgingCards}
+          onOpenLodging={openLodging}
+        />
+      ) : activeView === 'lodging-detail' && selectedLodging ? (
+        <DemoLodgingDetailView
+          lodging={selectedLodging}
+          onBack={() => navigate('lodgings')}
+        />
+      ) : activeView === 'blog' ? (
+        <DemoBlogView posts={demoGuideData.blogPosts} onOpenPost={openPost} />
+      ) : activeView === 'blog-detail' && selectedPost ? (
+        <DemoBlogDetailView post={selectedPost} onBack={() => navigate('blog')} />
+      ) : activeView === 'contact' ? (
+        <DemoContactView contact={demoGuideData.contact} />
+      ) : null}
     </DemoGuideChrome>
   )
 }

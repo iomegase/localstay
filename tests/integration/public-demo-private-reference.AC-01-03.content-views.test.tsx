@@ -3,6 +3,10 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
+import {
+  DemoBlogView,
+  DemoLodgingsView,
+} from '@/features/guide-demo/components/DemoEditorialViews'
 import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
 import { DemoPoiDetailView } from '@/features/guide-demo/components/DemoPoiDetailView'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
@@ -389,5 +393,84 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
         name: 'Aperçu de la randonnée L’Alpage de Porcherey',
       }),
     ).not.toBeInTheDocument()
+  })
+
+  it('renders autonomous lodging and blog content details, then returns to their parent views', async () => {
+    render(<DemoGuideApp />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+
+    const lodgingsHeading = screen.getByRole('heading', { name: 'Nos logements' })
+    await waitFor(() => expect(lodgingsHeading).toHaveFocus())
+    const lodgingButton = screen.getByRole('button', {
+      name: 'Voir Chalet des Cimes — démonstration',
+    })
+    expect(lodgingButton).toBeEnabled()
+    fireEvent.click(lodgingButton)
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: 'Chalet des Cimes — démonstration' }),
+      ).toHaveFocus(),
+    )
+    expect(screen.getByText('Cuisine équipée')).toBeInTheDocument()
+    expect(screen.getByText('Secteur fictif des hauteurs')).toBeInTheDocument()
+    expect(screen.getAllByRole('img')).not.toHaveLength(0)
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Retour aux logements' }),
+    )
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Nos logements' })).toHaveFocus(),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    const blogHeading = screen.getByRole('heading', { name: 'Blog' })
+    await waitFor(() => expect(blogHeading).toHaveFocus())
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Lire Un week-end de démonstration à Saint-Gervais',
+      }),
+    )
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', {
+          name: 'Un week-end de démonstration à Saint-Gervais',
+        }),
+      ).toHaveFocus(),
+    )
+    expect(screen.getByText('Une journée au village')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Retour au blog' }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Blog' })).toHaveFocus())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Nous contacter' }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre hôte' })).toHaveFocus())
+    expect(screen.getByText('Camille, hôte fictif')).toBeInTheDocument()
+    expect(screen.getByText('Le 305 — démonstration')).toBeInTheDocument()
+    expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Envoyer un message' }),
+    ).toBeDisabled()
+    expect(screen.getByTestId('autonomous-demo-guide').querySelector('form')).toBeNull()
+    expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
+    expect(window.location.pathname).toBe('/concept')
+  })
+
+  it('keeps useful local empty states for lodging and blog collections', () => {
+    const { rerender } = render(
+      <DemoLodgingsView lodgings={[]} onOpenLodging={jest.fn()} />,
+    )
+
+    expect(
+      screen.getByText('Aucun logement de démonstration n’est disponible pour le moment.'),
+    ).toBeInTheDocument()
+
+    rerender(<DemoBlogView posts={[]} onOpenPost={jest.fn()} />)
+
+    expect(
+      screen.getByText('Aucun article de démonstration n’est disponible pour le moment.'),
+    ).toBeInTheDocument()
   })
 })
