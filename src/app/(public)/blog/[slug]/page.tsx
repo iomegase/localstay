@@ -214,7 +214,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
         </div>
 
         <aside
-          className={`${marketingContainerClass} mt-20 flex flex-col items-start gap-10 rounded-[26px] bg-slate-800 px-7 py-9 text-white sm:px-12 sm:py-12 min-[701px]:mt-28 min-[701px]:flex-row min-[701px]:items-end min-[701px]:justify-between min-[701px]:px-[58px] min-[701px]:py-[52px]`}
+          className={`${marketingContainerClass} mt-20 flex flex-col items-start gap-10 rounded-[26px] px-6 bg-slate-800  py-9 text-white sm:px-12 sm:py-12 min-[701px]:mt-28 min-[701px]:flex-row min-[701px]:items-end min-[701px]:justify-between min-[701px]:px-[58px] min-[701px]:py-[52px]`}
         >
           <div>
             <MarketingEyebrow light>Votre logement</MarketingEyebrow>
@@ -241,7 +241,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
             <div className="mt-9 grid gap-4 min-[701px]:grid-cols-3">
               {relatedArticles.map(related => (
                 <Link
-                  className="grid min-h-28 grid-cols-[80px_1fr_auto] items-center gap-3 rounded-[22px] border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 min-[701px]:grid-cols-[74px_1fr_auto] min-[1051px]:grid-cols-[92px_1fr_auto]"
+                  className="grid min-h-28 grid-cols-[80px_1fr_auto] items-center gap-3 rounded-[22px] shadow-[0_4px_12px_rgba(0,0,0,0.1)] bg-white p-3 transition-colors hover:border-slate-300 min-[701px]:grid-cols-[74px_1fr_auto] min-[1051px]:grid-cols-[92px_1fr_auto]"
                   href={`/blog/${related.slug}`}
                   key={related.id}
                 >
