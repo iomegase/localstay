@@ -1,8 +1,12 @@
 /** @jest-environment jsdom */
 
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
 import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
+import { DemoPoiDetailView } from '@/features/guide-demo/components/DemoPoiDetailView'
+import { demoLodging } from '@/features/guide-demo/demo-guide-data'
+import { demoPois } from '@/features/guide-demo/demo-pois'
 
 function openFavorites() {
   render(<DemoGuideApp />)
@@ -52,15 +56,44 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     fireEvent.click(
       within(grid).getByRole('button', { name: 'Ouvrir Rond de Carotte' }),
     )
-    expect(
-      screen.getByRole('heading', { name: 'Rond de Carotte' }),
-    ).toBeInTheDocument()
+    const poiHeading = screen.getByRole('heading', { name: 'Rond de Carotte' })
+    expect(poiHeading).toHaveFocus()
     fireEvent.click(
       screen.getByRole('button', { name: 'Retour aux coups de cœur' }),
     )
-    expect(screen.getByTestId('favorites-bento-grid')).toBeInTheDocument()
+    const restoredFilterBar = screen.getByRole('group', {
+      name: 'Filtrer les catégories',
+    })
+    const restoredGrid = screen.getByTestId('favorites-bento-grid')
+    expect(
+      within(restoredFilterBar).getByRole('button', { name: 'Restaurants' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(within(restoredGrid).getAllByTestId('favorite-bento-card')).toHaveLength(3)
+    expect(
+      screen.getByRole('heading', { name: 'Nos coups de cœur' }),
+    ).toHaveFocus()
     expect(window.location.pathname).toBe('/concept')
     expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
+  })
+
+  it('keeps compact bento cards usable without long visual controls', () => {
+    openFavorites()
+    const compactCard = screen
+      .getByText('Bistrotsérac')
+      .closest('article') as HTMLElement
+
+    expect(compactCard).toHaveAttribute('data-variant', 'compact')
+    expect(
+      within(compactCard).queryByText('Cuisine à la braise sur la place du village.'),
+    ).not.toBeInTheDocument()
+    const open = within(compactCard).getByRole('button', {
+      name: 'Ouvrir Bistrotsérac',
+    })
+    const map = within(compactCard).getByRole('button', {
+      name: 'Afficher Bistrotsérac sur la carte',
+    })
+    expect(open).toHaveTextContent('Ouvrir')
+    expect(map).toHaveTextContent('Carte')
   })
 
   it('shows the public POI content while keeping effectful controls disabled', () => {
@@ -165,7 +198,8 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
     expect(
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
-    ).toBeInTheDocument()
+    ).toHaveFocus()
+    expect(screen.queryByRole('heading', { name: 'Carte' })).not.toBeInTheDocument()
     expect(
       screen.getByText('Carte de démonstration · position GPS désactivée'),
     ).toBeInTheDocument()
@@ -179,9 +213,10 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
         name: 'Afficher Rond de Carotte sur la carte',
       }),
     )
-    expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
-    ).toBeInTheDocument()
+    const preview = screen.getByTestId('demo-map-preview')
+    expect(preview).toHaveFocus()
+    expect(preview).not.toHaveClass('fixed')
+    expect(preview).toHaveAttribute('role', 'region')
     fireEvent.click(
       screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
     )
@@ -189,6 +224,23 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
+    expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
+  })
+
+  it('uses the local fallback if a selected map-preview image fails', () => {
+    render(<DemoGuideApp />)
+    fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Afficher Rond de Carotte sur la carte',
+      }),
+    )
+
+    const previewImage = screen
+      .getByTestId('demo-map-preview')
+      .querySelector('img') as HTMLImageElement
+    fireEvent.error(previewImage)
+    expect(previewImage.getAttribute('src')).toBe('/fallback/fallback-restaurant.png')
   })
 
   it('selects a POI on the static map from the favorites action', () => {
@@ -237,5 +289,51 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByText('Aucun coup de cœur à afficher sur cette carte.'),
     ).toBeInTheDocument()
+  })
+
+  it('announces focused local view transitions without disrupting the guide URL', async () => {
+    const user = userEvent.setup()
+    render(<DemoGuideApp />)
+
+    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    expect(
+      screen.getByRole('heading', { name: 'Nos coups de cœur' }),
+    ).toHaveFocus()
+    await user.click(
+      screen.getByRole('button', { name: 'Afficher Rond de Carotte sur la carte' }),
+    )
+    expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
+    expect(window.location.pathname).toBe('/concept')
+  })
+
+  it('renders unavailable trail metrics without an empty geometry preview', () => {
+    const porcherey = demoPois.find(poi => poi.slug === 'alpage-de-porcherey')
+    if (!porcherey?.trail) throw new Error('Porcherey trail fixture is required')
+
+    render(
+      <DemoPoiDetailView
+        lodging={demoLodging}
+        poi={{
+          ...porcherey,
+          trail: {
+            ...porcherey.trail,
+            distanceKm: null,
+            elevationGainM: null,
+            estimatedDurationMinutes: null,
+            geometry: { type: 'MultiLineString', coordinates: [] },
+          },
+        }}
+        returnLabel="Retour aux coups de cœur"
+        onBack={jest.fn()}
+        onShowOnMap={jest.fn()}
+      />,
+    )
+
+    expect(screen.getAllByText('Indisponible')).toHaveLength(3)
+    expect(
+      screen.queryByRole('img', {
+        name: 'Aperçu de la randonnée L’Alpage de Porcherey',
+      }),
+    ).not.toBeInTheDocument()
   })
 })

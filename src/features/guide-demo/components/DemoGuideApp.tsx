@@ -27,6 +27,7 @@ export function DemoGuideApp() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState<DemoPoi | null>(null)
   const [selectedMapPoi, setSelectedMapPoi] = useState<DemoPoi | null>(null)
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
   const [detailOrigin, setDetailOrigin] = useState<'favorites' | 'map'>('favorites')
   const mainRef = useRef<HTMLElement>(null)
 
@@ -76,6 +77,8 @@ export function DemoGuideApp() {
       ) : activeView === 'favorites' ? (
         <DemoFavoritesView
           pois={demoPois}
+          selectedCategorySlug={selectedCategorySlug}
+          onFilter={setSelectedCategorySlug}
           onOpenPoi={poi => openPoi(poi, 'favorites')}
           onShowOnMap={showOnMap}
         />

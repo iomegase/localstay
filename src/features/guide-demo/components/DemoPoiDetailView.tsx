@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowLeft, Clock3, MapPinned, Star } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoLodging, DemoPoi, DemoTrailGeometry } from '@/features/guide-demo/types'
 
@@ -53,7 +54,17 @@ function hostnameForPhoto(poi: DemoPoi) {
 }
 
 function geometryToPolylines(geometry: DemoTrailGeometry) {
-  const points = geometry.coordinates.flat()
+  const lines = geometry.coordinates
+    .map(line =>
+      line.filter(
+        ([longitude, latitude]) =>
+          Number.isFinite(longitude) && Number.isFinite(latitude),
+      ),
+    )
+    .filter(line => line.length >= 2)
+  if (lines.length === 0) return []
+
+  const points = lines.flat()
   const longitudes = points.map(([longitude]) => longitude)
   const latitudes = points.map(([, latitude]) => latitude)
   const minLongitude = Math.min(...longitudes)
@@ -63,14 +74,18 @@ function geometryToPolylines(geometry: DemoTrailGeometry) {
   const padding = 8
   const width = 240
   const height = 140
-  const longitudeRange = maxLongitude - minLongitude || 1
-  const latitudeRange = maxLatitude - minLatitude || 1
+  const longitudeRange = maxLongitude - minLongitude
+  const latitudeRange = maxLatitude - minLatitude
 
-  return geometry.coordinates.map(line =>
+  return lines.map(line =>
     line
       .map(([longitude, latitude]) => {
-        const x = padding + ((longitude - minLongitude) / longitudeRange) * (width - padding * 2)
-        const y = height - padding - ((latitude - minLatitude) / latitudeRange) * (height - padding * 2)
+        const x = longitudeRange === 0
+          ? width / 2
+          : padding + ((longitude - minLongitude) / longitudeRange) * (width - padding * 2)
+        const y = latitudeRange === 0
+          ? height / 2
+          : height - padding - ((latitude - minLatitude) / latitudeRange) * (height - padding * 2)
         return `${x.toFixed(1)},${y.toFixed(1)}`
       })
       .join(' '),
@@ -78,7 +93,7 @@ function geometryToPolylines(geometry: DemoTrailGeometry) {
 }
 
 function formatDuration(minutes: number | null) {
-  if (minutes === null) return null
+  if (minutes === null) return 'Indisponible'
   const hours = Math.floor(minutes / 60)
   const remainingMinutes = minutes % 60
   return remainingMinutes === 0 ? `${hours} h` : `${hours} h ${remainingMinutes}`
@@ -95,6 +110,11 @@ export function DemoPoiDetailView({
   const photoAttribution = hostnameForPhoto(poi)
   const trail = poi.trail
   const polylines = trail?.geometry ? geometryToPolylines(trail.geometry) : []
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    headingRef.current?.focus()
+  }, [])
 
   return (
     <article className="min-h-full overflow-x-hidden bg-[#faf9f6] pb-10">
@@ -104,6 +124,7 @@ export function DemoPoiDetailView({
           category={poi.category}
           name={poi.name}
           decorative
+          loading="eager"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/60" />
@@ -123,7 +144,7 @@ export function DemoPoiDetailView({
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#455e4c]">
               {poi.category.name}
             </p>
-            <h1 className="mt-2 font-serif text-4xl italic leading-tight tracking-[-0.04em] text-[#121212]">
+            <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic leading-tight tracking-[-0.04em] text-[#121212]">
               {poi.name}
             </h1>
             <p className="mt-3 text-sm leading-5 text-slate-600">{poi.address}</p>
@@ -203,8 +224,8 @@ export function DemoPoiDetailView({
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Randonnée</p>
             <h2 className="mt-2 font-serif text-3xl italic">Informations du parcours</h2>
             <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-              <p><span className="block text-xl font-bold">{trail.distanceKm?.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km</span>Distance</p>
-              <p><span className="block text-xl font-bold">{trail.elevationGainM} m</span>Dénivelé positif</p>
+              <p><span className="block text-xl font-bold">{trail.distanceKm === null ? 'Indisponible' : `${trail.distanceKm.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`}</span>Distance</p>
+              <p><span className="block text-xl font-bold">{trail.elevationGainM === null ? 'Indisponible' : `${trail.elevationGainM} m`}</span>Dénivelé positif</p>
               <p><span className="block text-xl font-bold">{formatDuration(trail.estimatedDurationMinutes)}</span>Durée</p>
               <p><span className="block text-xl font-bold">{trail.difficulty === 'easy' ? 'Facile' : trail.difficulty}</span>{trail.startLabel}</p>
             </div>

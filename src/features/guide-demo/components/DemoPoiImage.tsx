@@ -8,6 +8,7 @@ type DemoPoiImageProps = {
   category: DemoPoiCategory
   className: string
   decorative?: boolean
+  loading: 'eager' | 'lazy'
   name: string
   primarySrc?: string
 }
@@ -30,6 +31,7 @@ export function DemoPoiImage({
   category,
   className,
   decorative = false,
+  loading,
   name,
   primarySrc,
 }: DemoPoiImageProps) {
@@ -39,6 +41,7 @@ export function DemoPoiImage({
   return (
     <img
       src={source}
+      loading={loading}
       alt={decorative ? '' : `Photo de ${name}`}
       onError={event => {
         if (event.currentTarget.getAttribute('src') !== fallback) {

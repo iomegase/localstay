@@ -1,8 +1,8 @@
 'use client'
 
-/* eslint-disable @next/next/no-img-element */
-
 import { MapPin, X } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoPoi } from '@/features/guide-demo/types'
 
 type DemoMapViewProps = {
@@ -37,16 +37,26 @@ export function DemoMapView({
   onDeselectPoi,
   onOpenPoi,
 }: DemoMapViewProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const previewRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    headingRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (selectedPoi) previewRef.current?.focus()
+  }, [selectedPoi])
+
   return (
-    <section className="min-h-full bg-[#faf9f6] pb-32 pt-6">
+    <section data-testid="demo-map-root" className="relative flex min-h-full flex-1 flex-col overflow-hidden bg-[#faf9f6] pb-32 pt-6">
       <div className="px-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#a68e69]">
           Points d’intérêt
         </p>
-        <h1 className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+        <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
           Carte des coups de cœur
         </h1>
-        <h2 className="sr-only">Carte</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Carte de démonstration · position GPS désactivée
         </p>
@@ -95,11 +105,22 @@ export function DemoMapView({
       </div>
 
       {selectedPoi ? (
-        <article className="fixed inset-x-6 bottom-24 z-20 rounded-[26px] bg-white p-4 shadow-[0_18px_42px_rgba(15,23,42,0.22)] ring-1 ring-stone-200">
+        <article
+          ref={previewRef}
+          data-testid="demo-map-preview"
+          role="region"
+          aria-label={`Aperçu de ${selectedPoi.name}`}
+          aria-live="polite"
+          tabIndex={-1}
+          className="absolute inset-x-4 bottom-24 z-20 rounded-[26px] bg-white p-4 shadow-[0_18px_42px_rgba(15,23,42,0.22)] ring-1 ring-stone-200"
+        >
           <div className="flex gap-3">
-            <img
-              src={selectedPoi.photos[0] ?? '/fallback/fallback-rando.png'}
-              alt=""
+            <DemoPoiImage
+              primarySrc={selectedPoi.photos[0]}
+              category={selectedPoi.category}
+              name={selectedPoi.name}
+              decorative
+              loading="lazy"
               className="h-20 w-20 rounded-2xl object-cover"
             />
             <div className="min-w-0 flex-1">

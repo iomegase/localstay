@@ -1,22 +1,26 @@
 'use client'
 
 import { MapPinned, Star } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoPoi } from '@/features/guide-demo/types'
 
 type DemoFavoritesViewProps = {
   pois: readonly DemoPoi[]
+  selectedCategorySlug: string | null
+  onFilter: (categorySlug: string | null) => void
   onOpenPoi: (poi: DemoPoi) => void
   onShowOnMap: (poi: DemoPoi) => void
 }
 
 export function DemoFavoritesView({
   pois,
+  selectedCategorySlug,
+  onFilter,
   onOpenPoi,
   onShowOnMap,
 }: DemoFavoritesViewProps) {
-  const [categorySlug, setCategorySlug] = useState<string | null>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const categories = useMemo(
     () =>
       Array.from(
@@ -24,9 +28,13 @@ export function DemoFavoritesView({
       ),
     [pois],
   )
-  const visiblePois = categorySlug
-    ? pois.filter(poi => poi.category.slug === categorySlug)
+  const visiblePois = selectedCategorySlug
+    ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
     : pois
+
+  useEffect(() => {
+    headingRef.current?.focus()
+  }, [])
 
   return (
     <section className="min-h-full bg-[#faf9f6] pb-32 pt-6">
@@ -34,7 +42,7 @@ export function DemoFavoritesView({
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#a68e69]">
           Saint-Gervais-les-Bains
         </p>
-        <h1 className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+        <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
           Nos coups de cœur
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -49,10 +57,10 @@ export function DemoFavoritesView({
       >
         <button
           type="button"
-          aria-pressed={categorySlug === null}
-          onClick={() => setCategorySlug(null)}
+          aria-pressed={selectedCategorySlug === null}
+          onClick={() => onFilter(null)}
           className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold transition-colors ${
-            categorySlug === null
+            selectedCategorySlug === null
               ? 'bg-[#121212] text-white'
               : 'bg-white text-slate-700 ring-1 ring-stone-200'
           }`}
@@ -63,10 +71,10 @@ export function DemoFavoritesView({
           <button
             key={category.slug}
             type="button"
-            aria-pressed={categorySlug === category.slug}
-            onClick={() => setCategorySlug(category.slug)}
+            aria-pressed={selectedCategorySlug === category.slug}
+            onClick={() => onFilter(category.slug)}
             className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold transition-colors ${
-              categorySlug === category.slug
+              selectedCategorySlug === category.slug
                 ? 'bg-[#455e4c] text-white'
                 : 'bg-white text-slate-700 ring-1 ring-stone-200'
             }`}
@@ -97,6 +105,7 @@ export function DemoFavoritesView({
                   category={poi.category}
                   name={poi.name}
                   decorative
+                  loading={big ? 'eager' : 'lazy'}
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -104,7 +113,7 @@ export function DemoFavoritesView({
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
                     {poi.category.name}
                   </p>
-                  <h2 className={`mt-1 font-serif italic leading-tight ${big ? 'text-3xl' : 'text-xl'}`}>
+                  <h2 className={`mt-1 font-serif italic leading-tight ${big ? 'text-3xl' : 'line-clamp-2 text-lg'}`}>
                     {poi.name}
                   </h2>
                   {poi.rating ? (
@@ -113,24 +122,28 @@ export function DemoFavoritesView({
                       {poi.rating.toFixed(1)}
                     </p>
                   ) : null}
-                  <p className="mt-2 line-clamp-2 text-xs leading-4 text-white/90">
-                    {poi.shortDescription}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  {big ? (
+                    <p className="mt-2 line-clamp-2 text-xs leading-4 text-white/90">
+                      {poi.shortDescription}
+                    </p>
+                  ) : null}
+                  <div className={`mt-3 flex gap-2 ${big ? 'flex-wrap' : ''}`}>
                     <button
                       type="button"
                       onClick={() => onOpenPoi(poi)}
-                      className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-slate-900"
+                      aria-label={big ? undefined : `Ouvrir ${poi.name}`}
+                      className={`rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-slate-900 ${big ? '' : 'min-h-8 flex-1'}`}
                     >
-                      Ouvrir {poi.name}
+                      {big ? `Ouvrir ${poi.name}` : 'Ouvrir'}
                     </button>
                     <button
                       type="button"
                       onClick={() => onShowOnMap(poi)}
-                      className="inline-flex items-center gap-1 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-bold text-white ring-1 ring-white/40"
+                      aria-label={big ? undefined : `Afficher ${poi.name} sur la carte`}
+                      className={`inline-flex items-center gap-1 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-bold text-white ring-1 ring-white/40 ${big ? '' : 'min-h-8 flex-1 justify-center'}`}
                     >
                       <MapPinned className="h-3 w-3" aria-hidden="true" />
-                      Afficher {poi.name} sur la carte
+                      {big ? `Afficher ${poi.name} sur la carte` : 'Carte'}
                     </button>
                   </div>
                 </div>

@@ -79,7 +79,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     { destination: 'Accueil', heading: 'Bienvenue au 305' },
     { destination: 'Guide du logement', heading: 'Le 305' },
     { destination: 'Coups de cœur', heading: 'Nos coups de cœur' },
-    { destination: 'Carte', heading: 'Carte' },
+    { destination: 'Carte', heading: 'Carte des coups de cœur' },
     { destination: 'Nos logements', heading: 'Nos logements' },
     { destination: 'Blog', heading: 'Blog' },
     { destination: 'Nous contacter', heading: 'Votre hôte' },
