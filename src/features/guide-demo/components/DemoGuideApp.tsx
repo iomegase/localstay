@@ -23,6 +23,24 @@ import type {
   DemoPoi,
 } from '@/features/guide-demo/types'
 
+type DemoEditorialSelections = {
+  selectedLodging: DemoLodgingCard | null
+  selectedPost: DemoBlogPost | null
+}
+
+export function getEditorialSelectionsForView(
+  view: DemoGuideView,
+  selections: DemoEditorialSelections,
+): DemoEditorialSelections {
+  const keepsLodging = view === 'lodgings' || view === 'lodging-detail'
+  const keepsPost = view === 'blog' || view === 'blog-detail'
+
+  return {
+    selectedLodging: keepsLodging ? selections.selectedLodging : null,
+    selectedPost: keepsPost ? selections.selectedPost : null,
+  }
+}
+
 export function DemoGuideApp() {
   const [activeView, setActiveView] = useState<DemoGuideView>('home')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -34,9 +52,19 @@ export function DemoGuideApp() {
   const [detailOrigin, setDetailOrigin] = useState<'favorites' | 'map'>('favorites')
   const mainRef = useRef<HTMLElement>(null)
 
-  function navigate(view: DemoGuideView) {
+  function navigate(
+    view: DemoGuideView,
+    editorialSelections: DemoEditorialSelections = {
+      selectedLodging,
+      selectedPost,
+    },
+  ) {
+    const nextSelections = getEditorialSelectionsForView(view, editorialSelections)
+
     setActiveView(view)
     setMenuOpen(false)
+    setSelectedLodging(nextSelections.selectedLodging)
+    setSelectedPost(nextSelections.selectedPost)
 
     if (mainRef.current) {
       mainRef.current.scrollTop = 0
@@ -59,13 +87,11 @@ export function DemoGuideApp() {
   }
 
   function openLodging(lodging: DemoLodgingCard) {
-    setSelectedLodging(lodging)
-    navigate('lodging-detail')
+    navigate('lodging-detail', { selectedLodging: lodging, selectedPost })
   }
 
   function openPost(post: DemoBlogPost) {
-    setSelectedPost(post)
-    navigate('blog-detail')
+    navigate('blog-detail', { selectedLodging, selectedPost: post })
   }
 
   return (

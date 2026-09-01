@@ -2,7 +2,10 @@
 
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
+import {
+  DemoGuideApp,
+  getEditorialSelectionsForView,
+} from '@/features/guide-demo/components/DemoGuideApp'
 import {
   DemoBlogView,
   DemoLodgingsView,
@@ -10,6 +13,7 @@ import {
 import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
 import { DemoPoiDetailView } from '@/features/guide-demo/components/DemoPoiDetailView'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
+import { demoGuideData } from '@/features/guide-demo/demo-content'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 function openFavorites() {
@@ -472,5 +476,51 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByText('Aucun article de démonstration n’est disponible pour le moment.'),
     ).toBeInTheDocument()
+  })
+
+  it('uses each lodging and blog card as its single native interactive control', () => {
+    render(<DemoGuideApp />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    const lodgingCard = screen.getAllByTestId('demo-lodging-card')[0]
+    expect(lodgingCard.tagName).toBe('BUTTON')
+    expect(lodgingCard).toHaveAccessibleName('Voir Chalet des Cimes — démonstration')
+    expect(lodgingCard.querySelector('img')).not.toBeNull()
+    expect(lodgingCard.querySelectorAll('button')).toHaveLength(0)
+    expect(lodgingCard.querySelectorAll('a')).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    const blogCard = screen.getAllByTestId('demo-blog-card')[0]
+    expect(blogCard.tagName).toBe('BUTTON')
+    expect(blogCard).toHaveAccessibleName(
+      'Lire Un week-end de démonstration à Saint-Gervais',
+    )
+    expect(blogCard.querySelector('img')).not.toBeNull()
+    expect(blogCard.querySelectorAll('button')).toHaveLength(0)
+    expect(blogCard.querySelectorAll('a')).toHaveLength(0)
+  })
+
+  it('clears editorial selections on every view outside their list and detail families', () => {
+    const selections = {
+      selectedLodging: demoGuideData.lodgingCards[0],
+      selectedPost: demoGuideData.blogPosts[0],
+    }
+
+    expect(
+      getEditorialSelectionsForView('lodging-detail', selections),
+    ).toEqual({
+      selectedLodging: selections.selectedLodging,
+      selectedPost: null,
+    })
+    expect(getEditorialSelectionsForView('blog', selections)).toEqual({
+      selectedLodging: null,
+      selectedPost: selections.selectedPost,
+    })
+    expect(getEditorialSelectionsForView('home', selections)).toEqual({
+      selectedLodging: null,
+      selectedPost: null,
+    })
   })
 })

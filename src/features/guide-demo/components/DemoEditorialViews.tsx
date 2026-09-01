@@ -97,32 +97,32 @@ export function DemoLodgingsView({
       ) : (
         <div className="mt-6 grid gap-4">
           {lodgings.map(lodging => (
-            <article
+            <button
               key={lodging.id}
-              className="overflow-hidden rounded-[24px] border border-slate-100 bg-white shadow-[0_6px_22px_rgba(15,23,42,0.08)]"
+              type="button"
+              data-testid="demo-lodging-card"
+              aria-label={`Voir ${lodging.title}`}
+              onClick={() => onOpenLodging(lodging)}
+              className="overflow-hidden rounded-[24px] border border-slate-100 bg-white text-left shadow-[0_6px_22px_rgba(15,23,42,0.08)]"
             >
-              <div className="aspect-[16/9] overflow-hidden bg-slate-100">
+              <span className="block aspect-[16/9] overflow-hidden bg-slate-100">
                 <DemoContentImage alt={lodging.photos[0]?.alt ?? lodging.title} src={lodging.coverPhotoUrl} />
-              </div>
-              <div className="p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-pink-600">
+              </span>
+              <span className="block p-4">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-pink-600">
                   {lodging.propertyType} · {lodging.cityName}
-                </p>
-                <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">
+                </span>
+                <span className="mt-1 block text-xl font-semibold tracking-[-0.03em] text-slate-900">
                   {lodging.title}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+                </span>
+                <span className="mt-2 block text-sm leading-6 text-slate-600">
                   {lodging.shortDescription}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onOpenLodging(lodging)}
-                  className="mt-4 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
-                >
+                </span>
+                <span className="mt-4 inline-block rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">
                   Voir {lodging.title}
-                </button>
-              </div>
-            </article>
+                </span>
+              </span>
+            </button>
           ))}
         </div>
       )}
@@ -258,21 +258,28 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
       ) : (
         <div className="mt-6 grid gap-4">
           {posts.map(post => (
-            <article key={post.id} className="overflow-hidden rounded-[24px] border border-slate-100 shadow-[0_6px_22px_rgba(15,23,42,0.08)]">
-              <div className="aspect-[16/9] overflow-hidden bg-slate-100">
+            <button
+              key={post.id}
+              type="button"
+              data-testid="demo-blog-card"
+              aria-label={`Lire ${post.title}`}
+              onClick={() => onOpenPost(post)}
+              className="overflow-hidden rounded-[24px] border border-slate-100 text-left shadow-[0_6px_22px_rgba(15,23,42,0.08)]"
+            >
+              <span className="block aspect-[16/9] overflow-hidden bg-slate-100">
                 <DemoContentImage alt={`Illustration de ${post.title}`} src={post.coverUrl} />
-              </div>
-              <div className="p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-pink-600">
+              </span>
+              <span className="block p-4">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-pink-600">
                   {post.categoryLabel} · {post.cityName}
-                </p>
-                <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-900">{post.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{post.excerpt}</p>
-                <button type="button" onClick={() => onOpenPost(post)} className="mt-4 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">
+                </span>
+                <span className="mt-1 block text-xl font-semibold tracking-[-0.03em] text-slate-900">{post.title}</span>
+                <span className="mt-2 block text-sm leading-6 text-slate-600">{post.excerpt}</span>
+                <span className="mt-4 inline-block rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">
                   Lire {post.title}
-                </button>
-              </div>
-            </article>
+                </span>
+              </span>
+            </button>
           ))}
         </div>
       )}
