@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-28
-updated_at: 2026-08-28
+updated_at: 2026-09-01
 depends_on:
   - 006-qr-code
   - 028-lodging-showcase-seo
@@ -18,7 +18,7 @@ depends_on:
   - 034-private-guide-app
   - 041-public-local-discovery
 bounded_context: seo
-implementation_gate: "Conception validée par le Product Owner le 2026-08-28"
+implementation_gate: "Conception initiale validée le 2026-08-28 ; extension auth noindex validée par le Product Owner le 2026-09-01"
 supersedes:
   - "028 et 031 pour les URL publiques de logements"
   - "031 pour la destination canonique d'une entrée QR avec Lodging ; confirme 034"
@@ -83,6 +83,11 @@ existe.
 - **AC-01-04**: Given `robots.txt`, When un moteur le lit, Then les surfaces
   privées ne sont pas bloquées par une règle qui empêcherait la lecture du
   `noindex`.
+- **AC-01-05**: Given `/auth/login`, `/auth/register`,
+  `/auth/forgot-password` ou `/auth/reset-password`, When la page est rendue,
+  Then le layout commun applique `index: false`, `follow: false` et
+  `noarchive: true`, sans changement visuel ni blocage de `/auth` dans
+  `robots.txt`.
 
 ### US-02 — Publier les logements sous une URL propre
 
@@ -243,6 +248,9 @@ existe.
   puissent lire `noindex`. `robots.txt` ne constitue jamais leur seul contrôle.
 - **BR-05**: Le contrôle d'accès applicatif reste obligatoire ; les metadata
   robots ne sont pas une mesure de sécurité.
+- **BR-05A**: Les routes fonctionnelles d'authentification `/auth/*` restent
+  crawlables mais non indexables. Leur politique robots provient du layout
+  Auth commun et elles restent absentes du sitemap.
 - **BR-06**: La branche QR avec un UUID valide est évaluée avant toute
   redirection SEO ou règle de confinement `/guide`.
 - **BR-07**: La destination canonique d'une entrée QR est `/sejour`, ce qui
@@ -375,6 +383,9 @@ Aucune nouvelle route API n'est introduite.
 - `/contact` reste une surface privée dans cette feature, même si son composant
   possède encore un rendu sans Lodging ; elle n'apparaît jamais dans le
   sitemap.
+- Les routes `/auth/login`, `/auth/register`, `/auth/forgot-password` et
+  `/auth/reset-password` héritent toutes de la politique robots privée depuis
+  leur layout commun, sans modification de leur rendu.
 
 ### Redirections et erreurs
 
@@ -396,6 +407,7 @@ Aucune nouvelle route API n'est introduite.
 | AC-01-02 | Anciennes routes privées portent les mêmes robots | unit + integration |
 | AC-01-03 | Rewrite accès réservé sans page indexable dupliquée | integration + e2e |
 | AC-01-04 | robots.txt laisse lire le noindex | unit |
+| AC-01-05 | `/auth/*` porte noindex/nofollow/noarchive via son layout commun | integration |
 | AC-02-01 | Fiche `/logements/{slug}` publiée → 200 | integration + e2e |
 | AC-02-02 | Fiche non publique → 404/noindex | integration |
 | AC-02-03 | Ancienne fiche logement → 308 | unit + e2e |
@@ -432,6 +444,7 @@ Aucune nouvelle route API n'est introduite.
 - Modification du contenu éditorial des POI ou logements ; voir spec 043.
 - Réservation, prix, disponibilités, paiement ou compte Tourist.
 - Modification des règles de publication POI de la spec 041.
+- Modification visuelle ou fonctionnelle des parcours d'authentification.
 - Ajout d'informations Organization non vérifiées.
 - Déploiement Vercel, soumission Search Console ou demande de réindexation.
 
@@ -445,3 +458,5 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-28 :
 - les slugs logements deviennent globalement uniques après audit ;
 - `/contact` reste privée et non indexable dans cette feature ;
 - les QR historiques restent prioritaires et atterrissent sur `/sejour`.
+- les quatre routes `/auth/*` existantes restent fonctionnelles, crawlables et
+  explicitement non indexables via leur layout commun.
