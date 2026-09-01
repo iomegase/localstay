@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
 
 describe('045-public-demo-private-guide-reference autonomous navigation', () => {
@@ -19,10 +20,15 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     expect(
       within(guide).getByText('Logement fictif · démonstration'),
     ).toBeInTheDocument()
+    const videoButton = within(guide).getByRole('button', {
+      name: /Voir la vidéo du logement/i,
+    })
+    expect(videoButton).toBeDisabled()
+    expect(videoButton).toHaveAttribute('aria-disabled', 'true')
     expect(
-      within(guide).getByRole('button', {
-        name: /Voir la vidéo du logement/i,
-      }),
+      within(guide).getByText(
+        'Vidéo indisponible dans cette démonstration',
+      ),
     ).toBeInTheDocument()
     expect(
       within(guide).getByRole('button', {
@@ -79,35 +85,103 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     { destination: 'Nous contacter', heading: 'Votre hôte' },
   ])(
     'navigates to $destination from the local menu and closes it',
-    ({ destination, heading }) => {
+    async ({ destination, heading }) => {
+      const user = userEvent.setup()
       render(<DemoGuideApp />)
 
-      fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+      const opener = screen.getByRole('button', { name: 'Ouvrir le menu' })
+      await user.click(opener)
       const menu = screen.getByRole('navigation', {
         name: 'Menu de démonstration',
       })
 
-      fireEvent.click(within(menu).getByRole('button', { name: destination }))
+      await user.click(
+        within(menu).getByRole('button', { name: destination }),
+      )
 
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
       expect(
         screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
       ).not.toBeInTheDocument()
       expect(window.location.pathname).toBe('/concept')
+      expect(opener).toHaveFocus()
     },
   )
 
-  it('closes the menu without navigating', () => {
+  it('contains keyboard focus inside the modal menu', async () => {
+    const user = userEvent.setup()
     render(<DemoGuideApp />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer le menu' }))
+    const opener = screen.getByRole('button', { name: 'Ouvrir le menu' })
+    expect(opener).toHaveAttribute('aria-expanded', 'false')
+    expect(opener).toHaveAttribute('aria-controls', 'demo-guide-menu')
+
+    await user.click(opener)
+
+    expect(opener).toHaveAttribute('aria-expanded', 'true')
+    const dialog = screen.getByRole('dialog', {
+      name: 'Menu de démonstration',
+    })
+    expect(dialog).toHaveAttribute('id', 'demo-guide-menu')
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+
+    const closeButton = within(dialog).getByRole('button', {
+      name: 'Fermer le menu',
+    })
+    const lastMenuButton = within(dialog).getByRole('button', {
+      name: 'Nous contacter',
+    })
+    expect(closeButton).toHaveFocus()
+
+    await user.tab({ shift: true })
+    expect(lastMenuButton).toHaveFocus()
+
+    await user.tab()
+    expect(closeButton).toHaveFocus()
+
+    await user.tab()
+    expect(
+      within(dialog).getByRole('button', { name: 'Accueil' }),
+    ).toHaveFocus()
+  })
+
+  it('stops Escape at the internal menu and restores opener focus', async () => {
+    const user = userEvent.setup()
+    const parentEscapeHandler = jest.fn()
+    document.addEventListener('keydown', parentEscapeHandler)
+
+    try {
+      render(<DemoGuideApp />)
+      const opener = screen.getByRole('button', { name: 'Ouvrir le menu' })
+      await user.click(opener)
+
+      await user.keyboard('{Escape}')
+
+      expect(parentEscapeHandler).not.toHaveBeenCalled()
+      expect(
+        screen.queryByRole('dialog', { name: 'Menu de démonstration' }),
+      ).not.toBeInTheDocument()
+      expect(opener).toHaveAttribute('aria-expanded', 'false')
+      expect(opener).toHaveFocus()
+    } finally {
+      document.removeEventListener('keydown', parentEscapeHandler)
+    }
+  })
+
+  it('closes the menu button and restores opener focus', async () => {
+    const user = userEvent.setup()
+    render(<DemoGuideApp />)
+
+    const opener = screen.getByRole('button', { name: 'Ouvrir le menu' })
+    await user.click(opener)
+    await user.click(screen.getByRole('button', { name: 'Fermer le menu' }))
 
     expect(
-      screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
+      screen.queryByRole('dialog', { name: 'Menu de démonstration' }),
     ).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()
+    expect(opener).toHaveFocus()
   })
 })

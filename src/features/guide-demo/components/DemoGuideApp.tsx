@@ -6,7 +6,10 @@ import { DemoHomeView } from './DemoHomeView'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import type { DemoGuideView } from '@/features/guide-demo/types'
 
-const PLACEHOLDER_HEADINGS: Partial<Record<DemoGuideView, string>> = {
+const PLACEHOLDER_HEADINGS: Record<
+  Exclude<DemoGuideView, 'home'>,
+  string
+> = {
   lodging: 'Le 305',
   favorites: 'Nos coups de cœur',
   map: 'Carte',

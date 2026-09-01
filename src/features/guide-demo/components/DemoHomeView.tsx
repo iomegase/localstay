@@ -6,6 +6,7 @@ import {
   Video,
 } from 'lucide-react'
 import type { DemoGuideView } from '@/features/guide-demo/types'
+import { formatFrenchWelcomeLine } from '@/shared/lib/french-place'
 
 type DemoHomeViewProps = {
   favoriteCount: number
@@ -21,6 +22,8 @@ export function DemoHomeView({
   onNavigate,
 }: DemoHomeViewProps) {
   const cityLabel = lodgingCity.replace(/-les-bains$/i, '')
+  const welcomeTitle = formatFrenchWelcomeLine(lodgingName)
+  const welcomePlace = welcomeTitle.replace(/^Bienvenue\s+/i, '')
 
   return (
     <div className="flex min-h-full flex-col gap-4 bg-gradient-to-b from-blue-50/70 via-white to-white px-4 pb-36 pt-6">
@@ -30,14 +33,16 @@ export function DemoHomeView({
         </span>
         <h1 className="text-center text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
           <span className="block">Bienvenue</span>
-          <span className="block">au 305</span>
+          <span className="block">{welcomePlace}</span>
         </h1>
       </div>
 
       <div className="flex flex-1 flex-col justify-center gap-3">
         <button
           type="button"
-          className="flex w-full items-center justify-between rounded-[22px] bg-slate-900 px-5 py-4 text-left text-white"
+          disabled
+          aria-disabled="true"
+          className="flex w-full cursor-not-allowed items-center justify-between rounded-[22px] bg-slate-900 px-5 py-4 text-left text-white opacity-90"
         >
           <span className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-violet-600">
@@ -48,7 +53,7 @@ export function DemoHomeView({
                 Voir la vidéo du logement
               </span>
               <span className="mt-0.5 block text-[10px] text-white/60">
-                Présentation fictive du logement
+                Vidéo indisponible dans cette démonstration
               </span>
             </span>
           </span>
