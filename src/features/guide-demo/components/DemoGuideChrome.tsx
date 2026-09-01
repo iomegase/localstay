@@ -16,7 +16,7 @@ const bottomNavigation = [
   {
     view: 'favorites' as const,
     ariaLabel: 'Coups de cœur',
-    label: 'Favoris',
+    label: 'Coups de cœur',
     icon: Heart,
   },
   { view: 'map' as const, ariaLabel: 'Carte', label: 'Carte', icon: Map },

@@ -39,6 +39,13 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     expect(gpsButton).toBeDisabled()
     expect(gpsButton).toHaveAttribute('aria-disabled', 'true')
     expect(within(guide).getByText(/désactivé dans la démonstration/i)).toBeInTheDocument()
+    expect(
+      within(
+        within(guide).getByRole('navigation', {
+          name: 'Navigation de démonstration',
+        }),
+      ).getByText('Coups de cœur'),
+    ).toBeInTheDocument()
     expect(guide.querySelectorAll('a')).toHaveLength(0)
   })
 
@@ -62,25 +69,33 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     expect(window.location.pathname).toBe('/concept')
   })
 
-  it('navigates from the local menu and closes the overlay', () => {
-    render(<DemoGuideApp />)
+  it.each([
+    { destination: 'Accueil', heading: 'Bienvenue au 305' },
+    { destination: 'Guide du logement', heading: 'Le 305' },
+    { destination: 'Coups de cœur', heading: 'Nos coups de cœur' },
+    { destination: 'Carte', heading: 'Carte' },
+    { destination: 'Nos logements', heading: 'Nos logements' },
+    { destination: 'Blog', heading: 'Blog' },
+    { destination: 'Nous contacter', heading: 'Votre hôte' },
+  ])(
+    'navigates to $destination from the local menu and closes it',
+    ({ destination, heading }) => {
+      render(<DemoGuideApp />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+      const menu = screen.getByRole('navigation', {
+        name: 'Menu de démonstration',
+      })
 
-    const menu = screen.getByRole('navigation', {
-      name: 'Menu de démonstration',
-    })
-    expect(within(menu).getByRole('button', { name: 'Nos logements' })).toBeInTheDocument()
-    expect(within(menu).getByRole('button', { name: 'Blog' })).toBeInTheDocument()
-    expect(within(menu).getByRole('button', { name: 'Nous contacter' })).toBeInTheDocument()
+      fireEvent.click(within(menu).getByRole('button', { name: destination }))
 
-    fireEvent.click(within(menu).getByRole('button', { name: 'Blog' }))
-    expect(screen.getByRole('heading', { name: 'Blog' })).toBeInTheDocument()
-    expect(
-      screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
-    ).not.toBeInTheDocument()
-    expect(window.location.pathname).toBe('/concept')
-  })
+      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
+      expect(
+        screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
+      ).not.toBeInTheDocument()
+      expect(window.location.pathname).toBe('/concept')
+    },
+  )
 
   it('closes the menu without navigating', () => {
     render(<DemoGuideApp />)

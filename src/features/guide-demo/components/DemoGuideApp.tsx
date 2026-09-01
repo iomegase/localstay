@@ -4,10 +4,7 @@ import { useRef, useState } from 'react'
 import { DemoGuideChrome } from './DemoGuideChrome'
 import { DemoHomeView } from './DemoHomeView'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
-import type {
-  DemoGuideView,
-  DemoPoi,
-} from '@/features/guide-demo/types'
+import type { DemoGuideView } from '@/features/guide-demo/types'
 
 const PLACEHOLDER_HEADINGS: Partial<Record<DemoGuideView, string>> = {
   lodging: 'Le 305',
@@ -24,14 +21,9 @@ const PLACEHOLDER_HEADINGS: Partial<Record<DemoGuideView, string>> = {
 export function DemoGuideApp() {
   const [activeView, setActiveView] = useState<DemoGuideView>('home')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [, setSelectedPoi] = useState<DemoPoi | null>(null)
   const mainRef = useRef<HTMLElement>(null)
 
   function navigate(view: DemoGuideView) {
-    if (view !== 'poi' && view !== 'map') {
-      setSelectedPoi(null)
-    }
-
     setActiveView(view)
     setMenuOpen(false)
 
