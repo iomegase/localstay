@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import * as ts from 'typescript'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import { isApprovedDemoLodgingMedia } from '@/features/guide-demo/demo-media-policy'
 
@@ -88,12 +89,85 @@ function normalizePhoneNumber(value: string): string {
   return value.replace(/[^+\d]/g, '')
 }
 
-function readStaticImportSpecifiers(source: string): string[] {
-  const importPattern =
-    /^\s*import\s+(?:type\s+)?(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/gm
+function readStaticModuleSpecifiers(source: string): string[] {
+  const sourceFile = ts.createSourceFile(
+    'guide-demo-data.ts',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  )
 
-  return [...source.matchAll(importPattern)].map(match => match[1])
+  return sourceFile.statements.flatMap(statement => {
+    if (
+      (ts.isImportDeclaration(statement) ||
+        ts.isExportDeclaration(statement)) &&
+      statement.moduleSpecifier &&
+      ts.isStringLiteralLike(statement.moduleSpecifier)
+    ) {
+      return [statement.moduleSpecifier.text]
+    }
+
+    return []
+  })
 }
+
+function findUnsafeStayEntries(
+  entries: Array<{ path: string; value: string }>,
+): Array<{ path: string; value: string }> {
+  const privateAddress =
+    /\b\d{1,5}\s+(?:all[ée]e|avenue|boulevard|chemin|impasse|passage|place|route|rue)\b/i
+  const accessLanguage =
+    /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\s*(?::|=)\s*[a-z0-9-]{4,})/i
+  const vehiclePlate =
+    /(?:plaque d['’]immatriculation|\bimmatriculation\b|\b[a-z]{2}-\d{3}-[a-z]{2}\b)/i
+  const privateDocument =
+    /(?:passeport|pi[eè]ce d['’]identit[ée]|document (?:d['’]acc[eè]s|de voyage|priv[ée])|\.(?:docx?|pdf|xlsx?)(?:[?#]|$))/i
+  const knownPrivateDetails =
+    /300 route du Mont-Blanc|1789|Bienvenue2026|Refuge-Mont-Blanc/i
+  const sensitiveFixtureField =
+    /\.(?:accessCode|accessMedia|digicode|document(?:Id|Url)?|keyBox(?:Code)?|lock(?:Code)?|password|plaque|plateNumber|(?:host|owner|private)Phone)$/i
+
+  return entries.filter(
+    ({ path, value }) =>
+      knownPrivateDetails.test(value) ||
+      privateAddress.test(value) ||
+      accessLanguage.test(value) ||
+      vehiclePlate.test(value) ||
+      privateDocument.test(value) ||
+      sensitiveFixtureField.test(path),
+  )
+}
+
+describe('public demo security guard helpers', () => {
+  it('rejects alphanumeric access secrets even when labelled as fictional examples', () => {
+    const attacks = collectStringEntries(
+      {
+        first: 'Exemple fictif : digicode AB12CD',
+        second: 'Mot de passe ExempleAzerty',
+      },
+      'attackFixture',
+    )
+
+    expect(findUnsafeStayEntries(attacks)).toEqual(attacks)
+  })
+
+  it('discovers imports and every static re-export module specifier', () => {
+    const source = [
+      "import { demo } from './demo-content'",
+      "export { privateData } from '../private/data'",
+      "export type { PrivateType } from '@/features/guide-app/types'",
+      "export * from './types'",
+    ].join('\n')
+
+    expect(readStaticModuleSpecifiers(source)).toEqual([
+      './demo-content',
+      '../private/data',
+      '@/features/guide-app/types',
+      './types',
+    ])
+  })
+})
 
 describe('public demo private-guide isolation', () => {
   it('exposes complete deterministic demo fixtures', () => {
@@ -156,12 +230,13 @@ describe('public demo private-guide isolation', () => {
       })
     }
 
-    expect(fixtureIdGroups.favoritePois).toEqual(
-      expect.arrayContaining([
-        'demo-poi-rond-de-carotte',
-        'demo-poi-porcherey',
-      ]),
-    )
+    expect(fixtureIdGroups.favoritePois).toEqual([
+      'demo-poi-rond-de-carotte',
+      'demo-poi-communailles',
+      'demo-poi-hautetour',
+      'demo-poi-tramway',
+      'demo-poi-porcherey',
+    ])
     expect(fixtureIdGroups.lodgingCards).toEqual([
       'demo-chalet-des-cimes',
       'demo-studio-du-parc',
@@ -169,6 +244,11 @@ describe('public demo private-guide isolation', () => {
     expect(fixtureIdGroups.blogPosts).toEqual([
       'demo-blog-week-end-saint-gervais',
       'demo-blog-escapade-montagne',
+    ])
+    expect(fixtureIdGroups.practicalCards).toEqual([
+      'demo-television',
+      'demo-heating',
+      'demo-kitchen',
     ])
   })
 
@@ -184,34 +264,7 @@ describe('public demo private-guide isolation', () => {
     }
     const stayEntries = collectStringEntries(stayFixtures, 'stayFixtures')
     const stayValues = stayEntries.map(entry => entry.value)
-    const privateAddress =
-      /\b\d{1,5}\s+(?:all[ée]e|avenue|boulevard|chemin|impasse|passage|place|route|rue)\b/i
-    const accessLanguage =
-      /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\s*(?::|=)\s*[a-z0-9-]{4,})/i
-    const explanatoryFictionalLanguage =
-      /(?:ficti(?:f|ve)|d[ée]monstration|exemple|non[- ]r[ée]el|aucun(?:e)?|ne\s+\S+\s+pas)/i
-    const numericAccessSecret =
-      /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\b)[^.!?\n]{0,48}\b\d{3,8}\b/i
-    const vehiclePlate =
-      /(?:plaque d['’]immatriculation|\bimmatriculation\b|\b[a-z]{2}-\d{3}-[a-z]{2}\b)/i
-    const privateDocument =
-      /(?:passeport|pi[eè]ce d['’]identit[ée]|document (?:d['’]acc[eè]s|de voyage|priv[ée])|\.(?:docx?|pdf|xlsx?)(?:[?#]|$))/i
-    const knownPrivateDetails =
-      /300 route du Mont-Blanc|1789|Bienvenue2026|Refuge-Mont-Blanc/i
-    const sensitiveFixtureField =
-      /\.(?:accessCode|accessMedia|digicode|document(?:Id|Url)?|keyBox(?:Code)?|lock(?:Code)?|password|plaque|plateNumber|(?:host|owner|private)Phone)$/i
-
-    const unsafeStayValues = stayEntries.filter(
-      ({ path, value }) =>
-        knownPrivateDetails.test(value) ||
-        privateAddress.test(value) ||
-        numericAccessSecret.test(value) ||
-        vehiclePlate.test(value) ||
-        privateDocument.test(value) ||
-        sensitiveFixtureField.test(path) ||
-        (accessLanguage.test(value) &&
-          !explanatoryFictionalLanguage.test(value)),
-    )
+    const unsafeStayValues = findUnsafeStayEntries(stayEntries)
 
     const privatePhonePattern =
       /(?<!\d)(?:\+33\s?[1-9]|0[1-9])(?:[ .-]?\d{2}){4}(?!\d)/g
@@ -271,9 +324,9 @@ describe('public demo private-guide isolation', () => {
     )
 
     for (const file of sources) {
-      const importSpecifiers = readStaticImportSpecifiers(file.source)
+      const moduleSpecifiers = readStaticModuleSpecifiers(file.source)
 
-      for (const specifier of importSpecifiers) {
+      for (const specifier of moduleSpecifiers) {
         const resolvedImport = resolve(
           GUIDE_DEMO_ROOT,
           dirname(file.path),
@@ -297,7 +350,7 @@ describe('public demo private-guide isolation', () => {
       file => file.path === 'demo-content.ts',
     )
     expect(
-      readStaticImportSpecifiers(demoContentSource?.source ?? ''),
+      readStaticModuleSpecifiers(demoContentSource?.source ?? ''),
     ).toContain('./demo-media-policy')
     expect(demoContentSource?.source).not.toMatch(
       /['"]\/marketing\/(?:guide-interior|demo-lodging-[^'"]*)['"]/,
