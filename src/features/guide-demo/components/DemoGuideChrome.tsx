@@ -37,6 +37,7 @@ type DemoGuideChromeProps = {
   activeView: DemoGuideView
   children: ReactNode
   mainRef: RefObject<HTMLElement>
+  immersive?: boolean
   menuOpen: boolean
   onCloseMenu: () => void
   onNavigate: (view: DemoGuideView) => void
@@ -47,6 +48,7 @@ export function DemoGuideChrome({
   activeView,
   children,
   mainRef,
+  immersive = false,
   menuOpen,
   onCloseMenu,
   onNavigate,
@@ -138,21 +140,37 @@ export function DemoGuideChrome({
         aria-hidden={menuOpen ? 'true' : undefined}
         className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
       >
-        <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center justify-between border-b border-white/50 bg-white/85 px-4 backdrop-blur-xl">
-          <button
-            type="button"
-            onClick={() => onNavigate('home')}
-            aria-label="Accueil du guide"
-            className="flex min-w-0 items-center gap-2 text-left"
-          >
-            <MyStayLogo
-              form="horizontal"
-              className="h-9 w-auto object-contain"
-              priority
-              sizes="160px"
-            />
-          </button>
+        {immersive ? null : (
+          <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center justify-between border-b border-white/50 bg-white/85 px-4 backdrop-blur-xl">
+            <button
+              type="button"
+              onClick={() => onNavigate('home')}
+              aria-label="Accueil du guide"
+              className="flex min-w-0 items-center gap-2 text-left"
+            >
+              <MyStayLogo
+                form="horizontal"
+                className="h-9 w-auto object-contain"
+                priority
+                sizes="160px"
+              />
+            </button>
 
+            <button
+              ref={menuOpenerRef}
+              type="button"
+              onClick={onOpenMenu}
+              aria-label="Ouvrir le menu"
+              aria-expanded={menuOpen}
+              aria-controls="demo-guide-menu"
+              className="translate-x-1 translate-y-1.5 p-2 text-slate-800"
+            >
+              <Menu className="h-6 w-6" strokeWidth={2} aria-hidden="true" />
+            </button>
+          </header>
+        )}
+
+        {immersive ? (
           <button
             ref={menuOpenerRef}
             type="button"
@@ -160,11 +178,11 @@ export function DemoGuideChrome({
             aria-label="Ouvrir le menu"
             aria-expanded={menuOpen}
             aria-controls="demo-guide-menu"
-            className="translate-x-1 translate-y-1.5 p-2 text-slate-800"
+            className="absolute right-4 top-4 z-40 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-slate-800 shadow-sm backdrop-blur"
           >
             <Menu className="h-6 w-6" strokeWidth={2} aria-hidden="true" />
           </button>
-        </header>
+        ) : null}
 
         <main
           ref={mainRef}
@@ -173,7 +191,7 @@ export function DemoGuideChrome({
           {children}
         </main>
 
-        <nav
+        {!immersive ? <nav
           aria-label="Navigation de démonstration"
           className="absolute inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-full border border-slate-100 bg-white p-1.5 shadow-[0_16px_36px_rgba(15,23,42,0.18)]"
         >
@@ -208,7 +226,7 @@ export function DemoGuideChrome({
               )
             })}
           </div>
-        </nav>
+        </nav> : null}
       </div>
 
       {menuOpen ? (
