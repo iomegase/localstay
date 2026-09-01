@@ -1,9 +1,8 @@
 'use client'
 
-/* eslint-disable @next/next/no-img-element */
-
 import { MapPinned, Star } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoPoi } from '@/features/guide-demo/types'
 
 type DemoFavoritesViewProps = {
@@ -11,8 +10,6 @@ type DemoFavoritesViewProps = {
   onOpenPoi: (poi: DemoPoi) => void
   onShowOnMap: (poi: DemoPoi) => void
 }
-
-const FALLBACK_IMAGE = '/fallback/fallback-rando.png'
 
 export function DemoFavoritesView({
   pois,
@@ -86,7 +83,6 @@ export function DemoFavoritesView({
         >
           {visiblePois.map((poi, index) => {
             const big = index === 0
-            const image = poi.photos[0] ?? FALLBACK_IMAGE
             return (
               <article
                 key={poi.id}
@@ -96,9 +92,11 @@ export function DemoFavoritesView({
                   big ? 'col-span-2 aspect-square' : 'aspect-square'
                 }`}
               >
-                <img
-                  src={image}
-                  alt=""
+                <DemoPoiImage
+                  primarySrc={poi.photos[0]}
+                  category={poi.category}
+                  name={poi.name}
+                  decorative
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />

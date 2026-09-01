@@ -90,6 +90,12 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
   })
 
   it('shows the local Porcherey trail preview without starting GPS tracking', () => {
+    const geolocation = { getCurrentPosition: jest.fn() }
+    Object.defineProperty(window.navigator, 'geolocation', {
+      configurable: true,
+      value: geolocation,
+    })
+
     openFavorites()
     fireEvent.click(
       screen.getByRole('button', { name: 'Ouvrir L’Alpage de Porcherey' }),
@@ -97,6 +103,9 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
     expect(screen.getByText('8,3 km')).toBeInTheDocument()
     expect(screen.getByText('709 m')).toBeInTheDocument()
+    expect(screen.getAllByText('3 h 30')).not.toHaveLength(0)
+    expect(screen.getByText('Facile')).toBeInTheDocument()
+    expect(screen.getByText('Saint-Nicolas de Véroce')).toBeInTheDocument()
     expect(
       screen.getByRole('img', {
         name: 'Aperçu de la randonnée L’Alpage de Porcherey',
@@ -108,6 +117,40 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByText('Suivi GPS indisponible dans le guide de démonstration.'),
     ).toBeInTheDocument()
+    const attribution = screen.getByTestId('photo-attribution')
+    const trailHeading = screen.getByRole('heading', {
+      name: 'Informations du parcours',
+    })
+    const mapButton = screen.getByRole('button', { name: 'Voir sur la carte' })
+    expect(
+      attribution.compareDocumentPosition(trailHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      trailHeading.compareDocumentPosition(mapButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(geolocation.getCurrentPosition).not.toHaveBeenCalled()
+    expect(window.location.pathname).toBe('/concept')
+  })
+
+  it('replaces failed public images with the local category fallback', () => {
+    openFavorites()
+    const favoriteImage = screen
+      .getAllByTestId('favorite-bento-card')[0]
+      .querySelector('img') as HTMLImageElement
+    fireEvent.error(favoriteImage)
+    expect(favoriteImage.getAttribute('src')).toBe('/fallback/fallback-restaurant.png')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ouvrir Rond de Carotte' }),
+    )
+    const detailImage = screen
+      .getByRole('heading', { name: 'Rond de Carotte' })
+      .closest('article')
+      ?.querySelector('img') as HTMLImageElement
+    fireEvent.error(detailImage)
+    expect(detailImage.getAttribute('src')).toBe('/fallback/fallback-restaurant.png')
   })
 
   it('renders static map markers without geolocation and restores map from the detail view', () => {
@@ -162,6 +205,22 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
+  })
+
+  it('opens the selected static-map preview from the POI detail action', () => {
+    openFavorites()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ouvrir Rond de Carotte' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Voir sur la carte' }))
+
+    expect(
+      screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+    ).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/concept')
   })
 
   it('keeps a useful local fallback when the static map has no POIs', () => {

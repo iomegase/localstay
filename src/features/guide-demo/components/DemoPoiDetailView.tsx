@@ -1,8 +1,7 @@
 'use client'
 
-/* eslint-disable @next/next/no-img-element */
-
 import { ArrowLeft, Clock3, MapPinned, Star } from 'lucide-react'
+import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoLodging, DemoPoi, DemoTrailGeometry } from '@/features/guide-demo/types'
 
 type DemoPoiDetailViewProps = {
@@ -100,9 +99,11 @@ export function DemoPoiDetailView({
   return (
     <article className="min-h-full overflow-x-hidden bg-[#faf9f6] pb-10">
       <div className="relative h-[360px]">
-        <img
-          src={poi.photos[0] ?? '/fallback/fallback-rando.png'}
-          alt=""
+        <DemoPoiImage
+          primarySrc={poi.photos[0]}
+          category={poi.category}
+          name={poi.name}
+          decorative
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/60" />
@@ -197,29 +198,6 @@ export function DemoPoiDetailView({
           </p>
         ) : null}
 
-        <div className="mt-7 grid gap-3">
-          <button
-            type="button"
-            onClick={() => onShowOnMap(poi)}
-            className="rounded-full bg-[#121212] px-5 py-3.5 text-sm font-bold text-white"
-          >
-            Voir sur la carte
-          </button>
-          <button type="button" disabled aria-disabled="true" className="rounded-full border border-stone-200 px-5 py-3 text-sm font-bold text-slate-400">
-            Obtenir l’itinéraire
-          </button>
-          {poi.website ? (
-            <button type="button" disabled aria-disabled="true" className="rounded-full border border-stone-200 px-5 py-3 text-sm font-bold text-slate-400">
-              Site web
-            </button>
-          ) : null}
-          {poi.phone ? (
-            <button type="button" disabled aria-disabled="true" className="rounded-full border border-stone-200 px-5 py-3 text-sm font-bold text-slate-400">
-              Appeler
-            </button>
-          ) : null}
-        </div>
-
         {trail ? (
           <section className="mt-9 rounded-[28px] bg-[#455e4c] p-5 text-white">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Randonnée</p>
@@ -248,6 +226,29 @@ export function DemoPoiDetailView({
             <p className="mt-3 text-xs leading-5 text-white/75">Suivi GPS indisponible dans le guide de démonstration.</p>
           </section>
         ) : null}
+
+        <div className="mt-7 grid gap-3">
+          <button
+            type="button"
+            onClick={() => onShowOnMap(poi)}
+            className="rounded-full bg-[#121212] px-5 py-3.5 text-sm font-bold text-white"
+          >
+            Voir sur la carte
+          </button>
+          <button type="button" disabled aria-disabled="true" className="rounded-full border border-stone-200 px-5 py-3 text-sm font-bold text-slate-400">
+            Obtenir l’itinéraire
+          </button>
+          {poi.website ? (
+            <button type="button" disabled aria-disabled="true" className="rounded-full border border-stone-200 px-5 py-3 text-sm font-bold text-slate-400">
+              Site web
+            </button>
+          ) : null}
+          {poi.phone ? (
+            <button type="button" disabled aria-disabled="true" className="rounded-full border border-stone-200 px-5 py-3 text-sm font-bold text-slate-400">
+              Appeler
+            </button>
+          ) : null}
+        </div>
       </div>
     </article>
   )
