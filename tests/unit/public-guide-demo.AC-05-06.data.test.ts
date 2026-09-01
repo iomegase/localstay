@@ -55,11 +55,11 @@ describe('public guide demo data', () => {
       id: 'demo-le-305',
       name: 'Le 305',
       city: 'Saint-Gervais-les-Bains',
-      addressLabel: 'Résidence de démonstration, 74170 Saint-Gervais-les-Bains',
+      addressLabel: 'Résidence de démonstration, centre de Saint-Gervais',
       checkIn: '16:00',
       checkOut: '10:00',
       wifiName: 'MyStay-Demo',
-      wifiPassword: 'Demo-Uniquement',
+      wifiPassword: 'Exemple-Non-Reel',
     })
     expect(demoLodging.arrivalInstructions).toHaveLength(3)
     expect(demoLodging.practicalCards).toHaveLength(3)

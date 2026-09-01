@@ -1,46 +1,60 @@
-import type { GuideLodging } from '@/features/guide-app/types'
-import {
-  FIXED_DEPARTURE_INSTRUCTIONS,
-  FIXED_HOUSE_RULES,
-} from '@/features/guide-app/lib/fixed-lodging-content'
 import { APPROVED_DEMO_LODGING_MEDIA } from './demo-media-policy'
+import type { DemoLodging } from './types'
 
-export const demoLodging: GuideLodging = {
+export const demoLodging: DemoLodging = {
   id: 'demo-le-305',
   name: 'Le 305',
+  displayName: 'Le 305 — démonstration',
   city: 'Saint-Gervais-les-Bains',
   tagline: 'Un appartement fictif pour découvrir l’expérience MyStay.',
   coverImage: APPROVED_DEMO_LODGING_MEDIA[0],
   gallery: [...APPROVED_DEMO_LODGING_MEDIA],
   latitude: 45.8921,
   longitude: 6.7085,
-  addressLabel: 'Résidence de démonstration, 74170 Saint-Gervais-les-Bains',
+  addressLabel: 'Résidence de démonstration, centre de Saint-Gervais',
+  maxGuests: 4,
+  bedrooms: 2,
+  surfaceM2: 62,
   checkIn: '16:00',
   checkOut: '10:00',
   wifiName: 'MyStay-Demo',
-  wifiPassword: 'Demo-Uniquement',
+  wifiPassword: 'Exemple-Non-Reel',
   arrivalInstructions: [
     {
-      title: 'Préparer votre arrivée',
-      text: 'L’arrivée est possible à partir de 16 h. Les informations affichées dans cette démonstration sont fictives.',
+      title: 'Avant votre arrivée',
+      text: 'Exemple fictif : les informations personnalisées seraient transmises avant le séjour.',
       videoUrl: null,
       photos: [],
     },
     {
-      title: 'Rejoindre la résidence',
-      text: 'Suivez l’itinéraire transmis avec votre réservation. Aucun emplacement privé n’est publié dans cette démo.',
+      title: 'Rejoindre le quartier',
+      text: 'Exemple fictif : rejoignez le centre de Saint-Gervais et suivez la signalétique publique.',
       videoUrl: null,
       photos: [],
     },
     {
-      title: 'Entrer dans le logement',
-      text: 'Dans un séjour réel, les instructions personnelles apparaissent ici de manière sécurisée.',
+      title: 'Découvrir le logement',
+      text: 'Exemple fictif : un message d’accueil confirme que le logement de démonstration est prêt.',
       videoUrl: null,
       photos: [],
     },
   ],
-  departureInstructions: [...FIXED_DEPARTURE_INSTRUCTIONS],
-  houseRules: [...FIXED_HOUSE_RULES],
+  departureInstructions: [
+    'Déposer vos déchets au point de recyclage indiqué ci-dessous.',
+    'Faire la vaisselle ou lancer le lave-vaisselle avant votre départ.',
+    'Rassembler le linge de toilette utilisé dans la salle de bain.',
+    'Laisser les draps en place sur les lits.',
+    'Remettre les meubles, chaises et objets déplacés à leur emplacement d’origine.',
+    'Fermer les fenêtres et les Velux.',
+    'Éteindre les lumières ainsi que les appareils électriques inutiles.',
+    'Ne pas éteindre le chauffage.',
+    'Vérifier que vous n’avez rien oublié dans le logement.',
+  ],
+  houseRules: [
+    'Respecter le logement de démonstration, son mobilier et le voisinage.',
+    'Préserver le calme entre 22 h et 8 h.',
+    'Utiliser les équipements conformément aux indications présentées.',
+  ],
   practicalCards: [
     {
       id: 'demo-television',
@@ -63,7 +77,10 @@ export const demoLodging: GuideLodging = {
   ],
   usefulNumbers: [
     { label: 'Office de tourisme', number: '04 50 47 76 08' },
+    { label: 'Urgences européennes', number: '112' },
+    { label: 'SAMU', number: '15' },
+    { label: 'Pompiers', number: '18' },
   ],
   trashBins: [{ type: 'jaune' }, { type: 'verte' }, { type: 'bordeaux' }],
-  trashLocation: null,
+  trashLocation: 'Point de tri public du centre de Saint-Gervais',
 }

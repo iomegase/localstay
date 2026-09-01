@@ -1,10 +1,10 @@
-import type { TrailMultiLineString } from '@/features/trail-navigation/types'
+import type { DemoTrailGeometry } from './types'
 
 /**
  * Instantané public simplifié du tracé publié de L’Alpage de Porcherey.
  * Les segments restent séparés afin de ne pas créer de liaison artificielle.
  */
-export const demoPorchereyGeometry: TrailMultiLineString = {
+export const demoPorchereyGeometry: DemoTrailGeometry = {
   type: 'MultiLineString',
   coordinates: [
     [[6.7236865, 45.8535446], [6.7238534, 45.8527003]],
