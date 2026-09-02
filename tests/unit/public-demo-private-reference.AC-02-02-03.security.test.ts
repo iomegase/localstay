@@ -106,7 +106,7 @@ function readModuleDependencies(source: string): ModuleDependency[] {
     source,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TS,
+    ts.ScriptKind.TSX,
   )
 
   const dependencies: ModuleDependency[] = []
@@ -158,11 +158,66 @@ function findRuntimeDependencyUses(source: string): string[] {
   )
   const uses = new Set<string>()
 
+  function isGlobalObject(node: ts.Expression): boolean {
+    return ts.isIdentifier(node) && /^(?:globalThis|window)$/.test(node.text)
+  }
+
+  function isHistoryTarget(node: ts.Expression): boolean {
+    return (
+      (ts.isIdentifier(node) && node.text === 'history') ||
+      (ts.isPropertyAccessExpression(node) &&
+        isGlobalObject(node.expression) &&
+        node.name.text === 'history')
+    )
+  }
+
+  function isLocationTarget(node: ts.Expression): boolean {
+    return (
+      (ts.isIdentifier(node) && node.text === 'location') ||
+      (ts.isPropertyAccessExpression(node) &&
+        isGlobalObject(node.expression) &&
+        node.name.text === 'location')
+    )
+  }
+
+  function isLocationAssignmentTarget(node: ts.Expression): boolean {
+    return (
+      isLocationTarget(node) ||
+      (ts.isPropertyAccessExpression(node) &&
+        node.name.text === 'href' &&
+        isLocationTarget(node.expression))
+    )
+  }
+
   function collect(node: ts.Node) {
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
       if (node.expression.text === 'fetch') uses.add('fetch()')
       if (node.expression.text === 'cookies') uses.add('cookies()')
       if (node.expression.text === 'require') uses.add('require()')
+    }
+
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
+      const method = node.expression.name.text
+      if (
+        /^(?:pushState|replaceState)$/.test(method) &&
+        isHistoryTarget(node.expression.expression)
+      ) {
+        uses.add(node.expression.getText(sourceFile))
+      }
+      if (
+        /^(?:assign|replace|reload)$/.test(method) &&
+        isLocationTarget(node.expression.expression)
+      ) {
+        uses.add(node.expression.getText(sourceFile))
+      }
+    }
+
+    if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      isLocationAssignmentTarget(node.left)
+    ) {
+      uses.add(node.left.getText(sourceFile))
     }
 
     if (ts.isIdentifier(node) && /^(?:prisma|Prisma)$/.test(node.text)) {
@@ -208,9 +263,33 @@ function readRouteLiteralDependencies(source: string): string[] {
   return routes
 }
 
-function isAllowedDemoModuleSpecifier(specifier: string): boolean {
+function isRelativeModuleSpecifier(specifier: string): boolean {
+  return /^\.\.?\//.test(specifier)
+}
+
+function resolvesWithinGuideDemo(
+  sourcePath: string,
+  specifier: string,
+): boolean {
+  if (!isRelativeModuleSpecifier(specifier)) return true
+
+  const resolvedImport = resolve(
+    GUIDE_DEMO_ROOT,
+    dirname(sourcePath),
+    specifier,
+  )
+  const pathFromDemoRoot = relative(GUIDE_DEMO_ROOT, resolvedImport)
+
+  return !pathFromDemoRoot.startsWith('..') && !isAbsolute(pathFromDemoRoot)
+}
+
+function isAllowedDemoModuleSpecifier(
+  sourcePath: string,
+  specifier: string,
+): boolean {
   return (
-    /^\.\.?\//.test(specifier) ||
+    (isRelativeModuleSpecifier(specifier) &&
+      resolvesWithinGuideDemo(sourcePath, specifier)) ||
     specifier === 'react' ||
     specifier.startsWith('react/') ||
     specifier === 'next/dynamic' ||
@@ -279,6 +358,51 @@ describe('public demo security guard helpers', () => {
       '@/features/guide-app/types',
       './types',
     ])
+  })
+
+  it('rejects relative imports that escape the demo folder across every import form', () => {
+    const dependencies = readModuleDependencies(
+      [
+        "import { GuideApp } from '../../guide-app/components/GuideApp'",
+        "export { createClient } from '../../../shared/lib/supabase'",
+        "void import('../../private/actions')",
+        "require('../../private/actions')",
+      ].join('\n'),
+    )
+
+    expect(dependencies).toEqual([
+      { kind: 'import', specifier: '../../guide-app/components/GuideApp' },
+      { kind: 'export', specifier: '../../../shared/lib/supabase' },
+      { kind: 'dynamic-import', specifier: '../../private/actions' },
+      { kind: 'require', specifier: '../../private/actions' },
+    ])
+    expect(
+      dependencies.filter(
+        dependency =>
+          !isAllowedDemoModuleSpecifier(
+            'components/DemoGuideModal.tsx',
+            dependency.specifier,
+          ),
+      ),
+    ).toEqual(dependencies)
+  })
+
+  it('detects direct history and location mutations as stateful navigation', () => {
+    const source = [
+      "history.pushState({}, '', '/sejour')",
+      "window.history.replaceState({}, '', '/guide')",
+      "window.location.assign('/map')",
+      "location.href = '/mes-favoris'",
+    ].join('\n')
+
+    expect(findRuntimeDependencyUses(source)).toEqual(
+      expect.arrayContaining([
+        'history.pushState',
+        'window.history.replaceState',
+        'window.location.assign',
+        'location.href',
+      ]),
+    )
   })
 })
 
@@ -492,7 +616,7 @@ describe('public demo private-guide isolation', () => {
       for (const dependency of readModuleDependencies(file.source)) {
         if (
           forbiddenSpecifier.test(dependency.specifier) ||
-          !isAllowedDemoModuleSpecifier(dependency.specifier)
+          !isAllowedDemoModuleSpecifier(file.path, dependency.specifier)
         ) {
           violations.push({
             file: file.path,

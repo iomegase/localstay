@@ -63,4 +63,28 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
     ).toBeInTheDocument()
     expect(screen.queryByTestId('demo-lodging-guide')).not.toBeInTheDocument()
   })
+
+  it('preserves the full URL through internal demo navigation', async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({}, '', '/concept?preview=demo#guide')
+    const expectedHref = window.location.href
+
+    render(<GuideDemoLauncher />)
+    await user.click(
+      screen.getByRole('button', { name: 'Voir le guide d’exemple' }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Nos coups de cœur' }),
+    ).toBeInTheDocument()
+    expect(window.location.href).toBe(expectedHref)
+
+    await user.click(
+      screen.getByRole('button', { name: 'Ouvrir Rond de Carotte' }),
+    )
+    expect(
+      await screen.findByRole('heading', { name: 'Rond de Carotte' }),
+    ).toBeInTheDocument()
+    expect(window.location.href).toBe(expectedHref)
+  })
 })
