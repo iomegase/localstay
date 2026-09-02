@@ -32,13 +32,13 @@ export default async function BlogListPage({ searchParams }: PageProps) {
     return null
   }
 
-  const title = result?.city ? `Blog ${result.city.name}` : 'Inspirations, conciergerie'
+  const title = result?.city ? `Blog ${result.city.name}` : 'Inspirations... et conseils pour vos séjours'
   const items = result?.items ?? []
   const categories = [...new Set(items.map(article => blogCategoryLabel(article.category)))]
 
   return (
     <MarketingShell>
-      <section className="bg-slate-50 py-16 sm:py-24">
+      <section className=" py-16 sm:py-24">
         <div className={marketingContainerClass}>
           <MarketingEyebrow>Blog &amp; Guides</MarketingEyebrow>
           <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.055em] text-slate-900 sm:text-6xl">
