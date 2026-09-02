@@ -1,0 +1,144 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const viewports = [
+  { name: '320px mobile', width: 320, height: 700 },
+  { name: '375px mobile', width: 375, height: 812 },
+  { name: 'desktop', width: 1440, height: 1000 },
+] as const
+
+const privateOrApiPath =
+  /^\/(?:api(?:\/|$)|sejour(?:\/|$)|le-logement(?:\/|$)|nos-recommandations(?:\/|$)|map(?:\/|$)|mes-favoris(?:\/|$)|guide(?:\/|$))/
+
+async function expectNoHorizontalOverflow(page: {
+  evaluate: <T>(pageFunction: () => T | Promise<T>) => Promise<T>
+}) {
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth)
+}
+
+async function openDemo(page: Page) {
+  await page.goto('/concept?preview=demo#guide')
+  const initialUrl = page.url()
+  const trigger = page.getByRole('button', { name: 'Voir le guide voyageur' })
+
+  await trigger.scrollIntoViewIfNeeded()
+  await trigger.click()
+
+  const dialog = page.getByRole('dialog', {
+    name: 'Guide MyStay de démonstration',
+  })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.locator('[data-guide-mode="demo"]')).toBeVisible()
+  await expect(page).toHaveURL(initialUrl)
+
+  return { dialog, initialUrl, trigger }
+}
+
+for (const viewport of viewports) {
+  test(`045 AC-01-05 keeps the autonomous demo contained and stable on ${viewport.name}`, async ({
+    page,
+  }) => {
+    const forbiddenRequests: string[] = []
+    page.on('request', request => {
+      const url = new URL(request.url())
+      if (privateOrApiPath.test(url.pathname)) {
+        forbiddenRequests.push(`${request.method()} ${url.pathname}`)
+      }
+    })
+
+    await page.setViewportSize({
+      width: viewport.width,
+      height: viewport.height,
+    })
+
+    const { dialog, initialUrl, trigger } = await openDemo(page)
+
+    const modalBox = await dialog.boundingBox()
+    expect(modalBox).not.toBeNull()
+    expect(modalBox?.width).toBeLessThanOrEqual(360.5)
+    expect(modalBox?.height).toBeLessThanOrEqual(720.5)
+    expect(modalBox?.x).toBeGreaterThanOrEqual(0)
+    expect(modalBox?.y).toBeGreaterThanOrEqual(0)
+    expect((modalBox?.x ?? 0) + (modalBox?.width ?? 0)).toBeLessThanOrEqual(
+      viewport.width,
+    )
+    expect((modalBox?.y ?? 0) + (modalBox?.height ?? 0)).toBeLessThanOrEqual(
+      viewport.height,
+    )
+    await expectNoHorizontalOverflow(page)
+
+    const main = dialog.locator('main')
+    await dialog.getByRole('button', { name: 'Guide logement' }).click()
+    await expect(dialog.getByRole('heading', { name: 'Le 305' })).toBeVisible()
+    await dialog.getByRole('button', { name: /^Départ/ }).click()
+    const departureRegion = dialog.getByRole('region', { name: /^Départ/ })
+    await expect(departureRegion.getByText('Checklist du départ')).toBeVisible()
+
+    await main.evaluate(element => {
+      element.scrollTop = element.scrollHeight
+    })
+    await expect(departureRegion.getByText('Tri des déchets')).toBeVisible()
+    await expect(
+      departureRegion.getByText('Point de tri public du centre de Saint-Gervais'),
+    ).toBeVisible()
+
+    await dialog.getByRole('button', { name: 'Coups de cœur' }).click()
+    const compactCard = dialog
+      .getByText('Bistrotsérac')
+      .locator('xpath=ancestor::article[1]')
+    await expect(compactCard).toHaveAttribute('data-variant', 'compact')
+    const compactBox = await compactCard.boundingBox()
+    expect(compactBox).not.toBeNull()
+    expect(Math.abs((compactBox?.width ?? 0) - (compactBox?.height ?? 0))).toBeLessThanOrEqual(
+      1,
+    )
+    for (const controlName of [
+      'Ouvrir Bistrotsérac',
+      'Afficher Bistrotsérac sur la carte',
+    ]) {
+      const controlBox = await compactCard
+        .getByRole('button', { name: controlName })
+        .boundingBox()
+      expect(controlBox).not.toBeNull()
+      expect(controlBox?.x).toBeGreaterThanOrEqual(compactBox?.x ?? 0)
+      expect(controlBox?.y).toBeGreaterThanOrEqual(compactBox?.y ?? 0)
+      expect((controlBox?.x ?? 0) + (controlBox?.width ?? 0)).toBeLessThanOrEqual(
+        (compactBox?.x ?? 0) + (compactBox?.width ?? 0),
+      )
+      expect((controlBox?.y ?? 0) + (controlBox?.height ?? 0)).toBeLessThanOrEqual(
+        (compactBox?.y ?? 0) + (compactBox?.height ?? 0),
+      )
+    }
+    await expectNoHorizontalOverflow(page)
+
+    await dialog.getByRole('button', { name: 'Ouvrir le menu' }).click()
+    await expect(
+      dialog.getByRole('navigation', { name: 'Menu de démonstration' }),
+    ).toBeVisible()
+    await dialog.getByRole('button', { name: 'Blog' }).click()
+    await expect(dialog.getByRole('heading', { name: 'Blog' })).toBeVisible()
+    await expect(page).toHaveURL(initialUrl)
+
+    await dialog.getByRole('button', { name: 'Ouvrir le menu' }).click()
+    await dialog.getByRole('button', { name: 'Nous contacter' }).click()
+    await expect(
+      dialog.getByRole('heading', { name: 'Votre hôte' }),
+    ).toBeVisible()
+    await expect(page).toHaveURL(initialUrl)
+
+    await dialog.getByRole('button', { name: 'Carte' }).click()
+    await expect(
+      dialog.getByRole('heading', { name: 'Carte des coups de cœur' }),
+    ).toBeVisible()
+    await expect(page).toHaveURL(initialUrl)
+
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await expect(trigger).toBeFocused()
+    expect(forbiddenRequests).toEqual([])
+  })
+}

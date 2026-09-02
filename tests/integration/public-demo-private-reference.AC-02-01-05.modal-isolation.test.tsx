@@ -21,6 +21,12 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       const dialog = await screen.findByRole('dialog', {
         name: 'Guide MyStay de démonstration',
       })
+      expect(dialog).toHaveClass(
+        'border-[5px]',
+        'border-white',
+        'rounded-[2.5rem]',
+      )
+      expect(dialog).toHaveAttribute('aria-modal', 'true')
       expect(screen.getByTestId('autonomous-demo-guide')).toHaveAttribute(
         'data-guide-mode',
         'demo',

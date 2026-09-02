@@ -35,6 +35,14 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const filterBar = screen.getByRole('group', {
       name: 'Filtrer les catégories',
     })
+    expect(filterBar).toHaveClass(
+      'sticky',
+      'top-0',
+      'z-10',
+      'overflow-x-auto',
+      'bg-[#faf9f6]/95',
+      'backdrop-blur',
+    )
     expect(within(filterBar).getByRole('button', { name: 'Tous' })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -82,6 +90,26 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     ).toHaveFocus()
     expect(window.location.pathname).toBe('/concept')
     expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
+  })
+
+  it('keeps POI detail fallbacks clean when optional rating metadata is absent', () => {
+    openFavorites()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ouvrir Piscine de Saint-Gervais' }),
+    )
+
+    expect(
+      screen.getByRole('heading', { name: 'Piscine de Saint-Gervais' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('poi-detail-rating-count')).not.toBeInTheDocument()
+    expect(screen.getByTestId('photo-attribution')).toHaveTextContent(
+      'www.saintgervais.com',
+    )
+    expect(screen.getByTestId('poi-detail-distance')).toHaveTextContent(
+      /du logement/,
+    )
+    expect(screen.getByRole('button', { name: 'Voir sur la carte' })).toBeEnabled()
   })
 
   it('keeps compact bento cards usable without long visual controls', () => {

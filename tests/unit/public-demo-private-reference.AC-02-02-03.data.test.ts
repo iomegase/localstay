@@ -4,9 +4,43 @@ import {
   isApprovedDemoLodgingMedia,
 } from '@/features/guide-demo/demo-media-policy'
 import { demoPois } from '@/features/guide-demo/demo-pois'
-import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
 
-describe('public guide demo data', () => {
+const uuidPattern =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+
+function hasUsableTrailGeometry(geometry: unknown) {
+  if (
+    !geometry ||
+    typeof geometry !== 'object' ||
+    !('type' in geometry) ||
+    !('coordinates' in geometry)
+  ) {
+    return false
+  }
+
+  const typedGeometry = geometry as {
+    type: unknown
+    coordinates: unknown
+  }
+
+  return (
+    typedGeometry.type === 'MultiLineString' &&
+    Array.isArray(typedGeometry.coordinates) &&
+    typedGeometry.coordinates.some(
+      line =>
+        Array.isArray(line) &&
+        line.length >= 2 &&
+        line.every(
+          point =>
+            Array.isArray(point) &&
+            point.length === 2 &&
+            point.every(coordinate => typeof coordinate === 'number'),
+        ),
+    )
+  )
+}
+
+describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
   it('exposes one credible public POI collection without real UUIDs', () => {
     expect(demoPois.length).toBeGreaterThanOrEqual(12)
     expect(demoPois.length).toBeLessThanOrEqual(15)
@@ -16,11 +50,11 @@ describe('public guide demo data', () => {
       new Set(demoPois.map(poi => poi.category.slug)).size,
     ).toBeGreaterThanOrEqual(6)
     expect([demoLodging.id, ...demoPois.map(poi => poi.id)].join(' ')).not.toMatch(
-      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+      uuidPattern,
     )
   })
 
-  it('keeps every public interaction on the same POI source', () => {
+  it('keeps every public interaction on the same static POI source', () => {
     const featured = demoPois.filter(poi => poi.recommended).slice(0, 3)
     expect(featured).toHaveLength(3)
     for (const poi of featured) {
@@ -41,7 +75,7 @@ describe('public guide demo data', () => {
   it('includes the published Porcherey trail geometry without enabling tracking', () => {
     const porcherey = demoPois.find(poi => poi.slug === 'alpage-de-porcherey')
 
-    expect(isValidTrailGeometry(porcherey?.trail?.geometry)).toBe(true)
+    expect(hasUsableTrailGeometry(porcherey?.trail?.geometry)).toBe(true)
     expect(porcherey?.trail).toMatchObject({
       startLatitude: 45.8535446,
       startLongitude: 6.7236865,
@@ -50,7 +84,7 @@ describe('public guide demo data', () => {
     })
   })
 
-  it('presents Le 305 with the complete fictitious lodging guide data', () => {
+  it('presents Le 305 with complete fictitious lodging guide data', () => {
     expect(demoLodging).toMatchObject({
       id: 'demo-le-305',
       name: 'Le 305',
@@ -76,12 +110,10 @@ describe('public guide demo data', () => {
     expect(serialized).not.toMatch(
       /bo[iî]te (?:à|a) cl[ée]s|digicode|code d['’]acc[eè]s|garage/i,
     )
-    expect(serialized).not.toMatch(
-      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
-    )
+    expect(serialized).not.toMatch(uuidPattern)
   })
 
-  it('uses only the closed allowlist of reviewed non-sensitive lodging media', () => {
+  it('uses only the reviewed non-sensitive lodging media allowlist', () => {
     const media = [
       demoLodging.coverImage,
       ...demoLodging.gallery,
