@@ -100,6 +100,8 @@ type ModuleDependency = {
   specifier: string
 }
 
+const NON_LITERAL_DYNAMIC_IMPORT = '<non-literal dynamic import>'
+
 function readModuleDependencies(source: string): ModuleDependency[] {
   const sourceFile = ts.createSourceFile(
     'guide-demo-data.ts',
@@ -123,18 +125,25 @@ function readModuleDependencies(source: string): ModuleDependency[] {
       })
     }
 
+    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      const specifier = node.arguments[0]
+      dependencies.push({
+        kind: 'dynamic-import',
+        specifier:
+          specifier && ts.isStringLiteralLike(specifier)
+            ? specifier.text
+            : NON_LITERAL_DYNAMIC_IMPORT,
+      })
+    }
+
     if (
       ts.isCallExpression(node) &&
       node.arguments.length > 0 &&
-      ts.isStringLiteralLike(node.arguments[0])
+      ts.isStringLiteralLike(node.arguments[0]) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'require'
     ) {
-      if (node.expression.kind === ts.SyntaxKind.ImportKeyword) {
-        dependencies.push({ kind: 'dynamic-import', specifier: node.arguments[0].text })
-      }
-
-      if (ts.isIdentifier(node.expression) && node.expression.text === 'require') {
         dependencies.push({ kind: 'require', specifier: node.arguments[0].text })
-      }
     }
 
     ts.forEachChild(node, collect)
@@ -189,6 +198,15 @@ function findRuntimeDependencyUses(source: string): string[] {
     )
   }
 
+  function isBrowserStorageTarget(node: ts.Expression): boolean {
+    return (
+      (ts.isIdentifier(node) && /^(?:localStorage|sessionStorage)$/.test(node.text)) ||
+      (ts.isPropertyAccessExpression(node) &&
+        isGlobalObject(node.expression) &&
+        /^(?:localStorage|sessionStorage)$/.test(node.name.text))
+    )
+  }
+
   function collect(node: ts.Node) {
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
       if (node.expression.text === 'fetch') uses.add('fetch()')
@@ -210,6 +228,12 @@ function findRuntimeDependencyUses(source: string): string[] {
       ) {
         uses.add(node.expression.getText(sourceFile))
       }
+      if (method === 'fetch' && isGlobalObject(node.expression.expression)) {
+        uses.add(node.expression.getText(sourceFile))
+      }
+      if (isBrowserStorageTarget(node.expression.expression)) {
+        uses.add(node.expression.expression.getText(sourceFile))
+      }
     }
 
     if (
@@ -226,8 +250,9 @@ function findRuntimeDependencyUses(source: string): string[] {
 
     if (
       ts.isPropertyAccessExpression(node) &&
-      ((ts.isIdentifier(node.expression) &&
-        /^(?:localStorage|sessionStorage)$/.test(node.expression.text)) ||
+      (isBrowserStorageTarget(node) ||
+        (ts.isIdentifier(node.expression) &&
+          /^(?:localStorage|sessionStorage)$/.test(node.expression.text)) ||
         (ts.isIdentifier(node.expression) &&
           node.expression.text === 'document' &&
           node.name.text === 'cookie'))
@@ -387,6 +412,22 @@ describe('public demo security guard helpers', () => {
     ).toEqual(dependencies)
   })
 
+  it('rejects a dynamic import whose source cannot be resolved statically', () => {
+    const dependencies = readModuleDependencies(
+      "const target = '../../private/actions'; void import(target)",
+    )
+
+    expect(dependencies).toEqual([
+      { kind: 'dynamic-import', specifier: '<non-literal dynamic import>' },
+    ])
+    expect(
+      isAllowedDemoModuleSpecifier(
+        'components/DemoGuideModal.tsx',
+        dependencies[0].specifier,
+      ),
+    ).toBe(false)
+  })
+
   it('detects direct history and location mutations as stateful navigation', () => {
     const source = [
       "history.pushState({}, '', '/sejour')",
@@ -401,6 +442,24 @@ describe('public demo security guard helpers', () => {
         'window.history.replaceState',
         'window.location.assign',
         'location.href',
+      ]),
+    )
+  })
+
+  it('detects global network and browser-storage calls', () => {
+    const source = [
+      "globalThis.fetch('/api/demo')",
+      "window.fetch('/api/demo')",
+      "globalThis.localStorage.getItem('demo')",
+      "window.sessionStorage.setItem('demo', '1')",
+    ].join('\n')
+
+    expect(findRuntimeDependencyUses(source)).toEqual(
+      expect.arrayContaining([
+        'globalThis.fetch',
+        'window.fetch',
+        'globalThis.localStorage',
+        'window.sessionStorage',
       ]),
     )
   })
