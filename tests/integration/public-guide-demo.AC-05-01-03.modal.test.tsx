@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLauncher'
 
 describe('public guide demo modal', () => {
-  it('opens the shared guide in a smartphone dialog without changing the URL', async () => {
+  it('opens the autonomous guide in a smartphone dialog without changing the URL', async () => {
     const user = userEvent.setup()
     window.history.replaceState({}, '', '/')
 
@@ -25,7 +25,10 @@ describe('public guide demo modal', () => {
       'rounded-[2.5rem]',
     )
     expect(dialog).toHaveAttribute('aria-modal', 'true')
-    expect(dialog.querySelector('[data-guide-mode="demo"]')).not.toBeNull()
+    expect(screen.getByTestId('autonomous-demo-guide')).toHaveAttribute(
+      'data-guide-mode',
+      'demo',
+    )
     expect(
       screen.queryByRole('button', {
         name: 'Fermer le guide de démonstration',

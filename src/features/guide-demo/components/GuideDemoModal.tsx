@@ -2,9 +2,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { motion } from 'framer-motion'
-import { GuideApp } from '@/features/guide-app/components/GuideApp'
-import { demoLodging } from '@/features/guide-demo/demo-guide-data'
-import { demoPois } from '@/features/guide-demo/demo-pois'
+import { DemoGuideApp } from './DemoGuideApp'
 
 export function GuideDemoModal({
   open,
@@ -42,7 +40,7 @@ export function GuideDemoModal({
               <Dialog.Description className="sr-only">
                 Démonstration publique et interactive du guide de séjour MyStay.
               </Dialog.Description>
-              <GuideApp mode="demo" lodging={demoLodging} pois={demoPois} />
+              {open ? <DemoGuideApp /> : null}
             </motion.div>
           </Dialog.Content>
         </div>

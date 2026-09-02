@@ -28,12 +28,18 @@ function readTypeScriptFiles(directory: string): Array<{
     }
 
     const modulePath = relative(GUIDE_DEMO_ROOT, path)
-    if (!/\.tsx?$/.test(entry.name) || !AUTONOMOUS_DATA_MODULES.has(modulePath)) {
+    if (!/\.tsx?$/.test(entry.name)) {
       return []
     }
 
     return [{ path: modulePath, source: readFileSync(path, 'utf8') }]
   })
+}
+
+function readAutonomousDataFiles() {
+  return readTypeScriptFiles(GUIDE_DEMO_ROOT).filter(file =>
+    AUTONOMOUS_DATA_MODULES.has(file.path),
+  )
 }
 
 function collectInternalIds(
@@ -89,7 +95,12 @@ function normalizePhoneNumber(value: string): string {
   return value.replace(/[^+\d]/g, '')
 }
 
-function readStaticModuleSpecifiers(source: string): string[] {
+type ModuleDependency = {
+  kind: 'dynamic-import' | 'export' | 'import' | 'require'
+  specifier: string
+}
+
+function readModuleDependencies(source: string): ModuleDependency[] {
   const sourceFile = ts.createSourceFile(
     'guide-demo-data.ts',
     source,
@@ -98,18 +109,120 @@ function readStaticModuleSpecifiers(source: string): string[] {
     ts.ScriptKind.TS,
   )
 
-  return sourceFile.statements.flatMap(statement => {
+  const dependencies: ModuleDependency[] = []
+
+  function collect(node: ts.Node) {
     if (
-      (ts.isImportDeclaration(statement) ||
-        ts.isExportDeclaration(statement)) &&
-      statement.moduleSpecifier &&
-      ts.isStringLiteralLike(statement.moduleSpecifier)
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteralLike(node.moduleSpecifier)
     ) {
-      return [statement.moduleSpecifier.text]
+      dependencies.push({
+        kind: ts.isImportDeclaration(node) ? 'import' : 'export',
+        specifier: node.moduleSpecifier.text,
+      })
     }
 
-    return []
-  })
+    if (
+      ts.isCallExpression(node) &&
+      node.arguments.length > 0 &&
+      ts.isStringLiteralLike(node.arguments[0])
+    ) {
+      if (node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+        dependencies.push({ kind: 'dynamic-import', specifier: node.arguments[0].text })
+      }
+
+      if (ts.isIdentifier(node.expression) && node.expression.text === 'require') {
+        dependencies.push({ kind: 'require', specifier: node.arguments[0].text })
+      }
+    }
+
+    ts.forEachChild(node, collect)
+  }
+
+  collect(sourceFile)
+  return dependencies
+}
+
+function readStaticModuleSpecifiers(source: string): string[] {
+  return readModuleDependencies(source).map(dependency => dependency.specifier)
+}
+
+function findRuntimeDependencyUses(source: string): string[] {
+  const sourceFile = ts.createSourceFile(
+    'guide-demo-runtime.ts',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  )
+  const uses = new Set<string>()
+
+  function collect(node: ts.Node) {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+      if (node.expression.text === 'fetch') uses.add('fetch()')
+      if (node.expression.text === 'cookies') uses.add('cookies()')
+      if (node.expression.text === 'require') uses.add('require()')
+    }
+
+    if (ts.isIdentifier(node) && /^(?:prisma|Prisma)$/.test(node.text)) {
+      uses.add(node.text)
+    }
+
+    if (
+      ts.isPropertyAccessExpression(node) &&
+      ((ts.isIdentifier(node.expression) &&
+        /^(?:localStorage|sessionStorage)$/.test(node.expression.text)) ||
+        (ts.isIdentifier(node.expression) &&
+          node.expression.text === 'document' &&
+          node.name.text === 'cookie'))
+    ) {
+      uses.add(node.getText(sourceFile))
+    }
+
+    ts.forEachChild(node, collect)
+  }
+
+  collect(sourceFile)
+  return [...uses]
+}
+
+function readRouteLiteralDependencies(source: string): string[] {
+  const sourceFile = ts.createSourceFile(
+    'guide-demo-routes.ts',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  )
+  const routes: string[] = []
+
+  function collect(node: ts.Node) {
+    if (ts.isStringLiteralLike(node) && node.text.startsWith('/')) {
+      routes.push(node.text)
+    }
+    ts.forEachChild(node, collect)
+  }
+
+  collect(sourceFile)
+  return routes
+}
+
+function isAllowedDemoModuleSpecifier(specifier: string): boolean {
+  return (
+    /^\.\.?\//.test(specifier) ||
+    specifier === 'react' ||
+    specifier.startsWith('react/') ||
+    specifier === 'next/dynamic' ||
+    specifier === 'next/image' ||
+    specifier === 'lucide-react' ||
+    specifier.startsWith('@radix-ui/react-') ||
+    specifier === 'framer-motion' ||
+    specifier.startsWith('@/features/guide-demo/') ||
+    specifier === '@/features/marketing/components/MarketingShell' ||
+    specifier === '@/shared/components/brand/MyStayLogo' ||
+    specifier === '@/shared/lib/french-place'
+  )
 }
 
 function findUnsafeStayEntries(
@@ -314,7 +427,7 @@ describe('public demo private-guide isolation', () => {
   })
 
   it('keeps autonomous data modules independent from private and stateful sources', () => {
-    const sources = readTypeScriptFiles(GUIDE_DEMO_ROOT)
+    const sources = readAutonomousDataFiles()
     const combinedSource = sources
       .map(file => `// ${file.path}\n${file.source}`)
       .join('\n')
@@ -362,5 +475,44 @@ describe('public demo private-guide isolation', () => {
     expect(combinedSource).not.toMatch(/\b(?:localStorage|sessionStorage)\b/i)
     expect(combinedSource).not.toMatch(/\bfetch\s*\(/i)
     expect(combinedSource).not.toMatch(/\/api\//i)
+  })
+
+  it('keeps every guide-demo module free of private, data, navigation, and network dependencies', () => {
+    const privateRoute =
+      /^\/(?:sejour|le-logement|nos-recommandations|map|mes-favoris|guide)(?:\/|$)/
+    const forbiddenSpecifier =
+      /(?:^@\/features\/guide-app(?:\/|$)|^@\/app\/api(?:\/|$)|^@prisma\/client$|(?:^|\/)prisma(?:\/|$)|(?:^|\/)queries?(?:\/|$)|(?:^|\/)(?:database|db)(?:\/|$)|^next\/(?:headers|navigation)$|^next\/cookies$|(?:^|\/)api(?:\/|$)|(?:^|\/)(?:storage|cookies?)(?:\/|$))/i
+    const violations: Array<{
+      file: string
+      dependency: string
+      kind: string
+    }> = []
+
+    for (const file of readTypeScriptFiles(GUIDE_DEMO_ROOT)) {
+      for (const dependency of readModuleDependencies(file.source)) {
+        if (
+          forbiddenSpecifier.test(dependency.specifier) ||
+          !isAllowedDemoModuleSpecifier(dependency.specifier)
+        ) {
+          violations.push({
+            file: file.path,
+            dependency: dependency.specifier,
+            kind: dependency.kind,
+          })
+        }
+      }
+
+      for (const dependency of findRuntimeDependencyUses(file.source)) {
+        violations.push({ file: file.path, dependency, kind: 'runtime' })
+      }
+
+      for (const route of readRouteLiteralDependencies(file.source)) {
+        if (privateRoute.test(route) || route.startsWith('/api/')) {
+          violations.push({ file: file.path, dependency: route, kind: 'route' })
+        }
+      }
+    }
+
+    expect(violations).toEqual([])
   })
 })
