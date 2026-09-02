@@ -27,6 +27,13 @@ export function GuideDemoPhoneButton({ className }: { className?: string }) {
     setIsOpen(true)
   }
 
+  function handleOpenChange(open: boolean) {
+    setIsOpen(open)
+    if (!open && hasOpenedRef.current) {
+      setTimeout(() => triggerRef.current?.focus(), 0)
+    }
+  }
+
   return (
     <>
       <button
@@ -43,7 +50,9 @@ export function GuideDemoPhoneButton({ className }: { className?: string }) {
           strokeWidth={1.8}
         />
       </button>
-      {isLoaded && <GuideDemoModal open={isOpen} onOpenChange={setIsOpen} />}
+      {isLoaded && (
+        <GuideDemoModal open={isOpen} onOpenChange={handleOpenChange} />
+      )}
     </>
   )
 }

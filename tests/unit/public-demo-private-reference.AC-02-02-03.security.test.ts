@@ -1,10 +1,21 @@
-import { readdirSync, readFileSync } from 'node:fs'
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, extname, isAbsolute, join, relative, resolve } from 'node:path'
 import * as ts from 'typescript'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import { isApprovedDemoLodgingMedia } from '@/features/guide-demo/demo-media-policy'
 
 const GUIDE_DEMO_ROOT = join(process.cwd(), 'src/features/guide-demo')
+const FORBIDDEN_DEMO_SPECIFIER =
+  /(?:^@\/features\/guide-app(?:\/|$)|^@\/app\/api(?:\/|$)|^@prisma\/client$|(?:^|\/)prisma(?:\/|$)|(?:^|\/)queries?(?:\/|$)|(?:^|\/)(?:database|db)(?:\/|$)|^next\/(?:headers|navigation)$|^next\/cookies$|(?:^|\/)api(?:\/|$)|(?:^|\/)(?:storage|cookies?)(?:\/|$))/i
 
 const AUTONOMOUS_DATA_MODULES = new Set([
   'demo-content.ts',
@@ -16,24 +27,115 @@ const AUTONOMOUS_DATA_MODULES = new Set([
   'types.ts',
 ])
 
-function readTypeScriptFiles(directory: string): Array<{
+type AuditSourceFile = {
+  absolutePath: string
   path: string
   source: string
-}> {
+  isGuideDemoSource: boolean
+}
+
+function readDirectTypeScriptFiles(directory: string): AuditSourceFile[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-    const path = join(directory, entry.name)
+    const absolutePath = join(directory, entry.name)
 
     if (entry.isDirectory()) {
-      return readTypeScriptFiles(path)
+      return readDirectTypeScriptFiles(absolutePath)
     }
 
-    const modulePath = relative(GUIDE_DEMO_ROOT, path)
     if (!/\.tsx?$/.test(entry.name)) {
       return []
     }
 
-    return [{ path: modulePath, source: readFileSync(path, 'utf8') }]
+    return [
+      {
+        absolutePath,
+        path: relative(directory, absolutePath),
+        source: readFileSync(absolutePath, 'utf8'),
+        isGuideDemoSource: true,
+      },
+    ]
   })
+}
+
+function resolvesWithinDirectory(path: string, directory: string): boolean {
+  const pathFromDirectory = relative(directory, path)
+  return !pathFromDirectory.startsWith('..') && !isAbsolute(pathFromDirectory)
+}
+
+function resolveLocalTypeScriptModule(
+  importerPath: string,
+  specifier: string,
+  sourceRoot: string,
+): string | null {
+  let unresolvedPath: string
+
+  if (isRelativeModuleSpecifier(specifier)) {
+    unresolvedPath = resolve(dirname(importerPath), specifier)
+  } else if (specifier.startsWith('@/')) {
+    unresolvedPath = resolve(sourceRoot, specifier.slice(2))
+  } else {
+    return null
+  }
+
+  if (!resolvesWithinDirectory(unresolvedPath, sourceRoot)) {
+    return null
+  }
+
+  const candidates = extname(unresolvedPath)
+    ? [unresolvedPath]
+    : [
+        `${unresolvedPath}.ts`,
+        `${unresolvedPath}.tsx`,
+        join(unresolvedPath, 'index.ts'),
+        join(unresolvedPath, 'index.tsx'),
+      ]
+
+  return (
+    candidates.find(
+      candidate =>
+        resolvesWithinDirectory(candidate, sourceRoot) &&
+        existsSync(candidate) &&
+        /\.tsx?$/.test(candidate),
+    ) ?? null
+  )
+}
+
+function readTypeScriptFiles(
+  directory: string,
+  includeTransitive = false,
+  sourceRoot = join(process.cwd(), 'src'),
+): AuditSourceFile[] {
+  const directFiles = readDirectTypeScriptFiles(directory)
+  if (!includeTransitive) return directFiles
+
+  const filesByPath = new Map<string, AuditSourceFile>()
+
+  function visit(absolutePath: string, isGuideDemoSource: boolean) {
+    if (filesByPath.has(absolutePath)) return
+
+    const source = readFileSync(absolutePath, 'utf8')
+    filesByPath.set(absolutePath, {
+      absolutePath,
+      path: relative(directory, absolutePath),
+      source,
+      isGuideDemoSource,
+    })
+
+    for (const dependency of readModuleDependencies(source)) {
+      const resolvedPath = resolveLocalTypeScriptModule(
+        absolutePath,
+        dependency.specifier,
+        sourceRoot,
+      )
+      if (resolvedPath) visit(resolvedPath, false)
+    }
+  }
+
+  for (const file of directFiles) {
+    visit(file.absolutePath, true)
+  }
+
+  return [...filesByPath.values()]
 }
 
 function readAutonomousDataFiles() {
@@ -463,6 +565,53 @@ describe('public demo security guard helpers', () => {
       ]),
     )
   })
+
+  it('traverses allowed local modules and discovers a transitive private query fixture', () => {
+    const fixtureRoot = mkdtempSync(join(tmpdir(), 'guide-demo-audit-'))
+    const sourceRoot = join(fixtureRoot, 'src')
+    const demoRoot = join(sourceRoot, 'features/guide-demo')
+    const bridgePath = join(sourceRoot, 'shared/lib/demo-bridge.ts')
+    const queryPath = join(sourceRoot, 'features/private/queries/secret.ts')
+
+    try {
+      mkdirSync(join(demoRoot, 'components'), { recursive: true })
+      mkdirSync(dirname(bridgePath), { recursive: true })
+      mkdirSync(dirname(queryPath), { recursive: true })
+      writeFileSync(
+        join(demoRoot, 'components/Entry.tsx'),
+        "import '@/shared/lib/demo-bridge'",
+      )
+      writeFileSync(
+        bridgePath,
+        "import '@/features/private/queries/secret'",
+      )
+      writeFileSync(queryPath, 'export const FORBIDDEN_TRANSITIVE_QUERY = true')
+
+      const sources = readTypeScriptFiles(demoRoot, true, sourceRoot)
+
+      expect(sources.map(file => file.source).join('\n')).toContain(
+        'FORBIDDEN_TRANSITIVE_QUERY',
+      )
+      expect(
+        sources.flatMap(file => readModuleDependencies(file.source)).filter(
+          dependency => dependency.specifier.includes('/queries/'),
+        ),
+      ).toEqual([
+        { kind: 'import', specifier: '@/features/private/queries/secret' },
+      ])
+      expect(
+        sources
+          .flatMap(file => readModuleDependencies(file.source))
+          .filter(dependency =>
+            FORBIDDEN_DEMO_SPECIFIER.test(dependency.specifier),
+          ),
+      ).toEqual([
+        { kind: 'import', specifier: '@/features/private/queries/secret' },
+      ])
+    } finally {
+      rmSync(fixtureRoot, { force: true, recursive: true })
+    }
+  })
 })
 
 describe('public demo private-guide isolation', () => {
@@ -663,19 +812,19 @@ describe('public demo private-guide isolation', () => {
   it('keeps every guide-demo module free of private, data, navigation, and network dependencies', () => {
     const privateRoute =
       /^\/(?:sejour|le-logement|nos-recommandations|map|mes-favoris|guide)(?:\/|$)/
-    const forbiddenSpecifier =
-      /(?:^@\/features\/guide-app(?:\/|$)|^@\/app\/api(?:\/|$)|^@prisma\/client$|(?:^|\/)prisma(?:\/|$)|(?:^|\/)queries?(?:\/|$)|(?:^|\/)(?:database|db)(?:\/|$)|^next\/(?:headers|navigation)$|^next\/cookies$|(?:^|\/)api(?:\/|$)|(?:^|\/)(?:storage|cookies?)(?:\/|$))/i
     const violations: Array<{
       file: string
       dependency: string
       kind: string
     }> = []
 
-    for (const file of readTypeScriptFiles(GUIDE_DEMO_ROOT)) {
+    for (const file of readTypeScriptFiles(GUIDE_DEMO_ROOT, true)) {
       for (const dependency of readModuleDependencies(file.source)) {
         if (
-          forbiddenSpecifier.test(dependency.specifier) ||
-          !isAllowedDemoModuleSpecifier(file.path, dependency.specifier)
+          dependency.specifier === NON_LITERAL_DYNAMIC_IMPORT ||
+          FORBIDDEN_DEMO_SPECIFIER.test(dependency.specifier) ||
+          (file.isGuideDemoSource &&
+            !isAllowedDemoModuleSpecifier(file.path, dependency.specifier))
         ) {
           violations.push({
             file: file.path,

@@ -2,6 +2,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import { DemoGuideApp } from './DemoGuideApp'
 
 export function GuideDemoModal({
@@ -11,6 +12,16 @@ export function GuideDemoModal({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  useEffect(() => {
+    if (!open) return
+
+    const hadScrollLock = document.body.classList.contains('overflow-hidden')
+    document.body.classList.add('overflow-hidden')
+    return () => {
+      if (!hadScrollLock) document.body.classList.remove('overflow-hidden')
+    }
+  }, [open])
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
