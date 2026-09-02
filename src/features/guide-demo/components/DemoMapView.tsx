@@ -37,13 +37,8 @@ export function DemoMapView({
   onDeselectPoi,
   onOpenPoi,
 }: DemoMapViewProps) {
-  const headingRef = useRef<HTMLHeadingElement>(null)
   const previewRef = useRef<HTMLElement>(null)
   const markerRefs = useRef(new Map<DemoPoi['id'], HTMLButtonElement>())
-
-  useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
 
   useEffect(() => {
     if (selectedPoi) previewRef.current?.focus()
@@ -64,7 +59,11 @@ export function DemoMapView({
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#a68e69]">
           Points d’intérêt
         </p>
-        <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+        <h1
+          data-demo-view-heading="true"
+          tabIndex={-1}
+          className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        >
           Carte des coups de cœur
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">

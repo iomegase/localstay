@@ -31,7 +31,11 @@ export function DemoHomeView({
         <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-800">
           Logement fictif · démonstration
         </span>
-        <h1 className="text-center text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900">
+        <h1
+          data-demo-view-heading="true"
+          tabIndex={-1}
+          className="text-center text-[40px] font-bold leading-[0.98] tracking-[-0.045em] text-slate-900"
+        >
           <span className="block">Bienvenue</span>
           <span className="block">{welcomePlace}</span>
         </h1>

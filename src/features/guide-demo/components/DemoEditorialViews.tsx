@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { ArrowLeft, Bath, BedDouble, MapPin, Maximize, Users } from 'lucide-react'
 import type {
   DemoBlogPost,
@@ -32,22 +31,6 @@ type DemoContactViewProps = {
   contact: DemoContact
 }
 
-function useHeadingFocus() {
-  const headingRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    const focusTimer = window.setTimeout(() => {
-      headingRef.current?.focus()
-    }, 0)
-
-    return () => {
-      window.clearTimeout(focusTimer)
-    }
-  }, [])
-
-  return headingRef
-}
-
 function DemoContentImage({ alt, src }: { alt: string; src: string }) {
   const fallback = '/marketing/demo-lodging-1.webp'
 
@@ -72,15 +55,13 @@ export function DemoLodgingsView({
   lodgings,
   onOpenLodging,
 }: DemoLodgingsViewProps) {
-  const headingRef = useHeadingFocus()
-
   return (
     <section className="min-h-full bg-white px-4 pb-32 pt-6">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
         Sélection fictive
       </p>
       <h1
-        ref={headingRef}
+        data-demo-view-heading="true"
         tabIndex={-1}
         className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
       >
@@ -134,8 +115,6 @@ export function DemoLodgingDetailView({
   lodging,
   onBack,
 }: DemoLodgingDetailViewProps) {
-  const headingRef = useHeadingFocus()
-
   return (
     <article className="min-h-full bg-white px-4 pb-32 pt-4">
       <button
@@ -153,7 +132,7 @@ export function DemoLodgingDetailView({
         {lodging.propertyType} fictif · {lodging.cityName}
       </p>
       <h1
-        ref={headingRef}
+        data-demo-view-heading="true"
         tabIndex={-1}
         className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
       >
@@ -241,14 +220,16 @@ function Amenities({
 }
 
 export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
-  const headingRef = useHeadingFocus()
-
   return (
     <section className="min-h-full bg-white px-4 pb-32 pt-6">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
         Journal de séjour fictif
       </p>
-      <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+      <h1
+        data-demo-view-heading="true"
+        tabIndex={-1}
+        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+      >
         Blog
       </h1>
       {posts.length === 0 ? (
@@ -288,7 +269,6 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
 }
 
 export function DemoBlogDetailView({ post, onBack }: DemoBlogDetailViewProps) {
-  const headingRef = useHeadingFocus()
   const blocks = post.contentMarkdown.split(/\n{2,}/).filter(Boolean)
 
   return (
@@ -301,7 +281,11 @@ export function DemoBlogDetailView({ post, onBack }: DemoBlogDetailViewProps) {
         <DemoContentImage alt={`Illustration de ${post.title}`} src={post.coverUrl} />
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-pink-600">{post.categoryLabel} · {post.cityName}</p>
-      <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+      <h1
+        data-demo-view-heading="true"
+        tabIndex={-1}
+        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+      >
         {post.title}
       </h1>
       <div className="mt-6 space-y-4 text-sm leading-7 text-slate-700">
@@ -318,12 +302,14 @@ export function DemoBlogDetailView({ post, onBack }: DemoBlogDetailViewProps) {
 }
 
 export function DemoContactView({ contact }: DemoContactViewProps) {
-  const headingRef = useHeadingFocus()
-
   return (
     <section className="min-h-full bg-white px-4 pb-32 pt-6">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">Contact fictif</p>
-      <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+      <h1
+        data-demo-view-heading="true"
+        tabIndex={-1}
+        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+      >
         Votre hôte
       </h1>
       <div className="mt-6 rounded-[28px] bg-slate-50 p-6">

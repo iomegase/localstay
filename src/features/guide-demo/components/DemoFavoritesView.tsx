@@ -1,7 +1,7 @@
 'use client'
 
 import { Eye, MapPinned, Star } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoPoi } from '@/features/guide-demo/types'
 
@@ -20,7 +20,6 @@ export function DemoFavoritesView({
   onOpenPoi,
   onShowOnMap,
 }: DemoFavoritesViewProps) {
-  const headingRef = useRef<HTMLHeadingElement>(null)
   const categories = useMemo(
     () =>
       Array.from(
@@ -32,17 +31,17 @@ export function DemoFavoritesView({
     ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
     : pois
 
-  useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
-
   return (
     <section className="min-h-full bg-[#faf9f6] pb-32 pt-6">
       <div className="px-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#a68e69]">
           Saint-Gervais-les-Bains
         </p>
-        <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]">
+        <h1
+          data-demo-view-heading="true"
+          tabIndex={-1}
+          className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        >
           Nos coups de cœur
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">

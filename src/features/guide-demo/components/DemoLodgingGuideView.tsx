@@ -121,7 +121,11 @@ export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
           <span className="inline-flex rounded-full bg-gradient-to-br from-[#9d174d] to-[#be185d] px-4 py-2.5 text-xs font-extrabold uppercase tracking-[0.12em]">
             Votre guide de séjour
           </span>
-          <h1 className="mb-2 mt-4 font-serif text-[clamp(44px,12vw,64px)] font-medium italic leading-[0.95] tracking-[-0.04em]">
+          <h1
+            data-demo-view-heading="true"
+            tabIndex={-1}
+            className="mb-2 mt-4 font-serif text-[clamp(44px,12vw,64px)] font-medium italic leading-[0.95] tracking-[-0.04em]"
+          >
             {lodging.name}
           </h1>
           <p className="flex items-center gap-2.5 text-[17px] font-semibold">

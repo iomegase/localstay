@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { BookOpen, Heart, Home, Map, Menu, X } from 'lucide-react'
 import type { DemoGuideView } from '@/features/guide-demo/types'
@@ -58,6 +58,7 @@ export function DemoGuideChrome({
   const menuDialogRef = useRef<HTMLDivElement>(null)
   const menuOpenerRef = useRef<HTMLButtonElement>(null)
   const menuCloseRef = useRef<HTMLButtonElement>(null)
+  const restoreMenuOpenerOnCloseRef = useRef(false)
   const menuWasOpenRef = useRef(false)
 
   useEffect(() => {
@@ -73,15 +74,29 @@ export function DemoGuideChrome({
   useEffect(() => {
     if (menuOpen) {
       menuWasOpenRef.current = true
+      restoreMenuOpenerOnCloseRef.current = false
       menuCloseRef.current?.focus()
       return
     }
 
     if (menuWasOpenRef.current) {
       menuWasOpenRef.current = false
-      menuOpenerRef.current?.focus()
+      if (restoreMenuOpenerOnCloseRef.current) {
+        menuOpenerRef.current?.focus()
+      }
+      restoreMenuOpenerOnCloseRef.current = false
     }
   }, [menuOpen])
+
+  const dismissMenu = useCallback(() => {
+    restoreMenuOpenerOnCloseRef.current = true
+    onCloseMenu()
+  }, [onCloseMenu])
+
+  function navigateFromMenu(view: DemoGuideView) {
+    restoreMenuOpenerOnCloseRef.current = false
+    onNavigate(view)
+  }
 
   useEffect(() => {
     if (!menuOpen) return
@@ -90,7 +105,7 @@ export function DemoGuideChrome({
       if (event.key === 'Escape') {
         event.preventDefault()
         event.stopPropagation()
-        onCloseMenu()
+        dismissMenu()
         return
       }
 
@@ -126,7 +141,7 @@ export function DemoGuideChrome({
     return () => {
       window.removeEventListener('keydown', containMenuKeyboard, true)
     }
-  }, [menuOpen, onCloseMenu])
+  }, [dismissMenu, menuOpen])
 
   return (
     <div
@@ -244,7 +259,7 @@ export function DemoGuideChrome({
           <button
             ref={menuCloseRef}
             type="button"
-            onClick={onCloseMenu}
+            onClick={dismissMenu}
             aria-label="Fermer le menu"
             className="absolute right-3 top-5 flex h-10 w-10 items-center justify-center text-slate-900"
           >
@@ -257,7 +272,7 @@ export function DemoGuideChrome({
                 <li key={item.view}>
                   <button
                     type="button"
-                    onClick={() => onNavigate(item.view)}
+                    onClick={() => navigateFromMenu(item.view)}
                     className="block w-full py-1.5 text-left text-[clamp(1.15rem,7vw,1.625rem)] font-bold uppercase leading-[1.05] tracking-[-0.01em] text-slate-800 transition-colors hover:text-pink-600 min-[380px]:py-2"
                   >
                     {item.label}

@@ -420,7 +420,22 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     )
     expect(screen.getByText('Cuisine équipée')).toBeInTheDocument()
     expect(screen.getByText('Secteur fictif des hauteurs')).toBeInTheDocument()
-    expect(screen.getAllByRole('img')).not.toHaveLength(0)
+    const lodgingDetailArticle = screen
+      .getByRole('heading', { name: 'Chalet des Cimes — démonstration' })
+      .closest('article')
+    if (!lodgingDetailArticle) {
+      throw new Error('Lodging detail article is required')
+    }
+    const lodgingDetailImage = within(lodgingDetailArticle).getByRole('img', {
+      name: 'Salon fictif du Chalet des Cimes',
+    }) as HTMLImageElement
+    expect(lodgingDetailImage.getAttribute('src')).toBe(
+      '/marketing/demo-lodging-2.webp',
+    )
+    fireEvent.error(lodgingDetailImage)
+    expect(lodgingDetailImage.getAttribute('src')).toBe(
+      '/marketing/demo-lodging-1.webp',
+    )
     fireEvent.click(
       screen.getByRole('button', { name: 'Retour aux logements' }),
     )

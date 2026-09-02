@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DemoGuideChrome } from './DemoGuideChrome'
 import {
   DemoBlogDetailView,
@@ -51,6 +51,24 @@ export function DemoGuideApp() {
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
   const [detailOrigin, setDetailOrigin] = useState<'favorites' | 'map'>('favorites')
   const mainRef = useRef<HTMLElement>(null)
+  const pendingHeadingFocusRef = useRef(false)
+
+  useEffect(() => {
+    if (!pendingHeadingFocusRef.current || menuOpen) return
+
+    if (activeView === 'map' && selectedMapPoi) {
+      pendingHeadingFocusRef.current = false
+      return
+    }
+
+    const heading = mainRef.current?.querySelector<HTMLElement>(
+      '[data-demo-view-heading="true"]',
+    )
+    if (heading) {
+      pendingHeadingFocusRef.current = false
+      heading.focus()
+    }
+  }, [activeView, menuOpen, selectedLodging, selectedMapPoi, selectedPoi, selectedPost])
 
   function navigate(
     view: DemoGuideView,
@@ -61,6 +79,7 @@ export function DemoGuideApp() {
   ) {
     const nextSelections = getEditorialSelectionsForView(view, editorialSelections)
 
+    pendingHeadingFocusRef.current = true
     setActiveView(view)
     setMenuOpen(false)
     setSelectedLodging(nextSelections.selectedLodging)

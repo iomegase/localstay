@@ -1,7 +1,6 @@
 'use client'
 
 import { ArrowLeft, Clock3, MapPinned, Star } from 'lucide-react'
-import { useEffect, useRef } from 'react'
 import { DemoPoiImage } from './DemoPoiImage'
 import type { DemoLodging, DemoPoi, DemoTrailGeometry } from '@/features/guide-demo/types'
 
@@ -110,12 +109,6 @@ export function DemoPoiDetailView({
   const photoAttribution = hostnameForPhoto(poi)
   const trail = poi.trail
   const polylines = trail?.geometry ? geometryToPolylines(trail.geometry) : []
-  const headingRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
-
   return (
     <article className="min-h-full overflow-x-hidden bg-[#faf9f6] pb-10">
       <div className="relative h-[360px]">
@@ -144,7 +137,11 @@ export function DemoPoiDetailView({
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#455e4c]">
               {poi.category.name}
             </p>
-            <h1 ref={headingRef} tabIndex={-1} className="mt-2 font-serif text-4xl italic leading-tight tracking-[-0.04em] text-[#121212]">
+            <h1
+              data-demo-view-heading="true"
+              tabIndex={-1}
+              className="mt-2 font-serif text-4xl italic leading-tight tracking-[-0.04em] text-[#121212]"
+            >
               {poi.name}
             </h1>
             <p className="mt-3 text-sm leading-5 text-slate-600">{poi.address}</p>
