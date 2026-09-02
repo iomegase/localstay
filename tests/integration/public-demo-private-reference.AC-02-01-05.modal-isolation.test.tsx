@@ -1,6 +1,12 @@
 /** @jest-environment jsdom */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLauncher'
 
@@ -68,6 +74,59 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       await screen.findByRole('heading', { name: /bienvenue/i }),
     ).toBeInTheDocument()
     expect(screen.queryByTestId('demo-lodging-guide')).not.toBeInTheDocument()
+  })
+
+  it('BR-11 keeps focus and page scrolling inside the outer dialog and closes from its overlay', async () => {
+    const user = userEvent.setup()
+    render(<GuideDemoLauncher />)
+
+    const trigger = screen.getByRole('button', {
+      name: 'Voir le guide d’exemple',
+    })
+    await user.click(trigger)
+
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Guide MyStay de démonstration',
+    })
+    const initialFocusTarget = within(dialog).getByRole('button', {
+      name: 'Accueil du guide',
+    })
+    await waitFor(() => {
+      expect(initialFocusTarget).toHaveFocus()
+    })
+    expect(document.body).toHaveClass('overflow-hidden')
+
+    const controls = within(dialog).getAllByRole('button')
+    controls.at(-1)?.focus()
+    await user.tab()
+    await waitFor(() => {
+      expect(dialog).toContainElement(document.activeElement)
+    })
+
+    controls[0]?.focus()
+    await user.tab({ shift: true })
+    await waitFor(() => {
+      expect(dialog).toContainElement(document.activeElement)
+    })
+
+    const overlay = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-state="open"]'),
+    ).find(
+      element =>
+        element !== dialog &&
+        element.classList.contains('fixed') &&
+        element.classList.contains('inset-0'),
+    )
+    expect(overlay).toBeDefined()
+    await user.click(overlay as HTMLElement)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+    expect(document.body).not.toHaveClass('overflow-hidden')
+    await waitFor(() => {
+      expect(trigger).toHaveFocus()
+    })
   })
 
   it('preserves the full URL through internal demo navigation', async () => {

@@ -9,15 +9,44 @@ const viewports = [
 const privateOrApiPath =
   /^\/(?:api(?:\/|$)|sejour(?:\/|$)|le-logement(?:\/|$)|nos-recommandations(?:\/|$)|map(?:\/|$)|mes-favoris(?:\/|$)|guide(?:\/|$))/
 
-async function expectNoHorizontalOverflow(page: {
-  evaluate: <T>(pageFunction: () => T | Promise<T>) => Promise<T>
-}) {
+async function expectDocumentDoesNotOverflow(page: Page) {
   const dimensions = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
   }))
 
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth)
+}
+
+async function expectElementDoesNotOverflowHorizontally(
+  locator: ReturnType<Page['locator']>,
+) {
+  const dimensions = await locator.evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }))
+
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth)
+}
+
+async function expectBoxContainedWithin(
+  outer: ReturnType<Page['locator']>,
+  inner: ReturnType<Page['locator']>,
+) {
+  const boxes = await Promise.all([outer.boundingBox(), inner.boundingBox()])
+  const [outerBox, innerBox] = boxes
+  expect(outerBox).not.toBeNull()
+  expect(innerBox).not.toBeNull()
+  const tolerance = 1
+
+  expect(innerBox?.x).toBeGreaterThanOrEqual((outerBox?.x ?? 0) - tolerance)
+  expect(innerBox?.y).toBeGreaterThanOrEqual((outerBox?.y ?? 0) - tolerance)
+  expect((innerBox?.x ?? 0) + (innerBox?.width ?? 0)).toBeLessThanOrEqual(
+    (outerBox?.x ?? 0) + (outerBox?.width ?? 0) + tolerance,
+  )
+  expect((innerBox?.y ?? 0) + (innerBox?.height ?? 0)).toBeLessThanOrEqual(
+    (outerBox?.y ?? 0) + (outerBox?.height ?? 0) + tolerance,
+  )
 }
 
 async function openDemo(page: Page) {
@@ -69,11 +98,17 @@ for (const viewport of viewports) {
     expect((modalBox?.y ?? 0) + (modalBox?.height ?? 0)).toBeLessThanOrEqual(
       viewport.height,
     )
-    await expectNoHorizontalOverflow(page)
-
+    const guideApp = dialog.getByTestId('autonomous-demo-guide')
     const main = dialog.locator('main')
+    await expectDocumentDoesNotOverflow(page)
+    await expectElementDoesNotOverflowHorizontally(dialog)
+    await expectElementDoesNotOverflowHorizontally(guideApp)
+    await expectElementDoesNotOverflowHorizontally(main)
+    await expectBoxContainedWithin(dialog, main)
+
     await dialog.getByRole('button', { name: 'Guide logement' }).click()
     await expect(dialog.getByRole('heading', { name: 'Le 305' })).toBeVisible()
+    await expectElementDoesNotOverflowHorizontally(main)
     await dialog.getByRole('button', { name: /^Départ/ }).click()
     const departureRegion = dialog.getByRole('region', { name: /^Départ/ })
     await expect(departureRegion.getByText('Checklist du départ')).toBeVisible()
@@ -87,10 +122,36 @@ for (const viewport of viewports) {
     ).toBeVisible()
 
     await dialog.getByRole('button', { name: 'Coups de cœur' }).click()
+    const header = dialog.locator('header')
+    const filterBar = dialog.getByRole('group', {
+      name: 'Filtrer les catégories',
+    })
+    await expect(filterBar).toBeVisible()
+    await main.evaluate(element => {
+      element.scrollTop = 240
+    })
+    await expect.poll(async () => {
+      const geometry = await Promise.all([
+        header.boundingBox(),
+        main.boundingBox(),
+        filterBar.boundingBox(),
+      ])
+      const [headerBox, mainBox, filterBox] = geometry
+      if (!headerBox || !mainBox || !filterBox) return Number.NaN
+
+      return Math.max(
+        Math.abs(filterBox.y - (headerBox.y + headerBox.height)),
+        Math.abs(filterBox.y - mainBox.y),
+      )
+    }).toBeLessThanOrEqual(1)
+    await expectBoxContainedWithin(main, filterBar)
+    await expectElementDoesNotOverflowHorizontally(main)
+
     const compactCard = dialog
       .getByText('Bistrotsérac')
       .locator('xpath=ancestor::article[1]')
     await expect(compactCard).toHaveAttribute('data-variant', 'compact')
+    await expectBoxContainedWithin(main, compactCard)
     const compactBox = await compactCard.boundingBox()
     expect(compactBox).not.toBeNull()
     expect(Math.abs((compactBox?.width ?? 0) - (compactBox?.height ?? 0))).toBeLessThanOrEqual(
@@ -113,7 +174,8 @@ for (const viewport of viewports) {
         (compactBox?.y ?? 0) + (compactBox?.height ?? 0),
       )
     }
-    await expectNoHorizontalOverflow(page)
+    await expectDocumentDoesNotOverflow(page)
+    await expectElementDoesNotOverflowHorizontally(main)
 
     await dialog.getByRole('button', { name: 'Ouvrir le menu' }).click()
     await expect(
