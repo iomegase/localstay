@@ -41,6 +41,13 @@ export function GuideDemoLauncher({
     setIsOpen(true)
   }
 
+  function handleOpenChange(open: boolean) {
+    setIsOpen(open)
+    if (!open && hasOpenedRef.current) {
+      setTimeout(() => triggerRef.current?.focus(), 0)
+    }
+  }
+
   return (
     <>
       <button
@@ -54,7 +61,7 @@ export function GuideDemoLauncher({
         {label}
       </button>
       {isLoaded && (
-        <GuideDemoModal open={isOpen} onOpenChange={setIsOpen} />
+        <GuideDemoModal open={isOpen} onOpenChange={handleOpenChange} />
       )}
     </>
   )

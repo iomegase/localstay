@@ -1,8 +1,8 @@
 import { canStartTrail } from '@/features/guide-app/lib/trail-access'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
-describe('public guide demo trail access', () => {
-  it('shows Porcherey metrics without enabling trail tracking', () => {
+describe('private guide trail access helper', () => {
+  it('keeps demo Porcherey metrics visible without enabling trail tracking', () => {
     const porcherey = demoPois.find(poi => poi.slug === 'alpage-de-porcherey')
 
     expect(porcherey?.trail).toMatchObject({

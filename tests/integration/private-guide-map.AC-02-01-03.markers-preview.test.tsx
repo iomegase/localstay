@@ -12,7 +12,11 @@ jest.mock('react-map-gl/mapbox', () => {
     { children: React.ReactNode; onClick?: () => void }
   >(({ children, onClick }, ref) => {
     React.useImperativeHandle(ref, () => ({ flyTo: jest.fn() }))
-    return <div data-testid="mapbox-map" onClick={onClick}>{children}</div>
+    return (
+      <div data-testid="mapbox-map" onClick={onClick}>
+        {children}
+      </div>
+    )
   })
   MockMap.displayName = 'MockMap'
 
@@ -24,7 +28,9 @@ jest.mock('react-map-gl/mapbox', () => {
       onClick,
     }: {
       children: React.ReactNode
-      onClick?: (event: { originalEvent: { stopPropagation: () => void } }) => void
+      onClick?: (event: {
+        originalEvent: { stopPropagation: () => void }
+      }) => void
     }) => (
       <div
         data-testid="mapbox-marker"
@@ -44,8 +50,8 @@ jest.mock('react-map-gl/mapbox', () => {
   }
 })
 
-describe('GuideMapView demo', () => {
-  it('renders the lodging and every POI from the single demo collection', () => {
+describe('private GuideMapView marker and preview regressions', () => {
+  it('renders the lodging marker and every POI marker from the guide data', () => {
     render(
       <GuideMapView
         lodging={demoLodging}
@@ -67,7 +73,7 @@ describe('GuideMapView demo', () => {
     ).toHaveLength(demoPois.length)
   })
 
-  it('selects a POI marker and opens its preview sheet', () => {
+  it('selects a POI marker and opens its preview sheet action', () => {
     const porcherey = demoPois.find(poi => poi.slug === 'alpage-de-porcherey')
     expect(porcherey).toBeDefined()
     const onSelectPoi = jest.fn()
@@ -112,7 +118,7 @@ describe('GuideMapView demo', () => {
     expect(onOpenPoi).toHaveBeenCalledWith(porcherey)
   })
 
-  it('005 AC-02-03: closes the selected POI preview when the map background is clicked', () => {
+  it('closes the selected POI preview when the map background is clicked', () => {
     const porcherey = demoPois.find(poi => poi.slug === 'alpage-de-porcherey')
     expect(porcherey).toBeDefined()
     const onDeselectPoi = jest.fn()

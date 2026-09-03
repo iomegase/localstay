@@ -2,9 +2,8 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { motion } from 'framer-motion'
-import { GuideApp } from '@/features/guide-app/components/GuideApp'
-import { demoLodging } from '@/features/guide-demo/demo-guide-data'
-import { demoPois } from '@/features/guide-demo/demo-pois'
+import { useEffect } from 'react'
+import { DemoGuideApp } from './DemoGuideApp'
 
 export function GuideDemoModal({
   open,
@@ -13,6 +12,16 @@ export function GuideDemoModal({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  useEffect(() => {
+    if (!open) return
+
+    const hadScrollLock = document.body.classList.contains('overflow-hidden')
+    document.body.classList.add('overflow-hidden')
+    return () => {
+      if (!hadScrollLock) document.body.classList.remove('overflow-hidden')
+    }
+  }, [open])
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -30,7 +39,7 @@ export function GuideDemoModal({
             <motion.div
               role="dialog"
               aria-modal="true"
-              className="pointer-events-auto relative h-[min(720px,calc(100dvh-32px))] w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-[2.5rem] border-[5px] border-white bg-white shadow-[0_35px_120px_rgba(15,23,42,0.55)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-4"
+              className="pointer-events-auto relative h-[min(820px,calc(100vh-32px))] w-[min(430px,calc(100vw-24px))] overflow-hidden rounded-[2.5rem] border-[5px] border-white bg-white shadow-[0_35px_120px_rgba(15,23,42,0.55)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-4"
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 18 }}
@@ -42,7 +51,7 @@ export function GuideDemoModal({
               <Dialog.Description className="sr-only">
                 Démonstration publique et interactive du guide de séjour MyStay.
               </Dialog.Description>
-              <GuideApp mode="demo" lodging={demoLodging} pois={demoPois} />
+              {open ? <DemoGuideApp /> : null}
             </motion.div>
           </Dialog.Content>
         </div>

@@ -1,13 +1,13 @@
 // Instantané éditorial statique dérivé des POI publics (spec 031, BR-25).
 // Photos, notes, horaires et descriptions sont issus des POI en base ; certaines
 // notes de l'hôte ont été curées pour la démonstration (hôte fictif, BR-24).
-import type { PoiHours } from '@/features/categories/types'
+import type { DemoPoiHours } from './types'
 
 export type DemoPoiContent = {
   photos?: string[]
   rating?: number
   reviewCount?: number
-  hours?: PoiHours
+  hours?: DemoPoiHours
   description?: string
   website?: string
   phone?: string
