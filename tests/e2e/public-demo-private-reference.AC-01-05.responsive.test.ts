@@ -6,8 +6,79 @@ const viewports = [
   { name: 'desktop', width: 1440, height: 1000 },
 ] as const
 
-const privateOrApiPath =
-  /^\/(?:api(?:\/|$)|sejour(?:\/|$)|le-logement(?:\/|$)|nos-recommandations(?:\/|$)|map(?:\/|$)|mes-favoris(?:\/|$)|guide(?:\/|$))/
+const ALLOWED_SAME_ORIGIN_RESOURCE_TYPES = new Set([
+  'document',
+  'stylesheet',
+  'script',
+  'image',
+  'font',
+  'media',
+])
+
+const ALLOWED_BOOTSTRAP_FETCH_PATHS = new Set([
+  '/',
+  '/auth/login',
+  '/blog',
+  '/concept',
+  '/confier-mon-logement',
+  '/logements',
+  '/seminaires',
+])
+
+const ALLOWED_PUBLIC_MEDIA_ORIGINS = new Set([
+  'https://cftqqyqfhlvobtsatxdq.supabase.co',
+  'https://lerelaisdescommunailles.com',
+  'https://static.apidae-tourisme.com',
+  'https://static.wixstatic.com',
+  'https://woody.cloudly.space',
+  'https://www.3serac.fr',
+  'https://www.thermes-saint-gervais.com',
+  'https://www.tramwaydumontblanc.fr',
+])
+
+const ALLOWED_EXTERNAL_PRESENTATION_REQUESTS = [
+  {
+    origin: 'https://api.mapbox.com',
+    resourceTypes: new Set(['fetch', 'image', 'script', 'stylesheet']),
+  },
+  {
+    origin: 'https://events.mapbox.com',
+    resourceTypes: new Set(['beacon']),
+  },
+] as const
+
+function isAllowedPresentationRequest(
+  request: Parameters<Page['on']>[1] extends (arg: infer T) => void ? T : never,
+  sameOrigin: string,
+  bootstrapPhase: boolean,
+) {
+  const url = new URL(request.url())
+  const resourceType = request.resourceType()
+
+  if (url.origin === sameOrigin) {
+    if (resourceType === 'document') {
+      return /^\/concept\/?$/.test(url.pathname)
+    }
+
+    if (resourceType === 'fetch') {
+      return bootstrapPhase && ALLOWED_BOOTSTRAP_FETCH_PATHS.has(url.pathname)
+    }
+
+    return ALLOWED_SAME_ORIGIN_RESOURCE_TYPES.has(resourceType)
+  }
+
+  if (
+    ALLOWED_PUBLIC_MEDIA_ORIGINS.has(url.origin) &&
+    (resourceType === 'image' || resourceType === 'media')
+  ) {
+    return true
+  }
+
+  return ALLOWED_EXTERNAL_PRESENTATION_REQUESTS.some(
+    rule =>
+      url.origin === rule.origin && rule.resourceTypes.has(resourceType),
+  )
+}
 
 async function expectDocumentDoesNotOverflow(page: Page) {
   const dimensions = await page.evaluate(() => ({
@@ -72,10 +143,17 @@ for (const viewport of viewports) {
     page,
   }) => {
     const forbiddenRequests: string[] = []
+    const sameOrigin = new URL(
+      process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
+    ).origin
+    let bootstrapPhase = true
+
     page.on('request', request => {
-      const url = new URL(request.url())
-      if (privateOrApiPath.test(url.pathname)) {
-        forbiddenRequests.push(`${request.method()} ${url.pathname}`)
+      if (!isAllowedPresentationRequest(request, sameOrigin, bootstrapPhase)) {
+        const url = new URL(request.url())
+        forbiddenRequests.push(
+          `${request.method()} ${request.resourceType()} ${url.origin}${url.pathname}`,
+        )
       }
     })
 
@@ -85,6 +163,7 @@ for (const viewport of viewports) {
     })
 
     const { dialog, initialUrl, trigger } = await openDemo(page)
+    bootstrapPhase = false
 
     const modalBox = await dialog.boundingBox()
     expect(modalBox).not.toBeNull()
@@ -112,14 +191,37 @@ for (const viewport of viewports) {
     await dialog.getByRole('button', { name: /^Départ/ }).click()
     const departureRegion = dialog.getByRole('region', { name: /^Départ/ })
     await expect(departureRegion.getByText('Checklist du départ')).toBeVisible()
+    const mainOverflow = await main.evaluate(element => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    }))
+    expect(mainOverflow.scrollHeight).toBeGreaterThan(mainOverflow.clientHeight)
 
-    await main.evaluate(element => {
+    const scrolledMain = await main.evaluate(element => {
       element.scrollTop = element.scrollHeight
+      return {
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+        scrollTop: element.scrollTop,
+      }
     })
+    expect(scrolledMain.scrollHeight).toBeGreaterThan(scrolledMain.clientHeight)
+    expect(scrolledMain.scrollTop).toBeGreaterThan(0)
     await expect(departureRegion.getByText('Tri des déchets')).toBeVisible()
-    await expect(
-      departureRegion.getByText('Point de tri public du centre de Saint-Gervais'),
-    ).toBeVisible()
+    const trashTarget = departureRegion.getByText(
+      'Point de tri public du centre de Saint-Gervais',
+    )
+    await expect(trashTarget).toBeVisible()
+    const [mainBox, trashBox] = await Promise.all([
+      main.boundingBox(),
+      trashTarget.boundingBox(),
+    ])
+    expect(mainBox).not.toBeNull()
+    expect(trashBox).not.toBeNull()
+    expect(trashBox?.y).toBeGreaterThanOrEqual((mainBox?.y ?? 0) - 1)
+    expect((trashBox?.y ?? 0) + (trashBox?.height ?? 0)).toBeLessThanOrEqual(
+      (mainBox?.y ?? 0) + (mainBox?.height ?? 0) + 1,
+    )
 
     await dialog.getByRole('button', { name: 'Coups de cœur' }).click()
     const header = dialog.locator('header')

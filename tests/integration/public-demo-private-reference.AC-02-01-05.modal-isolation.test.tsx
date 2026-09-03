@@ -31,8 +31,22 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
         'border-[5px]',
         'border-white',
         'rounded-[2.5rem]',
+        'shadow-[0_35px_120px_rgba(15,23,42,0.55)]',
       )
       expect(dialog).toHaveAttribute('aria-modal', 'true')
+      const overlay = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-state="open"]'),
+      ).find(
+        element =>
+          element !== dialog &&
+          element.classList.contains('fixed') &&
+          element.classList.contains('inset-0'),
+      )
+      expect(overlay).toBeDefined()
+      expect(overlay).toHaveClass('bg-slate-950/30', 'backdrop-blur-lg')
+      expect(
+        within(dialog).queryByRole('button', { name: /fermer/i }),
+      ).toBeNull()
       expect(screen.getByTestId('autonomous-demo-guide')).toHaveAttribute(
         'data-guide-mode',
         'demo',
@@ -100,13 +114,13 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
     controls.at(-1)?.focus()
     await user.tab()
     await waitFor(() => {
-      expect(dialog).toContainElement(document.activeElement)
+      expect(initialFocusTarget).toHaveFocus()
     })
 
     controls[0]?.focus()
     await user.tab({ shift: true })
     await waitFor(() => {
-      expect(dialog).toContainElement(document.activeElement)
+      expect(controls.at(-1)).toHaveFocus()
     })
 
     const overlay = Array.from(
@@ -118,6 +132,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
         element.classList.contains('inset-0'),
     )
     expect(overlay).toBeDefined()
+    expect(overlay).toHaveClass('bg-slate-950/30', 'backdrop-blur-lg')
     await user.click(overlay as HTMLElement)
 
     await waitFor(() => {

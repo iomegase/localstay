@@ -1,4 +1,11 @@
 import { NextRequest } from 'next/server'
+
+jest.mock('@/shared/lib/supabase', () => ({
+  createSupabaseMiddlewareClient: jest.fn(() => ({
+    auth: { getUser: jest.fn(async () => ({ data: { user: null } })) },
+  })),
+}))
+
 import { proxy } from '../../src/proxy'
 
 const LODGING_ID = '11111111-1111-4111-8111-111111111111'
