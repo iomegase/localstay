@@ -25,6 +25,9 @@ const ALLOWED_BOOTSTRAP_FETCH_PATHS = new Set([
   '/seminaires',
 ])
 
+const FORBIDDEN_PRIVATE_PATH =
+  /^\/(?:api(?:\/|$)|sejour(?:\/|$)|le-logement(?:\/|$)|nos-recommandations(?:\/|$)|map(?:\/|$)|mes-favoris(?:\/|$)|guide(?:\/|$))/
+
 const ALLOWED_PUBLIC_MEDIA_ORIGINS = new Set([
   'https://cftqqyqfhlvobtsatxdq.supabase.co',
   'https://lerelaisdescommunailles.com',
@@ -37,6 +40,10 @@ const ALLOWED_PUBLIC_MEDIA_ORIGINS = new Set([
 ])
 
 const ALLOWED_EXTERNAL_PRESENTATION_REQUESTS = [
+  {
+    origin: 'https://va.vercel-scripts.com',
+    resourceTypes: new Set(['script']),
+  },
   {
     origin: 'https://api.mapbox.com',
     resourceTypes: new Set(['fetch', 'image', 'script', 'stylesheet']),
@@ -56,6 +63,10 @@ function isAllowedPresentationRequest(
   const resourceType = request.resourceType()
 
   if (url.origin === sameOrigin) {
+    if (FORBIDDEN_PRIVATE_PATH.test(url.pathname)) {
+      return false
+    }
+
     if (resourceType === 'document') {
       return /^\/concept\/?$/.test(url.pathname)
     }
