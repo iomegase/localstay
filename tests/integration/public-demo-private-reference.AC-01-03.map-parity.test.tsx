@@ -6,6 +6,8 @@ import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
+const mockMapFitBounds = jest.fn()
+
 jest.mock('react-map-gl/mapbox', () => {
   const MockMap = React.forwardRef<
     { getMap: () => Record<string, jest.Mock> },
@@ -15,7 +17,7 @@ jest.mock('react-map-gl/mapbox', () => {
       getMap: () => ({
         addLayer: jest.fn(),
         easeTo: jest.fn(),
-        fitBounds: jest.fn(),
+        fitBounds: mockMapFitBounds,
         getLayer: jest.fn(() => true),
         getPitch: jest.fn(() => 0),
         getStyle: jest.fn(() => ({ layers: [] })),
@@ -69,6 +71,10 @@ jest.mock('react-map-gl/mapbox', () => {
 })
 
 describe('public demo map private-guide parity', () => {
+  beforeEach(() => {
+    mockMapFitBounds.mockClear()
+  })
+
   it('provides a road-following walking geometry for every demo POI', () => {
     for (const poi of demoPois) {
       expect(poi.walkingRoute?.length).toBeGreaterThan(2)
@@ -103,17 +109,14 @@ describe('public demo map private-guide parity', () => {
     expect(onFilter).toHaveBeenCalledWith('diner')
   })
 
-  it('draws a walking route that follows the road network instead of a straight segment', async () => {
-    Object.defineProperty(window, 'matchMedia', {
-      configurable: true,
-      value: jest.fn(() => ({ matches: true })),
-    })
-
+  it('draws and frames the complete walking route immediately', async () => {
+    const selectedPoi = demoPois[0]
+    const route = selectedPoi.walkingRoute ?? []
     render(
       <DemoMapView
         lodging={demoLodging}
         pois={demoPois}
-        selectedPoi={demoPois[0]}
+        selectedPoi={selectedPoi}
         selectedCategorySlug={null}
         onFilter={jest.fn()}
         onSelectPoi={jest.fn()}
@@ -125,8 +128,24 @@ describe('public demo map private-guide parity', () => {
     await waitFor(() => {
       expect(screen.getByTestId('mapbox-source')).toHaveAttribute(
         'data-route-point-count',
-        expect.stringMatching(/^(?:[3-9]|[1-9]\d+)$/),
+        String(route.length),
       )
     })
+
+    const framedPoints = [
+      ...route,
+      [demoLodging.longitude, demoLodging.latitude] as const,
+      [selectedPoi.longitude, selectedPoi.latitude] as const,
+    ]
+    const longitudes = framedPoints.map(([longitude]) => longitude)
+    const latitudes = framedPoints.map(([, latitude]) => latitude)
+
+    expect(mockMapFitBounds).toHaveBeenCalledWith(
+      [
+        [Math.min(...longitudes), Math.min(...latitudes)],
+        [Math.max(...longitudes), Math.max(...latitudes)],
+      ],
+      expect.objectContaining({ duration: 0 }),
+    )
   })
 })

@@ -40,42 +40,6 @@ type DemoMapViewProps = {
   onOpenPoi: (poi: DemoPoi) => void
 }
 
-function segmentDistance(a: LngLat, b: LngLat) {
-  return Math.hypot(a[0] - b[0], a[1] - b[1])
-}
-
-function sliceLine(coords: LngLat[], fraction: number): LngLat[] {
-  if (coords.length < 2 || fraction >= 1) return coords
-
-  const lengths: number[] = []
-  let total = 0
-  for (let index = 1; index < coords.length; index += 1) {
-    const distance = segmentDistance(coords[index - 1], coords[index])
-    lengths.push(distance)
-    total += distance
-  }
-
-  const target = total * Math.max(0, fraction)
-  const result: LngLat[] = [coords[0]]
-  let accumulated = 0
-  for (let index = 1; index < coords.length; index += 1) {
-    const distance = lengths[index - 1]
-    if (accumulated + distance >= target) {
-      const ratio = distance === 0 ? 0 : (target - accumulated) / distance
-      const start = coords[index - 1]
-      const end = coords[index]
-      result.push([
-        start[0] + (end[0] - start[0]) * ratio,
-        start[1] + (end[1] - start[1]) * ratio,
-      ])
-      break
-    }
-    accumulated += distance
-    result.push(coords[index])
-  }
-  return result
-}
-
 export function DemoMapView({
   lodging,
   pois,
@@ -89,7 +53,6 @@ export function DemoMapView({
   const mapRef = useRef<MapRef | null>(null)
   const previewRef = useRef<HTMLElement>(null)
   const markerRefs = useRef(new globalThis.Map<DemoPoi['id'], HTMLButtonElement>())
-  const [drawnCoords, setDrawnCoords] = useState<LngLat[] | null>(null)
   const [peeked, setPeeked] = useState(false)
   const hideTimer = useRef(0)
 
@@ -105,6 +68,14 @@ export function DemoMapView({
   const visiblePois = selectedCategorySlug
     ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
     : pois
+  const routeCoords = useMemo<LngLat[] | null>(() => {
+    const route =
+      selectedPoi?.walkingRoute?.map<LngLat>(([longitude, latitude]) => [
+        longitude,
+        latitude,
+      ]) ?? []
+    return route.length >= 2 ? route : null
+  }, [selectedPoi])
   const categoryColorBySlug = useMemo(() => {
     const colors = new globalThis.Map<string, string>()
     categories.forEach((category, index) => {
@@ -143,58 +114,44 @@ export function DemoMapView({
 
   useEffect(() => {
     if (typeof window !== 'undefined') window.clearTimeout(hideTimer.current)
-    if (!selectedPoi) {
-      queueMicrotask(() => setDrawnCoords(null))
-      return
-    }
+    if (!selectedPoi || !routeCoords) return
 
     previewRef.current?.focus()
     scheduleHide()
 
-    let cancelled = false
-    let animationFrame = 0
-    const route: LngLat[] =
-      selectedPoi.walkingRoute?.map(([longitude, latitude]) => [
-        longitude,
-        latitude,
-      ]) ?? []
-    if (route.length < 2) {
-      queueMicrotask(() => setDrawnCoords(null))
-      return
+    const framedPoints: LngLat[] = [
+      ...routeCoords,
+      [lodging.longitude, lodging.latitude],
+      [selectedPoi.longitude, selectedPoi.latitude],
+    ]
+    let minLongitude = framedPoints[0][0]
+    let minLatitude = framedPoints[0][1]
+    let maxLongitude = framedPoints[0][0]
+    let maxLatitude = framedPoints[0][1]
+    for (const [longitude, latitude] of framedPoints) {
+      minLongitude = Math.min(minLongitude, longitude)
+      minLatitude = Math.min(minLatitude, latitude)
+      maxLongitude = Math.max(maxLongitude, longitude)
+      maxLatitude = Math.max(maxLatitude, latitude)
     }
-    const map = mapRef.current?.getMap?.()
-    map?.fitBounds([route[0], route[1]], {
-      padding: { top: 140, bottom: 224, left: 44, right: 44 },
-      duration: 700,
-      maxZoom: 16,
-    })
 
-    const reduceMotion =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduceMotion || typeof requestAnimationFrame !== 'function') {
-      queueMicrotask(() => setDrawnCoords(route))
-    } else {
-      animationFrame = requestAnimationFrame(start => {
-        const tick = (now: number) => {
-          const progress = Math.min(1, (now - start) / 1000)
-          setDrawnCoords(sliceLine(route, 1 - Math.pow(1 - progress, 3)))
-          if (progress < 1 && !cancelled) {
-            animationFrame = requestAnimationFrame(tick)
-          }
-        }
-        tick(start)
-      })
-    }
+    const map = mapRef.current?.getMap?.()
+    map?.fitBounds(
+      [
+        [minLongitude, minLatitude],
+        [maxLongitude, maxLatitude],
+      ],
+      {
+        padding: { top: 140, bottom: 224, left: 44, right: 44 },
+        duration: 0,
+        maxZoom: 16,
+      },
+    )
 
     return () => {
-      cancelled = true
       if (typeof window !== 'undefined') window.clearTimeout(hideTimer.current)
-      if (typeof cancelAnimationFrame === 'function') {
-        cancelAnimationFrame(animationFrame)
-      }
     }
-  }, [selectedPoi, lodging.latitude, lodging.longitude])
+  }, [selectedPoi, routeCoords, lodging.latitude, lodging.longitude])
 
   const categoryReady = useRef(false)
   useEffect(() => {
@@ -236,12 +193,12 @@ export function DemoMapView({
   }, [selectedCategorySlug, pois, lodging.latitude, lodging.longitude])
 
   const routeFeature =
-    drawnCoords && drawnCoords.length >= 2
+    routeCoords
       ? {
           type: 'Feature' as const,
           geometry: {
             type: 'LineString' as const,
-            coordinates: drawnCoords,
+            coordinates: routeCoords,
           },
           properties: {},
         }
