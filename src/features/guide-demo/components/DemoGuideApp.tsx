@@ -142,8 +142,11 @@ export function DemoGuideApp() {
         />
       ) : activeView === 'map' ? (
         <DemoMapView
+          lodging={demoGuideData.lodging}
           pois={demoPois}
           selectedPoi={selectedMapPoi}
+          selectedCategorySlug={selectedCategorySlug}
+          onFilter={setSelectedCategorySlug}
           onDeselectPoi={() => setSelectedMapPoi(null)}
           onOpenPoi={poi => openPoi(poi, 'map')}
           onSelectPoi={setSelectedMapPoi}

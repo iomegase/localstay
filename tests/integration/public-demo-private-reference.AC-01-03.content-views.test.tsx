@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import React from 'react'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
@@ -15,6 +16,57 @@ import { DemoPoiDetailView } from '@/features/guide-demo/components/DemoPoiDetai
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import { demoPois } from '@/features/guide-demo/demo-pois'
+
+jest.mock('react-map-gl/mapbox', () => {
+  const MockMap = React.forwardRef<
+    { getMap: () => Record<string, jest.Mock> },
+    { children: React.ReactNode; onClick?: () => void }
+  >(({ children, onClick }, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      getMap: () => ({
+        addLayer: jest.fn(),
+        easeTo: jest.fn(),
+        fitBounds: jest.fn(),
+        getLayer: jest.fn(() => true),
+        getPitch: jest.fn(() => 0),
+        getStyle: jest.fn(() => ({ layers: [] })),
+        getZoom: jest.fn(() => 12),
+      }),
+    }))
+    return (
+      <div data-testid="mapbox-map" onClick={onClick}>
+        {children}
+      </div>
+    )
+  })
+  MockMap.displayName = 'MockMap'
+
+  return {
+    __esModule: true,
+    default: MockMap,
+    Marker: ({
+      children,
+      onClick,
+    }: {
+      children: React.ReactNode
+      onClick?: (event: { originalEvent: { stopPropagation: () => void } }) => void
+    }) => (
+      <div
+        data-testid="mapbox-marker"
+        onClick={event => {
+          event.stopPropagation()
+          onClick?.({ originalEvent: { stopPropagation: jest.fn() } })
+        }}
+      >
+        {children}
+      </div>
+    ),
+    Source: ({ children }: { children?: React.ReactNode }) => (
+      <div data-testid="mapbox-source">{children}</div>
+    ),
+    Layer: () => <div data-testid="mapbox-layer" />,
+  }
+})
 
 function openFavorites() {
   render(<DemoGuideApp />)
@@ -230,7 +282,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(detailImage.getAttribute('src')).toBe('/fallback/fallback-restaurant.png')
   })
 
-  it('renders static map markers without geolocation and restores map from the detail view', () => {
+  it('renders the private-style map without geolocation and restores it from the detail view', () => {
     const geolocation = { getCurrentPosition: jest.fn() }
     Object.defineProperty(window.navigator, 'geolocation', {
       configurable: true,
@@ -244,17 +296,15 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toHaveFocus()
     expect(screen.queryByRole('heading', { name: 'Carte' })).not.toBeInTheDocument()
-    expect(
-      screen.getByText('Carte de démonstration · position GPS désactivée'),
-    ).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: / sur la carte$/ })).toHaveLength(
+    expect(screen.getByTestId('mapbox-map')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^Sélectionner / })).toHaveLength(
       14,
     )
     expect(geolocation.getCurrentPosition).not.toHaveBeenCalled()
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Afficher Rond de Carotte sur la carte',
+        name: 'Sélectionner Rond de Carotte',
       }),
     )
     const preview = screen.getByTestId('demo-map-preview')
@@ -262,11 +312,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(preview).not.toHaveClass('fixed')
     expect(preview).toHaveAttribute('role', 'region')
     fireEvent.click(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     )
     fireEvent.click(screen.getByRole('button', { name: 'Retour à la carte' }))
     expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
     expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
   })
@@ -276,7 +326,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Afficher Rond de Carotte sur la carte',
+        name: 'Sélectionner Rond de Carotte',
       }),
     )
 
@@ -292,16 +342,12 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     render(<DemoGuideApp />)
     await user.click(screen.getByRole('button', { name: 'Carte' }))
     const marker = screen.getByRole('button', {
-      name: 'Afficher Rond de Carotte sur la carte',
+      name: 'Sélectionner Rond de Carotte',
     })
 
     await user.click(marker)
     expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Fermer l’aperçu de Rond de Carotte',
-      }),
-    )
+    await user.click(screen.getByTestId('mapbox-map'))
 
     await waitFor(() => {
       expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
@@ -319,14 +365,10 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       }),
     )
     const marker = screen.getByRole('button', {
-      name: 'Afficher Rond de Carotte sur la carte',
+      name: 'Sélectionner Rond de Carotte',
     })
 
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Fermer l’aperçu de Rond de Carotte',
-      }),
-    )
+    await user.click(screen.getByTestId('mapbox-map'))
 
     await waitFor(() => {
       expect(marker).toHaveFocus()
@@ -345,7 +387,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
   })
 
@@ -360,7 +402,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
     expect(window.location.pathname).toBe('/concept')
   })
@@ -368,8 +410,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
   it('keeps a useful local fallback when the static map has no POIs', () => {
     render(
       <DemoMapView
+        lodging={demoLodging}
         pois={[]}
         selectedPoi={null}
+        selectedCategorySlug={null}
+        onFilter={jest.fn()}
         onDeselectPoi={jest.fn()}
         onOpenPoi={jest.fn()}
         onSelectPoi={jest.fn()}
