@@ -31,6 +31,8 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
         'border-[5px]',
         'border-white',
         'rounded-[2.5rem]',
+        'w-[min(430px,calc(100vw-24px))]',
+        'h-[min(820px,calc(100vh-32px))]',
         'shadow-[0_35px_120px_rgba(15,23,42,0.55)]',
       )
       expect(dialog).toHaveAttribute('aria-modal', 'true')

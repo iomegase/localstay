@@ -178,8 +178,8 @@ for (const viewport of viewports) {
 
     const modalBox = await dialog.boundingBox()
     expect(modalBox).not.toBeNull()
-    expect(modalBox?.width).toBeLessThanOrEqual(360.5)
-    expect(modalBox?.height).toBeLessThanOrEqual(720.5)
+    expect(modalBox?.width).toBeLessThanOrEqual(430.5)
+    expect(modalBox?.height).toBeLessThanOrEqual(820.5)
     expect(modalBox?.x).toBeGreaterThanOrEqual(0)
     expect(modalBox?.y).toBeGreaterThanOrEqual(0)
     expect((modalBox?.x ?? 0) + (modalBox?.width ?? 0)).toBeLessThanOrEqual(
@@ -197,11 +197,12 @@ for (const viewport of viewports) {
     await expectBoxContainedWithin(dialog, main)
 
     await dialog.getByRole('button', { name: 'Guide logement' }).click()
-    await expect(dialog.getByRole('heading', { name: 'Le 305' })).toBeVisible()
+    await expect(dialog.getByRole('heading', { name: 'Bienvenue' })).toBeVisible()
     await expectElementDoesNotOverflowHorizontally(main)
-    await dialog.getByRole('button', { name: /^Départ/ }).click()
-    const departureRegion = dialog.getByRole('region', { name: /^Départ/ })
-    await expect(departureRegion.getByText('Checklist du départ')).toBeVisible()
+    await dialog.getByRole('button', { name: 'Départ' }).click()
+    await expect(
+      dialog.getByRole('heading', { level: 1, name: 'Checklist du départ' }),
+    ).toBeVisible()
     const mainOverflow = await main.evaluate(element => ({
       clientHeight: element.clientHeight,
       scrollHeight: element.scrollHeight,
@@ -218,8 +219,8 @@ for (const viewport of viewports) {
     })
     expect(scrolledMain.scrollHeight).toBeGreaterThan(scrolledMain.clientHeight)
     expect(scrolledMain.scrollTop).toBeGreaterThan(0)
-    await expect(departureRegion.getByText('Tri des déchets')).toBeVisible()
-    const trashTarget = departureRegion.getByText(
+    await expect(dialog.getByText('Tri des déchets')).toBeVisible()
+    const trashTarget = dialog.getByText(
       'Point de tri public du centre de Saint-Gervais',
     )
     await expect(trashTarget).toBeVisible()

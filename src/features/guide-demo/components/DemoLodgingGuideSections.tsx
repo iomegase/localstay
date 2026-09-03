@@ -1,17 +1,14 @@
 import type { ReactNode } from 'react'
-import Image from 'next/image'
 import {
   CookingPot,
   Info,
   ListChecks,
   MapPin,
-  Play,
   ScrollText,
   Siren,
   Thermometer,
   Trash2,
   Tv,
-  Wifi,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type {
@@ -71,94 +68,6 @@ const TRASH_PRESENTATION = {
 function getTrashPresentation(type: string) {
   if (!(type in TRASH_PRESENTATION)) return null
   return TRASH_PRESENTATION[type as keyof typeof TRASH_PRESENTATION]
-}
-
-export function DemoLodgingAccessSection({
-  lodging,
-  mediaOpen,
-  onToggleMedia,
-}: {
-  lodging: DemoLodging
-  mediaOpen: boolean
-  onToggleMedia: () => void
-}) {
-  const mediaTriggerId = 'demo-lodging-media-trigger'
-  const mediaPanelId = 'demo-lodging-media-panel'
-
-  return (
-    <div className="grid gap-5 border-t border-slate-100 pt-5">
-      <ContentBlock icon={MapPin} title="Adresse" accent="orange">
-        <p>{lodging.addressLabel}</p>
-      </ContentBlock>
-
-      <ContentBlock icon={ListChecks} title="Instructions d’arrivée" accent="orange">
-        <ol className="grid gap-3">
-          {lodging.arrivalInstructions.map((instruction, index) => (
-            <li key={`${instruction.title}-${index}`} className="rounded-2xl bg-slate-50 p-4">
-              {instruction.title ? (
-                <strong className="block text-sm text-slate-900">
-                  {instruction.title}
-                </strong>
-              ) : null}
-              <p className="mt-1 text-[13px] leading-6 text-slate-600">
-                {instruction.text}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </ContentBlock>
-
-      <div>
-        <button
-          type="button"
-          id={mediaTriggerId}
-          aria-expanded={mediaOpen}
-          aria-controls={mediaPanelId}
-          onClick={onToggleMedia}
-          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-        >
-          <Play className="h-4 w-4" aria-hidden="true" />
-          Vidéo de présentation (démonstration)
-        </button>
-        {mediaOpen ? (
-          <section
-            id={mediaPanelId}
-            role="region"
-            aria-labelledby={mediaTriggerId}
-            className="mt-3 overflow-hidden rounded-[24px] bg-slate-900 text-white"
-          >
-            <Image
-              src={lodging.coverImage}
-              alt="Aperçu local de la présentation du logement"
-              width={640}
-              height={360}
-              className="aspect-video w-full object-cover opacity-75"
-            />
-            <p className="p-4 text-sm leading-6 text-white/80">
-              Aucun média d’accès privé n’est publié dans cette démonstration.
-              Cet aperçu local illustre uniquement l’emplacement de la vidéo.
-            </p>
-          </section>
-        ) : null}
-      </div>
-
-      <ContentBlock icon={Wifi} title="Réseau Wi-Fi" accent="green">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-lime-700">
-          Identifiants fictifs
-        </p>
-        <dl className="grid gap-2 rounded-2xl bg-slate-900 p-4 text-white">
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-xs text-white/60">Réseau</dt>
-            <dd className="text-sm font-semibold">{lodging.wifiName}</dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-xs text-white/60">Mot de passe</dt>
-            <dd className="text-sm font-semibold">{lodging.wifiPassword}</dd>
-          </div>
-        </dl>
-      </ContentBlock>
-    </div>
-  )
 }
 
 export function DemoLodgingDiscoverSection({ lodging }: { lodging: DemoLodging }) {

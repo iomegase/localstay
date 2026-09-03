@@ -1,90 +1,47 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import {
-  BedDouble,
-  ChevronDown,
-  Clock3,
+  Copy,
+  DoorOpen,
+  HousePlug,
   Info,
   KeyRound,
+  ListOrdered,
   LogOut,
   MapPin,
-  Ruler,
-  Sofa,
-  Users,
+  Navigation,
+  Wifi,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  DemoLodgingAccessSection,
   DemoLodgingDepartureSection,
   DemoLodgingDiscoverSection,
   DemoLodgingPracticalSection,
 } from './DemoLodgingGuideSections'
-import type { DemoLodging } from '@/features/guide-demo/types'
+import type {
+  DemoArrivalInstruction,
+  DemoLodging,
+} from '@/features/guide-demo/types'
 
-type LodgingSectionKey = 'access' | 'discover' | 'practical' | 'departure'
-type LodgingAccent = 'orange' | 'green' | 'pink' | 'blue'
+type LodgingSubView = 'arrival' | 'practical' | 'rules' | 'departure'
 
-type LodgingSectionDefinition = {
-  key: LodgingSectionKey
-  title: string
-  subtitle: string
+const TABS: readonly {
+  view: LodgingSubView
+  label: string
   icon: LucideIcon
-  accent: LodgingAccent
-}
-
-const LODGING_SECTIONS: readonly LodgingSectionDefinition[] = [
-  {
-    key: 'access',
-    title: 'Accéder au logement',
-    subtitle: 'Adresse, vidéo, accès et Wi-Fi',
-    icon: KeyRound,
-    accent: 'orange',
-  },
-  {
-    key: 'discover',
-    title: 'Découvrir le logement',
-    subtitle: 'Équipements, règlement et services',
-    icon: Sofa,
-    accent: 'green',
-  },
-  {
-    key: 'practical',
-    title: 'Infos pratiques',
-    subtitle: 'Urgences et numéros utiles',
-    icon: Info,
-    accent: 'pink',
-  },
-  {
-    key: 'departure',
-    title: 'Départ',
-    subtitle: 'Consignes et tri des déchets',
-    icon: LogOut,
-    accent: 'blue',
-  },
+}[] = [
+  { view: 'arrival', label: 'Accès', icon: KeyRound },
+  { view: 'practical', label: 'Infos', icon: Wifi },
+  { view: 'rules', label: 'Équipements', icon: HousePlug },
+  { view: 'departure', label: 'Départ', icon: LogOut },
 ]
 
-const CARD =
-  'rounded-[24px] bg-white shadow-[0_4px_18px_rgba(17,17,17,0.09)]'
-
-const TILE: Record<LodgingAccent, string> = {
-  orange: 'bg-orange-100 text-orange-600',
-  green: 'bg-lime-100 text-lime-700',
-  pink: 'bg-pink-100 text-pink-600',
-  blue: 'bg-blue-100 text-blue-700',
-}
-
-const ACCENT_TEXT: Record<LodgingAccent, string> = {
-  orange: 'text-orange-600',
-  green: 'text-lime-700',
-  pink: 'text-pink-600',
-  blue: 'text-blue-700',
-}
+const NAVY_CARD =
+  'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
 
 export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
-  const [openSection, setOpenSection] = useState<LodgingSectionKey | null>(null)
-  const [mediaOpen, setMediaOpen] = useState(false)
+  const [view, setView] = useState<LodgingSubView>('arrival')
   const [checkedInstructions, setCheckedInstructions] = useState<boolean[]>(
     () => lodging.departureInstructions.map(() => false),
   )
@@ -99,213 +56,244 @@ export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
     )
   }
 
+  if (view === 'arrival') {
+    return (
+      <DemoGuideSubPage
+        view={view}
+        eyebrow=""
+        title="Bienvenue"
+        icon={DoorOpen}
+        onNavigate={setView}
+      >
+        <DemoArrivalView lodging={lodging} />
+      </DemoGuideSubPage>
+    )
+  }
+
+  if (view === 'practical') {
+    return (
+      <DemoGuideSubPage
+        view={view}
+        eyebrow="Bon à savoir"
+        title="Informations pratiques"
+        icon={Info}
+        onNavigate={setView}
+      >
+        <section className={`${NAVY_CARD} p-5`}>
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+              <Wifi className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
+                Réseau Wi-Fi
+              </p>
+              <h2 className="text-sm font-semibold text-white">{lodging.wifiName}</h2>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-white/10 px-3 py-3">
+            <code className="text-xs text-white/90">{lodging.wifiPassword}</code>
+            <Copy className="h-4 w-4 text-white/50" aria-hidden="true" />
+          </div>
+        </section>
+        <DemoLodgingPracticalSection lodging={lodging} />
+      </DemoGuideSubPage>
+    )
+  }
+
+  if (view === 'rules') {
+    return (
+      <DemoGuideSubPage
+        view={view}
+        eyebrow="Le nécessaire"
+        title="Les Équipements"
+        icon={HousePlug}
+        onNavigate={setView}
+      >
+        <DemoLodgingDiscoverSection lodging={lodging} />
+      </DemoGuideSubPage>
+    )
+  }
+
+  return (
+    <DemoGuideSubPage
+      view={view}
+      eyebrow="Avant de partir"
+      title="Checklist du départ"
+      icon={LogOut}
+      onNavigate={setView}
+    >
+      <DemoLodgingDepartureSection
+        lodging={lodging}
+        checkedInstructions={checkedInstructions}
+        completedCount={completedCount}
+        onToggleInstruction={toggleInstruction}
+      />
+    </DemoGuideSubPage>
+  )
+}
+
+function DemoGuideSubPage({
+  view,
+  eyebrow,
+  title,
+  icon: Icon,
+  onNavigate,
+  children,
+}: {
+  view: LodgingSubView
+  eyebrow: string
+  title: string
+  icon: LucideIcon
+  onNavigate: (view: LodgingSubView) => void
+  children: React.ReactNode
+}) {
   return (
     <div
       data-testid="demo-lodging-guide"
-      className="min-h-full overflow-x-hidden bg-white px-4 pb-32 pt-4 text-slate-900"
+      className="space-y-4 px-4 pb-24 pt-2"
     >
-      <section
-        data-testid="demo-lodging-hero"
-        className="relative min-h-[410px] overflow-hidden rounded-[32px] text-white shadow-[0_10px_30px_rgba(17,17,17,0.08)]"
+      <nav
+        aria-label="Catégories du livret"
+        className="sticky top-0 z-10 -mx-4 grid grid-cols-4 gap-1.5 bg-white px-4 pb-2 pt-1"
       >
-        <Image
-          src={lodging.coverImage}
-          alt={`Intérieur fictif de ${lodging.name}`}
-          fill
-          sizes="(max-width: 430px) 100vw, 430px"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/45 to-black/10" />
+        {TABS.map(tab => {
+          const active = tab.view === view
+          const TabIcon = tab.icon
+          return (
+            <button
+              key={tab.view}
+              type="button"
+              onClick={() => onNavigate(tab.view)}
+              aria-current={active ? 'page' : undefined}
+              className={`flex flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[11px] font-semibold shadow-md outline-none transition-shadow focus:outline-none focus-visible:outline-none ${
+                active
+                  ? 'border-none bg-pink-600 text-white'
+                  : 'border border-slate-50 bg-white text-slate-500 hover:text-slate-700 hover:shadow-lg'
+              }`}
+            >
+              <TabIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              {tab.label}
+            </button>
+          )
+        })}
+      </nav>
 
-        <div className="relative flex min-h-[410px] flex-col items-start justify-center px-6 pb-32 pt-8">
-          <span className="inline-flex rounded-full bg-gradient-to-br from-[#9d174d] to-[#be185d] px-4 py-2.5 text-xs font-extrabold uppercase tracking-[0.12em]">
-            Votre guide de séjour
-          </span>
+      <div className="flex items-center gap-4 rounded-[26px] bg-slate-900 p-6 text-white">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-pink-600">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
+            {eyebrow}
+          </p>
           <h1
             data-demo-view-heading="true"
             tabIndex={-1}
-            className="mb-2 mt-4 font-serif text-[clamp(44px,12vw,64px)] font-medium italic leading-[0.95] tracking-[-0.04em]"
+            className="mt-1 text-[28px] font-semibold leading-[1.02] tracking-[-0.04em]"
           >
-            {lodging.name}
+            {title}
           </h1>
-          <p className="flex items-center gap-2.5 text-[17px] font-semibold">
-            <MapPin className="h-5 w-5 text-[#f72585]" aria-hidden="true" />
-            {lodging.city}
-          </p>
         </div>
-
-        <div className="absolute inset-x-4 bottom-4 grid grid-cols-3 gap-2 min-[380px]:gap-4">
-          <HeroStat icon={Users} value={String(lodging.maxGuests)} label="Voyageurs" />
-          <HeroStat icon={BedDouble} value={String(lodging.bedroomCount)} label="Chambres" />
-          <HeroStat icon={Ruler} value={`${lodging.surfaceM2} m²`} label="Surface" />
-        </div>
-      </section>
-
-      <section className="mt-4 grid grid-cols-2 gap-4" aria-label="Horaires du séjour">
-        <StayFact
-          testId="arrival-fact"
-          icon={Clock3}
-          label="Arrivée"
-          value={lodging.checkIn}
-          accent="pink"
-        />
-        <StayFact
-          testId="departure-fact"
-          icon={LogOut}
-          label="Départ"
-          value={lodging.checkOut}
-          accent="orange"
-        />
-      </section>
-
-      <div className="mx-1 mb-4 mt-9">
-        <h2 className="text-[26px] font-semibold tracking-[-0.035em] text-slate-900">
-          Votre guide logement
-        </h2>
-        <p className="mt-1.5 text-sm text-slate-500">
-          Tout ce qu&apos;il faut savoir pour un séjour parfait.
-        </p>
       </div>
-
-      <div className="grid gap-3">
-        {LODGING_SECTIONS.map(section => {
-          const open = openSection === section.key
-          const triggerId = `demo-lodging-trigger-${section.key}`
-          const panelId = `demo-lodging-panel-${section.key}`
-          const Icon = section.icon
-
-          return (
-            <article
-              key={section.key}
-              data-testid="demo-lodging-section"
-              className={`${CARD} overflow-hidden`}
-            >
-              <h3>
-                <button
-                  type="button"
-                  id={triggerId}
-                  aria-expanded={open}
-                  aria-controls={panelId}
-                  onClick={() =>
-                    setOpenSection(current =>
-                      current === section.key ? null : section.key,
-                    )
-                  }
-                  className="grid w-full grid-cols-[48px_minmax(0,1fr)_24px] items-center gap-3 p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-                >
-                  <span
-                    className={`grid h-12 w-12 place-items-center rounded-[15px] ${TILE[section.accent]}`}
-                  >
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0">
-                    <strong className="block text-[17px] font-semibold text-slate-900">
-                      {section.title}
-                    </strong>
-                    <small className="mt-1 block text-[13px] leading-snug text-slate-500">
-                      {section.subtitle}
-                    </small>
-                  </span>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className={`h-6 w-6 transition-transform duration-200 ${ACCENT_TEXT[section.accent]} ${open ? 'rotate-180' : ''}`}
-                  />
-                </button>
-              </h3>
-
-              <div
-                id={panelId}
-                role="region"
-                aria-labelledby={triggerId}
-                hidden={!open}
-                className="px-4 pb-5"
-              >
-                {section.key === 'access' ? (
-                  <DemoLodgingAccessSection
-                    lodging={lodging}
-                    mediaOpen={mediaOpen}
-                    onToggleMedia={() => setMediaOpen(current => !current)}
-                  />
-                ) : null}
-                {section.key === 'discover' ? (
-                  <DemoLodgingDiscoverSection lodging={lodging} />
-                ) : null}
-                {section.key === 'practical' ? (
-                  <DemoLodgingPracticalSection lodging={lodging} />
-                ) : null}
-                {section.key === 'departure' ? (
-                  <DemoLodgingDepartureSection
-                    lodging={lodging}
-                    checkedInstructions={checkedInstructions}
-                    completedCount={completedCount}
-                    onToggleInstruction={toggleInstruction}
-                  />
-                ) : null}
-              </div>
-            </article>
-          )
-        })}
-      </div>
+      {children}
     </div>
   )
 }
 
-function HeroStat({
-  icon: Icon,
-  value,
-  label,
-}: {
-  icon: LucideIcon
-  value: string
-  label: string
-}) {
+function DemoArrivalView({ lodging }: { lodging: DemoLodging }) {
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lodging.latitude},${lodging.longitude}`
+
   return (
-    <div className="flex min-w-0 items-center justify-center gap-1.5 rounded-[18px] bg-black/85 px-1.5 py-4 text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] backdrop-blur min-[380px]:gap-2 min-[380px]:px-2">
-      <Icon className="h-5 w-5 shrink-0 text-[#f72585]" aria-hidden="true" />
-      <div className="min-w-0">
-        <strong className="block text-lg leading-none min-[380px]:text-xl">{value}</strong>
-        <small className="mt-1.5 block text-[10px] text-white/75 min-[380px]:text-[11px]">
-          {label}
-        </small>
-      </div>
-    </div>
+    <>
+      <section data-testid="demo-access-location" className={`${NAVY_CARD} p-5`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+              <MapPin className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold leading-9 text-white">Localisation</h2>
+              <p className="mt-1 text-xs leading-5 text-white/70">
+                {lodging.addressLabel.split(',').map((part, index) => (
+                  <span key={`${part}-${index}`} className="block">
+                    {part.trim()}
+                  </span>
+                ))}
+              </p>
+            </div>
+          </div>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+          >
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
+              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+            Maps
+          </a>
+        </div>
+      </section>
+
+      <section data-testid="demo-access-instructions" className={`${NAVY_CARD} p-5`}>
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+            <ListOrdered className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <h2 className="text-sm font-semibold text-white">Instructions</h2>
+        </div>
+        <div className="mt-4 space-y-5">
+          {lodging.arrivalInstructions.map((instruction, index) => (
+            <DemoArrivalInstructionCard
+              key={`${instruction.title}-${index}`}
+              index={index}
+              instruction={instruction}
+            />
+          ))}
+        </div>
+      </section>
+    </>
   )
 }
 
-function StayFact({
-  testId,
-  icon: Icon,
-  label,
-  value,
-  accent,
+function DemoArrivalInstructionCard({
+  instruction,
+  index,
 }: {
-  testId: 'arrival-fact' | 'departure-fact'
-  icon: LucideIcon
-  label: string
-  value: string
-  accent: 'pink' | 'orange'
+  instruction: DemoArrivalInstruction
+  index: number
 }) {
-  const accentClass =
-    accent === 'pink'
-      ? 'bg-pink-100 text-pink-600'
-      : 'bg-orange-100 text-orange-600'
-
   return (
-    <div
-      data-testid={testId}
-      className={`${CARD} flex min-w-0 items-center gap-2.5 p-4 min-[380px]:gap-3.5 min-[380px]:p-5`}
+    <article
+      data-testid="demo-arrival-instruction"
+      className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]"
     >
-      <span
-        className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl min-[380px]:h-11 min-[380px]:w-11 ${accentClass}`}
-      >
-        <Icon className="h-5 w-5" aria-hidden="true" />
-      </span>
-      <div className="min-w-0">
-        <strong className="block text-sm text-slate-900 min-[380px]:text-base">
-          {label}
-        </strong>
-        <span className="mt-1 block text-[13px] text-slate-500">{value}</span>
+      <div className="flex items-center gap-3">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
+          {index + 1}
+        </span>
+        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+          {instruction.title ?? `Instruction ${index + 1}`}
+        </h3>
       </div>
-    </div>
+      <p className="mt-3 text-xs leading-5 tracking-wide text-white/80">
+        {instruction.text}
+      </p>
+      {instruction.photos.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {instruction.photos.map((photo, photoIndex) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={`${photo}-${photoIndex}`}
+              src={photo}
+              alt={`Illustration ${photoIndex + 1} de l'instruction ${index + 1}`}
+              className="h-16 w-16 rounded-xl border border-white/15 object-cover"
+            />
+          ))}
+        </div>
+      ) : null}
+    </article>
   )
 }

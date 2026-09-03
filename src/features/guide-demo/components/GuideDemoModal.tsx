@@ -39,7 +39,7 @@ export function GuideDemoModal({
             <motion.div
               role="dialog"
               aria-modal="true"
-              className="pointer-events-auto relative h-[min(720px,calc(100dvh-32px))] w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-[2.5rem] border-[5px] border-white bg-white shadow-[0_35px_120px_rgba(15,23,42,0.55)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-4"
+              className="pointer-events-auto relative h-[min(820px,calc(100vh-32px))] w-[min(430px,calc(100vw-24px))] overflow-hidden rounded-[2.5rem] border-[5px] border-white bg-white shadow-[0_35px_120px_rgba(15,23,42,0.55)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-4"
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 18 }}

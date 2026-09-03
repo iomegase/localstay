@@ -24,19 +24,22 @@ export const demoLodging: DemoLodging = {
       title: 'Avant votre arrivée',
       text: 'Exemple fictif : les informations personnalisées seraient transmises avant le séjour.',
       videoUrl: null,
-      photos: [],
+      photos: [
+        APPROVED_DEMO_LODGING_MEDIA[1],
+        APPROVED_DEMO_LODGING_MEDIA[2],
+      ],
     },
     {
       title: 'Rejoindre le quartier',
       text: 'Exemple fictif : rejoignez le centre de Saint-Gervais et suivez la signalétique publique.',
       videoUrl: null,
-      photos: [],
+      photos: [APPROVED_DEMO_LODGING_MEDIA[3]],
     },
     {
       title: 'Découvrir le logement',
       text: 'Exemple fictif : un message d’accueil confirme que le logement de démonstration est prêt.',
       videoUrl: null,
-      photos: [],
+      photos: [APPROVED_DEMO_LODGING_MEDIA[0]],
     },
   ],
   departureInstructions: [
