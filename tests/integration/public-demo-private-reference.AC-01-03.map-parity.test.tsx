@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import React from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
@@ -50,14 +50,31 @@ jest.mock('react-map-gl/mapbox', () => {
         {children}
       </div>
     ),
-    Source: ({ children }: { children?: React.ReactNode }) => (
-      <div data-testid="mapbox-source">{children}</div>
+    Source: ({
+      children,
+      data,
+    }: {
+      children?: React.ReactNode
+      data?: { geometry?: { coordinates?: unknown[] } }
+    }) => (
+      <div
+        data-testid="mapbox-source"
+        data-route-point-count={data?.geometry?.coordinates?.length ?? 0}
+      >
+        {children}
+      </div>
     ),
     Layer: () => <div data-testid="mapbox-layer" />,
   }
 })
 
 describe('public demo map private-guide parity', () => {
+  it('provides a road-following walking geometry for every demo POI', () => {
+    for (const poi of demoPois) {
+      expect(poi.walkingRoute?.length).toBeGreaterThan(2)
+    }
+  })
+
   it('renders the same Mapbox surface, lodging pin, filters and controls as the private guide', () => {
     const onFilter = jest.fn()
 
@@ -84,5 +101,32 @@ describe('public demo map private-guide parity', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Restaurants' }))
     expect(onFilter).toHaveBeenCalledWith('diner')
+  })
+
+  it('draws a walking route that follows the road network instead of a straight segment', async () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: jest.fn(() => ({ matches: true })),
+    })
+
+    render(
+      <DemoMapView
+        lodging={demoLodging}
+        pois={demoPois}
+        selectedPoi={demoPois[0]}
+        selectedCategorySlug={null}
+        onFilter={jest.fn()}
+        onSelectPoi={jest.fn()}
+        onDeselectPoi={jest.fn()}
+        onOpenPoi={jest.fn()}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mapbox-source')).toHaveAttribute(
+        'data-route-point-count',
+        expect.stringMatching(/^(?:[3-9]|[1-9]\d+)$/),
+      )
+    })
   })
 })

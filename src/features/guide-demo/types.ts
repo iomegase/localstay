@@ -67,6 +67,7 @@ export type DemoPoi = {
   website?: string
   phone?: string
   directionsUrl: string
+  walkingRoute?: readonly (readonly [number, number])[]
   rating?: number
   reviewCount?: number
   hours?: DemoPoiHours

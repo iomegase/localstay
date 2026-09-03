@@ -153,10 +153,15 @@ export function DemoMapView({
 
     let cancelled = false
     let animationFrame = 0
-    const route: LngLat[] = [
-      [lodging.longitude, lodging.latitude],
-      [selectedPoi.longitude, selectedPoi.latitude],
-    ]
+    const route: LngLat[] =
+      selectedPoi.walkingRoute?.map(([longitude, latitude]) => [
+        longitude,
+        latitude,
+      ]) ?? []
+    if (route.length < 2) {
+      queueMicrotask(() => setDrawnCoords(null))
+      return
+    }
     const map = mapRef.current?.getMap?.()
     map?.fitBounds([route[0], route[1]], {
       padding: { top: 140, bottom: 224, left: 44, right: 44 },
