@@ -231,6 +231,21 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       'www.ronddecarotte.com',
     )
     expect(screen.getByRole('button', { name: 'Voir sur la carte' })).toBeEnabled()
+    const poiHeading = screen.getByRole('heading', { name: 'Rond de Carotte' })
+    expect(poiHeading).toHaveClass('text-xl', 'uppercase', 'text-charcoal')
+    expect(poiHeading).not.toHaveClass('font-serif', 'italic')
+    expect(screen.getByTestId('poi-detail-distance')).toHaveClass(
+      'inline-flex',
+      'text-pink-600',
+    )
+    const actions = screen.getByTestId('demo-poi-actions')
+    expect(actions).toHaveClass('grid-cols-2')
+    expect(
+      within(actions).getByRole('button', { name: 'Voir sur la carte' }),
+    ).toHaveClass('rounded-full', 'bg-white', 'uppercase')
+    expect(
+      within(actions).getByTestId('demo-poi-action-icon-map'),
+    ).toHaveClass('rounded-full', 'bg-slate-900', 'text-white')
     for (const label of ['Obtenir l’itinéraire', 'Site web', 'Appeler']) {
       expect(screen.getByRole('button', { name: label })).toBeDisabled()
     }
