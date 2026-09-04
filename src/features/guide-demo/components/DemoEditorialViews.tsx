@@ -2,15 +2,21 @@
 
 import {
   ArrowLeft,
-  Bath,
   BedDouble,
   MapPin,
-  Maximize,
   Scan,
   ShowerHead,
   SlidersHorizontal,
   Users,
 } from 'lucide-react'
+import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
+import { LodgingFeatureSections } from '@/features/lodging-showcase/components/LodgingFeatureSections'
+import { LodgingMarketingGallery } from '@/features/lodging-showcase/components/LodgingMarketingGallery'
+import { LodgingRoomsGrid } from '@/features/lodging-showcase/components/LodgingRoomsGrid'
+import {
+  marketingContainerClass,
+  marketingPrimaryButtonClass,
+} from '@/features/marketing/components/marketing-styles'
 import type {
   DemoBlogPost,
   DemoContact,
@@ -184,113 +190,115 @@ export function DemoLodgingDetailView({
   lodging,
   onBack,
 }: DemoLodgingDetailViewProps) {
+  const descriptionParagraphs = lodging.description
+    .split(/\n\s*\n/)
+    .map(paragraph => paragraph.trim())
+    .filter(Boolean)
+  const amenities = [...lodging.amenitiesIncluded, ...lodging.amenitiesOnRequest]
+  const photos = lodging.photos.map((photo, index) => ({
+    id: `${lodging.id}-photo-${index}`,
+    url: photo.url,
+    alt: photo.alt,
+    room_type: photo.roomType ?? null,
+    room_label: photo.roomLabel ?? null,
+    sort_order: index,
+    is_cover: index === 0,
+  }))
+
   return (
-    <article className="min-h-full bg-white px-4 pb-32 pt-4">
-      <button
-        type="button"
-        onClick={onBack}
-        className="inline-flex items-center gap-2 rounded-full px-2 py-2 text-sm font-semibold text-slate-700"
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Retour aux logements
-      </button>
-      <div className="mt-2 aspect-[16/9] overflow-hidden rounded-[28px] bg-slate-100">
-        <DemoContentImage alt={lodging.photos[0]?.alt ?? lodging.title} src={lodging.coverPhotoUrl} />
-      </div>
-      <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
-        {lodging.propertyType} · {lodging.cityName}
-      </p>
-      <h1
-        data-demo-view-heading="true"
-        tabIndex={-1}
-        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
-      >
-        {lodging.title}
-      </h1>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{lodging.description}</p>
+    <article className="min-h-full overflow-hidden bg-white pb-32 font-sans text-slate-800">
+      <header className={`${marketingContainerClass} pb-8 pt-9`}>
+        <button
+          type="button"
+          onClick={onBack}
+          className="group flex w-fit items-center text-[10px] font-bold uppercase tracking-wide text-slate-500 transition-colors hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
+        >
+          <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" strokeWidth={2} />
+          Tous les logements
+        </button>
 
-      <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
-        <DemoFact icon={Users} label="Voyageurs" value={String(lodging.maxGuests)} />
-        {lodging.bedroomCount !== null ? (
-          <DemoFact icon={BedDouble} label="Chambres" value={String(lodging.bedroomCount)} />
-        ) : null}
-        {lodging.bathroomCount !== null ? (
-          <DemoFact icon={Bath} label="Salles de bain" value={String(lodging.bathroomCount)} />
-        ) : null}
-        {lodging.surfaceM2 !== null ? (
-          <DemoFact icon={Maximize} label="Surface" value={`${lodging.surfaceM2} m²`} />
-        ) : null}
-      </dl>
-
-      <section className="mt-6">
-        <h2 className="text-xl font-semibold text-slate-900">Localisation</h2>
-        <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-slate-600">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-pink-600" aria-hidden="true" />
-          {lodging.publicAreaLabel}
-        </p>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-xl font-semibold text-slate-900">Galerie</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {lodging.photos.map(photo => (
-            <div key={photo.url} className="aspect-square overflow-hidden rounded-2xl bg-slate-100">
-              <DemoContentImage alt={photo.alt} src={photo.url} />
-            </div>
-          ))}
+        <div className="mt-8">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+            {lodging.publicAreaLabel || lodging.cityName}
+          </p>
+          <h1
+            data-demo-view-heading="true"
+            tabIndex={-1}
+            className="mt-3 text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-800"
+          >
+            {lodging.title}
+          </h1>
+          <p className="mt-4 flex items-center text-[14px] font-medium text-slate-500">
+            <MapPin className="mr-2 h-4 w-4 shrink-0 text-pink-600" aria-hidden="true" strokeWidth={2} />
+            {lodging.propertyType} à {lodging.cityName}
+          </p>
         </div>
+      </header>
+
+      <LodgingMarketingGallery title={lodging.title} photos={photos} />
+
+      <LodgingEssentials
+        title={lodging.title}
+        maxGuests={lodging.maxGuests}
+        bedroomCount={lodging.bedroomCount}
+        bathroomCount={lodging.bathroomCount}
+        surfaceM2={lodging.surfaceM2}
+        amenities={amenities}
+      />
+
+      <section
+        data-testid="lodging-story"
+        className={`${marketingContainerClass} grid gap-12 py-16`}
+      >
+        <div>
+          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+            Le logement
+          </span>
+          <h2 className="mt-4 text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800">
+            {lodging.shortDescription}
+          </h2>
+          <div className="mt-7 space-y-5">
+            {descriptionParagraphs.map((paragraph, index) => (
+              <p key={`${lodging.id}-description-${index}`} className="whitespace-pre-line text-justify text-[13px] leading-[1.85] text-slate-500">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <aside data-testid="lodging-stay-card" className="rounded-[26px] bg-[#f8f7f5] p-7">
+          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+            Votre séjour
+          </span>
+          <h3 className="mt-3 text-[26px] font-semibold tracking-[-0.04em] text-slate-800">
+            {lodging.title}
+          </h3>
+          <p className="mt-6 text-[13px] leading-relaxed text-slate-500">
+            {lodging.propertyType} · {lodging.maxGuests} {lodging.maxGuests > 1 ? 'voyageurs' : 'voyageur'}
+          </p>
+          <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
+            {lodging.publicAreaLabel || lodging.cityName}
+          </p>
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className={`${marketingPrimaryButtonClass} mt-7 w-full cursor-default`}
+          >
+            Contacter
+          </button>
+        </aside>
       </section>
 
-      <Amenities title="Équipements inclus" values={lodging.amenitiesIncluded} />
-      <Amenities title="Sur demande" values={lodging.amenitiesOnRequest} emptyLabel="Aucun équipement supplémentaire dans cette démonstration." />
+      <LodgingFeatureSections
+        includedAmenities={[...lodging.amenitiesIncluded]}
+        onRequestAmenities={[...lodging.amenitiesOnRequest]}
+      />
+
+      <div className={`${marketingContainerClass} pb-16`}>
+        <LodgingRoomsGrid photos={photos} />
+      </div>
     </article>
-  )
-}
-
-function DemoFact({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Users
-  label: string
-  value: string
-}) {
-  return (
-    <div className="rounded-2xl bg-slate-50 p-3">
-      <dt className="flex items-center gap-1.5 text-xs text-slate-500">
-        <Icon className="h-4 w-4 text-pink-600" aria-hidden="true" />
-        {label}
-      </dt>
-      <dd className="mt-1 text-base font-semibold text-slate-900">{value}</dd>
-    </div>
-  )
-}
-
-function Amenities({
-  emptyLabel,
-  title,
-  values,
-}: {
-  emptyLabel?: string
-  title: string
-  values: readonly string[]
-}) {
-  return (
-    <section className="mt-6">
-      <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
-      {values.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-600">{emptyLabel ?? 'Aucun équipement.'}</p>
-      ) : (
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {values.map(value => (
-            <li key={value} className="rounded-full bg-pink-50 px-3 py-1.5 text-sm text-pink-800">
-              {value}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
   )
 }
 

@@ -29,10 +29,14 @@ const demoLodgingCards = [
       {
         url: APPROVED_DEMO_LODGING_MEDIA[1],
         alt: 'Intérieur fictif du Chalet des Cimes',
+        roomType: 'common_area',
+        roomLabel: 'Pièce de vie',
       },
       {
         url: APPROVED_DEMO_LODGING_MEDIA[2],
         alt: 'Salon fictif du Chalet des Cimes',
+        roomType: 'common_area',
+        roomLabel: 'Pièce de vie',
       },
     ],
     amenitiesIncluded: ['Cuisine équipée', 'Chauffage', 'Vue montagne'],
@@ -58,6 +62,8 @@ const demoLodgingCards = [
       {
         url: APPROVED_DEMO_LODGING_MEDIA[3],
         alt: 'Pièce de vie fictive du Studio du Parc',
+        roomType: 'common_area',
+        roomLabel: 'Pièce de vie',
       },
     ],
     amenitiesIncluded: ['Kitchenette', 'Wi-Fi fictif', 'Chauffage'],

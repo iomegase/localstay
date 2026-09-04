@@ -530,29 +530,41 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole('heading', { name: 'Chalet des Cimes — démonstration' }),
+        screen.getByRole('heading', { name: 'Chalet des Cimes — démonstration', level: 1 }),
       ).toHaveFocus(),
     )
+    expect(
+      screen.getByRole('button', { name: 'Tous les logements' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('region', {
+        name: 'Photos de Chalet des Cimes — démonstration',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('lodging-essentials')).toBeInTheDocument()
+    expect(screen.getByText('Le logement')).toBeInTheDocument()
+    expect(screen.getByText('Votre séjour')).toBeInTheDocument()
+    expect(screen.getByTestId('lodging-feature-sections')).toBeInTheDocument()
+    expect(screen.getByText('Équipements')).toBeInTheDocument()
+    expect(screen.getByText('Services sur demande')).toBeInTheDocument()
     expect(screen.getByText('Cuisine équipée')).toBeInTheDocument()
-    expect(screen.getByText('Secteur fictif des hauteurs')).toBeInTheDocument()
+    expect(screen.getByText('En images')).toBeInTheDocument()
+    expect(screen.getByText('Pièce de vie')).toBeInTheDocument()
+    expect(screen.getAllByText('Secteur fictif des hauteurs')).not.toHaveLength(0)
     const lodgingDetailArticle = screen
-      .getByRole('heading', { name: 'Chalet des Cimes — démonstration' })
+      .getByRole('heading', { name: 'Chalet des Cimes — démonstration', level: 1 })
       .closest('article')
     if (!lodgingDetailArticle) {
       throw new Error('Lodging detail article is required')
     }
-    const lodgingDetailImage = within(lodgingDetailArticle).getByRole('img', {
+    const lodgingDetailImage = within(lodgingDetailArticle).getAllByRole('img', {
       name: 'Salon fictif du Chalet des Cimes',
-    }) as HTMLImageElement
+    })[0] as HTMLImageElement
     expect(lodgingDetailImage.getAttribute('src')).toBe(
       '/marketing/demo-lodging-2.webp',
     )
-    fireEvent.error(lodgingDetailImage)
-    expect(lodgingDetailImage.getAttribute('src')).toBe(
-      '/marketing/demo-lodging-1.webp',
-    )
     fireEvent.click(
-      screen.getByRole('button', { name: 'Retour aux logements' }),
+      screen.getByRole('button', { name: 'Tous les logements' }),
     )
     await waitFor(() =>
       expect(
@@ -639,10 +651,9 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
   it('uses the MyStay sans-serif typography for every editorial heading', () => {
     const assertSansSerifHeading = (name: string) => {
-      expect(screen.getByRole('heading', { name })).not.toHaveClass(
-        'font-serif',
-        'italic',
-      )
+      for (const heading of screen.getAllByRole('heading', { name })) {
+        expect(heading).not.toHaveClass('font-serif', 'italic')
+      }
     }
 
     const { rerender } = render(
