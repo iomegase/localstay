@@ -38,7 +38,7 @@ const TABS: readonly {
 ]
 
 const NAVY_CARD =
-  'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
+  'rounded-[26px] bg-white text-black shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
 
 export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
   const [view, setView] = useState<LodgingSubView>('arrival')
@@ -81,19 +81,19 @@ export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
       >
         <section className={`${NAVY_CARD} p-5`}>
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-black">
               <Wifi className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-black/50">
                 Réseau Wi-Fi
               </p>
-              <h2 className="text-sm font-semibold text-white">{lodging.wifiName}</h2>
+              <h2 className="text-sm font-semibold text-black">{lodging.wifiName}</h2>
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between rounded-xl bg-white/10 px-3 py-3">
-            <code className="text-xs text-white/90">{lodging.wifiPassword}</code>
-            <Copy className="h-4 w-4 text-white/50" aria-hidden="true" />
+            <code className="text-xs text-black/90">{lodging.wifiPassword}</code>
+            <Copy className="h-4 w-4 text-black/50" aria-hidden="true" />
           </div>
         </section>
         <DemoLodgingPracticalSection lodging={lodging} />
@@ -268,17 +268,17 @@ function DemoArrivalInstructionCard({
   return (
     <article
       data-testid="demo-arrival-instruction"
-      className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]"
+      className="rounded-2xl bg-white p-4 shadow-[0_6px_18px_rgba(0,0,0,0.1)]"
     >
       <div className="flex items-center gap-3">
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-black/20 text-[11px] font-bold text-black">
           {index + 1}
         </span>
-        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-black/80">
           {instruction.title ?? `Instruction ${index + 1}`}
         </h3>
       </div>
-      <p className="mt-3 text-xs leading-5 tracking-wide text-white/80">
+      <p className="mt-3 text-xs leading-5 tracking-wide text-black/80">
         {instruction.text}
       </p>
       {instruction.photos.length > 0 ? (
