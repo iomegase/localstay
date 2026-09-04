@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import React from 'react'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
@@ -15,6 +16,57 @@ import { DemoPoiDetailView } from '@/features/guide-demo/components/DemoPoiDetai
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
 import { demoPois } from '@/features/guide-demo/demo-pois'
+
+jest.mock('react-map-gl/mapbox', () => {
+  const MockMap = React.forwardRef<
+    { getMap: () => Record<string, jest.Mock> },
+    { children: React.ReactNode; onClick?: () => void }
+  >(({ children, onClick }, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      getMap: () => ({
+        addLayer: jest.fn(),
+        easeTo: jest.fn(),
+        fitBounds: jest.fn(),
+        getLayer: jest.fn(() => true),
+        getPitch: jest.fn(() => 0),
+        getStyle: jest.fn(() => ({ layers: [] })),
+        getZoom: jest.fn(() => 12),
+      }),
+    }))
+    return (
+      <div data-testid="mapbox-map" onClick={onClick}>
+        {children}
+      </div>
+    )
+  })
+  MockMap.displayName = 'MockMap'
+
+  return {
+    __esModule: true,
+    default: MockMap,
+    Marker: ({
+      children,
+      onClick,
+    }: {
+      children: React.ReactNode
+      onClick?: (event: { originalEvent: { stopPropagation: () => void } }) => void
+    }) => (
+      <div
+        data-testid="mapbox-marker"
+        onClick={event => {
+          event.stopPropagation()
+          onClick?.({ originalEvent: { stopPropagation: jest.fn() } })
+        }}
+      >
+        {children}
+      </div>
+    ),
+    Source: ({ children }: { children?: React.ReactNode }) => (
+      <div data-testid="mapbox-source">{children}</div>
+    ),
+    Layer: () => <div data-testid="mapbox-layer" />,
+  }
+})
 
 function openFavorites() {
   render(<DemoGuideApp />)
@@ -38,10 +90,10 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(filterBar).toHaveClass(
       'sticky',
       'top-0',
-      'z-10',
+      'z-20',
       'overflow-x-auto',
-      'bg-[#faf9f6]/95',
-      'backdrop-blur',
+      'bg-white/95',
+      'backdrop-blur-xl',
     )
     expect(within(filterBar).getByRole('button', { name: 'Tous' })).toHaveAttribute(
       'aria-pressed',
@@ -51,10 +103,28 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const grid = screen.getByTestId('favorites-bento-grid')
     const cards = within(grid).getAllByTestId('favorite-bento-card')
     expect(cards).toHaveLength(14)
-    expect(cards[0]).toHaveClass('col-span-2', 'aspect-square')
+    expect(cards[0]).toHaveClass(
+      'col-span-2',
+      'aspect-square',
+      'rounded-[2rem]',
+      'bg-charcoal',
+    )
     expect(cards[0]).toHaveAttribute('data-variant', 'big')
+    expect(within(cards[0]).getByRole('heading', { name: 'Rond de Carotte' })).toHaveClass(
+      'font-semibold',
+      'uppercase',
+      'text-2xl',
+    )
+    expect(within(cards[0]).getByTestId('favorite-open-status')).toHaveTextContent(
+      'Ouvert',
+    )
+    expect(
+      within(cards[0]).getByRole('button', {
+        name: 'Afficher Rond de Carotte sur la carte',
+      }),
+    ).toHaveClass('absolute', 'right-3', 'top-3', 'bg-black/55')
     for (const card of cards.slice(1)) {
-      expect(card).toHaveClass('aspect-square')
+      expect(card).toHaveClass('aspect-square', 'rounded-[1.75rem]', 'bg-charcoal')
       expect(card).not.toHaveClass('col-span-2')
       expect(card).toHaveAttribute('data-variant', 'compact')
       expect(card.querySelector('img')).not.toBeNull()
@@ -131,11 +201,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const title = within(compactCard).getByRole('heading', {
       name: 'Bistrotsérac',
     })
-    expect(title).toHaveClass('line-clamp-1', 'text-base')
-    expect(title.parentElement).toHaveClass('p-2')
+    expect(title).toHaveClass('font-semibold', 'uppercase', 'text-sm', 'leading-tight')
+    expect(title.parentElement).toHaveClass('p-4')
     expect(within(compactCard).queryByText('4.4')).not.toBeInTheDocument()
-    expect(open).toHaveClass('h-7', 'w-7')
-    expect(map).toHaveClass('h-7', 'w-7')
+    expect(open).toHaveClass('absolute', 'inset-0', 'h-full', 'w-full')
+    expect(map).toHaveClass('absolute', 'right-3', 'top-3', 'p-2')
     expect(open).toHaveTextContent('')
     expect(map).toHaveTextContent('')
   })
@@ -161,6 +231,21 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       'www.ronddecarotte.com',
     )
     expect(screen.getByRole('button', { name: 'Voir sur la carte' })).toBeEnabled()
+    const poiHeading = screen.getByRole('heading', { name: 'Rond de Carotte' })
+    expect(poiHeading).toHaveClass('text-xl', 'uppercase', 'text-charcoal')
+    expect(poiHeading).not.toHaveClass('font-serif', 'italic')
+    expect(screen.getByTestId('poi-detail-distance')).toHaveClass(
+      'inline-flex',
+      'text-pink-600',
+    )
+    const actions = screen.getByTestId('demo-poi-actions')
+    expect(actions).toHaveClass('grid-cols-2')
+    expect(
+      within(actions).getByRole('button', { name: 'Voir sur la carte' }),
+    ).toHaveClass('rounded-full', 'bg-white', 'uppercase')
+    expect(
+      within(actions).getByTestId('demo-poi-action-icon-map'),
+    ).toHaveClass('rounded-full', 'bg-slate-900', 'text-white')
     for (const label of ['Obtenir l’itinéraire', 'Site web', 'Appeler']) {
       expect(screen.getByRole('button', { name: label })).toBeDisabled()
     }
@@ -230,7 +315,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(detailImage.getAttribute('src')).toBe('/fallback/fallback-restaurant.png')
   })
 
-  it('renders static map markers without geolocation and restores map from the detail view', () => {
+  it('renders the private-style map without geolocation and restores it from the detail view', () => {
     const geolocation = { getCurrentPosition: jest.fn() }
     Object.defineProperty(window.navigator, 'geolocation', {
       configurable: true,
@@ -244,17 +329,15 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toHaveFocus()
     expect(screen.queryByRole('heading', { name: 'Carte' })).not.toBeInTheDocument()
-    expect(
-      screen.getByText('Carte de démonstration · position GPS désactivée'),
-    ).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: / sur la carte$/ })).toHaveLength(
+    expect(screen.getByTestId('mapbox-map')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^Sélectionner / })).toHaveLength(
       14,
     )
     expect(geolocation.getCurrentPosition).not.toHaveBeenCalled()
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Afficher Rond de Carotte sur la carte',
+        name: 'Sélectionner Rond de Carotte',
       }),
     )
     const preview = screen.getByTestId('demo-map-preview')
@@ -262,11 +345,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(preview).not.toHaveClass('fixed')
     expect(preview).toHaveAttribute('role', 'region')
     fireEvent.click(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     )
     fireEvent.click(screen.getByRole('button', { name: 'Retour à la carte' }))
     expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
     expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
   })
@@ -276,7 +359,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Afficher Rond de Carotte sur la carte',
+        name: 'Sélectionner Rond de Carotte',
       }),
     )
 
@@ -292,16 +375,12 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     render(<DemoGuideApp />)
     await user.click(screen.getByRole('button', { name: 'Carte' }))
     const marker = screen.getByRole('button', {
-      name: 'Afficher Rond de Carotte sur la carte',
+      name: 'Sélectionner Rond de Carotte',
     })
 
     await user.click(marker)
     expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Fermer l’aperçu de Rond de Carotte',
-      }),
-    )
+    await user.click(screen.getByTestId('mapbox-map'))
 
     await waitFor(() => {
       expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
@@ -319,14 +398,10 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       }),
     )
     const marker = screen.getByRole('button', {
-      name: 'Afficher Rond de Carotte sur la carte',
+      name: 'Sélectionner Rond de Carotte',
     })
 
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Fermer l’aperçu de Rond de Carotte',
-      }),
-    )
+    await user.click(screen.getByTestId('mapbox-map'))
 
     await waitFor(() => {
       expect(marker).toHaveFocus()
@@ -345,11 +420,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
+      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
     ).toBeInTheDocument()
   })
 
-  it('opens the selected static-map preview from the POI detail action', () => {
+  it('opens and frames the complete route from the POI detail map action', () => {
     openFavorites()
     fireEvent.click(
       screen.getByRole('button', { name: 'Ouvrir Rond de Carotte' }),
@@ -359,17 +434,24 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Voir la fiche Rond de Carotte' }),
-    ).toBeInTheDocument()
+    expect(screen.getByTestId('mapbox-source')).toBeInTheDocument()
+    expect(screen.getByTestId('guide-map')).toHaveAttribute(
+      'data-route-focused',
+      'true',
+    )
+    expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
     expect(window.location.pathname).toBe('/concept')
   })
 
   it('keeps a useful local fallback when the static map has no POIs', () => {
     render(
       <DemoMapView
+        lodging={demoLodging}
         pois={[]}
         selectedPoi={null}
+        focusSelectedRoute={false}
+        selectedCategorySlug={null}
+        onFilter={jest.fn()}
         onDeselectPoi={jest.fn()}
         onOpenPoi={jest.fn()}
         onSelectPoi={jest.fn()}
@@ -505,19 +587,60 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(window.location.pathname).toBe('/concept')
   })
 
+  it('renders injected published lodging and blog content instead of local fixtures', () => {
+    const lodging = {
+      ...demoGuideData.lodgingCards[0],
+      id: 'demo-lodging-real-chalet' as const,
+      slug: 'demo-real-chalet' as const,
+      title: 'Le vrai chalet publié',
+      description: 'Description publique du vrai chalet.',
+    }
+    const post = {
+      ...demoGuideData.blogPosts[0],
+      id: 'demo-blog-real-article' as const,
+      slug: 'demo-real-article' as const,
+      title: 'Le véritable article publié',
+      contentMarkdown: '## Contenu public\n\nTexte public réel.',
+    }
+
+    render(
+      <DemoGuideApp
+        publishedContent={{ lodgingCards: [lodging], blogPosts: [post] }}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    expect(
+      screen.getByRole('button', { name: 'Voir Le vrai chalet publié' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Chalet des Cimes — démonstration'),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    expect(
+      screen.getByRole('button', { name: 'Lire Le véritable article publié' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Un week-end de démonstration à Saint-Gervais'),
+    ).not.toBeInTheDocument()
+  })
+
   it('keeps useful local empty states for lodging and blog collections', () => {
     const { rerender } = render(
       <DemoLodgingsView lodgings={[]} onOpenLodging={jest.fn()} />,
     )
 
     expect(
-      screen.getByText('Aucun logement de démonstration n’est disponible pour le moment.'),
+      screen.getByText('Aucun logement public n’est disponible pour le moment.'),
     ).toBeInTheDocument()
 
     rerender(<DemoBlogView posts={[]} onOpenPost={jest.fn()} />)
 
     expect(
-      screen.getByText('Aucun article de démonstration n’est disponible pour le moment.'),
+      screen.getByText('Aucun article public n’est disponible pour le moment.'),
     ).toBeInTheDocument()
   })
 

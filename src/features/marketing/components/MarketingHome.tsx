@@ -361,10 +361,10 @@ export function MarketingHome({
                   absolute left-5 top-0
                   h-[3px] w-10
                   rounded-b-full
-                  bg-[#bd9254]
+                  bg-pink-600
                 "
               />
-
+{/* 
               <span
                 aria-hidden="true"
                 className="
@@ -381,7 +381,7 @@ export function MarketingHome({
                 "
               >
                 {item.number}
-              </span>
+              </span> */}
 
               <div className="relative z-10">
                 <h3 className="text-[15px] font-bold text-slate-900">
@@ -478,10 +478,10 @@ export function MarketingHome({
                   absolute left-5 top-0
                   h-[3px] w-10
                   rounded-b-full
-                  bg-[#bd9254]
+                  bg-pink-600
                 "
               />
-
+{/* 
               <span
                 aria-hidden="true"
                 className="
@@ -498,7 +498,7 @@ export function MarketingHome({
                 "
               >
                 {service.number}
-              </span>
+              </span> */}
 
               <div className="relative z-10">
                 <h3
@@ -600,7 +600,7 @@ export function MarketingHome({
                   absolute left-5 top-0
                   h-[3px] w-10
                   rounded-b-full
-                  bg-[#bd9254]
+                  bg-pink-600
                 "
               />
 
@@ -904,7 +904,7 @@ export function MarketingHome({
       {/* =========================================================
           DECOUVRIR / CONTENU EDITORIAL
       ========================================================== */}
-      <section
+      {/* <section
         className={`
           ${marketingContainerClass}
           pb-20 pt-10
@@ -955,7 +955,7 @@ export function MarketingHome({
                 hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
               "
             >
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#bd9254]">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-pink-600">
                 {item.eyebrow}
               </span>
 
@@ -979,7 +979,7 @@ export function MarketingHome({
             </Link>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* =========================================================
           FAQ

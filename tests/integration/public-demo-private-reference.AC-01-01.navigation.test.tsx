@@ -1,8 +1,60 @@
 /** @jest-environment jsdom */
 
+import React from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
+
+jest.mock('react-map-gl/mapbox', () => {
+  const MockMap = React.forwardRef<
+    { getMap: () => Record<string, jest.Mock> },
+    { children: React.ReactNode; onClick?: () => void }
+  >(({ children, onClick }, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      getMap: () => ({
+        addLayer: jest.fn(),
+        easeTo: jest.fn(),
+        fitBounds: jest.fn(),
+        getLayer: jest.fn(() => true),
+        getPitch: jest.fn(() => 0),
+        getStyle: jest.fn(() => ({ layers: [] })),
+        getZoom: jest.fn(() => 12),
+      }),
+    }))
+    return (
+      <div data-testid="mapbox-map" onClick={onClick}>
+        {children}
+      </div>
+    )
+  })
+  MockMap.displayName = 'MockMap'
+
+  return {
+    __esModule: true,
+    default: MockMap,
+    Marker: ({
+      children,
+      onClick,
+    }: {
+      children: React.ReactNode
+      onClick?: (event: { originalEvent: { stopPropagation: () => void } }) => void
+    }) => (
+      <div
+        data-testid="mapbox-marker"
+        onClick={event => {
+          event.stopPropagation()
+          onClick?.({ originalEvent: { stopPropagation: jest.fn() } })
+        }}
+      >
+        {children}
+      </div>
+    ),
+    Source: ({ children }: { children?: React.ReactNode }) => (
+      <div data-testid="mapbox-source">{children}</div>
+    ),
+    Layer: () => <div data-testid="mapbox-layer" />,
+  }
+})
 
 describe('045-public-demo-private-guide-reference autonomous navigation', () => {
   beforeEach(() => {
@@ -76,10 +128,6 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
   })
 
   it.each([
-    { destination: 'Accueil', heading: 'Bienvenue au 305' },
-    { destination: 'Guide du logement', heading: 'Bienvenue' },
-    { destination: 'Coups de cœur', heading: 'Nos coups de cœur' },
-    { destination: 'Carte', heading: 'Carte des coups de cœur' },
     { destination: 'Nos logements', heading: 'Nos logements' },
     { destination: 'Blog', heading: 'Blog' },
     { destination: 'Nous contacter', heading: 'Votre hôte' },
@@ -109,6 +157,28 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
       expect(opener).not.toHaveFocus()
     },
   )
+
+  it('shows only the three public editorial destinations in the full-screen menu', async () => {
+    const user = userEvent.setup()
+    render(<DemoGuideApp />)
+
+    await user.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    const menu = screen.getByRole('navigation', {
+      name: 'Menu de démonstration',
+    })
+
+    expect(
+      within(menu).getAllByRole('button').map(button => button.textContent),
+    ).toEqual(['Nos logements', 'Blog', 'Nous contacter'])
+    expect(within(menu).queryByRole('button', { name: 'Accueil' })).toBeNull()
+    expect(
+      within(menu).queryByRole('button', { name: 'Guide du logement' }),
+    ).toBeNull()
+    expect(
+      within(menu).queryByRole('button', { name: 'Coups de cœur' }),
+    ).toBeNull()
+    expect(within(menu).queryByRole('button', { name: 'Carte' })).toBeNull()
+  })
 
   it('contains keyboard focus inside the modal menu', async () => {
     const user = userEvent.setup()
@@ -143,7 +213,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
 
     await user.tab()
     expect(
-      within(dialog).getByRole('button', { name: 'Accueil' }),
+      within(dialog).getByRole('button', { name: 'Nos logements' }),
     ).toHaveFocus()
   })
 

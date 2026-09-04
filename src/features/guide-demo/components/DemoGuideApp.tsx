@@ -21,6 +21,7 @@ import type {
   DemoGuideView,
   DemoLodgingCard,
   DemoPoi,
+  DemoPublishedContent,
 } from '@/features/guide-demo/types'
 
 type DemoEditorialSelections = {
@@ -41,11 +42,19 @@ export function getEditorialSelectionsForView(
   }
 }
 
-export function DemoGuideApp() {
+export function DemoGuideApp({
+  publishedContent = {
+    lodgingCards: demoGuideData.lodgingCards,
+    blogPosts: demoGuideData.blogPosts,
+  },
+}: {
+  publishedContent?: DemoPublishedContent
+}) {
   const [activeView, setActiveView] = useState<DemoGuideView>('home')
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState<DemoPoi | null>(null)
   const [selectedMapPoi, setSelectedMapPoi] = useState<DemoPoi | null>(null)
+  const [focusSelectedRoute, setFocusSelectedRoute] = useState(false)
   const [selectedLodging, setSelectedLodging] = useState<DemoLodgingCard | null>(null)
   const [selectedPost, setSelectedPost] = useState<DemoBlogPost | null>(null)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(null)
@@ -84,6 +93,7 @@ export function DemoGuideApp() {
     setMenuOpen(false)
     setSelectedLodging(nextSelections.selectedLodging)
     setSelectedPost(nextSelections.selectedPost)
+    if (view !== 'map') setFocusSelectedRoute(false)
 
     if (mainRef.current) {
       mainRef.current.scrollTop = 0
@@ -96,9 +106,26 @@ export function DemoGuideApp() {
     navigate('poi')
   }
 
-  function showOnMap(poi: DemoPoi) {
+  function showOnMap(poi: DemoPoi, focusRoute = false) {
     setSelectedMapPoi(poi)
+    setFocusSelectedRoute(focusRoute)
     navigate('map')
+  }
+
+  function selectMapPoi(poi: DemoPoi) {
+    setFocusSelectedRoute(false)
+    setSelectedMapPoi(poi)
+  }
+
+  function clearMapPoi() {
+    setFocusSelectedRoute(false)
+    setSelectedMapPoi(null)
+  }
+
+  function filterMap(categorySlug: string | null) {
+    setFocusSelectedRoute(false)
+    setSelectedMapPoi(null)
+    setSelectedCategorySlug(categorySlug)
   }
 
   function returnFromPoi() {
@@ -142,11 +169,15 @@ export function DemoGuideApp() {
         />
       ) : activeView === 'map' ? (
         <DemoMapView
+          lodging={demoGuideData.lodging}
           pois={demoPois}
           selectedPoi={selectedMapPoi}
-          onDeselectPoi={() => setSelectedMapPoi(null)}
+          focusSelectedRoute={focusSelectedRoute}
+          selectedCategorySlug={selectedCategorySlug}
+          onFilter={filterMap}
+          onDeselectPoi={clearMapPoi}
           onOpenPoi={poi => openPoi(poi, 'map')}
-          onSelectPoi={setSelectedMapPoi}
+          onSelectPoi={selectMapPoi}
         />
       ) : activeView === 'poi' && selectedPoi ? (
         <DemoPoiDetailView
@@ -158,11 +189,11 @@ export function DemoGuideApp() {
               : 'Retour à la carte'
           }
           onBack={returnFromPoi}
-          onShowOnMap={showOnMap}
+          onShowOnMap={poi => showOnMap(poi, true)}
         />
       ) : activeView === 'lodgings' ? (
         <DemoLodgingsView
-          lodgings={demoGuideData.lodgingCards}
+          lodgings={publishedContent.lodgingCards}
           onOpenLodging={openLodging}
         />
       ) : activeView === 'lodging-detail' && selectedLodging ? (
@@ -171,7 +202,7 @@ export function DemoGuideApp() {
           onBack={() => navigate('lodgings')}
         />
       ) : activeView === 'blog' ? (
-        <DemoBlogView posts={demoGuideData.blogPosts} onOpenPost={openPost} />
+        <DemoBlogView posts={publishedContent.blogPosts} onOpenPost={openPost} />
       ) : activeView === 'blog-detail' && selectedPost ? (
         <DemoBlogDetailView post={selectedPost} onBack={() => navigate('blog')} />
       ) : activeView === 'contact' ? (
