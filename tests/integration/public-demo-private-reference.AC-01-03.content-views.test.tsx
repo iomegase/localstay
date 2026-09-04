@@ -90,10 +90,10 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(filterBar).toHaveClass(
       'sticky',
       'top-0',
-      'z-10',
+      'z-20',
       'overflow-x-auto',
-      'bg-[#faf9f6]/95',
-      'backdrop-blur',
+      'bg-white/95',
+      'backdrop-blur-xl',
     )
     expect(within(filterBar).getByRole('button', { name: 'Tous' })).toHaveAttribute(
       'aria-pressed',
@@ -103,10 +103,28 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const grid = screen.getByTestId('favorites-bento-grid')
     const cards = within(grid).getAllByTestId('favorite-bento-card')
     expect(cards).toHaveLength(14)
-    expect(cards[0]).toHaveClass('col-span-2', 'aspect-square')
+    expect(cards[0]).toHaveClass(
+      'col-span-2',
+      'aspect-square',
+      'rounded-[2rem]',
+      'bg-charcoal',
+    )
     expect(cards[0]).toHaveAttribute('data-variant', 'big')
+    expect(within(cards[0]).getByRole('heading', { name: 'Rond de Carotte' })).toHaveClass(
+      'font-semibold',
+      'uppercase',
+      'text-2xl',
+    )
+    expect(within(cards[0]).getByTestId('favorite-open-status')).toHaveTextContent(
+      'Ouvert',
+    )
+    expect(
+      within(cards[0]).getByRole('button', {
+        name: 'Afficher Rond de Carotte sur la carte',
+      }),
+    ).toHaveClass('absolute', 'right-3', 'top-3', 'bg-black/55')
     for (const card of cards.slice(1)) {
-      expect(card).toHaveClass('aspect-square')
+      expect(card).toHaveClass('aspect-square', 'rounded-[1.75rem]', 'bg-charcoal')
       expect(card).not.toHaveClass('col-span-2')
       expect(card).toHaveAttribute('data-variant', 'compact')
       expect(card.querySelector('img')).not.toBeNull()
@@ -183,11 +201,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const title = within(compactCard).getByRole('heading', {
       name: 'Bistrotsérac',
     })
-    expect(title).toHaveClass('line-clamp-1', 'text-base')
-    expect(title.parentElement).toHaveClass('p-2')
+    expect(title).toHaveClass('font-semibold', 'uppercase', 'text-sm', 'leading-tight')
+    expect(title.parentElement).toHaveClass('p-4')
     expect(within(compactCard).queryByText('4.4')).not.toBeInTheDocument()
-    expect(open).toHaveClass('h-7', 'w-7')
-    expect(map).toHaveClass('h-7', 'w-7')
+    expect(open).toHaveClass('absolute', 'inset-0', 'h-full', 'w-full')
+    expect(map).toHaveClass('absolute', 'right-3', 'top-3', 'p-2')
     expect(open).toHaveTextContent('')
     expect(map).toHaveTextContent('')
   })
