@@ -21,6 +21,7 @@ import type {
   DemoGuideView,
   DemoLodgingCard,
   DemoPoi,
+  DemoPublishedContent,
 } from '@/features/guide-demo/types'
 
 type DemoEditorialSelections = {
@@ -41,7 +42,14 @@ export function getEditorialSelectionsForView(
   }
 }
 
-export function DemoGuideApp() {
+export function DemoGuideApp({
+  publishedContent = {
+    lodgingCards: demoGuideData.lodgingCards,
+    blogPosts: demoGuideData.blogPosts,
+  },
+}: {
+  publishedContent?: DemoPublishedContent
+}) {
   const [activeView, setActiveView] = useState<DemoGuideView>('home')
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedPoi, setSelectedPoi] = useState<DemoPoi | null>(null)
@@ -185,7 +193,7 @@ export function DemoGuideApp() {
         />
       ) : activeView === 'lodgings' ? (
         <DemoLodgingsView
-          lodgings={demoGuideData.lodgingCards}
+          lodgings={publishedContent.lodgingCards}
           onOpenLodging={openLodging}
         />
       ) : activeView === 'lodging-detail' && selectedLodging ? (
@@ -194,7 +202,7 @@ export function DemoGuideApp() {
           onBack={() => navigate('lodgings')}
         />
       ) : activeView === 'blog' ? (
-        <DemoBlogView posts={demoGuideData.blogPosts} onOpenPost={openPost} />
+        <DemoBlogView posts={publishedContent.blogPosts} onOpenPost={openPost} />
       ) : activeView === 'blog-detail' && selectedPost ? (
         <DemoBlogDetailView post={selectedPost} onBack={() => navigate('blog')} />
       ) : activeView === 'contact' ? (

@@ -128,10 +128,6 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
   })
 
   it.each([
-    { destination: 'Accueil', heading: 'Bienvenue au 305' },
-    { destination: 'Guide du logement', heading: 'Bienvenue' },
-    { destination: 'Coups de cœur', heading: 'Nos coups de cœur' },
-    { destination: 'Carte', heading: 'Carte des coups de cœur' },
     { destination: 'Nos logements', heading: 'Nos logements' },
     { destination: 'Blog', heading: 'Blog' },
     { destination: 'Nous contacter', heading: 'Votre hôte' },
@@ -161,6 +157,28 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
       expect(opener).not.toHaveFocus()
     },
   )
+
+  it('shows only the three public editorial destinations in the full-screen menu', async () => {
+    const user = userEvent.setup()
+    render(<DemoGuideApp />)
+
+    await user.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    const menu = screen.getByRole('navigation', {
+      name: 'Menu de démonstration',
+    })
+
+    expect(
+      within(menu).getAllByRole('button').map(button => button.textContent),
+    ).toEqual(['Nos logements', 'Blog', 'Nous contacter'])
+    expect(within(menu).queryByRole('button', { name: 'Accueil' })).toBeNull()
+    expect(
+      within(menu).queryByRole('button', { name: 'Guide du logement' }),
+    ).toBeNull()
+    expect(
+      within(menu).queryByRole('button', { name: 'Coups de cœur' }),
+    ).toBeNull()
+    expect(within(menu).queryByRole('button', { name: 'Carte' })).toBeNull()
+  })
 
   it('contains keyboard focus inside the modal menu', async () => {
     const user = userEvent.setup()
@@ -195,7 +213,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
 
     await user.tab()
     expect(
-      within(dialog).getByRole('button', { name: 'Accueil' }),
+      within(dialog).getByRole('button', { name: 'Nos logements' }),
     ).toHaveFocus()
   })
 

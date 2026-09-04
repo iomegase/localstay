@@ -24,10 +24,6 @@ const bottomNavigation = [
 ]
 
 const menuNavigation = [
-  { view: 'home' as const, label: 'Accueil' },
-  { view: 'lodging' as const, label: 'Guide du logement' },
-  { view: 'favorites' as const, label: 'Coups de cœur' },
-  { view: 'map' as const, label: 'Carte' },
   { view: 'lodgings' as const, label: 'Nos logements' },
   { view: 'blog' as const, label: 'Blog' },
   { view: 'contact' as const, label: 'Nous contacter' },

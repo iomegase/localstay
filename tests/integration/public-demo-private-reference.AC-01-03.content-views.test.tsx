@@ -587,19 +587,60 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(window.location.pathname).toBe('/concept')
   })
 
+  it('renders injected published lodging and blog content instead of local fixtures', () => {
+    const lodging = {
+      ...demoGuideData.lodgingCards[0],
+      id: 'demo-lodging-real-chalet' as const,
+      slug: 'demo-real-chalet' as const,
+      title: 'Le vrai chalet publié',
+      description: 'Description publique du vrai chalet.',
+    }
+    const post = {
+      ...demoGuideData.blogPosts[0],
+      id: 'demo-blog-real-article' as const,
+      slug: 'demo-real-article' as const,
+      title: 'Le véritable article publié',
+      contentMarkdown: '## Contenu public\n\nTexte public réel.',
+    }
+
+    render(
+      <DemoGuideApp
+        publishedContent={{ lodgingCards: [lodging], blogPosts: [post] }}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    expect(
+      screen.getByRole('button', { name: 'Voir Le vrai chalet publié' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Chalet des Cimes — démonstration'),
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    expect(
+      screen.getByRole('button', { name: 'Lire Le véritable article publié' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Un week-end de démonstration à Saint-Gervais'),
+    ).not.toBeInTheDocument()
+  })
+
   it('keeps useful local empty states for lodging and blog collections', () => {
     const { rerender } = render(
       <DemoLodgingsView lodgings={[]} onOpenLodging={jest.fn()} />,
     )
 
     expect(
-      screen.getByText('Aucun logement de démonstration n’est disponible pour le moment.'),
+      screen.getByText('Aucun logement public n’est disponible pour le moment.'),
     ).toBeInTheDocument()
 
     rerender(<DemoBlogView posts={[]} onOpenPost={jest.fn()} />)
 
     expect(
-      screen.getByText('Aucun article de démonstration n’est disponible pour le moment.'),
+      screen.getByText('Aucun article public n’est disponible pour le moment.'),
     ).toBeInTheDocument()
   })
 

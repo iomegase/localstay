@@ -140,9 +140,9 @@ export type DemoLodgingCard = {
   shortDescription: string
   description: string
   maxGuests: number
-  bedroomCount: number
-  bathroomCount: number
-  surfaceM2: number
+  bedroomCount: number | null
+  bathroomCount: number | null
+  surfaceM2: number | null
   publicAreaLabel: string
   photos: readonly {
     url: string
@@ -170,6 +170,11 @@ export type DemoContact = {
   cityName: string
   hostName: string
   responseLabel: string
+}
+
+export type DemoPublishedContent = {
+  lodgingCards: readonly DemoLodgingCard[]
+  blogPosts: readonly DemoBlogPost[]
 }
 
 export type DemoGuideData = {

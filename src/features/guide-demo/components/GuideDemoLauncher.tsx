@@ -4,10 +4,10 @@ import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { Smartphone } from 'lucide-react'
 import { marketingDarkButtonClass } from '@/features/marketing/components/MarketingShell'
+import { useDemoPublishedContent } from './DemoPublishedContentProvider'
 
 const GuideDemoModal = dynamic(
-  () =>
-    import('./GuideDemoModal').then(module => module.GuideDemoModal),
+  () => import('./GuideDemoModal').then(module => module.GuideDemoModal),
   { ssr: false },
 )
 
@@ -24,15 +24,14 @@ export function GuideDemoLauncher({
   showIcon?: boolean
   ariaLabel?: string
 } = {}) {
+  const publishedContent = useDemoPublishedContent()
   const [isLoaded, setIsLoaded] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const hasOpenedRef = useRef(false)
 
   useEffect(() => {
-    if (!isOpen && hasOpenedRef.current) {
-      triggerRef.current?.focus()
-    }
+    if (!isOpen && hasOpenedRef.current) triggerRef.current?.focus()
   }, [isOpen])
 
   function openDemo() {
@@ -57,12 +56,16 @@ export function GuideDemoLauncher({
         className={className}
         aria-label={ariaLabel}
       >
-        {showIcon && <Smartphone className="h-4 w-4" aria-hidden="true" />}
+        {showIcon ? <Smartphone className="h-4 w-4" aria-hidden="true" /> : null}
         {label}
       </button>
-      {isLoaded && (
-        <GuideDemoModal open={isOpen} onOpenChange={handleOpenChange} />
-      )}
+      {isLoaded ? (
+        <GuideDemoModal
+          open={isOpen}
+          onOpenChange={handleOpenChange}
+          publishedContent={publishedContent}
+        />
+      ) : null}
     </>
   )
 }

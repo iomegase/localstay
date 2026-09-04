@@ -58,7 +58,7 @@ export function DemoLodgingsView({
   return (
     <section className="min-h-full bg-white px-4 pb-32 pt-6">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
-        Sélection fictive
+        Sélection MyStay
       </p>
       <h1
         data-demo-view-heading="true"
@@ -68,12 +68,12 @@ export function DemoLodgingsView({
         Nos logements
       </h1>
       <p className="mt-2 text-sm leading-6 text-slate-600">
-        Des fiches fictives et locales pour découvrir l’expérience MyStay.
+        Découvrez les logements actuellement publiés par MyStay.
       </p>
 
       {lodgings.length === 0 ? (
         <p className="mt-8 rounded-3xl bg-slate-50 p-5 text-sm text-slate-600">
-          Aucun logement de démonstration n’est disponible pour le moment.
+          Aucun logement public n’est disponible pour le moment.
         </p>
       ) : (
         <div className="mt-6 grid gap-4">
@@ -129,7 +129,7 @@ export function DemoLodgingDetailView({
         <DemoContentImage alt={lodging.photos[0]?.alt ?? lodging.title} src={lodging.coverPhotoUrl} />
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
-        {lodging.propertyType} fictif · {lodging.cityName}
+        {lodging.propertyType} · {lodging.cityName}
       </p>
       <h1
         data-demo-view-heading="true"
@@ -142,9 +142,15 @@ export function DemoLodgingDetailView({
 
       <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
         <DemoFact icon={Users} label="Voyageurs" value={String(lodging.maxGuests)} />
-        <DemoFact icon={BedDouble} label="Chambres" value={String(lodging.bedroomCount)} />
-        <DemoFact icon={Bath} label="Salles de bain" value={String(lodging.bathroomCount)} />
-        <DemoFact icon={Maximize} label="Surface" value={`${lodging.surfaceM2} m²`} />
+        {lodging.bedroomCount !== null ? (
+          <DemoFact icon={BedDouble} label="Chambres" value={String(lodging.bedroomCount)} />
+        ) : null}
+        {lodging.bathroomCount !== null ? (
+          <DemoFact icon={Bath} label="Salles de bain" value={String(lodging.bathroomCount)} />
+        ) : null}
+        {lodging.surfaceM2 !== null ? (
+          <DemoFact icon={Maximize} label="Surface" value={`${lodging.surfaceM2} m²`} />
+        ) : null}
       </dl>
 
       <section className="mt-6">
@@ -223,7 +229,7 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
   return (
     <section className="min-h-full bg-white px-4 pb-32 pt-6">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
-        Journal de séjour fictif
+        Le journal MyStay
       </p>
       <h1
         data-demo-view-heading="true"
@@ -234,7 +240,7 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
       </h1>
       {posts.length === 0 ? (
         <p className="mt-8 rounded-3xl bg-slate-50 p-5 text-sm text-slate-600">
-          Aucun article de démonstration n’est disponible pour le moment.
+          Aucun article public n’est disponible pour le moment.
         </p>
       ) : (
         <div className="mt-6 grid gap-4">

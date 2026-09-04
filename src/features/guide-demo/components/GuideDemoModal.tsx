@@ -4,13 +4,16 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
 import { DemoGuideApp } from './DemoGuideApp'
+import type { DemoPublishedContent } from '@/features/guide-demo/types'
 
 export function GuideDemoModal({
   open,
   onOpenChange,
+  publishedContent,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  publishedContent: DemoPublishedContent
 }) {
   useEffect(() => {
     if (!open) return
@@ -51,7 +54,7 @@ export function GuideDemoModal({
               <Dialog.Description className="sr-only">
                 Démonstration publique et interactive du guide de séjour MyStay.
               </Dialog.Description>
-              {open ? <DemoGuideApp /> : null}
+              {open ? <DemoGuideApp publishedContent={publishedContent} /> : null}
             </motion.div>
           </Dialog.Content>
         </div>
