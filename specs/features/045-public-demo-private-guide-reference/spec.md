@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-01
-updated_at: 2026-09-01
+updated_at: 2026-09-04
 depends_on:
   - 031-public-marketing-site
   - 034-private-guide-app
@@ -79,6 +79,10 @@ contrôle d'accès ni route du guide privé.
 - **AC-01-05**: Given le modal à 320 px, 375 px ou sur desktop, When il est
   utilisé, Then le contenu reste lisible, scrollable verticalement et sans
   débordement horizontal.
+- **AC-01-06**: Given le menu plein écran de la démo ouvert, When il est rendu,
+  Then il présente uniquement `Nos logements`, `Blog` et `Nous contacter`,
+  tandis que les quatre destinations principales restent accessibles par la
+  navigation basse.
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -106,6 +110,10 @@ contrôle d'accès ni route du guide privé.
 - **AC-02-05**: Given le modal fermé puis rouvert, When la démo est remontée,
   Then elle repart de sa home sans persister d'état dans un cookie, le stockage
   navigateur ou une base de données.
+- **AC-02-06**: Given les catalogues publics injectés dans la démo, When le
+  bundle client est inspecté, Then il ne contient aucun UUID Prisma et reçoit
+  uniquement des DTO sérialisables construits côté serveur depuis des contenus
+  déjà publics.
 
 ### US-03 — Préserver intégralement le guide privé
 
@@ -151,6 +159,34 @@ contrôle d'accès ni route du guide privé.
   `/guide` ou `/decouvrir`, aucun composant marketing actif et aucun fichier du
   guide privé n'est supprimé.
 
+### US-05 — Présenter les contenus publics réellement publiés
+
+**As a** visiteur public
+
+**I want to** retrouver dans la démo les vrais logements et articles MyStay
+
+**So that** la démonstration reflète le catalogue éditorial actuel
+
+#### Acceptance Criteria
+
+- **AC-05-01**: Given des profils logement publiés, actifs et non supprimés,
+  When la vue `Nos logements` est ouverte, Then elle affiche ces profils dans
+  le même ordre que la vitrine publique et aucun profil brouillon, inactif ou
+  supprimé.
+- **AC-05-02**: Given des articles de blog publiés et non supprimés, When la vue
+  `Blog` est ouverte, Then elle affiche ces articles par date de publication
+  décroissante et aucun brouillon ou article supprimé.
+- **AC-05-03**: Given un logement ou un article affiché dans la démo, When sa
+  fiche est ouverte, Then les textes, médias et informations visibles
+  correspondent à sa version publique publiée.
+- **AC-05-04**: Given qu'aucun logement ou article publié n'existe, When la vue
+  correspondante est ouverte, Then un état vide explicite est affiché sans
+  réintroduire de fiche fictive.
+- **AC-05-05**: Given une indisponibilité de la base pendant le rendu marketing,
+  When les contenus de démo ne peuvent pas être chargés, Then la page marketing
+  et le déclencheur restent rendus et les vues concernées utilisent leur état
+  vide.
+
 ## Business Rules
 
 - **BR-01**: Le guide privé est une référence en lecture seule. Le chantier ne
@@ -163,13 +199,17 @@ contrôle d'accès ni route du guide privé.
 - **BR-04**: La navigation de démonstration est un état client local. Elle
   n'utilise ni `router.push`, ni `Link` vers une route privée, ni navigation
   directe par `window.location`.
-- **BR-05**: Les données de démonstration sont des constantes TypeScript
-  statiques, déterministes et révisables dans le dépôt.
+- **BR-05**: Les données propres au séjour de démonstration restent des
+  constantes TypeScript statiques, déterministes et révisables dans le dépôt.
+  Les catalogues `Nos logements` et `Blog` proviennent exclusivement des
+  contenus publics publiés existants.
 - **BR-06**: Les POI de démonstration restent des POI publics réels autorisés,
   sans UUID Prisma. Toutes les données de séjour sont fictives.
-- **BR-07**: Aucun appel réseau n'est nécessaire pour obtenir des données du
-  guide. Mapbox et les médias publics autorisés restent les seules ressources
-  externes de présentation admises.
+- **BR-07**: Les catalogues logement et blog sont chargés côté serveur et
+  transmis au modal sous forme de DTO sérialisables. Le client de la démo ne
+  déclenche aucun appel `/api/*` pour obtenir ces contenus. Mapbox et les médias
+  publics autorisés restent les seules ressources externes chargées par le
+  navigateur pour la présentation.
 - **BR-08**: La géolocalisation ne démarre jamais automatiquement. La
   démonstration ne persiste ni consentement ni position.
 - **BR-09**: Les actions de randonnée exposent les informations publiques mais
@@ -188,13 +228,26 @@ contrôle d'accès ni route du guide privé.
   `blog.AC-02-01.article-detail.test.tsx` et
   `public-marketing.AC-03-03.lodgings-page.test.tsx` sont hors périmètre. Le
   chantier ne doit introduire aucun nouvel échec.
+- **BR-15**: Les requêtes existantes des vitrines publiques Blog et Logements
+  restent la source de vérité des règles de publication. La démo ne duplique
+  pas leurs filtres métier.
+- **BR-16**: Les DTO transmis au client remplacent les UUID de base par des
+  identifiants locaux préfixés `demo-`; les slugs, textes et médias publics
+  peuvent être conservés pour afficher la version publiée.
+- **BR-17**: Une erreur de lecture des catalogues publics est absorbée côté
+  serveur et produit deux listes vides afin de ne pas bloquer le rendu du site
+  marketing.
 
 ## Data Model
 
-Aucune migration Prisma et aucune lecture de base de données.
+Aucune migration Prisma. Une lecture serveur en base est autorisée uniquement
+pour les profils logement publics publiés et les articles de blog publics
+publiés, en réutilisant leurs queries publiques existantes. Aucune donnée de
+séjour, Owner privée ou route privée n'est lue.
 
-Le modèle de démonstration est un contrat TypeScript statique propre au bounded
-context `guide-demo`. Il couvre au minimum :
+Le modèle de démonstration est un contrat TypeScript propre au bounded context
+`guide-demo`. Le séjour et les POI restent statiques ; les deux catalogues
+éditoriaux sont injectés côté serveur. Il couvre au minimum :
 
 ```typescript
 type DemoGuideData = {
@@ -206,16 +259,18 @@ type DemoGuideData = {
 }
 ```
 
-Les identifiants sont des slugs préfixés `demo-` et ne respectent jamais le
-format UUID. Aucun champ ne référence une ligne Prisma.
+Les identifiants exposés au client sont dérivés des slugs publics et préfixés
+`demo-`; ils ne respectent jamais le format UUID. Aucun champ client ne
+référence une ligne Prisma.
 
 ## API Contract
 
 Aucune route API n'est ajoutée ou modifiée.
 
 Le bundle de démonstration ne doit appeler aucune route `/api/*` pour charger
-son contenu. Les données sont importées localement. Une erreur de média utilise
-un fallback local ; elle ne déclenche pas de récupération privée.
+son contenu. Les données statiques sont importées localement et les catalogues
+publics sont injectés par les Server Components marketing. Une erreur de média
+utilise un fallback local ; elle ne déclenche pas de récupération privée.
 
 ## UI Behaviour
 
@@ -229,8 +284,8 @@ un fallback local ; elle ne déclenche pas de récupération privée.
 ### Navigation interne
 
 - Une navigation basse reproduit les destinations du guide privé.
-- Le menu de démonstration donne accès aux surfaces complémentaires du guide
-  complet sans créer de lien vers le site privé.
+- Le menu de démonstration contient uniquement `Nos logements`, `Blog` et
+  `Nous contacter`, sans créer de lien vers le site privé.
 - Chaque retour restaure la vue parente attendue.
 - Les fiches et sous-pages partagent un conteneur vertical scrollable.
 
@@ -252,12 +307,15 @@ un fallback local ; elle ne déclenche pas de récupération privée.
 - Coups de cœur : données publiques statiques, filtres et détails internes.
 - Carte : marqueurs statiques, aucune géolocalisation automatique.
 - Randonnée : métriques publiques et action de démarrage désactivée.
-- Logements et blog : cartes et détails fictifs chargés localement.
+- Logements et blog : cartes et détails provenant des contenus publics
+  réellement publiés, chargés côté serveur puis consultés dans le modal.
 - Contact : contenu fictif ou public, aucune soumission persistée.
 
 ### Erreurs et fallbacks
 
 - Média absent ou invalide : fallback local approuvé.
+- Lecture serveur des catalogues indisponible : listes logement et blog vides,
+  sans blocage de la page marketing ni du modal.
 - Collection vide : état vide utile sans sortie du modal.
 - Carte indisponible : état informatif avec retour fonctionnel.
 - Action interdite en démo : contrôle désactivé avec libellé explicite.
@@ -271,11 +329,13 @@ un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-03 | integration + e2e |
 | AC-01-04 | integration + e2e |
 | AC-01-05 | e2e responsive |
+| AC-01-06 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |
 | AC-02-04 | integration |
 | AC-02-05 | integration |
+| AC-02-06 | security regression |
 | AC-03-01 | diff inspection |
 | AC-03-02 | regression + e2e |
 | AC-03-03 | diff inspection |
@@ -283,6 +343,11 @@ un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-04-01 | unit + import audit |
 | AC-04-02 | import audit |
 | AC-04-03 | diff inspection |
+| AC-05-01 | integration |
+| AC-05-02 | integration |
+| AC-05-03 | integration |
+| AC-05-04 | integration |
+| AC-05-05 | integration |
 
 ## Out of Scope
 
@@ -293,17 +358,23 @@ un fallback local ; elle ne déclenche pas de récupération privée.
   `/nos-recommandations`, `/map`, `/mes-favoris` ou `/guide/*`.
 - Création d'une route publique dédiée à la démo.
 - Partage de composants par refactor du guide privé.
-- Données Prisma, API de démonstration, CMS ou dashboard de configuration.
+- Lecture de données privées, API de démonstration, CMS ou dashboard de
+  configuration.
 - Persistance des interactions de la démo.
 - Réparation des deux tests éditoriaux déjà rouges dans la baseline.
 - Refonte des pages marketing, `/decouvrir`, `/logements` ou du blog.
 
 ## Open Questions
 
-Aucune question ouverte. Décisions du Product Owner du 2026-09-01 :
+Aucune question ouverte. Décisions du Product Owner des 2026-09-01 et
+2026-09-04 :
 
 - tout le guide privé sert de modèle de design et de contenu fonctionnel ;
 - aucun fichier, design ou route privé ne peut être modifié ;
-- la démo est autonome, fictive et reste dans le modal public ;
+- la démo reste dans le modal public et son séjour demeure fictif ;
+- le menu plein écran contient uniquement `Nos logements`, `Blog` et
+  `Nous contacter` ;
+- les vues Logements et Blog utilisent les contenus réellement publiés,
+  chargés côté serveur depuis les queries publiques existantes ;
 - le nettoyage supprime uniquement les artefacts de démo devenus orphelins ;
 - les deux tests éditoriaux rouges avant le chantier restent une baseline connue.
