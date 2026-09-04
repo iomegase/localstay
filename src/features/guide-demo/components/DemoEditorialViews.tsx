@@ -1,6 +1,16 @@
 'use client'
 
-import { ArrowLeft, Bath, BedDouble, MapPin, Maximize, Users } from 'lucide-react'
+import {
+  ArrowLeft,
+  Bath,
+  BedDouble,
+  MapPin,
+  Maximize,
+  Scan,
+  ShowerHead,
+  SlidersHorizontal,
+  Users,
+} from 'lucide-react'
 import type {
   DemoBlogPost,
   DemoContact,
@@ -55,59 +65,118 @@ export function DemoLodgingsView({
   lodgings,
   onOpenLodging,
 }: DemoLodgingsViewProps) {
+  const resultLabel = `${lodgings.length} ${lodgings.length > 1 ? 'logements' : 'logement'}`
+
   return (
-    <section className="min-h-full bg-white px-4 pb-32 pt-6">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
-        Sélection MyStay
-      </p>
+    <section className="min-h-full bg-white px-4 pb-32 pt-14">
+      <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+        <span aria-hidden="true" className="h-0.5 w-5 shrink-0 bg-pink-600" />
+        Les logements confiés à MyStay
+      </div>
       <h1
         data-demo-view-heading="true"
         tabIndex={-1}
-        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
+        className="mt-10 max-w-[360px] text-[38px] font-bold leading-[1.02] tracking-[-0.055em] text-slate-900"
       >
-        Nos logements
+        Des lieux suivis avec attention.
       </h1>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
-        Découvrez les logements actuellement publiés par MyStay.
+      <p className="mt-12 max-w-[360px] text-[15px] leading-7 text-slate-500">
+        Chaque logement est accompagné par notre conciergerie et dispose de son propre guide d’arrivée MyStay.
       </p>
 
       {lodgings.length === 0 ? (
-        <p className="mt-8 rounded-3xl bg-slate-50 p-5 text-sm text-slate-600">
+        <p className="mt-16 rounded-3xl bg-slate-50 p-5 text-sm text-slate-600">
           Aucun logement public n’est disponible pour le moment.
         </p>
       ) : (
-        <div className="mt-6 grid gap-4">
-          {lodgings.map(lodging => (
-            <button
-              key={lodging.id}
-              type="button"
-              data-testid="demo-lodging-card"
-              aria-label={`Voir ${lodging.title}`}
-              onClick={() => onOpenLodging(lodging)}
-              className="overflow-hidden rounded-[24px] border border-slate-100 bg-white text-left shadow-[0_6px_22px_rgba(15,23,42,0.08)]"
-            >
-              <span className="block aspect-[16/9] overflow-hidden bg-slate-100">
-                <DemoContentImage alt={lodging.photos[0]?.alt ?? lodging.title} src={lodging.coverPhotoUrl} />
-              </span>
-              <span className="block p-4">
-                <span className="block text-xs font-semibold uppercase tracking-wide text-pink-600">
-                  {lodging.propertyType} · {lodging.cityName}
+        <>
+          <div className="mt-16 flex items-center justify-between gap-4">
+            <span className="inline-flex items-center gap-2.5 rounded-full bg-slate-900 py-3 pl-5 pr-6 text-xs font-bold uppercase tracking-[0.08em] text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]">
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+              Filtrer
+            </span>
+            <span className="text-xs font-bold text-slate-500">{resultLabel}</span>
+          </div>
+
+          <div className="mt-9 grid gap-7">
+            {lodgings.map(lodging => (
+              <button
+                key={lodging.id}
+                type="button"
+                data-testid="demo-lodging-card"
+                aria-label={`Voir ${lodging.title}`}
+                onClick={() => onOpenLodging(lodging)}
+                className="group overflow-hidden rounded-[26px] bg-white text-left shadow-[0_18px_48px_rgba(15,23,42,0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
+              >
+                <span className="block aspect-[4/3] overflow-hidden bg-slate-100">
+                  <DemoContentImage alt={lodging.photos[0]?.alt ?? lodging.title} src={lodging.coverPhotoUrl} />
                 </span>
-                <span className="mt-1 block text-xl font-semibold tracking-[-0.03em] text-slate-900">
-                  {lodging.title}
+                <span className="block px-6 pb-5 pt-6">
+                  <span className="block text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600">
+                    {lodging.publicAreaLabel || lodging.cityName}
+                  </span>
+                  <span className="mt-2 block text-xl font-bold tracking-[-0.035em] text-slate-800">
+                    {lodging.title}
+                  </span>
+                  <span className="mt-3 block text-xs leading-5 text-slate-500">
+                    {lodging.shortDescription}
+                  </span>
+                  <span className="mt-5 grid grid-cols-2 border-t border-slate-200 text-slate-800">
+                    <DemoPropertyStat
+                      icon={Scan}
+                      label="Surface"
+                      value={lodging.surfaceM2 === null ? '—' : `${lodging.surfaceM2} m²`}
+                    />
+                    <DemoPropertyStat icon={Users} label="Voyageurs" value={String(lodging.maxGuests)} borderLeft />
+                    <DemoPropertyStat
+                      icon={BedDouble}
+                      label="Chambres"
+                      value={lodging.bedroomCount === null ? '—' : String(lodging.bedroomCount)}
+                      borderTop
+                    />
+                    <DemoPropertyStat
+                      icon={ShowerHead}
+                      label="Salles de bain"
+                      value={lodging.bathroomCount === null ? '—' : String(lodging.bathroomCount)}
+                      borderLeft
+                      borderTop
+                    />
+                  </span>
                 </span>
-                <span className="mt-2 block text-sm leading-6 text-slate-600">
-                  {lodging.shortDescription}
-                </span>
-                <span className="mt-4 inline-block rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">
-                  Voir {lodging.title}
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </section>
+  )
+}
+
+function DemoPropertyStat({
+  borderLeft = false,
+  borderTop = false,
+  icon: Icon,
+  label,
+  value,
+}: {
+  borderLeft?: boolean
+  borderTop?: boolean
+  icon: typeof Scan
+  label: string
+  value: string
+}) {
+  return (
+    <span
+      className={`flex min-h-[74px] items-center gap-3 py-3 ${borderLeft ? 'border-l border-slate-200 pl-4' : 'pr-3'} ${borderTop ? 'border-t border-slate-200' : ''}`}
+    >
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-50">
+        <Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
+      </span>
+      <span>
+        <span className="block text-[8px] text-slate-500">{label}</span>
+        <span className="block text-xs font-bold">{value}</span>
+      </span>
+    </span>
   )
 }
 

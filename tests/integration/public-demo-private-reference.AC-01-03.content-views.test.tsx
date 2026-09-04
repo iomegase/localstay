@@ -518,7 +518,9 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
 
-    const lodgingsHeading = screen.getByRole('heading', { name: 'Nos logements' })
+    const lodgingsHeading = screen.getByRole('heading', {
+      name: 'Des lieux suivis avec attention.',
+    })
     await waitFor(() => expect(lodgingsHeading).toHaveFocus())
     const lodgingButton = screen.getByRole('button', {
       name: 'Voir Chalet des Cimes — démonstration',
@@ -553,7 +555,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('button', { name: 'Retour aux logements' }),
     )
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Nos logements' })).toHaveFocus(),
+      expect(
+        screen.getByRole('heading', {
+          name: 'Des lieux suivis avec attention.',
+        }),
+      ).toHaveFocus(),
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
@@ -645,7 +651,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
         onOpenLodging={jest.fn()}
       />,
     )
-    assertSansSerifHeading('Nos logements')
+    assertSansSerifHeading('Des lieux suivis avec attention.')
 
     rerender(
       <DemoLodgingDetailView
@@ -693,12 +699,27 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    expect(
+      screen.getByRole('heading', { name: 'Des lieux suivis avec attention.' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Chaque logement est accompagné par notre conciergerie et dispose de son propre guide d’arrivée MyStay.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('2 logements')).toBeInTheDocument()
+    expect(screen.getByText('Filtrer')).toBeInTheDocument()
     const lodgingCard = screen.getAllByTestId('demo-lodging-card')[0]
     expect(lodgingCard.tagName).toBe('BUTTON')
     expect(lodgingCard).toHaveAccessibleName('Voir Chalet des Cimes — démonstration')
     expect(lodgingCard.querySelector('img')).not.toBeNull()
     expect(lodgingCard.querySelectorAll('button')).toHaveLength(0)
     expect(lodgingCard.querySelectorAll('a')).toHaveLength(0)
+    expect(within(lodgingCard).getByText('Surface')).toBeInTheDocument()
+    expect(within(lodgingCard).getByText('Voyageurs')).toBeInTheDocument()
+    expect(within(lodgingCard).getByText('Chambres')).toBeInTheDocument()
+    expect(within(lodgingCard).getByText('Salles de bain')).toBeInTheDocument()
+    expect(within(lodgingCard).queryByText('Voir Chalet des Cimes — démonstration')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
