@@ -8,7 +8,10 @@ import {
   getEditorialSelectionsForView,
 } from '@/features/guide-demo/components/DemoGuideApp'
 import {
+  DemoBlogDetailView,
   DemoBlogView,
+  DemoContactView,
+  DemoLodgingDetailView,
   DemoLodgingsView,
 } from '@/features/guide-demo/components/DemoEditorialViews'
 import { DemoMapView } from '@/features/guide-demo/components/DemoMapView'
@@ -626,6 +629,47 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.queryByText('Un week-end de démonstration à Saint-Gervais'),
     ).not.toBeInTheDocument()
+  })
+
+  it('uses the MyStay sans-serif typography for every editorial heading', () => {
+    const assertSansSerifHeading = (name: string) => {
+      expect(screen.getByRole('heading', { name })).not.toHaveClass(
+        'font-serif',
+        'italic',
+      )
+    }
+
+    const { rerender } = render(
+      <DemoLodgingsView
+        lodgings={demoGuideData.lodgingCards}
+        onOpenLodging={jest.fn()}
+      />,
+    )
+    assertSansSerifHeading('Nos logements')
+
+    rerender(
+      <DemoLodgingDetailView
+        lodging={demoGuideData.lodgingCards[0]}
+        onBack={jest.fn()}
+      />,
+    )
+    assertSansSerifHeading('Chalet des Cimes — démonstration')
+
+    rerender(
+      <DemoBlogView posts={demoGuideData.blogPosts} onOpenPost={jest.fn()} />,
+    )
+    assertSansSerifHeading('Blog')
+
+    rerender(
+      <DemoBlogDetailView
+        post={demoGuideData.blogPosts[0]}
+        onBack={jest.fn()}
+      />,
+    )
+    assertSansSerifHeading('Un week-end de démonstration à Saint-Gervais')
+
+    rerender(<DemoContactView contact={demoGuideData.contact} />)
+    assertSansSerifHeading('Votre hôte')
   })
 
   it('keeps useful local empty states for lodging and blog collections', () => {

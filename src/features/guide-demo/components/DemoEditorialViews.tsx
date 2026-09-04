@@ -63,7 +63,7 @@ export function DemoLodgingsView({
       <h1
         data-demo-view-heading="true"
         tabIndex={-1}
-        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
       >
         Nos logements
       </h1>
@@ -134,7 +134,7 @@ export function DemoLodgingDetailView({
       <h1
         data-demo-view-heading="true"
         tabIndex={-1}
-        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
       >
         {lodging.title}
       </h1>
@@ -234,7 +234,7 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
       <h1
         data-demo-view-heading="true"
         tabIndex={-1}
-        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
       >
         Blog
       </h1>
@@ -290,7 +290,7 @@ export function DemoBlogDetailView({ post, onBack }: DemoBlogDetailViewProps) {
       <h1
         data-demo-view-heading="true"
         tabIndex={-1}
-        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
       >
         {post.title}
       </h1>
@@ -314,7 +314,7 @@ export function DemoContactView({ contact }: DemoContactViewProps) {
       <h1
         data-demo-view-heading="true"
         tabIndex={-1}
-        className="mt-2 font-serif text-4xl italic tracking-[-0.04em] text-[#121212]"
+        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
       >
         Votre hôte
       </h1>
