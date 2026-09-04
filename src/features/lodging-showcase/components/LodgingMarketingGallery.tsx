@@ -10,9 +10,11 @@ type GalleryPhoto = {
 export function LodgingMarketingGallery({
   title,
   photos,
+  compact = false,
 }: {
   title: string
   photos: GalleryPhoto[]
+  compact?: boolean
 }) {
   const visiblePhotos = selectLodgingGalleryPhotos(photos)
 
@@ -34,9 +36,13 @@ export function LodgingMarketingGallery({
     <section
       aria-label={`Photos de ${title}`}
       data-testid="lodging-marketing-gallery"
-      className="mx-auto grid h-[440px] w-full max-w-[944px] grid-cols-2 grid-rows-[2fr_1fr] gap-1.5 overflow-hidden md:h-[520px] md:grid-cols-[1.7fr_0.85fr] md:grid-rows-2 md:gap-3 md:rounded-[26px] xl:h-[560px]"
+      className={compact
+        ? 'mx-auto grid h-[440px] w-full max-w-[944px] grid-cols-2 grid-rows-[2fr_1fr] gap-1.5 overflow-hidden'
+        : 'mx-auto grid h-[440px] w-full max-w-[944px] grid-cols-2 grid-rows-[2fr_1fr] gap-1.5 overflow-hidden md:h-[520px] md:grid-cols-[1.7fr_0.85fr] md:grid-rows-2 md:gap-3 md:rounded-[26px] xl:h-[560px]'}
     >
-      <div className="relative col-span-2 overflow-hidden md:col-span-1 md:row-span-2">
+      <div className={compact
+        ? 'relative col-span-2 overflow-hidden'
+        : 'relative col-span-2 overflow-hidden md:col-span-1 md:row-span-2'}>
         <Image
           src={mainPhoto.url}
           alt={mainPhoto.alt}

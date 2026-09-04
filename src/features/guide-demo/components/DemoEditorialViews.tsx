@@ -235,7 +235,7 @@ export function DemoLodgingDetailView({
         </div>
       </header>
 
-      <LodgingMarketingGallery title={lodging.title} photos={photos} />
+      <LodgingMarketingGallery title={lodging.title} photos={photos} compact />
 
       <LodgingEssentials
         title={lodging.title}
@@ -244,6 +244,7 @@ export function DemoLodgingDetailView({
         bathroomCount={lodging.bathroomCount}
         surfaceM2={lodging.surfaceM2}
         amenities={amenities}
+        compact
       />
 
       <section
@@ -293,10 +294,11 @@ export function DemoLodgingDetailView({
       <LodgingFeatureSections
         includedAmenities={[...lodging.amenitiesIncluded]}
         onRequestAmenities={[...lodging.amenitiesOnRequest]}
+        compact
       />
 
       <div className={`${marketingContainerClass} pb-16`}>
-        <LodgingRoomsGrid photos={photos} />
+        <LodgingRoomsGrid photos={photos} compact />
       </div>
     </article>
   )

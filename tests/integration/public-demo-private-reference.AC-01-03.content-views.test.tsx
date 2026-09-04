@@ -536,20 +536,25 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByRole('button', { name: 'Tous les logements' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('region', {
+    const lodgingGallery = screen.getByRole('region', {
         name: 'Photos de Chalet des Cimes — démonstration',
-      }),
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('lodging-essentials')).toBeInTheDocument()
+      })
+    expect(lodgingGallery).toHaveClass('grid-cols-2', 'grid-rows-[2fr_1fr]')
+    expect(lodgingGallery).not.toHaveClass('md:grid-cols-[1.7fr_0.85fr]')
+    const essentials = screen.getByTestId('lodging-essentials')
+    expect(essentials.querySelector('dl')).toHaveClass('grid-cols-2')
+    expect(essentials.querySelector('dl')).not.toHaveClass('md:grid-cols-5')
     expect(screen.getByText('Le logement')).toBeInTheDocument()
     expect(screen.getByText('Votre séjour')).toBeInTheDocument()
-    expect(screen.getByTestId('lodging-feature-sections')).toBeInTheDocument()
+    expect(screen.getByTestId('lodging-feature-sections')).not.toHaveClass('md:grid-cols-2')
     expect(screen.getByText('Équipements')).toBeInTheDocument()
     expect(screen.getByText('Services sur demande')).toBeInTheDocument()
     expect(screen.getByText('Cuisine équipée')).toBeInTheDocument()
     expect(screen.getByText('En images')).toBeInTheDocument()
     expect(screen.getByText('Pièce de vie')).toBeInTheDocument()
+    const roomGrid = screen.getByText('En images').closest('section')?.querySelector('.grid')
+    expect(roomGrid).toHaveClass('grid-cols-2')
+    expect(roomGrid).not.toHaveClass('sm:grid-cols-3', 'lg:grid-cols-5')
     expect(screen.getAllByText('Secteur fictif des hauteurs')).not.toHaveLength(0)
     const lodgingDetailArticle = screen
       .getByRole('heading', { name: 'Chalet des Cimes — démonstration', level: 1 })

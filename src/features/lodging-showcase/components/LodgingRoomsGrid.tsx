@@ -13,7 +13,7 @@ type Photo = {
   is_cover: boolean
 }
 
-export function LodgingRoomsGrid({ photos }: { photos: Photo[] }) {
+export function LodgingRoomsGrid({ photos, compact = false }: { photos: Photo[]; compact?: boolean }) {
   const groups = groupRoomPhotos(photos)
   if (groups.length === 0) return null
 
@@ -25,7 +25,7 @@ export function LodgingRoomsGrid({ photos }: { photos: Photo[] }) {
       <h2 className="mb-7 mt-2 text-[20px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 ">
         L&apos;espace de vie
       </h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className={compact ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
         {groups.map(group => (
           <RoomGroupCard key={group.label} group={group} />
         ))}
