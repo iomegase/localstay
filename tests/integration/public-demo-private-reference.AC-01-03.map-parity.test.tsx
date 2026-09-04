@@ -11,10 +11,11 @@ const mockMapFitBounds = jest.fn()
 jest.mock('react-map-gl/mapbox', () => {
   const MockMap = React.forwardRef<
     { getMap: () => Record<string, jest.Mock> },
-    { children: React.ReactNode; onClick?: () => void }
-  >(({ children, onClick }, ref) => {
-    React.useImperativeHandle(ref, () => ({
-      getMap: () => ({
+    { children: React.ReactNode; onClick?: () => void; onLoad?: () => void }
+  >(({ children, onClick, onLoad }, ref) => {
+    const loadedRef = React.useRef(false)
+    const map = React.useMemo(
+      () => ({
         addLayer: jest.fn(),
         easeTo: jest.fn(),
         fitBounds: mockMapFitBounds,
@@ -23,7 +24,18 @@ jest.mock('react-map-gl/mapbox', () => {
         getStyle: jest.fn(() => ({ layers: [] })),
         getZoom: jest.fn(() => 12),
       }),
+      [],
+    )
+    React.useImperativeHandle(ref, () => ({
+      getMap: () => (loadedRef.current ? map : null),
     }))
+    React.useEffect(() => {
+      const timer = window.setTimeout(() => {
+        loadedRef.current = true
+        onLoad?.()
+      }, 0)
+      return () => window.clearTimeout(timer)
+    }, [onLoad])
     return (
       <div data-testid="mapbox-map" onClick={onClick}>
         {children}
@@ -89,6 +101,7 @@ describe('public demo map private-guide parity', () => {
         lodging={demoLodging}
         pois={demoPois}
         selectedPoi={null}
+        focusSelectedRoute={false}
         selectedCategorySlug={null}
         onFilter={onFilter}
         onSelectPoi={jest.fn()}
@@ -117,6 +130,7 @@ describe('public demo map private-guide parity', () => {
         lodging={demoLodging}
         pois={demoPois}
         selectedPoi={selectedPoi}
+        focusSelectedRoute
         selectedCategorySlug={null}
         onFilter={jest.fn()}
         onSelectPoi={jest.fn()}
@@ -140,12 +154,19 @@ describe('public demo map private-guide parity', () => {
     const longitudes = framedPoints.map(([longitude]) => longitude)
     const latitudes = framedPoints.map(([, latitude]) => latitude)
 
-    expect(mockMapFitBounds).toHaveBeenCalledWith(
-      [
-        [Math.min(...longitudes), Math.min(...latitudes)],
-        [Math.max(...longitudes), Math.max(...latitudes)],
-      ],
-      expect.objectContaining({ duration: 0 }),
+    await waitFor(() => {
+      expect(mockMapFitBounds).toHaveBeenCalledWith(
+        [
+          [Math.min(...longitudes), Math.min(...latitudes)],
+          [Math.max(...longitudes), Math.max(...latitudes)],
+        ],
+        expect.objectContaining({ duration: 0 }),
+      )
+    })
+    expect(screen.getByTestId('guide-map')).toHaveAttribute(
+      'data-route-focused',
+      'true',
     )
+    expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
   })
 })

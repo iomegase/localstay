@@ -33,6 +33,7 @@ type DemoMapViewProps = {
   lodging: DemoLodging
   pois: readonly DemoPoi[]
   selectedPoi: DemoPoi | null
+  focusSelectedRoute: boolean
   selectedCategorySlug: string | null
   onFilter: (categorySlug: string | null) => void
   onSelectPoi: (poi: DemoPoi) => void
@@ -44,6 +45,7 @@ export function DemoMapView({
   lodging,
   pois,
   selectedPoi,
+  focusSelectedRoute,
   selectedCategorySlug,
   onFilter,
   onSelectPoi,
@@ -54,6 +56,7 @@ export function DemoMapView({
   const previewRef = useRef<HTMLElement>(null)
   const markerRefs = useRef(new globalThis.Map<DemoPoi['id'], HTMLButtonElement>())
   const [peeked, setPeeked] = useState(false)
+  const [mapReady, setMapReady] = useState(false)
   const hideTimer = useRef(0)
 
   const categories = useMemo(
@@ -114,10 +117,14 @@ export function DemoMapView({
 
   useEffect(() => {
     if (typeof window !== 'undefined') window.clearTimeout(hideTimer.current)
-    if (!selectedPoi || !routeCoords) return
+    if (!selectedPoi) return
 
-    previewRef.current?.focus()
-    scheduleHide()
+    if (!focusSelectedRoute) {
+      previewRef.current?.focus()
+      scheduleHide()
+    }
+
+    if (!mapReady || !routeCoords) return
 
     const framedPoints: LngLat[] = [
       ...routeCoords,
@@ -142,16 +149,18 @@ export function DemoMapView({
         [maxLongitude, maxLatitude],
       ],
       {
-        padding: { top: 140, bottom: 224, left: 44, right: 44 },
+        padding: focusSelectedRoute
+          ? { top: 104, bottom: 104, left: 28, right: 28 }
+          : { top: 140, bottom: 224, left: 44, right: 44 },
         duration: 0,
-        maxZoom: 16,
+        maxZoom: focusSelectedRoute ? 17 : 16,
       },
     )
 
     return () => {
       if (typeof window !== 'undefined') window.clearTimeout(hideTimer.current)
     }
-  }, [selectedPoi, routeCoords, lodging.latitude, lodging.longitude])
+  }, [focusSelectedRoute, lodging.latitude, lodging.longitude, mapReady, routeCoords, selectedPoi])
 
   const categoryReady = useRef(false)
   useEffect(() => {
@@ -161,7 +170,7 @@ export function DemoMapView({
     }
 
     const map = mapRef.current?.getMap?.()
-    if (!map?.fitBounds) return
+    if (!map?.fitBounds || focusSelectedRoute) return
     const list = selectedCategorySlug
       ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
       : pois
@@ -190,7 +199,7 @@ export function DemoMapView({
         maxZoom: 15,
       },
     )
-  }, [selectedCategorySlug, pois, lodging.latitude, lodging.longitude])
+  }, [focusSelectedRoute, selectedCategorySlug, pois, lodging.latitude, lodging.longitude])
 
   const routeFeature =
     routeCoords
@@ -211,7 +220,9 @@ export function DemoMapView({
 
   function handleMapLoad() {
     const map = mapRef.current?.getMap?.()
-    if (!map || map.getLayer('3d-buildings')) return
+    if (!map) return
+    setMapReady(true)
+    if (map.getLayer('3d-buildings')) return
     const labelLayerId = map
       .getStyle()
       ?.layers?.find(
@@ -262,6 +273,7 @@ export function DemoMapView({
       className="relative h-full min-h-[460px] w-full overflow-hidden bg-slate-100"
       data-testid="guide-map"
       data-selected-poi-id={selectedPoi?.id ?? ''}
+      data-route-focused={focusSelectedRoute ? 'true' : 'false'}
     >
       <h1
         data-demo-view-heading="true"
@@ -396,7 +408,7 @@ export function DemoMapView({
       </div>
 
       <AnimatePresence>
-        {selectedPoi ? (
+        {selectedPoi && !focusSelectedRoute ? (
           <motion.article
             ref={previewRef}
             data-testid="demo-map-preview"

@@ -424,7 +424,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     ).toBeInTheDocument()
   })
 
-  it('opens the selected static-map preview from the POI detail action', () => {
+  it('opens and frames the complete route from the POI detail map action', () => {
     openFavorites()
     fireEvent.click(
       screen.getByRole('button', { name: 'Ouvrir Rond de Carotte' }),
@@ -434,9 +434,12 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByRole('heading', { name: 'Carte des coups de cœur' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Ouvrir la fiche Rond de Carotte' }),
-    ).toBeInTheDocument()
+    expect(screen.getByTestId('mapbox-source')).toBeInTheDocument()
+    expect(screen.getByTestId('guide-map')).toHaveAttribute(
+      'data-route-focused',
+      'true',
+    )
+    expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
     expect(window.location.pathname).toBe('/concept')
   })
 
@@ -446,6 +449,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
         lodging={demoLodging}
         pois={[]}
         selectedPoi={null}
+        focusSelectedRoute={false}
         selectedCategorySlug={null}
         onFilter={jest.fn()}
         onDeselectPoi={jest.fn()}
