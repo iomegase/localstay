@@ -611,10 +611,9 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     )
     expect(screen.getByRole('button', { name: 'Tous les articles' })).toBeInTheDocument()
     const blogArticleCover = screen.getByTestId('demo-blog-article-cover')
-    expect(blogArticleCover).toHaveClass('min-h-[430px]')
+    expect(blogArticleCover).toHaveClass('h-[430px]')
     expect(within(blogArticleCover).getByRole('img')).toHaveClass(
-      'object-contain',
-      'object-top',
+      'object-cover',
     )
     expect(screen.getByText('Dans cet article')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Sommaire de l’article' })).toBeInTheDocument()

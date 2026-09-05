@@ -52,11 +52,9 @@ type DemoContactViewProps = {
 
 function DemoContentImage({
   alt,
-  fit = 'cover',
   src,
 }: {
   alt: string
-  fit?: 'contain' | 'cover'
   src: string
 }) {
   const fallback = '/marketing/demo-lodging-1.webp'
@@ -73,7 +71,7 @@ function DemoContentImage({
           event.currentTarget.src = fallback
         }
       }}
-      className={`h-full w-full ${fit === 'contain' ? 'object-contain object-top' : 'object-cover'}`}
+      className="h-full w-full object-cover"
     />
   )
 }
@@ -442,13 +440,9 @@ export function DemoBlogDetailView({ post, onBack }: DemoBlogDetailViewProps) {
 
       <div
         data-testid="demo-blog-article-cover"
-        className="relative mx-4 min-h-[430px] overflow-hidden rounded-[26px] bg-slate-100 shadow-[0_16px_44px_rgba(15,23,42,0.14)]"
+        className="relative mx-4 h-[430px] overflow-hidden rounded-[26px] bg-slate-100 shadow-[0_16px_44px_rgba(15,23,42,0.14)]"
       >
-        <DemoContentImage
-          alt={`Illustration de ${post.title}`}
-          fit="contain"
-          src={post.coverUrl}
-        />
+        <DemoContentImage alt={`Illustration de ${post.title}`} src={post.coverUrl} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         <button
           type="button"
