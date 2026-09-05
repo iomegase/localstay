@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MarketingFooter } from '@/features/marketing/components/MarketingFooter'
 import { MarketingHeader } from '@/features/marketing/components/MarketingHeader'
 
@@ -17,6 +17,29 @@ describe('031-public-marketing-site navigation', () => {
       'href',
       '/confier-mon-logement',
     )
+  })
+
+  it('opens the mobile navigation as a branded editorial panel', () => {
+    render(<MarketingHeader />)
+
+    expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toHaveTextContent(
+      'Journal',
+    )
+    expect(screen.queryByRole('link', { name: 'Blog' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
+
+    const mobileNavigation = screen.getByRole('navigation', { name: 'Navigation mobile' })
+    expect(within(mobileNavigation).getAllByRole('link').map(link => link.textContent)).toEqual([
+      'Nos services',
+      'Nos logements',
+      'Séminaires',
+      'Notre approche',
+      'Journal',
+      'Confier mon logement',
+    ])
+    expect(within(mobileNavigation).getByText('Guide démo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
   })
 
   it('exposes the editorial routes and contact details in the footer', () => {

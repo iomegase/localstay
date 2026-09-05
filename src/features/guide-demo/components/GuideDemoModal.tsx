@@ -30,14 +30,14 @@ export function GuideDemoModal({
       <Dialog.Portal>
         <Dialog.Overlay asChild>
           <motion.div
-            className="fixed inset-0 z-[100] bg-slate-950/30 backdrop-blur-lg data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
+            className="fixed inset-0 z-[140] bg-slate-950/30 backdrop-blur-lg data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
           />
         </Dialog.Overlay>
-        <div className="pointer-events-none fixed inset-0 z-[101] flex items-center justify-center p-3">
+        <div className="pointer-events-none fixed inset-0 z-[141] flex items-center justify-center p-3">
           <Dialog.Content asChild>
             <motion.div
               role="dialog"

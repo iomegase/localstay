@@ -10,7 +10,13 @@ const GuideDemoModal = dynamic(
   { ssr: false },
 )
 
-export function GuideDemoPhoneButton({ className }: { className?: string }) {
+export function GuideDemoPhoneButton({
+  className,
+  label,
+}: {
+  className?: string
+  label?: string
+}) {
   const publishedContent = useDemoPublishedContent()
   const [isLoaded, setIsLoaded] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -49,6 +55,7 @@ export function GuideDemoPhoneButton({ className }: { className?: string }) {
           className="h-[18px] w-[18px] xl:h-[17px] xl:w-[17px]"
           strokeWidth={1.8}
         />
+        {label ? <span>{label}</span> : null}
       </button>
       {isLoaded ? (
         <GuideDemoModal

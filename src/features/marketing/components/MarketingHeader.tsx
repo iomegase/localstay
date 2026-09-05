@@ -1,16 +1,10 @@
 import Link from 'next/link'
-import { Menu, UserRound } from 'lucide-react'
+import { UserRound } from 'lucide-react'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemoPhoneButton'
+import { MarketingMobileMenu } from './MarketingMobileMenu'
+import { marketingNavigation } from './marketing-navigation'
 import { marketingContainerClass } from './marketing-styles'
-
-const navigation = [
-  { href: '/', label: 'Nos services' },
-  { href: '/logements', label: 'Nos logements' },
-  { href: '/seminaires', label: 'Séminaires' },
-  { href: '/concept', label: 'Notre approche' },
-  { href: '/blog', label: 'Blog' },
-] as const
 
 export function MarketingBrand({ light = false }: { light?: boolean }) {
   return (
@@ -38,7 +32,7 @@ export function MarketingHeader() {
           aria-label="Navigation principale"
           className="ml-auto hidden items-center gap-1 text-[12px] font-semibold lg:flex xl:gap-1.5"
         >
-          {navigation.map(item => (
+          {marketingNavigation.map(item => (
             <Link
               key={item.href}
               href={item.href}
@@ -71,41 +65,7 @@ export function MarketingHeader() {
           Confier mon logement
         </Link>
 
-        <details className="group relative ml-auto lg:hidden">
-          <summary
-            aria-label="Ouvrir le menu"
-            className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full border border-slate-200 bg-white [&::-webkit-details-marker]:hidden"
-          > 
-            <Menu aria-hidden="true" className="h-5 w-5" />
-          </summary>
-          <nav
-            aria-label="Navigation mobile"
-            className="absolute right-0 top-12 grid min-w-[235px] gap-1 rounded-2xl border border-slate-100 bg-white p-3 text-sm font-semibold shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
-          >
-            {navigation.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-xl px-3 py-2.5 hover:bg-pink-50 hover:text-pink-600"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <Link
-              href="/auth/login"
-              className="flex items-center gap-2 rounded-xl px-3 py-2.5 hover:bg-pink-50 hover:text-pink-600"
-            >
-              <UserRound aria-hidden="true" className="h-4 w-4" />
-              Se connecter
-            </Link>
-            <Link
-              href="/confier-mon-logement"
-              className="mt-1 rounded-xl bg-slate-800 px-3 py-3 text-center text-white"
-            >
-              Confier mon logement
-            </Link>
-          </nav>
-        </details>
+        <MarketingMobileMenu />
       </div>
     </header>
   )
