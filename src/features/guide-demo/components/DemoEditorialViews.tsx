@@ -5,10 +5,13 @@ import {
   BedDouble,
   MapPin,
   Scan,
+  Share2,
   ShowerHead,
   SlidersHorizontal,
   Users,
 } from 'lucide-react'
+import { BlogMarkdown } from '@/features/blog/components/BlogMarkdown'
+import { estimateBlogReadingMinutes } from '@/features/blog/lib/reading-time'
 import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
 import { LodgingFeatureSections } from '@/features/lodging-showcase/components/LodgingFeatureSections'
 import { LodgingMarketingGallery } from '@/features/lodging-showcase/components/LodgingMarketingGallery'
@@ -305,24 +308,60 @@ export function DemoLodgingDetailView({
 }
 
 export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
+  const categories = [...new Set(posts.map(post => post.categoryLabel))]
+
   return (
-    <section className="min-h-full bg-white px-4 pb-32 pt-6">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-pink-600">
-        Le journal MyStay
-      </p>
-      <h1
-        data-demo-view-heading="true"
-        tabIndex={-1}
-        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
-      >
-        Blog
-      </h1>
+    <section className="min-h-full bg-white pb-32 font-sans text-slate-800">
+      <header className="px-4 pb-16 pt-16">
+        <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+          <span aria-hidden="true" className="h-0.5 w-5 shrink-0 bg-pink-600" />
+          Blog &amp; Guides
+        </div>
+        <h1
+          data-demo-view-heading="true"
+          tabIndex={-1}
+          className="mt-8 text-[38px] font-bold leading-[1.04] tracking-[-0.055em] text-slate-900"
+        >
+          Inspirations... et conseils pour vos séjours
+        </h1>
+        <p className="mt-7 text-[15px] leading-8 text-slate-500">
+          Sélectionnez une catégorie ou parcourez nos articles pour optimiser vos séjours et votre expérience.
+        </p>
+        <nav
+          aria-label="Fil d’Ariane du blog"
+          className="mt-8 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500"
+        >
+          <span>Accueil</span>
+          <span aria-hidden="true">/</span>
+          <span>Blog</span>
+        </nav>
+      </header>
+
+      <div className="px-4">
+        <div
+          role="group"
+          aria-label="Catégories du blog"
+          className="no-scrollbar flex gap-2.5 overflow-x-auto pb-2"
+        >
+          <span className="inline-flex shrink-0 items-center rounded-full bg-slate-800 px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-white">
+            Toutes
+          </span>
+          {categories.map(category => (
+            <span
+              key={category}
+              className="inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+            >
+              {category}
+            </span>
+          ))}
+        </div>
+
       {posts.length === 0 ? (
-        <p className="mt-8 rounded-3xl bg-slate-50 p-5 text-sm text-slate-600">
+        <p className="mt-10 rounded-3xl bg-slate-50 p-5 text-sm text-slate-600">
           Aucun article public n’est disponible pour le moment.
         </p>
       ) : (
-        <div className="mt-6 grid gap-4">
+        <div className="mt-10 grid gap-7">
           {posts.map(post => (
             <button
               key={post.id}
@@ -330,57 +369,117 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
               data-testid="demo-blog-card"
               aria-label={`Lire ${post.title}`}
               onClick={() => onOpenPost(post)}
-              className="overflow-hidden rounded-[24px] border border-slate-100 text-left shadow-[0_6px_22px_rgba(15,23,42,0.08)]"
+              className="group overflow-hidden rounded-[24px] bg-white text-left shadow-[0_18px_48px_rgba(15,23,42,0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
             >
-              <span className="block aspect-[16/9] overflow-hidden bg-slate-100">
+              <span data-testid="demo-blog-card-image" className="relative block aspect-[4/3] overflow-hidden bg-slate-100">
                 <DemoContentImage alt={`Illustration de ${post.title}`} src={post.coverUrl} />
+                <span className="absolute left-4 top-4 flex max-w-[calc(100%-2rem)] items-center gap-1 rounded-full bg-slate-950/55 px-3 py-1.5 text-[8px] font-semibold uppercase tracking-wider text-white backdrop-blur">
+                  <MapPin className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{post.cityName}</span>
+                </span>
               </span>
-              <span className="block p-4">
-                <span className="block text-xs font-semibold uppercase tracking-wide text-pink-600">
-                  {post.categoryLabel} · {post.cityName}
+              <span className="block p-6">
+                <span className="block text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600">
+                  {post.categoryLabel}
                 </span>
-                <span className="mt-1 block text-xl font-semibold tracking-[-0.03em] text-slate-900">{post.title}</span>
-                <span className="mt-2 block text-sm leading-6 text-slate-600">{post.excerpt}</span>
-                <span className="mt-4 inline-block rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">
-                  Lire {post.title}
-                </span>
+                <span className="mt-3 block text-xl font-bold leading-tight tracking-[-0.035em] text-slate-800">{post.title}</span>
+                <span className="mt-4 line-clamp-3 block text-xs leading-6 text-slate-500">{post.excerpt}</span>
               </span>
             </button>
           ))}
         </div>
       )}
+      </div>
     </section>
   )
 }
 
 export function DemoBlogDetailView({ post, onBack }: DemoBlogDetailViewProps) {
-  const blocks = post.contentMarkdown.split(/\n{2,}/).filter(Boolean)
+  const publishedDate = new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(post.publishedAt))
+  const readingMinutes = estimateBlogReadingMinutes(post.contentMarkdown)
 
   return (
-    <article className="min-h-full bg-white px-4 pb-32 pt-4">
-      <button type="button" onClick={onBack} className="inline-flex items-center gap-2 rounded-full px-2 py-2 text-sm font-semibold text-slate-700">
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Retour au blog
-      </button>
-      <div className="mt-2 aspect-[16/9] overflow-hidden rounded-[28px] bg-slate-100">
-        <DemoContentImage alt={`Illustration de ${post.title}`} src={post.coverUrl} />
-      </div>
-      <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-pink-600">{post.categoryLabel} · {post.cityName}</p>
-      <h1
-        data-demo-view-heading="true"
-        tabIndex={-1}
-        className="mt-2 text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-slate-900"
+    <article className="min-h-full overflow-hidden bg-[#fffafb] pb-32 font-sans text-slate-800">
+      <header className="px-4 pb-8 pt-9">
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-12 inline-flex items-center gap-2 text-[11px] font-bold text-slate-500 transition-colors hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" strokeWidth={1.8} />
+          Tous les articles
+        </button>
+        <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+          <span aria-hidden="true" className="h-0.5 w-5 shrink-0 bg-pink-600" />
+          {post.categoryLabel}
+        </div>
+        <h1
+          data-demo-view-heading="true"
+          tabIndex={-1}
+          className="mt-7 text-[38px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-900"
+        >
+          {post.title}
+        </h1>
+        <p className="mt-6 text-[15px] leading-[1.72] text-slate-500">{post.excerpt}</p>
+        <div className="mt-8 flex flex-wrap gap-[22px] text-[9px] font-extrabold uppercase tracking-[0.1em] text-slate-400">
+          <time dateTime={post.publishedAt}>{publishedDate}</time>
+          <span>{readingMinutes} min de lecture</span>
+        </div>
+      </header>
+
+      <div
+        data-testid="demo-blog-article-cover"
+        className="relative mx-4 min-h-[430px] overflow-hidden rounded-[26px] bg-slate-100 shadow-[0_16px_44px_rgba(15,23,42,0.14)]"
       >
-        {post.title}
-      </h1>
-      <div className="mt-6 space-y-4 text-sm leading-7 text-slate-700">
-        {blocks.map(block =>
-          block.startsWith('## ') ? (
-            <h2 key={block} className="text-xl font-semibold text-slate-900">{block.slice(3)}</h2>
-          ) : (
-            <p key={block}>{block}</p>
-          ),
-        )}
+        <DemoContentImage alt={`Illustration de ${post.title}`} src={post.coverUrl} />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+        <button
+          type="button"
+          disabled
+          aria-label="Partager l’article"
+          className="absolute right-4 top-4 grid h-11 w-11 cursor-default place-items-center rounded-full bg-white/55 text-slate-600 backdrop-blur"
+        >
+          <Share2 className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <span className="absolute bottom-[22px] left-6 right-6 text-[8px] font-extrabold uppercase tracking-[0.14em] text-white/80">
+          Journal MyStay · {post.categoryLabel}
+        </span>
+      </div>
+
+      <div className="px-4 pt-16">
+        <aside className="rounded-[22px] bg-[#f7f6f4] p-6">
+          <span className="text-[9px] font-extrabold uppercase tracking-[0.15em] text-pink-600">
+            Dans cet article
+          </span>
+          <nav aria-label="Sommaire de l’article" className="mt-[22px] grid border-t border-slate-200">
+            <span className="border-b border-slate-200 py-3.5 text-[11px] font-semibold text-slate-500">Introduction</span>
+            <span className="border-b border-slate-200 py-3.5 text-[11px] font-semibold text-slate-500">Lire l’article</span>
+          </nav>
+          <dl className="mt-6 grid grid-cols-2 gap-[18px]">
+            <div className="grid gap-1">
+              <dt className="text-[7px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Publié le</dt>
+              <dd className="m-0 text-[9px] font-bold leading-[1.4] text-slate-800">{publishedDate}</dd>
+            </div>
+            <div className="grid gap-1">
+              <dt className="text-[7px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Lecture</dt>
+              <dd className="m-0 text-[9px] font-bold leading-[1.4] text-slate-800">{readingMinutes} min</dd>
+            </div>
+          </dl>
+        </aside>
+
+        <section className="pt-16">
+          <p className="mb-12 text-xl font-medium leading-[1.45] tracking-[-0.035em] text-slate-900">
+            {post.excerpt}
+          </p>
+          <div className="[&_a]:text-pink-600 [&_h2]:mb-6 [&_h2]:mt-12 [&_h2]:text-[28px] [&_h2]:font-bold [&_h2]:leading-[1.13] [&_h2]:tracking-[-0.045em] [&_h3]:font-bold [&_p]:leading-[1.85]">
+            <BlogMarkdown source={post.contentMarkdown} />
+          </div>
+        </section>
       </div>
     </article>
   )

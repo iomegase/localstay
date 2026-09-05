@@ -581,8 +581,16 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
-    const blogHeading = screen.getByRole('heading', { name: 'Blog' })
+    const blogHeading = screen.getByRole('heading', {
+      name: 'Inspirations... et conseils pour vos séjours',
+    })
     await waitFor(() => expect(blogHeading).toHaveFocus())
+    expect(screen.getByText('Blog & Guides')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Fil d’Ariane du blog' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Catégories du blog' })).toBeInTheDocument()
+    const firstBlogCard = screen.getAllByTestId('demo-blog-card')[0]
+    expect(firstBlogCard.querySelector('[data-testid="demo-blog-card-image"]')).toHaveClass('aspect-[4/3]')
+    expect(firstBlogCard).toHaveClass('rounded-[24px]')
     fireEvent.click(
       screen.getByRole('button', {
         name: 'Lire Un week-end de démonstration à Saint-Gervais',
@@ -595,9 +603,21 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
         }),
       ).toHaveFocus(),
     )
-    expect(screen.getByText('Une journée au village')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Retour au blog' }))
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Blog' })).toHaveFocus())
+    expect(screen.getByRole('button', { name: 'Tous les articles' })).toBeInTheDocument()
+    expect(screen.getByTestId('demo-blog-article-cover')).toHaveClass('min-h-[430px]')
+    expect(screen.getByText('Dans cet article')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Sommaire de l’article' })).toBeInTheDocument()
+    expect(screen.getByText('Publié le')).toBeInTheDocument()
+    expect(screen.getByText('Lecture')).toBeInTheDocument()
+    expect(screen.getByText(/Commencez par le centre/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tous les articles' }))
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', {
+          name: 'Inspirations... et conseils pour vos séjours',
+        }),
+      ).toHaveFocus(),
+    )
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Nous contacter' }))
@@ -680,7 +700,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     rerender(
       <DemoBlogView posts={demoGuideData.blogPosts} onOpenPost={jest.fn()} />,
     )
-    assertSansSerifHeading('Blog')
+    assertSansSerifHeading('Inspirations... et conseils pour vos séjours')
 
     rerender(
       <DemoBlogDetailView

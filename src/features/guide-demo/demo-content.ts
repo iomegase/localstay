@@ -81,6 +81,7 @@ const demoBlogPosts = [
     categoryLabel: 'Inspiration locale',
     coverUrl: APPROVED_DEMO_LODGING_MEDIA[2],
     cityName: 'Saint-Gervais-les-Bains',
+    publishedAt: '2026-08-31T00:00:00.000Z',
     contentMarkdown:
       '## Une journée au village\n\nCommencez par le centre, puis choisissez une adresse publique parmi les recommandations de la démonstration.\n\n## Prendre le temps\n\nCe contenu est fictif et illustre la lecture d’un article local dans MyStay.',
   },
@@ -93,6 +94,7 @@ const demoBlogPosts = [
     categoryLabel: 'Conseils voyage',
     coverUrl: APPROVED_DEMO_LODGING_MEDIA[1],
     cityName: 'Saint-Gervais-les-Bains',
+    publishedAt: '2026-08-28T00:00:00.000Z',
     contentMarkdown:
       '## Avant de partir\n\nConsultez la météo et adaptez votre équipement à la saison.\n\n## Sur place\n\nPrivilégiez les informations publiques et les sentiers balisés. Cet article de démonstration ne remplace pas les consignes locales.',
   },

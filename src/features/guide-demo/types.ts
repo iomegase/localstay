@@ -163,6 +163,7 @@ export type DemoBlogPost = {
   coverUrl: string
   cityName: string
   contentMarkdown: string
+  publishedAt: string
 }
 
 export type DemoContact = {

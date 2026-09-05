@@ -97,6 +97,7 @@ async function loadPublishedBlogPosts(): Promise<DemoBlogPost[]> {
         coverUrl: article.cover?.url ?? LODGING_FALLBACK_IMAGE,
         cityName: article.city?.name ?? 'MyStay',
         contentMarkdown: article.content_markdown,
+        publishedAt: article.published_at.toISOString(),
       }]
     })
   } catch {
