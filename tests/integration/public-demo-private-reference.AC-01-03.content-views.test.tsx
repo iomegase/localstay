@@ -589,7 +589,13 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(screen.getByRole('navigation', { name: 'Fil d’Ariane du blog' })).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Catégories du blog' })).toBeInTheDocument()
     const firstBlogCard = screen.getAllByTestId('demo-blog-card')[0]
-    expect(firstBlogCard.querySelector('[data-testid="demo-blog-card-image"]')).toHaveClass('aspect-[4/3]')
+    const firstBlogCardImage = firstBlogCard.querySelector(
+      '[data-testid="demo-blog-card-image"]',
+    )
+    expect(firstBlogCardImage).toHaveClass('aspect-[4/3]')
+    expect(within(firstBlogCardImage as HTMLElement).getByRole('img')).toHaveClass(
+      'object-cover',
+    )
     expect(firstBlogCard).toHaveClass('rounded-[24px]')
     fireEvent.click(
       screen.getByRole('button', {
