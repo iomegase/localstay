@@ -73,7 +73,7 @@ function DemoContentImage({
           event.currentTarget.src = fallback
         }
       }}
-      className={`h-full w-full ${fit === 'contain' ? 'object-contain object-top' : 'object-cover'}`}
+      className={`h-full w-full ${fit === 'cover' ? 'object-contain object-top' : 'object-cover'}`}
     />
   )
 }
