@@ -235,10 +235,15 @@ describe('041 AC-05-06 sitemap data contract', () => {
       select: {
         slug: true,
         updated_at: true,
+        city: { select: { slug: true } },
       },
     })
     expect(result.lodgings).toEqual([
-      { slug: 'chalet-hygge', updated_at: lodgingUpdatedAt },
+      {
+        slug: 'chalet-hygge',
+        updated_at: lodgingUpdatedAt,
+        city_slug: 'saint-gervais-les-bains',
+      },
     ])
     expect(mockBlogFindMany).toHaveBeenCalledWith({
       where: {

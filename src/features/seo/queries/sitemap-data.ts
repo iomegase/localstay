@@ -74,6 +74,7 @@ export async function getSitemapData(): Promise<{ cities: SitemapCity[]; pois: S
       select: {
         slug: true,
         updated_at: true,
+        city: { select: { slug: true } },
       },
     }),
     prisma.blogArticle.findMany({
@@ -111,6 +112,7 @@ export async function getSitemapData(): Promise<{ cities: SitemapCity[]; pois: S
     lodgings: lodgings.map(lodging => ({
       slug: lodging.slug,
       updated_at: lodging.updated_at,
+      city_slug: lodging.city.slug,
     })),
     blogArticles: blogArticles.map(article => ({
       slug: article.slug,

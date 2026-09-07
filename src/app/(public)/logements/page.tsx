@@ -7,6 +7,7 @@ import {
   marketingContainerClass,
 } from '@/features/marketing/components/MarketingShell'
 import { lodgingListMetadata } from '@/features/seo/lib/metadata'
+import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
 
 export const metadata: Metadata = lodgingListMetadata()
 
@@ -41,6 +42,10 @@ export default async function LodgingsPage() {
           </div>
         )}
       </section>
+
+      <div className="bg-slate-50">
+        <LocalDestinationLinks intent="vacation-rental" />
+      </div>
     </MarketingShell>
   )
 }
