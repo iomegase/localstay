@@ -23,6 +23,8 @@ export type MarketingLodgingCard = PublicLodgingCardApi & {
   city_name: string
   bathroom_count: number | null
   surface_m2: number | null
+  external_booking_url: string | null
+  external_booking_platform: string | null
 }
 
 export type PublicLodgingDetailQueryResult = PublicLodgingCardApi & {
@@ -178,6 +180,8 @@ export async function listPublishedLodgings({
       bathroom_count: true,
       surface_m2: true,
       public_area_label: true,
+      external_booking_url: true,
+      external_booking_platform: true,
       city: { select: { slug: true, name: true } },
       photos: listPhotoArgs,
       amenities: amenityArgs,
@@ -189,8 +193,50 @@ export async function listPublishedLodgings({
     city_name: row.city.name,
     bathroom_count: row.bathroom_count,
     surface_m2: row.surface_m2,
+    external_booking_url: row.external_booking_url,
+    external_booking_platform: row.external_booking_platform,
   }))
 }
+
+export const listPublishedMarketingLodgingsForCity: (
+  citySlug: string,
+) => Promise<MarketingLodgingCard[]> = cache(async citySlug => {
+  const rows = await prisma.lodgingPublicProfile.findMany({
+    where: {
+      publication_status: 'published',
+      deleted_at: null,
+      city: { slug: citySlug, is_active: true, deleted_at: null },
+      lodging: { is_active: true, deleted_at: null },
+    },
+    orderBy: [{ is_featured: 'desc' }, { published_at: 'desc' }, { created_at: 'desc' }],
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      short_description: true,
+      property_type: true,
+      max_guests: true,
+      bedroom_count: true,
+      bathroom_count: true,
+      surface_m2: true,
+      public_area_label: true,
+      external_booking_url: true,
+      external_booking_platform: true,
+      city: { select: { slug: true, name: true } },
+      photos: listPhotoArgs,
+      amenities: amenityArgs,
+    },
+  })
+
+  return rows.map(row => ({
+    ...toCardApi(row),
+    city_name: row.city.name,
+    bathroom_count: row.bathroom_count,
+    surface_m2: row.surface_m2,
+    external_booking_url: row.external_booking_url,
+    external_booking_platform: row.external_booking_platform,
+  }))
+})
 
 export async function listPublishedLodgingsForCity(
   citySlug: string,

@@ -5,6 +5,7 @@ import {
   marketingContainerClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
+import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
 
 export const metadata: Metadata = {
   title: 'Confier mon logement',
@@ -123,6 +124,8 @@ export default function OwnerContactPage() {
           </div>
         </div>
       </section>
+
+      <LocalDestinationLinks intent="concierge" />
 
       <section className="bg-slate-800 py-10 text-white">
         <div className={`${marketingContainerClass} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>

@@ -11,6 +11,7 @@ export type SitemapPoi = {
 export type SitemapLodging = {
   slug: string
   updated_at: Date
+  city_slug?: string
 }
 export type SitemapBlogArticle = {
   slug: string

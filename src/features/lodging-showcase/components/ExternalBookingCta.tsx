@@ -4,14 +4,15 @@ export function ExternalBookingCta(props: {
   citySlug?: string | null
   lodgingId?: string | null
   className?: string
+  label?: string
 }) {
   if (!props.externalBookingUrl) return null
 
-  const label = props.platform === 'airbnb'
+  const label = props.label ?? (props.platform === 'airbnb'
     ? 'Reserver sur Airbnb'
     : props.platform === 'booking'
       ? 'Reserver sur Booking'
-      : 'Ouvrir la reservation'
+      : 'Ouvrir la reservation')
 
   return (
     <a

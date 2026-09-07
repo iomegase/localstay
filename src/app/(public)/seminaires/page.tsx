@@ -18,6 +18,7 @@ import {
   marketingContainerClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
+import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
 
 export const metadata: Metadata = {
   title: 'Séminaire d’entreprise en Haute-Savoie | MyStay',
@@ -918,6 +919,10 @@ export default function SeminarsPage() {
             </div>
           </div>
         </section>
+
+        <div className="bg-slate-50">
+          <LocalDestinationLinks intent="seminar" />
+        </div>
 
         {/* =====================================================
             CTA FINAL
