@@ -1,35 +1,22 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { LocateFixed } from 'lucide-react'
-
-type GpsStatus = 'inactive' | 'active' | 'denied'
+import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 
 const CYCLE = ['#22c55e', '#f97316', '#ef4444', '#f97316', '#22c55e']
 
 export function GuideGpsCard() {
-  const [status, setStatus] = useState<GpsStatus>('inactive')
-  const active = status === 'active'
-
-  function activate() {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setStatus('denied')
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      () => setStatus('active'),
-      () => setStatus('denied'),
-      { enableHighAccuracy: true, timeout: 8000 },
-    )
-  }
+  const { location, status, requestLocation } = useUserLocation()
+  const active = status === 'ready' && location !== null
 
   return (
     <button
       type="button"
-      onClick={activate}
+      onClick={requestLocation}
+      disabled={status === 'loading'}
       aria-label="Activer mon GPS"
-      className="flex w-full items-center justify-between gap-3 rounded-[22px] bg-slate-900 px-5 py-4 text-left text-white"
+      className="flex w-full items-center justify-between gap-3 rounded-[22px] bg-slate-900 px-5 py-4 text-left text-white disabled:cursor-wait"
     >
       <span className="flex items-center gap-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-600">
@@ -38,9 +25,7 @@ export function GuideGpsCard() {
         <span>
           <span className="block text-sm font-semibold">Activer mon GPS</span>
           <span className="mt-0.5 block text-[10px] text-white/60">
-            {active
-              ? 'GPS activé — localisation en cours.'
-              : 'Activez votre GPS pour profiter pleinement de l’application.'}
+            {gpsStatusLabel(status, active)}
           </span>
         </span>
       </span>
@@ -75,4 +60,15 @@ export function GuideGpsCard() {
       </span>
     </button>
   )
+}
+
+function gpsStatusLabel(
+  status: ReturnType<typeof useUserLocation>['status'],
+  active: boolean,
+): string {
+  if (active) return 'GPS activé — localisation en cours.'
+  if (status === 'loading') return 'Recherche de votre position…'
+  if (status === 'denied') return 'Accès GPS refusé. Autorisez la position dans votre navigateur.'
+  if (status === 'unavailable') return 'GPS indisponible sur cet appareil.'
+  return 'Activez votre GPS pour profiter pleinement de l’application.'
 }

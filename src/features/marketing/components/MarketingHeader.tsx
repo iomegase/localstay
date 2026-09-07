@@ -30,13 +30,13 @@ export function MarketingHeader() {
 
         <nav
           aria-label="Navigation principale"
-          className="ml-auto hidden items-center gap-1 text-[12px] font-semibold lg:flex xl:gap-1.5"
+          className="ml-auto hidden shrink-0 items-center gap-1 text-[12px] font-semibold lg:flex xl:gap-1.5"
         >
           {marketingNavigation.map(item => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full px-3 py-2.5 transition-colors hover:bg-pink-50 hover:text-pink-600 xl:px-[9px] xl:py-2"
+              className="whitespace-nowrap rounded-full px-3 py-2.5 transition-colors hover:bg-pink-50 hover:text-pink-600 xl:px-[9px] xl:py-2"
             >
               {item.label}
             </Link>

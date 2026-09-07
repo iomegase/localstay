@@ -42,6 +42,18 @@ describe('031-public-marketing-site navigation', () => {
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
   })
 
+  it('keeps every desktop navigation label on one line', () => {
+    render(<MarketingHeader />)
+
+    const desktopNavigation = screen.getByRole('navigation', {
+      name: 'Navigation principale',
+    })
+
+    within(desktopNavigation).getAllByRole('link').forEach(link => {
+      expect(link).toHaveClass('whitespace-nowrap')
+    })
+  })
+
   it('exposes the editorial routes and contact details in the footer', () => {
     render(<MarketingFooter />)
 
