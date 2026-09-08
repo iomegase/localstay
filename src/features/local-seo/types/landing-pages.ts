@@ -40,3 +40,50 @@ export type LocalLandingPageInput = {
 }
 
 export type LandingPageInput = LocalLandingPageInput
+
+export type EligibleLandingCityDto = {
+  id: string
+  name: string
+  slug: string
+}
+
+export type LandingContentIssue = {
+  intent: LocalLandingIntent
+  field: string
+  message: string
+}
+
+export type LandingPublicationDto = {
+  concierge: boolean
+  seminar: boolean
+  vacationRental: boolean
+}
+
+export type AdminLandingDestinationDto = {
+  id: string
+  city: EligibleLandingCityDto
+  is_active: boolean
+  pages: LocalLandingPageInput[]
+  publication: LandingPublicationDto
+  contentIssues: LandingContentIssue[]
+  publicLodgingCount: number
+  reviewCount: number
+  reviews: import('./landing-reviews').LandingReviewDto[]
+  created_at: string
+  updated_at: string
+}
+
+export type PublicLocalLandingDto = {
+  id: string
+  city: EligibleLandingCityDto
+  page: LocalLandingPageInput
+  publication: LandingPublicationDto
+  publicLodgingCount: number
+}
+
+export type PublishedLocalLandingSummaryDto = {
+  id: string
+  city: EligibleLandingCityDto
+  publication: LandingPublicationDto
+  publicLodgingCount: number
+}

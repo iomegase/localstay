@@ -1,11 +1,8 @@
 import { z } from 'zod'
-import { getLocalSeoDestination } from '../content/destinations'
 import { LANDING_REVIEW_SOURCES } from '../types/landing-reviews'
 
-const destinationSlugSchema = z.string().refine(
-  slug => Boolean(getLocalSeoDestination(slug)),
-  'Destination inconnue',
-)
+const destinationSlugSchema = z.string().trim().min(1).max(200)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug de destination invalide')
 
 export const LandingReviewInputSchema = z.object({
   destination_slug: destinationSlugSchema,
