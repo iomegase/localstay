@@ -2,6 +2,7 @@
 
 import { render, screen } from '@testing-library/react'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
+import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
 
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgings: jest.fn().mockResolvedValue([
@@ -27,13 +28,19 @@ jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   ]),
 }))
 
+jest.mock('@/features/local-seo/queries/landing-reviews', () => ({
+  listPublicLandingReviews: jest.fn().mockResolvedValue([]),
+}))
+
 import ConciergeCityPage from '@/app/(public)/conciergerie/[city-slug]/page'
 
 const mockedListPublishedLodgings = jest.mocked(listPublishedLodgings)
+const mockedListPublicLandingReviews = jest.mocked(listPublicLandingReviews)
 
 describe('046 AC-06 mutualized concierge conversion landing', () => {
   beforeEach(() => {
     mockedListPublishedLodgings.mockClear()
+    mockedListPublicLandingReviews.mockClear()
   })
 
   it.each([
@@ -78,5 +85,6 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     expect(container.innerHTML).not.toContain('aggregateRating')
     expect(container.innerHTML).not.toContain('font-serif')
     expect(mockedListPublishedLodgings).toHaveBeenLastCalledWith({ limit: 3 })
+    expect(mockedListPublicLandingReviews).toHaveBeenLastCalledWith(slug)
   })
 })

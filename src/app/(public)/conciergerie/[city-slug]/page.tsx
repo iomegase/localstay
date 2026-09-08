@@ -6,7 +6,7 @@ import {
 } from '@/features/local-seo/content/destinations'
 import { LocalConciergeLanding } from '@/features/local-seo/components/LocalConciergeLanding'
 import { getLocalConciergeLandingContent } from '@/features/local-seo/content/concierge-landings'
-import { getGuestReviewsForDestination } from '@/features/local-seo/content/guest-reviews'
+import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
 import { localSeoPath } from '@/features/local-seo/lib/paths'
@@ -58,9 +58,11 @@ export default async function ConciergeCityPage({ params }: PageProps) {
     path,
     serviceType: 'Gestion et conciergerie de locations saisonnières',
   })
-  const lodgings = await listPublishedLodgings({ limit: 3 })
+  const [lodgings, reviews] = await Promise.all([
+    listPublishedLodgings({ limit: 3 }),
+    listPublicLandingReviews(destination.slug),
+  ])
   const content = getLocalConciergeLandingContent(destination)
-  const reviews = getGuestReviewsForDestination(destination.slug)
 
   return (
     <>

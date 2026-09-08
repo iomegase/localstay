@@ -12,10 +12,15 @@ export function GuestReviews({ reviews }: { reviews: GuestReview[] }) {
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {visibleReviews.map(review => (
           <figure key={review.id} className="rounded-[24px] bg-[#f8f7f5] p-6">
+            {review.rating ? (
+              <div aria-label={`${review.rating} étoiles sur 5`} className="mb-4 text-sm tracking-[0.18em] text-pink-600">
+                {'★'.repeat(review.rating)}
+              </div>
+            ) : null}
             <blockquote className="text-[13px] text-justify leading-7 text-slate-600">« {review.quote} »</blockquote>
             <figcaption className="mt-5 text-xs font-bold text-slate-900">
               {review.author}{review.stayDate ? ` · ${review.stayDate}` : ''}
-              {review.source === 'airbnb' && <span className="mt-1 block font-normal text-slate-500">Avis voyageur reçu via Airbnb</span>}
+              {review.source === 'AIRBNB' && <span className="mt-1 block font-normal text-slate-500">Avis voyageur reçu via Airbnb</span>}
             </figcaption>
           </figure>
         ))}

@@ -98,6 +98,29 @@ enum PoiAuditActorType {
   SYSTEM
 }
 
+enum LocalLandingReviewSource {
+  AIRBNB
+  DIRECT
+}
+
+model LocalLandingReview {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  destination_slug String
+  author           String
+  quote            String
+  stay_date        String?
+  source           LocalLandingReviewSource
+  rating           Int?
+  sort_order       Int                      @default(0)
+  is_active        Boolean                  @default(true)
+
+  @@index([destination_slug, deleted_at, is_active, sort_order, created_at])
+}
+
 model PointOfInterest {
   id         String    @id @default(uuid())
   created_at DateTime  @default(now())
