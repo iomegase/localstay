@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:generate": "prisma generate",
+    "db:backfill:local-landings": "tsx prisma/backfill-local-landing-destinations.ts",
     "storage:setup": "tsx scripts/setup-storage-buckets.ts",
     "audit:lodging-slugs": "tsx scripts/audit-lodging-slugs.ts",
     "audit:seo-content": "tsx scripts/audit-seo-content.ts"

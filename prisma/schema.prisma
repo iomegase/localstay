@@ -43,6 +43,7 @@ model City {
   analytics_city_daily_snapshots  AnalyticsCityDailySnapshot[]
   analytics_perf_daily_snapshots  AnalyticsPerfDailySnapshot[]
   analytics_interaction_events    AnalyticsInteractionEvent[]
+  local_landing_destination       LocalLandingDestination?
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -103,6 +104,60 @@ enum LocalLandingReviewSource {
   DIRECT
 }
 
+// Spec 048 — Admin Local Landing Management
+enum LocalLandingIntent {
+  CONCIERGE
+  SEMINAR
+  VACATION_RENTAL
+}
+
+model LocalLandingDestination {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  city_id   String  @unique
+  is_active Boolean @default(false)
+
+  city    City                 @relation(fields: [city_id], references: [id])
+  pages   LocalLandingPage[]
+  reviews LocalLandingReview[]
+}
+
+model LocalLandingPage {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  destination_id   String
+  intent           LocalLandingIntent
+  seo_title        String
+  meta_description String
+  eyebrow          String
+  h1               String
+  hero_title       String
+  hero_copy        String
+  reassurance      String?
+  section_title    String
+  section_copy     String
+  process_title    String?
+  local_title      String
+  local_copy       String
+  cta_label        String
+  cta_href         String
+  empty_copy       String?
+  highlights       Json
+  steps            Json
+  faq              Json
+
+  destination LocalLandingDestination @relation(fields: [destination_id], references: [id])
+
+  @@unique([destination_id, intent])
+  @@index([destination_id, deleted_at])
+}
+
 model LocalLandingReview {
   id         String    @id @default(uuid())
   created_at DateTime  @default(now())
@@ -117,6 +172,10 @@ model LocalLandingReview {
   rating           Int?
   sort_order       Int                      @default(0)
   is_active        Boolean                  @default(true)
+
+  // Nullable only during the expand/backfill stage. See prisma/local-landing-migration.md.
+  destination_id String?
+  destination    LocalLandingDestination? @relation(fields: [destination_id], references: [id])
 
   @@index([destination_slug, deleted_at, is_active, sort_order, created_at])
 }
