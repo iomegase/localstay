@@ -100,6 +100,12 @@ Suggestion éditoriale produite par Gemini depuis un brief Admin et des faits v�
 ### Local Landing Review (Avis de landing locale)
 Témoignage voyageur saisi par un Admin et rattaché au slug canonique d'une destination du catalogue SEO local. Il est publié immédiatement sur la landing conciergerie correspondante tant qu'il est actif et non soft-deleted.
 
+### Local Landing Destination (Destination de landings locales)
+Configuration SEO persistée rattachée à une City existante. Elle pilote globalement l'activation et l'archivage des trois intentions locales : conciergerie, séminaires et locations de vacances.
+
+### Local Landing Page (Landing page locale)
+Contenu SEO et éditorial d'une intention locale pour une Local Landing Destination. Une destination possède exactement une page Conciergerie, une page Séminaires et une page Locations de vacances.
+
 ### Owner (Hébergeur)
 Propriétaire ou gestionnaire d'un ou plusieurs Lodgings. Accède au dashboard hébergeur (MVP 2+).
 
