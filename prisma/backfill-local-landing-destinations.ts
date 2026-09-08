@@ -152,7 +152,7 @@ export async function backfillLocalLandingDestinations(client: BackfillClient) {
         attachedReviews += result.count
       }
     }
-    return { destinations: sources.length, pages: sources.length * 3, attachedReviews }
+    return { processedDestinations: sources.length, processedPages: sources.length * 3, attachedReviews }
   }, { maxWait: 10_000, timeout: 60_000 })
 }
 

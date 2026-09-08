@@ -19,16 +19,29 @@ contains only the enum, tables, indexes and optional review foreign key.
 
 1. Confirm the target database/environment and arrange a maintenance window for
    review writes. Keep the existing public readers until the stages below pass.
-2. Apply the additive migration using the normal Prisma deployment workflow.
-3. Run `npm run db:backfill:local-landings` against that confirmed environment.
+   Use the nullable expand-stage revision introduced by commit `eb0391e`, plus
+   its reviewed follow-up fixes. In that revision's `prisma/schema.prisma`,
+   `LocalLandingReview.destination_id` is `String?` and its `destination`
+   relation is `LocalLandingDestination?`. Do not use a revision that has
+   already made either field required for this backfill stage.
+2. Apply the additive migration from that nullable-stage revision with
+   `npx prisma migrate deploy` against the confirmed environment.
+3. Run `npm run db:generate` on the same nullable-stage revision before the
+   backfill. `prisma migrate deploy` applies database migrations but does not
+   generate Prisma Client; the backfill needs a client generated from that
+   revision's nullable `prisma/schema.prisma`, including the new destination
+   and page models and the optional review relation.
+4. Run `npm run db:backfill:local-landings` against that confirmed environment.
    It requires all four existing, non-deleted City rows. Missing Cities or an
    unlinked review with an unknown destination slug fail before writes. All
    destination/page creation and review links are one Prisma transaction.
-4. Rerun the command and confirm `attachedReviews: 0`. Through Prisma, check that
+5. Rerun the command and confirm `attachedReviews: 0`. The output reports
+   `processedDestinations: 4` and `processedPages: 12` on both runs; these count
+   processed sources, not newly created rows. Through Prisma, check that
    `localLandingReview.count({ where: { destination_id: null } })` is zero and
    each imported destination has exactly the three expected intentions. Keep
    review writes paused through required-relation enforcement.
-5. Save the nullable schema as a temporary before snapshot, then change only
+6. Save the nullable schema as a temporary before snapshot, then change only
    `LocalLandingReview.destination_id` to `String` and its `destination` relation
    to `LocalLandingDestination` in `prisma/schema.prisma`. Remove the staging
    comment. Generate the follow-up migration with the same offline Prisma
@@ -42,7 +55,7 @@ The enforcement migration is intentionally not included in the automatic
 migration chain yet: Prisma deploy would otherwise apply it before the
 TypeScript backfill can run, failing for every database containing old reviews.
 The backfill uses the nullable-stage client and must run before that client is
-regenerated for the required schema; it remains safe to rerun during stage 4.
+regenerated for the required schema; it remains safe to rerun during stage 5.
 
 ## Content mapping and preservation
 

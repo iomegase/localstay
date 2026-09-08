@@ -124,7 +124,9 @@ describe('048 AC-06 — offline local landing backfill', () => {
 
   it('never overwrites Admin content, publication or soft deletion when rerun', async () => {
     const db = memoryDatabase()
-    await backfillLocalLandingDestinations(db.client)
+    expect(await backfillLocalLandingDestinations(db.client)).toEqual({
+      processedDestinations: 4, processedPages: 12, attachedReviews: 4,
+    })
     const page = db.pages.get('dest-city-0:CONCIERGE')!
     page.hero_copy = 'Texte rédigé par un Admin'
     page.faq = [{ question: 'Une nouvelle question ?', answer: 'Une réponse personnelle.' }]
@@ -134,7 +136,9 @@ describe('048 AC-06 — offline local landing backfill', () => {
     destination.deleted_at = new Date('2026-09-08')
     const snapshot = () => ({ destinations: [...db.destinations.values()], pages: [...db.pages.values()], reviews: db.reviews })
     const before = structuredClone(snapshot())
-    await backfillLocalLandingDestinations(db.client)
+    expect(await backfillLocalLandingDestinations(db.client)).toEqual({
+      processedDestinations: 4, processedPages: 12, attachedReviews: 0,
+    })
     expect(snapshot()).toEqual(before)
     expect(db.tx.localLandingReview.updateMany).toHaveBeenCalledTimes(4)
   })
