@@ -46,6 +46,19 @@ describe('local landing validation', () => {
     expect(landingPageInputSchema.safeParse(page('CONCIERGE')).success).toBe(true)
   })
 
+  it('rejects empty service repeatable blocks', () => {
+    expect(landingPageInputSchema.safeParse({ ...page('CONCIERGE'), highlights: [] }).success).toBe(false)
+    expect(landingPageInputSchema.safeParse({ ...page('SEMINAR'), steps: [] }).success).toBe(false)
+    expect(landingPageInputSchema.safeParse({ ...page('CONCIERGE'), faq: [] }).success).toBe(false)
+  })
+
+  it('rejects malformed typed repeatable blocks', () => {
+    expect(landingPageInputSchema.safeParse({
+      ...page('SEMINAR'),
+      highlights: [{ title: 'Brief', copy: '' }],
+    }).success).toBe(false)
+  })
+
   it('allows an empty vacation-rental page only with empty_copy', () => {
     expect(landingPageInputSchema.safeParse(page('VACATION_RENTAL')).success).toBe(true)
     expect(landingPageInputSchema.safeParse({ ...page('VACATION_RENTAL'), empty_copy: null }).success).toBe(false)

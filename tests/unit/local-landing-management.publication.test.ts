@@ -42,6 +42,11 @@ describe('local landing publication policy', () => {
       .toEqual({ concierge: true, seminar: true, vacationRental: false })
   })
 
+  it('publishes all three surfaces when complete content has public lodging', () => {
+    expect(resolveLandingPublication({ destinationActive: true, serviceContentComplete: true, vacationContentComplete: true, publicLodgingCount: 1 }))
+      .toEqual({ concierge: true, seminar: true, vacationRental: true })
+  })
+
   it('publishes no surface while the destination is off', () => {
     expect(resolveLandingPublication({ destinationActive: false, serviceContentComplete: true, vacationContentComplete: true, publicLodgingCount: 2 }))
       .toEqual({ concierge: false, seminar: false, vacationRental: false })
