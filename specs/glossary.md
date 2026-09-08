@@ -97,6 +97,9 @@ Image associée à un Blog Article. Une photo de couverture est obligatoire avan
 ### Blog Generation Draft (Brouillon blog généré)
 Suggestion éditoriale produite par Gemini depuis un brief Admin et des faits vérifiés. Elle doit être relue, acceptée et publiée manuellement par un Admin.
 
+### Local Landing Review (Avis de landing locale)
+Témoignage voyageur saisi par un Admin et rattaché au slug canonique d'une destination du catalogue SEO local. Il est publié immédiatement sur la landing conciergerie correspondante tant qu'il est actif et non soft-deleted.
+
 ### Owner (Hébergeur)
 Propriétaire ou gestionnaire d'un ou plusieurs Lodgings. Accède au dashboard hébergeur (MVP 2+).
 
