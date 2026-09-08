@@ -42,12 +42,10 @@ describe('031-public-marketing-site editorial routes', () => {
     expect(screen.getByTestId('seminar-process')).toHaveTextContent('Quatre étapes, aucun flou')
   })
 
-  it('keeps the owner contact form as a mailto flow without server persistence', () => {
+  it('uses the persistent owner contact flow without mailto', () => {
     render(<OwnerContactPage />)
-    expect(screen.getByRole('form')).toHaveAttribute(
-      'action',
-      'mailto:bonjour@mystay.city?subject=Demande%20propri%C3%A9taire%20MyStay',
-    )
+    expect(screen.getByRole('form')).not.toHaveAttribute('action')
+    expect(screen.getByRole('button', { name: 'Envoyer ma demande' })).toBeInTheDocument()
   })
 
   it('redirects the mockup connexion alias to the existing Supabase login', () => {

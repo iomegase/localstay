@@ -165,8 +165,9 @@ routes privées, l'authentification et les API existantes restent inchangées.
 - **AC-04-02**: Given `/connexion`, When la route est ouverte, Then elle redirige
   vers `/auth/login`.
 - **AC-04-03**: Given `/confier-mon-logement`, When le formulaire est envoyé,
-  Then le comportement `mailto:bonjour@mystay.city` de la maquette est conservé
-  et aucune nouvelle donnée personnelle n'est persistée par MyStay.
+  Then il utilise `/api/public/contact-messages`, valide les champs côté client
+  et serveur, persiste la demande de conciergerie et affiche un état accessible
+  sans ouvrir le logiciel de messagerie du visiteur.
 
 ### US-05 — Essayer publiquement le guide MyStay
 

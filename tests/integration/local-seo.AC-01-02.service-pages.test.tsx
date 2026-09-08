@@ -8,6 +8,10 @@ jest.mock('next/navigation', () => ({
   }),
 }))
 
+jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
+  listPublishedLodgings: jest.fn().mockResolvedValue([]),
+}))
+
 import ConciergeCityPage, {
   generateMetadata as generateConciergeMetadata,
 } from '@/app/(public)/conciergerie/[city-slug]/page'

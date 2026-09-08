@@ -4,7 +4,10 @@ import {
   getLocalSeoDestination,
   listPublishedServiceDestinations,
 } from '@/features/local-seo/content/destinations'
-import { LocalServiceLanding } from '@/features/local-seo/components/LocalServiceLanding'
+import { LocalConciergeLanding } from '@/features/local-seo/components/LocalConciergeLanding'
+import { getLocalConciergeLandingContent } from '@/features/local-seo/content/concierge-landings'
+import { getGuestReviewsForDestination } from '@/features/local-seo/content/guest-reviews'
+import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
 import { localSeoPath } from '@/features/local-seo/lib/paths'
 import { localServiceSchema } from '@/features/local-seo/lib/structured-data'
@@ -53,12 +56,21 @@ export default async function ConciergeCityPage({ params }: PageProps) {
     description: destination.services.concierge.metaDescription,
     cityName: destination.name,
     path,
+    serviceType: 'Gestion et conciergerie de locations saisonnières',
   })
+  const lodgings = await listPublishedLodgings({ limit: 3 })
+  const content = getLocalConciergeLandingContent(destination)
+  const reviews = getGuestReviewsForDestination(destination.slug)
 
   return (
     <>
       <JsonLd data={[breadcrumb, service]} />
-      <LocalServiceLanding destination={destination} intent="concierge" />
+      <LocalConciergeLanding
+        destination={destination}
+        content={content}
+        lodgings={lodgings}
+        reviews={reviews}
+      />
     </>
   )
 }

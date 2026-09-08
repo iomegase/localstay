@@ -29,6 +29,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const input = parsed.data
+  if (input.website) {
+    return NextResponse.json({ status: 'received' }, { status: 201 })
+  }
   const lodgingId = input.lodging_id ?? null
   const lodging = lodgingId ? await getLodging(lodgingId) : null
 

@@ -10,6 +10,7 @@ export const publicContactMessageSchema = z.object({
   sender_phone: z.string().trim().max(40).optional().nullable(),
   subject: z.string().trim().min(2).max(160),
   message: z.string().trim().min(10).max(2000),
+  website: z.string().trim().max(240).optional(),
 })
 
 export const contactMessageReplySchema = z.object({

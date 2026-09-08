@@ -94,6 +94,22 @@ describe('024 contact messages public API', () => {
     expect(mockCreateContactMessage).not.toHaveBeenCalled()
   })
 
+  it('AC-06-04: accepts an owner lead without lodging and ignores a filled honeypot', async () => {
+    const response = await POST(makeRequest({
+      lodging_id: null,
+      destination: 'concierge',
+      sender_name: 'Marie Dupont',
+      sender_email: 'marie@example.test',
+      sender_phone: '+33 6 12 34 56 78',
+      subject: 'Demande propriétaire — Chalet — Saint-Nicolas-de-Véroce',
+      message: 'Capacité : 6 voyageurs\nJe souhaite déléguer la gestion.',
+      website: 'https://spam.example',
+    }))
+
+    expect(response.status).toBe(201)
+    expect(mockCreateContactMessage).not.toHaveBeenCalled()
+  })
+
   it('BR-03: rejects owner destination without an active owner lodging', async () => {
     mockFindFirstLodging.mockResolvedValue(null)
 

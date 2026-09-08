@@ -6,6 +6,7 @@ export function localServiceSchema(input: {
   description: string
   cityName: string
   path: string
+  serviceType?: string
 }): JsonLdObject {
   return {
     '@context': 'https://schema.org',
@@ -15,5 +16,6 @@ export function localServiceSchema(input: {
     url: `${siteBaseUrl()}${input.path}`,
     provider: { '@id': organizationId() },
     areaServed: { '@type': 'Place', name: input.cityName },
+    ...(input.serviceType ? { serviceType: input.serviceType } : {}),
   }
 }

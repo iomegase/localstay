@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-07
-updated_at: 2026-09-07
+updated_at: 2026-09-08
 depends_on:
   - 028-lodging-showcase-seo
   - 031-public-marketing-site
@@ -244,6 +244,28 @@ statique approuvé.
   locale, questions fréquentes et CTA final.
 - Liens vers `/confier-mon-logement`, `/logements` et la page locations de la
   commune lorsque celle-ci est indexable.
+- Toutes les destinations conciergerie publiées utilisent une landing propriétaire
+  mutualisée : promesse de gestion concrète, au plus trois logements réellement
+  publiés, six prestations, aperçu réel du guide MyStay, expertise locale,
+  processus en quatre étapes, FAQ transactionnelle et CTA final unique.
+- Le JSX, les prestations, le processus et les CTA sont partagés. Le H1, la
+  promesse, les paragraphes, les secteurs géographiques, la FAQ et la route du
+  guide restent propres à chaque destination et proviennent du catalogue
+  éditorial statique validé.
+- La section d'avis voyageurs consomme une collection structurée séparée,
+  limitée à trois entrées et reste totalement absente lorsque cette collection
+  est vide. Aucun avis, note ou source n'est inventé et aucun markup `review` ou
+  `aggregateRating` n'est émis.
+- Le guide local est lié par `/decouvrir/[city-slug]` et le visuel du guide
+  réutilise un asset ou composant MyStay existant.
+
+### `/confier-mon-logement`
+
+- Le formulaire propriétaire utilise l'API persistante de la spec 024, avec
+  validation navigateur et serveur, état d'envoi, succès, erreur et honeypot.
+- Un envoi réussi affiche exactement : « Merci. Votre demande a bien été
+  envoyée. Nous vous recontacterons personnellement. »
+- Le formulaire ne déclenche plus de `mailto:` et ne confirme jamais un échec.
 
 ### `/seminaires/[city-slug]`
 
@@ -294,6 +316,10 @@ statique approuvé.
 | AC-04-05 | Aucun paragraphe principal dupliqué | unit |
 | AC-05-01 | Rendu 375 px sans serif et sans débordement | integration + e2e |
 | AC-05-02 | Responsive sans mise à l'échelle artificielle | integration + e2e |
+| AC-06-01 | Landing mutualisée pour chaque destination conciergerie publiée et alimentée par les logements publiés | integration |
+| AC-06-02 | Contenu local distinct, guide local réel, expertise locale, processus 4 étapes et FAQ transactionnelle | integration |
+| AC-06-03 | Avis structurés masqués à vide et absents du JSON-LD | unit + integration |
+| AC-06-04 | Formulaire propriétaire persistant, validé et protégé par honeypot | contract + integration |
 
 ---
 
@@ -306,7 +332,8 @@ statique approuvé.
 - Réservation native, prix, calendrier ou disponibilités.
 - Intégration officielle Airbnb ou Booking.
 - Scraping de plateformes tierces.
-- Nouveau formulaire persistant ou nouvelle collecte de données personnelles.
+- Nouvelle table, nouvelle collecte ou nouvelle API : le formulaire propriétaire
+  réutilise exclusivement `ContactMessage` et `/api/public/contact-messages`.
 - Migration Prisma ou nouvelle API.
 - Refonte du header, du footer, des fiches logement ou des routes privées.
 

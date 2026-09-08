@@ -213,7 +213,7 @@ export const localSeoDestinations = [
         eyebrow: 'Conciergerie locale · Village de montagne',
         h1: 'Conciergerie à Saint-Nicolas-de-Véroce',
         metaDescription:
-          'Conciergerie à Saint-Nicolas-de-Véroce : préparation du logement, accueil, ménage, linge, intendance et guide digital MyStay.',
+          'Confiez votre location saisonnière à MyStay à Saint-Nicolas-de-Véroce : voyageurs, arrivées, ménage, linge, suivi et guide personnalisé.',
         intro:
           'À Saint-Nicolas-de-Véroce, MyStay suit les locations saisonnières avec une organisation attentive aux accès, aux équipements et au rythme particulier d’un village de montagne.',
         sectionTitle: 'Une intendance adaptée à chaque adresse.',
