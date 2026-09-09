@@ -115,7 +115,9 @@ export async function backfillLocalLandingDestinations(client: BackfillClient) {
     }
 
     // Include inactive and soft-deleted reviews; their values and audit dates
-    // remain untouched. Unknown slugs block the migration before any writes.
+    // remain untouched. The expand migration initializes deleted_with_destination
+    // to false for legacy reviews; reruns must never clear a later group-deletion
+    // marker. Unknown slugs block the migration before any writes.
     const reviews = await tx.localLandingReview.findMany({
       where: { destination_id: null },
       select: { id: true, destination_slug: true, updated_at: true },

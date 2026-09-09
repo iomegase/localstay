@@ -1,15 +1,21 @@
 const mockFindMany = jest.fn()
 const mockTransaction = jest.fn()
+const mockFindReview = jest.fn()
+const mockUpdateReview = jest.fn()
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
-    localLandingReview: { findMany: (...args: unknown[]) => mockFindMany(...args) },
+    localLandingReview: {
+      findMany: (...args: unknown[]) => mockFindMany(...args),
+      findFirst: (...args: unknown[]) => mockFindReview(...args),
+      update: (...args: unknown[]) => mockUpdateReview(...args),
+    },
     $transaction: (...args: unknown[]) => mockTransaction(...args),
   },
 }))
 
 import {
-  createLandingReview, listPublicLandingReviews, restoreLandingReview, updateLandingReview,
+  archiveLandingReview, createLandingReview, listPublicLandingReviews, restoreLandingReview, updateLandingReview,
 } from '@/features/local-seo/queries/landing-reviews'
 import { landingReviewRow } from '../fixtures/local-landing-management'
 
@@ -38,7 +44,7 @@ describe('047 public landing reviews query', () => {
     await listPublicLandingReviews('saint-gervais-les-bains')
     expect(mockFindMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
-        deleted_at: null, is_active: true,
+        deleted_at: null, is_active: true, deleted_with_destination: false,
         destination: { is: {
           is_active: true, deleted_at: null,
           city: { slug: 'saint-gervais-les-bains', is_active: true, deleted_at: null },
@@ -63,7 +69,7 @@ describe('047 public landing reviews query', () => {
       where: { is_active: true, deleted_at: null, city: { slug: input.destination_slug, is_active: true, deleted_at: null } },
     }))
     expect(db.localLandingReview.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: { ...input, destination_id: 'destination-2', stay_date: null, rating: null },
+      data: { ...input, destination_id: 'destination-2', stay_date: null, rating: null, deleted_with_destination: false },
     }))
     expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' })
   })
@@ -99,10 +105,26 @@ describe('047 public landing reviews query', () => {
     await expect(restoreLandingReview('review-1')).rejects.toMatchObject({ code: 'NOT_FOUND' })
     expect(db.localLandingReview.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: {
-        id: 'review-1', deleted_at: { not: null },
+        id: 'review-1', deleted_at: { not: null }, deleted_with_destination: false,
         destination: { is: { is_active: true, deleted_at: null, city: { is_active: true, deleted_at: null } } },
       },
     }))
     expect(db.localLandingReview.update).not.toHaveBeenCalled()
+  })
+
+  it('preserves ordinary individual archive and restore without setting the group-deletion marker', async () => {
+    const review = landingReviewRow()
+    mockFindReview.mockResolvedValue({ id: review.id })
+    mockUpdateReview.mockImplementation(async ({ data }: { data: Partial<typeof review> }) => Object.assign(review, data))
+    const archived = await archiveLandingReview(review.id)
+    expect(archived.deleted_at).not.toBeNull()
+    expect(archived.is_active).toBe(false)
+    expect(archived.deleted_with_destination).toBe(false)
+    db.localLandingReview.findFirst.mockImplementation(async ({ where }: { where: { deleted_with_destination: boolean } }) => (
+      review.deleted_with_destination === where.deleted_with_destination ? review : null
+    ))
+    db.localLandingReview.update.mockImplementation(async ({ data }: { data: Partial<typeof review> }) => Object.assign(review, data))
+    const restored = await restoreLandingReview(review.id)
+    expect(restored).toMatchObject({ deleted_at: null, is_active: true, deleted_with_destination: false })
   })
 })

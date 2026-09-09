@@ -23,6 +23,7 @@ function toDto(review: {
   rating: number | null
   sort_order: number
   is_active: boolean
+  deleted_with_destination: boolean
   deleted_at: Date | null
   created_at: Date
   updated_at: Date
@@ -46,6 +47,7 @@ const reviewSelect = {
   rating: true,
   sort_order: true,
   is_active: true,
+  deleted_with_destination: true,
   deleted_at: true,
   created_at: true,
   updated_at: true,
@@ -55,6 +57,7 @@ export async function listPublicLandingReviews(destinationSlug: string): Promise
   return prisma.localLandingReview.findMany({
     where: {
       deleted_at: null,
+      deleted_with_destination: false,
       is_active: true,
       destination: { is: {
         is_active: true, deleted_at: null,
@@ -101,6 +104,7 @@ export async function createLandingReview(input: LandingReviewInput): Promise<La
       ...parsed,
       destination_id: destination.id,
       destination_slug: destination.city.slug,
+      deleted_with_destination: false,
       stay_date: parsed.stay_date || null,
       rating: parsed.rating ?? null,
     }, select: reviewSelect }))
@@ -110,7 +114,7 @@ export async function createLandingReview(input: LandingReviewInput): Promise<La
 export async function updateLandingReview(id: string, input: LandingReviewInput): Promise<LandingReviewDto> {
   const parsed = LandingReviewInputSchema.parse(input)
   return prisma.$transaction(async db => {
-    const existing = await db.localLandingReview.findFirst({ where: { id, deleted_at: null }, select: { id: true } })
+    const existing = await db.localLandingReview.findFirst({ where: { id, deleted_at: null, deleted_with_destination: false }, select: { id: true } })
     if (!existing) throw new LandingReviewError('NOT_FOUND')
     const destination = await resolveReviewDestination(db, parsed.destination_slug)
     return toDto(await db.localLandingReview.update({ where: { id }, data: {
@@ -124,7 +128,7 @@ export async function updateLandingReview(id: string, input: LandingReviewInput)
 }
 
 export async function archiveLandingReview(id: string): Promise<LandingReviewDto> {
-  const existing = await prisma.localLandingReview.findFirst({ where: { id, deleted_at: null }, select: { id: true } })
+  const existing = await prisma.localLandingReview.findFirst({ where: { id, deleted_at: null, deleted_with_destination: false }, select: { id: true } })
   if (!existing) throw new LandingReviewError('NOT_FOUND')
   return toDto(await prisma.localLandingReview.update({
     where: { id }, data: { deleted_at: new Date(), is_active: false }, select: reviewSelect,
@@ -136,6 +140,7 @@ export async function restoreLandingReview(id: string): Promise<LandingReviewDto
     const existing = await db.localLandingReview.findFirst({
       where: {
         id, deleted_at: { not: null },
+        deleted_with_destination: false,
         destination: { is: { is_active: true, deleted_at: null, city: { is_active: true, deleted_at: null } } },
       },
       select: { id: true },

@@ -164,6 +164,8 @@ model LocalLandingReview {
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 
+  deleted_with_destination Boolean @default(false)
+
   destination_slug String
   author           String
   quote            String

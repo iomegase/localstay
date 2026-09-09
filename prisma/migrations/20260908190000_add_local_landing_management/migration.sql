@@ -4,6 +4,9 @@ CREATE TYPE "LocalLandingIntent" AS ENUM ('CONCIERGE', 'SEMINAR', 'VACATION_RENT
 -- AlterTable
 ALTER TABLE "LocalLandingReview" ADD COLUMN     "destination_id" TEXT;
 
+-- AlterTable
+ALTER TABLE "LocalLandingReview" ADD COLUMN     "deleted_with_destination" BOOLEAN NOT NULL DEFAULT false;
+
 -- CreateTable
 CREATE TABLE "LocalLandingDestination" (
     "id" TEXT NOT NULL,

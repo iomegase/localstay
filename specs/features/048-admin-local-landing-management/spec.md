@@ -74,7 +74,8 @@ la spec 047, dont les avis deviennent rattachés à une configuration persistée
   sans écriture partielle.
 - **AC-02-05**: Si la seule configuration antérieure de la City est soft-deleted,
   l'ajout réinitialise cette configuration avec trois contenus vides et inactifs ;
-  les anciens avis restent soft-deleted et invisibles.
+  les anciens avis restent soft-deleted, invisibles dans l'Admin et sur le public,
+  et ne peuvent pas être restaurés. L'archivage individuel d'un avis reste restaurable.
 
 ### US-03 — Éditer les trois contenus au même endroit
 
@@ -178,6 +179,10 @@ la spec 047, dont les avis deviennent rattachés à une configuration persistée
   n'est généré par les contenus administrables.
 - **BR-17**: Toutes les mutations sont réservées au rôle Admin.
 - **BR-18**: Aucune suppression physique n'est autorisée.
+- **BR-19**: Les avis supprimés avec leur destination portent
+  `deleted_with_destination = true`. Ce marqueur persiste après réinitialisation
+  de la destination et exclut ces avis des lectures et de la restauration.
+  L'archivage individuel conserve `deleted_with_destination = false`.
 
 ## Data Model
 
@@ -237,6 +242,7 @@ model LocalLandingPage {
 
 model LocalLandingReview {
   // Champs existants conservés.
+  deleted_with_destination Boolean @default(false)
   destination_id String
   destination    LocalLandingDestination @relation(fields: [destination_id], references: [id])
 }

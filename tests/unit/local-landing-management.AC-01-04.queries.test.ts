@@ -47,7 +47,17 @@ describe('048 AC-01/02/04 repository reads', () => {
     expect(mockDestinations).toHaveBeenCalledWith(expect.objectContaining({
       where: { deleted_at: null }, include: expect.objectContaining({ pages: { where: { deleted_at: null } } }),
     }))
-    expect(mockReviews).toHaveBeenCalledWith(expect.objectContaining({ where: { destination_id: { in: ['destination-1'] } } }))
+    expect(mockReviews).toHaveBeenCalledWith(expect.objectContaining({ where: { destination_id: { in: ['destination-1'] }, deleted_with_destination: false } }))
+  })
+
+  it('excludes reviews deleted with a destination while preserving individual archives', async () => {
+    mockReviews.mockResolvedValue([
+      { ...landingReviewRow(), id: 'ordinary-archive', deleted_at: landingDate },
+      { ...landingReviewRow(), id: 'group-deleted', deleted_at: landingDate, deleted_with_destination: true },
+    ])
+    const [item] = await listAdminLandingDestinations()
+    expect(item.reviews.map(review => review.id)).toEqual(['ordinary-archive'])
+    expect(item.reviewCount).toBe(0)
   })
 
   it('reports locations unpublished when inventory is absent', async () => {

@@ -134,14 +134,14 @@ async function adminDtos(db: Database, destinations: DestinationRow[]): Promise<
   const [counts, reviews] = await Promise.all([
     publicLodgingCounts(db, destinations.map(destination => destination.city_id)),
     db.localLandingReview.findMany({
-      where: { destination_id: { in: destinations.map(destination => destination.id) } },
+      where: { destination_id: { in: destinations.map(destination => destination.id) }, deleted_with_destination: false },
       orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     }),
   ])
   return destinations.map(destination => {
     const { pages, validPages, contentIssues } = inspectPages(destination)
     const publicLodgingCount = counts.get(destination.city_id) ?? 0
-    const destinationReviews = reviews.filter(review => review.destination_id === destination.id)
+    const destinationReviews = reviews.filter(review => review.destination_id === destination.id && !review.deleted_with_destination)
     return {
       id: destination.id,
       city: cityDto(destination),
@@ -258,10 +258,17 @@ export async function createLandingDestination(cityId: string): Promise<AdminLan
         ? await db.localLandingDestination.update({ where: { id: existing.id }, data: { is_active: false, deleted_at: null } })
         : await db.localLandingDestination.create({ data: { city_id, is_active: false } })
       if (existing) {
-        // Also quarantine any unbackfilled legacy review before reusing the unique City configuration.
+        // Quarantine every review from the deleted configuration before reusing
+        // the unique City row. Previously archived reviews must be marked too,
+        // but retain their original audit timestamp.
+        const deleted_at = new Date()
         await db.localLandingReview.updateMany({
           where: { deleted_at: null, OR: [{ destination_id: destination.id }, { destination_id: null, destination_slug: city.slug }] },
-          data: { deleted_at: new Date(), is_active: false },
+          data: { deleted_at, is_active: false, deleted_with_destination: true },
+        })
+        await db.localLandingReview.updateMany({
+          where: { deleted_at: { not: null }, OR: [{ destination_id: destination.id }, { destination_id: null, destination_slug: city.slug }] },
+          data: { is_active: false, deleted_with_destination: true },
         })
       }
       await writePages(db, destination.id, LOCAL_LANDING_INTENTS.map(blankPage))
@@ -311,7 +318,7 @@ export async function deleteLandingDestination(id: string): Promise<{ id: string
     await db.localLandingPage.updateMany({ where: { destination_id: id }, data: { deleted_at } })
     await db.localLandingReview.updateMany({
       where: { OR: [{ destination_id: id }, { destination_id: null, destination_slug: destination.city.slug }] },
-      data: { deleted_at, is_active: false },
+      data: { deleted_at, is_active: false, deleted_with_destination: true },
     })
     return { id }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })

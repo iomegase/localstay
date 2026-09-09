@@ -8,6 +8,7 @@ import { ZodError } from 'zod'
 import {
   createLandingDestination, deleteLandingDestination, setLandingDestinationActive, updateLandingDestinationPages,
 } from '@/features/local-seo/queries/landing-pages'
+import { restoreLandingReview } from '@/features/local-seo/queries/landing-reviews'
 import { LOCAL_LANDING_INTENTS, type LocalLandingPageInput } from '@/features/local-seo/types/landing-pages'
 import { landingDate, landingDestinationRow, landingPageInput, landingPageRow, landingReviewRow } from '../fixtures/local-landing-management'
 
@@ -15,7 +16,7 @@ const db = {
   city: { findFirst: jest.fn(), update: jest.fn(), updateMany: jest.fn(), delete: jest.fn() },
   localLandingDestination: { findFirst: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
   localLandingPage: { upsert: jest.fn(), updateMany: jest.fn(), deleteMany: jest.fn() },
-  localLandingReview: { findMany: jest.fn(), updateMany: jest.fn(), deleteMany: jest.fn() },
+  localLandingReview: { findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn(), updateMany: jest.fn(), deleteMany: jest.fn() },
   lodgingPublicProfile: { findMany: jest.fn() },
 }
 
@@ -29,7 +30,10 @@ describe('048 AC-02–05 transactional mutations', () => {
     db.localLandingDestination.findFirst.mockImplementation(async () => destination)
     db.localLandingDestination.findUnique.mockResolvedValue(null)
     db.localLandingDestination.create.mockResolvedValue(destination)
-    db.localLandingDestination.update.mockResolvedValue(destination)
+    db.localLandingDestination.update.mockImplementation(async ({ data }: { data: { is_active?: boolean; deleted_at?: Date | null } }) => {
+      Object.assign(destination, data)
+      return destination
+    })
     db.localLandingDestination.updateMany.mockImplementation(async ({ data }: { data: { is_active?: boolean; deleted_at?: Date } }) => {
       Object.assign(destination, data)
       return { count: 1 }
@@ -94,7 +98,7 @@ describe('048 AC-02–05 transactional mutations', () => {
 
   it('reinitializes a soft-deleted unique destination and leaves old reviews archived', async () => {
     db.localLandingDestination.findUnique.mockResolvedValue({ ...destination, deleted_at: landingDate })
-    const oldReview = { ...landingReviewRow(), deleted_at: landingDate, is_active: false }
+    const oldReview = { ...landingReviewRow(), deleted_at: landingDate, is_active: false, deleted_with_destination: true }
     db.localLandingReview.findMany.mockResolvedValue([oldReview])
     const result = await createLandingDestination('city-1')
     expect(db.localLandingDestination.create).not.toHaveBeenCalled()
@@ -105,11 +109,35 @@ describe('048 AC-02–05 transactional mutations', () => {
     }))
     expect(db.localLandingReview.updateMany).toHaveBeenCalledWith({
       where: { deleted_at: null, OR: [{ destination_id: 'destination-1' }, { destination_id: null, destination_slug: 'megeve' }] },
-      data: { deleted_at: expect.any(Date), is_active: false },
+      data: { deleted_at: expect.any(Date), is_active: false, deleted_with_destination: true },
     })
     expect(result.reviewCount).toBe(0)
-    expect(result.reviews[0].deleted_at).toBe(landingDate.toISOString())
+    expect(result.reviews).toEqual([])
     expect(result.pages.map(page => page.h1)).toEqual(['', '', ''])
+  })
+
+  it('marks an individually archived legacy review as deleted with its reinitialized destination', async () => {
+    db.localLandingDestination.findUnique.mockResolvedValue({ ...destination, deleted_at: landingDate })
+    const archivedReview = { ...landingReviewRow(), deleted_at: landingDate, is_active: false }
+    db.localLandingReview.findMany.mockResolvedValue([archivedReview])
+    db.localLandingReview.updateMany.mockImplementation(async ({ where, data }: {
+      where: { deleted_at?: null | { not: null } }
+      data: Partial<typeof archivedReview>
+    }) => {
+      const matchesArchiveState = where.deleted_at === undefined
+        || (where.deleted_at === null && archivedReview.deleted_at === null)
+        || (where.deleted_at !== null && typeof where.deleted_at === 'object' && archivedReview.deleted_at !== null)
+      if (matchesArchiveState) Object.assign(archivedReview, data)
+      return { count: matchesArchiveState ? 1 : 0 }
+    })
+
+    await createLandingDestination('city-1')
+
+    expect(archivedReview).toMatchObject({
+      deleted_at: landingDate,
+      is_active: false,
+      deleted_with_destination: true,
+    })
   })
 
   it('saves all three validated drafts without publishing the destination', async () => {
@@ -181,9 +209,39 @@ describe('048 AC-02–05 transactional mutations', () => {
     expect(db.localLandingPage.updateMany).toHaveBeenCalledWith({ where: { destination_id: 'destination-1' }, data: { deleted_at: deletedAt } })
     expect(db.localLandingReview.updateMany).toHaveBeenCalledWith({
       where: { OR: [{ destination_id: 'destination-1' }, { destination_id: null, destination_slug: 'megeve' }] },
-      data: { deleted_at: deletedAt, is_active: false },
+      data: { deleted_at: deletedAt, is_active: false, deleted_with_destination: true },
     })
     expect(mockTransaction).toHaveBeenCalledTimes(1)
+  })
+
+  it('never exposes or restores a group-deleted review after re-add and reactivation', async () => {
+    const review = landingReviewRow()
+    db.localLandingReview.findMany.mockImplementation(async () => [review])
+    db.localLandingReview.updateMany.mockImplementation(async ({ where, data }: {
+      where: { deleted_at?: null }
+      data: Partial<typeof review>
+    }) => {
+      if (where.deleted_at === null && review.deleted_at !== null) return { count: 0 }
+      Object.assign(review, data)
+      return { count: 1 }
+    })
+    db.localLandingReview.findFirst.mockImplementation(async ({ where }: { where: { deleted_with_destination: boolean } }) => (
+      review.deleted_with_destination === where.deleted_with_destination ? review : null
+    ))
+    await deleteLandingDestination('destination-1')
+    expect(review.deleted_with_destination).toBe(true)
+    expect(review.deleted_at).toBeInstanceOf(Date)
+    db.localLandingDestination.findUnique.mockResolvedValue(destination)
+    const recreated = await createLandingDestination('city-1')
+    expect(recreated.reviews).toEqual([])
+    expect(recreated.reviewCount).toBe(0)
+    await updateLandingDestinationPages('destination-1', LOCAL_LANDING_INTENTS.map(landingPageInput))
+    expect((await setLandingDestinationActive('destination-1', true)).publication.concierge).toBe(true)
+    await expect(restoreLandingReview('review-1')).rejects.toMatchObject({ code: 'NOT_FOUND', status: 404 })
+    expect(db.localLandingReview.update).not.toHaveBeenCalled()
+    expect(review.deleted_with_destination).toBe(true)
+    expect(review.is_active).toBe(false)
+    expect(review.deleted_at).toBeInstanceOf(Date)
   })
 
   it('refuses a second deletion or unknown destination without writes', async () => {

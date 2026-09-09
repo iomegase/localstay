@@ -21,7 +21,7 @@ function memoryDatabase() {
     id: `review-${index}`, destination_slug: source.slug as string, destination_id: null as string | null,
     author: `Author ${index}`, quote: `Verified review ${index}`, stay_date: 'Août 2026',
     source: index % 2 ? 'DIRECT' : 'AIRBNB', rating: index % 2 ? null : 5,
-    is_active: index === 0, sort_order: index,
+    is_active: index === 0, sort_order: index, deleted_with_destination: false,
     created_at: new Date('2026-09-01'), updated_at: new Date('2026-09-02'),
     deleted_at: index === 2 ? new Date('2026-09-03') : null,
   }))
@@ -119,6 +119,7 @@ describe('048 AC-06 — offline local landing backfill', () => {
     db.reviews.forEach((review, index) => expect(review).toEqual({
       ...before[index], destination_id: `dest-city-${index}`,
     }))
+    expect(db.reviews.every(review => review.deleted_with_destination === false)).toBe(true)
     expect(db.cities).toEqual(localSeoDestinations.map((source, index) => ({ id: `city-${index}`, slug: source.slug })))
   })
 
@@ -134,6 +135,8 @@ describe('048 AC-06 — offline local landing backfill', () => {
     const destination = db.destinations.get('city-0')!
     destination.is_active = false
     destination.deleted_at = new Date('2026-09-08')
+    db.reviews[0].deleted_with_destination = true
+    db.reviews[0].deleted_at = new Date('2026-09-08')
     const snapshot = () => ({ destinations: [...db.destinations.values()], pages: [...db.pages.values()], reviews: db.reviews })
     const before = structuredClone(snapshot())
     expect(await backfillLocalLandingDestinations(db.client)).toEqual({
@@ -169,5 +172,16 @@ describe('048 AC-06 — offline local landing backfill', () => {
     const review = schema.match(/model LocalLandingReview \{([\s\S]*?)\n\}/)?.[1]
     expect(review).toMatch(/destination_id\s+String\?/)
     expect(review).toMatch(/destination\s+LocalLandingDestination\?\s+@relation/)
+    expect(review).toMatch(/deleted_with_destination\s+Boolean\s+@default\(false\)/)
+    const migration = readFileSync('prisma/migrations/20260908190000_add_local_landing_management/migration.sql', 'utf8')
+    expect(migration).toContain('"deleted_with_destination" BOOLEAN NOT NULL DEFAULT false')
+    expect(migration).not.toMatch(/\bDELETE FROM\b|\bDROP TABLE\b/)
+  })
+
+  it('documents the full branch deployment gate through required-relation enforcement', () => {
+    const instructions = readFileSync('prisma/local-landing-migration.md', 'utf8')
+    expect(instructions).toContain('not deployable until the expand migration, generated Prisma client, backfill,')
+    expect(instructions).toContain('verification and required-relation enforcement have all completed.')
+    expect(instructions).toContain('Intermediate\ncommits must not be deployed.')
   })
 })

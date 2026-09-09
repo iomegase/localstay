@@ -2,8 +2,11 @@
 
 The committed schema is the **expand stage**: review `destination_id` and its
 relation are temporarily nullable so existing reviews survive migration. The
-approved final state is a required relation. **Do not enable the new persisted
-queries until the backfill and required-relation stage have completed.**
+approved final state is a required relation. **The complete feature branch is
+not deployable until the expand migration, generated Prisma client, backfill,
+verification and required-relation enforcement have all completed.** Intermediate
+commits must not be deployed. No runtime compatibility gate substitutes for this
+deployment prerequisite.
 
 The additive SQL was generated offline with Prisma 5.22.0 from the schema before
 this change and `prisma/schema.prisma`:
@@ -13,12 +16,16 @@ npx prisma migrate diff --from-schema-datamodel <before.prisma> --to-schema-data
 ```
 
 No database was connected or changed while producing this migration. The SQL
-contains only the enum, tables, indexes and optional review foreign key.
+contains only the enum, tables, indexes, optional review foreign key and
+`deleted_with_destination` review marker. The marker addition was also generated
+offline by diffing the pre-marker and current Prisma schemas.
 
 ## Deployment order
 
 1. Confirm the target database/environment and arrange a maintenance window for
-   review writes. Keep the existing public readers until the stages below pass.
+   review writes. Keep the existing deployed application until the stages below pass;
+   use the feature checkout only for the offline/generated client and migration
+   commands, without serving its runtime queries.
    Use the nullable expand-stage revision introduced by commit `eb0391e`, plus
    its reviewed follow-up fixes. In that revision's `prisma/schema.prisma`,
    `LocalLandingReview.destination_id` is `String?` and its `destination`
@@ -49,7 +56,9 @@ contains only the enum, tables, indexes and optional review foreign key.
    generated migration sets the column to NOT NULL and replaces the optional
    foreign key with the required-relation foreign key. Review it, apply through
    Prisma, regenerate the client, then enable the persisted queries and review
-   writers which always supply the destination relation.
+   writers which always supply the destination relation. Only after every step
+   passes may the complete feature branch be deployed; do not deploy intermediate
+   commits to run the expand stage.
 
 The enforcement migration is intentionally not included in the automatic
 migration chain yet: Prisma deploy would otherwise apply it before the
@@ -78,6 +87,11 @@ regenerated for the required schema; it remains safe to rerun during stage 5.
   audit dates and soft deletion on reruns. Reviews are attached by existing
   `destination_slug` only while unlinked, including inactive/deleted reviews;
   their original `updated_at` is explicitly preserved. No City is changed.
+- The expand migration initializes `deleted_with_destination` to `false` for
+  every existing review. Individual archive/restore preserves that value. Group
+  deletion sets it to `true`; reinitializing a destination never resets it, and
+  Admin/public readers and restore queries permanently exclude those reviews.
+  Backfill reruns preserve this marker as well as the review content and dates.
 
 Keep the two source catalogue modules available until all target environments
 have completed their backfill. The integration test uses an in-memory Prisma
