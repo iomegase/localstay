@@ -80,6 +80,34 @@ describe('048 landing management admin API', () => {
     expect(mockListEligibleCities).not.toHaveBeenCalled()
   })
 
+  it('short-circuits every mutation for a denied admin session', async () => {
+    mockGetSessionAdmin.mockImplementation(() => ({
+      user: null,
+      error: Response.json({ error: { code: 'FORBIDDEN', message: 'Accès refusé', details: {} } }, { status: 403 }),
+    }))
+
+    const post = await POST(new NextRequest('http://localhost/api/admin/landing-pages', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ city_id: 'city-1' }),
+    }))
+    const update = await patchDestination(new NextRequest(`http://localhost/api/admin/landing-pages/${destinationId}`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pages: validPages }),
+    }), context())
+    const remove = await DELETE(new NextRequest(`http://localhost/api/admin/landing-pages/${destinationId}`, { method: 'DELETE' }), context())
+    const publication = await patchPublication(new NextRequest(`http://localhost/api/admin/landing-pages/${destinationId}/publication`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ is_active: true }),
+    }), context())
+
+    for (const response of [post, update, remove, publication]) {
+      expect(response.status).toBe(403)
+      expect(await response.json()).toEqual({ error: { code: 'FORBIDDEN', message: 'Accès refusé', details: {} } })
+    }
+    expect(mockCreate).not.toHaveBeenCalled()
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockDelete).not.toHaveBeenCalled()
+    expect(mockSetActive).not.toHaveBeenCalled()
+    expect(mockRevalidatePath).not.toHaveBeenCalled()
+  })
+
   it('returns the collection contract with destinations and eligible cities only', async () => {
     mockListDestinations.mockResolvedValue([validDestination])
     mockListEligibleCities.mockResolvedValue([{ id: 'city-2', name: 'Megève', slug: 'megeve' }])
@@ -178,8 +206,14 @@ describe('048 landing management admin API', () => {
   })
 
   it('preserves incomplete content details and the required French publication message', async () => {
-    const details = { CONCIERGE: ['h1'], SEMINAR: ['faq'] }
-    mockSetActive.mockRejectedValue(new LandingDestinationError('INCOMPLETE_CONTENT', 400, details))
+    const repositoryDetails = {
+      missingFields: ['CONCIERGE.h1', 'SEMINAR.faq'],
+      issues: [
+        { intent: 'CONCIERGE', field: 'h1', message: 'Required' },
+        { intent: 'SEMINAR', field: 'faq', message: 'Required' },
+      ],
+    }
+    mockSetActive.mockRejectedValue(new LandingDestinationError('INCOMPLETE_CONTENT', 400, repositoryDetails))
     const response = await patchPublication(new NextRequest(`http://localhost/api/admin/landing-pages/${destinationId}/publication`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ is_active: true }),
     }), context())
@@ -189,7 +223,7 @@ describe('048 landing management admin API', () => {
       error: {
         code: 'INCOMPLETE_CONTENT',
         message: 'Les contenus obligatoires doivent être complétés avant activation.',
-        details,
+        details: { CONCIERGE: ['h1'], SEMINAR: ['faq'] },
       },
     })
   })
