@@ -203,7 +203,7 @@ describe('048 AC-02–05 transactional mutations', () => {
   })
 
   it('deletes destination, pages and linked reviews with the same timestamp', async () => {
-    expect(await deleteLandingDestination('destination-1')).toEqual({ id: 'destination-1' })
+    expect(await deleteLandingDestination('destination-1')).toEqual({ id: 'destination-1', city_slug: 'megeve' })
     const deletedAt = db.localLandingDestination.updateMany.mock.calls[0][0].data.deleted_at
     expect(deletedAt).toBeInstanceOf(Date)
     expect(db.localLandingPage.updateMany).toHaveBeenCalledWith({ where: { destination_id: 'destination-1' }, data: { deleted_at: deletedAt } })

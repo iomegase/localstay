@@ -310,7 +310,7 @@ export async function setLandingDestinationActive(id: string, isActive: boolean)
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
 
-export async function deleteLandingDestination(id: string): Promise<{ id: string }> {
+export async function deleteLandingDestination(id: string): Promise<{ id: string; city_slug: string }> {
   return prisma.$transaction(async db => {
     const destination = await findDestination(db, id)
     const deleted_at = new Date()
@@ -320,6 +320,6 @@ export async function deleteLandingDestination(id: string): Promise<{ id: string
       where: { destination_id: id },
       data: { deleted_at, is_active: false, deleted_with_destination: true },
     })
-    return { id }
+    return { id, city_slug: destination.city.slug }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
