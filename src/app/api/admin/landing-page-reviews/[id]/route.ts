@@ -8,7 +8,14 @@ import { archiveLandingReview, LandingReviewError, updateLandingReview } from '@
 type Context = { params: Promise<{ id: string }> }
 
 function notFound(error: unknown): NextResponse {
-  if (error instanceof LandingReviewError) return apiError(error.code, 'Avis introuvable', error.status)
+  if (error instanceof LandingReviewError) {
+    if (error.code === 'VALIDATION_ERROR') {
+      return apiError('VALIDATION_ERROR', 'La destination sélectionnée est indisponible.', error.status, {
+        destination_slug: ['La destination doit être active et non supprimée.'],
+      })
+    }
+    return apiError(error.code, 'Avis introuvable', error.status)
+  }
   return apiError('INTERNAL_ERROR', 'Erreur interne', 500)
 }
 

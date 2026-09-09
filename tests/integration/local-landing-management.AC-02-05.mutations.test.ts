@@ -108,7 +108,7 @@ describe('048 AC-02–05 transactional mutations', () => {
       update: expect.objectContaining({ deleted_at: null, h1: '', cta_href: '', steps: [] }),
     }))
     expect(db.localLandingReview.updateMany).toHaveBeenCalledWith({
-      where: { deleted_at: null, OR: [{ destination_id: 'destination-1' }, { destination_id: null, destination_slug: 'megeve' }] },
+      where: { deleted_at: null, destination_id: 'destination-1' },
       data: { deleted_at: expect.any(Date), is_active: false, deleted_with_destination: true },
     })
     expect(result.reviewCount).toBe(0)
@@ -202,13 +202,13 @@ describe('048 AC-02–05 transactional mutations', () => {
     expect(db.localLandingReview.updateMany).not.toHaveBeenCalled()
   })
 
-  it('deletes destination, pages and linked or legacy reviews with the same timestamp', async () => {
+  it('deletes destination, pages and linked reviews with the same timestamp', async () => {
     expect(await deleteLandingDestination('destination-1')).toEqual({ id: 'destination-1' })
     const deletedAt = db.localLandingDestination.updateMany.mock.calls[0][0].data.deleted_at
     expect(deletedAt).toBeInstanceOf(Date)
     expect(db.localLandingPage.updateMany).toHaveBeenCalledWith({ where: { destination_id: 'destination-1' }, data: { deleted_at: deletedAt } })
     expect(db.localLandingReview.updateMany).toHaveBeenCalledWith({
-      where: { OR: [{ destination_id: 'destination-1' }, { destination_id: null, destination_slug: 'megeve' }] },
+      where: { destination_id: 'destination-1' },
       data: { deleted_at: deletedAt, is_active: false, deleted_with_destination: true },
     })
     expect(mockTransaction).toHaveBeenCalledTimes(1)

@@ -45,7 +45,7 @@ export function landingDestinationRow() {
 
 export function landingReviewRow() {
   return {
-    id: 'review-1', destination_id: 'destination-1' as string | null, destination_slug: 'megeve',
+    id: 'review-1', destination_id: 'destination-1', destination_slug: 'megeve',
     author: 'Marie', quote: 'Un séjour parfaitement accompagné par MyStay.',
     stay_date: null, source: 'DIRECT' as const, rating: 5, sort_order: 0,
     is_active: true, deleted_with_destination: false, deleted_at: null as Date | null, created_at: landingDate, updated_at: landingDate,

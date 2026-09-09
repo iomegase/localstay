@@ -1,6 +1,6 @@
 // Spec 048, AC-06-01..03. Run after the additive migration, before required-FK enforcement.
 // Importing this module never instantiates Prisma or connects to a database.
-import { PrismaClient, type Prisma } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import {
   localSeoDestinations,
   type LocalServiceContent,
@@ -92,8 +92,43 @@ export function buildLocalLandingBackfill(): BackfillDestination[] {
   })
 }
 
-type BackfillTransaction = Pick<Prisma.TransactionClient,
-  'city' | 'localLandingDestination' | 'localLandingPage' | 'localLandingReview'>
+// This script is deliberately executed from the nullable expand-stage checkout.
+// Keep its narrow client contract independent from the final branch's generated
+// required-relation Prisma types, which are used by all runtime queries.
+type BackfillTransaction = {
+  city: {
+    findMany(args: {
+      where: { slug: { in: string[] }; deleted_at: null }
+      select: { id: true; slug: true }
+    }): Promise<Array<{ id: string; slug: string }>>
+  }
+  localLandingDestination: {
+    upsert(args: {
+      where: { city_id: string }
+      update: Record<string, never>
+      create: { city_id: string; is_active: boolean }
+      select: { id: true }
+    }): Promise<{ id: string }>
+  }
+  localLandingPage: {
+    upsert(args: {
+      where: { destination_id_intent: { destination_id: string; intent: LocalLandingPageInput['intent'] } }
+      update: Record<string, never>
+      create: LocalLandingPageInput & { destination_id: string }
+      select: { id: true }
+    }): Promise<{ id: string }>
+  }
+  localLandingReview: {
+    findMany(args: {
+      where: { destination_id: null }
+      select: { id: true; destination_slug: true; updated_at: true }
+    }): Promise<Array<{ id: string; destination_slug: string; updated_at: Date }>>
+    updateMany(args: {
+      where: { id: string; destination_id: null }
+      data: { destination_id: string; updated_at: Date }
+    }): Promise<{ count: number }>
+  }
+}
 
 export type BackfillClient = {
   $transaction<T>(
@@ -160,7 +195,9 @@ export async function backfillLocalLandingDestinations(client: BackfillClient) {
 
 if (require.main === module) {
   const prisma = new PrismaClient()
-  backfillLocalLandingDestinations(prisma)
+  // The command is only valid when invoked from the nullable-stage checkout
+  // described in prisma/local-landing-migration.md.
+  backfillLocalLandingDestinations(prisma as unknown as BackfillClient)
     .then(result => console.log('Local landing backfill complete:', result))
     .catch(error => {
       console.error(error)

@@ -175,9 +175,8 @@ model LocalLandingReview {
   sort_order       Int                      @default(0)
   is_active        Boolean                  @default(true)
 
-  // Nullable only during the expand/backfill stage. See prisma/local-landing-migration.md.
-  destination_id String?
-  destination    LocalLandingDestination? @relation(fields: [destination_id], references: [id])
+  destination_id String
+  destination    LocalLandingDestination @relation(fields: [destination_id], references: [id])
 
   @@index([destination_slug, deleted_at, is_active, sort_order, created_at])
 }

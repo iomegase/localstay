@@ -1,12 +1,13 @@
 # Spec 048 — staged landing migration
 
-The committed schema is the **expand stage**: review `destination_id` and its
-relation are temporarily nullable so existing reviews survive migration. The
-approved final state is a required relation. **The complete feature branch is
-not deployable until the expand migration, generated Prisma client, backfill,
-verification and required-relation enforcement have all completed.** Intermediate
-commits must not be deployed. No runtime compatibility gate substitutes for this
-deployment prerequisite.
+The final feature branch declares a required review `destination_id` relation
+and contains no nullable-relation fallbacks in its runtime queries. Use the
+nullable **expand-stage revision** for the migration and backfill steps below;
+the final runtime revision must only run after required-relation enforcement.
+**The complete feature branch is not deployable until the expand migration,
+generated Prisma client, backfill, verification and required-relation enforcement
+have all completed.** Intermediate commits must not be deployed. No runtime
+compatibility gate substitutes for this deployment prerequisite.
 
 The additive SQL was generated offline with Prisma 5.22.0 from the schema before
 this change and `prisma/schema.prisma`:
@@ -48,23 +49,25 @@ offline by diffing the pre-marker and current Prisma schemas.
    `localLandingReview.count({ where: { destination_id: null } })` is zero and
    each imported destination has exactly the three expected intentions. Keep
    review writes paused through required-relation enforcement.
-6. Save the nullable schema as a temporary before snapshot, then change only
-   `LocalLandingReview.destination_id` to `String` and its `destination` relation
-   to `LocalLandingDestination` in `prisma/schema.prisma`. Remove the staging
-   comment. Generate the follow-up migration with the same offline Prisma
-   schema diff command, targeting a new timestamped migration directory. This
-   generated migration sets the column to NOT NULL and replaces the optional
-   foreign key with the required-relation foreign key. Review it, apply through
-   Prisma, regenerate the client, then enable the persisted queries and review
-   writers which always supply the destination relation. Only after every step
-   passes may the complete feature branch be deployed; do not deploy intermediate
-   commits to run the expand stage.
+6. Save the nullable-stage schema as a temporary before snapshot, then generate
+   the follow-up migration with the same offline Prisma schema diff command
+   against this final branch's required `LocalLandingReview.destination_id` and
+   `destination` relation, targeting a new timestamped migration directory.
+   This generated migration sets the column to NOT NULL and replaces the optional
+   foreign key with the required-relation foreign key. Review and apply it through
+   Prisma. Then switch to the final feature branch, regenerate its Prisma client,
+   typecheck it, and only then enable its persisted queries and review writers.
+   Those runtime queries intentionally use only `destination_id` because every
+   review is linked by the completed backfill. Only after every step passes may
+   the complete feature branch be deployed; do not deploy intermediate commits to
+   run the expand stage.
 
 The enforcement migration is intentionally not included in the automatic
 migration chain yet: Prisma deploy would otherwise apply it before the
 TypeScript backfill can run, failing for every database containing old reviews.
-The backfill uses the nullable-stage client and must run before that client is
-regenerated for the required schema; it remains safe to rerun during stage 5.
+The backfill uses the nullable-stage client and must run before the final branch
+client is generated for the required schema; it remains safe to rerun during
+stage 5.
 
 ## Content mapping and preservation
 

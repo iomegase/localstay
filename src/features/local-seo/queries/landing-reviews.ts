@@ -14,7 +14,7 @@ export class LandingReviewError extends Error {
 
 function toDto(review: {
   id: string
-  destination_id: string | null
+  destination_id: string
   destination_slug: string
   author: string
   quote: string

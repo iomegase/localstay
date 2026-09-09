@@ -263,11 +263,11 @@ export async function createLandingDestination(cityId: string): Promise<AdminLan
         // but retain their original audit timestamp.
         const deleted_at = new Date()
         await db.localLandingReview.updateMany({
-          where: { deleted_at: null, OR: [{ destination_id: destination.id }, { destination_id: null, destination_slug: city.slug }] },
+          where: { deleted_at: null, destination_id: destination.id },
           data: { deleted_at, is_active: false, deleted_with_destination: true },
         })
         await db.localLandingReview.updateMany({
-          where: { deleted_at: { not: null }, OR: [{ destination_id: destination.id }, { destination_id: null, destination_slug: city.slug }] },
+          where: { deleted_at: { not: null }, destination_id: destination.id },
           data: { is_active: false, deleted_with_destination: true },
         })
       }
@@ -317,7 +317,7 @@ export async function deleteLandingDestination(id: string): Promise<{ id: string
     await db.localLandingDestination.updateMany({ where: { id, deleted_at: null }, data: { deleted_at, is_active: false } })
     await db.localLandingPage.updateMany({ where: { destination_id: id }, data: { deleted_at } })
     await db.localLandingReview.updateMany({
-      where: { OR: [{ destination_id: id }, { destination_id: null, destination_slug: destination.city.slug }] },
+      where: { destination_id: id },
       data: { deleted_at, is_active: false, deleted_with_destination: true },
     })
     return { id }

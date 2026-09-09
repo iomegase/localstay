@@ -162,7 +162,7 @@ describe('048 AC-06 — offline local landing backfill', () => {
     expect(db.pages.size).toBe(0)
   })
 
-  it('has the approved uniqueness, inverse relations and staged nullable review link', () => {
+  it('has the approved uniqueness, inverse relations and final required review link', () => {
     const schema = readFileSync('prisma/schema.prisma', 'utf8')
     expect(schema).toMatch(/enum LocalLandingIntent\s*\{\s*CONCIERGE\s*SEMINAR\s*VACATION_RENTAL\s*\}/)
     expect(schema).toMatch(/city_id\s+String\s+@unique/)
@@ -170,18 +170,20 @@ describe('048 AC-06 — offline local landing backfill', () => {
     expect(schema).toContain('@@unique([destination_id, intent])')
     expect(schema).toContain('@@index([destination_id, deleted_at])')
     const review = schema.match(/model LocalLandingReview \{([\s\S]*?)\n\}/)?.[1]
-    expect(review).toMatch(/destination_id\s+String\?/)
-    expect(review).toMatch(/destination\s+LocalLandingDestination\?\s+@relation/)
+    expect(review).toMatch(/destination_id\s+String\s*\n/)
+    expect(review).toMatch(/destination\s+LocalLandingDestination\s+@relation/)
     expect(review).toMatch(/deleted_with_destination\s+Boolean\s+@default\(false\)/)
     const migration = readFileSync('prisma/migrations/20260908190000_add_local_landing_management/migration.sql', 'utf8')
+    expect(migration).toContain('ADD COLUMN     "destination_id" TEXT')
     expect(migration).toContain('"deleted_with_destination" BOOLEAN NOT NULL DEFAULT false')
     expect(migration).not.toMatch(/\bDELETE FROM\b|\bDROP TABLE\b/)
   })
 
   it('documents the full branch deployment gate through required-relation enforcement', () => {
     const instructions = readFileSync('prisma/local-landing-migration.md', 'utf8')
-    expect(instructions).toContain('not deployable until the expand migration, generated Prisma client, backfill,')
-    expect(instructions).toContain('verification and required-relation enforcement have all completed.')
-    expect(instructions).toContain('Intermediate\ncommits must not be deployed.')
+    expect(instructions).toContain('The final feature branch declares a required review `destination_id` relation')
+    expect(instructions).toContain('nullable **expand-stage revision** for the migration and backfill steps')
+    expect(instructions).toContain('Those runtime queries intentionally use only `destination_id`')
+    expect(instructions).toContain('Intermediate commits must not be deployed.')
   })
 })

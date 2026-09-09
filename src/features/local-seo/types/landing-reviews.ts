@@ -4,7 +4,7 @@ export type LandingReviewSource = (typeof LANDING_REVIEW_SOURCES)[number]
 
 export type LandingReviewDto = {
   id: string
-  destination_id: string | null
+  destination_id: string
   destination_slug: string
   author: string
   quote: string
