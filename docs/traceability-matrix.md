@@ -831,6 +831,13 @@ Les hubs et le sitemap restent à basculer dans la tâche 6 du plan 048.
 
 ## 048 — Admin Local Landing Management
 
+AC-06-02 : les six services, quatre étapes et le titre de fonctionnement de la
+conciergerie sont importés mot pour mot depuis le composant public au commit
+`40eed0f`, et non depuis les anciens blocs du catalogue. Les tests
+`local-landing-management.AC-06.backfill.test.ts` et
+`local-seo.AC-06.concierge-mutualization.test.tsx` vérifient leur écriture et leur
+rendu dans l'ordre original ; les réexécutions préservent les contenus Admin.
+
 | Spec ID | User Story | Acceptance Criterion | Description | Source File | Test File | Status |
 |---|---|---|---|---|---|---|
 | `048-admin-local-landing-management` | US-03/US-04/US-05 | AC-03-02/AC-03-04/AC-04-02/AC-04-03/AC-04-04/AC-04-05/AC-05-02 | Les trois routes publiques Server Components et leurs metadata lisent `getPublishedLocalLanding` avec l'intention exacte ; un résultat nul répond 404 sans canonical publique. Les titres SEO/descriptions restent exacts, le JSON-LD et les textes/blocs/CTA visibles viennent du DTO persisté. `generateStaticParams` lit les slugs publiés tout en conservant les paramètres dynamiques. La publication Locations reste décidée par le repository ; les fiches logement, liens Airbnb sécurisés et avis existants sont conservés. Les champs Locations distincts et blocs facultatifs reprennent les styles Tailwind existants sans répéter les textes identiques importés. | `src/app/(public)/conciergerie/[city-slug]/page.tsx`<br>`src/app/(public)/seminaires/[city-slug]/page.tsx`<br>`src/app/(public)/locations-vacances/[city-slug]/page.tsx`<br>`src/features/local-seo/components/LocalConciergeLanding.tsx`<br>`src/features/local-seo/components/LocalServiceLanding.tsx`<br>`src/features/local-seo/components/LocalVacationRentalLanding.tsx`<br>`src/features/local-seo/lib/metadata.ts`<br>`src/features/local-seo/lib/structured-data.ts` | `tests/integration/local-landing-management.public-routes.test.tsx`<br>`tests/integration/local-seo.AC-01-02.service-pages.test.tsx`<br>`tests/integration/local-seo.AC-03-01-05.vacation-page.test.tsx`<br>`tests/integration/local-seo.AC-06.concierge-mutualization.test.tsx`<br>`tests/unit/local-seo.AC-01-02-04.catalog-metadata.test.ts`<br>`tests/unit/local-seo.AC-04-02.structured-data.test.ts` | Public routes implemented; hubs/sitemap integration pending |

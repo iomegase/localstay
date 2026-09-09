@@ -3,6 +3,7 @@ import { localSeoDestinations } from '@/features/local-seo/content/destinations'
 import { getLocalConciergeLandingContent } from '@/features/local-seo/content/concierge-landings'
 import { landingPageInputSchema } from '@/features/local-seo/schemas/landing-pages'
 import { LOCAL_LANDING_INTENTS } from '@/features/local-seo/types/landing-pages'
+import { legacyConciergeServices, legacyConciergeSteps, legacyConciergeProcessTitle } from '../fixtures/legacy-concierge-blocks'
 import {
   backfillLocalLandingDestinations,
   buildLocalLandingBackfill,
@@ -82,10 +83,11 @@ describe('048 AC-06 — offline local landing backfill', () => {
         meta_description: source.services.concierge.metaDescription, eyebrow: source.services.concierge.eyebrow,
         h1: source.services.concierge.h1, hero_title: content.promise, hero_copy: content.heroCopy,
         reassurance: content.reassurance, section_title: content.ownerTitle, section_copy: content.ownerCopy,
-        process_title: source.services.concierge.processTitle,
+        process_title: legacyConciergeProcessTitle,
         local_title: content.localHeading, local_copy: content.localCopy,
         cta_label: source.services.concierge.ctaLabel, cta_href: source.services.concierge.ctaHref,
-        highlights: source.services.concierge.highlights, steps: source.services.concierge.steps, faq: content.faq,
+        highlights: legacyConciergeServices.map(([title, copy]) => ({ title, copy })),
+        steps: legacyConciergeSteps.map(([title, copy]) => ({ title, copy })), faq: content.faq,
       })
     })
   })
@@ -116,6 +118,12 @@ describe('048 AC-06 — offline local landing backfill', () => {
     await backfillLocalLandingDestinations(db.client)
     expect(db.destinations.size).toBe(4)
     expect(db.pages.size).toBe(12)
+    for (const page of db.pages.values()) {
+      if (page.intent !== 'CONCIERGE') continue
+      expect(page.highlights).toEqual(legacyConciergeServices.map(([title, copy]) => ({ title, copy })))
+      expect(page.steps).toEqual(legacyConciergeSteps.map(([title, copy]) => ({ title, copy })))
+      expect(page.process_title).toBe(legacyConciergeProcessTitle)
+    }
     db.reviews.forEach((review, index) => expect(review).toEqual({
       ...before[index], destination_id: `dest-city-${index}`,
     }))
@@ -131,6 +139,9 @@ describe('048 AC-06 — offline local landing backfill', () => {
     const page = db.pages.get('dest-city-0:CONCIERGE')!
     page.hero_copy = 'Texte rédigé par un Admin'
     page.faq = [{ question: 'Une nouvelle question ?', answer: 'Une réponse personnelle.' }]
+    page.highlights = [{ title: 'Service de l’Admin', copy: 'Un contenu personnalisé conservé.' }]
+    page.steps = [{ title: 'Étape de l’Admin', copy: 'Une organisation personnalisée conservée.' }]
+    page.process_title = 'Le fonctionnement rédigé par l’Admin'
     page.deleted_at = new Date('2026-09-08')
     const destination = db.destinations.get('city-0')!
     destination.is_active = false

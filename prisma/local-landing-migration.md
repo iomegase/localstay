@@ -32,6 +32,11 @@ offline by diffing the pre-marker and current Prisma schemas.
    `LocalLandingReview.destination_id` is `String?` and its `destination`
    relation is `LocalLandingDestination?`. Do not use a revision that has
    already made either field required for this backfill stage.
+   Carry the reviewed `prisma/backfill-local-landing-destinations.ts` from the
+   final feature branch into this nullable-stage checkout: it freezes the six
+   concierge services and four process steps actually displayed at `40eed0f`.
+   The original expand-stage script incorrectly used older catalogue blocks;
+   do not run that historical version. Keep the expand-stage schema nullable.
 2. Apply the additive migration from that nullable-stage revision with
    `npx prisma migrate deploy` against the confirmed environment.
 3. Run `npm run db:generate` on the same nullable-stage revision before the
@@ -74,8 +79,11 @@ stage 5.
 - Conciergerie maps the **currently displayed detailed content** from
   `concierge-landings.ts`: promise → `hero_title`, heroCopy → `hero_copy`,
   reassurance, ownerTitle/ownerCopy → section fields, localHeading/localCopy →
-  local fields, and its full FAQ. SEO, eyebrow, H1, CTA, highlights, process title
-  and steps come from the destination catalogue. Superseded general concierge
+  local fields, and its full FAQ. SEO, eyebrow, H1 and CTA come from the
+  destination catalogue. The six services → `highlights`, four process steps →
+  `steps`, and exact process title `Comment se passe la mise en gestion ?` are
+  frozen in the backfill from `LocalConciergeLanding.tsx` at commit `40eed0f`;
+  their titles, copy and order are preserved verbatim. Superseded general concierge
   prose remains in its original TypeScript source; it is not substituted for
   the detailed public page.
 - Séminaires maps every catalogue scalar and repeatable block. `hero_title` and
@@ -90,6 +98,9 @@ stage 5.
   audit dates and soft deletion on reruns. Reviews are attached by existing
   `destination_slug` only while unlinked, including inactive/deleted reviews;
   their original `updated_at` is explicitly preserved. No City is changed.
+  The corrected concierge source therefore applies only to pages first created
+  by this import. Rerunning it never replaces existing Admin-authored blocks,
+  including pages created by an earlier version of the script.
 - The expand migration initializes `deleted_with_destination` to `false` for
   every existing review. Individual archive/restore preserves that value. Group
   deletion sets it to `true`; reinitializing a destination never resets it, and
@@ -98,5 +109,7 @@ stage 5.
 
 Keep the two source catalogue modules available until all target environments
 have completed their backfill. The integration test uses an in-memory Prisma
-test double and verifies mapping, preservation, idempotency and preflight errors;
+test double and verifies mapping, preservation, idempotency and preflight errors.
+The public concierge test renders the imported DTO and checks all six services
+and four steps against independent verbatim fixtures from the former component;
 it does not establish PostgreSQL execution or deployment success.
