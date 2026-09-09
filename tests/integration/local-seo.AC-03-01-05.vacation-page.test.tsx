@@ -1,6 +1,10 @@
 /** @jest-environment jsdom */
 
 import { render, screen } from '@testing-library/react'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
+import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-pages'
+
+jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn() }))
 
 jest.mock('next/navigation', () => ({
   notFound: jest.fn(() => {
@@ -16,6 +20,10 @@ import VacationRentalCityPage, {
   generateMetadata,
 } from '@/app/(public)/locations-vacances/[city-slug]/page'
 import { listPublishedMarketingLodgingsForCity } from '@/features/lodging-showcase/queries/public-lodgings'
+
+const vacationLanding = publicLocalLanding('VACATION_RENTAL', {
+  id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains',
+})
 
 const airbnbLodging = {
   id: 'profile-1',
@@ -40,13 +48,19 @@ const airbnbLodging = {
 describe('046 local vacation rental pages', () => {
   beforeEach(() => {
     jest.mocked(listPublishedMarketingLodgingsForCity).mockReset()
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(vacationLanding)
   })
 
   it('renders published lodging links and a verified secure Airbnb CTA', async () => {
     jest.mocked(listPublishedMarketingLodgingsForCity).mockResolvedValue([airbnbLodging])
     const params = Promise.resolve({ 'city-slug': 'saint-gervais-les-bains' })
 
-    render(await VacationRentalCityPage({ params }))
+    const { container } = render(await VacationRentalCityPage({ params }))
+    const schemas = Array.from(container.querySelectorAll('script[type="application/ld+json"]'), script => JSON.parse(script.textContent!))
+    expect(schemas).toEqual(expect.arrayContaining([expect.objectContaining({
+      '@type': 'ItemList', name: vacationLanding.page.h1, description: vacationLanding.page.meta_description,
+      itemListElement: [expect.objectContaining({ name: airbnbLodging.title, url: expect.stringContaining(airbnbLodging.href) })],
+    })]))
 
     expect(screen.getByRole('heading', {
       level: 1,
@@ -92,22 +106,20 @@ describe('046 local vacation rental pages', () => {
     expect(screen.getByRole('link', { name: 'Découvrir Chalet Insecure' })).toBeInTheDocument()
   })
 
-  it('keeps a known empty destination useful and noindex, follow', async () => {
+  it('returns 404 for a destination without eligible inventory under spec 048', async () => {
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(null)
     jest.mocked(listPublishedMarketingLodgingsForCity).mockResolvedValue([])
     const params = Promise.resolve({ 'city-slug': 'combloux' })
 
-    render(await VacationRentalCityPage({ params }))
-    expect(screen.getByText(/Aucun logement MyStay n’est encore publié à Combloux/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Voir tous les logements' })).toHaveAttribute(
-      'href',
-      '/logements',
-    )
+    await expect(VacationRentalCityPage({ params })).rejects.toThrow('NEXT_NOT_FOUND')
+    expect(listPublishedMarketingLodgingsForCity).not.toHaveBeenCalled()
     expect(await generateMetadata({ params })).toEqual(expect.objectContaining({
-      robots: { index: false, follow: true },
+      robots: { index: false, follow: false },
     }))
   })
 
   it('rejects an unknown destination', async () => {
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(null)
     await expect(VacationRentalCityPage({
       params: Promise.resolve({ 'city-slug': 'ailleurs' }),
     })).rejects.toThrow('NEXT_NOT_FOUND')

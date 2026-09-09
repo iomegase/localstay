@@ -5,6 +5,7 @@ import {
 } from '@/features/local-seo/content/destinations'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
 import { localSeoPath } from '@/features/local-seo/lib/paths'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
 
 describe('046 local SEO destination catalogue and metadata', () => {
   it('contains exactly the four approved destinations', () => {
@@ -43,26 +44,24 @@ describe('046 local SEO destination catalogue and metadata', () => {
       '/locations-vacances/saint-gervais-les-bains',
     )
 
-    const metadata = localSeoMetadata(destination, 'concierge', true)
-    expect(metadata.title).toBe('Conciergerie à Saint-Gervais-les-Bains')
+    const landing = publicLocalLanding('CONCIERGE', { id: 'city-1', name: destination.name, slug: destination.slug })
+    const metadata = localSeoMetadata(landing, 'concierge')
+    expect(metadata.title).toBe(landing.page.seo_title)
     expect(metadata.description).toContain('Saint-Gervais-les-Bains')
     expect(metadata.alternates?.canonical).toBe('/conciergerie/saint-gervais-les-bains')
     expect(metadata.openGraph).toEqual(expect.objectContaining({
-      title: 'Conciergerie à Saint-Gervais-les-Bains | MyStay',
+      title: `${landing.page.seo_title} | MyStay`,
       url: '/conciergerie/saint-gervais-les-bains',
     }))
     expect(metadata.robots).toEqual({ index: true, follow: true })
   })
 
-  it('keeps known empty rental destinations accessible but noindex, follow', () => {
-    const destination = getLocalSeoDestination('megeve')
-    expect(destination).not.toBeNull()
-    if (!destination) return
-
-    const metadata = localSeoMetadata(destination, 'vacation-rental', false)
-    expect(metadata.title).toBe('Locations de vacances à Megève')
+  it('indexes persisted published rental destinations under spec 048', () => {
+    const landing = publicLocalLanding('VACATION_RENTAL')
+    const metadata = localSeoMetadata(landing, 'vacation-rental')
+    expect(metadata.title).toBe(landing.page.seo_title)
     expect(metadata.alternates?.canonical).toBe('/locations-vacances/megeve')
-    expect(metadata.robots).toEqual({ index: false, follow: true })
+    expect(metadata.robots).toEqual({ index: true, follow: true })
   })
 
   it('uses unique principal copy for every city and intent', () => {

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import {
-  getLocalSeoDestination,
-  listPublishedServiceDestinations,
-} from '@/features/local-seo/content/destinations'
+  getPublishedLocalLanding,
+  listPublishedLocalLandingSummaries,
+} from '@/features/local-seo/queries/landing-pages'
 import { LocalServiceLanding } from '@/features/local-seo/components/LocalServiceLanding'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
 import { localSeoPath } from '@/features/local-seo/lib/paths'
@@ -15,50 +15,42 @@ type PageProps = {
   params: Promise<{ 'city-slug': string }>
 }
 
-export function generateStaticParams() {
-  return listPublishedServiceDestinations('seminar').map(destination => ({
-    'city-slug': destination.slug,
-  }))
+export async function generateStaticParams() {
+  const destinations = await listPublishedLocalLandingSummaries()
+  return destinations.filter(destination => destination.publication.seminar)
+    .map(destination => ({ 'city-slug': destination.city.slug }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { 'city-slug': citySlug } = await params
-  const destination = getLocalSeoDestination(citySlug)
-  if (!destination || !destination.services.seminar.published) {
+  const landing = await getPublishedLocalLanding(citySlug, 'SEMINAR')
+  if (!landing) {
     return {
       title: 'Séminaire local introuvable',
       robots: { index: false, follow: false },
     }
   }
 
-  return localSeoMetadata(destination, 'seminar', true)
+  return localSeoMetadata(landing, 'seminar')
 }
 
 export default async function SeminarCityPage({ params }: PageProps) {
   const { 'city-slug': citySlug } = await params
-  const destination = getLocalSeoDestination(citySlug)
-  if (!destination || !destination.services.seminar.published) {
-    notFound()
-    return null
-  }
+  const landing = await getPublishedLocalLanding(citySlug, 'SEMINAR')
+  if (!landing) notFound()
 
-  const path = localSeoPath('seminar', destination.slug)
+  const path = localSeoPath('seminar', landing.city.slug)
   const breadcrumb = breadcrumbSchema([
     { name: 'Accueil', path: '/' },
     { name: 'Séminaires', path: '/seminaires' },
-    { name: destination.services.seminar.h1, path },
+    { name: landing.page.h1, path },
   ])
-  const service = localServiceSchema({
-    name: destination.services.seminar.h1,
-    description: destination.services.seminar.metaDescription,
-    cityName: destination.name,
-    path,
-  })
+  const service = localServiceSchema(landing, 'seminar')
 
   return (
     <>
       <JsonLd data={[breadcrumb, service]} />
-      <LocalServiceLanding destination={destination} intent="seminar" />
+      <LocalServiceLanding landing={landing} />
     </>
   )
 }

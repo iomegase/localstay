@@ -3,6 +3,10 @@
 import { render, screen } from '@testing-library/react'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
+import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-pages'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
+
+jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn() }))
 
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgings: jest.fn().mockResolvedValue([
@@ -62,6 +66,10 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     localHeading,
     guideHref,
   }) => {
+    const landing = publicLocalLanding('CONCIERGE', { id: slug, name: city, slug })
+    landing.page.local_title = localHeading
+    landing.page.process_title = 'Comment se passe la mise en gestion ?'
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const page = await ConciergeCityPage({
       params: Promise.resolve({ 'city-slug': slug }),
     })

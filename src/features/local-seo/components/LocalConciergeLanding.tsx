@@ -11,41 +11,23 @@ import {
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
-import type { LocalSeoDestination } from '../content/destinations'
-import type { LocalConciergeLandingContent } from '../content/concierge-landings'
+import type { PublicLocalLandingDto } from '../types/landing-pages'
 import type { GuestReview } from '../content/guest-reviews'
 import { GuestReviews } from './GuestReviews'
 
-const services = [
-  ['Valorisation du logement', 'Présentation du logement et informations nécessaires au séjour.'],
-  ['Gestion des voyageurs', 'Échanges avant l’arrivée, pendant le séjour et jusqu’au départ.'],
-  ['Arrivées & départs', 'Informations d’accès, préparation du logement et vérification après les séjours.'],
-  ['Ménage & linge', 'Organisation des rotations, du ménage et du linge entre les locations.'],
-  ['Suivi du logement', 'Contrôle, signalement des incidents et coordination des interventions nécessaires.'],
-  ['Guide voyageur MyStay', 'Accès, Wi-Fi, équipements, consignes et recommandations locales sur le téléphone du voyageur.'],
-] as const
-
-const steps = [
-  ['Premier échange', 'Nous découvrons le logement et les attentes du propriétaire.'],
-  ['Visite du logement', 'Nous identifions son fonctionnement, ses équipements et les particularités liées aux séjours.'],
-  ['Préparation', 'Nous organisons les informations voyageurs, les rotations et le guide MyStay.'],
-  ['Mise en gestion', 'MyStay accompagne les voyageurs et suit le logement au fil des séjours.'],
-] as const
-
 type LocalConciergeLandingProps = {
-  destination: LocalSeoDestination
-  content: LocalConciergeLandingContent
+  landing: PublicLocalLandingDto
   lodgings: MarketingLodgingCard[]
   reviews: GuestReview[]
 }
 
 export function LocalConciergeLanding({
-  destination,
-  content,
+  landing,
   lodgings,
   reviews,
 }: LocalConciergeLandingProps) {
-  const guidePath = publicDiscoveryCityPath(destination.slug)
+  const { city, page: content } = landing
+  const guidePath = publicDiscoveryCityPath(city.slug)
 
   return (
     <MarketingShell>
@@ -53,20 +35,20 @@ export function LocalConciergeLanding({
         <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
           <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:grid-cols-[1.05fr_.95fr] lg:gap-16 lg:px-14">
             <div>
-              <MarketingEyebrow>Conciergerie locale</MarketingEyebrow>
+              <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
               <h1 className="break-words text-[39px] font-bold leading-[1] tracking-[-0.055em] text-slate-900 sm:text-[56px] lg:text-[62px]">
-                {destination.services.concierge.h1}
+                {content.h1}
               </h1>
             </div>
             <div className="mt-8 lg:mt-0 lg:self-end">
               <h2 className="text-[25px] font-bold leading-tight tracking-[-0.035em] text-slate-900 sm:text-[30px]">
-                {content.promise}
+                {content.hero_title}
               </h2>
               <p className="mt-5 text-[13px] text-justify leading-7 text-slate-600">
-                {content.heroCopy}
+                {content.hero_copy}
               </p>
-              <Link className={`${marketingPrimaryButtonClass} mt-7`} href="/confier-mon-logement">
-                Confier mon logement
+              <Link className={`${marketingPrimaryButtonClass} mt-7`} href={content.cta_href}>
+                {content.cta_label}
                 <ArrowRight className="ml-3 h-4 w-4" aria-hidden="true" />
               </Link>
               <p className="mt-4 text-[10px] font-semibold text-slate-500">{content.reassurance}</p>
@@ -103,14 +85,14 @@ export function LocalConciergeLanding({
             <div>
               <MarketingEyebrow light>Pour le propriétaire</MarketingEyebrow>
               <h2 className="text-[32px] font-bold leading-tight tracking-[-0.04em] sm:text-[42px]">
-                {content.ownerTitle}
+                {content.section_title}
               </h2>
-              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-300">{content.ownerCopy}</p>
+              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-300">{content.section_copy}</p>
             </div>
             <div>
               <h2 className="text-[28px] font-bold">Nous prenons soin de votre location</h2>
               <div className="mt-7 grid gap-px overflow-hidden rounded-[24px] bg-white/10 sm:grid-cols-2">
-                {services.map(([title, copy]) => (
+                {content.highlights.map(({ title, copy }) => (
                   <article key={title} className="bg-slate-800 p-6">
                     <Check className="h-5 w-5 text-pink-400" aria-hidden="true" />
                     <h3 className="mt-4 font-bold">{title}</h3>
@@ -129,7 +111,7 @@ export function LocalConciergeLanding({
               Une conciergerie locale, prolongée par le digital
             </h2>
             <p className="mt-6 text-[13px] text-justify leading-7 text-slate-500">
-              Chaque logement dispose de son guide personnalisé. Les voyageurs retrouvent les informations d’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour de {destination.name}.
+              Chaque logement dispose de son guide personnalisé. Les voyageurs retrouvent les informations d’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour de {city.name}.
             </p>
             <ul className="mt-7 space-y-3 text-sm font-bold text-slate-800">
               <li>Moins de questions répétitives.</li>
@@ -157,20 +139,20 @@ export function LocalConciergeLanding({
               <MarketingEyebrow>Sur place</MarketingEyebrow>
               <MapPin className="mb-5 h-7 w-7 text-pink-600" aria-hidden="true" />
               <h2 className="text-[32px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[40px]">
-                {content.localHeading}
+                {content.local_title}
               </h2>
-              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-600">{content.localCopy}</p>
+              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-600">{content.local_copy}</p>
               <Link className="mt-6 inline-flex text-xs font-bold text-pink-600" href={guidePath}>
-                Découvrir {destination.name} <span aria-hidden="true">→</span>
+                Découvrir {city.name} <span aria-hidden="true">→</span>
               </Link>
             </div>
             <div>
               <MarketingEyebrow>Notre fonctionnement</MarketingEyebrow>
               <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900">
-                Comment se passe la mise en gestion ?
+                {content.process_title}
               </h2>
               <ol className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-                {steps.map(([title, copy], index) => (
+                {content.steps.map(({ title, copy }, index) => (
                   <li key={title} className="grid grid-cols-[32px_1fr] gap-4 py-5">
                     <span className="text-xs font-bold text-pink-600">0{index + 1}</span>
                     <div>
@@ -209,7 +191,7 @@ export function LocalConciergeLanding({
             <div>
               <MarketingEyebrow>Votre logement</MarketingEyebrow>
               <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[38px]">
-                Vous avez un logement à {destination.name} ?
+                {content.hero_title}
               </h2>
               <p className="mt-4 max-w-[620px] text-[13px] text-justify leading-7 text-slate-500">
                 Parlons de votre logement, de son fonctionnement et du niveau de délégation dont vous avez besoin.
@@ -220,8 +202,8 @@ export function LocalConciergeLanding({
               </div>
             </div>
             <div className="mt-8 lg:mt-0">
-              <Link className={marketingPrimaryButtonClass} href="/confier-mon-logement">
-                Confier mon logement
+              <Link className={marketingPrimaryButtonClass} href={content.cta_href}>
+                {content.cta_label}
               </Link>
               <p className="mt-3 text-center text-[10px] text-slate-500">Premier échange personnalisé</p>
             </div>
