@@ -2,6 +2,7 @@ import { prisma } from '@/shared/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { evaluateProfileCompleteness } from '../lib/completeness'
 import type { LodgingPublicationStatus } from '../types'
+import { revalidatePublicLodgingPaths } from '../lib/revalidation'
 
 export type AdminLodgingProfileRow = {
   id: string
@@ -200,6 +201,7 @@ async function getExistingProfile(profileId: string) {
       publication_status: true,
       published_at: true,
       admin_review_note: true,
+      city: { select: { slug: true } },
     },
   })
 }
@@ -222,6 +224,7 @@ export async function publishLodgingProfile(profileId: string) {
     },
   })
 
+  revalidatePublicLodgingPaths([profile.city.slug])
   return {
     ...updated,
     published_at: updated.published_at?.toISOString() ?? null,
@@ -232,7 +235,7 @@ export async function requestChangesLodgingProfile(profileId: string, adminRevie
   const profile = await getExistingProfile(profileId)
   if (!profile) return null
 
-  return prisma.lodgingPublicProfile.update({
+  const updated = await prisma.lodgingPublicProfile.update({
     where: { id: profileId },
     data: {
       publication_status: 'draft',
@@ -244,13 +247,15 @@ export async function requestChangesLodgingProfile(profileId: string, adminRevie
       admin_review_note: true,
     },
   })
+  revalidatePublicLodgingPaths([profile.city.slug])
+  return updated
 }
 
 export async function archiveLodgingProfile(profileId: string) {
   const profile = await getExistingProfile(profileId)
   if (!profile) return null
 
-  return prisma.lodgingPublicProfile.update({
+  const updated = await prisma.lodgingPublicProfile.update({
     where: { id: profileId },
     data: {
       publication_status: 'archived',
@@ -260,4 +265,6 @@ export async function archiveLodgingProfile(profileId: string) {
       publication_status: true,
     },
   })
+  revalidatePublicLodgingPaths([profile.city.slug])
+  return updated
 }

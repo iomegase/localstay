@@ -42,7 +42,7 @@ describe('048 persisted public local landings', () => {
     expect(getPublishedLocalLanding).toHaveBeenCalledWith('megeve', intent)
     expect(screen.getByRole('heading', { level: 1, name: landing.page.h1 })).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: landing.page.cta_label })[0]).toHaveAttribute('href', landing.page.cta_href)
-    for (const text of [landing.page.eyebrow, landing.page.hero_title, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
+    for (const text of [intent === 'CONCIERGE' ? 'Conciergerie locale' : landing.page.eyebrow, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
       expect(screen.getAllByText(text).length).toBeGreaterThan(0)
     }
     for (const text of [landing.page.section_title, landing.page.section_copy, landing.page.highlights[0].title,
@@ -54,16 +54,18 @@ describe('048 persisted public local landings', () => {
 
   it.each(routes)('uses exact saved metadata and canonical for $intent', async ({ module, intent, segment }) => {
     const landing = publicLocalLanding(intent)
+    landing.page.seo_title = `${landing.page.seo_title} | MyStay`
     landing.page.meta_description = 'Description persistée sans troncature. '.repeat(7)
     jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const metadata = await module.generateMetadata(props)
     expect(getPublishedLocalLanding).toHaveBeenCalledWith('megeve', intent)
     expect(metadata).toMatchObject({
-      title: landing.page.seo_title,
+      title: { absolute: landing.page.seo_title },
       description: landing.page.meta_description,
       alternates: { canonical: `/${segment}/megeve` },
       robots: { index: true, follow: true },
-      openGraph: { description: landing.page.meta_description, url: `/${segment}/megeve` },
+      openGraph: { title: landing.page.seo_title, description: landing.page.meta_description, url: `/${segment}/megeve` },
+      twitter: { title: landing.page.seo_title },
     })
     expect(listPublishedMarketingLodgingsForCity).not.toHaveBeenCalled()
   })
@@ -76,6 +78,15 @@ describe('048 persisted public local landings', () => {
     const metadata = await module.generateMetadata(props)
     expect(metadata.robots).toEqual({ index: false, follow: false })
     expect(metadata.alternates?.canonical).toBeUndefined()
+  })
+
+  it.each(routes)('does not render empty optional text elements for $intent', async ({ module, intent }) => {
+    const landing = publicLocalLanding(intent)
+    landing.page.process_title = null
+    landing.page.reassurance = null
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
+    const { container } = render(await module.default(props))
+    expect(Array.from(container.querySelectorAll('h2, p')).filter(element => !element.textContent?.trim())).toEqual([])
   })
 
   it('returns 404 when the repository withholds vacation publication without an eligible lodging', async () => {

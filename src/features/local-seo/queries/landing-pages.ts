@@ -1,4 +1,5 @@
 import { Prisma, type LocalLandingPage } from '@prisma/client'
+import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import {
   LandingDestinationInputSchema,
@@ -195,7 +196,7 @@ export async function listEligibleLandingCities(): Promise<EligibleLandingCityDt
   })
 }
 
-export async function getPublishedLocalLanding(slug: string, intent: LocalLandingIntent): Promise<PublicLocalLandingDto | null> {
+export const getPublishedLocalLanding = cache(async (slug: string, intent: LocalLandingIntent): Promise<PublicLocalLandingDto | null> => {
   const destination = await prisma.localLandingDestination.findFirst({
     where: { is_active: true, deleted_at: null, city: { slug, ...activeCity } },
     include: destinationInclude,
@@ -209,7 +210,7 @@ export async function getPublishedLocalLanding(slug: string, intent: LocalLandin
   const published = { CONCIERGE: publication.concierge, SEMINAR: publication.seminar, VACATION_RENTAL: publication.vacationRental }
   if (!page || !published[intent]) return null
   return { id: destination.id, city: cityDto(destination), page, publication, publicLodgingCount }
-}
+})
 
 export async function listPublishedLocalLandingSummaries(): Promise<PublishedLocalLandingSummaryDto[]> {
   const destinations = await prisma.localLandingDestination.findMany({

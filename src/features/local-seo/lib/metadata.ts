@@ -9,12 +9,11 @@ export function localSeoMetadata(
   intent: LocalSeoIntent,
 ): Metadata {
   const title = landing.page.seo_title
-  const brandedTitle = `${title} | MyStay`
   const description = landing.page.meta_description
   const path = localSeoPath(intent, landing.city.slug)
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: path },
     robots: { index: true, follow: true },
@@ -22,14 +21,14 @@ export function localSeoMetadata(
       type: 'website',
       locale: SITE.locale,
       siteName: SITE.name,
-      title: brandedTitle,
+      title,
       description,
       url: path,
       images: ['/og-mystay.png'],
     },
     twitter: {
       card: 'summary_large_image',
-      title: brandedTitle,
+      title,
       description,
       images: ['/og-mystay.png'],
     },

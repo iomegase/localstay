@@ -11,10 +11,14 @@ describe('042 BR-15 public lodging revalidation', () => {
     mockRevalidatePath.mockClear()
   })
 
-  it('revalidates only the short listing, detail pattern, and sitemap in order', () => {
-    revalidatePublicLodgingPaths()
+  it('revalidates affected vacation destinations and their hubs with the lodging surfaces', () => {
+    revalidatePublicLodgingPaths(['megeve', 'combloux', 'megeve'])
 
-    expect(mockRevalidatePath).toHaveBeenCalledTimes(3)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/megeve', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/combloux', 'page')
+    expect(mockRevalidatePath.mock.calls.filter(([path]) => path === '/locations-vacances/megeve')).toHaveLength(1)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/confier-mon-logement', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/seminaires', 'page')
     expect(mockRevalidatePath).toHaveBeenNthCalledWith(1, '/logements', 'page')
     expect(mockRevalidatePath).toHaveBeenNthCalledWith(
       2,

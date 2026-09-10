@@ -89,8 +89,8 @@ stage 5.
 - Séminaires maps every catalogue scalar and repeatable block. `hero_title` and
   `seo_title` reuse the current H1.
 - Locations maps every existing content field. The new hero and section fields
-  reuse its reviewed H1/intro. The CTA uses the existing “Voir tous les logements”
-  link to `/logements`; no new inventory claim is generated.
+  reuse its reviewed H1/intro. The CTA preserves the published page's
+  “Nos adresses locales” link to `/decouvrir` from `40eed0f`.
 - Saint-Gervais-les-Bains and Saint-Nicolas-de-Véroce remain active; Megève and
   Combloux remain inactive, including their incomplete service drafts. Active
   imported content is validated with the publication input schema before writes.

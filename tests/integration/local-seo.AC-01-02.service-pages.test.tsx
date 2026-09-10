@@ -46,6 +46,8 @@ describe('046 local SEO service pages', () => {
       '/confier-mon-logement',
     )
     expect(container.querySelectorAll('h1')).toHaveLength(1)
+    expect(screen.getByText('Conciergerie locale')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Vous avez un logement à Saint-Gervais-les-Bains ?' })).toBeInTheDocument()
     expect(container.innerHTML).not.toContain('font-serif')
     expect(container.innerHTML).not.toContain('scale(')
     expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull()
@@ -68,6 +70,7 @@ describe('046 local SEO service pages', () => {
       'href',
       expect.stringMatching(/^mailto:bonjour@mystay\.city/),
     )
+    expect(screen.getByRole('heading', { name: 'Préparons votre séminaire à Saint-Nicolas-de-Véroce.' })).toBeInTheDocument()
   })
 
   it.each(['megeve', 'combloux', 'destination-inconnue'])(

@@ -4,7 +4,6 @@ import { apiError } from '@/features/lodging-showcase/lib/http'
 import { LodgingSlugConflictError } from '@/features/lodging-showcase/lib/slug'
 import { LodgingPublicProfileInputSchema } from '@/features/lodging-showcase/schemas'
 import { saveAdminPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
-import { revalidatePublicLodgingPaths } from '@/features/lodging-showcase/lib/revalidation'
 
 export async function PUT(
   req: NextRequest,
@@ -40,8 +39,6 @@ export async function PUT(
   if (!profile) {
     return apiError('LODGING_NOT_FOUND', 'Logement introuvable', 404)
   }
-
-  revalidatePublicLodgingPaths()
 
   return NextResponse.json(profile)
 }

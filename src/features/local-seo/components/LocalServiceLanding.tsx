@@ -91,9 +91,11 @@ export function LocalServiceLanding({
           <div className={`${marketingContainerClass} grid grid-cols-1 gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20`}>
             <div>
               <MarketingEyebrow light>Une organisation claire</MarketingEyebrow>
-              <h2 className="text-[32px] font-bold leading-[1.08] tracking-[-0.045em] sm:text-[42px]">
-                {content.process_title}
-              </h2>
+              {content.process_title && (
+                <h2 className="text-[32px] font-bold leading-[1.08] tracking-[-0.045em] sm:text-[42px]">
+                  {content.process_title}
+                </h2>
+              )}
             </div>
             <ol className="border-t border-white/15">
               {content.steps.map((step, index) => (
@@ -148,7 +150,9 @@ export function LocalServiceLanding({
             <div>
               <MarketingEyebrow>Aller plus loin</MarketingEyebrow>
               <h2 className="max-w-[650px] text-[30px] font-bold leading-[1.12] tracking-[-0.04em] text-slate-900 sm:text-[38px]">
-                {content.hero_title}
+                {isConcierge
+                  ? `Parlons de votre logement à ${landing.city.name}.`
+                  : `Préparons votre séminaire à ${landing.city.name}.`}
               </h2>
               <div className="mt-7 flex flex-wrap gap-3 text-[12px] font-bold">
                 <Link className="text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-pink-600" href="/logements">

@@ -35,7 +35,7 @@ export function LocalConciergeLanding({
         <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
           <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:grid-cols-[1.05fr_.95fr] lg:gap-16 lg:px-14">
             <div>
-              <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
+              <MarketingEyebrow>Conciergerie locale</MarketingEyebrow>
               <h1 className="break-words text-[39px] font-bold leading-[1] tracking-[-0.055em] text-slate-900 sm:text-[56px] lg:text-[62px]">
                 {content.h1}
               </h1>
@@ -51,7 +51,9 @@ export function LocalConciergeLanding({
                 {content.cta_label}
                 <ArrowRight className="ml-3 h-4 w-4" aria-hidden="true" />
               </Link>
-              <p className="mt-4 text-[10px] font-semibold text-slate-500">{content.reassurance}</p>
+              {content.reassurance && (
+                <p className="mt-4 text-[10px] font-semibold text-slate-500">{content.reassurance}</p>
+              )}
             </div>
           </div>
         </section>
@@ -148,9 +150,11 @@ export function LocalConciergeLanding({
             </div>
             <div>
               <MarketingEyebrow>Notre fonctionnement</MarketingEyebrow>
-              <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900">
-                {content.process_title}
-              </h2>
+              {content.process_title && (
+                <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900">
+                  {content.process_title}
+                </h2>
+              )}
               <ol className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
                 {content.steps.map(({ title, copy }, index) => (
                   <li key={title} className="grid grid-cols-[32px_1fr] gap-4 py-5">
@@ -191,7 +195,7 @@ export function LocalConciergeLanding({
             <div>
               <MarketingEyebrow>Votre logement</MarketingEyebrow>
               <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[38px]">
-                {content.hero_title}
+                Vous avez un logement à {city.name} ?
               </h2>
               <p className="mt-4 max-w-[620px] text-[13px] text-justify leading-7 text-slate-500">
                 Parlons de votre logement, de son fonctionnement et du niveau de délégation dont vous avez besoin.

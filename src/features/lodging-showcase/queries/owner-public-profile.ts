@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { Prisma } from '@prisma/client'
 import { detectExternalListingSource } from '../lib/source-url'
 import { evaluateProfileCompleteness } from '../lib/completeness'
+import { revalidatePublicLodgingPaths } from '../lib/revalidation'
 import {
   allocateLodgingSlug,
   LodgingSlugConflictError,
@@ -320,13 +321,18 @@ async function ensureProfileRecordForLodging(lodging: ShowcaseLodging) {
       public_contact_enabled: true,
       ...EMPTY_DRAFT_VALUES,
     },
-    update: {
-      city_id: lodging.city_id,
+    update: {},
+    select: {
+      ...ownerProfileSelect,
+      city: { select: { slug: true } },
     },
-    select: ownerProfileSelect,
   })
 
-  return { lodging, profile: formatOwnerProfile(profile) }
+  return {
+    lodging,
+    profile: formatOwnerProfile(profile),
+    profileCitySlug: profile.city.slug,
+  }
 }
 
 async function ensureOwnerProfileRecord(ownerId: string, lodgingId: string) {
@@ -382,6 +388,7 @@ async function writePublicProfileForLodging(
       slug: true,
       publication_status: true,
       published_at: true,
+      city: { select: { slug: true } },
     },
   })
   const slug = currentProfile && (
@@ -521,6 +528,7 @@ async function writePublicProfileForLodging(
     select: ownerProfileSelect,
   })
 
+  revalidatePublicLodgingPaths([currentProfile?.city?.slug, lodging.city.slug])
   return fresh ? formatOwnerProfile(fresh) : null
 }
 
@@ -593,6 +601,7 @@ export async function submitOwnerPublicProfile(ownerId: string, lodgingId: strin
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return { ok: true as const, profile: updated }
 }
 
@@ -623,6 +632,7 @@ export async function saveSourceListingUrl(
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return updated
 }
 
@@ -647,6 +657,7 @@ export async function confirmContentRights(
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return {
     content_rights_confirmed_at: updated.content_rights_confirmed_at
       ? updated.content_rights_confirmed_at.toISOString()
@@ -764,6 +775,7 @@ export async function saveGeneratedRewrite(
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return updated
 }
 

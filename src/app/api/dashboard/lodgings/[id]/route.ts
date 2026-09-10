@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionOwner } from '@/features/dashboard-owner/lib/get-session-owner'
 import { UpdateLodgingSchema } from '@/features/dashboard-owner/schemas'
 import { prisma } from '@/shared/lib/prisma'
+import { revalidatePublicLodgingPaths } from '@/features/lodging-showcase/lib/revalidation'
 
 export async function PATCH(
   req: NextRequest,
@@ -32,6 +33,10 @@ export async function PATCH(
 
   const existing = await prisma.lodging.findFirst({
     where: { id, owner_id: owner.id, deleted_at: null },
+    include: {
+      city: { select: { slug: true } },
+      public_profile: { select: { city: { select: { slug: true } } } },
+    },
   })
 
   if (!existing) {
@@ -59,13 +64,16 @@ export async function PATCH(
     data: {
       ...(parsed.data.name !== undefined && { name: parsed.data.name }),
       ...(parsed.data.city_id !== undefined && { city_id: parsed.data.city_id }),
+      ...(parsed.data.city_id !== undefined && existing.public_profile && {
+        public_profile: { update: { city_id: parsed.data.city_id } },
+      }),
       ...(parsed.data.is_active === false && {
         is_active: false,
         deleted_at: new Date(),
       }),
     },
     include: {
-      city: { select: { name: true } },
+      city: { select: { name: true, slug: true } },
       analytics: { where: { event_type: 'qr_scan' } },
       qr_codes: {
         where: { is_active: true },
@@ -74,6 +82,8 @@ export async function PATCH(
       },
     },
   })
+
+  revalidatePublicLodgingPaths([existing.city.slug, existing.public_profile?.city.slug, updated.city.slug])
 
   return NextResponse.json({
     id: updated.id,

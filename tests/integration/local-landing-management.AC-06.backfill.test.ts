@@ -108,6 +108,7 @@ describe('048 AC-06 — offline local landing backfill', () => {
         meta_description: vacationRental.metaDescription, eyebrow: vacationRental.eyebrow,
         hero_copy: vacationRental.intro, local_title: vacationRental.localTitle,
         local_copy: vacationRental.localCopy, empty_copy: vacationRental.emptyCopy,
+        cta_label: 'Nos adresses locales', cta_href: '/decouvrir',
       })
     })
   })

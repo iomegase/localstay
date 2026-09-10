@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client'
 import { LodgingSlugConflictError } from '@/features/lodging-showcase/lib/slug'
 import { saveOwnerPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
 import type { LodgingPublicProfileInput } from '@/features/lodging-showcase/schemas'
+import { revalidatePath } from 'next/cache'
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
@@ -92,6 +94,15 @@ describe('saveOwnerPublicProfile — child collection replacement', () => {
     // The old soft-delete approach (updateMany set deleted_at) caused the collision.
     expect(db.lodgingAmenity.updateMany).not.toHaveBeenCalled()
     expect(db.lodgingAmenity.createMany).toHaveBeenCalled()
+  })
+
+  it('invalidates old and current vacation cities when saving the last public profile as draft', async () => {
+    db.lodgingPublicProfile.findUnique.mockResolvedValueOnce({
+      slug: 'existing', publication_status: 'published', published_at: new Date(), city: { slug: 'megeve' },
+    })
+    await saveOwnerPublicProfile('owner-1', 'lodging-1', baseInput)
+    expect(revalidatePath).toHaveBeenCalledWith('/locations-vacances/megeve', 'page')
+    expect(revalidatePath).toHaveBeenCalledWith('/locations-vacances/chamonix', 'page')
   })
 
   it('hard-deletes existing FAQ items before recreating', async () => {

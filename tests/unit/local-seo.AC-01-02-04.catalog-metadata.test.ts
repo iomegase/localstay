@@ -46,11 +46,11 @@ describe('046 local SEO destination catalogue and metadata', () => {
 
     const landing = publicLocalLanding('CONCIERGE', { id: 'city-1', name: destination.name, slug: destination.slug })
     const metadata = localSeoMetadata(landing, 'concierge')
-    expect(metadata.title).toBe(landing.page.seo_title)
+    expect(metadata.title).toEqual({ absolute: landing.page.seo_title })
     expect(metadata.description).toContain('Saint-Gervais-les-Bains')
     expect(metadata.alternates?.canonical).toBe('/conciergerie/saint-gervais-les-bains')
     expect(metadata.openGraph).toEqual(expect.objectContaining({
-      title: `${landing.page.seo_title} | MyStay`,
+      title: landing.page.seo_title,
       url: '/conciergerie/saint-gervais-les-bains',
     }))
     expect(metadata.robots).toEqual({ index: true, follow: true })
@@ -59,7 +59,7 @@ describe('046 local SEO destination catalogue and metadata', () => {
   it('indexes persisted published rental destinations under spec 048', () => {
     const landing = publicLocalLanding('VACATION_RENTAL')
     const metadata = localSeoMetadata(landing, 'vacation-rental')
-    expect(metadata.title).toBe(landing.page.seo_title)
+    expect(metadata.title).toEqual({ absolute: landing.page.seo_title })
     expect(metadata.alternates?.canonical).toBe('/locations-vacances/megeve')
     expect(metadata.robots).toEqual({ index: true, follow: true })
   })
