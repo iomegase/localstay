@@ -151,4 +151,25 @@ describe('048 AC-01/02/04 repository reads', () => {
     mockDestinations.mockResolvedValue([{ ...landingDestinationRow(), is_active: false }])
     expect(await listPublishedLocalLandingPaths(['megeve'])).toEqual([])
   })
+
+  it('orders multiple published cities deterministically and deduplicates lodging inventory slugs', async () => {
+    const megeve = landingDestinationRow()
+    const combloux = {
+      ...landingDestinationRow(),
+      id: 'destination-2',
+      city_id: 'city-2',
+      city: { ...landingDestinationRow().city, id: 'city-2', name: 'Combloux', slug: 'combloux' },
+    }
+    mockDestinations.mockResolvedValue([combloux, megeve])
+    mockProfiles.mockResolvedValue([{ city_id: 'city-1' }, { city_id: 'city-2' }])
+
+    expect(await listPublishedLocalLandingPaths(['megeve', 'megeve', 'combloux'])).toEqual([
+      '/conciergerie/combloux',
+      '/conciergerie/megeve',
+      '/seminaires/combloux',
+      '/seminaires/megeve',
+      '/locations-vacances/combloux',
+      '/locations-vacances/megeve',
+    ])
+  })
 })

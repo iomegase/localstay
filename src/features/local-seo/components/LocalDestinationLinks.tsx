@@ -1,9 +1,5 @@
 import Link from 'next/link'
-import {
-  localSeoDestinations,
-  listPublishedServiceDestinations,
-  type LocalSeoIntent,
-} from '../content/destinations'
+import type { LocalSeoIntent } from '../content/destinations'
 import { localSeoPath } from '../lib/paths'
 import { MarketingEyebrow, marketingContainerClass } from '@/features/marketing/components/MarketingShell'
 
@@ -13,11 +9,13 @@ const labels: Record<LocalSeoIntent, string> = {
   'vacation-rental': 'Locations',
 }
 
-export function LocalDestinationLinks({ intent }: { intent: LocalSeoIntent }) {
-  const destinations = intent === 'vacation-rental'
-    ? localSeoDestinations
-    : listPublishedServiceDestinations(intent)
-
+export function LocalDestinationLinks({
+  intent,
+  destinations,
+}: {
+  intent: LocalSeoIntent
+  destinations: { name: string; slug: string }[]
+}) {
   return (
     <section className={`${marketingContainerClass} py-16 sm:py-20`} data-testid={`local-links-${intent}`}>
       <MarketingEyebrow>Par destination</MarketingEyebrow>

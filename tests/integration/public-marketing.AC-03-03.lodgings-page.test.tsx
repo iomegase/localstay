@@ -5,6 +5,9 @@ import { render, screen } from '@testing-library/react'
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgings: jest.fn(async () => []),
 }))
+jest.mock('@/features/local-seo/queries/landing-pages', () => ({
+  listPublishedLocalLandingSummaries: jest.fn(async () => []),
+}))
 
 import LodgingsPage from '@/app/(public)/logements/page'
 

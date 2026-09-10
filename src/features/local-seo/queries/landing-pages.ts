@@ -215,7 +215,8 @@ export const getPublishedLocalLanding = cache(async (slug: string, intent: Local
 export async function listPublishedLocalLandingSummaries(): Promise<PublishedLocalLandingSummaryDto[]> {
   const destinations = await prisma.localLandingDestination.findMany({
     where: { is_active: true, deleted_at: null, city: activeCity },
-    include: destinationInclude, orderBy: { city: { name: 'asc' } },
+    include: destinationInclude,
+    orderBy: [{ city: { name: 'asc' } }, { city: { slug: 'asc' } }],
   })
   const counts = await publicLodgingCounts(prisma, destinations.map(destination => destination.city_id))
   return destinations.flatMap(destination => {

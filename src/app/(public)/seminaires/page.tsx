@@ -19,6 +19,7 @@ import {
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
+import { listPublishedLocalLandingSummaries } from '@/features/local-seo/queries/landing-pages'
 
 export const metadata: Metadata = {
   title: 'Séminaire d’entreprise en Haute-Savoie | MyStay',
@@ -268,7 +269,11 @@ const faqs = [
   },
 ] as const
 
-export default function SeminarsPage() {
+export default async function SeminarsPage() {
+  const destinations = (await listPublishedLocalLandingSummaries())
+    .filter(destination => destination.publication.seminar)
+    .map(destination => destination.city)
+
   return (
     <MarketingShell>
       <div className="overflow-hidden">
@@ -921,7 +926,7 @@ export default function SeminarsPage() {
         </section>
 
         <div className="bg-slate-50">
-          <LocalDestinationLinks intent="seminar" />
+          <LocalDestinationLinks intent="seminar" destinations={destinations} />
         </div>
 
         {/* =====================================================
