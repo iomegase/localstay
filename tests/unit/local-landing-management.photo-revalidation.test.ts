@@ -46,7 +46,12 @@ describe('048 public lodging photo revalidation', () => {
     jest.mocked(prisma.lodgingPhoto.updateMany).mockResolvedValue({ count: 1 })
     jest.mocked(prisma.lodgingPhoto.findMany).mockResolvedValue([])
     jest.mocked(prisma.lodgingPhoto.findFirst).mockResolvedValue({ id: 'photo-1' } as never)
-    jest.mocked(prisma.$transaction).mockResolvedValue([] as never)
+    jest.mocked(prisma.$transaction).mockImplementation(async operation => {
+      if (typeof operation === 'function') {
+        return operation(prisma as never) as never
+      }
+      return Promise.all(operation) as never
+    })
   })
 
   function expectPublicPhotoPaths() {
@@ -80,6 +85,20 @@ describe('048 public lodging photo revalidation', () => {
     expectPublicPhotoPaths()
   })
 
+  it('promotes the first remaining photo when deleting the cover', async () => {
+    jest.mocked(prisma.lodgingPhoto.findMany).mockResolvedValue([
+      { id: 'photo-2', is_cover: false },
+      { id: 'photo-3', is_cover: false },
+    ] as never)
+
+    await expect(deleteOwnerLodgingPhoto('owner-1', 'lodging-1', 'photo-1')).resolves.toBe(true)
+    expect(prisma.lodgingPhoto.update).toHaveBeenCalledWith({
+      where: { id: 'photo-2' },
+      data: { is_cover: true },
+    })
+    expectPublicPhotoPaths()
+  })
+
   it('invalidates exact lodging and both City surfaces after setting the cover', async () => {
     await expect(setOwnerCoverPhoto('owner-1', 'lodging-1', 'photo-1')).resolves.toBe(true)
     expectPublicPhotoPaths()
@@ -101,6 +120,43 @@ describe('048 public lodging photo revalidation', () => {
   it('does not invalidate when no photo is deleted', async () => {
     jest.mocked(prisma.lodgingPhoto.updateMany).mockResolvedValue({ count: 0 })
     await expect(deleteOwnerLodgingPhoto('owner-1', 'lodging-1', 'missing')).resolves.toBe(false)
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  it('rolls back the soft deletion when replacement-cover lookup fails', async () => {
+    let deletionCommitted = false
+    jest.mocked(prisma.lodgingPhoto.updateMany).mockImplementation(async () => {
+      deletionCommitted = true
+      return { count: 1 }
+    })
+    jest.mocked(prisma.lodgingPhoto.findMany).mockRejectedValue(new Error('lookup failed'))
+    jest.mocked(prisma.$transaction).mockImplementation(async operation => {
+      if (typeof operation !== 'function') throw new Error('interactive transaction required')
+
+      let deletionStaged = false
+      const transactionClient = {
+        lodgingPublicProfile: {
+          findUnique: jest.fn().mockResolvedValue(profile),
+        },
+        lodgingPhoto: {
+          updateMany: jest.fn().mockImplementation(async () => {
+            deletionStaged = true
+            return { count: 1 }
+          }),
+          findMany: jest.fn().mockRejectedValue(new Error('lookup failed')),
+          update: jest.fn(),
+        },
+      }
+
+      const result = await operation(transactionClient as never)
+      deletionCommitted = deletionStaged
+      return result as never
+    })
+
+    await expect(deleteAdminLodgingPhoto('lodging-1', 'photo-1')).rejects.toThrow('lookup failed')
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+    expect(prisma.lodgingPhoto.updateMany).not.toHaveBeenCalled()
+    expect(deletionCommitted).toBe(false)
     expect(revalidatePath).not.toHaveBeenCalled()
   })
 

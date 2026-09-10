@@ -869,34 +869,39 @@ export async function createAdminLodgingPhoto(
 }
 
 async function deletePhotoForLodging(lodging: ShowcaseLodging, photoId: string): Promise<boolean> {
-  const deleted = await prisma.lodgingPhoto.updateMany({
-    where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
-    data: { deleted_at: new Date() },
-  })
-  if (deleted.count === 0) return false
-
-  const profile = await prisma.lodgingPublicProfile.findUnique({
-    where: { lodging_id: lodging.id },
-    select: {
-      id: true,
-      slug: true,
-      city: { select: { slug: true } },
-    },
-  })
-  if (profile) {
-    const remaining = await prisma.lodgingPhoto.findMany({
-      where: { profile_id: profile.id, deleted_at: null },
-      orderBy: [{ is_cover: 'desc' }, { sort_order: 'asc' }, { created_at: 'asc' }],
-      select: { id: true, is_cover: true },
+  const result = await prisma.$transaction(async tx => {
+    const deleted = await tx.lodgingPhoto.updateMany({
+      where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
+      data: { deleted_at: new Date() },
     })
-    if (remaining.length > 0 && !remaining.some(photo => photo.is_cover)) {
-      await prisma.lodgingPhoto.update({ where: { id: remaining[0].id }, data: { is_cover: true } })
+    if (deleted.count === 0) return { deleted: false as const, profile: null }
+
+    const profile = await tx.lodgingPublicProfile.findUnique({
+      where: { lodging_id: lodging.id },
+      select: {
+        id: true,
+        slug: true,
+        city: { select: { slug: true } },
+      },
+    })
+    if (profile) {
+      const remaining = await tx.lodgingPhoto.findMany({
+        where: { profile_id: profile.id, deleted_at: null },
+        orderBy: [{ is_cover: 'desc' }, { sort_order: 'asc' }, { created_at: 'asc' }],
+        select: { id: true, is_cover: true },
+      })
+      if (remaining.length > 0 && !remaining.some(photo => photo.is_cover)) {
+        await tx.lodgingPhoto.update({ where: { id: remaining[0].id }, data: { is_cover: true } })
+      }
     }
-  }
+
+    return { deleted: true as const, profile }
+  })
+  if (!result.deleted) return false
 
   revalidatePublicLodgingPaths(
-    [profile?.city.slug, lodging.city.slug],
-    [profile?.slug],
+    [result.profile?.city.slug, lodging.city.slug],
+    [result.profile?.slug],
   )
   return true
 }
