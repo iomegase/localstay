@@ -704,6 +704,11 @@ async function createPhotoForLodging(
     },
   })
 
+  revalidatePublicLodgingPaths(
+    [owned.profileCitySlug, lodging.city.slug],
+    [owned.profile.slug],
+  )
+
   return {
     ...photo,
     room_type: photo.room_type as LodgingPhotoRoomType | null,
@@ -863,7 +868,7 @@ export async function createAdminLodgingPhoto(
   return createPhotoForLodging(lodging, input)
 }
 
-async function deletePhotoForLodging(lodging: { id: string }, photoId: string): Promise<boolean> {
+async function deletePhotoForLodging(lodging: ShowcaseLodging, photoId: string): Promise<boolean> {
   const deleted = await prisma.lodgingPhoto.updateMany({
     where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
     data: { deleted_at: new Date() },
@@ -872,7 +877,11 @@ async function deletePhotoForLodging(lodging: { id: string }, photoId: string): 
 
   const profile = await prisma.lodgingPublicProfile.findUnique({
     where: { lodging_id: lodging.id },
-    select: { id: true },
+    select: {
+      id: true,
+      slug: true,
+      city: { select: { slug: true } },
+    },
   })
   if (profile) {
     const remaining = await prisma.lodgingPhoto.findMany({
@@ -884,13 +893,22 @@ async function deletePhotoForLodging(lodging: { id: string }, photoId: string): 
       await prisma.lodgingPhoto.update({ where: { id: remaining[0].id }, data: { is_cover: true } })
     }
   }
+
+  revalidatePublicLodgingPaths(
+    [profile?.city.slug, lodging.city.slug],
+    [profile?.slug],
+  )
   return true
 }
 
-async function setCoverPhotoForLodging(lodging: { id: string }, photoId: string): Promise<boolean> {
+async function setCoverPhotoForLodging(lodging: ShowcaseLodging, photoId: string): Promise<boolean> {
   const profile = await prisma.lodgingPublicProfile.findUnique({
     where: { lodging_id: lodging.id },
-    select: { id: true },
+    select: {
+      id: true,
+      slug: true,
+      city: { select: { slug: true } },
+    },
   })
   if (!profile) return false
 
@@ -904,6 +922,11 @@ async function setCoverPhotoForLodging(lodging: { id: string }, photoId: string)
     prisma.lodgingPhoto.updateMany({ where: { profile_id: profile.id, deleted_at: null }, data: { is_cover: false } }),
     prisma.lodgingPhoto.update({ where: { id: photoId }, data: { is_cover: true } }),
   ])
+
+  revalidatePublicLodgingPaths(
+    [profile.city.slug, lodging.city.slug],
+    [profile.slug],
+  )
   return true
 }
 

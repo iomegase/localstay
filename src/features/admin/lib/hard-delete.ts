@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { createSupabaseServer } from '@/shared/lib/supabase'
+import { revalidatePublicLodgingPaths } from '@/features/lodging-showcase/lib/revalidation'
 
 export class HardDeleteError extends Error {
   constructor(
@@ -43,7 +44,12 @@ export async function hardDeleteLodging(
 export async function hardDeleteUserAccount(
   userId: string,
 ): Promise<{ deletedLodgings: number; authDeleted: boolean }> {
-  const { deletedLodgings, supabaseId } = await prisma.$transaction(async tx => {
+  const {
+    deletedLodgings,
+    supabaseId,
+    affectedCitySlugs,
+    affectedLodgingSlugs,
+  } = await prisma.$transaction(async tx => {
     const user = await tx.user.findUnique({
       where: { id: userId },
       select: { id: true, supabase_id: true },
@@ -52,7 +58,16 @@ export async function hardDeleteUserAccount(
 
     const lodgings = await tx.lodging.findMany({
       where: { owner_id: userId },
-      select: { id: true },
+      select: {
+        id: true,
+        city: { select: { slug: true } },
+        public_profile: {
+          select: {
+            slug: true,
+            city: { select: { slug: true } },
+          },
+        },
+      },
     })
     for (const lodging of lodgings) {
       await hardDeleteLodging(tx, lodging.id)
@@ -65,8 +80,20 @@ export async function hardDeleteUserAccount(
     await tx.contactMessage.deleteMany({ where: { owner_id: userId } })
     await tx.user.delete({ where: { id: userId } })
 
-    return { deletedLodgings: lodgings.length, supabaseId: user.supabase_id }
+    return {
+      deletedLodgings: lodgings.length,
+      supabaseId: user.supabase_id,
+      affectedCitySlugs: lodgings.flatMap(lodging => [
+        lodging.city.slug,
+        lodging.public_profile?.city.slug,
+      ]),
+      affectedLodgingSlugs: lodgings.map(lodging => lodging.public_profile?.slug),
+    }
   })
+
+  if (deletedLodgings > 0) {
+    revalidatePublicLodgingPaths(affectedCitySlugs, affectedLodgingSlugs)
+  }
 
   const supabase = createSupabaseServer()
   const { error } = await supabase.auth.admin.deleteUser(supabaseId)
