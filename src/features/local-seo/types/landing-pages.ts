@@ -2,6 +2,8 @@ export const LOCAL_LANDING_INTENTS = ['CONCIERGE', 'SEMINAR', 'VACATION_RENTAL']
 
 export type LocalLandingIntent = (typeof LOCAL_LANDING_INTENTS)[number]
 
+export type LocalSeoIntent = 'concierge' | 'seminar' | 'vacation-rental'
+
 export type LandingHighlight = {
   title: string
   copy: string

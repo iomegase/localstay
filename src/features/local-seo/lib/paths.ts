@@ -1,4 +1,4 @@
-import type { LocalSeoIntent } from '../content/destinations'
+import type { LocalSeoIntent } from '../types/landing-pages'
 
 const intentSegments: Record<LocalSeoIntent, string> = {
   concierge: 'conciergerie',

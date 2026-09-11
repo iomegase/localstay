@@ -163,6 +163,17 @@ describe('048 admin landing management', () => {
     expect(refresh).toHaveBeenCalledTimes(1)
   })
 
+  it('AC-05 clears an unrelated publication error when opening the delete dialog', async () => {
+    const table = setup(destination({ is_active: false }))
+    response({ error: { code: 'INCOMPLETE_CONTENT', message: 'Complétez les contenus.', details: {} } }, 400)
+    fireEvent.click(table.getByRole('switch', { name: 'Activer Megève' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Complétez les contenus.'))
+    fireEvent.click(table.getByRole('button', { name: 'Supprimer les landings de Megève' }))
+    expect(within(screen.getByRole('alertdialog')).queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText('Complétez les contenus.')).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('AC-05 preserves a failed deletion and allows retry inside the dialog', async () => {
     const table = setup()
     fireEvent.click(table.getByRole('button', { name: 'Supprimer les landings de Megève' }))

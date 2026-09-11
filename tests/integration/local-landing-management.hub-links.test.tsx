@@ -76,7 +76,8 @@ describe('048 persisted local landing hub links', () => {
       [LodgingsPage, 'vacation-rental'],
     ] as const) {
       const { unmount } = render(await Page())
-      expect(within(screen.getByTestId(`local-links-${intent}`)).queryAllByRole('link')).toEqual([])
+      expect(screen.queryByTestId(`local-links-${intent}`)).not.toBeInTheDocument()
+      expect(screen.queryByText('Par destination')).not.toBeInTheDocument()
       unmount()
     }
   })
@@ -87,7 +88,7 @@ describe('048 persisted local landing hub links', () => {
     mockDestinations.mockResolvedValue([destination])
 
     const { unmount } = render(await LodgingsPage())
-    expect(within(screen.getByTestId('local-links-vacation-rental')).queryAllByRole('link')).toEqual([])
+    expect(screen.queryByTestId('local-links-vacation-rental')).not.toBeInTheDocument()
     unmount()
     render(await OwnerContactPage())
     expect(screen.getByRole('link', { name: 'Conciergerie à Megève' })).toHaveAttribute('href', '/conciergerie/megeve')

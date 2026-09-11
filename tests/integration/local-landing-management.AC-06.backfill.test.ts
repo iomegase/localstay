@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { localSeoDestinations } from '@/features/local-seo/content/destinations'
-import { getLocalConciergeLandingContent } from '@/features/local-seo/content/concierge-landings'
+import { localSeoDestinations } from '../../prisma/local-landing-source/destinations'
+import { getLocalConciergeLandingContent } from '../../prisma/local-landing-source/concierge-landings'
 import { landingPageInputSchema } from '@/features/local-seo/schemas/landing-pages'
 import { LOCAL_LANDING_INTENTS } from '@/features/local-seo/types/landing-pages'
 import { legacyConciergeServices, legacyConciergeSteps, legacyConciergeProcessTitle } from '../fixtures/legacy-concierge-blocks'
@@ -63,6 +63,15 @@ function memoryDatabase() {
 }
 
 describe('048 AC-06 — offline local landing backfill', () => {
+  it('preserves unique historical principal copy across every city and intent', () => {
+    const copy = localSeoDestinations.flatMap(destination => [
+      destination.services.concierge.intro,
+      destination.services.seminar.intro,
+      destination.services.vacationRental.intro,
+    ])
+    expect(new Set(copy).size).toBe(copy.length)
+  })
+
   it('maps the four reviewed Cities into exactly three pages and preserves service publication', () => {
     const seeds = buildLocalLandingBackfill()
     expect(seeds.map(seed => [seed.slug, seed.is_active])).toEqual([

@@ -73,6 +73,14 @@ describe('046 local SEO service pages', () => {
     expect(screen.getByRole('heading', { name: 'Préparons votre séminaire à Saint-Nicolas-de-Véroce.' })).toBeInTheDocument()
   })
 
+  it.each(['megeve', 'combloux'])('renders %s when its persisted concierge page is published', async slug => {
+    const landing = publicLocalLanding('CONCIERGE', { id: `city-${slug}`, slug, name: slug })
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
+    render(await ConciergeCityPage({ params: Promise.resolve({ 'city-slug': slug }) }))
+    expect(screen.getByRole('heading', { level: 1, name: landing.page.h1 })).toBeInTheDocument()
+    expect(getPublishedLocalLanding).toHaveBeenCalledWith(slug, 'CONCIERGE')
+  })
+
   it.each(['megeve', 'combloux', 'destination-inconnue'])(
     'rejects an unpublished concierge destination: %s',
     async slug => {

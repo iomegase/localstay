@@ -32,8 +32,9 @@ offline by diffing the pre-marker and current Prisma schemas.
    `LocalLandingReview.destination_id` is `String?` and its `destination`
    relation is `LocalLandingDestination?`. Do not use a revision that has
    already made either field required for this backfill stage.
-   Carry the reviewed `prisma/backfill-local-landing-destinations.ts` from the
-   final feature branch into this nullable-stage checkout: it freezes the six
+   Carry the reviewed `prisma/backfill-local-landing-destinations.ts` and both
+   frozen modules in `prisma/local-landing-source/` from the final feature branch
+   into this nullable-stage checkout: the script freezes the six
    concierge services and four process steps actually displayed at `40eed0f`.
    The original expand-stage script incorrectly used older catalogue blocks;
    do not run that historical version. Keep the expand-stage schema nullable.
@@ -84,7 +85,7 @@ stage 5.
   `steps`, and exact process title `Comment se passe la mise en gestion ?` are
   frozen in the backfill from `LocalConciergeLanding.tsx` at commit `40eed0f`;
   their titles, copy and order are preserved verbatim. Superseded general concierge
-  prose remains in its original TypeScript source; it is not substituted for
+  prose remains in the frozen `prisma/local-landing-source/destinations.ts`; it is not substituted for
   the detailed public page.
 - Séminaires maps every catalogue scalar and repeatable block. `hero_title` and
   `seo_title` reuse the current H1.
@@ -107,8 +108,10 @@ stage 5.
   Admin/public readers and restore queries permanently exclude those reviews.
   Backfill reruns preserve this marker as well as the review content and dates.
 
-Keep the two source catalogue modules available until all target environments
-have completed their backfill. The integration test uses an in-memory Prisma
+The two source catalogue modules are frozen in `prisma/local-landing-source/`
+for migration only. No runtime file in `src/` imports or exports either catalogue.
+Keep these modules available until all target environments have completed their
+backfill. The integration test uses an in-memory Prisma
 test double and verifies mapping, preservation, idempotency and preflight errors.
 The public concierge test renders the imported DTO and checks all six services
 and four steps against independent verbatim fixtures from the former component;

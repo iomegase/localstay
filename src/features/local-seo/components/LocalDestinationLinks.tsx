@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { LocalSeoIntent } from '../content/destinations'
+import type { LocalSeoIntent } from '../types/landing-pages'
 import { localSeoPath } from '../lib/paths'
 import { MarketingEyebrow, marketingContainerClass } from '@/features/marketing/components/MarketingShell'
 
@@ -16,6 +16,8 @@ export function LocalDestinationLinks({
   intent: LocalSeoIntent
   destinations: { name: string; slug: string }[]
 }) {
+  if (destinations.length === 0) return null
+
   return (
     <section className={`${marketingContainerClass} py-16 sm:py-20`} data-testid={`local-links-${intent}`}>
       <MarketingEyebrow>Par destination</MarketingEyebrow>

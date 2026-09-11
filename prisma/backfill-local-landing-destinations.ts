@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client'
 import {
   localSeoDestinations,
   type LocalServiceContent,
-} from '../src/features/local-seo/content/destinations'
-import { getLocalConciergeLandingContent } from '../src/features/local-seo/content/concierge-landings'
+} from './local-landing-source/destinations'
+import { getLocalConciergeLandingContent } from './local-landing-source/concierge-landings'
 import { landingPageInputSchema } from '../src/features/local-seo/schemas/landing-pages'
 import type { LocalLandingPageInput } from '../src/features/local-seo/types/landing-pages'
 

@@ -171,7 +171,7 @@ export function AdminLandingPages({ initialDestinations, eligibleCities }: Props
     </header>
     {error ? <div role="alert" className="break-words rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error.map((line, index) => <p key={index}>{line}</p>)}</div> : null}
     {message ? <p role="status" className="text-sm text-slate-700">{message}</p> : null}
-    <AdminLandingDestinationTable destinations={destinations} pendingId={pendingId ?? (reviewPending ? 'review' : null)} selectedId={selectedId} onEdit={edit} onPublication={publish} onDelete={setDeleting}
+    <AdminLandingDestinationTable destinations={destinations} pendingId={pendingId ?? (reviewPending ? 'review' : null)} selectedId={selectedId} onEdit={edit} onPublication={publish} onDelete={destination => { setError(null); setDeleting(destination) }}
       editor={selected ? <LandingPageEditor key={`${selected.id}:${selected.updated_at}`} cityName={selected.city.name} pages={pages} onChange={setPages} onSubmit={save} pending={busy} /> : null} />
     <div className="space-y-4">
       <Button type="button" variant="outline" disabled={cities.length === 0 || busy} onClick={() => setAdding(!adding)}><Plus />Ajouter une ville</Button>

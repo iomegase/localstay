@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { SITE } from '@/features/seo/lib/site'
-import type { LocalSeoIntent } from '../content/destinations'
+import type { LocalSeoIntent } from '../types/landing-pages'
 import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { localSeoPath } from './paths'
 
