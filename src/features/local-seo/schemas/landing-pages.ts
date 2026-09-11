@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { LOCAL_LANDING_INTENTS } from '../types/landing-pages'
-import { LANDING_REVIEW_SOURCES } from '../types/landing-reviews'
 import type { AdminLandingDestinationDto } from '../types/landing-pages'
+import { LandingReviewResponseSchema } from './landing-reviews'
 
 const requiredText = z.string().trim().min(3).max(2000)
 
@@ -147,23 +147,6 @@ const editableLandingPagesSchema = z.array(editableLandingPageSchema).length(3).
   }
 })
 
-const landingReviewDtoSchema = z.object({
-  id: z.string(),
-  destination_id: z.string(),
-  destination_slug: z.string(),
-  author: z.string(),
-  quote: z.string(),
-  stay_date: z.string().nullable(),
-  source: z.enum(LANDING_REVIEW_SOURCES),
-  rating: z.number().int().min(1).max(5).nullable(),
-  sort_order: z.number().int(),
-  is_active: z.boolean(),
-  deleted_with_destination: z.boolean(),
-  deleted_at: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-}).strict()
-
 export const AdminLandingDestinationResponseSchema: z.ZodType<AdminLandingDestinationDto> = z.object({
   id: z.string(),
   city: z.object({ id: z.string(), name: z.string(), slug: z.string() }).strict(),
@@ -181,7 +164,7 @@ export const AdminLandingDestinationResponseSchema: z.ZodType<AdminLandingDestin
   }).strict()),
   publicLodgingCount: z.number().int().nonnegative(),
   reviewCount: z.number().int().nonnegative(),
-  reviews: z.array(landingReviewDtoSchema),
+  reviews: z.array(LandingReviewResponseSchema),
   created_at: z.string(),
   updated_at: z.string(),
 }).strict()

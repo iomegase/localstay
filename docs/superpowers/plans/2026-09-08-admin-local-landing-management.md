@@ -698,10 +698,12 @@ Run:
 
 ```bash
 npm test -- tests/integration/local-landing-management.admin-page.test.tsx tests/integration/local-landing-reviews.admin-page.test.tsx --runInBand
-npx playwright test tests/e2e/local-landing-management.admin-flow.test.ts --project=chromium
+npx playwright test tests/e2e/local-landing-management.admin-flow.test.ts --project="Mobile Chrome"
 ```
 
-Expected: both commands PASS at mobile and desktop widths with no horizontal overflow.
+Expected: integration tests PASS. The opt-in Playwright fixture exercises mobile
+and desktop widths with no horizontal overflow under the configured `Mobile Chrome`
+project; without its dedicated local Admin session, City and base URL it is skipped.
 
 - [ ] **Step 8: Commit the Admin UI**
 

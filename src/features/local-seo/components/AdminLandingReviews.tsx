@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { LandingReviewResponseSchema } from '../schemas/landing-reviews'
 import type { AdminLandingPageDto, LandingReviewDto, LandingReviewSource } from '../types/landing-reviews'
 
 type FormState = {
@@ -76,6 +77,11 @@ export function AdminLandingReviews({ selected, disabled = false, onPendingChang
         setMessage('Impossible d’enregistrer cet avis. Vérifiez les champs.')
         return
       }
+      const payload: unknown = await response.json().catch(() => null)
+      if (!LandingReviewResponseSchema.safeParse(payload).success) {
+        setMessage('Réponse serveur invalide. Réessayez.')
+        return
+      }
       setMessage(editing ? 'Avis mis à jour et publié.' : 'Avis ajouté et publié.')
       reset()
       router.refresh()
@@ -97,8 +103,17 @@ export function AdminLandingReviews({ selected, disabled = false, onPendingChang
       const response = await fetch(`/api/admin/landing-page-reviews/${review.id}${restoring ? '/restore' : ''}`, {
         method: restoring ? 'POST' : 'DELETE',
       })
-      setMessage(response.ok ? (restoring ? 'Avis restauré et publié.' : 'Avis archivé.') : 'Action impossible.')
-      if (response.ok) router.refresh()
+      if (!response.ok) {
+        setMessage('Action impossible.')
+        return
+      }
+      const payload: unknown = await response.json().catch(() => null)
+      if (!LandingReviewResponseSchema.safeParse(payload).success) {
+        setMessage('Réponse serveur invalide. Réessayez.')
+        return
+      }
+      setMessage(restoring ? 'Avis restauré et publié.' : 'Avis archivé.')
+      router.refresh()
     } catch {
       setMessage('Connexion impossible. Réessayez.')
     } finally {

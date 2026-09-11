@@ -90,18 +90,24 @@ export function AdminLandingPages({ initialDestinations, eligibleCities }: Props
     setDestinations(current => current.map(destination => destination.id === updated.id ? updated : destination))
   }
 
+  function replaceActive(id: string, isActive: boolean) {
+    setDestinations(current => current.map(destination => (
+      destination.id === id ? { ...destination, is_active: isActive } : destination
+    )))
+  }
+
   async function publish(destination: AdminLandingDestinationDto, active: boolean) {
     if (busy) return
     setPendingId(destination.id)
-    replace({ ...destination, is_active: active })
+    replaceActive(destination.id, active)
     try {
       const updated = await mutate(`/api/admin/landing-pages/${destination.id}/publication`, 'PATCH', AdminLandingDestinationResponseSchema, { is_active: active })
-      if (!updated) { replace(destination); return }
+      if (!updated) { replaceActive(destination.id, destination.is_active); return }
       replace(updated)
       setMessage(active ? 'Landings activées.' : 'Landings archivées.')
       router.refresh()
     } catch {
-      replace(destination)
+      replaceActive(destination.id, destination.is_active)
       setError(['Connexion impossible. Réessayez.'])
     } finally { setPendingId(null) }
   }
@@ -166,7 +172,7 @@ export function AdminLandingPages({ initialDestinations, eligibleCities }: Props
     {error ? <div role="alert" className="break-words rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error.map((line, index) => <p key={index}>{line}</p>)}</div> : null}
     {message ? <p role="status" className="text-sm text-slate-700">{message}</p> : null}
     <AdminLandingDestinationTable destinations={destinations} pendingId={pendingId ?? (reviewPending ? 'review' : null)} selectedId={selectedId} onEdit={edit} onPublication={publish} onDelete={setDeleting}
-      editor={selected ? <LandingPageEditor key={selected.id} cityName={selected.city.name} pages={pages} onChange={setPages} onSubmit={save} pending={busy} /> : null} />
+      editor={selected ? <LandingPageEditor key={`${selected.id}:${selected.updated_at}`} cityName={selected.city.name} pages={pages} onChange={setPages} onSubmit={save} pending={busy} /> : null} />
     <div className="space-y-4">
       <Button type="button" variant="outline" disabled={cities.length === 0 || busy} onClick={() => setAdding(!adding)}><Plus />Ajouter une ville</Button>
       {adding ? <form onSubmit={create} className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -179,7 +185,7 @@ export function AdminLandingPages({ initialDestinations, eligibleCities }: Props
     {reviewed ? <AdminLandingReviews key={reviewed.id} selected={{ slug: reviewed.city.slug, name: reviewed.city.name, published: reviewed.publication.concierge, reviews: reviewed.reviews }} disabled={Boolean(pendingId)} onPendingChange={setReviewPending} /> : null}
     <AlertDialog open={Boolean(deleting)} onOpenChange={open => { if (!open && !busy) setDeleting(null) }}>
       <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer les landings de {deleting?.city.name} ?</AlertDialogTitle><AlertDialogDescription>Les trois pages et leurs avis seront supprimés. Les logements, POI, articles, guides et la ville sont conservés.</AlertDialogDescription></AlertDialogHeader>
-        {error ? <p className="break-words text-sm text-red-700">{error.join(' ')}</p> : null}
+        {error ? <p role="alert" aria-live="assertive" className="break-words text-sm text-red-700">{error.join(' ')}</p> : null}
         <AlertDialogFooter><AlertDialogCancel disabled={busy}>Annuler</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={event => { event.preventDefault(); void remove() }}>Supprimer les landings</AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

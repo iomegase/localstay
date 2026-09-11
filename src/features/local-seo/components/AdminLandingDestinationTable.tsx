@@ -34,6 +34,7 @@ function DestinationActions({ destination, pending, selected, onEdit, onPublicat
 
 export function AdminLandingDestinationTable({ destinations, pendingId, selectedId, onEdit, onPublication, onDelete, editor }: Props) {
   const actions = (destination: AdminLandingDestinationDto) => <DestinationActions destination={destination} pending={Boolean(pendingId)} selected={selectedId === destination.id} onEdit={onEdit} onPublication={onPublication} onDelete={onDelete} />
+  const selected = destinations.find(destination => destination.id === selectedId)
   if (!destinations.length) return <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">Aucune ville configurée.</p>
   return <>
     <table aria-label="Landings par ville" className="hidden w-full table-fixed border-separate border-spacing-0 rounded-2xl border border-slate-200 bg-white text-left text-sm md:table">
@@ -49,7 +50,6 @@ export function AdminLandingDestinationTable({ destinations, pendingId, selected
           <td className="border-t border-slate-100 p-3">{destination.reviewCount}</td>
           <td className="border-t border-slate-100 p-3">{actions(destination)}</td>
         </tr>
-        {selectedId === destination.id ? <tr><td colSpan={6} className="border-t border-slate-100 p-5">{editor}</td></tr> : null}
       </Fragment>)}</tbody>
     </table>
     <div data-testid="landing-mobile-cards" className="space-y-3 md:hidden">{destinations.map(destination => <article key={destination.id} className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-4" aria-label={`Landings de ${destination.city.name}`}>
@@ -61,7 +61,10 @@ export function AdminLandingDestinationTable({ destinations, pendingId, selected
         <div className="flex justify-between gap-2"><dt>Avis</dt><dd>{destination.reviewCount}</dd></div>
       </dl>
       {actions(destination)}
-      {selectedId === destination.id ? editor : null}
     </article>)}</div>
+    {selected && editor ? <section aria-labelledby="landing-editor-title" className="mt-4 min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+      <h2 id="landing-editor-title" className="mb-2 text-lg font-semibold text-slate-950">Modifier les landings de {selected.city.name}</h2>
+      {editor}
+    </section> : null}
   </>
 }
