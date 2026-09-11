@@ -127,6 +127,7 @@ describe('048 admin landing management', () => {
     await waitFor(() => expect(screen.getAllByRole('button', { name: 'Modifier Combloux' })).toHaveLength(2))
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/landing-pages', expect.objectContaining({ method: 'POST', body: JSON.stringify({ city_id: 'city-2' }) }))
     expect(screen.getByRole('button', { name: 'Ajouter une ville' })).toBeDisabled()
+    expect(screen.getByRole('status')).toHaveTextContent('Ville ajoutée. Complétez les pages Conciergerie et Séminaires avant activation.')
     expect(refresh).toHaveBeenCalledTimes(1)
   })
 

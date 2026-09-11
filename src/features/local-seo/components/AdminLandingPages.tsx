@@ -134,7 +134,7 @@ export function AdminLandingPages({ initialDestinations, eligibleCities }: Props
       setPages(created.pages)
       setAdding(false)
       setCityId('')
-      setMessage('Ville ajoutée. Complétez les trois pages avant activation.')
+      setMessage('Ville ajoutée. Complétez les pages Conciergerie et Séminaires avant activation.')
       router.refresh()
     } catch { setError(['Connexion impossible. Réessayez.']) }
     finally { setPendingId(null) }
