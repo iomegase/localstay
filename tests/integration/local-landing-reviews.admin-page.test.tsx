@@ -1,21 +1,62 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { AdminLandingPages } from '@/features/local-seo/components/AdminLandingPages'
+import type { AdminLandingDestinationDto } from '@/features/local-seo/types/landing-pages'
+import { LOCAL_LANDING_INTENTS } from '@/features/local-seo/types/landing-pages'
+import { landingPageInput } from '../fixtures/local-landing-management'
 
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }))
+const refresh = jest.fn()
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
+
+const fetchMock = jest.fn()
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  global.fetch = fetchMock
+})
 
 describe('047 landing pages admin UI', () => {
-  it('lists catalog cities and exposes the review form', () => {
-    render(<AdminLandingPages initialPages={[
-      { slug: 'saint-gervais-les-bains', name: 'Saint-Gervais-les-Bains', published: true, reviews: [] },
-      { slug: 'saint-nicolas-de-veroce', name: 'Saint-Nicolas-de-Véroce', published: true, reviews: [] },
-      { slug: 'megeve', name: 'Megève', published: false, reviews: [] },
-      { slug: 'combloux', name: 'Combloux', published: false, reviews: [] },
-    ]} />)
+  it('lists configured cities and keeps reviews associated with the selected city', () => {
+    const rows: AdminLandingDestinationDto[] = ['Megève', 'Combloux'].map((name, index) => ({
+      id: `destination-${index}`, city: { id: `city-${index}`, name, slug: index === 0 ? 'megeve' : 'combloux' },
+      is_active: true, pages: LOCAL_LANDING_INTENTS.map(landingPageInput),
+      publication: { concierge: true, seminar: true, vacationRental: false },
+      contentIssues: [], publicLodgingCount: 0, reviewCount: 0, reviews: [],
+      created_at: '2026-09-08T12:00:00.000Z', updated_at: '2026-09-08T12:00:00.000Z',
+    }))
+    render(<AdminLandingPages initialDestinations={rows} eligibleCities={[]} />)
     expect(screen.getByRole('heading', { name: 'Landing pages' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Saint-Nicolas-de-Véroce/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Avis de Megève' })).toBeInTheDocument()
     expect(screen.getByLabelText('Auteur')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Publier l’avis' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Auteur'), { target: { value: 'Auteur à Megève' } })
+    fireEvent.click(within(screen.getByRole('table')).getByRole('button', { name: 'Modifier Combloux' }))
+    expect(screen.getByRole('heading', { name: 'Avis de Combloux' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Auteur')).toHaveValue('')
+  })
+
+  it('restores review controls and reports a network failure without refreshing', async () => {
+    const row: AdminLandingDestinationDto = {
+      id: 'destination-1', city: { id: 'city-1', name: 'Megève', slug: 'megeve' },
+      is_active: true, pages: LOCAL_LANDING_INTENTS.map(landingPageInput),
+      publication: { concierge: true, seminar: true, vacationRental: false },
+      contentIssues: [], publicLodgingCount: 0, reviewCount: 0, reviews: [],
+      created_at: '2026-09-08T12:00:00.000Z', updated_at: '2026-09-08T12:00:00.000Z',
+    }
+    render(<AdminLandingPages initialDestinations={[row]} eligibleCities={[]} />)
+    const table = within(screen.getByRole('table', { name: 'Landings par ville' }))
+    fireEvent.change(screen.getByLabelText('Auteur'), { target: { value: 'Marie' } })
+    fireEvent.change(screen.getByLabelText('Avis'), { target: { value: 'Un séjour parfaitement accompagné par MyStay.' } })
+    let reject: (reason: Error) => void = () => undefined
+    fetchMock.mockReturnValueOnce(new Promise((_, rejectPromise) => { reject = rejectPromise }))
+    fireEvent.click(screen.getByRole('button', { name: 'Publier l’avis' }))
+    expect(table.getByRole('button', { name: 'Modifier Megève' })).toBeDisabled()
+    expect(table.getByRole('switch', { name: 'Archiver Megève' })).toBeDisabled()
+    reject(new Error('offline'))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Connexion impossible'))
+    expect(screen.getByRole('button', { name: 'Publier l’avis' })).toBeEnabled()
+    expect(screen.getByLabelText('Auteur')).toHaveValue('Marie')
+    expect(refresh).not.toHaveBeenCalled()
   })
 })

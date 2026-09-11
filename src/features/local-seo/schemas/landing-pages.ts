@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { LOCAL_LANDING_INTENTS } from '../types/landing-pages'
+import { LANDING_REVIEW_SOURCES } from '../types/landing-reviews'
+import type { AdminLandingDestinationDto } from '../types/landing-pages'
 
 const requiredText = z.string().trim().min(3).max(2000)
 
@@ -102,6 +104,96 @@ export const LandingPagesUpdateSchema = z.object({
     })
   }
 })
+
+const editableRepeatableItemSchema = z.object({
+  title: z.string(),
+  copy: z.string(),
+}).strict()
+
+const editableFaqSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+}).strict()
+
+const editableLandingPageSchema = z.object({
+  intent: z.enum(LOCAL_LANDING_INTENTS),
+  seo_title: z.string(),
+  meta_description: z.string(),
+  eyebrow: z.string(),
+  h1: z.string(),
+  hero_title: z.string(),
+  hero_copy: z.string(),
+  reassurance: z.string().nullable(),
+  section_title: z.string(),
+  section_copy: z.string(),
+  process_title: z.string().nullable(),
+  local_title: z.string(),
+  local_copy: z.string(),
+  cta_label: z.string(),
+  cta_href: z.string(),
+  empty_copy: z.string().nullable(),
+  highlights: z.array(editableRepeatableItemSchema),
+  steps: z.array(editableRepeatableItemSchema),
+  faq: z.array(editableFaqSchema),
+}).strict()
+
+const editableLandingPagesSchema = z.array(editableLandingPageSchema).length(3).superRefine((pages, context) => {
+  const intents = pages.map(page => page.intent)
+  if (LOCAL_LANDING_INTENTS.some(intent => intents.filter(candidate => candidate === intent).length !== 1)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'La réponse doit contenir les trois intentions une seule fois chacune.',
+    })
+  }
+})
+
+const landingReviewDtoSchema = z.object({
+  id: z.string(),
+  destination_id: z.string(),
+  destination_slug: z.string(),
+  author: z.string(),
+  quote: z.string(),
+  stay_date: z.string().nullable(),
+  source: z.enum(LANDING_REVIEW_SOURCES),
+  rating: z.number().int().min(1).max(5).nullable(),
+  sort_order: z.number().int(),
+  is_active: z.boolean(),
+  deleted_with_destination: z.boolean(),
+  deleted_at: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+}).strict()
+
+export const AdminLandingDestinationResponseSchema: z.ZodType<AdminLandingDestinationDto> = z.object({
+  id: z.string(),
+  city: z.object({ id: z.string(), name: z.string(), slug: z.string() }).strict(),
+  is_active: z.boolean(),
+  pages: editableLandingPagesSchema,
+  publication: z.object({
+    concierge: z.boolean(),
+    seminar: z.boolean(),
+    vacationRental: z.boolean(),
+  }).strict(),
+  contentIssues: z.array(z.object({
+    intent: z.enum(LOCAL_LANDING_INTENTS),
+    field: z.string(),
+    message: z.string(),
+  }).strict()),
+  publicLodgingCount: z.number().int().nonnegative(),
+  reviewCount: z.number().int().nonnegative(),
+  reviews: z.array(landingReviewDtoSchema),
+  created_at: z.string(),
+  updated_at: z.string(),
+}).strict()
+
+export const LandingDestinationDeleteResponseSchema = z.object({ id: z.string() }).strict()
+
+export const LandingAdminApiErrorResponseSchema = z.object({
+  error: z.object({
+    message: z.string().optional(),
+    details: z.unknown().optional(),
+  }).passthrough(),
+}).passthrough()
 
 export type LandingDestinationInput = z.infer<typeof LandingDestinationInputSchema>
 export type LandingPublicationInput = z.infer<typeof LandingPublicationInputSchema>

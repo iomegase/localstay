@@ -1,165 +1,187 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Archive, Pencil, Plus, RotateCcw, Star } from 'lucide-react'
-import type { AdminLandingPageDto, LandingReviewDto, LandingReviewSource } from '../types/landing-reviews'
+import { Plus } from 'lucide-react'
+import { Button } from '@/shared/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/components/ui/alert-dialog'
+import type { ZodType } from 'zod'
+import {
+  AdminLandingDestinationResponseSchema,
+  LandingAdminApiErrorResponseSchema,
+  LandingDestinationDeleteResponseSchema,
+} from '../schemas/landing-pages'
+import type { AdminLandingDestinationDto, EligibleLandingCityDto, LocalLandingPageInput } from '../types/landing-pages'
+import { AdminLandingDestinationTable } from './AdminLandingDestinationTable'
+import { AdminLandingReviews } from './AdminLandingReviews'
+import { LandingPageEditor } from './LandingPageEditor'
 
-type FormState = {
-  author: string
-  quote: string
-  stay_date: string
-  source: LandingReviewSource
-  rating: string
-  sort_order: string
+// API details include both per-intent missing fields and nested Zod field errors.
+function errorDetails(value: unknown, path = ''): string[] {
+  if (typeof value === 'string') return [`${path ? `${path} : ` : ''}${value}`]
+  if (Array.isArray(value)) return value.flatMap(item => errorDetails(item, path))
+  if (value && typeof value === 'object') return Object.entries(value).flatMap(([key, item]) => errorDetails(item, path ? `${path}.${key}` : key))
+  return []
 }
 
-const emptyForm: FormState = { author: '', quote: '', stay_date: '', source: 'DIRECT', rating: '', sort_order: '0' }
+type Props = { initialDestinations: AdminLandingDestinationDto[]; eligibleCities: EligibleLandingCityDto[] }
 
-export function AdminLandingPages({ initialPages }: { initialPages: AdminLandingPageDto[] }) {
+export function AdminLandingPages({ initialDestinations, eligibleCities }: Props) {
   const router = useRouter()
-  const [selectedSlug, setSelectedSlug] = useState(initialPages[0]?.slug ?? '')
-  const [editing, setEditing] = useState<LandingReviewDto | null>(null)
-  const [form, setForm] = useState<FormState>(emptyForm)
-  const [pending, setPending] = useState(false)
+  const [serverDestinations, setServerDestinations] = useState(initialDestinations)
+  const [destinations, setDestinations] = useState(initialDestinations)
+  const [serverCities, setServerCities] = useState(eligibleCities)
+  const [cities, setCities] = useState(eligibleCities)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [reviewCityId, setReviewCityId] = useState<string | null>(initialDestinations[0]?.id ?? null)
+  const [pages, setPages] = useState<LocalLandingPageInput[]>([])
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [cityId, setCityId] = useState('')
+  const [deleting, setDeleting] = useState<AdminLandingDestinationDto | null>(null)
+  const [reviewPending, setReviewPending] = useState(false)
+  const [error, setError] = useState<string[] | null>(null)
   const [message, setMessage] = useState<string | null>(null)
-  const selected = useMemo(() => initialPages.find(page => page.slug === selectedSlug), [initialPages, selectedSlug])
 
-  function edit(review: LandingReviewDto) {
-    setEditing(review)
-    setForm({
-      author: review.author,
-      quote: review.quote,
-      stay_date: review.stay_date ?? '',
-      source: review.source,
-      rating: review.rating?.toString() ?? '',
-      sort_order: review.sort_order.toString(),
-    })
-    setMessage(null)
+  // Refresh server-owned statuses and reviews without replacing unsaved editor state.
+  if (serverDestinations !== initialDestinations) {
+    setServerDestinations(initialDestinations)
+    setDestinations(initialDestinations)
+  }
+  if (serverCities !== eligibleCities) {
+    setServerCities(eligibleCities)
+    setCities(eligibleCities)
   }
 
-  function reset() {
-    setEditing(null)
-    setForm(emptyForm)
+  const selected = destinations.find(destination => destination.id === selectedId)
+  const reviewed = destinations.find(destination => destination.id === reviewCityId)
+  const busy = Boolean(pendingId) || reviewPending
+
+  function edit(destination: AdminLandingDestinationDto) {
+    setReviewCityId(destination.id)
+    setSelectedId(selectedId === destination.id ? null : destination.id)
+    setPages(destination.pages)
+    setError(null)
   }
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setPending(true)
+  async function mutate<T>(path: string, method: string, responseSchema: ZodType<T>, body?: unknown): Promise<T | null> {
+    setError(null)
     setMessage(null)
-    const response = await fetch(editing ? `/api/admin/landing-page-reviews/${editing.id}` : '/api/admin/landing-page-reviews', {
-      method: editing ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        destination_slug: selectedSlug,
-        author: form.author,
-        quote: form.quote,
-        stay_date: form.stay_date || null,
-        source: form.source,
-        rating: form.rating ? Number(form.rating) : null,
-        sort_order: Number(form.sort_order),
-      }),
-    })
-    setPending(false)
+    const response = await fetch(path, { method, ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) })
+    const result: unknown = await response.json().catch(() => null)
     if (!response.ok) {
-      setMessage('Impossible d’enregistrer cet avis. Vérifiez les champs.')
-      return
+      const payload = LandingAdminApiErrorResponseSchema.safeParse(result)
+      setError([
+        payload.success ? payload.data.error.message ?? 'Action impossible.' : 'Action impossible.',
+        ...errorDetails(payload.success ? payload.data.error.details : undefined),
+      ])
+      return null
     }
-    setMessage(editing ? 'Avis mis à jour et publié.' : 'Avis ajouté et publié.')
-    reset()
-    router.refresh()
+    const parsed = responseSchema.safeParse(result)
+    if (!parsed.success) {
+      setError(['Réponse serveur invalide. Réessayez.'])
+      return null
+    }
+    return parsed.data
   }
 
-  async function changeArchiveState(review: LandingReviewDto) {
-    setPending(true)
-    const restoring = Boolean(review.deleted_at)
-    const response = await fetch(`/api/admin/landing-page-reviews/${review.id}${restoring ? '/restore' : ''}`, {
-      method: restoring ? 'POST' : 'DELETE',
-    })
-    setPending(false)
-    setMessage(response.ok ? (restoring ? 'Avis restauré et publié.' : 'Avis archivé.') : 'Action impossible.')
-    if (response.ok) router.refresh()
+  function replace(updated: AdminLandingDestinationDto) {
+    setDestinations(current => current.map(destination => destination.id === updated.id ? updated : destination))
   }
 
-  return (
-    <div className="space-y-6">
-      <header className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">SEO local</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Landing pages</h1>
-        <p className="mt-2 text-sm text-slate-500">Gérez les avis affichés sur les pages conciergerie de chaque ville.</p>
-      </header>
+  async function publish(destination: AdminLandingDestinationDto, active: boolean) {
+    if (busy) return
+    setPendingId(destination.id)
+    replace({ ...destination, is_active: active })
+    try {
+      const updated = await mutate(`/api/admin/landing-pages/${destination.id}/publication`, 'PATCH', AdminLandingDestinationResponseSchema, { is_active: active })
+      if (!updated) { replace(destination); return }
+      replace(updated)
+      setMessage(active ? 'Landings activées.' : 'Landings archivées.')
+      router.refresh()
+    } catch {
+      replace(destination)
+      setError(['Connexion impossible. Réessayez.'])
+    } finally { setPendingId(null) }
+  }
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {initialPages.map(page => {
-          const activeCount = page.reviews.filter(review => !review.deleted_at && review.is_active).length
-          return (
-            <button key={page.slug} type="button" onClick={() => { setSelectedSlug(page.slug); reset() }}
-              className={`rounded-2xl border p-4 text-left transition ${selectedSlug === page.slug ? 'border-[#0B1437] bg-[#0B1437] text-white' : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300'}`}>
-              <span className="block text-sm font-semibold">{page.name}</span>
-              <span className={`mt-2 block text-xs ${selectedSlug === page.slug ? 'text-slate-300' : 'text-slate-500'}`}>
-                {page.published ? 'Landing publiée' : 'Landing non publiée'} · {activeCount} avis
-              </span>
-            </button>
-          )
-        })}
-      </div>
+  async function save() {
+    if (!selected || busy) return
+    setPendingId(selected.id)
+    try {
+      const updated = await mutate(`/api/admin/landing-pages/${selected.id}`, 'PATCH', AdminLandingDestinationResponseSchema, { pages })
+      if (!updated) return
+      replace(updated)
+      setPages(updated.pages)
+      setMessage('Contenus enregistrés.')
+      router.refresh()
+    } catch { setError(['Connexion impossible. Réessayez.']) }
+    finally { setPendingId(null) }
+  }
 
-      {selected && (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-          <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-950">{editing ? 'Modifier l’avis' : 'Ajouter un avis'}</h2>
-              {editing && <button type="button" onClick={reset} className="text-xs font-semibold text-slate-500">Annuler</button>}
-            </div>
-            <label className="block text-sm font-medium text-slate-700">Auteur
-              <input required minLength={2} maxLength={80} value={form.author} onChange={event => setForm({ ...form, author: event.target.value })} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" />
-            </label>
-            <label className="block text-sm font-medium text-slate-700">Avis
-              <textarea required minLength={10} maxLength={1200} rows={6} value={form.quote} onChange={event => setForm({ ...form, quote: event.target.value })} className="mt-2 w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm" />
-            </label>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-medium text-slate-700">Date du séjour
-                <input value={form.stay_date} maxLength={80} placeholder="Août 2026" onChange={event => setForm({ ...form, stay_date: event.target.value })} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" />
-              </label>
-              <label className="block text-sm font-medium text-slate-700">Source
-                <select value={form.source} onChange={event => setForm({ ...form, source: event.target.value as LandingReviewSource })} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
-                  <option value="DIRECT">Direct</option><option value="AIRBNB">Airbnb</option>
-                </select>
-              </label>
-              <label className="block text-sm font-medium text-slate-700">Note
-                <select value={form.rating} onChange={event => setForm({ ...form, rating: event.target.value })} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm">
-                  <option value="">Sans note</option>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{value}/5</option>)}
-                </select>
-              </label>
-              <label className="block text-sm font-medium text-slate-700">Ordre
-                <input type="number" min={0} max={9999} required value={form.sort_order} onChange={event => setForm({ ...form, sort_order: event.target.value })} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm" />
-              </label>
-            </div>
-            {message && <p role="status" className="text-sm text-slate-600">{message}</p>}
-            <button disabled={pending} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">
-              {editing ? <Pencil size={16} /> : <Plus size={16} />}{pending ? 'Enregistrement…' : editing ? 'Mettre à jour' : 'Publier l’avis'}
-            </button>
-          </form>
+  async function create(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!cityId || busy) return
+    setPendingId('create')
+    try {
+      const created = await mutate('/api/admin/landing-pages', 'POST', AdminLandingDestinationResponseSchema, { city_id: cityId })
+      if (!created) return
+      setDestinations(current => [...current, created])
+      setCities(current => current.filter(city => city.id !== created.city.id))
+      setSelectedId(created.id)
+      setReviewCityId(created.id)
+      setPages(created.pages)
+      setAdding(false)
+      setCityId('')
+      setMessage('Ville ajoutée. Complétez les trois pages avant activation.')
+      router.refresh()
+    } catch { setError(['Connexion impossible. Réessayez.']) }
+    finally { setPendingId(null) }
+  }
 
-          <section className="space-y-3" aria-label={`Avis de ${selected.name}`}>
-            {selected.reviews.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-500">Aucun avis pour cette ville.</div> : selected.reviews.map(review => (
-              <article key={review.id} className={`rounded-2xl border border-slate-200 bg-white p-5 ${review.deleted_at ? 'opacity-60' : ''}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div><h3 className="font-semibold text-slate-950">{review.author}</h3><p className="mt-1 text-xs text-slate-500">{review.source === 'AIRBNB' ? 'Airbnb' : 'Direct'}{review.stay_date ? ` · ${review.stay_date}` : ''} · ordre {review.sort_order}</p></div>
-                  {review.rating && <span aria-label={`${review.rating} sur 5`} className="flex items-center gap-1 text-sm font-semibold text-amber-500"><Star size={15} fill="currentColor" />{review.rating}</span>}
-                </div>
-                <p className="mt-4 text-justify text-[13px] leading-6 text-slate-600">{review.quote}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {!review.deleted_at && <button type="button" disabled={pending} onClick={() => edit(review)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold"><Pencil size={14} />Modifier</button>}
-                  <button type="button" disabled={pending} onClick={() => changeArchiveState(review)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold">
-                    {review.deleted_at ? <RotateCcw size={14} /> : <Archive size={14} />}{review.deleted_at ? 'Restaurer' : 'Archiver'}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </section>
+  async function remove() {
+    if (!deleting || busy) return
+    const destination = deleting
+    setPendingId(destination.id)
+    try {
+      const result = await mutate(`/api/admin/landing-pages/${destination.id}`, 'DELETE', LandingDestinationDeleteResponseSchema)
+      if (!result) return
+      setDestinations(current => current.filter(row => row.id !== destination.id))
+      if (selectedId === destination.id) setSelectedId(null)
+      if (reviewCityId === destination.id) setReviewCityId(null)
+      setDeleting(null)
+      setMessage('Landings supprimées.')
+      router.refresh()
+    } catch { setError(['Connexion impossible. Réessayez.']) }
+    finally { setPendingId(null) }
+  }
+
+  return <div className="min-w-0 space-y-6">
+    <header className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">SEO local</p>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Landing pages</h1>
+      <p className="mt-2 text-sm text-slate-500">Gérez les contenus, la publication et les avis des trois pages de chaque ville.</p>
+    </header>
+    {error ? <div role="alert" className="break-words rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error.map((line, index) => <p key={index}>{line}</p>)}</div> : null}
+    {message ? <p role="status" className="text-sm text-slate-700">{message}</p> : null}
+    <AdminLandingDestinationTable destinations={destinations} pendingId={pendingId ?? (reviewPending ? 'review' : null)} selectedId={selectedId} onEdit={edit} onPublication={publish} onDelete={setDeleting}
+      editor={selected ? <LandingPageEditor key={selected.id} cityName={selected.city.name} pages={pages} onChange={setPages} onSubmit={save} pending={busy} /> : null} />
+    <div className="space-y-4">
+      <Button type="button" variant="outline" disabled={cities.length === 0 || busy} onClick={() => setAdding(!adding)}><Plus />Ajouter une ville</Button>
+      {adding ? <form onSubmit={create} className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="w-full min-w-0 space-y-2 sm:w-72"><label htmlFor="landing-city" className="text-sm font-medium">Ville existante</label>
+          <Select value={cityId} onValueChange={setCityId} disabled={busy}><SelectTrigger id="landing-city"><SelectValue placeholder="Choisir une ville" /></SelectTrigger><SelectContent>{cities.map(city => <SelectItem key={city.id} value={city.id}>{city.name}</SelectItem>)}</SelectContent></Select>
         </div>
-      )}
+        <Button type="submit" disabled={!cityId || busy}>Créer les landings</Button>
+      </form> : null}
     </div>
-  )
+    {reviewed ? <AdminLandingReviews key={reviewed.id} selected={{ slug: reviewed.city.slug, name: reviewed.city.name, published: reviewed.publication.concierge, reviews: reviewed.reviews }} disabled={Boolean(pendingId)} onPendingChange={setReviewPending} /> : null}
+    <AlertDialog open={Boolean(deleting)} onOpenChange={open => { if (!open && !busy) setDeleting(null) }}>
+      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer les landings de {deleting?.city.name} ?</AlertDialogTitle><AlertDialogDescription>Les trois pages et leurs avis seront supprimés. Les logements, POI, articles, guides et la ville sont conservés.</AlertDialogDescription></AlertDialogHeader>
+        {error ? <p className="break-words text-sm text-red-700">{error.join(' ')}</p> : null}
+        <AlertDialogFooter><AlertDialogCancel disabled={busy}>Annuler</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={event => { event.preventDefault(); void remove() }}>Supprimer les landings</AlertDialogAction></AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </div>
 }
