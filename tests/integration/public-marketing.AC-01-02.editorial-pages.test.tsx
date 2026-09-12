@@ -3,6 +3,9 @@
 import { render, screen, within } from '@testing-library/react'
 
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }))
+jest.mock('@/features/local-seo/queries/landing-pages', () => ({
+  listPublishedLocalLandingSummaries: jest.fn(async () => []),
+}))
 
 import ConceptPage from '@/app/(public)/concept/page'
 import ConnexionPage from '@/app/(public)/connexion/page'
@@ -18,8 +21,8 @@ describe('031-public-marketing-site editorial routes', () => {
     ).not.toHaveLength(0)
   })
 
-  it('renders the seminars page from the approved mockup', () => {
-    render(<SeminarsPage />)
+  it('renders the seminars page from the approved mockup', async () => {
+    render(await SeminarsPage())
     expect(screen.getByRole('heading', { level: 1, name: /Réunir vos équipes/i })).toBeInTheDocument()
     expect(screen.getByTestId('seminar-hero')).toHaveClass(
       'min-[761px]:min-h-[590px]',
@@ -42,8 +45,8 @@ describe('031-public-marketing-site editorial routes', () => {
     expect(screen.getByTestId('seminar-process')).toHaveTextContent('Quatre étapes, aucun flou')
   })
 
-  it('uses the persistent owner contact flow without mailto', () => {
-    render(<OwnerContactPage />)
+  it('uses the persistent owner contact flow without mailto', async () => {
+    render(await OwnerContactPage())
     expect(screen.getByRole('form')).not.toHaveAttribute('action')
     expect(screen.getByRole('button', { name: 'Envoyer ma demande' })).toBeInTheDocument()
   })

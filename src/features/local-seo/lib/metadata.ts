@@ -1,47 +1,34 @@
 import type { Metadata } from 'next'
-import { truncate } from '@/features/seo/lib/metadata'
 import { SITE } from '@/features/seo/lib/site'
-import type { LocalSeoDestination, LocalSeoIntent } from '../content/destinations'
+import type { LocalSeoIntent } from '../types/landing-pages'
+import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { localSeoPath } from './paths'
 
-function contentForIntent(destination: LocalSeoDestination, intent: LocalSeoIntent) {
-  if (intent === 'vacation-rental') return destination.services.vacationRental
-  return destination.services[intent]
-}
-
-function titleForIntent(destination: LocalSeoDestination, intent: LocalSeoIntent): string {
-  if (intent === 'concierge') return `Conciergerie à ${destination.name}`
-  if (intent === 'seminar') return `Séminaire à ${destination.name}`
-  return `Locations de vacances à ${destination.name}`
-}
-
 export function localSeoMetadata(
-  destination: LocalSeoDestination,
+  landing: PublicLocalLandingDto,
   intent: LocalSeoIntent,
-  indexable: boolean,
 ): Metadata {
-  const title = titleForIntent(destination, intent)
-  const brandedTitle = `${title} | MyStay`
-  const description = truncate(contentForIntent(destination, intent).metaDescription)
-  const path = localSeoPath(intent, destination.slug)
+  const title = landing.page.seo_title
+  const description = landing.page.meta_description
+  const path = localSeoPath(intent, landing.city.slug)
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: path },
-    robots: { index: indexable, follow: indexable || intent === 'vacation-rental' },
+    robots: { index: true, follow: true },
     openGraph: {
       type: 'website',
       locale: SITE.locale,
       siteName: SITE.name,
-      title: brandedTitle,
+      title,
       description,
       url: path,
       images: ['/og-mystay.png'],
     },
     twitter: {
       card: 'summary_large_image',
-      title: brandedTitle,
+      title,
       description,
       images: ['/og-mystay.png'],
     },

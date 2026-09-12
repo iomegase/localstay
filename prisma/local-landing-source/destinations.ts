@@ -1,3 +1,4 @@
+// Frozen legacy import source for spec 048. Runtime reads persisted landing pages.
 export type LocalSeoIntent = 'concierge' | 'seminar' | 'vacation-rental'
 export type LocalServiceIntent = Extract<LocalSeoIntent, 'concierge' | 'seminar'>
 

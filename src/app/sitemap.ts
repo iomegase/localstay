@@ -6,6 +6,9 @@ import { localSeoSitemapPaths } from '@/features/local-seo/lib/sitemap'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { cities, pois, lodgings, blogArticles } = await getSitemapData()
+  const localLandingPaths = await localSeoSitemapPaths(
+    lodgings.flatMap(lodging => lodging.city_slug ? [lodging.city_slug] : []),
+  )
   return buildSitemapEntries({
     baseUrl: siteBaseUrl(),
     cities,
@@ -19,9 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '/confier-mon-logement',
       '/logements',
       '/blog',
-      ...localSeoSitemapPaths(
-        lodgings.flatMap(lodging => lodging.city_slug ? [lodging.city_slug] : []),
-      ),
+      ...localLandingPaths,
     ],
   })
 }

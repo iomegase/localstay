@@ -7,6 +7,8 @@ const mockCreateLodging = jest.fn()
 const mockFindFirstCity = jest.fn()
 const mockFindFirstLodging = jest.fn()
 const mockUpdateLodging = jest.fn()
+const mockRevalidatePath = jest.fn()
+jest.mock('next/cache', () => ({ revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args) }))
 
 jest.mock('@/shared/lib/supabase', () => ({
   createSupabaseRouteClient: jest.fn(async function() {
@@ -45,7 +47,8 @@ const mockLodging = {
   is_active: true,
   created_at: new Date('2026-01-01'),
   deleted_at: null,
-  city: { name: 'Saint-Gervais' },
+  city: { name: 'Saint-Gervais', slug: 'saint-gervais-les-bains' },
+  public_profile: { city: { slug: 'saint-gervais-les-bains' } },
   analytics: [{ event_type: 'qr_scan' }, { event_type: 'qr_scan' }],
   qr_codes: [{ id: 'qr-1' }],
 }
@@ -183,6 +186,7 @@ describe('PATCH /api/dashboard/lodgings/[id]', () => {
     )
     const json = await res.json()
     expect(json.is_active).toBe(false)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/saint-gervais-les-bains', 'page')
     expect(json.qr_code_status).toBe('missing')
   })
 
@@ -199,6 +203,19 @@ describe('PATCH /api/dashboard/lodgings/[id]', () => {
     const json = await res.json()
     expect(json.error.code).toBe('CITY_NOT_FOUND')
     expect(mockUpdateLodging).not.toHaveBeenCalled()
+  })
+
+  it('revalidates the former and new vacation city when reassigning a lodging', async () => {
+    mockFindFirstLodging.mockResolvedValue(mockLodging)
+    mockFindFirstCity.mockResolvedValue({ id: UNKNOWN_CITY_UUID, name: 'Megève', slug: 'megeve' })
+    mockUpdateLodging.mockResolvedValue({ ...mockLodging, city_id: UNKNOWN_CITY_UUID, city: { name: 'Megève', slug: 'megeve' } })
+    const response = await PATCH(makeIdRequest('PATCH', 'lodging-1', { city_id: UNKNOWN_CITY_UUID }), { params: Promise.resolve({ id: 'lodging-1' }) })
+    expect(response.status).toBe(200)
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/saint-gervais-les-bains', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/megeve', 'page')
+    expect(mockUpdateLodging).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ public_profile: { update: { city_id: UNKNOWN_CITY_UUID } } }),
+    }))
   })
 
   it('rejects reactivation through PATCH', async () => {

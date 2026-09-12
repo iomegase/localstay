@@ -7,6 +7,8 @@ import {
   saveOwnerPublicProfile,
 } from '@/features/lodging-showcase/queries/owner-public-profile'
 import type { LodgingPublicProfileInput } from '@/features/lodging-showcase/schemas'
+import { revalidatePath } from 'next/cache'
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
@@ -276,6 +278,7 @@ describe('writePublicProfileForLodging slug stability and global lookup', () => 
         slug: 'admin-permanent-public-url',
         publication_status: 'archived',
         published_at: new Date('2026-08-20T12:00:00.000Z'),
+        city: { slug: 'chamonix' },
       })
       .mockResolvedValueOnce(null)
 
@@ -290,5 +293,7 @@ describe('writePublicProfileForLodging slug stability and global lookup', () => 
         }),
       }),
     )
+    expect(revalidatePath).toHaveBeenCalledWith('/locations-vacances/chamonix', 'page')
+    expect(revalidatePath).toHaveBeenCalledWith('/locations-vacances/annecy', 'page')
   })
 })

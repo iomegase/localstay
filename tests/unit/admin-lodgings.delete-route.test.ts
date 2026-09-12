@@ -2,6 +2,8 @@ const mockGetSessionAdmin = jest.fn()
 const mockFindUnique = jest.fn()
 const mockTransaction = jest.fn()
 const mockHardDeleteLodging = jest.fn().mockResolvedValue(undefined)
+const mockRevalidatePath = jest.fn()
+jest.mock('next/cache', () => ({ revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args) }))
 
 jest.mock('@/features/merchant/lib/session', () => ({ getSessionAdmin: () => mockGetSessionAdmin() }))
 jest.mock('@/shared/lib/prisma', () => ({
@@ -24,7 +26,7 @@ describe('DELETE /api/admin/lodgings/[id]', () => {
     jest.clearAllMocks()
     mockGetSessionAdmin.mockResolvedValue({ error: null })
     mockTransaction.mockImplementation(async (fn: (c: unknown) => unknown) => fn({}))
-    mockFindUnique.mockResolvedValue({ id: VALID })
+    mockFindUnique.mockResolvedValue({ id: VALID, city: { slug: 'megeve' }, public_profile: { city: { slug: 'combloux' } } })
   })
 
   it('returns 403 when not admin', async () => {
@@ -45,5 +47,8 @@ describe('DELETE /api/admin/lodgings/[id]', () => {
     const res = await DELETE(new Request('http://x'), ctx(VALID))
     expect(res.status).toBe(200)
     expect(mockHardDeleteLodging).toHaveBeenCalled()
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/megeve', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/locations-vacances/combloux', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 })

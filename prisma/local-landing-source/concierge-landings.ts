@@ -1,3 +1,4 @@
+// Frozen legacy import source for spec 048. Runtime reads persisted landing pages.
 import type { LocalSeoDestination } from './destinations'
 
 type ConciergeFaq = {

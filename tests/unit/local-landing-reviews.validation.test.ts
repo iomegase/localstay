@@ -11,15 +11,21 @@ const valid = {
 }
 
 describe('047 landing review validation', () => {
-  it('accepts a complete review for a catalog destination', () => {
+  it('accepts a complete review with a canonical destination slug', () => {
     expect(LandingReviewInputSchema.safeParse(valid).success).toBe(true)
   })
 
   it.each([
-    { ...valid, destination_slug: 'unknown' },
+    { ...valid, destination_slug: '../unknown' },
+    { ...valid, destination_slug: 'Wrong Shape' },
+    { ...valid, destination_slug: '' },
     { ...valid, rating: 6 },
     { ...valid, quote: 'Court' },
   ])('rejects invalid public data', input => {
     expect(LandingReviewInputSchema.safeParse(input).success).toBe(false)
+  })
+
+  it('accepts dynamically configured City slugs and normalizes outer whitespace', () => {
+    expect(LandingReviewInputSchema.parse({ ...valid, destination_slug: '  chamonix-mont-blanc  ' }).destination_slug).toBe('chamonix-mont-blanc')
   })
 })

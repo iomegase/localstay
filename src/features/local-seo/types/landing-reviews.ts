@@ -4,6 +4,7 @@ export type LandingReviewSource = (typeof LANDING_REVIEW_SOURCES)[number]
 
 export type LandingReviewDto = {
   id: string
+  destination_id: string
   destination_slug: string
   author: string
   quote: string
@@ -12,6 +13,7 @@ export type LandingReviewDto = {
   rating: number | null
   sort_order: number
   is_active: boolean
+  deleted_with_destination: boolean
   deleted_at: string | null
   created_at: string
   updated_at: string

@@ -3,6 +3,12 @@
 import { render, screen } from '@testing-library/react'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
+import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-pages'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
+import { buildLocalLandingBackfill } from '../../prisma/backfill-local-landing-destinations'
+import { legacyConciergeServices, legacyConciergeSteps, legacyConciergeProcessTitle } from '../fixtures/legacy-concierge-blocks'
+
+jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn() }))
 
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgings: jest.fn().mockResolvedValue([
@@ -62,6 +68,9 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     localHeading,
     guideHref,
   }) => {
+    const landing = publicLocalLanding('CONCIERGE', { id: slug, name: city, slug })
+    landing.page = buildLocalLandingBackfill().find(seed => seed.slug === slug)!.pages[0]
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const page = await ConciergeCityPage({
       params: Promise.resolve({ 'city-slug': slug }),
     })
@@ -79,7 +88,14 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
       'href',
       guideHref,
     )
-    expect(screen.getByText('Comment se passe la mise en gestion ?')).toBeInTheDocument()
+    const services = screen.getByRole('heading', { name: 'Nous prenons soin de votre location' }).parentElement!
+    expect(Array.from(services.querySelectorAll('article'), article => [
+      article.querySelector('h3')?.textContent, article.querySelector('p')?.textContent,
+    ])).toEqual(legacyConciergeServices)
+    const process = screen.getByRole('heading', { name: legacyConciergeProcessTitle }).parentElement!
+    expect(Array.from(process.querySelectorAll('li'), step => [
+      step.querySelector('h3')?.textContent, step.querySelector('p')?.textContent,
+    ])).toEqual(legacyConciergeSteps)
     expect(screen.queryByText("L'expérience de nos voyageurs")).not.toBeInTheDocument()
     expect(container.querySelectorAll('h1')).toHaveLength(1)
     expect(container.innerHTML).not.toContain('aggregateRating')

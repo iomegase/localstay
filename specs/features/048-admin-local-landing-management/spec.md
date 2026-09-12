@@ -74,7 +74,8 @@ la spec 047, dont les avis deviennent rattachés à une configuration persistée
   sans écriture partielle.
 - **AC-02-05**: Si la seule configuration antérieure de la City est soft-deleted,
   l'ajout réinitialise cette configuration avec trois contenus vides et inactifs ;
-  les anciens avis restent soft-deleted et invisibles.
+  les anciens avis restent soft-deleted, invisibles dans l'Admin et sur le public,
+  et ne peuvent pas être restaurés. L'archivage individuel d'un avis reste restaurable.
 
 ### US-03 — Éditer les trois contenus au même endroit
 
@@ -178,6 +179,10 @@ la spec 047, dont les avis deviennent rattachés à une configuration persistée
   n'est généré par les contenus administrables.
 - **BR-17**: Toutes les mutations sont réservées au rôle Admin.
 - **BR-18**: Aucune suppression physique n'est autorisée.
+- **BR-19**: Les avis supprimés avec leur destination portent
+  `deleted_with_destination = true`. Ce marqueur persiste après réinitialisation
+  de la destination et exclut ces avis des lectures et de la restauration.
+  L'archivage individuel conserve `deleted_with_destination = false`.
 
 ## Data Model
 
@@ -237,6 +242,7 @@ model LocalLandingPage {
 
 model LocalLandingReview {
   // Champs existants conservés.
+  deleted_with_destination Boolean @default(false)
   destination_id String
   destination    LocalLandingDestination @relation(fields: [destination_id], references: [id])
 }
@@ -258,25 +264,30 @@ paths:
     get:
       responses:
         '200': { description: Destinations, états, contenus, avis et villes éligibles }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
     post:
       requestBody: { required: true, description: city_id d'une City existante }
       responses:
         '201': { description: Destination et trois pages inactives créées }
         '400': { description: VALIDATION_ERROR }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
+        '404': { description: NOT_FOUND si la City est absente ou inactive }
         '409': { description: DESTINATION_ALREADY_EXISTS }
   /api/admin/landing-pages/{id}:
     patch:
       requestBody: { required: true, description: Contenus des trois intentions }
       responses:
         '200': { description: Contenus mis à jour }
-        '400': { description: VALIDATION_ERROR }
+        '400': { description: VALIDATION_ERROR ou INCOMPLETE_CONTENT pour une destination active }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }
     delete:
       responses:
         '200': { description: Destination, pages et avis soft-deleted }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }
   /api/admin/landing-pages/{id}/publication:
@@ -285,6 +296,7 @@ paths:
       responses:
         '200': { description: État global mis à jour }
         '400': { description: INCOMPLETE_CONTENT avec champs manquants }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }
 ```

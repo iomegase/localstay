@@ -1,37 +1,10 @@
-import {
-  getLocalSeoDestination,
-  localSeoDestinations,
-  listPublishedServiceDestinations,
-} from '@/features/local-seo/content/destinations'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
 import { localSeoPath } from '@/features/local-seo/lib/paths'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
 
-describe('046 local SEO destination catalogue and metadata', () => {
-  it('contains exactly the four approved destinations', () => {
-    expect(localSeoDestinations.map(destination => destination.slug)).toEqual([
-      'saint-gervais-les-bains',
-      'saint-nicolas-de-veroce',
-      'megeve',
-      'combloux',
-    ])
-  })
-
-  it.each(['concierge', 'seminar'] as const)(
-    'publishes %s only in the two active service areas',
-    intent => {
-      expect(listPublishedServiceDestinations(intent).map(destination => destination.slug)).toEqual([
-        'saint-gervais-les-bains',
-        'saint-nicolas-de-veroce',
-      ])
-      expect(getLocalSeoDestination('megeve')?.services[intent].published).toBe(false)
-      expect(getLocalSeoDestination('combloux')?.services[intent].published).toBe(false)
-    },
-  )
-
+describe('046 local SEO metadata with persisted content under spec 048', () => {
   it('builds intent-specific paths and indexable local metadata', () => {
-    const destination = getLocalSeoDestination('saint-gervais-les-bains')
-    expect(destination).not.toBeNull()
-    if (!destination) return
+    const destination = { id: 'city-1', slug: 'saint-gervais-les-bains', name: 'Saint-Gervais-les-Bains' }
 
     expect(localSeoPath('concierge', destination.slug)).toBe(
       '/conciergerie/saint-gervais-les-bains',
@@ -43,35 +16,34 @@ describe('046 local SEO destination catalogue and metadata', () => {
       '/locations-vacances/saint-gervais-les-bains',
     )
 
-    const metadata = localSeoMetadata(destination, 'concierge', true)
-    expect(metadata.title).toBe('Conciergerie à Saint-Gervais-les-Bains')
+    const landing = publicLocalLanding('CONCIERGE', { id: 'city-1', name: destination.name, slug: destination.slug })
+    const metadata = localSeoMetadata(landing, 'concierge')
+    expect(metadata.title).toEqual({ absolute: landing.page.seo_title })
     expect(metadata.description).toContain('Saint-Gervais-les-Bains')
     expect(metadata.alternates?.canonical).toBe('/conciergerie/saint-gervais-les-bains')
     expect(metadata.openGraph).toEqual(expect.objectContaining({
-      title: 'Conciergerie à Saint-Gervais-les-Bains | MyStay',
+      title: landing.page.seo_title,
       url: '/conciergerie/saint-gervais-les-bains',
     }))
     expect(metadata.robots).toEqual({ index: true, follow: true })
   })
 
-  it('keeps known empty rental destinations accessible but noindex, follow', () => {
-    const destination = getLocalSeoDestination('megeve')
-    expect(destination).not.toBeNull()
-    if (!destination) return
-
-    const metadata = localSeoMetadata(destination, 'vacation-rental', false)
-    expect(metadata.title).toBe('Locations de vacances à Megève')
+  it('indexes persisted published rental destinations under spec 048', () => {
+    const landing = publicLocalLanding('VACATION_RENTAL')
+    const metadata = localSeoMetadata(landing, 'vacation-rental')
+    expect(metadata.title).toEqual({ absolute: landing.page.seo_title })
     expect(metadata.alternates?.canonical).toBe('/locations-vacances/megeve')
-    expect(metadata.robots).toEqual({ index: false, follow: true })
+    expect(metadata.robots).toEqual({ index: true, follow: true })
   })
 
-  it('uses unique principal copy for every city and intent', () => {
-    const copy = localSeoDestinations.flatMap(destination => [
-      destination.services.concierge.intro,
-      destination.services.seminar.intro,
-      destination.services.vacationRental.intro,
-    ])
-
-    expect(new Set(copy).size).toBe(copy.length)
+  it.each(['megeve', 'combloux'])('uses saved metadata when %s is published', slug => {
+    const landing = publicLocalLanding('CONCIERGE', { id: `city-${slug}`, slug, name: slug })
+    landing.page.seo_title = `Titre édité pour ${slug}`
+    landing.page.meta_description = `Description éditée pour ${slug}`
+    const metadata = localSeoMetadata(landing, 'concierge')
+    expect(metadata.title).toEqual({ absolute: landing.page.seo_title })
+    expect(metadata.description).toBe(landing.page.meta_description)
+    expect(metadata.alternates?.canonical).toBe(`/conciergerie/${slug}`)
+    expect(metadata.robots).toEqual({ index: true, follow: true })
   })
 })

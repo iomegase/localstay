@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import {
-  getLocalSeoDestination,
-  listPublishedServiceDestinations,
-} from '@/features/local-seo/content/destinations'
+  getPublishedLocalLanding,
+  listPublishedLocalLandingSummaries,
+} from '@/features/local-seo/queries/landing-pages'
 import { LocalConciergeLanding } from '@/features/local-seo/components/LocalConciergeLanding'
-import { getLocalConciergeLandingContent } from '@/features/local-seo/content/concierge-landings'
 import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
@@ -18,58 +17,47 @@ type PageProps = {
   params: Promise<{ 'city-slug': string }>
 }
 
-export function generateStaticParams() {
-  return listPublishedServiceDestinations('concierge').map(destination => ({
-    'city-slug': destination.slug,
-  }))
+export async function generateStaticParams() {
+  const destinations = await listPublishedLocalLandingSummaries()
+  return destinations.filter(destination => destination.publication.concierge)
+    .map(destination => ({ 'city-slug': destination.city.slug }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { 'city-slug': citySlug } = await params
-  const destination = getLocalSeoDestination(citySlug)
-  if (!destination || !destination.services.concierge.published) {
+  const landing = await getPublishedLocalLanding(citySlug, 'CONCIERGE')
+  if (!landing) {
     return {
       title: 'Conciergerie locale introuvable',
       robots: { index: false, follow: false },
     }
   }
 
-  return localSeoMetadata(destination, 'concierge', true)
+  return localSeoMetadata(landing, 'concierge')
 }
 
 export default async function ConciergeCityPage({ params }: PageProps) {
   const { 'city-slug': citySlug } = await params
-  const destination = getLocalSeoDestination(citySlug)
-  if (!destination || !destination.services.concierge.published) {
-    notFound()
-    return null
-  }
+  const landing = await getPublishedLocalLanding(citySlug, 'CONCIERGE')
+  if (!landing) notFound()
 
-  const path = localSeoPath('concierge', destination.slug)
+  const path = localSeoPath('concierge', landing.city.slug)
   const breadcrumb = breadcrumbSchema([
     { name: 'Accueil', path: '/' },
     { name: 'Confier mon logement', path: '/confier-mon-logement' },
-    { name: destination.services.concierge.h1, path },
+    { name: landing.page.h1, path },
   ])
-  const service = localServiceSchema({
-    name: destination.services.concierge.h1,
-    description: destination.services.concierge.metaDescription,
-    cityName: destination.name,
-    path,
-    serviceType: 'Gestion et conciergerie de locations saisonnières',
-  })
+  const service = localServiceSchema(landing, 'concierge')
   const [lodgings, reviews] = await Promise.all([
     listPublishedLodgings({ limit: 3 }),
-    listPublicLandingReviews(destination.slug),
+    listPublicLandingReviews(landing.city.slug),
   ])
-  const content = getLocalConciergeLandingContent(destination)
 
   return (
     <>
       <JsonLd data={[breadcrumb, service]} />
       <LocalConciergeLanding
-        destination={destination}
-        content={content}
+        landing={landing}
         lodgings={lodgings}
         reviews={reviews}
       />

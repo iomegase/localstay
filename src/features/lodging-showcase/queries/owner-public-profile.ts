@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { Prisma } from '@prisma/client'
 import { detectExternalListingSource } from '../lib/source-url'
 import { evaluateProfileCompleteness } from '../lib/completeness'
+import { revalidatePublicLodgingPaths } from '../lib/revalidation'
 import {
   allocateLodgingSlug,
   LodgingSlugConflictError,
@@ -320,13 +321,18 @@ async function ensureProfileRecordForLodging(lodging: ShowcaseLodging) {
       public_contact_enabled: true,
       ...EMPTY_DRAFT_VALUES,
     },
-    update: {
-      city_id: lodging.city_id,
+    update: {},
+    select: {
+      ...ownerProfileSelect,
+      city: { select: { slug: true } },
     },
-    select: ownerProfileSelect,
   })
 
-  return { lodging, profile: formatOwnerProfile(profile) }
+  return {
+    lodging,
+    profile: formatOwnerProfile(profile),
+    profileCitySlug: profile.city.slug,
+  }
 }
 
 async function ensureOwnerProfileRecord(ownerId: string, lodgingId: string) {
@@ -382,6 +388,7 @@ async function writePublicProfileForLodging(
       slug: true,
       publication_status: true,
       published_at: true,
+      city: { select: { slug: true } },
     },
   })
   const slug = currentProfile && (
@@ -521,6 +528,7 @@ async function writePublicProfileForLodging(
     select: ownerProfileSelect,
   })
 
+  revalidatePublicLodgingPaths([currentProfile?.city?.slug, lodging.city.slug])
   return fresh ? formatOwnerProfile(fresh) : null
 }
 
@@ -593,6 +601,7 @@ export async function submitOwnerPublicProfile(ownerId: string, lodgingId: strin
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return { ok: true as const, profile: updated }
 }
 
@@ -623,6 +632,7 @@ export async function saveSourceListingUrl(
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return updated
 }
 
@@ -647,6 +657,7 @@ export async function confirmContentRights(
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return {
     content_rights_confirmed_at: updated.content_rights_confirmed_at
       ? updated.content_rights_confirmed_at.toISOString()
@@ -692,6 +703,11 @@ async function createPhotoForLodging(
       is_cover: true,
     },
   })
+
+  revalidatePublicLodgingPaths(
+    [owned.profileCitySlug, lodging.city.slug],
+    [owned.profile.slug],
+  )
 
   return {
     ...photo,
@@ -764,6 +780,7 @@ export async function saveGeneratedRewrite(
     },
   })
 
+  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return updated
 }
 
@@ -851,34 +868,52 @@ export async function createAdminLodgingPhoto(
   return createPhotoForLodging(lodging, input)
 }
 
-async function deletePhotoForLodging(lodging: { id: string }, photoId: string): Promise<boolean> {
-  const deleted = await prisma.lodgingPhoto.updateMany({
-    where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
-    data: { deleted_at: new Date() },
-  })
-  if (deleted.count === 0) return false
-
-  const profile = await prisma.lodgingPublicProfile.findUnique({
-    where: { lodging_id: lodging.id },
-    select: { id: true },
-  })
-  if (profile) {
-    const remaining = await prisma.lodgingPhoto.findMany({
-      where: { profile_id: profile.id, deleted_at: null },
-      orderBy: [{ is_cover: 'desc' }, { sort_order: 'asc' }, { created_at: 'asc' }],
-      select: { id: true, is_cover: true },
+async function deletePhotoForLodging(lodging: ShowcaseLodging, photoId: string): Promise<boolean> {
+  const result = await prisma.$transaction(async tx => {
+    const deleted = await tx.lodgingPhoto.updateMany({
+      where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
+      data: { deleted_at: new Date() },
     })
-    if (remaining.length > 0 && !remaining.some(photo => photo.is_cover)) {
-      await prisma.lodgingPhoto.update({ where: { id: remaining[0].id }, data: { is_cover: true } })
+    if (deleted.count === 0) return { deleted: false as const, profile: null }
+
+    const profile = await tx.lodgingPublicProfile.findUnique({
+      where: { lodging_id: lodging.id },
+      select: {
+        id: true,
+        slug: true,
+        city: { select: { slug: true } },
+      },
+    })
+    if (profile) {
+      const remaining = await tx.lodgingPhoto.findMany({
+        where: { profile_id: profile.id, deleted_at: null },
+        orderBy: [{ is_cover: 'desc' }, { sort_order: 'asc' }, { created_at: 'asc' }],
+        select: { id: true, is_cover: true },
+      })
+      if (remaining.length > 0 && !remaining.some(photo => photo.is_cover)) {
+        await tx.lodgingPhoto.update({ where: { id: remaining[0].id }, data: { is_cover: true } })
+      }
     }
-  }
+
+    return { deleted: true as const, profile }
+  })
+  if (!result.deleted) return false
+
+  revalidatePublicLodgingPaths(
+    [result.profile?.city.slug, lodging.city.slug],
+    [result.profile?.slug],
+  )
   return true
 }
 
-async function setCoverPhotoForLodging(lodging: { id: string }, photoId: string): Promise<boolean> {
+async function setCoverPhotoForLodging(lodging: ShowcaseLodging, photoId: string): Promise<boolean> {
   const profile = await prisma.lodgingPublicProfile.findUnique({
     where: { lodging_id: lodging.id },
-    select: { id: true },
+    select: {
+      id: true,
+      slug: true,
+      city: { select: { slug: true } },
+    },
   })
   if (!profile) return false
 
@@ -892,6 +927,11 @@ async function setCoverPhotoForLodging(lodging: { id: string }, photoId: string)
     prisma.lodgingPhoto.updateMany({ where: { profile_id: profile.id, deleted_at: null }, data: { is_cover: false } }),
     prisma.lodgingPhoto.update({ where: { id: photoId }, data: { is_cover: true } }),
   ])
+
+  revalidatePublicLodgingPaths(
+    [profile.city.slug, lodging.city.slug],
+    [profile.slug],
+  )
   return true
 }
 

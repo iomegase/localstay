@@ -1,6 +1,10 @@
 /** @jest-environment jsdom */
 
 import { render, screen } from '@testing-library/react'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
+import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-pages'
+
+jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn() }))
 
 jest.mock('next/navigation', () => ({
   notFound: jest.fn(() => {
@@ -22,7 +26,13 @@ import ConciergeCityPage, {
 import SeminarCityPage from '@/app/(public)/seminaires/[city-slug]/page'
 
 describe('046 local SEO service pages', () => {
+  beforeEach(() => { jest.mocked(getPublishedLocalLanding).mockReset() })
+
   it('renders the active Saint-Gervais concierge page and its MyStay CTA', async () => {
+    const landing = publicLocalLanding('CONCIERGE', {
+      id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains',
+    })
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const page = await ConciergeCityPage({
       params: Promise.resolve({ 'city-slug': 'saint-gervais-les-bains' }),
     })
@@ -37,12 +47,17 @@ describe('046 local SEO service pages', () => {
       '/confier-mon-logement',
     )
     expect(container.querySelectorAll('h1')).toHaveLength(1)
+    expect(screen.getByText(landing.page.eyebrow)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Vous avez un logement à Saint-Gervais-les-Bains ?' })).toBeInTheDocument()
     expect(container.innerHTML).not.toContain('font-serif')
     expect(container.innerHTML).not.toContain('scale(')
     expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull()
   })
 
   it('renders a unique active seminar page with the approved email CTA', async () => {
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(publicLocalLanding('SEMINAR', {
+      id: 'city-2', name: 'Saint-Nicolas-de-Véroce', slug: 'saint-nicolas-de-veroce',
+    }))
     const page = await SeminarCityPage({
       params: Promise.resolve({ 'city-slug': 'saint-nicolas-de-veroce' }),
     })
@@ -56,11 +71,21 @@ describe('046 local SEO service pages', () => {
       'href',
       expect.stringMatching(/^mailto:bonjour@mystay\.city/),
     )
+    expect(screen.getByRole('heading', { name: 'Préparons votre séminaire à Saint-Nicolas-de-Véroce.' })).toBeInTheDocument()
+  })
+
+  it.each(['megeve', 'combloux'])('renders %s when its persisted concierge page is published', async slug => {
+    const landing = publicLocalLanding('CONCIERGE', { id: `city-${slug}`, slug, name: slug })
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
+    render(await ConciergeCityPage({ params: Promise.resolve({ 'city-slug': slug }) }))
+    expect(screen.getByRole('heading', { level: 1, name: landing.page.h1 })).toBeInTheDocument()
+    expect(getPublishedLocalLanding).toHaveBeenCalledWith(slug, 'CONCIERGE')
   })
 
   it.each(['megeve', 'combloux', 'destination-inconnue'])(
     'rejects an unpublished concierge destination: %s',
     async slug => {
+      jest.mocked(getPublishedLocalLanding).mockResolvedValue(null)
       await expect(ConciergeCityPage({
         params: Promise.resolve({ 'city-slug': slug }),
       })).rejects.toThrow('NEXT_NOT_FOUND')
@@ -68,6 +93,7 @@ describe('046 local SEO service pages', () => {
   )
 
   it('returns noindex metadata for an unpublished service destination', async () => {
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(null)
     await expect(generateConciergeMetadata({
       params: Promise.resolve({ 'city-slug': 'megeve' }),
     })).resolves.toEqual(expect.objectContaining({
