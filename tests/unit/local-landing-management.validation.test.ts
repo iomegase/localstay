@@ -76,4 +76,33 @@ describe('local landing validation', () => {
     expect(LandingPagesUpdateSchema.safeParse({ pages: [page('CONCIERGE'), page('CONCIERGE'), page('VACATION_RENTAL')] }).success).toBe(false)
     expect(LandingPagesUpdateSchema.safeParse({ pages: [page('CONCIERGE'), page('SEMINAR')] }).success).toBe(false)
   })
+
+  it('saves typed incomplete drafts including empty strings and repeatable items', () => {
+    const draft = { ...page('CONCIERGE'), h1: '', cta_href: ' ', highlights: [{ title: '', copy: '' }], faq: [] }
+    expect(LandingPagesUpdateSchema.safeParse({ pages: [draft, page('SEMINAR'), { ...page('VACATION_RENTAL'), empty_copy: null }] }).success).toBe(true)
+  })
+
+  it.each([
+    { cta_href: 'javascript:alert(1)' }, { cta_href: '//evil.example' }, { h1: 'x'.repeat(181) },
+    { hero_copy: 12 }, { highlights: [{ title: '', copy: 12 }] }, { faq: Array(21).fill({ question: '', answer: '' }) },
+  ])('rejects unsafe or malformed drafts: %j', invalid => {
+    expect(LandingPagesUpdateSchema.safeParse({ pages: [{ ...page('CONCIERGE'), ...invalid }, page('SEMINAR'), page('VACATION_RENTAL')] }).success).toBe(false)
+  })
+
+  it.each([' TODO ', 'tBd', ' À   COMPLÉTER ', 'lOrEm\n  IPSUM', 'Placeholder'])('allows %s in drafts but rejects its publication with a field path', placeholder => {
+    const draft = { ...page('CONCIERGE'), h1: placeholder }
+    expect(LandingPagesUpdateSchema.safeParse({ pages: [draft, page('SEMINAR'), page('VACATION_RENTAL')] }).success).toBe(true)
+    const result = landingPageInputSchema.safeParse(draft)
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error.issues).toContainEqual(expect.objectContaining({ path: ['h1'], message: expect.stringMatching(/placeholder/i) }))
+  })
+
+  it.each([
+    { highlights: [{ title: 'TODO', copy: 'Un accompagnement local.' }] },
+    { steps: [{ title: 'Échange', copy: 'à compléter' }] },
+    { faq: [{ question: 'Question locale ?', answer: 'Lorem ipsum dolor sit amet.' }] },
+    { reassurance: 'TBD' }, { process_title: 'placeholder' },
+  ])('rejects placeholder repeatable and optional text during publication: %j', invalid => {
+    expect(landingPageInputSchema.safeParse({ ...page('CONCIERGE'), ...invalid }).success).toBe(false)
+  })
 })

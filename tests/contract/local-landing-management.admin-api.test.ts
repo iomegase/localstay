@@ -80,6 +80,22 @@ describe('048 landing management admin API', () => {
     expect(mockListEligibleCities).not.toHaveBeenCalled()
   })
 
+  it('returns the session 401 to anonymous callers without reading or writing', async () => {
+    mockGetSessionAdmin.mockImplementation(() => ({
+      user: null,
+      error: Response.json({ error: { code: 'UNAUTHORIZED', message: 'Non authentifié', details: {} } }, { status: 401 }),
+    }))
+    const request = () => new NextRequest('http://localhost/api/admin/landing-pages', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ city_id: 'city-1' }),
+    })
+    for (const response of [await GET(), await POST(request())]) {
+      expect(response.status).toBe(401)
+      expect(await response.json()).toEqual({ error: { code: 'UNAUTHORIZED', message: 'Non authentifié', details: {} } })
+    }
+    expect(mockListDestinations).not.toHaveBeenCalled()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
   it('short-circuits every mutation for a denied admin session', async () => {
     mockGetSessionAdmin.mockImplementation(() => ({
       user: null,
@@ -145,6 +161,16 @@ describe('048 landing management admin API', () => {
     expect(await response.json()).toEqual({
       error: { code: 'DESTINATION_ALREADY_EXISTS', message: 'Cette ville possède déjà une configuration.', details: {} },
     })
+  })
+
+  it('returns a structured 404 when POST names a missing City', async () => {
+    mockCreate.mockRejectedValue(new LandingDestinationError('NOT_FOUND', 404))
+    const response = await POST(new NextRequest('http://localhost/api/admin/landing-pages', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ city_id: 'missing-city' }),
+    }))
+    expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({ error: { code: 'NOT_FOUND', message: 'Destination introuvable', details: {} } })
+    expect(mockRevalidatePath).not.toHaveBeenCalled()
   })
 
   it('returns a structured validation error for invalid JSON and invalid UUIDs', async () => {

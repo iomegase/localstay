@@ -36,10 +36,12 @@ const conciergeSteps = [
 function servicePage(
   source: LocalServiceContent,
   intent: 'CONCIERGE' | 'SEMINAR',
+  cityName: string,
 ): LocalLandingPageInput {
   return {
     intent,
-    seo_title: source.h1,
+    // Preserve the resolved metadata title from 42b44f4, including the root template.
+    seo_title: `${intent === 'CONCIERGE' ? 'Conciergerie' : 'Séminaire'} à ${cityName} | MyStay`,
     meta_description: source.metaDescription,
     eyebrow: source.eyebrow,
     h1: source.h1,
@@ -65,7 +67,8 @@ export function buildLocalLandingBackfill(): BackfillDestination[] {
     const detailed = getLocalConciergeLandingContent(source)
     const vacation = source.services.vacationRental
     const concierge: LocalLandingPageInput = {
-      ...servicePage(source.services.concierge, 'CONCIERGE'),
+      ...servicePage(source.services.concierge, 'CONCIERGE', source.name),
+      eyebrow: 'Conciergerie locale',
       hero_title: detailed.promise,
       hero_copy: detailed.heroCopy,
       reassurance: detailed.reassurance,
@@ -80,10 +83,10 @@ export function buildLocalLandingBackfill(): BackfillDestination[] {
     }
     const pages: LocalLandingPageInput[] = [
       concierge,
-      servicePage(source.services.seminar, 'SEMINAR'),
+      servicePage(source.services.seminar, 'SEMINAR', source.name),
       {
         intent: 'VACATION_RENTAL',
-        seo_title: vacation.h1,
+        seo_title: `Locations de vacances à ${source.name} | MyStay`,
         meta_description: vacation.metaDescription,
         eyebrow: vacation.eyebrow,
         h1: vacation.h1,

@@ -88,8 +88,8 @@ describe('048 AC-06 — offline local landing backfill', () => {
       const source = localSeoDestinations[index]
       const content = getLocalConciergeLandingContent(source)
       expect(seed.pages[0]).toMatchObject({
-        intent: 'CONCIERGE', seo_title: source.services.concierge.h1,
-        meta_description: source.services.concierge.metaDescription, eyebrow: source.services.concierge.eyebrow,
+        intent: 'CONCIERGE', seo_title: `Conciergerie à ${source.name} | MyStay`,
+        meta_description: source.services.concierge.metaDescription, eyebrow: 'Conciergerie locale',
         h1: source.services.concierge.h1, hero_title: content.promise, hero_copy: content.heroCopy,
         reassurance: content.reassurance, section_title: content.ownerTitle, section_copy: content.ownerCopy,
         process_title: legacyConciergeProcessTitle,
@@ -105,7 +105,7 @@ describe('048 AC-06 — offline local landing backfill', () => {
     buildLocalLandingBackfill().forEach((seed, index) => {
       const { seminar, vacationRental } = localSeoDestinations[index].services
       expect(seed.pages[1]).toEqual({
-        intent: 'SEMINAR', seo_title: seminar.h1, meta_description: seminar.metaDescription,
+        intent: 'SEMINAR', seo_title: `Séminaire à ${localSeoDestinations[index].name} | MyStay`, meta_description: seminar.metaDescription,
         eyebrow: seminar.eyebrow, h1: seminar.h1, hero_title: seminar.h1, hero_copy: seminar.intro,
         reassurance: null, section_title: seminar.sectionTitle, section_copy: seminar.sectionCopy,
         process_title: seminar.processTitle, local_title: seminar.localTitle, local_copy: seminar.localCopy,
@@ -113,7 +113,7 @@ describe('048 AC-06 — offline local landing backfill', () => {
         highlights: seminar.highlights, steps: seminar.steps, faq: seminar.faq,
       })
       expect(seed.pages[2]).toMatchObject({
-        intent: 'VACATION_RENTAL', seo_title: vacationRental.h1, h1: vacationRental.h1,
+        intent: 'VACATION_RENTAL', seo_title: `Locations de vacances à ${localSeoDestinations[index].name} | MyStay`, h1: vacationRental.h1,
         meta_description: vacationRental.metaDescription, eyebrow: vacationRental.eyebrow,
         hero_copy: vacationRental.intro, local_title: vacationRental.localTitle,
         local_copy: vacationRental.localCopy, empty_copy: vacationRental.emptyCopy,

@@ -42,7 +42,7 @@ describe('048 persisted public local landings', () => {
     expect(getPublishedLocalLanding).toHaveBeenCalledWith('megeve', intent)
     expect(screen.getByRole('heading', { level: 1, name: landing.page.h1 })).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: landing.page.cta_label })[0]).toHaveAttribute('href', landing.page.cta_href)
-    for (const text of [intent === 'CONCIERGE' ? 'Conciergerie locale' : landing.page.eyebrow, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
+    for (const text of [landing.page.eyebrow, landing.page.hero_title, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
       expect(screen.getAllByText(text).length).toBeGreaterThan(0)
     }
     for (const text of [landing.page.section_title, landing.page.section_copy, landing.page.highlights[0].title,
@@ -50,6 +50,25 @@ describe('048 persisted public local landings', () => {
       landing.page.faq[0].question, landing.page.faq[0].answer]) {
       expect(screen.getAllByText(text).length).toBeGreaterThan(0)
     }
+  })
+
+  it('shows an Admin-edited seminar hero title while keeping one semantic H1', async () => {
+    const landing = publicLocalLanding('SEMINAR')
+    landing.page.h1 = 'Séminaire à Megève'
+    landing.page.hero_title = 'Retrouver votre équipe dans les Alpes'
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
+    render(await seminar.default(props))
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1, name: landing.page.h1 })).toBeVisible()
+    expect(screen.getByRole('heading', { level: 2, name: landing.page.hero_title })).toBeVisible()
+  })
+
+  it('preserves the original seminar hero when its saved title matches the H1', async () => {
+    const landing = publicLocalLanding('SEMINAR')
+    landing.page.hero_title = landing.page.h1
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
+    render(await seminar.default(props))
+    expect(screen.getAllByText(landing.page.h1)).toHaveLength(1)
   })
 
   it.each(routes)('uses exact saved metadata and canonical for $intent', async ({ module, intent, segment }) => {

@@ -29,9 +29,10 @@ describe('046 local SEO service pages', () => {
   beforeEach(() => { jest.mocked(getPublishedLocalLanding).mockReset() })
 
   it('renders the active Saint-Gervais concierge page and its MyStay CTA', async () => {
-    jest.mocked(getPublishedLocalLanding).mockResolvedValue(publicLocalLanding('CONCIERGE', {
+    const landing = publicLocalLanding('CONCIERGE', {
       id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains',
-    }))
+    })
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const page = await ConciergeCityPage({
       params: Promise.resolve({ 'city-slug': 'saint-gervais-les-bains' }),
     })
@@ -46,7 +47,7 @@ describe('046 local SEO service pages', () => {
       '/confier-mon-logement',
     )
     expect(container.querySelectorAll('h1')).toHaveLength(1)
-    expect(screen.getByText('Conciergerie locale')).toBeInTheDocument()
+    expect(screen.getByText(landing.page.eyebrow)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Vous avez un logement à Saint-Gervais-les-Bains ?' })).toBeInTheDocument()
     expect(container.innerHTML).not.toContain('font-serif')
     expect(container.innerHTML).not.toContain('scale(')

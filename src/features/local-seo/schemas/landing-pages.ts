@@ -23,6 +23,11 @@ const ctaHrefSchema = z.string().trim().min(1).max(500).refine(
   'Le CTA doit pointer vers un chemin interne ou une adresse mailto.',
 )
 
+function isPlaceholder(value: string): boolean {
+  const normalized = value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
+  return /\b(?:todo|tbd|a completer|lorem ipsum|placeholder)\b/.test(normalized)
+}
+
 export const LandingDestinationInputSchema = z.object({
   city_id: z.string().trim().min(1),
 }).strict()
@@ -56,6 +61,21 @@ export const landingPageInputSchema = z.object({
   steps: z.array(repeatableItemSchema).max(12),
   faq: z.array(faqSchema).max(20),
 }).strict().superRefine((value, context) => {
+  for (const [field, content] of Object.entries(value)) {
+    if (field === 'intent' || field === 'cta_href') continue
+    if (typeof content === 'string' && isPlaceholder(content)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: 'Remplacez le placeholder avant publication.' })
+    }
+    if (Array.isArray(content)) {
+      content.forEach((item, index) => {
+        for (const [key, text] of Object.entries(item)) {
+          if (typeof text === 'string' && isPlaceholder(text)) {
+            context.addIssue({ code: z.ZodIssueCode.custom, path: [field, index, key], message: 'Remplacez le placeholder avant publication.' })
+          }
+        }
+      })
+    }
+  }
   if (value.intent !== 'VACATION_RENTAL' && value.highlights.length === 0) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
@@ -86,8 +106,34 @@ export const landingPageInputSchema = z.object({
   }
 })
 
+// Drafts preserve the full typed structure and safety limits while allowing
+// progressive writing. Publication always uses landingPageInputSchema above.
+const draftText = z.string().trim().max(2000)
+const draftItemSchema = z.object({ title: draftText.max(160), copy: draftText }).strict()
+export const landingPageDraftSchema = z.object({
+  intent: z.enum(LOCAL_LANDING_INTENTS),
+  seo_title: draftText.max(180),
+  meta_description: draftText.max(320),
+  eyebrow: draftText.max(100),
+  h1: draftText.max(180),
+  hero_title: draftText.max(240),
+  hero_copy: draftText,
+  reassurance: draftText.max(300).nullable(),
+  section_title: draftText.max(240),
+  section_copy: draftText,
+  process_title: draftText.max(240).nullable(),
+  local_title: draftText.max(240),
+  local_copy: draftText,
+  cta_label: draftText.max(120),
+  cta_href: z.string().trim().pipe(z.union([z.literal(''), ctaHrefSchema])),
+  empty_copy: draftText.nullable(),
+  highlights: z.array(draftItemSchema).max(12),
+  steps: z.array(draftItemSchema).max(12),
+  faq: z.array(z.object({ question: draftText.max(240), answer: draftText }).strict()).max(20),
+}).strict()
+
 export const LandingPagesUpdateSchema = z.object({
-  pages: z.array(landingPageInputSchema).length(3),
+  pages: z.array(landingPageDraftSchema).length(3),
 }).strict().superRefine((value, context) => {
   const intents = value.pages.map(page => page.intent)
   const missingIntents = LOCAL_LANDING_INTENTS.filter(intent => !intents.includes(intent))

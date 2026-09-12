@@ -42,6 +42,11 @@ describe('local landing publication policy', () => {
       .toEqual({ concierge: true, seminar: true, vacationRental: false })
   })
 
+  it('uses strict publication validation for scalar, URL and repeatable completeness', () => {
+    const page = { ...completePage('CONCIERGE'), h1: ' À COMPLÉTER ', cta_href: 'javascript:alert(1)', steps: [{ title: 'Étape', copy: 'TODO' }] }
+    expect(getLandingContentMissingFields(page)).toEqual(expect.arrayContaining(['h1', 'cta_href', 'steps.0.copy']))
+  })
+
   it('publishes all three surfaces when complete content has public lodging', () => {
     expect(resolveLandingPublication({ destinationActive: true, serviceContentComplete: true, vacationContentComplete: true, publicLodgingCount: 1 }))
       .toEqual({ concierge: true, seminar: true, vacationRental: true })

@@ -14,7 +14,13 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const session = await getSessionAdmin()
   if (session.error) return session.error
-  const parsed = LandingReviewInputSchema.safeParse(await request.json())
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return apiError('VALIDATION_ERROR', 'Corps JSON invalide.', 400)
+  }
+  const parsed = LandingReviewInputSchema.safeParse(body)
   if (!parsed.success) return apiError('VALIDATION_ERROR', 'Paramètre manquant ou invalide', 400, parsed.error.flatten())
   try {
     const review = await createLandingReview(parsed.data)

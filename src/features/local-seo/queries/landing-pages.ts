@@ -5,6 +5,7 @@ import {
   LandingDestinationInputSchema,
   LandingPagesUpdateSchema,
   LandingPublicationInputSchema,
+  landingPageDraftSchema,
   landingPageInputSchema,
 } from '../schemas/landing-pages'
 import { resolveLandingPublication } from '../services/landing-publication'
@@ -87,7 +88,7 @@ function inspectPages(destination: DestinationRow) {
       intent, field: issue.path.join('.'), message: issue.message,
     })))
     // The Admin can repair invalid drafts, but malformed JSON is never trusted.
-    const shape = landingPageInputSchema.innerType().shape
+    const shape = landingPageDraftSchema.shape
     const highlights = shape.highlights.safeParse(content.highlights)
     const steps = shape.steps.safeParse(content.steps)
     const faq = shape.faq.safeParse(content.faq)

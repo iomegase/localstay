@@ -35,7 +35,7 @@ export function LocalConciergeLanding({
         <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
           <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:grid-cols-[1.05fr_.95fr] lg:gap-16 lg:px-14">
             <div>
-              <MarketingEyebrow>Conciergerie locale</MarketingEyebrow>
+              <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
               <h1 className="break-words text-[39px] font-bold leading-[1] tracking-[-0.055em] text-slate-900 sm:text-[56px] lg:text-[62px]">
                 {content.h1}
               </h1>

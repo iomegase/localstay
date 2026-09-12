@@ -37,8 +37,9 @@ describe('048 admin landing management', () => {
     expect(table.getByRole('button', { name: 'Modifier Megève' })).toBeVisible()
     expect(table.getByRole('button', { name: 'Supprimer les landings de Megève' })).toBeVisible()
     expect(table.getByText('Aucun logement associé')).toBeVisible()
-    expect(screen.getByTestId('landing-mobile-cards')).toHaveClass('md:hidden')
-    expect(screen.getByRole('table')).toHaveClass('hidden', 'md:table')
+    expect(screen.getByTestId('landing-mobile-cards')).toHaveClass('md:table-row-group')
+    expect(screen.getByRole('table')).toHaveClass('block', 'md:table')
+    expect(screen.getAllByRole('button', { name: 'Modifier Megève' })).toHaveLength(1)
   })
 
   it('AC-03 opens three accordions and submits all pages with repeatable edits', async () => {
@@ -125,7 +126,7 @@ describe('048 admin landing management', () => {
     const added = destination({ id: 'destination-2', city: { id: 'city-2', name: 'Combloux', slug: 'combloux' }, is_active: false })
     response(added, 201)
     fireEvent.click(screen.getByRole('button', { name: 'Créer les landings' }))
-    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Modifier Combloux' })).toHaveLength(2))
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Modifier Combloux' })).toHaveLength(1))
     expect(fetchMock).toHaveBeenCalledWith('/api/admin/landing-pages', expect.objectContaining({ method: 'POST', body: JSON.stringify({ city_id: 'city-2' }) }))
     expect(screen.getByRole('button', { name: 'Ajouter une ville' })).toBeDisabled()
     expect(screen.getByRole('status')).toHaveTextContent('Ville ajoutée. Complétez les pages Conciergerie et Séminaires avant activation.')
@@ -208,5 +209,21 @@ describe('048 admin landing management', () => {
     rerender(<AdminLandingPages initialDestinations={[{ ...row, reviewCount: 2 }]} eligibleCities={[]} />)
     expect(editor.getByLabelText('H1')).toHaveValue('Mon brouillon conservé')
     expect(table.getByText('2')).toBeVisible()
+  })
+
+  it('AC-03 mounts one editor immediately after its selected destination and before the next city', () => {
+    const megeve = destination()
+    const combloux = destination({ id: 'destination-2', city: { id: 'city-2', name: 'Combloux', slug: 'combloux' } })
+    render(<AdminLandingPages initialDestinations={[megeve, combloux]} eligibleCities={[]} />)
+    const editButton = screen.getAllByRole('button', { name: 'Modifier Megève' })[0]
+    fireEvent.click(editButton)
+    const editors = screen.getAllByRole('form', { name: 'Contenus de Megève' })
+    expect(editors).toHaveLength(1)
+    const editorRow = editors[0].closest('tr')
+    expect(editorRow).not.toBeNull()
+    expect(editorRow?.previousElementSibling).toHaveTextContent('Megève')
+    expect(editorRow?.nextElementSibling).toHaveTextContent('Combloux')
+    const region = screen.getByRole('region', { name: 'Modifier les landings de Megève' })
+    expect(editButton).toHaveAttribute('aria-controls', region.id)
   })
 })

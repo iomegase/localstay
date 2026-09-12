@@ -264,13 +264,16 @@ paths:
     get:
       responses:
         '200': { description: Destinations, états, contenus, avis et villes éligibles }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
     post:
       requestBody: { required: true, description: city_id d'une City existante }
       responses:
         '201': { description: Destination et trois pages inactives créées }
         '400': { description: VALIDATION_ERROR }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
+        '404': { description: NOT_FOUND si la City est absente ou inactive }
         '409': { description: DESTINATION_ALREADY_EXISTS }
   /api/admin/landing-pages/{id}:
     patch:
@@ -278,11 +281,13 @@ paths:
       responses:
         '200': { description: Contenus mis à jour }
         '400': { description: VALIDATION_ERROR }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }
     delete:
       responses:
         '200': { description: Destination, pages et avis soft-deleted }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }
   /api/admin/landing-pages/{id}/publication:
@@ -291,6 +296,7 @@ paths:
       responses:
         '200': { description: État global mis à jour }
         '400': { description: INCOMPLETE_CONTENT avec champs manquants }
+        '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }
 ```

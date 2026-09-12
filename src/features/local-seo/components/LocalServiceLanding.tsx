@@ -46,6 +46,11 @@ export function LocalServiceLanding({
               </h1>
             </div>
             <div className="mt-8 lg:mt-0">
+              {content.hero_title !== content.h1 && (
+                <h2 className="mb-4 text-xl font-bold leading-tight tracking-[-0.03em] text-slate-900 sm:text-2xl">
+                  {content.hero_title}
+                </h2>
+              )}
               <p className="text-[14px] leading-7 text-slate-600 sm:text-[15px]">
                 {content.hero_copy}
               </p>

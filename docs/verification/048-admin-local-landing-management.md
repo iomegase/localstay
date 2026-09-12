@@ -1,5 +1,31 @@
 # Spec 048 — verification record
 
+## Final-review follow-up — 2026-09-12
+
+The final-review fixes remain offline-only. A saved draft may contain incomplete
+fields and blank Locations while retaining typed repeatable blocks and safe CTA
+URLs. Publication uses the stricter schema for both service intentions, including
+nested placeholders; Locations remains unpublishable until its own content and
+eligible inventory are complete. A mocked Prisma lifecycle covers create and
+reinitialize → progressive save → activation → public reads. The public tests
+cover an edited Concierge eyebrow, distinct Seminar hero title, exact absolute
+SEO metadata, and a single responsive inline Admin editor. Review POST/PATCH
+malformed JSON returns structured 400 errors. The API contract now records
+anonymous 401 and missing-City POST 404, and the staged migration runbook pins
+the verified nullable checkout at `418b8cf`.
+
+Verification: initial focused run 7 suites / 103 tests passed. A wider run
+exposed one historical 046 assertion that still expected the formerly hardcoded
+Concierge eyebrow despite a custom persisted fixture value; that assertion was
+updated to the persisted field. A new 401 contract test initially reused a
+consumed Response body; its session double now returns a fresh Response per call.
+Final offline targeted run: **32 suites / 255 tests passed**, including local
+landing, local SEO, review API, sitemap, and robots boundaries. `npx prisma
+validate`, `npx prisma generate`, `npx tsc --noEmit`, and targeted `npx eslint
+--quiet` exited 0. Prisma commands and Jest used offline database URL overrides.
+No live migration, backfill, browser fixture, production build, or deployment
+was run. The historical full-suite/build limitations below remain applicable.
+
 Date: 2026-09-11. Branch: `feature/admin-local-landing-management`.
 Task 8 starts from `276b4b9`; pre-feature code reference:
 `42b44f4b136d231a9fa180bb4c0b260c0e8cc9d9`.

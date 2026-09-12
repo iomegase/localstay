@@ -27,8 +27,8 @@ offline by diffing the pre-marker and current Prisma schemas.
    review writes. Keep the existing deployed application until the stages below pass;
    use the feature checkout only for the offline/generated client and migration
    commands, without serving its runtime queries.
-   Use the nullable expand-stage revision introduced by commit `eb0391e`, plus
-   its reviewed follow-up fixes. In that revision's `prisma/schema.prisma`,
+   Check out nullable expand-stage commit `418b8cf` (full commit identity must
+   be verified in the target repository before deployment). In that revision's `prisma/schema.prisma`,
    `LocalLandingReview.destination_id` is `String?` and its `destination`
    relation is `LocalLandingDestination?`. Do not use a revision that has
    already made either field required for this backfill stage.
@@ -86,10 +86,14 @@ stage 5.
   frozen in the backfill from `LocalConciergeLanding.tsx` at commit `40eed0f`;
   their titles, copy and order are preserved verbatim. Superseded general concierge
   prose remains in the frozen `prisma/local-landing-source/destinations.ts`; it is not substituted for
-  the detailed public page.
-- Séminaires maps every catalogue scalar and repeatable block. `hero_title` and
-  `seo_title` reuse the current H1.
-- Locations maps every existing content field. The new hero and section fields
+  the detailed public page. The historically rendered eyebrow is exactly
+  `Conciergerie locale`, and the previous metadata title is
+  `Conciergerie à <City name> | MyStay`; the catalogue eyebrow is not substituted.
+- Séminaires maps every catalogue scalar and repeatable block. `hero_title`
+  reuses the current H1 so the historical hero is unchanged. The exact previous
+  metadata title is `Séminaire à <City name> | MyStay`.
+- Locations maps every existing content field. Its previous metadata title is
+  `Locations de vacances à <City name> | MyStay`. The new hero and section fields
   reuse its reviewed H1/intro. The CTA preserves the published page's
   “Nos adresses locales” link to `/decouvrir` from `40eed0f`.
 - Saint-Gervais-les-Bains and Saint-Nicolas-de-Véroce remain active; Megève and

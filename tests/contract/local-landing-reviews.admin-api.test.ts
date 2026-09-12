@@ -53,6 +53,19 @@ describe('047 landing reviews admin API', () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith('/conciergerie/saint-gervais-les-bains', 'page')
   })
 
+  it.each(['POST', 'PATCH'])('returns a structured 400 for malformed %s JSON without writes', async method => {
+    mockGetSessionAdmin.mockResolvedValue({ user: { id: 'admin' }, error: null })
+    const request = new NextRequest('http://localhost/api/admin/landing-page-reviews', {
+      method, headers: { 'content-type': 'application/json' }, body: '{broken',
+    })
+    const response = method === 'POST' ? await POST(request) : await PATCH(request, { params: Promise.resolve({ id: 'a80e52ea-371b-46a1-9d56-c124157254bd' }) })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: { code: 'VALIDATION_ERROR', message: 'Corps JSON invalide.', details: {} } })
+    expect(mockCreate).not.toHaveBeenCalled()
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockRevalidatePath).not.toHaveBeenCalled()
+  })
+
   it('returns a validation error when creation targets an unavailable destination', async () => {
     mockGetSessionAdmin.mockResolvedValue({ user: { id: 'admin' }, error: null })
     mockCreate.mockRejectedValue(new LandingReviewError('VALIDATION_ERROR', 400))

@@ -24,7 +24,13 @@ export async function PATCH(request: NextRequest, context: Context): Promise<Nex
   if (session.error) return session.error
   const { id } = await context.params
   const parsedId = LandingReviewIdSchema.safeParse(id)
-  const parsedBody = LandingReviewInputSchema.safeParse(await request.json())
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return apiError('VALIDATION_ERROR', 'Corps JSON invalide.', 400)
+  }
+  const parsedBody = LandingReviewInputSchema.safeParse(body)
   if (!parsedId.success || !parsedBody.success) return apiError('VALIDATION_ERROR', 'Paramètre manquant ou invalide', 400)
   try {
     const review = await updateLandingReview(id, parsedBody.data)

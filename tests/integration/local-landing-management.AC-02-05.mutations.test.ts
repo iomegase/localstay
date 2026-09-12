@@ -1,12 +1,16 @@
 const mockTransaction = jest.fn()
+const mockPublicDestination = jest.fn()
+const mockPublicProfiles = jest.fn()
 jest.mock('@/shared/lib/prisma', () => ({ prisma: {
   $transaction: (...args: unknown[]) => mockTransaction(...args),
+  localLandingDestination: { findFirst: (...args: unknown[]) => mockPublicDestination(...args) },
+  lodgingPublicProfile: { findMany: (...args: unknown[]) => mockPublicProfiles(...args) },
 } }))
 
 import { Prisma } from '@prisma/client'
 import { ZodError } from 'zod'
 import {
-  createLandingDestination, deleteLandingDestination, setLandingDestinationActive, updateLandingDestinationPages,
+  createLandingDestination, deleteLandingDestination, getPublishedLocalLanding, setLandingDestinationActive, updateLandingDestinationPages,
 } from '@/features/local-seo/queries/landing-pages'
 import { restoreLandingReview } from '@/features/local-seo/queries/landing-reviews'
 import { LOCAL_LANDING_INTENTS, type LocalLandingPageInput } from '@/features/local-seo/types/landing-pages'
@@ -52,6 +56,8 @@ describe('048 AC-02–05 transactional mutations', () => {
     db.localLandingReview.findMany.mockResolvedValue([])
     db.localLandingReview.updateMany.mockResolvedValue({ count: 1 })
     db.lodgingPublicProfile.findMany.mockResolvedValue([])
+    mockPublicDestination.mockImplementation(async () => destination)
+    mockPublicProfiles.mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -153,6 +159,40 @@ describe('048 AC-02–05 transactional mutations', () => {
     await expect(updateLandingDestinationPages('destination-1', [landingPageInput('CONCIERGE'), landingPageInput('CONCIERGE'), landingPageInput('SEMINAR')])).rejects.toBeInstanceOf(ZodError)
     await expect(updateLandingDestinationPages('destination-1', [landingPageInput('CONCIERGE')])).rejects.toBeInstanceOf(ZodError)
     expect(mockTransaction).not.toHaveBeenCalled()
+  })
+
+  it.each([false, true])('creates/reinitializes (%s), progressively saves service drafts and activates with blank Locations', async reinitialize => {
+    if (reinitialize) db.localLandingDestination.findUnique.mockResolvedValue({ ...destination, deleted_at: landingDate })
+    const created = await createLandingDestination('city-1')
+    const incomplete = created.pages.map(page => page.intent === 'CONCIERGE'
+      ? { ...page, h1: 'Projet en cours', highlights: [{ title: 'Accueil', copy: '' }] } : page)
+    const saved = await updateLandingDestinationPages(created.id, incomplete)
+    expect(saved.pages[0].highlights).toEqual([{ title: 'Accueil', copy: '' }])
+    expect(saved.is_active).toBe(false)
+    await expect(setLandingDestinationActive(created.id, true)).rejects.toMatchObject({ code: 'INCOMPLETE_CONTENT', details: { missingFields: expect.arrayContaining(['SEMINAR.h1']) } })
+    await updateLandingDestinationPages(created.id, saved.pages.map(page => page.intent === 'VACATION_RENTAL' ? page : landingPageInput(page.intent)))
+    expect((await setLandingDestinationActive(created.id, true)).publication).toEqual({ concierge: true, seminar: true, vacationRental: false })
+    expect(await getPublishedLocalLanding('megeve', 'CONCIERGE')).not.toBeNull()
+    expect(await getPublishedLocalLanding('megeve', 'SEMINAR')).not.toBeNull()
+    expect(await getPublishedLocalLanding('megeve', 'VACATION_RENTAL')).toBeNull()
+    mockPublicProfiles.mockResolvedValue([{ city_id: 'city-1' }])
+    expect(await getPublishedLocalLanding('megeve', 'VACATION_RENTAL')).toBeNull()
+  })
+
+  it('keeps placeholder drafts editable and rejects their activation with nested details', async () => {
+    const pages = LOCAL_LANDING_INTENTS.map(landingPageInput)
+    pages[0].h1 = ' À COMPLÉTER '
+    pages[1].faq[0].answer = 'Lorem ipsum dolor sit amet.'
+    const result = await updateLandingDestinationPages('destination-1', pages)
+    expect(result.pages[1].faq[0].answer).toBe('Lorem ipsum dolor sit amet.')
+    await expect(setLandingDestinationActive('destination-1', true)).rejects.toMatchObject({
+      code: 'INCOMPLETE_CONTENT', status: 400,
+      details: { missingFields: expect.arrayContaining(['CONCIERGE.h1', 'SEMINAR.faq.0.answer']), issues: expect.arrayContaining([expect.objectContaining({ field: 'faq.0.answer', message: expect.stringMatching(/placeholder/i) })]) },
+    })
+    expect(db.localLandingDestination.updateMany).not.toHaveBeenCalled()
+    destination.is_active = true
+    expect(await getPublishedLocalLanding('megeve', 'CONCIERGE')).toBeNull()
+    expect(await getPublishedLocalLanding('megeve', 'SEMINAR')).toBeNull()
   })
 
   it('returns NOT_FOUND before updating a missing destination', async () => {
