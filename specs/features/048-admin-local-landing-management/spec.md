@@ -280,7 +280,7 @@ paths:
       requestBody: { required: true, description: Contenus des trois intentions }
       responses:
         '200': { description: Contenus mis à jour }
-        '400': { description: VALIDATION_ERROR }
+        '400': { description: VALIDATION_ERROR ou INCOMPLETE_CONTENT pour une destination active }
         '401': { description: UNAUTHORIZED pour une session absente }
         '403': { description: Accès refusé }
         '404': { description: NOT_FOUND }

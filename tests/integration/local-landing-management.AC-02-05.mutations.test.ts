@@ -155,6 +155,40 @@ describe('048 AC-02–05 transactional mutations', () => {
     expect(db.localLandingDestination.update).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['CONCIERGE', 'h1', ''],
+    ['SEMINAR', 'faq.0.answer', 'TODO'],
+  ] as const)('rejects an invalid %s edit on an active destination before any write', async (intent, field, value) => {
+    destination.is_active = true
+    const before = structuredClone(destination.pages)
+    const pages = LOCAL_LANDING_INTENTS.map(landingPageInput)
+    const service = pages.find(page => page.intent === intent)!
+    if (field === 'h1') service.h1 = value
+    else service.faq[0].answer = value
+
+    await expect(updateLandingDestinationPages('destination-1', pages)).rejects.toMatchObject({
+      code: 'INCOMPLETE_CONTENT', status: 400,
+      details: { missingFields: expect.arrayContaining([`${intent}.${field}`]) },
+    })
+    expect(db.localLandingPage.upsert).not.toHaveBeenCalled()
+    expect(destination.pages).toEqual(before)
+    expect(destination.is_active).toBe(true)
+    expect(await getPublishedLocalLanding('megeve', intent)).not.toBeNull()
+  })
+
+  it('publishes valid service edits on an active destination while accepting blank Locations', async () => {
+    destination.is_active = true
+    const pages = LOCAL_LANDING_INTENTS.map(landingPageInput)
+    pages[0].h1 = 'Une nouvelle conciergerie locale'
+    pages[2].h1 = ''
+    const saved = await updateLandingDestinationPages('destination-1', pages)
+    expect(saved.publication).toEqual({ concierge: true, seminar: true, vacationRental: false })
+    expect((await getPublishedLocalLanding('megeve', 'CONCIERGE'))?.page.h1).toBe('Une nouvelle conciergerie locale')
+    expect(await getPublishedLocalLanding('megeve', 'SEMINAR')).not.toBeNull()
+    expect(await getPublishedLocalLanding('megeve', 'VACATION_RENTAL')).toBeNull()
+    expect(db.localLandingPage.upsert).toHaveBeenCalledTimes(3)
+  })
+
   it('validates exactly three distinct intentions before starting a transaction', async () => {
     await expect(updateLandingDestinationPages('destination-1', [landingPageInput('CONCIERGE'), landingPageInput('CONCIERGE'), landingPageInput('SEMINAR')])).rejects.toBeInstanceOf(ZodError)
     await expect(updateLandingDestinationPages('destination-1', [landingPageInput('CONCIERGE')])).rejects.toBeInstanceOf(ZodError)

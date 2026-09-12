@@ -288,7 +288,22 @@ export async function createLandingDestination(cityId: string): Promise<AdminLan
 export async function updateLandingDestinationPages(id: string, pages: LocalLandingPageInput[]): Promise<AdminLandingDestinationDto> {
   const input = LandingPagesUpdateSchema.parse({ pages })
   return prisma.$transaction(async db => {
-    await findDestination(db, id)
+    const destination = await findDestination(db, id)
+    if (destination.is_active) {
+      const issues: LandingContentIssue[] = input.pages
+        .filter(page => page.intent !== 'VACATION_RENTAL')
+        .flatMap(page => {
+          const parsed = landingPageInputSchema.safeParse(page)
+          return parsed.success ? [] : parsed.error.issues.map(issue => ({
+            intent: page.intent, field: issue.path.join('.'), message: issue.message,
+          }))
+        })
+      if (issues.length > 0) {
+        throw new LandingDestinationError('INCOMPLETE_CONTENT', 400, {
+          missingFields: [...new Set(issues.map(issue => `${issue.intent}.${issue.field}`))], issues,
+        })
+      }
+    }
     await writePages(db, id, input.pages)
     return adminDto(db, id)
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })

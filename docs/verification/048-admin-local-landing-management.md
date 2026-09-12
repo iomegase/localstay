@@ -2,6 +2,16 @@
 
 ## Final-review follow-up — 2026-09-12
 
+Subsequent active-save regression: the draft relaxation originally allowed an
+already-active destination to save incomplete Concierge or Seminar content,
+making public routes disappear while the slider remained ON. A failing
+integration test reproduced both scalar and nested-placeholder variants. The
+update transaction now validates both service pages before its first page
+upsert; a rejected save preserves the persisted pages and active status.
+Inactive draft saves and active saves with incomplete Locations remain allowed.
+The focused five-suite offline rerun passed 92/92 tests. No live database or
+deployment was used for this follow-up.
+
 The final-review fixes remain offline-only. A saved draft may contain incomplete
 fields and blank Locations while retaining typed repeatable blocks and safe CTA
 URLs. Publication uses the stricter schema for both service intentions, including
