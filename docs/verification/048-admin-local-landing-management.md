@@ -29,6 +29,15 @@ applied; `npm run build` completed with exit 0 against the prepared database,
 including route data collection and TypeScript. The final Prisma client was
 regenerated locally; six focused suites / 89 tests and `prisma validate` passed.
 This verifies the migration and local production build, not a deployed release.
+With a single local production server request at a time, the published
+Saint-Gervais Concierge and Seminar routes returned HTTP 200; the inactive
+Megève Concierge, Combloux Seminar and Megève Vacation routes returned HTTP
+404. An initial five-request parallel probe timed out with Prisma `P2024`
+because the configured pool has a one-connection limit; the sequential probe
+did not reproduce that failure. The local server was stopped after verification.
+The previously deployed review writer does not supply the newly required
+`destination_id`, so review writes must remain paused until the final runtime
+branch is deployed against this migrated database.
 
 The historical offline-only statements below describe the earlier verification
 run, not this live migration checkpoint.
