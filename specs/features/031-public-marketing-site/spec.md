@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-07-29
-updated_at: 2026-08-24
+updated_at: 2026-09-12
 depends_on:
   - 006-qr-code
   - 009-auth-owner
@@ -72,8 +72,11 @@ routes privées, l'authentification et les API existantes restent inchangées.
   s'affiche, Then le calibrage desktop de la maquette est appliqué sans mise à
   l'échelle artificielle : surface de 1184 px avec rayon de 34 px, conteneurs
   éditoriaux de 944 px, header de 62 px, logo de 118 px et hero clair sans
-  image de fond de 560 px minimum avec un padding `60px 52px 43px`. Les cartes
-  de services et du processus reprennent la composition numérotée validée.
+  image de fond de 580 px minimum avec les classes desktop
+  `xl:px-[52px] xl:pt-[64px] xl:pb-[48px]`. La home actuelle approuvée présente
+  une présence locale, cinq services et trois bénéfices du guide sous forme de
+  cartes textuelles à liseré rose, sans numéro visible ni ancien bloc
+  d'introduction éditoriale.
 - **AC-01-06**: Given la page `/seminaires`, When elle s'affiche, Then sa
   composition reprend la version éditoriale validée : hero clair sans image de
   fond de 590 px minimum avec padding desktop `58px 54px 42px`, texte sombre et
@@ -353,10 +356,13 @@ routes privées, l'authentification et les API existantes restent inchangées.
   règle ne force pas l'usage d'une image dans les heros clairs de la home et de
   la page Séminaires.
 - **BR-36**: La décision Product Owner du 2026-08-24 restaure comme contrat
-  visuel la version pré-merge `b5ed304` pour la home et la page Séminaires :
-  heros clairs sans image de fond, texte sombre, CTA principal rose et cartes
-  éditoriales numérotées. Elle remplace la déclinaison ultérieure avec hero
-  chalet sombre et cartes à pictogrammes.
+  visuel la version pré-merge `b5ed304` pour la page Séminaires : hero clair
+  sans image de fond, texte sombre, CTA principal rose et cartes éditoriales
+  numérotées. Pour la home uniquement, la décision Product Owner du 2026-09-12
+  valide la version actuellement déployée : hero clair de 580 px minimum,
+  titre « Votre logement, géré localement. Vos voyageurs, mieux accompagnés. »,
+  sections présence locale, services et guide digital, cartes textuelles sans
+  numéro visible. L'ancien hero chalet sombre reste exclu.
 - **BR-31**: La rangée de filtres de `GuideFavoritesPage` utilise le
   positionnement sticky CSS natif dans le conteneur scrollable du `GuideApp`.
   Aucun listener de scroll, observer, calcul JavaScript de hauteur ou état React
@@ -406,13 +412,14 @@ context `lodging-showcase`.
 - Sur les pages marketing, le header, le `<main>` et le footer sont les trois
   enfants directs d'une surface éditoriale blanche commune. Cette surface est
   centrée et ombrée sur tablette/desktop, puis redevient bord à bord sur mobile.
-- À partir de 1280 px, la home reprend les dimensions exactes du calibrage
-  desktop de la maquette : shell 944 px, hero 560 px, padding
-  `60px 52px 43px`, header 62 px et logo 118 px.
+- À partir de 1280 px, la home conserve le shell éditorial de 944 px, le
+  header de 62 px et le logo de 118 px. Son hero clair mesure au minimum
+  580 px, avec `xl:px-[52px] xl:pt-[64px] xl:pb-[48px]`.
 - La home utilise un hero clair sans image de fond, du texte sombre, un CTA
-  rose et les cartes éditoriales numérotées de la version pré-merge `b5ed304`.
-  Les cartes logements dynamiques, la présentation du guide et le CTA
-  propriétaire restent inchangés.
+  rose et les cartes textuelles à liseré rose de sa version actuelle approuvée.
+  Elle présente les sections présence locale, cinq services et trois bénéfices
+  du guide sans afficher les numéros internes des cartes. Les cartes logements
+  dynamiques, la présentation du guide et le CTA propriétaire restent inchangés.
 - Les fiches logement publiques réutilisent le header, la surface et le footer
   de la home. Leur contenu dynamique est recomposé selon la hiérarchie de la
   fiche `[slug]` de la maquette, sans modifier les queries, metadata, JSON-LD

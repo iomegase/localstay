@@ -1,4 +1,5 @@
 import { organizationId, SITE, siteBaseUrl } from './site'
+
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
 import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
@@ -6,7 +7,10 @@ import { selectVisibleLodgingPhotos } from '@/features/lodging-showcase/lib/deta
 import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 
 const SCHEMA = 'https://schema.org'
-const DISCOVERY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+const DISCOVERY_SLUG_PATTERN =
+  /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
 type MappedPoiSchemaType =
   | 'Restaurant'
   | 'Bakery'
@@ -17,7 +21,9 @@ type MappedPoiSchemaType =
   | 'Museum'
   | 'TouristAttraction'
 
-const POI_SCHEMA_TYPE_SLUGS: ReadonlyArray<readonly [MappedPoiSchemaType, ReadonlySet<string>]> = [
+const POI_SCHEMA_TYPE_SLUGS: ReadonlyArray<
+  readonly [MappedPoiSchemaType, ReadonlySet<string>]
+> = [
   ['Restaurant', new Set(['restaurant'])],
   ['Bakery', new Set(['boulangerie'])],
   ['BarOrPub', new Set(['bar'])],
@@ -28,7 +34,8 @@ const POI_SCHEMA_TYPE_SLUGS: ReadonlyArray<readonly [MappedPoiSchemaType, Readon
   ['TouristAttraction', new Set(['activite-touristique'])],
 ]
 
-// Index = jour (0 = dimanche … 6 = samedi), aligné sur le format hours stocké.
+// Index = jour (0 = dimanche … 6 = samedi),
+// aligné sur le format hours stocké.
 const DAY_URIS = [
   'https://schema.org/Sunday',
   'https://schema.org/Monday',
@@ -51,308 +58,878 @@ export type PoiSchemaInput = {
   website: string | null
   rating: number | null
   ratingCount: number
-  hours: Record<string, { open: string; close: string } | null> | null
+  hours: Record<
+    string,
+    {
+      open: string
+      close: string
+    } | null
+  > | null
   photos: string[]
   cityName: string
   cityRegion: string | null
   postalCode: string
-  /** Chemin canonique de la fiche, ex. /guide/ville/cat/slug */
+
+  /**
+   * Chemin canonique de la fiche.
+   * Exemple :
+   * /guide/ville/cat/slug
+   */
   path: string
 }
 
+/**
+ * Entité principale MyStay.
+ *
+ * MyStay est volontairement décrit comme une organisation
+ * de conciergerie et de services opérationnels.
+ *
+ * On évite ici les types et formulations associés à :
+ * - agence immobilière
+ * - gestion immobilière
+ * - gestion locative
+ */
 export function organizationSchema(): JsonLdObject {
   const base = siteBaseUrl()
+
   return {
     '@context': SCHEMA,
     '@type': 'Organization',
     '@id': organizationId(),
+
     name: SITE.name,
+
     url: base,
-    logo: `${base}/mystay-logo-approved/mystay-logo-approved.png`,
+
+    logo: {
+      '@type': 'ImageObject',
+      url: `${base}/mystay-logo-approved/mystay-logo-approved.png`,
+    },
+
     description:
-      'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.',
+      'MyStay est une conciergerie locale à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : accueil voyageurs, préparation des logements, ménage, linge, intendance, assistance sur place, guides digitaux et accompagnement de séjours en groupe et séminaires.',
+
     email: 'bonjour@mystay.city',
-    areaServed: 'Haute-Savoie, France',
+
+    telephone: '+33607859058',
+
+    areaServed: [
+      {
+        '@type': 'City',
+        name: 'Saint-Gervais-les-Bains',
+      },
+      {
+        '@type': 'City',
+        name: 'Les Contamines-Montjoie',
+      },
+      {
+        '@type': 'City',
+        name: 'Megève',
+      },
+      {
+        '@type': 'City',
+        name: 'Combloux',
+      },
+      {
+        '@type': 'City',
+        name: 'Passy',
+      },
+      {
+        '@type': 'City',
+        name: 'Sallanches',
+      },
+      {
+        '@type': 'AdministrativeArea',
+        name: 'Pays du Mont-Blanc',
+      },
+    ],
+
+    contactPoint: {
+      '@type': 'ContactPoint',
+
+      contactType: 'customer service',
+
+      telephone: '+33607859058',
+
+      email: 'bonjour@mystay.city',
+
+      availableLanguage: [
+        'French',
+        'English',
+      ],
+
+      areaServed: 'FR',
+    },
+
+    knowsAbout: [
+      'Conciergerie',
+      'Accueil voyageurs',
+      'Préparation de logements',
+      'Ménage',
+      'Linge de maison',
+      'Intendance',
+      'Assistance voyageurs',
+      'Guides digitaux',
+      'Séjours en groupe',
+      'Séminaires d’entreprise',
+      'Saint-Gervais-les-Bains',
+      'Pays du Mont-Blanc',
+    ],
   }
 }
 
+/**
+ * Entité représentant le site mystay.city.
+ */
 export function websiteSchema(): JsonLdObject {
   const base = siteBaseUrl()
+
   return {
     '@context': SCHEMA,
+
     '@type': 'WebSite',
+
     name: SITE.name,
+
     url: base,
+
     inLanguage: 'fr-FR',
-    publisher: { '@id': organizationId() },
+
+    publisher: {
+      '@id': organizationId(),
+    },
   }
 }
 
-export function breadcrumbSchema(items: Array<{ name: string; path: string }>): JsonLdObject {
+/**
+ * Fil d'Ariane Schema.org.
+ */
+export function breadcrumbSchema(
+  items: Array<{
+    name: string
+    path: string
+  }>,
+): JsonLdObject {
   const base = siteBaseUrl()
+
   return {
     '@context': SCHEMA,
+
     '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: `${base}${item.path}`,
-    })),
+
+    itemListElement: items.map(
+      (item, index) => ({
+        '@type': 'ListItem',
+
+        position: index + 1,
+
+        name: item.name,
+
+        item: `${base}${item.path}`,
+      }),
+    ),
   }
 }
 
+/**
+ * Liste publique d'éléments /decouvrir.
+ */
 export function discoveryItemListSchema(input: {
   name: string
-  items: Array<{ name: string; path: string }>
+
+  items: Array<{
+    name: string
+    path: string
+  }>
 }): JsonLdObject {
-  const publicItems = input.items.filter(item => isCanonicalDiscoveryPath(item.path))
+  const publicItems =
+    input.items.filter(item =>
+      isCanonicalDiscoveryPath(item.path),
+    )
 
   return {
     '@context': SCHEMA,
+
     '@type': 'ItemList',
+
     name: input.name,
-    itemListElement: publicItems.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      url: `${siteBaseUrl()}${item.path}`,
-    })),
+
+    itemListElement: publicItems.map(
+      (item, index) => ({
+        '@type': 'ListItem',
+
+        position: index + 1,
+
+        name: item.name,
+
+        url: `${siteBaseUrl()}${item.path}`,
+      }),
+    ),
   }
 }
 
-function isCanonicalDiscoveryPath(path: string): boolean {
+/**
+ * Vérifie qu'une URL correspond bien à une URL
+ * publique /decouvrir canonique.
+ */
+function isCanonicalDiscoveryPath(
+  path: string,
+): boolean {
   const segments = path.split('/')
-  if (segments.length < 3 || segments.length > 5) return false
-  if (segments[0] !== '' || segments[1] !== 'decouvrir') return false
-  return segments.slice(2).every(segment => DISCOVERY_SLUG_PATTERN.test(segment))
+
+  if (
+    segments.length < 3 ||
+    segments.length > 5
+  ) {
+    return false
+  }
+
+  if (
+    segments[0] !== '' ||
+    segments[1] !== 'decouvrir'
+  ) {
+    return false
+  }
+
+  return segments
+    .slice(2)
+    .every(segment =>
+      DISCOVERY_SLUG_PATTERN.test(segment),
+    )
 }
 
-function openingHoursSpecification(hours: PoiSchemaInput['hours']): JsonLdObject[] | undefined {
-  if (!hours) return undefined
+/**
+ * Conversion des horaires internes vers
+ * OpeningHoursSpecification Schema.org.
+ */
+function openingHoursSpecification(
+  hours: PoiSchemaInput['hours'],
+): JsonLdObject[] | undefined {
+  if (!hours) {
+    return undefined
+  }
+
   const specs: JsonLdObject[] = []
-  for (let day = 0; day < 7; day += 1) {
+
+  for (
+    let day = 0;
+    day < 7;
+    day += 1
+  ) {
     const slot = hours[String(day)]
-    if (!slot) continue
+
+    if (!slot) {
+      continue
+    }
+
     specs.push({
-      '@type': 'OpeningHoursSpecification',
+      '@type':
+        'OpeningHoursSpecification',
+
       dayOfWeek: DAY_URIS[day],
+
       opens: slot.open,
+
       closes: slot.close,
     })
   }
-  return specs.length > 0 ? specs : undefined
+
+  return specs.length > 0
+    ? specs
+    : undefined
 }
 
 function poiUrl(path: string): string {
   return `${siteBaseUrl()}${path}`
 }
 
-export function localBusinessSchema(poi: PoiSchemaInput): JsonLdObject {
-  const hoursSpec = openingHoursSpecification(poi.hours)
+/**
+ * Établissement local utilisé pour les POI.
+ *
+ * Attention :
+ * ce LocalBusiness décrit le POI référencé
+ * par MyStay, pas MyStay lui-même.
+ */
+export function localBusinessSchema(
+  poi: PoiSchemaInput,
+): JsonLdObject {
+  const hoursSpec =
+    openingHoursSpecification(poi.hours)
+
   return {
     '@context': SCHEMA,
+
     '@type': 'LocalBusiness',
+
     name: poi.name,
-    ...(poi.description ? { description: poi.description } : {}),
+
+    ...(poi.description
+      ? {
+          description: poi.description,
+        }
+      : {}),
+
     url: poiUrl(poi.path),
-    ...(poi.photos.length > 0 ? { image: poi.photos } : {}),
-    ...(poi.phone ? { telephone: poi.phone } : {}),
-    ...(poi.website ? { sameAs: [poi.website] } : {}),
+
+    ...(poi.photos.length > 0
+      ? {
+          image: poi.photos,
+        }
+      : {}),
+
+    ...(poi.phone
+      ? {
+          telephone: poi.phone,
+        }
+      : {}),
+
+    ...(poi.website
+      ? {
+          sameAs: [poi.website],
+        }
+      : {}),
+
     address: {
       '@type': 'PostalAddress',
+
       streetAddress: poi.address,
+
       addressLocality: poi.cityName,
+
       postalCode: poi.postalCode,
-      ...(poi.cityRegion ? { addressRegion: poi.cityRegion } : {}),
+
+      ...(poi.cityRegion
+        ? {
+            addressRegion:
+              poi.cityRegion,
+          }
+        : {}),
+
       addressCountry: 'FR',
     },
-    geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
-    ...(poi.rating != null && poi.ratingCount > 0
+
+    geo: {
+      '@type': 'GeoCoordinates',
+
+      latitude: poi.latitude,
+
+      longitude: poi.longitude,
+    },
+
+    ...(poi.rating != null &&
+    poi.ratingCount > 0
       ? {
           aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: poi.rating,
-            ratingCount: poi.ratingCount,
+            '@type':
+              'AggregateRating',
+
+            ratingValue:
+              poi.rating,
+
+            ratingCount:
+              poi.ratingCount,
           },
         }
       : {}),
-    ...(hoursSpec ? { openingHoursSpecification: hoursSpec } : {}),
+
+    ...(hoursSpec
+      ? {
+          openingHoursSpecification:
+            hoursSpec,
+        }
+      : {}),
   }
 }
 
-export function touristAttractionSchema(poi: PoiSchemaInput): JsonLdObject {
+/**
+ * Attraction touristique.
+ */
+export function touristAttractionSchema(
+  poi: PoiSchemaInput,
+): JsonLdObject {
   return {
     '@context': SCHEMA,
+
     '@type': 'TouristAttraction',
+
     name: poi.name,
-    ...(poi.description ? { description: poi.description } : {}),
+
+    ...(poi.description
+      ? {
+          description: poi.description,
+        }
+      : {}),
+
     url: poiUrl(poi.path),
-    ...(poi.photos.length > 0 ? { image: poi.photos } : {}),
+
+    ...(poi.photos.length > 0
+      ? {
+          image: poi.photos,
+        }
+      : {}),
+
     address: {
       '@type': 'PostalAddress',
-      addressLocality: poi.cityName,
-      ...(poi.cityRegion ? { addressRegion: poi.cityRegion } : {}),
+
+      addressLocality:
+        poi.cityName,
+
+      ...(poi.cityRegion
+        ? {
+            addressRegion:
+              poi.cityRegion,
+          }
+        : {}),
+
       addressCountry: 'FR',
     },
-    geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
+
+    geo: {
+      '@type': 'GeoCoordinates',
+
+      latitude: poi.latitude,
+
+      longitude: poi.longitude,
+    },
   }
 }
 
-function normalizeTaxonomySlug(slug: string): string {
+/**
+ * Normalise un slug de taxonomie.
+ */
+function normalizeTaxonomySlug(
+  slug: string,
+): string {
   return slug
     .toLocaleLowerCase('fr-FR')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(
+      /[\u0300-\u036f]/g,
+      '',
+    )
 }
 
-function mappedPoiType(slug: string): MappedPoiSchemaType | null {
-  const normalizedSlug = normalizeTaxonomySlug(slug)
-  return POI_SCHEMA_TYPE_SLUGS.find(([, slugs]) => slugs.has(normalizedSlug))?.[0] ?? null
+/**
+ * Mappe les catégories MyStay
+ * vers un type Schema.org.
+ */
+function mappedPoiType(
+  slug: string,
+): MappedPoiSchemaType | null {
+  const normalizedSlug =
+    normalizeTaxonomySlug(slug)
+
+  return (
+    POI_SCHEMA_TYPE_SLUGS.find(
+      ([, slugs]) =>
+        slugs.has(normalizedSlug),
+    )?.[0] ?? null
+  )
 }
 
-function discoveryPoiType(poi: DiscoveryPoiDetail): string {
-  const subcategoryType = poi.subcategory === null ? null : mappedPoiType(poi.subcategory.slug)
-  const categoryType = mappedPoiType(poi.category.slug)
+/**
+ * Détermine le type Schema.org
+ * à utiliser pour un POI /decouvrir.
+ */
+function discoveryPoiType(
+  poi: DiscoveryPoiDetail,
+): string {
+  const subcategoryType =
+    poi.subcategory === null
+      ? null
+      : mappedPoiType(
+          poi.subcategory.slug,
+        )
 
-  if (subcategoryType === null) return categoryType ?? 'LocalBusiness'
-  if (categoryType === null || categoryType === subcategoryType) return subcategoryType
-  if (subcategoryType === 'TouristAttraction') return categoryType
-  if (categoryType === 'TouristAttraction') return subcategoryType
+  const categoryType =
+    mappedPoiType(
+      poi.category.slug,
+    )
+
+  if (subcategoryType === null) {
+    return (
+      categoryType ??
+      'LocalBusiness'
+    )
+  }
+
+  if (
+    categoryType === null ||
+    categoryType ===
+      subcategoryType
+  ) {
+    return subcategoryType
+  }
+
+  if (
+    subcategoryType ===
+    'TouristAttraction'
+  ) {
+    return categoryType
+  }
+
+  if (
+    categoryType ===
+    'TouristAttraction'
+  ) {
+    return subcategoryType
+  }
+
   return 'LocalBusiness'
 }
 
 /**
- * Schéma dédié à `/decouvrir`: la taxonomie visible choisit le type et seuls
- * les faits effectivement rendus par DiscoveryPoiView sont balisés.
+ * Schéma dédié à /decouvrir.
+ *
+ * La taxonomie visible choisit le type
+ * et seuls les faits effectivement rendus
+ * par DiscoveryPoiView sont balisés.
  */
-export function discoveryPoiSchema(poi: DiscoveryPoiDetail): JsonLdObject {
-  const path = `/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`
-  const hoursSpec = openingHoursSpecification(poi.hours)
+export function discoveryPoiSchema(
+  poi: DiscoveryPoiDetail,
+): JsonLdObject {
+  const path =
+    `/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`
+
+  const hoursSpec =
+    openingHoursSpecification(
+      poi.hours,
+    )
 
   return {
     '@context': SCHEMA,
-    '@type': discoveryPoiType(poi),
+
+    '@type':
+      discoveryPoiType(poi),
+
     name: poi.name,
-    description: poi.description,
+
+    description:
+      poi.description,
+
     url: poiUrl(path),
-    image: [poi.hero_photo_url],
-    ...(poi.phone ? { telephone: poi.phone } : {}),
-    ...(poi.website ? { sameAs: [poi.website] } : {}),
+
+    image: [
+      poi.hero_photo_url,
+    ],
+
+    ...(poi.phone
+      ? {
+          telephone:
+            poi.phone,
+        }
+      : {}),
+
+    ...(poi.website
+      ? {
+          sameAs: [
+            poi.website,
+          ],
+        }
+      : {}),
+
     address: {
-      '@type': 'PostalAddress',
-      streetAddress: poi.address,
-      addressLocality: poi.city.name,
+      '@type':
+        'PostalAddress',
+
+      streetAddress:
+        poi.address,
+
+      addressLocality:
+        poi.city.name,
     },
-    geo: { '@type': 'GeoCoordinates', latitude: poi.latitude, longitude: poi.longitude },
-    ...(poi.rating !== null && poi.rating_count !== null && poi.rating_count > 0
+
+    geo: {
+      '@type':
+        'GeoCoordinates',
+
+      latitude:
+        poi.latitude,
+
+      longitude:
+        poi.longitude,
+    },
+
+    ...(poi.rating !== null &&
+    poi.rating_count !== null &&
+    poi.rating_count > 0
       ? {
           aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: poi.rating,
-            ratingCount: poi.rating_count,
+            '@type':
+              'AggregateRating',
+
+            ratingValue:
+              poi.rating,
+
+            ratingCount:
+              poi.rating_count,
           },
         }
       : {}),
-    ...(hoursSpec ? { openingHoursSpecification: hoursSpec } : {}),
+
+    ...(hoursSpec
+      ? {
+          openingHoursSpecification:
+            hoursSpec,
+        }
+      : {}),
   }
 }
 
 export type LodgingSchemaInput = {
   id: string
+
   title: string
+
   shortDescription: string
+
   description: string
+
   cityName: string
+
   cityRegion: string | null
+
   slug: string
+
   propertyType: string
+
   maxGuests: number
+
   publicAreaLabel: string | null
+
   preciseLocationPublic: boolean
+
   publicLatitude: number | null
+
   publicLongitude: number | null
-  photos: Array<{ url: string; alt: string; is_cover: boolean; room_type: string | null }>
-  amenities: Array<{ code: string; label: string }>
+
+  photos: Array<{
+    url: string
+    alt: string
+    is_cover: boolean
+    room_type: string | null
+  }>
+
+  amenities: Array<{
+    code: string
+    label: string
+  }>
 }
 
-export function lodgingPlaceSchema(input: LodgingSchemaInput): JsonLdObject {
-  const visiblePhotos = selectVisibleLodgingPhotos(input.photos)
-  return lodgingPlaceSchemaWithVisiblePhotos(input, visiblePhotos)
+/**
+ * Schéma de base pour un logement public MyStay.
+ */
+export function lodgingPlaceSchema(
+  input: LodgingSchemaInput,
+): JsonLdObject {
+  const visiblePhotos =
+    selectVisibleLodgingPhotos(
+      input.photos,
+    )
+
+  return lodgingPlaceSchemaWithVisiblePhotos(
+    input,
+    visiblePhotos,
+  )
 }
 
 function lodgingPlaceSchemaWithVisiblePhotos(
   input: LodgingSchemaInput,
-  visiblePhotos: LodgingSchemaInput['photos'],
+  visiblePhotos:
+    LodgingSchemaInput['photos'],
 ): JsonLdObject {
-  const path = publicLodgingPath(input.slug)
+  const path =
+    publicLodgingPath(
+      input.slug,
+    )
+
   return {
     '@context': SCHEMA,
-    '@type': 'LodgingBusiness',
-    '@id': `${siteBaseUrl()}${path}#lodging`,
-    name: input.title,
-    description: input.shortDescription,
-    url: `${siteBaseUrl()}${path}`,
-    provider: { '@id': organizationId() },
-    image: visiblePhotos.map(photo => photo.url),
-    amenityFeature: input.amenities.map(amenity => ({
-      '@type': 'LocationFeatureSpecification',
-      name: amenity.label,
-      value: true,
-    })),
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: input.publicAreaLabel ?? input.cityName,
-      addressCountry: 'FR',
+
+    '@type':
+      'LodgingBusiness',
+
+    '@id':
+      `${siteBaseUrl()}${path}#lodging`,
+
+    name:
+      input.title,
+
+    description:
+      input.shortDescription,
+
+    url:
+      `${siteBaseUrl()}${path}`,
+
+    /**
+     * MyStay est ici déclaré comme
+     * provider de la présentation / expérience,
+     * sans qualifier MyStay d'agence immobilière.
+     */
+    provider: {
+      '@id':
+        organizationId(),
     },
-    ...(input.preciseLocationPublic && input.publicLatitude != null && input.publicLongitude != null
-      ? { geo: { '@type': 'GeoCoordinates', latitude: input.publicLatitude, longitude: input.publicLongitude } }
+
+    image:
+      visiblePhotos.map(
+        photo => photo.url,
+      ),
+
+    amenityFeature:
+      input.amenities.map(
+        amenity => ({
+          '@type':
+            'LocationFeatureSpecification',
+
+          name:
+            amenity.label,
+
+          value: true,
+        }),
+      ),
+
+    address: {
+      '@type':
+        'PostalAddress',
+
+      addressLocality:
+        input.publicAreaLabel ??
+        input.cityName,
+
+      addressCountry:
+        'FR',
+    },
+
+    ...(input.preciseLocationPublic &&
+    input.publicLatitude != null &&
+    input.publicLongitude != null
+      ? {
+          geo: {
+            '@type':
+              'GeoCoordinates',
+
+            latitude:
+              input.publicLatitude,
+
+            longitude:
+              input.publicLongitude,
+          },
+        }
       : {}),
   }
 }
 
-export function vacationRentalSchema(input: LodgingSchemaInput): JsonLdObject | null {
-  const visiblePhotos = selectVisibleLodgingPhotos(input.photos)
-  const canEmit = canEmitVacationRentalSchema({
-    title: input.title,
-    short_description: input.shortDescription,
-    description: input.description,
-    property_type: input.propertyType,
-    max_guests: input.maxGuests,
-    photos: visiblePhotos,
-    amenities: input.amenities,
-    precise_location_public: input.preciseLocationPublic,
-    public_latitude: input.publicLatitude,
-    public_longitude: input.publicLongitude,
-  })
+/**
+ * Schéma VacationRental uniquement
+ * lorsque le logement possède suffisamment
+ * de données publiques.
+ */
+export function vacationRentalSchema(
+  input: LodgingSchemaInput,
+): JsonLdObject | null {
+  const visiblePhotos =
+    selectVisibleLodgingPhotos(
+      input.photos,
+    )
 
-  if (!canEmit) return null
+  const canEmit =
+    canEmitVacationRentalSchema({
+      title:
+        input.title,
+
+      short_description:
+        input.shortDescription,
+
+      description:
+        input.description,
+
+      property_type:
+        input.propertyType,
+
+      max_guests:
+        input.maxGuests,
+
+      photos:
+        visiblePhotos,
+
+      amenities:
+        input.amenities,
+
+      precise_location_public:
+        input.preciseLocationPublic,
+
+      public_latitude:
+        input.publicLatitude,
+
+      public_longitude:
+        input.publicLongitude,
+    })
+
+  if (!canEmit) {
+    return null
+  }
 
   return {
-    ...lodgingPlaceSchemaWithVisiblePhotos(input, visiblePhotos),
-    '@type': 'VacationRental',
+    ...lodgingPlaceSchemaWithVisiblePhotos(
+      input,
+      visiblePhotos,
+    ),
+
+    '@type':
+      'VacationRental',
+
     occupancy: {
-      '@type': 'QuantitativeValue',
-      maxValue: input.maxGuests,
-      unitText: 'personnes',
+      '@type':
+        'QuantitativeValue',
+
+      maxValue:
+        input.maxGuests,
+
+      unitText:
+        'personnes',
     },
   }
 }
 
-export function lodgingItemListSchema(input: {
-  cityName: string
-  citySlug: string
-  items: PublicLodgingCardDto[]
-}): JsonLdObject {
+/**
+ * Liste de logements d'une ville.
+ */
+export function lodgingItemListSchema(
+  input: {
+    cityName: string
+
+    citySlug: string
+
+    items:
+      PublicLodgingCardDto[]
+  },
+): JsonLdObject {
   return {
-    '@context': SCHEMA,
-    '@type': 'ItemList',
-    name: `Logements à ${input.cityName}`,
-    itemListElement: input.items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      url: `${siteBaseUrl()}${item.href}`,
-      name: item.title,
-    })),
+    '@context':
+      SCHEMA,
+
+    '@type':
+      'ItemList',
+
+    name:
+      `Logements à ${input.cityName}`,
+
+    itemListElement:
+      input.items.map(
+        (item, index) => ({
+          '@type':
+            'ListItem',
+
+          position:
+            index + 1,
+
+          url:
+            `${siteBaseUrl()}${item.href}`,
+
+          name:
+            item.title,
+        }),
+      ),
   }
 }

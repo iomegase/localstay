@@ -36,6 +36,6 @@ it('root always renders the public marketing site even with an active lodging co
 
   render(await HomePage())
 
-  expect(screen.getByRole('heading', { level: 1, name: /Votre logement, géré avec soin/i })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { level: 1, name: /Votre logement,.*géré localement.*Vos voyageurs,.*mieux accompagnés/i })).toBeInTheDocument()
   expect(screen.queryByText('Sélectionner une ville')).not.toBeInTheDocument()
 })

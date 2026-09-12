@@ -38,9 +38,10 @@ function openGraph(input: {
 }
 
 export function homeMetadata(): Metadata {
-  const title = 'Conciergerie en Haute-Savoie | MyStay'
+  const title = 'Conciergerie à Saint-Gervais-les-Bains | MyStay'
+
   const description =
-    'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.'
+    'MyStay, conciergerie à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : accueil voyageurs, préparation des logements, ménage, linge, intendance et guides digitaux.'
   const path = '/'
   const images = ['/og-mystay.png']
 

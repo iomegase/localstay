@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MarketingHome } from '@/features/marketing/components/MarketingHome'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 
@@ -23,11 +23,16 @@ describe('031-public-marketing-site home', () => {
   it('renders the approved editorial hero and core sections without an invitation gate', () => {
     render(<MarketingHome lodgings={[]} />)
 
-    expect(screen.getByRole('heading', { level: 1, name: /Votre logement, géré avec soin/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Votre logement,.*géré localement.*Vos voyageurs,.*mieux accompagnés/i })).toBeInTheDocument()
     expect(screen.queryByText('Accès sur invitation')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Votre bien mérite plus qu’une simple remise de clés/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Une gestion attentive, avant, pendant et après chaque séjour/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Le guide MyStay prolonge notre accueil/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Nous connaissons les logements que nous accompagnons/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Une gestion concrète,.*avant, pendant et après chaque séjour/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Une conciergerie prolongée par le digital/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Gestion locative' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Accueil voyageurs' })).toHaveLength(2)
+    expect(screen.getByRole('heading', { name: 'Ménage & linge' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Intendance' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Guide digital MyStay' })).toBeInTheDocument()
     expect(screen.getByText(/Aucun logement public n’est encore disponible/i)).toBeInTheDocument()
 
     expect(screen.getByTestId('editorial-hero-shell')).toHaveClass(
@@ -35,61 +40,22 @@ describe('031-public-marketing-site home', () => {
     )
     expect(screen.getByTestId('editorial-hero')).toHaveClass(
       'bg-white',
-      'min-h-[560px]',
+      'min-h-[580px]',
     )
     expect(screen.getByTestId('editorial-hero').querySelector('img')).not.toBeInTheDocument()
     expect(screen.getByTestId('editorial-hero-content')).toHaveClass(
       'text-slate-800',
-      'min-h-[560px]',
+      'min-h-[580px]',
       'xl:px-[52px]',
-      'xl:pb-[43px]',
-      'xl:pt-[60px]',
+      'xl:pb-[48px]',
+      'xl:pt-[64px]',
     )
-    expect(screen.getByTestId('editorial-intro-copy')).toHaveClass(
-      'xl:max-w-[744px]',
-      'xl:px-6',
-    )
-    const highlightGrid = screen.getByTestId('editorial-highlight-grid')
-    expect(highlightGrid).toHaveClass(
-      'grid-cols-1',
-      'sm:grid-cols-2',
-      'lg:grid-cols-3',
-      'xl:grid-cols-5',
-    )
-    const featuredHighlight = screen.getByTestId('editorial-highlight-0')
-    expect(featuredHighlight).toHaveClass(
-      'group',
-      'bg-[#ffffff]',
-      'min-h-[165px]',
-    )
-    expect(featuredHighlight).toHaveTextContent('01')
-    expect(featuredHighlight.querySelector('svg')).not.toBeInTheDocument()
-    expect(
-      screen
-        .getAllByRole('link', { name: /Notre approche/i })
-        .some(link => link.classList.contains('bg-pink-600')),
-    ).toBe(true)
-    expect(screen.getByTestId('editorial-services')).toHaveClass(
-      'xl:pb-[42px]',
-      'xl:pt-[82px]',
-    )
-    expect(screen.getByTestId('editorial-service-01')).toHaveClass(
-      'group',
-      'bg-[#f8f7f5]',
-      'min-h-[165px]',
-    )
-    expect(within(screen.getByTestId('editorial-service-01')).getByText('01')).toHaveClass('text-[100px]')
+    expect(screen.getAllByRole('link', { name: 'Confier mon logement' }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: 'Découvrir MyStay' })).toHaveAttribute('href', '/concept')
     expect(screen.getByTestId('editorial-process')).toHaveClass(
-      'xl:pb-[88px]',
-      'xl:pt-8',
+      'xl:pb-[96px]',
+      'xl:pt-[72px]',
     )
-    expect(screen.getByTestId('editorial-process-card-0')).toHaveClass(
-      'group',
-      'bg-[#f8f7f5]',
-      'min-h-[165px]',
-    )
-    expect(screen.getByTestId('editorial-process-card-0')).toHaveTextContent('01')
-    expect(screen.getByTestId('editorial-process-card-0').querySelector('svg')).not.toBeInTheDocument()
     expect(screen.getByTestId('editorial-cta')).toHaveClass(
       'xl:gap-16',
       'xl:rounded-[24px]',

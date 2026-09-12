@@ -15,7 +15,7 @@ describe('031-public-marketing-site global lodgings page', () => {
   it('renders an editorial empty state when no published profile exists', async () => {
     render(await LodgingsPage())
 
-    expect(screen.getByRole('heading', { level: 1, name: /Des séjours choisis/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Des lieux suivis avec attention.' })).toBeInTheDocument()
     expect(screen.getByText(/Aucun logement public n’est encore disponible/i)).toBeInTheDocument()
   })
 })
