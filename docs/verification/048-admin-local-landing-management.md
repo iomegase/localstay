@@ -1,5 +1,31 @@
 # Spec 048 — verification record
 
+## Live migration checkpoint — 2026-09-12
+
+The approved nullable expand migration
+`20260908190000_add_local_landing_management` was applied to the configured
+Supabase database with `prisma migrate deploy` (exit 0). From the pinned
+`418b8cf` checkout, using the final reviewed backfill and frozen source modules,
+the nullable Prisma client was generated and the backfill ran twice:
+
+- First run: 4 destinations, 12 pages processed; 3 existing reviews attached.
+- Second run: 4 destinations, 12 pages processed; 0 reviews attached.
+
+A read-only query before the migration confirmed all four active City rows and
+three reviews with known destination slugs. The planned post-backfill integrity
+query was rejected by the tool's usage limit. **The required review relation
+has not been enforced, the final branch has not been merged or deployed, and
+the database migration is not complete.** The next operator must confirm zero
+null review `destination_id` values and exactly three distinct page intents per
+destination, then generate and apply the NOT NULL/foreign-key migration from
+the nullable and final Prisma schemas. The offline diff contains only a foreign
+key replacement and `ALTER COLUMN "destination_id" SET NOT NULL`. Keep review
+writes paused until enforcement succeeds. The final Prisma client was regenerated
+locally; TypeScript and 16 focused tests passed afterward.
+
+The historical offline-only statements below describe the earlier verification
+run, not this live migration checkpoint.
+
 ## Final-review follow-up — 2026-09-12
 
 Subsequent active-save regression: the draft relaxation originally allowed an
