@@ -39,9 +39,9 @@ const localHighlights = [
 const conciergeServices = [
   {
     number: '01',
-    title: 'Gestion locative',
+    title: 'Coordination des séjours',
     copy:
-      'Coordination des séjours, échanges avec les voyageurs, calendrier et suivi des réservations.',
+      'Préparation des séjours, échanges avec les voyageurs et coordination des prestations sur place.',
   },
   {
     number: '02',
@@ -149,12 +149,12 @@ const faqs = [
   {
     question: 'Dans quelles communes MyStay intervient-il ?',
     answer:
-      'MyStay accompagne principalement des logements à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc. La zone d’intervention dépend du logement, de sa localisation et du niveau de gestion recherché.',
+      'MyStay accompagne principalement des logements à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc. La zone d’intervention dépend du logement, de sa localisation et du niveau d’accompagnement recherché.',
   },
   {
-    question: 'Que comprend la gestion d’un logement ?',
+    question: 'Que comprend l’accompagnement d’un logement ?',
     answer:
-      'Selon les besoins du propriétaire, MyStay peut prendre en charge la préparation du logement, les échanges voyageurs, l’accueil, le ménage, le linge, le suivi du bien et la coordination des interventions.',
+      'Selon les besoins du propriétaire, MyStay peut accompagner la préparation du logement, l’accueil des voyageurs, le ménage, le linge, le suivi du bien et la coordination des prestations sur place.',
   },
   {
     question: 'MyStay s’occupe-t-il du ménage et du linge ?',
@@ -169,7 +169,7 @@ const faqs = [
   {
     question: 'Puis-je confier seulement certaines prestations ?',
     answer:
-      'L’accompagnement peut être adapté au logement et au niveau de délégation souhaité. Le fonctionnement est défini avec le propriétaire avant la mise en place de la gestion.',
+      'L’accompagnement peut être adapté au logement et au niveau de délégation souhaité. Le fonctionnement est défini avec le propriétaire avant la mise en place des prestations.',
   },
 ] as const
 
@@ -224,9 +224,9 @@ export function MarketingHome({
                   xl:text-[54px]
                 "
               >
-                Votre logement,
+                Votre logement, 
                 <br />
-                géré localement.
+               suivi localement.
                 <span
                   className="
                     mt-3 block
@@ -423,7 +423,7 @@ export function MarketingHome({
               xl:leading-[1.1]
             "
           >
-            Une gestion concrète,
+            Un accompagnement concret,
             <br className="hidden sm:block" />
             avant, pendant et après chaque séjour.
           </h2>
