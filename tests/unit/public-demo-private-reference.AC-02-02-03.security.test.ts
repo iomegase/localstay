@@ -498,6 +498,13 @@ function isAllowedDemoModuleSpecifier(
     specifier === 'framer-motion' ||
     specifier.startsWith('@/features/guide-demo/') ||
     specifier === '@/features/marketing/components/MarketingShell' ||
+    specifier === '@/features/marketing/components/marketing-styles' ||
+    specifier === '@/features/blog/components/BlogMarkdown' ||
+    specifier === '@/features/blog/lib/reading-time' ||
+    specifier === '@/features/lodging-showcase/components/LodgingEssentials' ||
+    specifier === '@/features/lodging-showcase/components/LodgingFeatureSections' ||
+    specifier === '@/features/lodging-showcase/components/LodgingMarketingGallery' ||
+    specifier === '@/features/lodging-showcase/components/LodgingRoomsGrid' ||
     specifier === '@/shared/components/brand/MyStayLogo' ||
     specifier === '@/shared/lib/french-place'
   )

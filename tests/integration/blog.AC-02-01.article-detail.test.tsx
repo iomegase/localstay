@@ -112,7 +112,7 @@ describe('029 blog article detail page', () => {
     expect(
       screen.getByRole('heading', { name: /Envie d’un accueil plus simple/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Continuer la lecture/i })).toBeInTheDocument()
+    expect(screen.getByText('À lire ensuite')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Les adresses du Mont-Blanc/i })).toHaveAttribute(
       'href',
       '/blog/adresses-du-mont-blanc',

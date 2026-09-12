@@ -33,7 +33,7 @@ describe('029 blog public list', () => {
   it('renders only published articles ordered for /blog', async () => {
     render(await BlogListPage({ searchParams: Promise.resolve({}) }))
 
-    expect(screen.getByRole('heading', { name: /Inspirations, conciergerie/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Inspirations.*conseils pour vos séjours/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Un week-end à Saint-Gervais/i })).toHaveAttribute(
       'href',
       '/blog/week-end-saint-gervais',

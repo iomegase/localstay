@@ -11,6 +11,14 @@ describe('lodgingListMetadata', () => {
 })
 
 describe('lodgingDetailMetadata', () => {
+  const previousBaseUrl = process.env.NEXT_PUBLIC_BASE_URL
+
+  beforeAll(() => { process.env.NEXT_PUBLIC_BASE_URL = 'https://www.mystay.city' })
+  afterAll(() => {
+    if (previousBaseUrl === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
+    else process.env.NEXT_PUBLIC_BASE_URL = previousBaseUrl
+  })
+
   it('builds a title, canonical and Open Graph image for a lodging detail', () => {
     const metadata = lodgingDetailMetadata({
       title: 'Chalet Hygge',

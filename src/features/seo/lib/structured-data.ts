@@ -111,8 +111,6 @@ export function organizationSchema(): JsonLdObject {
 
     email: 'bonjour@mystay.city',
 
-    telephone: '+33607859058',
-
     areaServed: [
       {
         '@type': 'City',
@@ -120,46 +118,9 @@ export function organizationSchema(): JsonLdObject {
       },
       {
         '@type': 'City',
-        name: 'Les Contamines-Montjoie',
-      },
-      {
-        '@type': 'City',
-        name: 'Megève',
-      },
-      {
-        '@type': 'City',
-        name: 'Combloux',
-      },
-      {
-        '@type': 'City',
-        name: 'Passy',
-      },
-      {
-        '@type': 'City',
-        name: 'Sallanches',
-      },
-      {
-        '@type': 'AdministrativeArea',
-        name: 'Pays du Mont-Blanc',
+        name: 'Saint-Nicolas-de-Véroce',
       },
     ],
-
-    contactPoint: {
-      '@type': 'ContactPoint',
-
-      contactType: 'customer service',
-
-      telephone: '+33607859058',
-
-      email: 'bonjour@mystay.city',
-
-      availableLanguage: [
-        'French',
-        'English',
-      ],
-
-      areaServed: 'FR',
-    },
 
     knowsAbout: [
       'Conciergerie',

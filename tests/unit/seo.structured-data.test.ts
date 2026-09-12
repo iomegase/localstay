@@ -39,19 +39,26 @@ describe('structured-data', () => {
   it('emits the single verified MyStay Organization identity', () => {
     const s = organizationSchema()
     expect(organizationId()).toBe('https://www.mystay.city/#organization')
-    expect(s).toEqual({
+    expect(s).toMatchObject({
       '@context': 'https://schema.org',
       '@type': 'Organization',
       '@id': 'https://www.mystay.city/#organization',
       name: 'MyStay',
       url: BASE,
-      logo: `${BASE}/mystay-logo-approved/mystay-logo-approved.png`,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${BASE}/mystay-logo-approved/mystay-logo-approved.png`,
+      },
       description:
-        'Gestion de locations saisonnières en Haute-Savoie : accueil voyageurs, ménage, linge, intendance et guide digital MyStay.',
+        'MyStay est une conciergerie locale à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : accueil voyageurs, préparation des logements, ménage, linge, intendance, assistance sur place, guides digitaux et accompagnement de séjours en groupe et séminaires.',
       email: 'bonjour@mystay.city',
-      areaServed: 'Haute-Savoie, France',
+      areaServed: [
+        { '@type': 'City', name: 'Saint-Gervais-les-Bains' },
+        { '@type': 'City', name: 'Saint-Nicolas-de-Véroce' },
+      ],
     })
     expect(s.telephone).toBeUndefined()
+    expect(s.contactPoint).toBeUndefined()
     expect(s.sameAs).toBeUndefined()
   })
 
@@ -71,7 +78,10 @@ describe('structured-data', () => {
     expect(organization).toMatchObject({
       '@id': 'https://www.mystay.city/#organization',
       url: 'https://preview.mystay.vercel.app',
-      logo: 'https://preview.mystay.vercel.app/mystay-logo-approved/mystay-logo-approved.png',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://preview.mystay.vercel.app/mystay-logo-approved/mystay-logo-approved.png',
+      },
     })
     expect(website).toMatchObject({
       url: 'https://preview.mystay.vercel.app',

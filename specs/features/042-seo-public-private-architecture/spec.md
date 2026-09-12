@@ -175,8 +175,9 @@ existe.
 #### Acceptance Criteria
 
 - **AC-05-01**: Given la homepage, When ses metadata sont générées, Then son
-  titre absolu est `Conciergerie en Haute-Savoie | MyStay`, sa description
-  présente la gestion de locations saisonnières et son canonical est `/`.
+  titre absolu est `Conciergerie à Saint-Gervais-les-Bains | MyStay`, sa
+  description présente la conciergerie locale, la préparation des logements et
+  l'accueil voyageurs dans le Pays du Mont-Blanc, et son canonical est `/`.
 - **AC-05-02**: Given le schéma `Organization`, When il est émis, Then son
   `@id` stable est `https://www.mystay.city/#organization` et seules des
   informations réellement connues et publiques sont incluses.
@@ -290,6 +291,8 @@ existe.
   `https://www.mystay.city/#organization`. `name`, `url`, `logo`,
   `description`, `email`, `telephone`, `areaServed` et `sameAs` ne sont émis
   que lorsque leur valeur est publique et vérifiée.
+  `areaServed` se limite aux communes actuellement couvertes confirmées par le
+  Product Owner : Saint-Gervais-les-Bains et Saint-Nicolas-de-Véroce.
 - **BR-20**: `LodgingBusiness` et `VacationRental` référencent l'organisation
   stable comme `provider` lorsque le schéma logement est éligible.
 - **BR-21**: Le mapping POI autorisé est : restaurant → `Restaurant`,

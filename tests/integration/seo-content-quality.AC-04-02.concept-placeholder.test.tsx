@@ -11,13 +11,14 @@ describe('043 /concept editorial placeholder removal', () => {
 
     for (const principle of [
       'Une présence locale et identifiable',
-      'Des besoins anticipés avec justesse',
-      'Chaque logement valorisé durablement',
+      'Les bonnes informations au bon moment',
+      'Un logement suivi dans la durée',
     ]) {
       const heading = screen.getByRole('heading', { name: principle })
       expect(heading).toBeInTheDocument()
-      expect(heading.parentElement?.querySelector('p')).toBeNull()
-      expect(heading.parentElement).not.toBeEmptyDOMElement()
+      const description = heading.parentElement?.querySelector('p')
+      expect(description).not.toBeEmptyDOMElement()
+      expect(description).not.toHaveTextContent(/description des principes|lorem ipsum|placeholder/i)
     }
   })
 })

@@ -360,7 +360,7 @@ routes privées, l'authentification et les API existantes restent inchangées.
   sans image de fond, texte sombre, CTA principal rose et cartes éditoriales
   numérotées. Pour la home uniquement, la décision Product Owner du 2026-09-12
   valide la version actuellement déployée : hero clair de 580 px minimum,
-  titre « Votre logement, géré localement. Vos voyageurs, mieux accompagnés. »,
+  titre « Votre logement, suivi localement. Vos voyageurs, mieux accompagnés. »,
   sections présence locale, services et guide digital, cartes textuelles sans
   numéro visible. L'ancien hero chalet sombre reste exclu.
 - **BR-31**: La rangée de filtres de `GuideFavoritesPage` utilise le

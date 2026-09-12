@@ -181,6 +181,14 @@ const detailResult = {
 }
 
 describe('lodging showcase public pages', () => {
+  const previousBaseUrl = process.env.NEXT_PUBLIC_BASE_URL
+
+  beforeAll(() => { process.env.NEXT_PUBLIC_BASE_URL = 'https://www.mystay.city' })
+  afterAll(() => {
+    if (previousBaseUrl === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
+    else process.env.NEXT_PUBLIC_BASE_URL = previousBaseUrl
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     ;(getCityForSeo as jest.Mock).mockResolvedValue(city)

@@ -128,8 +128,8 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
   })
 
   it.each([
-    { destination: 'Nos logements', heading: 'Nos logements' },
-    { destination: 'Blog', heading: 'Blog' },
+    { destination: 'Nos logements', heading: 'Des lieux suivis avec attention.' },
+    { destination: 'Blog', heading: 'Inspirations... et conseils pour vos séjours' },
     { destination: 'Nous contacter', heading: 'Votre hôte' },
   ])(
     'navigates to $destination from the local menu, closes it and focuses the destination heading',

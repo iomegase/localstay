@@ -109,6 +109,14 @@ function expectPublicSurface(container: HTMLElement, h1: RegExp) {
 }
 
 describe('041 public discovery pages', () => {
+  const previousBaseUrl = process.env.NEXT_PUBLIC_BASE_URL
+
+  beforeAll(() => { process.env.NEXT_PUBLIC_BASE_URL = 'https://www.mystay.city' })
+  afterAll(() => {
+    if (previousBaseUrl === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
+    else process.env.NEXT_PUBLIC_BASE_URL = previousBaseUrl
+  })
+
   beforeEach(() => jest.clearAllMocks())
 
   it('renders the City page from one public query with only canonical discovery links', async () => {

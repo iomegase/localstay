@@ -23,12 +23,12 @@ describe('031-public-marketing-site home', () => {
   it('renders the approved editorial hero and core sections without an invitation gate', () => {
     render(<MarketingHome lodgings={[]} />)
 
-    expect(screen.getByRole('heading', { level: 1, name: /Votre logement,.*géré localement.*Vos voyageurs,.*mieux accompagnés/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Votre logement,.*suivi localement.*Vos voyageurs,.*mieux accompagnés/i })).toBeInTheDocument()
     expect(screen.queryByText('Accès sur invitation')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Nous connaissons les logements que nous accompagnons/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Une gestion concrète,.*avant, pendant et après chaque séjour/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Un accompagnement concret,.*avant, pendant et après chaque séjour/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Une conciergerie prolongée par le digital/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Gestion locative' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Coordination des séjours' })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { name: 'Accueil voyageurs' })).toHaveLength(2)
     expect(screen.getByRole('heading', { name: 'Ménage & linge' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Intendance' })).toBeInTheDocument()
