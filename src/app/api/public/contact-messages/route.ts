@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/shared/lib/prisma'
 import { apiError, validationError } from '@/features/merchant/lib/responses'
 import { publicContactMessageSchema } from '@/features/contact-messages/schemas'
+import { sendOwnerLeadNotificationEmail } from '@/shared/lib/resend'
 
 type LodgingForContact = {
   id: string
@@ -58,6 +59,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     },
     select: { id: true },
   })
+
+  if (input.source === 'owner_lead') {
+    const emailSent = await sendOwnerLeadNotificationEmail({
+      id: contactMessage.id,
+      senderName: input.sender_name,
+      senderEmail: input.sender_email,
+      senderPhone: input.sender_phone,
+      subject: input.subject,
+      message: input.message,
+    })
+    if (!emailSent) {
+      console.error('OWNER_LEAD_NOTIFICATION_FAILED', { messageId: contactMessage.id })
+    }
+  }
 
   return NextResponse.json({ id: contactMessage.id, status: 'received' }, { status: 201 })
 }

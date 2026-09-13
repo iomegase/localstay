@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-07-29
-updated_at: 2026-09-12
+updated_at: 2026-09-13
 depends_on:
   - 006-qr-code
   - 009-auth-owner
@@ -279,8 +279,10 @@ routes privées, l'authentification et les API existantes restent inchangées.
   `#64748b`, les espacements, boutons, cartes et sections suivent la maquette
   fournie.
 - **BR-10**: La connexion marketing réutilise Supabase Auth via `/auth/login`.
-- **BR-11**: Le formulaire propriétaire ne persiste aucune donnée et prépare un
-  e-mail via le client du visiteur.
+- **BR-11**: Le formulaire propriétaire utilise `/api/public/contact-messages`
+  avec `source: owner_lead`. La demande est conservée dans l’inbox admin et
+  notifiée via Resend à `bonjour@mystay.city` selon la spec 024 US-05
+  (décision Product Owner du 2026-09-12, confirmée le 2026-09-13).
 - **BR-12**: Le shell marketing reproduit le `SiteFrame` de la maquette :
   marge extérieure de 20 à 24 px à partir de 768 px, surface blanche de 1184 px
   maximum, `overflow: hidden`, rayon de 42 px puis 34 px à partir de 1280 px,
@@ -405,6 +407,9 @@ Aucune nouvelle route API. Les Server Components appellent directement les
 queries Prisma existantes ou une query de lecture globale ajoutée au bounded
 context `lodging-showcase`.
 
+Le formulaire propriétaire réutilise le POST de la spec 024 et son champ
+optionnel `source: owner_lead`. Il conserve ses états visuels existants.
+
 ## UI Behaviour
 
 - Le header est intégré en haut de la surface blanche, avec logo MyStay,
@@ -512,8 +517,8 @@ context `lodging-showcase`.
 
 - Nouveau système d'authentification.
 - Réservation, calendrier, prix, paiement ou disponibilité.
-- Persistance serveur du formulaire propriétaire.
-- Modification des dashboards, API, schéma Prisma ou données existantes.
+- Modification des dashboards et du schéma Prisma ; les demandes utilisent
+  le contrat de contact existant étendu par la spec 024 US-05.
 - Déploiement ou push Git.
 - Refonte visuelle des surfaces privées du guide.
 - Route publique dédiée à la démonstration.

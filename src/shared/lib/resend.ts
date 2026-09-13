@@ -59,9 +59,8 @@ export async function sendContactReplyEmail({
 }: ContactReplyEmailParams): Promise<boolean> {
   if (!process.env.RESEND_API_KEY) return false
 
-  const resend = new Resend(process.env.RESEND_API_KEY)
-  await resend.emails.send({
-    from: 'MyStay <hello@mystay.fr>',
+  return sendContactEmail({
+    from: 'MyStay <bonjour@mystay.city>',
     to,
     subject: `Réponse MyStay — ${subject}`,
     html: `
@@ -77,6 +76,59 @@ export async function sendContactReplyEmail({
       </div>
     `,
   })
+}
 
-  return true
+interface OwnerLeadNotificationParams {
+  id: string
+  senderName: string
+  senderEmail: string
+  senderPhone?: string | null
+  subject: string
+  message: string
+}
+
+// A provider acceptance is not a guarantee of delivery to the recipient's inbox.
+async function sendContactEmail(
+  payload: Parameters<Resend['emails']['send']>[0],
+  idempotencyKey?: string,
+): Promise<boolean> {
+  if (!process.env.RESEND_API_KEY?.trim()) {
+    console.error('CONTACT_EMAIL_NOT_CONFIGURED')
+    return false
+  }
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY.trim())
+    const { data, error } = await resend.emails.send(
+      payload,
+      idempotencyKey ? { idempotencyKey } : undefined,
+    )
+    if (error || !data?.id) {
+      console.error('CONTACT_EMAIL_REJECTED', { code: error?.name ?? 'missing_email_id' })
+      return false
+    }
+    return true
+  } catch {
+    console.error('CONTACT_EMAIL_SEND_FAILED')
+    return false
+  }
+}
+
+export async function sendOwnerLeadNotificationEmail(input: OwnerLeadNotificationParams): Promise<boolean> {
+  return sendContactEmail({
+    from: 'MyStay <bonjour@mystay.city>',
+    to: 'bonjour@mystay.city',
+    replyTo: input.senderEmail,
+    subject: input.subject.replace(/[\r\n]+/g, ' '),
+    text: [
+      'Nouvelle demande propriétaire MyStay',
+      `Nom : ${input.senderName}`,
+      `Email : ${input.senderEmail}`,
+      `Téléphone : ${input.senderPhone || 'Non renseigné'}`,
+      '',
+      input.message,
+      '',
+      'Consulter les demandes : https://www.mystay.city/admin',
+      `Référence : ${input.id}`,
+    ].join('\n'),
+  }, `owner-lead-${input.id}`)
 }

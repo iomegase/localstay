@@ -18,6 +18,10 @@ describe('031 AC-04-03 owner lead form', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Envoyer ma demande' }))
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/public/contact-messages', expect.objectContaining({ method: 'POST' })))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(expect.objectContaining({
+      source: 'owner_lead', destination: 'concierge', lodging_id: null,
+      sender_email: 'marie@example.test',
+    }))
     expect(await screen.findByRole('status')).toHaveTextContent('Merci. Votre demande a bien été envoyée. Nous vous recontacterons personnellement.')
   })
 })

@@ -24,6 +24,7 @@ export function OwnerLeadForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          source: 'owner_lead',
           lodging_id: null,
           destination: 'concierge',
           sender_name: data.get('name'),

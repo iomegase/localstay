@@ -886,3 +886,22 @@ BR-15 : `tests/contract/public-discovery.AC-06.sitemap-route.test.ts` et
 Admin/API/dashboard/merchant sont interdits au crawl, et les pages privées
 restent crawlables pour que les robots lisent leur noindex.
 `tests/unit/seo.robots.test.ts` couvre cette frontière.
+
+
+### Notifications des demandes propriétaires — 2026-09-13
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 024 | Contact Messages | US-05 | AC-05-01 | `src/app/api/public/contact-messages/route.ts`, `src/shared/lib/resend.ts` | `tests/contract/contact-messages.AC-05.owner-lead-email.test.ts` | Implémenté, testé localement |
+| 024 | Contact Messages | US-05 | AC-05-02 | `src/app/api/public/contact-messages/route.ts`, `src/shared/lib/resend.ts` | `tests/contract/contact-messages.AC-05.owner-lead-email.test.ts` | Implémenté, testé localement |
+| 024 | Contact Messages | US-05 | AC-05-03 | `src/features/contact-messages/schemas.ts`, `src/app/api/public/contact-messages/route.ts` | `tests/contract/contact-messages.AC-05.owner-lead-email.test.ts` | Implémenté, testé localement |
+| 024 | Contact Messages | US-05 | AC-05-04 | `src/shared/lib/resend.ts` | `tests/contract/contact-messages.AC-05.owner-lead-email.test.ts` | Implémenté, testé localement |
+| 031 | Marketing | US-04 | AC-04-03 | `src/features/contact-messages/components/OwnerLeadForm.tsx` | `tests/integration/public-marketing.AC-04-03.owner-lead-form.test.tsx` | Implémenté, testé localement |
+
+Configuration : `RESEND_API_KEY` doit être définie dans l'environnement serveur
+local et dans l'environnement Vercel ciblé, puis un nouveau déploiement est requis.
+Le domaine expéditeur `mystay.city` doit être vérifié dans Resend.
+Les notifications vont à `bonjour@mystay.city` ; la réception dans Gmail dépend
+de la boîte ou redirection de cette adresse. Aucun renvoi rétroactif ni retry
+automatique : les demandes restent consultables dans `/admin` en cas d'échec.
+Le test fournisseur utilise un mock et ne prouve pas la livraison en boîte mail.

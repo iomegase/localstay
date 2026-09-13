@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-04
-updated_at: 2026-06-13
+updated_at: 2026-09-13
 depends_on: [009-auth-owner, 010-dashboard-owner, 012-guide-customization, 016-dashboard-superadmin]
 ```
 
@@ -85,6 +85,21 @@ La page `/contact` doit devenir un formulaire exploitable pour les Tourists en s
 
 ---
 
+### US-05 — Recevoir les demandes propriétaires par email
+
+**As a** responsable MyStay
+**I want to** recevoir les demandes de `/confier-mon-logement` à `bonjour@mystay.city`
+**So that** je puisse les traiter depuis ma messagerie en conservant leur copie admin
+
+#### Acceptance Criteria
+
+- **AC-05-01**: Une demande valide marquée `source: owner_lead` est enregistrée avant une notification Resend à `bonjour@mystay.city`, avec coordonnées, sujet, projet et lien `/admin`. Le Reply-To est l'email du demandeur ; aucun accusé automatique ne lui est envoyé.
+- **AC-05-02**: Une clé absente, un refus Resend ou une exception réseau ne perd pas la demande enregistrée : réponse publique 201 inchangée, journal serveur sans contenu personnel ni clé, aucun faux succès d'envoi.
+- **AC-05-03**: Une soumission invalide, un honeypot rempli ou un échec de stockage ne déclenche aucun email ; les autres formulaires sans `source: owner_lead` ne déclenchent pas cette notification.
+- **AC-05-04**: Les notifications et réponses de contact partent de `MyStay <bonjour@mystay.city>`. Une réponse admin indique `email_sent: false` si Resend refuse ou échoue, et `true` uniquement si un identifiant d'envoi est retourné.
+
+---
+
 ## Business Rules
 
 - **BR-01**: Tout Contact Message créé depuis un séjour est visible dans l'inbox Super-admin globale, même s'il est destiné au Propriétaire.
@@ -100,6 +115,9 @@ La page `/contact` doit devenir un formulaire exploitable pour les Tourists en s
 - **BR-11**: Le dashboard Owner affiche uniquement les Contact Messages dont `owner_id` correspond au Owner connecté et dont la destination vaut `owner`.
 
 ---
+
+- **BR-12**: Décision Product Owner du 2026-09-12, confirmée le 2026-09-13 : notification des nouvelles demandes propriétaires vers `bonjour@mystay.city`, copie admin conservée. `source` est un marqueur de routage validé, non persisté ; `owner_lead` nécessite destination `concierge` et aucun logement associé.
+- **BR-13**: Les envois de contact utilisent le domaine vérifié `mystay.city` et `RESEND_API_KEY` côté serveur. Les erreurs fournisseur sont contrôlées explicitement et les exceptions réseau interceptées. Les logs contiennent uniquement un code technique et, pour la notification, l'identifiant de la demande. Une clé d'idempotence basée sur cet identifiant évite de répéter le même envoi fournisseur.
 
 ## Data Model
 
@@ -165,6 +183,8 @@ paths:
               type: object
               required: [sender_name, sender_email, destination, subject, message]
               properties:
+                source: { type: string, enum: [owner_lead], description: "Optionnel ; uniquement concierge sans lodging_id" }
+                website: { type: string, maxLength: 240, description: "Honeypot : si rempli, réponse 201 avec status received uniquement, sans stockage ni email" }
                 lodging_id: { type: string, format: uuid, nullable: true }
                 destination: { type: string, enum: [owner, concierge] }
                 sender_name: { type: string, minLength: 2, maxLength: 120 }
@@ -310,11 +330,16 @@ Les erreurs suivent la structure globale :
 | AC-04-01 | Page Messages Owner affiche messages destination propriétaire | integration |
 | AC-04-02 | Dashboard Owner masque messages conciergerie | unit |
 | AC-04-03 | Aside Owner expose onglet Messages | integration |
+| AC-05-01 | Notification propriétaire après stockage | contract + unit |
+| AC-05-02 | Préservation en cas d’échec email | contract + unit |
+| AC-05-03 | Pas d’envoi hors demande valide | contract |
+| AC-05-04 | Expéditeur et statut Resend exacts | unit |
 
 ---
 
 ## Out of Scope
 
+- Renvoi rétroactif des demandes, retries automatiques et accusé de réception au demandeur.
 - Chat temps réel ou notifications push.
 - Pièces jointes.
 - SLA ou assignation interne par opérateur.
