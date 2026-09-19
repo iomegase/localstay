@@ -196,7 +196,7 @@ export function MarketingHome({
             className="
               relative
               flex min-h-[580px] flex-col
-              px-7 pb-14 pt-16
+              px-4 pb-14 pt-16
               text-slate-800
               sm:px-10
               min-[761px]:px-[46px]
@@ -282,343 +282,382 @@ export function MarketingHome({
       {/* =========================================================
           PRESENCE LOCALE
       ========================================================== */}
-      <section
-        className={`
-          ${marketingContainerClass}
-          pb-16 pt-20
-          sm:pb-24 sm:pt-28
-          xl:pb-[88px] xl:pt-[80px]
-        `}
-      >
-        <div className="max-w-[690px]">
-          <MarketingEyebrow>
-            Une présence locale en Haute-Savoie
-          </MarketingEyebrow>
+  <section
+  className={`
+    ${marketingContainerClass}
+    pb-16 pt-20
+    sm:pb-24 sm:pt-28
+    xl:pb-[88px] xl:pt-[80px]
+  `}
+>
+  <div className="max-w-[690px]">
+    <MarketingEyebrow>
+      Une présence locale en Haute-Savoie
+    </MarketingEyebrow>
 
-          <h2
-            className="
-              max-w-[680px]
-              text-3xl
-              font-bold
-              leading-[1.15]
-              tracking-[-0.05em]
-              sm:text-[44px]
-              xl:text-[40px]
-              xl:leading-[1.1]
-            "
-          >
-            Nous connaissons les logements que nous accompagnons.
-          </h2>
+    <h2
+      className="
+        max-w-[680px]
+        text-3xl
+        font-bold
+        leading-[1.15]
+        tracking-[-0.05em]
+        sm:text-[44px]
+        xl:text-[40px]
+        xl:leading-[1.1]
+      "
+    >
+      Nous connaissons les logements que nous accompagnons.
+    </h2>
 
-          <p
-            className="
-              mt-7
-              max-w-[620px]
-              text-sm
-              leading-7
-              text-slate-500
-              xl:text-[13px]
-              xl:leading-[1.75]
-            "
-          >
-            Appartements, chalets ou résidences secondaires : chaque bien
-            demande une organisation adaptée aux contraintes de la montagne,
-            à sa localisation et aux attentes des voyageurs.
-          </p>
-        </div>
+    <p
+      className="
+        mt-7
+        max-w-[620px]
+        text-sm
+        leading-7
+        text-slate-500
+        xl:text-[13px]
+        xl:leading-[1.75]
+      "
+    >
+      Appartements, chalets ou résidences secondaires : chaque bien demande
+      une organisation adaptée aux contraintes de la montagne, à sa
+      localisation et aux attentes des voyageurs.
+    </p>
+  </div>
 
-        <div
-          className="
-            mt-12
-            grid grid-cols-1 gap-4
-            sm:grid-cols-2
-            xl:mt-[58px]
-            xl:grid-cols-4
-          "
+  <div
+    className="
+      mt-12
+      grid
+      grid-cols-2
+      gap-3
+      sm:gap-4
+      xl:mt-[58px]
+      xl:grid-cols-4
+    "
+  >
+    {localHighlights.map((item, index) => {
+      const isLast = index === localHighlights.length - 1
+      const isOdd = localHighlights.length % 2 !== 0
+
+      return (
+        <article
+          key={item.number}
+          className={`
+            group
+            relative
+            min-h-[168px]
+            min-w-0
+            overflow-hidden
+            rounded-[22px]
+            bg-[#f8f7f5]
+            px-4
+            py-5
+            transition-all
+            duration-300
+            hover:-translate-y-[3px]
+            hover:bg-white
+            hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+            sm:px-5
+
+            ${
+              isLast && isOdd
+                ? 'col-span-2 xl:col-span-1'
+                : ''
+            }
+          `}
         >
-          {localHighlights.map((item) => (
-            <article
-              key={item.number}
+          <span
+            aria-hidden="true"
+            className="
+              absolute
+              left-4
+              top-0
+              h-[3px]
+              w-10
+              rounded-b-full
+              bg-pink-600
+              sm:left-5
+            "
+          />
+
+          <div className="relative z-10 min-w-0">
+            <h3
               className="
-                group
-                relative
-                min-h-[168px]
-                overflow-hidden
-                rounded-[22px]
-                bg-[#f8f7f5]
-                px-5
-                py-[20px]
-                transition-all
-                duration-300
-                hover:-translate-y-[3px]
-                hover:bg-white
-                hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+                text-[14px]
+                font-bold
+                leading-[1.2]
+                tracking-[-0.025em]
+                text-slate-900
+                sm:text-[15px]
               "
             >
-              <span
-                aria-hidden="true"
-                className="
-                  absolute left-5 top-0
-                  h-[3px] w-10
-                  rounded-b-full
-                  bg-pink-600
-                "
-              />
-{/* 
-              <span
-                aria-hidden="true"
-                className="
-                  pointer-events-none
-                  absolute
-                  -bottom-[26px]
-                  -right-[3px]
-                  select-none
-                  text-[100px]
-                  font-bold
-                  leading-none
-                  tracking-[-0.09em]
-                  text-slate-900/[0.03]
-                "
-              >
-                {item.number}
-              </span> */}
+              {item.label}
+            </h3>
 
-              <div className="relative z-10">
-                <h3 className="text-[15px] font-bold text-slate-900">
-                  {item.label}
-                </h3>
-
-                <p className="mt-5 max-w-[210px] text-[12.5px] leading-[1.6] text-slate-500">
-                  {item.copy}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+            <p
+              className="
+                mt-4
+                text-[12px]
+                leading-[1.55]
+                text-slate-500
+                sm:mt-5
+                sm:max-w-[210px]
+                sm:text-[12.5px]
+                sm:leading-[1.6]
+              "
+            >
+              {item.copy}
+            </p>
+          </div>
+        </article>
+      )
+    })}
+  </div>
+</section>
 
       {/* =========================================================
           SERVICES
       ========================================================== */}
-      <section
-        id="services"
-        className={`
-          ${marketingContainerClass}
-          pb-20 pt-10
-          sm:pb-28 sm:pt-16
-          xl:pb-[88px] xl:pt-[72px]
-        `}
-      >
-        <div className="max-w-[690px]">
-          <MarketingEyebrow>Nos services</MarketingEyebrow>
+  <div
+  className="
+    mt-12
+    grid
+    !grid-cols-2
+    gap-3
+    px-4
+    sm:px-5
+    lg:!grid-cols-3
+    lg:px-0
+    xl:!grid-cols-5
+  "
+>
+  {conciergeServices.map((service, index) => (
+    <article
+      key={service.number}
+      className={`
+        group
+        relative
+        min-h-[178px]
+        min-w-0
+        overflow-hidden
+        rounded-[22px]
+        bg-[#f8f7f5]
+        px-4
+        py-5
+        transition-all
+        duration-300
+        hover:-translate-y-[3px]
+        hover:bg-white
+        hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+        sm:px-5
 
-          <h2
-            className="
-              text-3xl
-              font-bold
-              leading-[1.15]
-              tracking-[-0.05em]
-              sm:text-[44px]
-              xl:text-[40px]
-              xl:leading-[1.1]
-            "
-          >
-            Un accompagnement concret,
-            <br className="hidden sm:block" />
-            avant, pendant et après chaque séjour.
-          </h2>
+        ${
+          index === conciergeServices.length - 1
+            ? 'col-span-2 lg:col-span-1'
+            : ''
+        }
+      `}
+    >
+      <span
+        aria-hidden="true"
+        className="
+          absolute
+          left-4
+          top-0
+          h-[3px]
+          w-10
+          rounded-b-full
+          bg-pink-600
+          sm:left-5
+        "
+      />
 
-          <p
-            className="
-              mt-7
-              max-w-[590px]
-              text-sm
-              leading-7
-              text-slate-500
-              xl:text-[13px]
-              xl:leading-[1.75]
-            "
-          >
-            Nous adaptons notre accompagnement au logement et au niveau de
-            délégation recherché par son propriétaire.
-          </p>
-        </div>
-
-        <div
+      <div className="relative z-10 min-w-0">
+        <h3
           className="
-            mt-12
-            grid grid-cols-1 gap-4
-            sm:grid-cols-2
-            lg:grid-cols-3
-            xl:grid-cols-5
+            text-[14px]
+            font-bold
+            leading-[1.2]
+            tracking-[-0.025em]
+            text-slate-900
+            sm:text-[15px]
           "
         >
-          {conciergeServices.map((service) => (
-            <article
-              key={service.number}
-              className="
-                group
-                relative
-                min-h-[178px]
-                overflow-hidden
-                rounded-[22px]
-                bg-[#f8f7f5]
-                px-5
-                py-[20px]
-                transition-all
-                duration-300
-                hover:-translate-y-[3px]
-                hover:bg-white
-                hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
-              "
-            >
-              <span
-                aria-hidden="true"
-                className="
-                  absolute left-5 top-0
-                  h-[3px] w-10
-                  rounded-b-full
-                  bg-pink-600
-                "
-              />
-{/* 
-              <span
-                aria-hidden="true"
-                className="
-                  pointer-events-none
-                  absolute
-                  -bottom-[26px]
-                  -right-[3px]
-                  select-none
-                  text-[100px]
-                  font-bold
-                  leading-none
-                  tracking-[-0.09em]
-                  text-slate-900/[0.03]
-                "
-              >
-                {service.number}
-              </span> */}
+          {service.title}
+        </h3>
 
-              <div className="relative z-10">
-                <h3
-                  className="
-                    text-[15px]
-                    font-bold
-                    leading-[1.15]
-                    tracking-[-0.025em]
-                    text-slate-900
-                  "
-                >
-                  {service.title}
-                </h3>
-
-                <p className="mt-5 text-[12.5px] leading-[1.6] text-slate-500">
-                  {service.copy}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+        <p
+          className="
+            mt-4
+            text-[12px]
+            leading-[1.55]
+            text-slate-500
+            sm:mt-5
+            sm:text-[12.5px]
+          "
+        >
+          {service.copy}
+        </p>
+      </div>
+    </article>
+  ))}
+</div>
 
       {/* =========================================================
           GUIDE DIGITAL
       ========================================================== */}
-      <section
-        data-testid="editorial-process"
-        className={`
-          ${marketingContainerClass}
-          pb-20 pt-10
-          sm:pb-28
-          xl:pb-[96px] xl:pt-[72px]
-        `}
-      >
-        <div className="max-w-[700px]">
-          <MarketingEyebrow>Ce qui distingue MyStay</MarketingEyebrow>
+    <section
+  data-testid="editorial-process"
+  className={`
+    ${marketingContainerClass}
+    pb-20 pt-10
+    sm:pb-28
+    xl:pb-[96px] xl:pt-[72px]
+  `}
+>
+  <div className="max-w-[700px]">
+    <MarketingEyebrow>Ce qui distingue MyStay</MarketingEyebrow>
 
-          <h2
+    <h2
+      className="
+        max-w-[680px]
+        text-3xl
+        font-bold
+        leading-[1.15]
+        tracking-[-0.05em]
+        sm:text-[44px]
+        xl:text-[40px]
+        xl:leading-[1.1]
+      "
+    >
+      Une conciergerie prolongée par le digital.
+    </h2>
+
+    <p
+      className="
+        mt-7
+        max-w-[620px]
+        text-sm
+        leading-7
+        text-slate-500
+        xl:text-[13px]
+        xl:leading-[1.75]
+      "
+    >
+      Le voyageur retrouve dans son guide MyStay les informations de son
+      logement, les consignes d’arrivée, les équipements et une sélection de
+      recommandations locales. Toutes ces informations restent accessibles
+      depuis un simple lien ou un QR code.
+    </p>
+
+    <div className="mt-7">
+      <GuideDemoLauncher />
+    </div>
+  </div>
+
+  <div
+    className="
+      mt-12
+      grid
+      grid-cols-2
+      gap-3
+      sm:gap-4
+      lg:grid-cols-3
+    "
+  >
+    {guideBenefits.map((item, index) => {
+      const isLast = index === guideBenefits.length - 1
+      const isOdd = guideBenefits.length % 2 !== 0
+
+      return (
+        <article
+          key={item.number}
+          className={`
+            group
+            relative
+            min-h-[190px]
+            min-w-0
+            overflow-hidden
+            rounded-[22px]
+            bg-[#f8f7f5]
+            px-4
+            py-5
+            transition-all
+            duration-300
+            hover:-translate-y-[3px]
+            hover:bg-white
+            hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+            sm:px-5
+
+            ${
+              isLast && isOdd
+                ? 'col-span-2 lg:col-span-1'
+                : ''
+            }
+          `}
+        >
+          <span
+            aria-hidden="true"
             className="
-              max-w-[680px]
-              text-3xl
-              font-bold
-              leading-[1.15]
-              tracking-[-0.05em]
-              sm:text-[44px]
-              xl:text-[40px]
-              xl:leading-[1.1]
+              absolute
+              left-4
+              top-0
+              h-[3px]
+              w-10
+              rounded-b-full
+              bg-pink-600
+              sm:left-5
+            "
+          />
+
+          <span
+            className="
+              text-[9px]
+              font-semibold
+              uppercase
+              tracking-[0.14em]
+              text-slate-400
+              sm:text-[10px]
             "
           >
-            Une conciergerie prolongée par le digital.
-          </h2>
+            {item.label}
+          </span>
+
+          <h3
+            className="
+              mt-4
+              text-[15px]
+              font-bold
+              leading-[1.2]
+              tracking-[-0.035em]
+              text-slate-900
+              sm:text-[17px]
+            "
+          >
+            {item.title}
+          </h3>
 
           <p
             className="
-              mt-7
-              max-w-[620px]
-              text-sm
-              leading-7
+              mt-4
+              text-[12px]
+              leading-[1.55]
               text-slate-500
-              xl:text-[13px]
-              xl:leading-[1.75]
+              sm:max-w-[250px]
+              sm:text-[12.5px]
+              sm:leading-[1.6]
             "
           >
-            Le voyageur retrouve dans son guide MyStay les informations de son
-            logement, les consignes d’arrivée, les équipements et une sélection
-            de recommandations locales. Toutes ces informations restent
-            accessibles depuis un simple lien ou un QR code.
+            {item.copy}
           </p>
-
-          <div className="mt-7">
-            <GuideDemoLauncher />
-          </div>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {guideBenefits.map((item) => (
-            <article
-              key={item.number}
-              className="
-                group
-                relative
-                min-h-[190px]
-                overflow-hidden
-                rounded-[22px]
-                bg-[#f8f7f5]
-                px-5
-                py-[20px]
-                transition-all
-                duration-300
-                hover:-translate-y-[3px]
-                hover:bg-white
-                hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
-              "
-            >
-              <span
-                aria-hidden="true"
-                className="
-                  absolute left-5 top-0
-                  h-[3px] w-10
-                  rounded-b-full
-                  bg-pink-600
-                "
-              />
-
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                {item.label}
-              </span>
-
-              <h3 className="mt-4 text-[17px] font-bold leading-[1.2] tracking-[-0.035em] text-slate-900">
-                {item.title}
-              </h3>
-
-              <p className="mt-4 max-w-[250px] text-[12.5px] leading-[1.6] text-slate-500">
-                {item.copy}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
+        </article>
+      )
+    })}
+  </div>
+</section>
 
       {/* =========================================================
           LOGEMENTS
@@ -984,79 +1023,164 @@ export function MarketingHome({
       {/* =========================================================
           FAQ
       ========================================================== */}
-      <section
-        className={`
-          ${marketingContainerClass}
-          pb-20 pt-10
-          sm:pb-28
-          xl:py-[92px]
-        `}
-      >
-        <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20">
-          <div>
-            <MarketingEyebrow>Questions fréquentes</MarketingEyebrow>
+     <section
+  className={`
+    ${marketingContainerClass}
+    pb-20 pt-10
+    sm:pb-28
+    xl:py-[92px]
+  `}
+>
+  <div
+    className="
+      grid
+      gap-12
+      lg:grid-cols-[0.75fr_1.25fr]
+      lg:gap-20
+    "
+  >
+    <div>
+      <MarketingEyebrow>
+        Questions fréquentes
+      </MarketingEyebrow>
 
-            <h2
+      <h2
+        className="
+          max-w-[430px]
+          text-3xl
+          font-bold
+          leading-[1.15]
+          tracking-[-0.05em]
+          sm:text-[44px]
+          xl:text-[40px]
+        "
+      >
+        Comprendre simplement notre fonctionnement.
+      </h2>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      {faqs.map((faq) => (
+        <details
+          key={faq.question}
+          name="mystay-faq"
+          className="
+            group
+            overflow-hidden
+            rounded-[20px]
+            bg-[#f8f7f5]
+            transition-all
+            duration-300
+            open:bg-white
+            open:shadow-[0_14px_36px_rgba(15,23,42,0.06)]
+          "
+        >
+          <summary
+            className="
+              flex
+              cursor-pointer
+              list-none
+              items-center
+              justify-between
+              gap-6
+              px-5
+              py-5
+              text-[15px]
+              font-bold
+              leading-[1.4]
+              tracking-[-0.025em]
+              text-slate-900
+              outline-none
+              sm:px-6
+              sm:py-6
+              [&::-webkit-details-marker]:hidden
+            "
+          >
+            <span className="max-w-[560px]">
+              {faq.question}
+            </span>
+
+            <span
+              aria-hidden="true"
               className="
-                max-w-[430px]
-                text-3xl
-                font-bold
-                leading-[1.15]
-                tracking-[-0.05em]
-                sm:text-[44px]
-                xl:text-[40px]
+                relative
+                flex
+                size-9
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                bg-white
+                shadow-[0_4px_14px_rgba(15,23,42,0.05)]
+                transition-all
+                duration-300
+                group-open:bg-pink-600
               "
             >
-              Comprendre simplement notre fonctionnement.
-            </h2>
+              <span
+                className="
+                  relative
+                  block
+                  size-4
+                  transition-transform
+                  duration-300
+                  group-open:rotate-45
+
+                  before:absolute
+                  before:left-1/2
+                  before:top-1/2
+                  before:h-[1.5px]
+                  before:w-4
+                  before:-translate-x-1/2
+                  before:-translate-y-1/2
+                  before:rounded-full
+                  before:bg-slate-500
+                  before:content-['']
+
+                  after:absolute
+                  after:left-1/2
+                  after:top-1/2
+                  after:h-4
+                  after:w-[1.5px]
+                  after:-translate-x-1/2
+                  after:-translate-y-1/2
+                  after:rounded-full
+                  after:bg-slate-500
+                  after:content-['']
+
+                  group-open:before:bg-white
+                  group-open:after:bg-white
+                "
+              />
+            </span>
+          </summary>
+
+          <div
+            className="
+              px-5
+              pb-6
+              pr-16
+              sm:px-6
+              sm:pb-7
+              sm:pr-20
+            "
+          >
+            <p
+              className="
+                max-w-[600px]
+                text-[13px]
+                leading-7
+                text-slate-500
+              "
+            >
+              {faq.answer}
+            </p>
           </div>
-
-          <div className="divide-y divide-slate-200">
-            {faqs.map((faq) => (
-              <details
-                key={faq.question}
-                className="group py-5"
-              >
-                <summary
-                  className="
-                    flex
-                    cursor-pointer
-                    list-none
-                    items-center
-                    justify-between
-                    gap-5
-                    text-[15px]
-                    font-bold
-                    leading-6
-                    tracking-[-0.02em]
-                    text-slate-900
-                  "
-                >
-                  {faq.question}
-
-                  <span
-                    aria-hidden="true"
-                    className="
-                      text-xl
-                      font-normal
-                      text-slate-400
-                      transition-transform
-                      duration-300
-                      group-open:rotate-45
-                    "
-                  >
-                    +
-                  </span>
-                </summary>
-
-                <p className="max-w-[620px] pb-2 pt-4 text-[13px] leading-7 text-slate-500">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* =========================================================
           CTA FINAL
