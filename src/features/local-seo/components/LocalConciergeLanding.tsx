@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Check, MapPin } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
+import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
+import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 import { MarketingPropertyCard } from '@/features/marketing/components/MarketingPropertyCard'
 import {
   MarketingEyebrow,
@@ -28,19 +30,26 @@ export function LocalConciergeLanding({
 }: LocalConciergeLandingProps) {
   const { city, page: content } = landing
   const guidePath = publicDiscoveryCityPath(city.slug)
+  const reassuranceItems = content.reassurance
+    ?.split('·')
+    .map(item => item.trim())
+    .filter(Boolean) ?? []
 
   return (
     <MarketingShell>
       <div className="overflow-hidden font-sans text-slate-800">
         <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
-          <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:grid-cols-[1.05fr_.95fr] lg:gap-16 lg:px-14">
-            <div>
+          <div
+            data-testid="local-concierge-hero"
+            className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:min-h-[620px] lg:grid-cols-[1.05fr_.95fr] lg:items-stretch lg:gap-16 lg:px-14"
+          >
+            <div className="flex flex-col justify-center">
               <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
               <h1 className="break-words text-[39px] font-bold leading-[1] tracking-[-0.055em] text-slate-900 sm:text-[56px] lg:text-[62px]">
                 {content.h1}
               </h1>
             </div>
-            <div className="mt-8 lg:mt-0 lg:self-end">
+            <div className="mt-8 flex flex-col justify-center lg:mt-0">
               <h2 className="text-[25px] font-bold leading-tight tracking-[-0.035em] text-slate-900 sm:text-[30px]">
                 {content.hero_title}
               </h2>
@@ -51,8 +60,17 @@ export function LocalConciergeLanding({
                 {content.cta_label}
                 <ArrowRight className="ml-3 h-4 w-4" aria-hidden="true" />
               </Link>
-              {content.reassurance && (
-                <p className="mt-4 text-[10px] font-semibold text-slate-500">{content.reassurance}</p>
+              {reassuranceItems.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {reassuranceItems.map(item => (
+                    <span
+                      key={item}
+                      className="inline-flex rounded-full bg-white px-3 py-2 text-[10px] font-semibold leading-none text-slate-600 shadow-sm"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -82,26 +100,18 @@ export function LocalConciergeLanding({
           </section>
         )}
 
-        <section className="bg-slate-800 py-16 text-white sm:py-24">
-          <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-[.8fr_1.2fr]`}>
-            <div>
-              <MarketingEyebrow light>Pour le propriétaire</MarketingEyebrow>
-              <h2 className="text-[32px] font-bold leading-tight tracking-[-0.04em] sm:text-[42px]">
+        <section className={`${marketingContainerClass} pb-20 sm:pb-28`}>
+          <div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
+            <div className="flex flex-col justify-center">
+              <MarketingEyebrow>Pour le propriétaire</MarketingEyebrow>
+              <h2 className="text-[32px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[42px]">
                 {content.section_title}
               </h2>
-              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-300">{content.section_copy}</p>
+              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-500">{content.section_copy}</p>
             </div>
-            <div>
-              <h2 className="text-[28px] font-bold">Nous prenons soin de votre location</h2>
-              <div className="mt-7 grid gap-px overflow-hidden rounded-[24px] bg-white/10 sm:grid-cols-2">
-                {content.highlights.map(({ title, copy }) => (
-                  <article key={title} className="bg-slate-800 p-6">
-                    <Check className="h-5 w-5 text-pink-400" aria-hidden="true" />
-                    <h3 className="mt-4 font-bold">{title}</h3>
-                    <p className="mt-2 text-[13px] text-justify leading-6 text-slate-300">{copy}</p>
-                  </article>
-                ))}
-              </div>
+            <div className="flex flex-col justify-center">
+              <h2 className="text-[28px] font-bold text-slate-900">Nous prenons soin de votre location</h2>
+              <MarketingHighlightCards items={content.highlights} className="mt-7" />
             </div>
           </div>
         </section>
@@ -136,19 +146,19 @@ export function LocalConciergeLanding({
         </section>
 
         <section className="bg-[#f8f7f5] py-16 sm:py-24">
-          <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-2`}>
-            <div>
+          <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-2 lg:items-center`}>
+            <div className="flex flex-col justify-center">
               <MarketingEyebrow>Sur place</MarketingEyebrow>
-              <MapPin className="mb-5 h-7 w-7 text-pink-600" aria-hidden="true" />
+              {/* <MapPin className="mb-5 h-7 w-7 text-pink-600" aria-hidden="true" /> */}
               <h2 className="text-[32px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[40px]">
                 {content.local_title}
               </h2>
               <p className="mt-6 text-[13px] text-justify leading-7 text-slate-600">{content.local_copy}</p>
               <Link className="mt-6 inline-flex text-xs font-bold text-pink-600" href={guidePath}>
-                Découvrir {city.name} <span aria-hidden="true">→</span>
+                Découvrir {city.name} 
               </Link>
             </div>
-            <div>
+            <div className="flex flex-col justify-center">
               <MarketingEyebrow>Notre fonctionnement</MarketingEyebrow>
               {content.process_title && (
                 <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900">
@@ -170,25 +180,13 @@ export function LocalConciergeLanding({
           </div>
         </section>
 
-        <section className={`${marketingContainerClass} py-20 sm:py-28`}>
-          <GuestReviews reviews={reviews} />
-          <div className={reviews.length > 0 ? 'mt-20' : ''}>
-            <MarketingEyebrow>Questions fréquentes</MarketingEyebrow>
-            <div className="divide-y divide-slate-200 border-y border-slate-200">
-              {content.faq.map(item => (
-                <details key={item.question} className="group py-5">
-                  <summary className="flex cursor-pointer list-none justify-between gap-5 text-sm font-bold text-slate-900">
-                    {item.question}
-                    <span aria-hidden="true" className="text-xl font-normal group-open:rotate-45">+</span>
-                  </summary>
-                  <p className="max-w-[760px] pt-4 text-[13px] text-justify leading-7 text-slate-500">
-                    {item.answer}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
+        {reviews.length > 0 && (
+          <section className={`${marketingContainerClass} pt-20 sm:pt-28`}>
+            <GuestReviews reviews={reviews} />
+          </section>
+        )}
+
+        <MarketingFaqSection items={content.faq} />
 
         <section className={`${marketingContainerClass} pb-20 sm:pb-28`}>
           <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:flex lg:items-end lg:justify-between">

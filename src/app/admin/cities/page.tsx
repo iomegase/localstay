@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminCities } from '@/features/admin/queries/dashboard'
 import { AdminCityCreateButton } from '@/features/admin/components/AdminCityCreateButton'
+import { AdminCityEditButton } from '@/features/admin/components/AdminCityEditButton'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { CityQrCodeModalButton } from '@/features/admin/components/CityQrCodeModalButton'
 
@@ -112,6 +113,7 @@ export default async function AdminCitiesPage() {
                     {/* Action Bouton */}
                     <td className="px-8 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <AdminCityEditButton city={city} />
                         <CityQrCodeModalButton citySlug={city.slug} cityName={city.name} />
                         <Link
                           href={`/guide/${city.slug}`}

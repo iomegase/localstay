@@ -1,9 +1,12 @@
 import Link from 'next/link'
+import { Eye, Pencil } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { listAdminBlogArticles, listBlogAdminCities } from '@/features/blog/queries/admin-blog'
 import { blogCategoryLabel } from '@/features/blog/lib/category-label'
+import { buildBlogArticlePath } from '@/features/blog/lib/slug'
 import { BlogDeleteButton } from '@/features/blog/components/BlogDeleteButton'
 import { BLOG_ARTICLE_CATEGORIES, BLOG_ARTICLE_STATUSES } from '@/features/blog/types'
+import { Button } from '@/shared/components/ui/button'
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
@@ -76,14 +79,37 @@ export default async function AdminBlogPage({ searchParams }: PageProps) {
                 <tr key={article.id} className="border-b border-slate-100 last:border-b-0">
                   <td className="px-6 py-4">
                     <Link href={`/admin/blog/${article.id}`} className="font-semibold text-slate-950">
-                      {article.title}
+                      {article.title || 'Sans titre'}
                     </Link>
                   </td>
                   <td className="px-6 py-4">{article.status}</td>
                   <td className="px-6 py-4">{blogCategoryLabel(article.category as typeof BLOG_ARTICLE_CATEGORIES[number])}</td>
                   <td className="px-6 py-4">{article.city_name ?? 'Global'}</td>
                   <td className="px-6 py-4 text-right">
-                    <BlogDeleteButton id={article.id} title={article.title} />
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200 text-slate-700">
+                        <Link href={`/admin/blog/${article.id}`}>
+                          <Pencil aria-hidden="true" />
+                          Modifier
+                        </Link>
+                      </Button>
+                      {article.status === 'published' ? (
+                        <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200 text-slate-700">
+                          <Link href={buildBlogArticlePath(article.slug)} target="_blank" rel="noopener noreferrer">
+                            <Eye aria-hidden="true" />
+                            Voir
+                          </Link>
+                        </Button>
+                      ) : (
+                        <span title="Disponible après publication">
+                          <Button type="button" variant="outline" size="sm" className="rounded-lg border-slate-200 text-slate-700" disabled aria-label="Voir — disponible après publication">
+                            <Eye aria-hidden="true" />
+                            Voir
+                          </Button>
+                        </span>
+                      )}
+                      <BlogDeleteButton id={article.id} title={article.title} />
+                    </div>
                   </td>
                 </tr>
               ))}

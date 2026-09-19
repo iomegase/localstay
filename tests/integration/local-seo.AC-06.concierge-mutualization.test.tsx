@@ -84,6 +84,7 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
       name: 'Des logements déjà confiés à MyStay',
     })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: localHeading })).toBeInTheDocument()
+    expect(screen.getByTestId('local-concierge-hero')).toHaveClass('lg:items-stretch')
     expect(screen.getByRole('link', { name: `Découvrir ${city}` })).toHaveAttribute(
       'href',
       guideHref,
@@ -92,10 +93,23 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     expect(Array.from(services.querySelectorAll('article'), article => [
       article.querySelector('h3')?.textContent, article.querySelector('p')?.textContent,
     ])).toEqual(legacyConciergeServices)
+    expect(screen.getAllByTestId('marketing-highlight-card')).toHaveLength(
+      legacyConciergeServices.length,
+    )
+    expect(screen.getAllByTestId('marketing-highlight-card')[0]).toHaveClass(
+      'rounded-[22px]',
+      'hover:-translate-y-[3px]',
+    )
     const process = screen.getByRole('heading', { name: legacyConciergeProcessTitle }).parentElement!
     expect(Array.from(process.querySelectorAll('li'), step => [
       step.querySelector('h3')?.textContent, step.querySelector('p')?.textContent,
     ])).toEqual(legacyConciergeSteps)
+    expect(screen.getByTestId('marketing-faq-section')).toHaveTextContent(
+      'Comprendre simplement notre fonctionnement.',
+    )
+    expect(screen.getByTestId('marketing-faq-section')).toHaveTextContent(
+      landing.page.faq[0].question,
+    )
     expect(screen.queryByText("L'expérience de nos voyageurs")).not.toBeInTheDocument()
     expect(container.querySelectorAll('h1')).toHaveLength(1)
     expect(container.innerHTML).not.toContain('aggregateRating')

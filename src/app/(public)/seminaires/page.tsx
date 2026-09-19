@@ -197,7 +197,7 @@ export default async function SeminarsPage() {
                   className={marketingPrimaryButtonClass}
                   href={contactHref}
                 >
-                  Parler de mon séminaire
+                  Nous contacter
                 </a>
               </div>
             </div>

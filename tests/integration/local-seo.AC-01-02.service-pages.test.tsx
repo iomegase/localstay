@@ -55,9 +55,11 @@ describe('046 local SEO service pages', () => {
   })
 
   it('renders a unique active seminar page with the approved email CTA', async () => {
-    jest.mocked(getPublishedLocalLanding).mockResolvedValue(publicLocalLanding('SEMINAR', {
+    const landing = publicLocalLanding('SEMINAR', {
       id: 'city-2', name: 'Saint-Nicolas-de-Véroce', slug: 'saint-nicolas-de-veroce',
-    }))
+    })
+    landing.page.reassurance = 'Un interlocuteur · Un programme sur mesure · Une coordination locale'
+    jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const page = await SeminarCityPage({
       params: Promise.resolve({ 'city-slug': 'saint-nicolas-de-veroce' }),
     })
@@ -71,7 +73,22 @@ describe('046 local SEO service pages', () => {
       'href',
       expect.stringMatching(/^mailto:bonjour@mystay\.city/),
     )
+    expect(screen.getAllByTestId('local-service-reassurance-pill')).toHaveLength(3)
+    expect(screen.getByText('Un interlocuteur')).toHaveClass('rounded-full')
     expect(screen.getByRole('heading', { name: 'Préparons votre séminaire à Saint-Nicolas-de-Véroce.' })).toBeInTheDocument()
+    expect(screen.getByTestId('marketing-highlight-card')).toHaveClass(
+      'rounded-[22px]',
+      'hover:-translate-y-[3px]',
+      'hover:bg-white',
+    )
+    expect(screen.getByTestId('marketing-highlight-card')).toHaveTextContent(
+      landing.page.highlights[0].title,
+    )
+    const faq = screen.getByTestId('marketing-faq-section')
+    expect(faq).toHaveTextContent('Comprendre simplement notre fonctionnement.')
+    expect(faq).toHaveTextContent(landing.page.faq[0].question)
+    expect(screen.getByTestId('marketing-faq-toggle')).toHaveClass('group-open:bg-pink-600')
+    expect(screen.getByTestId('marketing-faq-plus')).toHaveClass('group-open:rotate-45')
   })
 
   it.each(['megeve', 'combloux'])('renders %s when its persisted concierge page is published', async slug => {
