@@ -36,10 +36,15 @@ describe('031-public-marketing-site navigation', () => {
       'Séminaires',
       'Notre approche',
       'Journal',
+      'Connexion',
       'Confier mon logement',
     ])
     expect(within(mobileNavigation).getByText('Guide démo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
+    const loginLink = within(mobileNavigation).getByRole('link', { name: 'Connexion' })
+    expect(loginLink).toHaveAttribute('href', '/auth/login')
+    fireEvent.click(loginLink)
+    expect(screen.queryByRole('dialog', { name: 'Menu MyStay' })).not.toBeInTheDocument()
   })
 
   it('keeps every desktop navigation label on one line', () => {

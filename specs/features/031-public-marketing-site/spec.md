@@ -164,7 +164,9 @@ routes privées, l'authentification et les API existantes restent inchangées.
 #### Acceptance Criteria
 
 - **AC-04-01**: Given le header marketing, When l'Owner active « Se connecter »,
-  Then il atteint `/auth/login`.
+  Then il atteint `/auth/login`. Sur mobile, le menu expose un lien visible
+  « Connexion » au-dessus des actions « Guide démo » et « Confier mon logement » ;
+  son activation ferme le menu et mène à la même route.
 - **AC-04-02**: Given `/connexion`, When la route est ouverte, Then elle redirige
   vers `/auth/login`.
 - **AC-04-03**: Given `/confier-mon-logement`, When le formulaire est envoyé,

@@ -2,7 +2,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import Link from 'next/link'
-import { ArrowRight, X } from 'lucide-react'
+import { ArrowRight, UserRound, X } from 'lucide-react'
 
 import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemoPhoneButton'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
@@ -205,6 +205,16 @@ export function MarketingMobileMenu() {
             </div>
 
             <div className="mt-auto grid gap-3 pt-8">
+              <Dialog.Close asChild>
+                <Link
+                  href="/auth/login"
+                  className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full px-5 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+                >
+                  <UserRound aria-hidden="true" className="h-5 w-5" strokeWidth={1.7} />
+                  Connexion
+                </Link>
+              </Dialog.Close>
+
               <GuideDemoPhoneButton
                 label="Guide démo"
                 className="
