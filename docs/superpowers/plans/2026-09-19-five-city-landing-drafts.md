@@ -17,7 +17,7 @@
 - Read: `prisma/backfill-local-landing-destinations.ts`
 - Read: `src/features/local-seo/schemas/landing-pages.ts`
 
-- [ ] **Step 1: Import the four reviewed destinations**
+- [x] **Step 1: Import the four reviewed destinations**
 
 Use `buildLocalLandingBackfill()` and select exactly these slugs:
 
@@ -36,13 +36,13 @@ const reviewed = buildLocalLandingBackfill().map(destination => ({
 }))
 ```
 
-- [ ] **Step 2: Append the Les Contamines-Montjoie content**
+- [x] **Step 2: Append the Les Contamines-Montjoie content**
 
 Create exactly three `LocalLandingPageInput` records. Conciergerie covers traveller coordination, arrival information, cleaning and linen coordination, property follow-up, and the MyStay guide. Séminaires describes a brief-led search for accommodation, meeting rooms, meals, transfers, and local activities, without guaranteeing availability. Locations de vacances describes only runtime-published inventory and includes an honest empty state.
 
 Use the official spelling `Les Contamines-Montjoie` in editorial content. Local references are limited to the Val Montjoie setting, the village's multiple hamlets, and the existence of spaces suitable for meetings and nature/cultural activities; do not copy source wording or include prices/capacities.
 
-- [ ] **Step 3: Validate before connecting to the database**
+- [x] **Step 3: Validate before connecting to the database**
 
 ```ts
 if (payload.length !== 5) throw new Error('Expected five destinations')
@@ -60,19 +60,19 @@ Expected: five destinations, fifteen schema-valid pages, no placeholders.
 - Create: `/private/tmp/staylocal-five-city-landing-backup.json`
 - Execute temporarily: `/private/tmp/install-five-city-landing-drafts.ts`
 
-- [ ] **Step 1: Resolve the target cities and current landing records**
+- [x] **Step 1: Resolve the target cities and current landing records**
 
 Query active, non-deleted cities by the five requested slugs. Abort unless all five resolve exactly once.
 
-- [ ] **Step 2: Save the current target records**
+- [x] **Step 2: Save the current target records**
 
 Serialize the five cities' current destination/page state to `/private/tmp/staylocal-five-city-landing-backup.json`. Do not include credentials or unrelated records.
 
-- [ ] **Step 3: Execute one transaction**
+- [x] **Step 3: Execute one transaction**
 
 For each target city, upsert `LocalLandingDestination` with `is_active: false` and `deleted_at: null`. Upsert one `LocalLandingPage` per intent using the validated payload, restoring only those page rows with `deleted_at: null`. Do not mutate reviews, Cities, Lodgings, POIs, Blog Articles, or guides.
 
-- [ ] **Step 4: Print a bounded mutation report**
+- [x] **Step 4: Print a bounded mutation report**
 
 Expected report:
 
@@ -90,15 +90,15 @@ Expected report:
 - Read: `src/features/local-seo/queries/landing-pages.ts`
 - Read: `src/features/local-seo/services/landing-publication.ts`
 
-- [ ] **Step 1: Read the persisted content back**
+- [x] **Step 1: Read the persisted content back**
 
 Assert that the five slugs have non-deleted destinations, all destinations are inactive, and every destination has exactly `CONCIERGE`, `SEMINAR`, and `VACATION_RENTAL`.
 
-- [ ] **Step 2: Revalidate persisted payloads**
+- [x] **Step 2: Revalidate persisted payloads**
 
 Project each database row to `LocalLandingPageInput` and parse it with `landingPageInputSchema`. Expected: fifteen successful parses.
 
-- [ ] **Step 3: Verify public isolation**
+- [x] **Step 3: Verify public isolation**
 
 Call `listPublishedLocalLandingPaths()` and assert that none of the following appear:
 
@@ -108,6 +108,6 @@ Call `listPublishedLocalLandingPaths()` and assert that none of the following ap
 /locations-vacances/<target-slug>
 ```
 
-- [ ] **Step 4: Report the backup location and result**
+- [x] **Step 4: Report the backup location and result**
 
 State that all fifteen pages are complete drafts, all five destination sliders remain off, and the pre-write snapshot is available at `/private/tmp/staylocal-five-city-landing-backup.json` for recovery during this machine session.
