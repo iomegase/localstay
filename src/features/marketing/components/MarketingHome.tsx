@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLauncher'
@@ -421,90 +422,139 @@ export function MarketingHome({
       {/* =========================================================
           SERVICES
       ========================================================== */}
-  <div
-  className="
-    mt-12
-    grid
-    !grid-cols-2
-    gap-3
-    px-4
-    sm:px-5
-    lg:!grid-cols-3
-    lg:px-0
-    xl:!grid-cols-5
-  "
+<section
+  id="services"
+  className={`
+    ${marketingContainerClass}
+    pb-20 pt-10
+    sm:pb-28 sm:pt-16
+    xl:pb-[88px] xl:pt-[72px]
+  `}
 >
-  {conciergeServices.map((service, index) => (
-    <article
-      key={service.number}
-      className={`
-        group
-        relative
-        min-h-[178px]
-        min-w-0
-        overflow-hidden
-        rounded-[22px]
-        bg-[#f8f7f5]
-        px-4
-        py-5
-        transition-all
-        duration-300
-        hover:-translate-y-[3px]
-        hover:bg-white
-        hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
-        sm:px-5
+  <div className="max-w-[690px]">
+    <MarketingEyebrow>Nos services</MarketingEyebrow>
 
-        ${
-          index === conciergeServices.length - 1
-            ? 'col-span-2 lg:col-span-1'
-            : ''
-        }
-      `}
+    <h2
+      className="
+        text-3xl
+        font-bold
+        leading-[1.15]
+        tracking-[-0.05em]
+        sm:text-[44px]
+        xl:text-[40px]
+        xl:leading-[1.1]
+      "
     >
-      <span
-        aria-hidden="true"
-        className="
-          absolute
-          left-4
-          top-0
-          h-[3px]
-          w-10
-          rounded-b-full
-          bg-pink-600
-          sm:left-5
-        "
-      />
+      Un accompagnement concret,
+      <br className="hidden sm:block" />
+      avant, pendant et après chaque séjour.
+    </h2>
 
-      <div className="relative z-10 min-w-0">
-        <h3
-          className="
-            text-[14px]
-            font-bold
-            leading-[1.2]
-            tracking-[-0.025em]
-            text-slate-900
-            sm:text-[15px]
-          "
-        >
-          {service.title}
-        </h3>
+    <p
+      className="
+        mt-7
+        max-w-[590px]
+        text-sm
+        leading-7
+        text-slate-500
+        xl:text-[13px]
+        xl:leading-[1.75]
+      "
+    >
+      Nous adaptons notre accompagnement au logement et au niveau de délégation
+      recherché par son propriétaire.
+    </p>
+  </div>
 
-        <p
-          className="
-            mt-4
-            text-[12px]
-            leading-[1.55]
-            text-slate-500
-            sm:mt-5
-            sm:text-[12.5px]
-          "
+  <div
+    className="
+      mt-12
+      grid
+      grid-cols-2
+      gap-3
+      sm:gap-4
+      lg:grid-cols-3
+      xl:grid-cols-5
+    "
+  >
+    {conciergeServices.map((service, index) => {
+      const isLast = index === conciergeServices.length - 1
+      const isOdd = conciergeServices.length % 2 !== 0
+
+      return (
+        <article
+          key={service.number}
+          className={`
+            group
+            relative
+            min-h-[178px]
+            min-w-0
+            overflow-hidden
+            rounded-[22px]
+            bg-[#f8f7f5]
+            px-4
+            py-5
+            transition-all
+            duration-300
+            hover:-translate-y-[3px]
+            hover:bg-white
+            hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
+            sm:px-5
+
+            ${
+              isLast && isOdd
+                ? 'col-span-2 lg:col-span-1'
+                : ''
+            }
+          `}
         >
-          {service.copy}
-        </p>
-      </div>
-    </article>
-  ))}
-</div>
+          <span
+            aria-hidden="true"
+            className="
+              absolute
+              left-4
+              top-0
+              h-[3px]
+              w-10
+              rounded-b-full
+              bg-pink-600
+              sm:left-5
+            "
+          />
+
+          <div className="relative z-10 min-w-0">
+            <h3
+              className="
+                text-[14px]
+                font-bold
+                leading-[1.2]
+                tracking-[-0.025em]
+                text-slate-900
+                sm:text-[15px]
+              "
+            >
+              {service.title}
+            </h3>
+
+            <p
+              className="
+                mt-4
+                text-[12px]
+                leading-[1.55]
+                text-slate-500
+                sm:mt-5
+                sm:text-[12.5px]
+                sm:leading-[1.6]
+              "
+            >
+              {service.copy}
+            </p>
+          </div>
+        </article>
+      )
+    })}
+  </div>
+</section>
 
       {/* =========================================================
           GUIDE DIGITAL
@@ -715,7 +765,7 @@ export function MarketingHome({
             className={`${marketingDarkButtonClass} mt-7`}
           >
             Voir les logements
-            <span aria-hidden="true">→</span>
+            
           </Link>
         </div>
 
@@ -766,120 +816,153 @@ export function MarketingHome({
       {/* =========================================================
           DESTINATIONS
       ========================================================== */}
-      <section
-        className={`
-          ${marketingContainerClass}
-          pb-20 pt-10
-          sm:pb-28
-          xl:py-[92px]
-        `}
-      >
-        <div className="max-w-[700px]">
-          <MarketingEyebrow>Notre territoire</MarketingEyebrow>
+     <section
+  className={`
+    ${marketingContainerClass}
+    pb-20 pt-10
+    sm:pb-28
+    xl:py-[92px]
+  `}
+>
+  <div className="max-w-[700px]">
+    <MarketingEyebrow>Notre territoire</MarketingEyebrow>
 
-          <h2
+    <h2
+      className="
+        max-w-[650px]
+        text-3xl
+        font-bold
+        leading-[1.15]
+        tracking-[-0.05em]
+        sm:text-[44px]
+        xl:text-[40px]
+        xl:leading-[1.1]
+      "
+    >
+      Le Pays du Mont-Blanc,
+      <br className="hidden sm:block" />
+      notre terrain de jeu.
+    </h2>
+
+    <p
+      className="
+        mt-7
+        max-w-[610px]
+        text-sm
+        leading-7
+        text-slate-500
+        xl:text-[13px]
+        xl:leading-[1.75]
+      "
+    >
+      Notre connaissance du territoire nous permet d’accompagner les
+      voyageurs au-delà du logement et de leur proposer des informations
+      adaptées à leur lieu de séjour.
+    </p>
+  </div>
+
+  <div className="mt-12 grid gap-3">
+    {destinations.map((destination, index) => {
+      const content = (
+        <>
+          <span className="text-[11px] font-semibold text-slate-400">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+
+          <div className="min-w-0">
+            <h3
+              className="
+                text-[17px]
+                font-bold
+                tracking-[-0.025em]
+                text-slate-900
+              "
+            >
+              {destination.name}
+            </h3>
+
+            <p className="mt-1 text-[12.5px] leading-6 text-slate-500">
+              {destination.description}
+            </p>
+          </div>
+
+          {destination.href ? (
+            <span
+              aria-hidden="true"
+              className="
+                ml-auto
+                flex
+                size-9
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                bg-white
+                text-slate-400
+                shadow-[0_4px_14px_rgba(15,23,42,0.05)]
+                transition-all
+                duration-300
+                group-hover:translate-x-0.5
+                group-hover:bg-pink-600
+                group-hover:text-white
+              "
+            >
+              <ChevronRight
+                className="size-4"
+                strokeWidth={1.8}
+              />
+            </span>
+          ) : null}
+        </>
+      )
+
+      if (destination.href) {
+        return (
+          <Link
+            key={destination.name}
+            href={destination.href}
             className="
-              max-w-[650px]
-              text-3xl
-              font-bold
-              leading-[1.15]
-              tracking-[-0.05em]
-              sm:text-[44px]
-              xl:text-[40px]
-              xl:leading-[1.1]
+              group
+              grid
+              grid-cols-[32px_minmax(0,1fr)_auto]
+              items-center
+              gap-4
+              rounded-[18px]
+              bg-[#f8f7f5]
+              px-5
+              py-4
+              transition-all
+              duration-300
+              hover:-translate-y-[1px]
+              hover:bg-white
+              hover:shadow-[0_10px_30px_rgba(15,23,42,0.06)]
             "
           >
-            Le Pays du Mont-Blanc,
-            <br className="hidden sm:block" />
-            notre terrain de jeu.
-          </h2>
+            {content}
+          </Link>
+        )
+      }
 
-          <p
-            className="
-              mt-7
-              max-w-[610px]
-              text-sm
-              leading-7
-              text-slate-500
-              xl:text-[13px]
-              xl:leading-[1.75]
-            "
-          >
-            Notre connaissance du territoire nous permet d’accompagner les
-            voyageurs au-delà du logement et de leur proposer des informations
-            adaptées à leur lieu de séjour.
-          </p>
+      return (
+        <div
+          key={destination.name}
+          className="
+            grid
+            grid-cols-[32px_minmax(0,1fr)]
+            items-center
+            gap-4
+            rounded-[18px]
+            bg-[#f8f7f5]
+            px-5
+            py-4
+          "
+        >
+          {content}
         </div>
-
-        <div className="mt-12 grid gap-3">
-          {destinations.map((destination, index) => {
-            const content = (
-              <>
-                <span className="text-[11px] font-semibold text-slate-400">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-
-                <div>
-                  <h3 className="text-[17px] font-bold tracking-[-0.025em] text-slate-900">
-                    {destination.name}
-                  </h3>
-
-                  <p className="mt-1 text-[12.5px] leading-6 text-slate-500">
-                    {destination.description}
-                  </p>
-                </div>
-
-                {destination.href ? (
-                  <span
-                    aria-hidden="true"
-                    className="ml-auto text-slate-400"
-                  >
-                    →
-                  </span>
-                ) : null}
-              </>
-            )
-
-            if (destination.href) {
-              return (
-                <Link
-                  key={destination.name}
-                  href={destination.href}
-                  className="
-                    group
-                    grid grid-cols-[32px_1fr_auto]
-                    items-center gap-4
-                    rounded-[18px]
-                    bg-[#f8f7f5]
-                    px-5 py-4
-                    transition-all
-                    duration-300
-                    hover:bg-white
-                    hover:shadow-[0_10px_30px_rgba(15,23,42,0.06)]
-                  "
-                >
-                  {content}
-                </Link>
-              )
-            }
-
-            return (
-              <div
-                key={destination.name}
-                className="
-                  grid grid-cols-[32px_1fr]
-                  items-center gap-4
-                  rounded-[18px]
-                  bg-[#f8f7f5]
-                  px-5 py-4
-                "
-              >
-                {content}
-              </div>
-            )
-          })}
-        </div>
-      </section>
+      )
+    })}
+  </div>
+</section>
 
       {/* =========================================================
           PROPRIETAIRES / VOYAGEURS
