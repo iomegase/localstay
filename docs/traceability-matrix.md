@@ -158,6 +158,10 @@
 
 ## 009 — Auth Owner
 
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009-auth-owner | Visibilité du mot de passe | US-02 | AC-02-05 | `src/features/auth/components/LoginPage.tsx` | `tests/integration/auth.AC-02-05.password-visibility.test.tsx` | Implemented |
+
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-01-01 | Inscription valide → compte + rôle + redirection | `src/app/api/auth/register/route.ts`<br>`src/features/auth/schemas.ts` | `tests/contract/auth.AC-register.test.ts` | ✅ done |

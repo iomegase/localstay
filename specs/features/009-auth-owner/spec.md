@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-07-19
+updated_at: 2026-09-27
 depends_on: [001-city-guide]
 ```
 
@@ -67,6 +67,8 @@ Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal 
 - **AC-02-02**: Given des identifiants incorrects, When l'utilisateur soumet, Then un message générique est affiché ("Email ou mot de passe incorrect") — sans préciser lequel est faux
 - **AC-02-03**: Given un utilisateur non authentifié accédant à `/dashboard/*`, `/merchant/*` ou `/admin/*`, When la requête arrive au middleware, Then il est redirigé vers `/auth/login`
 - **AC-02-04**: Given un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal à `tourist`, When il accède à `/dashboard/*`, `/merchant/*` ou `/admin/*`, Then le middleware le redirige vers `/auth/login` afin de resynchroniser son compte, jamais vers une page publique
+
+- **AC-02-05**: Given le formulaire de connexion, When l'utilisateur active le bouton œil au clic ou au clavier, Then le mot de passe est affiché puis masqué sans modification de valeur ni soumission du formulaire (demande Product Owner du 2026-09-27).
 
 ### US-03 — Déconnexion
 
@@ -360,6 +362,7 @@ components:
 
 ### Page : `/auth/login`
 - Formulaire : email + mot de passe + bouton "Se connecter"
+- Décision Product Owner du 2026-09-27 — **AC-02-05** : mot de passe masqué par défaut ; un bouton œil accessible au clavier permet de l'afficher puis de le masquer sans modifier sa valeur ni soumettre le formulaire. Son libellé accessible indique « Afficher le mot de passe » ou « Masquer le mot de passe ».
 - Lien "Mot de passe oublié ?" → `/auth/forgot-password`
 - Lien "Créer un compte" → `/auth/register`
 - **Loading** : bouton désactivé + spinner
@@ -394,6 +397,7 @@ components:
 | AC-01-04 | Inscription → email bienvenue Resend | integration |
 | AC-02-01 | Connexion valide → redirection selon rôle | integration |
 | AC-02-02 | Identifiants incorrects → message générique | unit |
+| AC-02-05 | Œil : afficher/masquer le mot de passe sans modifier la saisie ni soumettre | integration |
 | AC-02-03 | Accès dashboard sans auth → redirect /auth/login | e2e |
 | AC-02-04/BR-10 | Rôle absent, inconnu ou tourist sur espace protégé → redirect /auth/login, jamais page publique | unit |
 | AC-03-01 | Déconnexion → session invalidée + redirect / | e2e |
