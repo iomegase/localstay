@@ -7,7 +7,6 @@ import {
   HousePlug,
   Info,
   KeyRound,
-  ListOrdered,
   LogOut,
   MapPin,
   Navigation,
@@ -37,9 +36,6 @@ const TABS: readonly {
   { view: 'rules', label: 'Équipements', icon: HousePlug },
   { view: 'departure', label: 'Départ', icon: LogOut },
 ]
-
-const NAVY_CARD =
-  'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
 
 export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
   const [view, setView] = useState<LodgingSubView>('arrival')
@@ -212,26 +208,29 @@ function DemoGuideSubPage({
 
 function DemoArrivalView({ lodging }: { lodging: DemoLodging }) {
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lodging.addressLabel)}`
+  const [street, ...locality] = lodging.addressLabel.split(',').map(part => part.trim())
 
   return (
-    <>
-      <section data-testid="demo-access-location" className={`${NAVY_CARD} p-5`}>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
+    <div className="grid gap-5">
+      <section className="grid gap-3">
+        <h2 className="px-1 text-sm font-semibold text-slate-900">Localisation</h2>
+        <div
+          data-testid="demo-access-location"
+          className="flex items-center justify-between gap-3 rounded-[22px] bg-slate-900 px-5 py-4 text-white"
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-600">
               <MapPin className="h-4 w-4" aria-hidden="true" />
             </span>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold leading-9 text-white">Localisation</h2>
-              <p className="mt-1 text-xs leading-5 text-white/70">
-                {lodging.addressLabel.split(',').map((part, index) => (
-                  <span key={`${part}-${index}`} className="block">
-                    {part.trim()}
-                  </span>
-                ))}
-              </p>
-            </div>
-          </div>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">{street}</span>
+              {locality.length > 0 ? (
+                <span className="mt-0.5 block text-[10px] text-white/60">
+                  {locality.join(', ')}
+                </span>
+              ) : null}
+            </span>
+          </span>
           <a
             href={mapsUrl}
             target="_blank"
@@ -246,24 +245,17 @@ function DemoArrivalView({ lodging }: { lodging: DemoLodging }) {
         </div>
       </section>
 
-      <section data-testid="demo-access-instructions" className={`${NAVY_CARD} p-5`}>
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-            <ListOrdered className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <h2 className="text-sm font-semibold text-white">Instructions</h2>
-        </div>
-        <div className="mt-4 space-y-5">
-          {lodging.arrivalInstructions.map((instruction, index) => (
-            <DemoArrivalInstructionCard
-              key={`${instruction.title}-${index}`}
-              index={index}
-              instruction={instruction}
-            />
-          ))}
-        </div>
+      <section className="grid gap-3">
+        <h2 className="px-1 text-sm font-semibold text-slate-900">Instructions</h2>
+        {lodging.arrivalInstructions.map((instruction, index) => (
+          <DemoArrivalInstructionCard
+            key={`${instruction.title}-${index}`}
+            index={index}
+            instruction={instruction}
+          />
+        ))}
       </section>
-    </>
+    </div>
   )
 }
 
@@ -277,17 +269,20 @@ function DemoArrivalInstructionCard({
   return (
     <article
       data-testid="demo-arrival-instruction"
-      className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]"
+      className="rounded-[22px] bg-slate-900 px-5 py-4 text-white"
     >
       <div className="flex items-center gap-3">
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
+        <span
+          data-testid="demo-arrival-step"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pink-600 text-sm font-bold"
+        >
           {index + 1}
         </span>
-        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+        <h3 className="min-w-0 text-sm font-semibold">
           {instruction.title ?? `Instruction ${index + 1}`}
         </h3>
       </div>
-      <p className="mt-3 text-xs leading-5 tracking-wide text-white/80">
+      <p className="mt-3 text-[13px] leading-5 text-white/80">
         {instruction.text}
       </p>
       <DemoMediaFrames

@@ -112,6 +112,12 @@ contrôle d'accès ni route du guide privé.
   `Tri des déchets` au design des cartes Infos (carte `slate-900` arrondie,
   pastille ronde colorée, titre et sous-titre) : une carte par poubelle et
   une carte `Point de tri` ; la page Départ ne contient plus ce bloc.
+- **AC-01-11**: Given la page Accès du guide logement de démonstration, When
+  elle est rendue, Then elle adopte le design de la page Infos : titres de
+  section `Localisation` et `Instructions` hors carte, puis des cartes
+  `slate-900` arrondies (`rounded-[22px]`) non imbriquées, une par
+  instruction, avec pastille ronde colorée numérotée, titre, texte pleine
+  largeur et médias.
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -370,6 +376,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-08 | integration + security regression |
 | AC-01-09 | integration |
 | AC-01-10 | integration |
+| AC-01-11 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |

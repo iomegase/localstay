@@ -36,11 +36,10 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     expect(within(guide).getByRole('heading', { level: 2, name: 'Instructions' })).toBeInTheDocument()
     expect(within(guide).queryByTestId('demo-lodging-hero')).not.toBeInTheDocument()
 
-    expect(within(guide).getByTestId('demo-access-location')).toHaveClass('bg-slate-900')
-    expect(within(guide).getByTestId('demo-access-instructions')).toHaveClass('bg-slate-900')
+    expect(within(guide).getByTestId('demo-access-location')).toHaveClass('rounded-[22px]', 'bg-slate-900')
     const instructions = within(guide).getAllByTestId('demo-arrival-instruction')
     expect(instructions).toHaveLength(3)
-    expect(instructions[0]).toHaveClass('bg-slate-800')
+    expect(instructions[0]).toHaveClass('rounded-[22px]', 'bg-slate-900', 'text-white')
     expect(within(instructions[0]).getAllByRole('img').length).toBeGreaterThan(0)
   })
 
@@ -159,6 +158,32 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     fireEvent.click(within(guide).getByRole('button', { name: 'Départ' }))
     expect(within(guide).queryByText('Tri des déchets')).not.toBeInTheDocument()
     expect(within(guide).queryAllByTestId('demo-practical-trash-bin')).toHaveLength(0)
+  })
+
+  it('H. AC-01-11 uses the Infos layout on the Accès page without nested cards', () => {
+    const guide = renderLodgingGuide()
+
+    expect(
+      within(guide).getAllByRole('heading', { level: 2 }).map(heading => heading.textContent),
+    ).toEqual(['Localisation', 'Instructions'])
+
+    const cards = [
+      within(guide).getByTestId('demo-access-location'),
+      ...within(guide).getAllByTestId('demo-arrival-instruction'),
+    ]
+    for (const card of cards) {
+      expect(card).toHaveClass('rounded-[22px]', 'bg-slate-900')
+      expect(card.parentElement?.closest('.bg-slate-900')).toBeNull()
+      expect(card.querySelector('.bg-slate-800')).toBeNull()
+    }
+
+    const instructions = within(guide).getAllByTestId('demo-arrival-instruction')
+    instructions.forEach((instruction, index) => {
+      expect(within(instruction).getByTestId('demo-arrival-step')).toHaveTextContent(
+        String(index + 1),
+      )
+      expect(within(instruction).getByTestId('demo-arrival-step')).toHaveClass('rounded-full')
+    })
   })
 
   it('C. keeps the demo navigation on the public page', () => {
