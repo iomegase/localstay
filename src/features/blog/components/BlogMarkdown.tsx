@@ -1,4 +1,5 @@
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { normalizeBlogMarkdown } from '../lib/markdown'
 
 function stripRawHtml(source: string): string {
   return source.replace(/<[^>]+>/g, '')
@@ -12,7 +13,7 @@ function stripUnsafeMarkdownLinks(source: string): string {
 }
 
 export function BlogMarkdown({ source }: { source: string }) {
-  const sanitized = stripUnsafeMarkdownLinks(stripRawHtml(source))
+  const sanitized = stripUnsafeMarkdownLinks(stripRawHtml(normalizeBlogMarkdown(source)))
 
   return (
     <MarkdownText

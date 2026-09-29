@@ -4,6 +4,12 @@
 
 `accepted`
 
+> Extension validée le 2026-09-28 — spec `049-poi-description-assistance` : pour
+> décrire un POI déjà enregistré sans site officiel, Gemini peut utiliser Google
+> Search et retourner une synthèse avec sources transitoires. L'Admin relit,
+> accepte puis sauvegarde le texte. Cela n'autorise ni découverte libre de POI,
+> ni publication automatique, ni génération de métriques géographiques.
+
 ---
 
 ## Contexte

@@ -21,6 +21,13 @@ describe('029 blog generation application', () => {
     jest.clearAllMocks()
   })
 
+  it('normalizes an old serialized suggestion before storing the accepted article', async () => {
+    mockBlogGenerationDraftFindFirst.mockResolvedValue({ id: 'generation-1', suggestion_markdown: String.raw`Introduction.\n\n### Le Refuge\nTexte local.` })
+    mockBlogArticleUpdate.mockResolvedValue({ id: 'article-1', slug: 'article', status: 'draft', updated_at: new Date(), city: null })
+    await applyBlogGeneration('article-1', 'generation-1')
+    expect(mockBlogArticleUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ content_markdown: 'Introduction.\n\n### Le Refuge\nTexte local.' }) }))
+  })
+
   it('applies the accepted Gemini suggestion while keeping the article in draft workflow', async () => {
     mockBlogGenerationDraftFindFirst.mockResolvedValue({
       id: 'generation-1',

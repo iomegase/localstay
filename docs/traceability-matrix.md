@@ -910,3 +910,126 @@ Les notifications vont à `bonjour@mystay.city` ; la réception dans Gmail dépe
 de la boîte ou redirection de cette adresse. Aucun renvoi rétroactif ni retry
 automatique : les demandes restent consultables dans `/admin` en cas d'échec.
 Le test fournisseur utilise un mock et ne prouve pas la livraison en boîte mail.
+
+## 049 — Descriptions POI sourcées et relecture admin (2026-09-28)
+
+Spec : `specs/features/049-poi-description-assistance/spec.md` (`approved`).
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 049 | POI Description Assistance | US-01 | AC-01 | `src/features/poi-description-assistance/services/official-source.ts`, `src/features/poi-description-assistance/services/generate-description.ts` | `tests/unit/poi-description-assistance.AC-01-04.official-source.test.ts`, `tests/unit/poi-description-assistance.AC-01-04.generation.test.ts` | Implémenté, tests locaux réussis |
+| 049 | POI Description Assistance | US-01 | AC-02 | `src/features/poi-description-assistance/services/generate-description.ts`, `src/features/poi-description-assistance/lib/contracts.ts` | `tests/unit/poi-description-assistance.AC-01-04.generation.test.ts` | Implémenté, fournisseur simulé en test |
+| 049 | POI Description Assistance | US-01 | AC-03 | `src/features/poi-description-assistance/services/generate-description.ts` | `tests/unit/poi-description-assistance.AC-01-04.generation.test.ts` | Garde-fous et refus testés ; exactitude factuelle soumise à relecture humaine |
+| 049 | POI Description Assistance | US-01 | AC-04 | `src/features/poi-description-assistance/lib/contracts.ts`, `src/features/poi-description-assistance/services/official-source.ts`, `src/app/api/admin/pois/[id]/suggest-description/route.ts` | `tests/unit/poi-description-assistance.AC-01-04.official-source.test.ts`, `tests/unit/poi-description-assistance.AC-01-04.generation.test.ts`, `tests/contract/poi-description-assistance.AC-04-05.api.test.ts`, `tests/integration/poi-description-assistance.AC-05-07.review.test.tsx` | Implémenté, erreurs et limites réseau testées |
+| 049 | POI Description Assistance | US-02 | AC-05 | `src/features/poi-description-assistance/queries/suggest-description.ts`, `src/features/poi-description-assistance/components/PoiDescriptionAssistant.tsx`, `src/app/api/admin/pois/[id]/suggest-description/route.ts` | `tests/integration/poi-description-assistance.AC-05-08.persistence.test.ts`, `tests/integration/poi-description-assistance.AC-05-07.review.test.tsx`, `tests/contract/poi-description-assistance.AC-04-05.api.test.ts` | Implémenté, absence de mutation à la génération vérifiée |
+| 049 | POI Description Assistance | US-02 | AC-06 | `src/features/poi-description-assistance/components/PoiDescriptionAssistant.tsx`, `src/features/admin-pois/components/AdminPoiEditForm.tsx` | `tests/integration/poi-description-assistance.AC-05-07.review.test.tsx`, `tests/e2e/poi-description-assistance.AC-06-07.admin-review.test.ts` | Intégration réussie ; E2E authentifié ajouté, non exécuté faute de session locale |
+| 049 | POI Description Assistance | US-02 | AC-07 | `src/features/poi-description-assistance/components/PoiDescriptionAssistant.tsx` | `tests/integration/poi-description-assistance.AC-05-07.review.test.tsx`, `tests/e2e/poi-description-assistance.AC-06-07.admin-review.test.ts` | Intégration réussie ; E2E authentifié ajouté, non exécuté faute de session locale |
+| 049 | POI Description Assistance | US-02 | AC-08 | `src/features/admin-pois/components/AdminPoiEditForm.tsx`, `src/features/admin-pois/queries/admin-pois.ts` (flux de sauvegarde réutilisé) | `tests/integration/poi-description-assistance.AC-05-08.persistence.test.ts` | Audit et absence de publication automatique vérifiés avec Prisma simulé |
+
+Validation : 165 tests ciblés réussis (nouvelle feature, édition POI et publication
+Découvrir), un test existant ignoré ; TypeScript et lint des nouveaux fichiers
+réussis. Le formulaire existant conserve six avertissements lint antérieurs.
+Le composant réel a été vérifié dans un aperçu navigateur isolé à 375 et 1100 px :
+annulation et application fonctionnelles, aucun débordement mobile ni erreur JS.
+Ce contrôle ne remplace pas l'E2E authentifié complet.
+
+Essai externe en lecture seule : page officielle du Refuge du Mont-Joly lue,
+puis Gemini a répondu HTTP 503. Aucun POI n'a été modifié. La génération réelle
+de contenu reste à confirmer lorsque le fournisseur est disponible. Les tests
+automatisés ne constituent pas une preuve de qualité factuelle des descriptions.
+
+Correctif 049 (2026-09-28) : le POST de suggestion accepte un flux de corps vide
+fourni par l'adaptateur Node de Next.js. La validation rejette le premier octet
+de contenu inattendu, sans dépendre de `body === null` ni de `Content-Length`.
+Régression couverte par `tests/contract/poi-description-assistance.AC-04-05.api.test.ts`
+(AC-04/AC-05), incluant l'UUID du cas signalé et un payload sans en-tête de taille.
+
+## 029 — Configuration Storage des photos blog (2026-09-28)
+
+Incident AC-05-01 / BR-11 : `uploadGuideImage` échouait avec `Bucket not found`.
+Le bucket `guide-photos` manquant a été créé dans le projet Supabase configuré
+localement, puis relu pour vérification : public, limite 5 242 880 octets,
+types `image/webp` et `image/avif`. Aucune photo ni donnée article modifiée.
+Le téléversement d'une photo utilisateur reste à retenter depuis la fiche blog.
+
+`scripts/setup-storage-buckets.ts` utilise désormais `@next/env` avec le mode
+de l'application pour respecter la priorité des fichiers d'environnement Next.js.
+L'ancien chargeur donnait priorité à `.env` sur `.env.local` et pouvait configurer
+un projet différent de celui de l'application. Cette possibilité a été corrigée ;
+elle n'est pas établie comme cause historique du bucket manquant.
+
+## 029 — Retours à la ligne Markdown du blog (2026-09-28)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 029 | Blog éditorial | US-02 | AC-02-01 | `src/features/blog/lib/markdown.ts`, `src/features/blog/components/BlogMarkdown.tsx`, `src/features/blog/queries/public-blog.ts` | `tests/unit/blog.AC-02-01-03-03.markdown-newlines.test.ts`, `tests/integration/blog.AC-02-01-03-03.legacy-markdown.test.ts` | Normalisation des articles existants testée ; rendu public vérifié dans le navigateur |
+| 029 | Blog éditorial | US-03 | AC-03-03 | `src/features/blog/components/AdminBlogEditor.tsx`, `src/features/blog/queries/admin-blog.ts`, `src/features/blog/schemas.ts`, `src/features/blog/lib/markdown.ts` | `tests/integration/blog.AC-03-03.admin-editor-validation.test.tsx`, `tests/integration/blog.AC-02-01-03-03.legacy-markdown.test.ts`, `tests/unit/blog.AC-02-01-03-03.markdown-newlines.test.ts` | Chargement et sauvegarde avec vrais retours à la ligne testés |
+| 029 | Blog éditorial | US-04 | AC-04-01, AC-04-03 | `src/features/blog/services/gemini-draft.ts`, `src/features/blog/queries/admin-blog.ts`, `src/features/blog/lib/markdown.ts` | `tests/unit/blog.AC-04-01.gemini-draft-service.test.ts`, `tests/integration/blog.AC-04-03.apply-generation.test.ts` | Génération et application des anciens brouillons normalisées, fournisseur simulé |
+
+Incident : l'article signalé contenait 12 séquences littérales `\n` et aucun
+véritable retour à la ligne. La normalisation répare les contenus sérialisés à
+la lecture et à la sauvegarde, en préservant les exemples entre backticks.
+Aucune migration ni modification directe d'article n'a été effectuée.
+
+Validation : 40 suites blog (76 tests) réussies, puis les deux tests ajoutés de
+chargement/sauvegarde admin et d'application d'une ancienne génération réussis
+dans leurs suites ciblées. TypeScript et lint ciblé réussis (deux avertissements
+préexistants). L'article `/blog/article-f7e6dcbc` affiche quatre titres et cinq
+paragraphes dans le navigateur local, sans `\n` visible, erreur JavaScript ni
+débordement horizontal à 375 px. L'éditeur admin est couvert par les tests
+d'intégration ; aucune session admin navigateur n'était disponible.
+
+## 041 / 049 — Actualisation de la complétude après sauvegarde POI (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 041 | Découverte publique | US-04 | AC-04-01, AC-04-03 | `src/features/admin-pois/components/AdminPoiEditForm.tsx`, `src/features/admin-pois/components/AdminPoiDiscoveryCard.tsx` | `tests/integration/public-discovery.AC-04.admin-ui.test.tsx` | Checklist serveur actualisée après sauvegarde réussie ; échec et brouillon non sauvegardé couverts |
+| 049 | POI Description Assistance | US-02 | AC-06, AC-08 | `src/features/admin-pois/components/AdminPoiEditForm.tsx` | `tests/integration/poi-description-assistance.AC-05-07.review.test.tsx` | Acceptation locale puis sauvegarde et refresh testés, sans publication automatique |
+
+Cause : le formulaire sauvegardait la description sans demander de nouveau
+rendu serveur. La Card voisine conservait donc la complétude antérieure.
+Le formulaire appelle désormais `router.refresh()` uniquement après succès du
+PATCH. La checklist précise qu'elle utilise les données enregistrées ; accepter
+une proposition ou saisir un texte ne suffit toujours pas à publier la fiche.
+
+Validation : 12 suites / 132 tests ciblés réussis ; TypeScript réussi ; lint sans
+erreur (six avertissements antérieurs du formulaire). La regression couvre
+la description vide, la saisie non sauvegardée, le succès, l'échec et la nouvelle
+checklist serveur. Aucune fiche réelle n'a été modifiée pour cette vérification.
+
+## 022 — Sauvegarde avec photos historiques non modifiées (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 022 | Administration POI | US-02, US-03 | AC-02-02, AC-03-05, BR-19 | `src/features/admin-pois/components/AdminPoiEditForm.tsx` | `tests/integration/poi-description-assistance.AC-05-07.review.test.tsx` | PATCH des photos uniquement après modification ; erreurs accessibles distinctes des succès |
+
+Le POI `66044e05-6208-425c-b4b8-a478bde6017c` possède notamment une URL
+`/images/logos/folie-douce-corporate-noir.png` déjà enregistrée, rejetée par la
+validation existante. Le formulaire envoyait cette liste à chaque sauvegarde,
+même pour une édition de description. Il omet désormais `photos` si leur ordre
+et leur contenu restent identiques à la dernière sauvegarde réussie. Une
+modification de liste est toujours envoyée et soumise aux règles de validation.
+Un échec conserve cette modification en attente et affiche une alerte rouge.
+
+Validation : 8 suites / 62 tests ciblés réussis, TypeScript réussi. Le test
+reproduit l'URL historique du cas signalé, la suppression explicite d'une photo,
+les sauvegardes suivantes et l'échec avec nouvelle tentative. Lecture Supabase
+uniquement pour le diagnostic : aucune photo réelle supprimée ni fiche modifiée.
+
+Complément après nouveau signalement du même HTTP 400 (2026-09-29) : la
+protection est désormais aussi côté `PATCH /api/admin/pois/{id}`. Si les seules
+erreurs de validation portent sur `photos`, le serveur compare la liste reçue
+avec celle actuellement enregistrée. Une liste strictement identique, ordre
+compris, est omise du patch avant nouvelle validation ; une liste différente
+reste refusée selon AC-03-05. Cette lecture ne réécrit aucune photo historique.
+Le formulaire valide aussi les listes modifiées avant l'appel et indique le
+numéro de la première photo non exploitable, sans la retirer automatiquement.
+
+Sources supplémentaires : `src/app/api/admin/pois/[id]/route.ts`.
+Tests : `tests/contract/admin-pois.AC-01-04.api.test.ts` (AC-02-02/AC-03-05),
+`tests/integration/poi-description-assistance.AC-05-07.review.test.tsx`
+(AC-03-05). Validation : 8 suites / 65 tests réussis, TypeScript réussi,
+lint sans erreur avec les six avertissements antérieurs du formulaire.
+Le navigateur partagé était indisponible ; le contenu exact de la nouvelle
+requête utilisateur n'a pas été capturé. Les deux branches sont reproduites en
+tests : liste inchangée et réordonnancement conservant une URL de logo.

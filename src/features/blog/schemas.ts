@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { normalizeBlogSlug } from './lib/slug'
+import { normalizeBlogMarkdown } from './lib/markdown'
 import { BLOG_ARTICLE_CATEGORIES } from './types'
 
 function normalizeTag(tag: string): string {
@@ -63,7 +64,7 @@ export const BlogArticleUpsertSchema = z.object({
   title: optionalDraftTextSchema(5, 90, 'Le titre'),
   slug: DraftBlogSlugSchema,
   excerpt: optionalDraftTextSchema(40, 220, 'L’extrait'),
-  content_markdown: z.string().trim().max(20000).optional().default(''),
+  content_markdown: z.string().optional().default('').transform(value => normalizeBlogMarkdown(value).trim()).pipe(z.string().max(20000)),
   category: z.enum(BLOG_ARTICLE_CATEGORIES),
   tags: z.array(z.string().trim().max(40)).max(10).default([]).transform(tags => {
     const seen = new Set<string>()

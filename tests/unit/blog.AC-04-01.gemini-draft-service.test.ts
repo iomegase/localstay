@@ -25,6 +25,14 @@ describe('029 blog gemini draft service', () => {
     process.env.GEMINI_MODEL = 'gemini-test-model'
   })
 
+  it('normalizes double-escaped JSON Markdown before returning a generated draft', async () => {
+    const content = `${'Introduction locale. '.repeat(20)}\\n\\n### Le Refuge\\nUne table locale.`
+    mockGenerateContent.mockResolvedValue({ response: { text: () => JSON.stringify({ title: 'Les tables locales', content_markdown: content }) } })
+    const result = await generateBlogDraftWithGemini({ brief: 'Rédige un article sur les tables locales.', verifiedFacts: '' })
+    expect(result.draft.content_markdown).toContain('\n\n### Le Refuge\nUne table locale.')
+    expect(result.draft.content_markdown).not.toContain('\\n')
+  })
+
   afterAll(() => {
     process.env.GEMINI_API_KEY = previousApiKey
     process.env.GEMINI_MODEL = previousModel

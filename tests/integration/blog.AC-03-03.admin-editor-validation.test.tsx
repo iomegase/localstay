@@ -22,6 +22,18 @@ describe('029 blog admin editor validation feedback', () => {
     jest.restoreAllMocks()
   })
 
+  it('loads legacy escaped Markdown as multiline editor text and saves actual line breaks', async () => {
+    const markdown = String.raw`Introduction.\n\n### Le Refuge\nTexte local.`
+    const expected = 'Introduction.\n\n### Le Refuge\nTexte local.'
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ id: 'article-1', status: 'draft' }) }) as jest.Mock
+    render(<AdminBlogEditor cities={[]} initialArticle={{ id: 'article-1', status: 'draft', title: 'Les tables locales', slug: 'tables-locales', excerpt: '', content_markdown: markdown, category: 'restaurants', tags: [], city_id: null, seo_title: null, seo_description: null, photos: [] }} />)
+    expect(getTextareaFromField('Markdown')).toHaveValue(expected)
+    fireEvent.click(screen.getByRole('button', { name: /Enregistrer/i }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+    const options = (global.fetch as jest.Mock).mock.calls[0][1]
+    expect(JSON.parse(options.body).content_markdown).toBe(expected)
+  })
+
   it('shows field-level validation errors when draft save is rejected', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,

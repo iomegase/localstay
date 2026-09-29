@@ -1,6 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import { blogCategoryLabel } from '../lib/category-label'
 import { getBlogSlugCandidates } from '../lib/slug'
+import { normalizeBlogMarkdown } from '../lib/markdown'
 import type { PublicBlogArticle, PublicBlogListResult } from '../types'
 
 const PUBLISHED_WHERE = {
@@ -105,7 +106,7 @@ export async function getPublishedBlogArticleBySlug(slug: string): Promise<Publi
     slug: article.slug,
     title: article.title,
     excerpt: article.excerpt,
-    content_markdown: article.content_markdown,
+    content_markdown: normalizeBlogMarkdown(article.content_markdown),
     category: article.category,
     tags: article.tags,
     published_at: article.published_at,

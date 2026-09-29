@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { BlogArticleCategory, BlogArticleStatus } from '../types'
 import { blogCategoryLabel } from '../lib/category-label'
+import { normalizeBlogMarkdown } from '../lib/markdown'
 
 type CityOption = {
   id: string
@@ -177,7 +178,7 @@ export function AdminBlogEditor({
     title: initialArticle?.title ?? '',
     slug: initialArticle?.slug ?? '',
     excerpt: initialArticle?.excerpt ?? '',
-    content_markdown: initialArticle?.content_markdown ?? '',
+    content_markdown: normalizeBlogMarkdown(initialArticle?.content_markdown ?? ''),
     category: initialArticle?.category ?? 'local_guide',
     tags: initialArticle?.tags.join(', ') ?? '',
     city_id: initialArticle?.city_id ?? '',
@@ -319,6 +320,7 @@ export function AdminBlogEditor({
       id: nextId ?? current.id,
       slug: nextSlug ?? current.slug,
       status: nextStatus ?? current.status,
+      content_markdown: normalizeBlogMarkdown(parseStringValue(json.content_markdown) ?? current.content_markdown),
     }))
 
     if (!article.id && nextId) {
@@ -420,7 +422,7 @@ export function AdminBlogEditor({
         ...current,
         title: parseStringValue(json.title) ?? current.title,
         excerpt: parseStringValue(json.excerpt) ?? current.excerpt,
-        content_markdown: parseStringValue(json.content_markdown) ?? current.content_markdown,
+        content_markdown: normalizeBlogMarkdown(parseStringValue(json.content_markdown) ?? current.content_markdown),
         seo_title: parseStringValue(json.seo_title) ?? current.seo_title,
         seo_description: parseStringValue(json.seo_description) ?? current.seo_description,
       }))

@@ -360,6 +360,55 @@ describe('041 AC-04 Admin publication controls', () => {
     expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeEnabled()
   })
 
+  it('AC-04-01/03: refreshes saved description eligibility without publishing an unsaved draft', async () => {
+    const saved = buildPoi()
+    mockGetAdminPoi.mockResolvedValue(buildPoi({
+      description: null,
+      discovery_eligibility: { eligible: false, checks: { ...completeEligibility.checks, description: false } },
+    }))
+    const deferred = deferredResponse()
+    const fetchMock = jest.mocked(global.fetch).mockReturnValue(deferred.promise)
+    const { rerender } = render(await AdminPoiDetailPage({ params: Promise.resolve({ id: poiId }) }))
+
+    fireEvent.change(screen.getByLabelText('Description'), { target: { value: saved.description } })
+    expect(screen.getByLabelText('Description : manquant')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeDisabled()
+    expect(screen.getByText(/Cette checklist utilise les données enregistrées/)).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: /Enregistrer/i }))
+    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/pois/${poiId}`, expect.objectContaining({
+      method: 'PATCH', body: expect.stringContaining('Un musée local.'),
+    }))
+    expect(mockRefresh).not.toHaveBeenCalled()
+
+    deferred.resolve({ ok: true, json: async () => ({ data: saved }) } as Response)
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1))
+    mockGetAdminPoi.mockResolvedValue(saved)
+    rerender(await AdminPoiDetailPage({ params: Promise.resolve({ id: poiId }) }))
+    expect(screen.getByLabelText('Description : satisfait')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeEnabled()
+    expect(screen.getByLabelText('Statut Découverte : Brouillon')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('AC-04-01/03: keeps saved eligibility unchanged when saving the description fails', async () => {
+    mockGetAdminPoi.mockResolvedValue(buildPoi({
+      description: null,
+      discovery_eligibility: { eligible: false, checks: { ...completeEligibility.checks, description: false } },
+    }))
+    jest.mocked(global.fetch).mockResolvedValue({
+      ok: false, json: async () => ({ error: { message: 'Enregistrement impossible' } }),
+    } as Response)
+    render(await AdminPoiDetailPage({ params: Promise.resolve({ id: poiId }) }))
+    fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Texte relu.' } })
+    fireEvent.click(screen.getByRole('button', { name: /Enregistrer/i }))
+    await screen.findByText('Enregistrement impossible')
+    expect(mockRefresh).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Description')).toHaveValue('Texte relu.')
+    expect(screen.getByLabelText('Description : manquant')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeDisabled()
+  })
+
   it('AC-04-06: preserves list filters and paging, and renders accessible discovery badges', async () => {
     mockListAdminPois.mockResolvedValue({
       data: [

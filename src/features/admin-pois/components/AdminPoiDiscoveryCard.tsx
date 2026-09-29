@@ -184,6 +184,7 @@ function AdminPoiDiscoveryCardStateful({
         </div>
         <CardDescription>
           Contrôlez l’éligibilité éditoriale avant d’exposer ce POI sur Découvrir.
+          {' '}Cette checklist utilise les données enregistrées. Enregistrez la fiche après vos modifications pour l’actualiser.
         </CardDescription>
       </CardHeader>
 

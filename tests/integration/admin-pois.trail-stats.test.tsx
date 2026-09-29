@@ -5,6 +5,8 @@ import { render, screen, within, fireEvent, waitFor } from '@testing-library/rea
 import { AdminPoiEditForm } from '@/features/admin-pois/components/AdminPoiEditForm'
 import type { AdminPoiCategory, AdminPoiDetail } from '@/features/admin-pois/types'
 
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }))
+
 // react-markdown est ESM et casse le transform jest ; on neutralise le rendu Markdown.
 jest.mock('@/shared/components/MarkdownText', () => ({
   MarkdownText: ({ source }: { source: string }) => <div>{source}</div>,

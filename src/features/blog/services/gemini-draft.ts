@@ -6,6 +6,7 @@ import {
 } from '@google/generative-ai'
 import { z } from 'zod'
 import { assertBlogGeminiScope } from '../lib/gemini-scope'
+import { normalizeBlogMarkdown } from '../lib/markdown'
 
 const TITLE_MIN_LENGTH = 5
 const TITLE_MAX_LENGTH = 90
@@ -226,7 +227,7 @@ function deriveSeoDescription(
 
 function normalizeGeneratedDraft(json: unknown): BlogGenerationResult {
   const looseDraft = BlogGenerationLooseSchema.parse(json)
-  const contentMarkdown = looseDraft.content_markdown.trim()
+  const contentMarkdown = normalizeBlogMarkdown(looseDraft.content_markdown).trim()
   const plainContent = stripMarkdown(contentMarkdown)
   const title = deriveTitle(looseDraft.title, plainContent)
   const excerpt = deriveExcerpt(looseDraft.excerpt, plainContent)
@@ -376,6 +377,7 @@ function buildPrompt(
     'N\'invente aucun fait. Refuse toute coordonnée, distance, durée, prix, disponibilité, horaire temps réel ou donnée personnelle.',
     'Utilise Google Search uniquement pour grounding et citations de travail ; les faits restent soumis à revue Admin.',
     'Retourne uniquement du JSON strict avec les clés: title, excerpt, content_markdown, seo_title, seo_description.',
+    'Le champ content_markdown doit contenir de vrais retours à la ligne après décodage JSON : ne double-échappe pas les sauts de ligne. Place les titres et les éléments de liste sur leurs propres lignes.',
     'Respecte strictement ces longueurs: title 5-90 caractères, excerpt 40-220 caractères, seo_title 30-70 caractères, seo_description 80-180 caractères.',
     requestedWordCount
       ? `Le corps de l'article en Markdown doit viser environ ${requestedWordCount} mots.`

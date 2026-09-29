@@ -1,4 +1,5 @@
 import { prisma } from '@/shared/lib/prisma'
+import { normalizeBlogMarkdown } from '../lib/markdown'
 import { ZodError } from 'zod'
 import { getBlogPublishValidationErrors } from '../lib/publish-validation'
 import { normalizeBlogSlug } from '../lib/slug'
@@ -126,7 +127,7 @@ export async function createBlogArticle(input: BlogArticleUpsertInput, adminId: 
 }
 
 export async function getAdminBlogArticle(id: string) {
-  return prisma.blogArticle.findFirst({
+  const article = await prisma.blogArticle.findFirst({
     where: { id, deleted_at: null },
     select: {
       id: true,
@@ -150,6 +151,7 @@ export async function getAdminBlogArticle(id: string) {
       },
     },
   })
+  return article ? { ...article, content_markdown: normalizeBlogMarkdown(article.content_markdown) } : null
 }
 
 export async function updateBlogArticle(id: string, input: BlogArticleUpsertInput) {
@@ -462,7 +464,7 @@ export async function applyBlogGeneration(articleId: string, generationId: strin
     data: {
       title: generation.suggestion_title ?? undefined,
       excerpt: generation.suggestion_excerpt ?? undefined,
-      content_markdown: generation.suggestion_markdown ?? undefined,
+      content_markdown: generation.suggestion_markdown == null ? undefined : normalizeBlogMarkdown(generation.suggestion_markdown),
       seo_title: generation.suggestion_seo_title ?? undefined,
       seo_description: generation.suggestion_seo_description ?? undefined,
     },

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
 import { apiError } from '@/features/merchant/lib/responses'
 import { parsedOrValidationError, readJson, responseFromPoiAcquisitionError } from '@/features/poi-acquisition/lib/api'
@@ -12,6 +13,8 @@ import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/
 type RouteContext = {
   params: Promise<{ id: string }>
 }
+
+const PhotoListEchoSchema = z.object({ photos: z.array(z.string()).max(12) }).passthrough()
 
 export async function GET(_req: NextRequest, context: RouteContext): Promise<NextResponse> {
   const session = await getSessionAdmin()
@@ -35,11 +38,25 @@ export async function PATCH(req: NextRequest, context: RouteContext): Promise<Ne
     return apiError('TRAIL_FIELDS_LOCKED', 'Données randonnée verrouillées dans ce backoffice', 409)
   }
 
-  const parsed = parsedOrValidationError(parseAdminPoiPatchInput(body))
-  if (parsed instanceof NextResponse) return parsed
-
   try {
     const { id } = await context.params
+    let input = parseAdminPoiPatchInput(body)
+    // Older clients may echo an unchanged historical photo list containing a
+    // now-rejected URL. Omit that no-op rather than blocking unrelated edits.
+    if (!input.success && input.error.issues.every(issue => issue.path[0] === 'photos')) {
+      const echo = PhotoListEchoSchema.safeParse(body)
+      if (echo.success && z.string().uuid().safeParse(id).success) {
+        const existing = await getAdminPoi(id)
+        if (existing && echo.data.photos.length === existing.photos.length
+          && echo.data.photos.every((photo, index) => photo === existing.photos[index])) {
+          input = parseAdminPoiPatchInput(Object.fromEntries(
+            Object.entries(echo.data).filter(([key]) => key !== 'photos'),
+          ))
+        }
+      }
+    }
+    const parsed = parsedOrValidationError(input)
+    if (parsed instanceof NextResponse) return parsed
     const result = await updateAdminPoi(id, parsed, session.user.id)
     safelyRevalidateDiscoveryPaths(result.discovery_revalidation_paths)
     return NextResponse.json({ data: result.data })

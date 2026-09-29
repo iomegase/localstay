@@ -142,6 +142,29 @@ describe('022 admin POI API', () => {
     expect(mockUpdateAdminPoi).not.toHaveBeenCalled()
   })
 
+  it('AC-02-02: ignores an identical stored legacy photo list when patching description', async () => {
+    const photos = ['https://www.lafoliedouce.com/images/logos/folie-douce-corporate-noir.png', 'https://example.com/photo.jpg']
+    mockGetAdminPoi.mockResolvedValue({ id: poiId, photos })
+    mockUpdateAdminPoi.mockResolvedValue({ data: { id: poiId, description: 'Description relue.' }, discovery_revalidation_paths: [] })
+    const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
+      description: 'Description relue.', photos,
+    }), params)
+    expect(res.status).toBe(200)
+    expect(mockUpdateAdminPoi).toHaveBeenCalledWith(poiId, {
+      description: 'Description relue.', force_geocode: false, confirm_geocode_pending_review: false,
+    }, 'admin-1')
+  })
+
+  it('AC-03-05: still rejects a changed photo list containing a logo', async () => {
+    const logo = 'https://www.lafoliedouce.com/images/logos/folie-douce-corporate-noir.png'
+    mockGetAdminPoi.mockResolvedValue({ id: poiId, photos: ['https://example.com/photo.jpg', logo] })
+    const res = await detailPATCH(jsonRequest(`http://localhost/api/admin/pois/${poiId}`, 'PATCH', {
+      description: 'Description relue.', photos: [logo, 'https://example.com/photo.jpg'],
+    }), params)
+    expect(res.status).toBe(400)
+    expect(mockUpdateAdminPoi).not.toHaveBeenCalled()
+  })
+
   it('AC-04-01/04-02/04-04: routes sensitive status actions', async () => {
     const paths = [
       '/decouvrir/saint-gervais',

@@ -1,7 +1,8 @@
 "use client"
 
 import { FormEvent, ReactNode, useId, useState, useTransition } from 'react'
-import { Info, MapPin, Tag as TagIcon, Image as ImageIcon, Map, Building2, CheckCircle2, Trash2, Star, Plus, GripVertical } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Info, MapPin, Tag as TagIcon, Image as ImageIcon, Map, Building2, CheckCircle2, AlertCircle, Trash2, Star, Plus, GripVertical } from 'lucide-react'
 import {
   closestCenter,
   DndContext,
@@ -24,11 +25,13 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import type { AdminPoiCategory, AdminPoiDetail } from '../types'
+import { isUsableAdminPhotoUrl } from '../lib/admin-poi-rules'
 import { TrailGpxUploader } from './TrailGpxUploader'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
+import { PoiDescriptionAssistant } from '@/features/poi-description-assistance/components/PoiDescriptionAssistant'
 
 type Props = {
   poi: AdminPoiDetail
@@ -36,8 +39,11 @@ type Props = {
 }
 
 export function AdminPoiEditForm({ poi, categories }: Props) {
+  const router = useRouter()
   const [message, setMessage] = useState<string | null>(null)
+  const [messageIsError, setMessageIsError] = useState(false)
   const [photos, setPhotos] = useState<string[]>(poi.photos)
+  const [savedPhotos, setSavedPhotos] = useState<string[]>(poi.photos)
   const [newPhotoUrl, setNewPhotoUrl] = useState('')
   const [forceGeocode, setForceGeocode] = useState(false)
   const [selectedCategoryId, setSelectedCategoryId] = useState(poi.category.id)
@@ -53,6 +59,9 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   const [photoUrlError, setPhotoUrlError] = useState<string | null>(null)
   const [descriptionValue, setDescriptionValue] = useState(poi.description ?? '')
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false)
+  const [identity, setIdentity] = useState({ name: poi.name, address: poi.address, website: poi.website ?? '' })
+  const [savedIdentity, setSavedIdentity] = useState(identity)
+  const identityDirty = identity.name.trim() !== savedIdentity.name.trim() || identity.address.trim() !== savedIdentity.address.trim() || identity.website.trim() !== savedIdentity.website.trim()
 
   // Données rando : seules les valeurs manquantes deviennent éditables (le reste du tracé
   // reste piloté par le GPX). On envoie les saisies dans un patch dédié `trail_metrics`.
@@ -84,6 +93,17 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage(null)
+    setMessageIsError(false)
+    const photosChanged = photos.length !== savedPhotos.length
+      || photos.some((photo, index) => photo !== savedPhotos[index])
+    if (photosChanged) {
+      const invalidIndex = photos.findIndex(photo => !isUsableAdminPhotoUrl(photo))
+      if (invalidIndex !== -1) {
+        setMessageIsError(true)
+        setMessage(`Photo ${invalidIndex + 1} : URL non exploitable (logo, icône, image de remplacement ou URL invalide). Retirez cette photo ou remplacez-la avant d’enregistrer la liste modifiée.`)
+        return
+      }
+    }
     const formData = new FormData(event.currentTarget)
     const trailMetrics: Record<string, number | string> = {}
     if (trail) {
@@ -109,7 +129,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       category_id: String(formData.get('category_id') ?? ''),
       subcategory_id: nullableString(formData.get('subcategory_id')),
       tags: splitLines(String(formData.get('tags') ?? '')),
-      photos,
+      ...(photosChanged ? { photos } : {}),
       is_active: formData.get('is_active') === 'true',
       force_geocode: forceGeocode,
       ...(Object.keys(trailMetrics).length > 0 ? { trail_metrics: trailMetrics } : {}),
@@ -137,11 +157,15 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
           .map(([field, errs]) => `${field} — ${errs!.join(', ')}`)
           .join(' · ')
         const generic = json?.error?.message ?? 'Enregistrement impossible'
+        setMessageIsError(true)
         setMessage(fieldsWithErrors ? `${generic} : ${fieldsWithErrors}` : generic)
         return
       }
       setForceGeocode(false)
+      if (payload.photos) setSavedPhotos(payload.photos)
+      setSavedIdentity({ name: payload.name, address: payload.address, website: payload.website ?? '' })
       setMessage('Modifications enregistrées avec succès')
+      router.refresh()
     })
   }
 
@@ -165,7 +189,8 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             <Input 
               id="name" 
               name="name" 
-              defaultValue={poi.name} 
+              value={identity.name}
+              onChange={event => setIdentity(current => ({ ...current, name: event.target.value }))}
               className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm" 
             />
           </Field>
@@ -199,6 +224,13 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
                 onChange={e => setDescriptionValue(e.target.value)}
                 className="min-h-32 w-full rounded-[16px] border-slate-200 bg-slate-50 p-4 text-[15px] font-medium leading-relaxed text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm resize-y"
               />
+              <PoiDescriptionAssistant
+                key={JSON.stringify(savedIdentity)}
+                poiId={poi.id}
+                disabled={isPending || poi.status === 'archived'}
+                identityDirty={identityDirty}
+                onAccept={setDescriptionValue}
+              />
               {showDescriptionPreview && (
                 <div className="rounded-[16px] border border-indigo-100 bg-indigo-50/40 p-4">
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-indigo-600">Aperçu</p>
@@ -223,7 +255,8 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             <Input 
               id="website" 
               name="website" 
-              defaultValue={poi.website ?? ''} 
+              value={identity.website}
+              onChange={event => setIdentity(current => ({ ...current, website: event.target.value }))}
               className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm" 
             />
           </Field>
@@ -277,7 +310,8 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
             <Input 
               id="address" 
               name="address" 
-              defaultValue={poi.address} 
+              value={identity.address}
+              onChange={event => setIdentity(current => ({ ...current, address: event.target.value }))}
               className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 px-4 text-[15px] font-medium text-slate-900 transition-all hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 shadow-sm" 
             />
           </Field>
@@ -615,9 +649,14 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       <div className="sticky bottom-6 z-10 mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-[24px] border border-slate-200/60 bg-white/80 backdrop-blur-xl p-4 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.1)]">
         <div className="pl-2">
           {message ? (
-            <span className="flex items-center gap-2.5 text-[14px] font-bold text-emerald-600 animate-in slide-in-from-left-4">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 size={14} className="text-emerald-700" strokeWidth={3} />
+            <span
+              role={messageIsError ? 'alert' : 'status'}
+              className={`flex items-center gap-2.5 text-[14px] font-bold animate-in slide-in-from-left-4 ${messageIsError ? 'text-rose-600' : 'text-emerald-600'}`}
+            >
+              <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${messageIsError ? 'bg-rose-100' : 'bg-emerald-100'}`}>
+                {messageIsError
+                  ? <AlertCircle size={14} className="text-rose-700" strokeWidth={3} />
+                  : <CheckCircle2 size={14} className="text-emerald-700" strokeWidth={3} />}
               </div>
               {message}
             </span>
