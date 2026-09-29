@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import { DEMO_GUIDE_CARD } from '@/features/guide-demo/components/DemoGuideCard'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
 
@@ -7,6 +8,14 @@ function renderLodgingGuide() {
   render(<DemoGuideApp />)
   fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
   return screen.getByTestId('demo-lodging-guide')
+}
+
+const CARD_CLASSES = DEMO_GUIDE_CARD.split(' ')
+
+function expectDemoCard(element: HTMLElement) {
+  expect(element).toHaveAttribute('data-demo-card', 'true')
+  expect(element).toHaveClass(...CARD_CLASSES)
+  expect(element.parentElement?.closest('[data-demo-card]')).toBeNull()
 }
 
 describe('045-public-demo-private-guide-reference lodging guide', () => {
@@ -36,10 +45,10 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     expect(within(guide).getByRole('heading', { level: 2, name: 'Instructions' })).toBeInTheDocument()
     expect(within(guide).queryByTestId('demo-lodging-hero')).not.toBeInTheDocument()
 
-    expect(within(guide).getByTestId('demo-access-location')).toHaveClass('rounded-[22px]', 'bg-slate-900')
+    expectDemoCard(within(guide).getByTestId('demo-access-location'))
     const instructions = within(guide).getAllByTestId('demo-arrival-instruction')
     expect(instructions).toHaveLength(3)
-    expect(instructions[0]).toHaveClass('rounded-[22px]', 'bg-slate-900', 'text-white')
+    expectDemoCard(instructions[0])
     expect(within(instructions[0]).getAllByRole('img').length).toBeGreaterThan(0)
   })
 
@@ -89,7 +98,7 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
 
     const wifi = within(guide).getByTestId('demo-practical-wifi')
-    expect(wifi).toHaveClass('rounded-[22px]', 'bg-slate-900', 'text-white')
+    expectDemoCard(wifi)
     expect(within(wifi).getByText('MyStay-Le305')).toBeInTheDocument()
     expect(within(wifi).getByText('Le305-StGervais')).toBeInTheDocument()
     expect(wifi.innerHTML).not.toMatch(/text-black/)
@@ -106,7 +115,7 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
       expect.stringMatching(/Office de tourisme.*04 65 71 12 34/),
     ])
     for (const card of [wifi, ...emergencies, ...useful]) {
-      expect(card).toHaveClass('rounded-[22px]', 'bg-slate-900')
+      expectDemoCard(card)
     }
     expect(guide.querySelectorAll('a[href^="tel:"]')).toHaveLength(0)
   })
@@ -116,7 +125,6 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     fireEvent.click(within(guide).getByRole('button', { name: 'Équipements' }))
 
     const section = within(guide).getByTestId('demo-equipment-list')
-    expect(section).toHaveClass('bg-slate-900')
     expect(within(section).getByRole('heading', { level: 2, name: 'Équipements' })).toBeInTheDocument()
 
     const items = within(section).getAllByTestId('demo-equipment-item')
@@ -124,12 +132,12 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
       items.map(item => within(item).getByRole('heading', { level: 3 }).textContent),
     ).toEqual(['Télévision', 'Chauffage', 'Cuisine équipée'])
     for (const item of items) {
-      expect(item).toHaveClass('bg-slate-800')
+      expectDemoCard(item)
       expect(within(item).getAllByTestId('demo-arrival-photo-frame').length).toBeGreaterThan(0)
       expect(within(item).getAllByTestId('demo-arrival-video-frame')).toHaveLength(1)
     }
 
-    expect(within(guide).getByTestId('demo-house-rules')).toHaveClass('bg-slate-900')
+    expectDemoCard(within(guide).getByTestId('demo-house-rules'))
     expect(guide).not.toHaveTextContent(/démonstration|à titre d[’']exemple/i)
     expect(guide.querySelectorAll('video')).toHaveLength(0)
   })
@@ -152,7 +160,7 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     expect(location).toHaveTextContent('Point de tri')
     expect(location).toHaveTextContent('Point de tri public du centre de Saint-Gervais')
     for (const card of [...bins, location]) {
-      expect(card).toHaveClass('rounded-[22px]', 'bg-slate-900', 'text-white')
+      expectDemoCard(card)
     }
 
     fireEvent.click(within(guide).getByRole('button', { name: 'Départ' }))
@@ -172,9 +180,7 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
       ...within(guide).getAllByTestId('demo-arrival-instruction'),
     ]
     for (const card of cards) {
-      expect(card).toHaveClass('rounded-[22px]', 'bg-slate-900')
-      expect(card.parentElement?.closest('.bg-slate-900')).toBeNull()
-      expect(card.querySelector('.bg-slate-800')).toBeNull()
+      expectDemoCard(card)
     }
 
     const instructions = within(guide).getAllByTestId('demo-arrival-instruction')
@@ -184,6 +190,33 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
       )
       expect(within(instruction).getByTestId('demo-arrival-step')).toHaveClass('rounded-full')
     })
+  })
+
+  it('I. AC-01-12 uses one shared, non-nested card design on every tab', () => {
+    const guide = renderLodgingGuide()
+
+    for (const tab of ['Accès', 'Infos', 'Équipements', 'Départ']) {
+      fireEvent.click(within(guide).getByRole('button', { name: tab }))
+      const cards = Array.from(guide.querySelectorAll<HTMLElement>('[data-demo-card]'))
+      expect(cards.length).toBeGreaterThan(1)
+      cards.forEach(expectDemoCard)
+      expect(guide.querySelector('.bg-slate-800, .bg-slate-900')).toBeNull()
+    }
+  })
+
+  it('I. AC-01-12 copies the Wi-Fi password from the light "Tapoter pour copier" box', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    const guide = renderLodgingGuide()
+    fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
+
+    const copy = within(guide).getByRole('button', { name: /Copier le mot de passe Wi-Fi/ })
+    expect(copy).toHaveClass('bg-slate-100')
+    expect(copy).toHaveTextContent('Tapoter pour copier')
+    fireEvent.click(copy)
+
+    expect(writeText).toHaveBeenCalledWith('Le305-StGervais')
+    expect(await within(guide).findByText('Copié')).toBeInTheDocument()
   })
 
   it('C. keeps the demo navigation on the public page', () => {

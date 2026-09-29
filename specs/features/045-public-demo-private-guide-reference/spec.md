@@ -118,6 +118,14 @@ contrôle d'accès ni route du guide privé.
   `slate-900` arrondies (`rounded-[22px]`) non imbriquées, une par
   instruction, avec pastille ronde colorée numérotée, titre, texte pleine
   largeur et médias.
+- **AC-01-12**: Given les quatre onglets du guide logement de démonstration
+  (Accès, Infos, Équipements, Départ) et leur carte d'en-tête, When ils sont
+  rendus, Then toutes leurs cartes utilisent un design unique partagé
+  (`DEMO_GUIDE_CARD` : fond navy indigo `indigo-950`, coins `26px`, ombre
+  douce, pastille ronde aux couleurs atténuées, titre et sous-titre), sans
+  aucune carte imbriquée dans une autre ; le mot de passe Wi-Fi s'affiche
+  dans un encart clair `Tapoter pour copier` qui copie le mot de passe dans
+  le presse-papiers local et confirme `Copié`.
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -377,6 +385,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-09 | integration |
 | AC-01-10 | integration |
 | AC-01-11 | integration |
+| AC-01-12 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |

@@ -47,7 +47,7 @@ export const demoLodging: DemoLodging = {
     },
   ],
   departureInstructions: [
-    'Déposer vos déchets au point de recyclage indiqué ci-dessous.',
+    'Déposer vos déchets au point de tri indiqué dans l’onglet Infos.',
     'Faire la vaisselle ou lancer le lave-vaisselle avant votre départ.',
     'Rassembler le linge de toilette utilisé dans la salle de bain.',
     'Laisser les draps en place sur les lits.',

@@ -19,6 +19,13 @@ import {
   DemoLodgingPracticalSection,
 } from './DemoLodgingGuideSections'
 import { DemoMediaFrames } from './DemoMediaFrames'
+import {
+  DEMO_GUIDE_CARD,
+  DEMO_PASTILLE,
+  DemoCardHeading,
+  DemoInfoCard,
+  DemoSectionTitle,
+} from './DemoGuideCard'
 import type {
   DemoArrivalInstruction,
   DemoLodging,
@@ -76,31 +83,7 @@ export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
         icon={Info}
         onNavigate={setView}
       >
-        <section
-          data-testid="demo-practical-wifi"
-          className="rounded-[22px] bg-slate-900 px-5 py-4 text-white"
-        >
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sky-600">
-              <Wifi className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold">Wi-Fi</h2>
-              <p className="mt-0.5 text-[10px] text-white/60">
-                Réseau <span className="font-semibold text-white">{lodging.wifiName}</span>
-              </p>
-            </div>
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-white/10 px-3 py-2.5">
-            <span className="min-w-0">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
-                Mot de passe
-              </span>
-              <code className="text-sm font-semibold text-white">{lodging.wifiPassword}</code>
-            </span>
-            <Copy className="h-4 w-4 shrink-0 text-white/60" aria-hidden="true" />
-          </div>
-        </section>
+        <DemoWifiCard name={lodging.wifiName} password={lodging.wifiPassword} />
         <DemoLodgingPracticalSection lodging={lodging} />
       </DemoGuideSubPage>
     )
@@ -184,14 +167,16 @@ function DemoGuideSubPage({
         })}
       </nav>
 
-      <div className="flex items-center gap-4 rounded-[26px] bg-slate-900 p-6 text-white">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-pink-600">
+      <div data-demo-card="true" className={`${DEMO_GUIDE_CARD} flex items-center gap-4`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${DEMO_PASTILLE.step}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
-            {eyebrow}
-          </p>
+          {eyebrow ? (
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
+              {eyebrow}
+            </p>
+          ) : null}
           <h1
             data-demo-view-heading="true"
             tabIndex={-1}
@@ -206,6 +191,52 @@ function DemoGuideSubPage({
   )
 }
 
+function DemoWifiCard({ name, password }: { name: string; password: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copyPassword() {
+    try {
+      await navigator.clipboard.writeText(password)
+      setCopied(true)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <section data-testid="demo-practical-wifi" data-demo-card="true" className={DEMO_GUIDE_CARD}>
+      <DemoCardHeading
+        icon={Wifi}
+        tone="wifi"
+        as="h2"
+        title="Wi-Fi"
+        hint={
+          <>
+            Réseau <span className="font-semibold text-white">{name}</span>
+          </>
+        }
+      />
+      <button
+        type="button"
+        onClick={copyPassword}
+        aria-label={`Copier le mot de passe Wi-Fi ${password}`}
+        className="mt-4 flex w-full items-center justify-between gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-left text-slate-900 transition-transform active:scale-[0.99]"
+      >
+        <span className="min-w-0">
+          <span className="block text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+            Mot de passe
+          </span>
+          <code className="text-base font-bold">{password}</code>
+        </span>
+        <span className="flex shrink-0 flex-col items-end gap-1 text-[9px] text-slate-600">
+          <Copy className="h-4 w-4 text-slate-900" aria-hidden="true" />
+          <span aria-live="polite">{copied ? 'Copié' : 'Tapoter pour copier'}</span>
+        </span>
+      </button>
+    </section>
+  )
+}
+
 function DemoArrivalView({ lodging }: { lodging: DemoLodging }) {
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lodging.addressLabel)}`
   const [street, ...locality] = lodging.addressLabel.split(',').map(part => part.trim())
@@ -213,40 +244,31 @@ function DemoArrivalView({ lodging }: { lodging: DemoLodging }) {
   return (
     <div className="grid gap-5">
       <section className="grid gap-3">
-        <h2 className="px-1 text-sm font-semibold text-slate-900">Localisation</h2>
-        <div
-          data-testid="demo-access-location"
-          className="flex items-center justify-between gap-3 rounded-[22px] bg-slate-900 px-5 py-4 text-white"
-        >
-          <span className="flex min-w-0 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-600">
-              <MapPin className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold">{street}</span>
-              {locality.length > 0 ? (
-                <span className="mt-0.5 block text-[10px] text-white/60">
-                  {locality.join(', ')}
-                </span>
-              ) : null}
-            </span>
-          </span>
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
-          >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
-              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
-            </span>
-            Maps
-          </a>
-        </div>
+        <DemoSectionTitle>Localisation</DemoSectionTitle>
+        <DemoInfoCard
+          testId="demo-access-location"
+          icon={MapPin}
+          tone="location"
+          title={street}
+          hint={locality.length > 0 ? locality.join(', ') : undefined}
+          trailing={
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+            >
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
+                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              Maps
+            </a>
+          }
+        />
       </section>
 
       <section className="grid gap-3">
-        <h2 className="px-1 text-sm font-semibold text-slate-900">Instructions</h2>
+        <DemoSectionTitle>Instructions</DemoSectionTitle>
         {lodging.arrivalInstructions.map((instruction, index) => (
           <DemoArrivalInstructionCard
             key={`${instruction.title}-${index}`}
@@ -267,24 +289,14 @@ function DemoArrivalInstructionCard({
   index: number
 }) {
   return (
-    <article
-      data-testid="demo-arrival-instruction"
-      className="rounded-[22px] bg-slate-900 px-5 py-4 text-white"
-    >
-      <div className="flex items-center gap-3">
-        <span
-          data-testid="demo-arrival-step"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-pink-600 text-sm font-bold"
-        >
-          {index + 1}
-        </span>
-        <h3 className="min-w-0 text-sm font-semibold">
-          {instruction.title ?? `Instruction ${index + 1}`}
-        </h3>
-      </div>
-      <p className="mt-3 text-[13px] leading-5 text-white/80">
-        {instruction.text}
-      </p>
+    <article data-testid="demo-arrival-instruction" data-demo-card="true" className={DEMO_GUIDE_CARD}>
+      <DemoCardHeading
+        step={index + 1}
+        tone="step"
+        as="h3"
+        title={instruction.title ?? `Instruction ${index + 1}`}
+      />
+      <p className="mt-3 text-[13px] leading-5 text-white/80">{instruction.text}</p>
       <DemoMediaFrames
         photos={instruction.photos}
         photoPlaceholders={instruction.photoPlaceholders}

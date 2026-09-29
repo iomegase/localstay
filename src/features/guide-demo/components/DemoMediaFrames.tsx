@@ -46,7 +46,7 @@ export function DemoMediaFrames({
           data-testid="demo-arrival-video-frame"
           role="img"
           aria-label={videoPlaceholder}
-          className="grid h-16 w-28 place-items-center rounded-xl border border-white/15 bg-slate-950"
+          className="grid h-16 w-28 place-items-center rounded-xl border border-white/15 bg-black/40"
         >
           <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white">
             <Play className="h-4 w-4 translate-x-px" aria-hidden="true" />
