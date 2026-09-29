@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null)
 
   // Règle métier strictement non modifiée
   function validatePassword(value: string) {
@@ -43,13 +44,24 @@ export default function RegisterPage() {
         return
       }
 
-      router.push(json.redirect_to)
+      if (json.confirmation_required) setConfirmationEmail(body.email)
+      else router.push(json.redirect_to)
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }
   }
+
+  if (confirmationEmail) return (
+    <div className="mx-auto w-full max-w-sm overflow-hidden p-8 text-center">
+      <h1 className="mb-3 text-2xl italic font-serif tracking-tight text-slate-900">Confirmez votre adresse email</h1>
+      <p className="text-sm text-slate-500">Votre compte a été créé. Un email de confirmation a été envoyé à</p>
+      <p className="mt-2 break-all text-sm font-medium text-slate-900">{confirmationEmail}</p>
+      <p className="mt-4 text-sm text-slate-500">Ouvrez cet email pour valider votre adresse et accéder à votre compte. Pensez aussi à vérifier les courriers indésirables.</p>
+      <Link href="/auth/login" className="mt-6 inline-flex min-h-11 items-center text-sm underline text-slate-900">Se connecter</Link>
+    </div>
+  )
 
   return (
     <div className="mx-auto w-full max-w-sm overflow-hidden">

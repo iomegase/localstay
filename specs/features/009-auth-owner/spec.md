@@ -54,6 +54,22 @@ Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal 
 - **AC-01-02**: Given un email déjà utilisé, When l'utilisateur tente de s'inscrire, Then un message d'erreur clair est affiché — pas de doublon créé
 - **AC-01-03**: Given une inscription réussie, When le compte est créé, Then un `Subscription` est créé automatiquement avec `status: trial`, `plan: free`, `trial_ends_at: now + 12 mois`
 - **AC-01-04**: Given une inscription réussie, When le compte est créé, Then un email de bienvenue est envoyé via Resend
+- **AC-01-05**: Given la confirmation email activée dans Supabase, When l'inscription réussit sans session, Then le formulaire indique qu'un email de confirmation a été envoyé ; le clic de confirmation vérifie le jeton côté serveur et ouvre le dashboard selon le rôle. Sans confirmation valide, aucun accès n'est accordé.
+
+Correction technique du 2026-09-29 — US-01 : une panne serveur indiquant
+explicitement « Error sending confirmation email » déclenche un secours
+Supabase Admin `generateLink` de type `signup`, avec le mot de passe et les
+métadonnées owner/merchant validés par Zod. Le lien est envoyé par Resend depuis
+`MyStay <bonjour@mystay.city>` vers `/auth/confirm-registration?token_hash=…`.
+Le compte reste non confirmé jusqu'à la vérification du lien ; aucun flag
+`email_confirm: true`, aucune création de session depuis un jeton Admin, aucun
+changement de mot de passe d'un compte existant. Les refus 401, quotas 429,
+inscriptions désactivées et erreurs de base ne déclenchent pas ce secours.
+Un échec d'envoi retourne 503 `EMAIL_SEND_FAILED` en français, sans réponse
+brute du fournisseur. Les emails, mots de passe et jetons ne sont pas loggés.
+Le compte applicatif et son abonnement sont créés une seule fois, avec les
+valeurs trial existantes, et un email déjà utilisé conserve le refus 409.
+L'email de bienvenue utilise le même domaine expéditeur vérifié mystay.city.
 
 ### US-02 — Connexion
 
@@ -260,6 +276,52 @@ paths:
           description: Email déjà utilisé
         "400":
           $ref: "#/components/responses/BadRequest"
+        "429":
+          description: Envoi temporairement limité
+        "503":
+          description: Email de confirmation indisponible (EMAIL_SEND_FAILED)
+
+  /api/auth/confirm-registration:
+    post:
+      summary: Confirmation email d'une inscription owner ou merchant
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              oneOf:
+                - required: [token]
+                  not:
+                    required: [code]
+                - required: [code]
+                  not:
+                    required: [token]
+              properties:
+                token:
+                  type: string
+                  minLength: 1
+                code:
+                  type: string
+                  minLength: 1
+      responses:
+        "200":
+          description: Email confirmé et session initialisée
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [redirect_to]
+                properties:
+                  redirect_to:
+                    type: string
+        "400":
+          description: Lien manquant, invalide ou expiré
+        "403":
+          description: Rôle non éligible à une inscription publique
+        "503":
+          description: Service de confirmation indisponible
 
   /api/auth/login:
     post:
@@ -382,6 +444,9 @@ components:
       type: object
       required: [user, subscription, redirect_to]
       properties:
+        confirmation_required:
+          type: boolean
+          description: Présent sur l'inscription, vrai si aucune session n'a été créée et l'adresse doit être confirmée
         user:
           type: object
           properties:
@@ -452,7 +517,18 @@ components:
 ### Page : `/auth/register`
 - Formulaire : prénom + nom + email + mot de passe + sélecteur rôle (Hébergeur / Prestataire)
 - Validation temps réel : mot de passe ≥ 8 caractères
-- **Success** : redirection automatique vers le bon dashboard selon le rôle
+- **Success** : redirection automatique vers le bon dashboard selon le rôle si
+  Supabase a créé une session. Sinon, confirmation d'envoi du mail et invitation
+  à valider l'adresse, sans redirection vers un espace protégé.
+
+### Page : `/auth/confirm-registration`
+- Formulaire de confirmation avec bouton « Confirmer mon adresse email ».
+- Le jeton ou code n'est vérifié qu'au clic explicite, pour éviter sa consommation
+  par une prévisualisation d'email. Aucun jeton n'est journalisé.
+- Sans jeton/code, bouton désactivé et message de lien invalide.
+- Après réponse API 200, redirection selon le rôle vérifié : owner `/dashboard`,
+  merchant `/merchant/onboarding`. Aucun paramètre de redirection libre.
+- Un échec affiche un message français et permet de revenir à la connexion.
 
 ### Page : `/auth/forgot-password`
 - Formulaire : email + bouton "Envoyer le lien"
@@ -484,6 +560,7 @@ components:
 | AC-01-02 | Email déjà utilisé → erreur, pas de doublon | unit |
 | AC-01-03 | Inscription → Subscription trial créée | integration |
 | AC-01-04 | Inscription → email bienvenue Resend | integration |
+| AC-01-05 | Email requis → attente visible, confirmation vérifiée puis dashboard | integration |
 | AC-02-01 | Connexion valide → redirection selon rôle | integration |
 | AC-02-02 | Identifiants incorrects → message générique | unit |
 | AC-02-05 | Œil : afficher/masquer le mot de passe sans modifier la saisie ni soumettre | integration |

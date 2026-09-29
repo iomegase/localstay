@@ -88,3 +88,17 @@ pour effectuer un test.
 Sources officielles : [SMTP Supabase](https://supabase.com/docs/guides/auth/auth-smtp),
 [Resend SMTP pour Supabase](https://resend.com/docs/send-with-supabase-smtp),
 [modèles et jetons Supabase](https://supabase.com/docs/guides/auth/auth-email-templates).
+
+## Inscription et confirmation de l'adresse
+
+La même panne SMTP bloque aussi `signUp` avec « Error sending confirmation
+email ». L'inscription utilise dans ce cas un lien Supabase `signup` envoyé
+par Resend. Le compte reste non confirmé : le formulaire affiche l'attente et
+le lien ouvre `/auth/confirm-registration?token_hash=…`. Un clic explicite
+vérifie le jeton, crée la session et ouvre l'espace owner ou merchant. Les
+prévisualisations d'email ne consomment pas le jeton.
+
+Le domaine de l'email de bienvenue a été aligné sur `bonjour@mystay.city`, déjà
+vérifié. Les quotas et refus Auth ne sont pas contournés. Le script SMTP ajoute
+aussi `/auth/confirm-registration` aux URL autorisées et configure le modèle
+de confirmation. Sans jeton de gestion Supabase, il ne modifie rien à distance.

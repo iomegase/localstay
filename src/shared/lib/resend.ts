@@ -27,7 +27,7 @@ export async function sendWelcomeEmail({ to, firstName }: WelcomeEmailParams): P
 
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
-    from: 'MyStay <hello@mystay.fr>',
+    from: 'MyStay <bonjour@mystay.city>',
     to,
     subject: 'Bienvenue sur MyStay',
     html: `
