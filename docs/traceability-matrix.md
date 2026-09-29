@@ -1232,5 +1232,23 @@ Prisma confirment que la tentative montrée n'a créé aucun compte. Aucun compt
 utilisateur existant n'a été modifié et son mot de passe n'est pas connu.
 
 Les régressions inscription et attente de confirmation ont échoué avant
-correction puis passent. Les contrôles réels de création, livraison, confirmation
-et accès au dashboard seront exécutés sur un compte de test après déploiement.
+correction puis passent : 83 tests dans neuf suites Auth ciblées. TypeScript
+et lint passent également, y compris dans le checkout isolé de déploiement.
+
+Le commit fonctionnel `0b02cf3` est déployé en production, READY sur
+`dpl_6CmvgppB8cpyf1VUj5GHL1tm6mBZ`, avec l'alias `www.mystay.city`.
+Les routes d'inscription et de confirmation renvoient chacune 400
+VALIDATION_ERROR pour un corps vide.
+
+Le contrôle Chromium mobile du formulaire déployé passe avec les réponses
+POST interceptées et simulées : attente de confirmation sans redirection,
+aucun POST lors de l'ouverture du lien, validation au clic, erreur de lien
+expiré affichée et bouton désactivé sans jeton. Aucune erreur JavaScript.
+Ce contrôle ne crée pas de compte et ne prouve pas la livraison d'un email.
+
+Le contrôle automatique d'approbation a refusé le test complet en production,
+car il créerait un compte de test, enverrait un email et désactiverait ensuite
+des données de production. La création réelle, la livraison, la confirmation
+et l'accès au dashboard après ce correctif restent à vérifier après une
+autorisation explicite de ces actions. Aucun test de ce type n'a été exécuté
+après ce refus.
