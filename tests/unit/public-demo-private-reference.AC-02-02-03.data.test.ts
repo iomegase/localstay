@@ -1,5 +1,6 @@
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import {
+  APPROVED_DEMO_ACCESS_MEDIA,
   APPROVED_DEMO_LODGING_MEDIA,
   isApprovedDemoLodgingMedia,
 } from '@/features/guide-demo/demo-media-policy'
@@ -108,7 +109,7 @@ describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
       /300 route du Mont-Blanc|1789|Bienvenue2026|Refuge-Mont-Blanc/i,
     )
     expect(serialized).not.toMatch(
-      /digicode|code d['’]acc[eè]s|garage|\\bcode\\s*:?\\s*\\d/i,
+      /digicode|code d['’]acc[eè]s|garage|\bcode\s*:?\s*\d/i,
     )
     expect(serialized).not.toMatch(uuidPattern)
   })
@@ -129,5 +130,28 @@ describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
 
     expect(APPROVED_DEMO_LODGING_MEDIA).toHaveLength(4)
     expect(media.every(isApprovedDemoLodgingMedia)).toBe(true)
+  })
+
+  it('AC-01-07 illustrates access and parking with the approved access photos only', () => {
+    expect(APPROVED_DEMO_ACCESS_MEDIA).toEqual([
+      '/demo/acces-logement-trousseau.webp',
+      '/demo/entree-batiment-interphone.webp',
+      '/demo/parking-telecommande.webp',
+    ])
+    const [access, parking] = [
+      demoLodging.arrivalInstructions[1],
+      demoLodging.arrivalInstructions[2],
+    ]
+    expect(access.photos).toEqual([
+      '/demo/acces-logement-trousseau.webp',
+      '/demo/entree-batiment-interphone.webp',
+    ])
+    expect(parking.photos).toEqual(['/demo/parking-telecommande.webp'])
+    expect(access.photoPlaceholders ?? []).toEqual([])
+    expect(parking.photoPlaceholders ?? []).toEqual([])
+    for (const accessMedia of APPROVED_DEMO_ACCESS_MEDIA) {
+      expect(demoLodging.gallery).not.toContain(accessMedia)
+      expect(demoLodging.coverImage).not.toBe(accessMedia)
+    }
   })
 })

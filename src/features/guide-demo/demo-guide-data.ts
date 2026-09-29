@@ -1,4 +1,7 @@
-import { APPROVED_DEMO_LODGING_MEDIA } from './demo-media-policy'
+import {
+  APPROVED_DEMO_ACCESS_MEDIA,
+  APPROVED_DEMO_LODGING_MEDIA,
+} from './demo-media-policy'
 import type { DemoLodging } from './types'
 
 export const demoLodging: DemoLodging = {
@@ -30,18 +33,16 @@ export const demoLodging: DemoLodging = {
     },
     {
       title: 'Accès au logement',
-      text: 'Les clés vous attendent dans la boîte à clés fixée à droite de la porte d’entrée. Son code vous est envoyé par message le jour de votre arrivée, à partir de 16 h.',
+      text: 'Récupérez le trousseau dans la boîte à clés : son code vous est envoyé par message le jour de votre arrivée, à partir de 16 h. À l’entrée du bâtiment, présentez le badge entouré sur le lecteur de l’interphone (repère vert) pour ouvrir la porte.',
       videoUrl: null,
-      photos: [],
-      photoPlaceholders: ['Boîte à clés', 'Porte d’entrée'],
+      photos: [APPROVED_DEMO_ACCESS_MEDIA[0], APPROVED_DEMO_ACCESS_MEDIA[1]],
       videoPlaceholder: 'Vidéo d’accès au logement',
     },
     {
       title: 'Le parking',
-      text: 'Une place de parking privée vous est réservée devant la résidence, marquée « 305 ». Merci de ne pas stationner sur les places voisines.',
+      text: 'Une place de parking privée vous est réservée, marquée « 305 ». Ouvrez la porte du parking avec la télécommande entourée sur le trousseau. Merci de ne pas stationner sur les places voisines.',
       videoUrl: null,
-      photos: [],
-      photoPlaceholders: ['Place de parking'],
+      photos: [APPROVED_DEMO_ACCESS_MEDIA[2]],
       videoPlaceholder: 'Vidéo du parking',
     },
   ],
