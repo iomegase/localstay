@@ -7,7 +7,6 @@ import {
   ScrollText,
   Siren,
   Thermometer,
-  Trash2,
   Tv,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -22,7 +21,6 @@ import {
   DemoInfoCard,
   DemoSectionTitle,
 } from './DemoGuideCard'
-import type { DemoPastilleTone } from './DemoGuideCard'
 
 const EQUIPMENT_ICONS: Record<string, LucideIcon> = {
   tv: Tv,
@@ -42,29 +40,6 @@ const PROGRESS_WIDTHS = [
   'w-[88.888%]',
   'w-full',
 ] as const
-
-const TRASH_PRESENTATION = {
-  jaune: {
-    label: 'Poubelle jaune',
-    hint: 'Emballages & papiers recyclables',
-    tone: 'trashYellow' as DemoPastilleTone,
-  },
-  verte: {
-    label: 'Poubelle verte',
-    hint: 'Verre',
-    tone: 'trashGreen' as DemoPastilleTone,
-  },
-  bordeaux: {
-    label: 'Poubelle bordeaux',
-    hint: 'Ordures ménagères',
-    tone: 'trashBordeaux' as DemoPastilleTone,
-  },
-} as const
-
-function getTrashPresentation(type: string) {
-  if (!(type in TRASH_PRESENTATION)) return null
-  return TRASH_PRESENTATION[type as keyof typeof TRASH_PRESENTATION]
-}
 
 export function DemoLodgingDiscoverSection({ lodging }: { lodging: DemoLodging }) {
   return (
@@ -134,21 +109,6 @@ export function DemoLodgingPracticalSection({ lodging }: { lodging: DemoLodging 
 
       <section className="grid gap-3">
         <DemoSectionTitle>Tri des déchets</DemoSectionTitle>
-        {lodging.trashBins.map(bin => {
-          const presentation = getTrashPresentation(bin.type)
-          if (!presentation) return null
-
-          return (
-            <DemoInfoCard
-              key={bin.type}
-              title={presentation.label}
-              hint={presentation.hint}
-              icon={Trash2}
-              tone={presentation.tone}
-              testId="demo-practical-trash-bin"
-            />
-          )
-        })}
         {lodging.trashLocation ? (
           <DemoInfoCard
             title="Point de tri"

@@ -15,9 +15,6 @@ export const DEMO_PASTILLE = {
   equipment: 'bg-[#5b5bd6]',
   rules: 'bg-[#8a63c7]',
   checklist: 'bg-[#5b7fc4]',
-  trashYellow: 'bg-[#c9a227]',
-  trashGreen: 'bg-[#3f8f4f]',
-  trashBordeaux: 'bg-[#8b2c3c]',
 } as const
 
 export type DemoPastilleTone = keyof typeof DEMO_PASTILLE

@@ -110,8 +110,9 @@ contrôle d'accès ni route du guide privé.
 - **AC-01-10**: Given le guide logement de démonstration, When la page Infos
   est rendue, Then elle présente, après les numéros utiles, une section
   `Tri des déchets` au design des cartes Infos (carte `slate-900` arrondie,
-  pastille ronde colorée, titre et sous-titre) : une carte par poubelle et
-  une carte `Point de tri` ; la page Départ ne contient plus ce bloc.
+  pastille ronde colorée, titre et sous-titre) réduite à la seule carte
+  `Point de tri` (décision PO du 2026-09-29 : aucune carte par poubelle) ;
+  la page Départ ne contient plus ce bloc.
 - **AC-01-11**: Given la page Accès du guide logement de démonstration, When
   elle est rendue, Then elle adopte le design de la page Infos : titres de
   section `Localisation` et `Instructions` hors carte, puis des cartes

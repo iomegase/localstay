@@ -150,18 +150,12 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
       within(guide).getAllByRole('heading', { level: 2 }).map(heading => heading.textContent),
     ).toEqual(['Wi-Fi', 'Urgences', 'Numéros utiles', 'Tri des déchets'])
 
-    const bins = within(guide).getAllByTestId('demo-practical-trash-bin')
-    expect(bins.map(bin => within(bin).getByText(/^Poubelle/).textContent)).toEqual([
-      'Poubelle jaune',
-      'Poubelle verte',
-      'Poubelle bordeaux',
-    ])
+    expect(within(guide).queryAllByTestId('demo-practical-trash-bin')).toHaveLength(0)
+    expect(guide).not.toHaveTextContent(/Poubelle/)
     const location = within(guide).getByTestId('demo-practical-trash-location')
     expect(location).toHaveTextContent('Point de tri')
     expect(location).toHaveTextContent('Point de tri public du centre de Saint-Gervais')
-    for (const card of [...bins, location]) {
-      expectDemoCard(card)
-    }
+    expectDemoCard(location)
 
     fireEvent.click(within(guide).getByRole('button', { name: 'Départ' }))
     expect(within(guide).queryByText('Tri des déchets')).not.toBeInTheDocument()
