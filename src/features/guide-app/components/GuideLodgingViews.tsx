@@ -157,9 +157,9 @@ export function GuideLodgingViews({
                 as="h3"
                 title="Règlement intérieur"
               />
-              <ul className="mt-3 divide-y divide-white/10">
+              <ul className="mt-3 divide-y divide-slate-200">
                 {lodging.houseRules.map(rule => (
-                  <li key={rule} className="flex gap-3 py-2.5 text-[13px] leading-5 text-white/80">
+                  <li key={rule} className="flex gap-3 py-2.5 text-[13px] leading-5 text-slate-700">
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c2457e]" />
                     <span>{inlineMarkdown(rule)}</span>
                   </li>
@@ -331,12 +331,12 @@ function GuideSubPage({
     <div className="space-y-4 px-4 pb-24 pt-2">
       <GuideLodgingTabs view={view} onNavigate={onNavigate} />
       <div data-guide-card="true" className={`${GUIDE_CARD} flex items-center gap-4`}>
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${GUIDE_PASTILLE.step}`}>
+        <span data-guide-pastille="true" className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-white ${GUIDE_PASTILLE.step}`}>
           <Icon className="h-5 w-5" />
         </span>
         <div>
           {eyebrow ? (
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-600">
               {eyebrow}
             </p>
           ) : null}
@@ -368,9 +368,9 @@ function MapsButton({ href }: { href: string }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.10)] transition-transform active:scale-[0.98]"
     >
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
+      <span data-guide-pastille="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
         <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
       </span>
       Maps

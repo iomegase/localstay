@@ -55,9 +55,9 @@ export function PracticalMediaCard({
             type="button"
             aria-label={`Voir — ${title}`}
             onClick={() => setOpen(hasVideo ? 'video' : 'photo')}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.10)] transition-transform active:scale-[0.98]"
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
+            <span data-guide-pastille="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
             Voir

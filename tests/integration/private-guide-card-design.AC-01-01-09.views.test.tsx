@@ -4,7 +4,6 @@ import type { ComponentProps } from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { GuideLodgingViews } from '@/features/guide-app/components/GuideLodgingViews'
 import { GUIDE_CARD } from '@/features/guide-app/components/GuideCard'
-import { DEMO_GUIDE_CARD } from '@/features/guide-demo/components/DemoGuideCard'
 import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 
 type Lodging = ComponentProps<typeof GuideLodgingViews>['lodging']
@@ -57,15 +56,23 @@ function expectGuideCard(element: Element) {
 }
 
 describe('050 private guide card design', () => {
-  it('AC-01-01 / BR-01 uses the demo card design, flat, on every tab and header', () => {
-    expect(GUIDE_CARD).toBe(DEMO_GUIDE_CARD)
+  it('AC-01-01 / BR-01 uses white shadowed cards with black text, flat, on every tab and header', () => {
+    expect(CARD_CLASSES).toEqual(expect.arrayContaining(['bg-white', 'text-slate-900']))
+    expect(GUIDE_CARD).toMatch(/shadow-/)
 
     for (const view of ['arrival', 'practical', 'rules', 'departure'] as const) {
       const container = renderView(view)
       const cards = Array.from(container.querySelectorAll('[data-guide-card]'))
       expect(cards.length).toBeGreaterThan(1)
       cards.forEach(expectGuideCard)
-      expect(container.querySelector('.bg-slate-800, .bg-slate-900')).toBeNull()
+      expect(container.querySelector('.bg-slate-800, .bg-slate-900, .bg-indigo-950')).toBeNull()
+      // Aucun texte blanc sur fond blanc : seul le contenu des pastilles colorées reste blanc.
+      const whiteText = Array.from(container.querySelectorAll('[data-guide-card] [class*="text-white"]'))
+        .filter(element => !element.closest('[data-guide-pastille]'))
+      expect(whiteText).toEqual([])
+      container.querySelectorAll('[data-guide-pastille]').forEach(pastille => {
+        expect(pastille).toHaveClass('text-white')
+      })
       document.body.innerHTML = ''
     }
   })

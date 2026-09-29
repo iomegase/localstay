@@ -26,7 +26,7 @@ export function GuideWifiCard({ name, password }: { name: string; password: stri
         title="Wi-Fi"
         hint={
           <>
-            Réseau <span className="font-semibold text-white">{name}</span>
+            Réseau <span className="font-semibold text-slate-900">{name}</span>
           </>
         }
       />

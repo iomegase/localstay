@@ -69,7 +69,7 @@ export function ArrivalInstructionCard({
               type="button"
               aria-label={`Photo ${i + 1}`}
               onClick={() => setLightbox({ kind: 'photos', startIndex: i })}
-              className="h-16 w-16 overflow-hidden rounded-xl border border-white/15 transition-transform active:scale-95"
+              className="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 transition-transform active:scale-95"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo} alt="" className="h-full w-full object-cover" />
@@ -80,7 +80,7 @@ export function ArrivalInstructionCard({
               type="button"
               aria-label="Vidéo"
               onClick={() => setLightbox({ kind: 'video' })}
-              className="relative aspect-[9/16] h-16 overflow-hidden rounded-xl border border-white/15 transition-transform active:scale-95"
+              className="relative aspect-[9/16] h-16 overflow-hidden rounded-xl border border-slate-200 transition-transform active:scale-95"
             >
               {/* Conteneur portrait 9:16 → object-cover recadre les bandes noires du thumbnail 16:9. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,7 +90,7 @@ export function ArrivalInstructionCard({
                 className="h-full w-full object-cover"
               />
               <span className="absolute inset-0 grid place-items-center bg-black/30">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-white/95 text-slate-900">
+                <span data-guide-pastille="true" className="grid h-6 w-6 place-items-center rounded-full bg-white/95 text-slate-900">
                   <Play className="h-3 w-3 translate-x-0.5 fill-current" aria-hidden="true" />
                 </span>
               </span>

@@ -10,6 +10,7 @@ mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-29
 updated_at: 2026-09-29
+revision: "Cartes blanches + ombre, texte noir (PO 2026-09-29)"
 depends_on:
   - 034-private-guide-app
   - 037-private-guide-arrival
@@ -53,7 +54,9 @@ cohérent avec la démonstration publique
 
 - **AC-01-01**: Given les quatre onglets du livret privé et leur carte
   d'en-tête, When ils sont rendus, Then toutes leurs cartes utilisent la classe
-  `GUIDE_CARD` strictement identique à `DEMO_GUIDE_CARD` (spec 045), portent
+  `GUIDE_CARD` (fond blanc, ombre douce, texte noir `slate-900`, pastilles
+  colorées à icône blanche ; même structure que `DEMO_GUIDE_CARD` de la spec
+  045 mais en version claire, décision PO du 2026-09-29), portent
   `data-guide-card`, et aucune carte n'est imbriquée dans une autre.
 - **AC-01-02**: Given un onglet du livret privé, When il est rendu, Then les
   titres de section hors carte (`Localisation`, `Instructions`, `Urgences`,
@@ -93,8 +96,9 @@ cohérent avec la démonstration publique
 
 - **BR-01**: Le design est dupliqué, pas partagé : le guide privé possède son
   propre module `GuideCard` (le bundle démo ne doit pas importer
-  `features/guide-app`, spec 045 BR-02/AC-02-02). Un test garantit l'égalité
-  stricte de `GUIDE_CARD` et `DEMO_GUIDE_CARD`.
+  `features/guide-app`, spec 045 BR-02/AC-02-02). Depuis le 2026-09-29, le
+  guide privé utilise la variante claire (cartes blanches, texte noir) ; la
+  démo conserve ses cartes navy.
 - **BR-02**: Aucune donnée, requête, route ou migration n'est modifiée. Les
   poubelles restent en base et dans le dashboard Owner ; seul leur affichage
   dans le guide privé est retiré.
@@ -117,8 +121,10 @@ Aucun changement.
 
 ## UI Behaviour
 
-- Carte : `rounded-[26px] bg-indigo-950 px-5 py-4 text-white` + ombre douce ;
-  pastille ronde `h-10 w-10` aux couleurs atténuées de la démo.
+- Carte : `rounded-[26px] bg-white px-5 py-4 text-slate-900` + ombre douce ;
+  pastille ronde `h-10 w-10` aux couleurs atténuées de la démo, icône blanche ;
+  textes secondaires `slate-500/600`, filets `slate-200`, markdown en texte
+  foncé.
 - Titres de section hors carte en `sr-only`.
 - Accès : carte Localisation puis une carte par instruction.
 - Infos : Wi-Fi (encart clair copiable), 112, numéros utiles, blocs

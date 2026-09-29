@@ -2,11 +2,11 @@ import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 /**
- * Design de carte du livret privé, dupliqué de la démo (spec 050 BR-01) :
- * doit rester strictement identique à `DEMO_GUIDE_CARD`.
+ * Design de carte du livret privé (spec 050) : même structure que la démo,
+ * en version claire — fond blanc, ombre douce, texte noir (PO 2026-09-29).
  */
 export const GUIDE_CARD =
-  'rounded-[26px] bg-indigo-950 px-5 py-4 text-white shadow-[0_10px_24px_rgba(30,27,75,0.22)]'
+  'rounded-[26px] bg-white px-5 py-4 text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.10)]'
 
 /** Couleurs atténuées des pastilles rondes (identiques à la démo). */
 export const GUIDE_PASTILLE = {
@@ -50,14 +50,15 @@ export function GuideCardHeading({
       <span className="flex min-w-0 items-center gap-3">
         <span
           data-testid={step === undefined ? undefined : 'guide-step'}
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold ${GUIDE_PASTILLE[tone]}`}
+          data-guide-pastille="true"
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold text-white ${GUIDE_PASTILLE[tone]}`}
         >
           {step === undefined && Icon ? <Icon className="h-4 w-4" aria-hidden="true" /> : step}
         </span>
         <span className="min-w-0">
           <Heading className="block text-sm font-semibold">{title}</Heading>
           {hint ? (
-            <span className="mt-0.5 block text-[10px] text-white/60">{hint}</span>
+            <span className="mt-0.5 block text-[10px] text-slate-500">{hint}</span>
           ) : null}
         </span>
       </span>
