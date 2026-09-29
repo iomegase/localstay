@@ -126,6 +126,11 @@ contrôle d'accès ni route du guide privé.
   aucune carte imbriquée dans une autre ; le mot de passe Wi-Fi s'affiche
   dans un encart clair `Tapoter pour copier` qui copie le mot de passe dans
   le presse-papiers local et confirme `Copié`.
+- **AC-01-13**: Given n'importe quel onglet du guide logement de
+  démonstration, When il est rendu, Then les titres de section hors carte
+  (`Localisation`, `Instructions`, `Urgences`, `Numéros utiles`,
+  `Tri des déchets`, `Équipements`, `Règlement`) ne sont pas affichés ; ils
+  restent présents pour les lecteurs d'écran (`sr-only`).
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -386,6 +391,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-10 | integration |
 | AC-01-11 | integration |
 | AC-01-12 | integration |
+| AC-01-13 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |

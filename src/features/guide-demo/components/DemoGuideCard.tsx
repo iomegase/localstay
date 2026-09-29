@@ -22,8 +22,9 @@ export const DEMO_PASTILLE = {
 
 export type DemoPastilleTone = keyof typeof DEMO_PASTILLE
 
+/** Titre de section masqué à l'écran, conservé pour les lecteurs d'écran (AC-01-13). */
 export function DemoSectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="px-1 text-sm font-semibold text-slate-900">{children}</h2>
+  return <h2 className="sr-only">{children}</h2>
 }
 
 /** Ligne d'en-tête d'une carte : pastille ronde, titre, sous-titre, élément à droite. */

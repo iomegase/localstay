@@ -219,6 +219,27 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     expect(await within(guide).findByText('Copié')).toBeInTheDocument()
   })
 
+  it('J. AC-01-13 hides section titles outside cards on every tab', () => {
+    const guide = renderLodgingGuide()
+    const sectionTitles: Record<string, string[]> = {
+      Accès: ['Localisation', 'Instructions'],
+      Infos: ['Urgences', 'Numéros utiles', 'Tri des déchets'],
+      Équipements: ['Équipements', 'Règlement'],
+      Départ: [],
+    }
+
+    for (const [tab, titles] of Object.entries(sectionTitles)) {
+      fireEvent.click(within(guide).getByRole('button', { name: tab }))
+      for (const title of titles) {
+        expect(within(guide).getByRole('heading', { level: 2, name: title })).toHaveClass('sr-only')
+      }
+      const visibleOutsideCards = within(guide)
+        .queryAllByRole('heading', { level: 2 })
+        .filter(heading => !heading.closest('[data-demo-card]') && !heading.classList.contains('sr-only'))
+      expect(visibleOutsideCards).toEqual([])
+    }
+  })
+
   it('C. keeps the demo navigation on the public page', () => {
     const guide = renderLodgingGuide()
     fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
