@@ -5,6 +5,7 @@ loadEnvConfig(process.cwd())
 class ConfigurationError extends Error {}
 
 const recoveryTemplate = '<h2>Nouveau mot de passe MyStay</h2><p>Une demande de réinitialisation a été reçue pour votre compte.</p><p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}">Définir mon nouveau mot de passe</a></p><p>Si vous n’avez pas fait cette demande, ignorez cet email.</p>'
+const signupTemplate = '<h2>Confirmez votre adresse email MyStay</h2><p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}">Confirmer mon adresse email</a></p><p>Si vous n’avez pas demandé ce compte, ignorez cet email.</p>'
 
 async function main(): Promise<void> {
   const apply = process.argv.includes('--apply')
@@ -16,6 +17,8 @@ async function main(): Promise<void> {
     smtp_sender_name: 'MyStay',
     mailer_subjects_recovery: 'Réinitialiser votre mot de passe MyStay',
     mailer_templates_recovery_content: recoveryTemplate,
+    mailer_subjects_confirmation: 'Confirmez votre adresse email MyStay',
+    mailer_templates_confirmation_content: signupTemplate,
   }
 
   if (!apply) {
@@ -48,6 +51,7 @@ async function main(): Promise<void> {
   const current: { uri_allow_list?: string } = await currentResponse.json()
   const allowList = new Set((current.uri_allow_list ?? '').split(',').map(value => value.trim()).filter(Boolean))
   allowList.add('https://www.mystay.city/auth/reset-password')
+  allowList.add('https://www.mystay.city/auth/confirm-registration')
   // Preserve existing redirect destinations. Local development must use its
   // own trusted NEXT_PUBLIC_BASE_URL and an explicitly configured allow list.
   const response = await fetch(endpoint, {
@@ -57,7 +61,7 @@ async function main(): Promise<void> {
   })
   if (!response.ok) throw new ConfigurationError(`Configuration refusée (HTTP ${response.status}).`)
   // The management response contains secrets: never print it.
-  console.log('SMTP Resend et modèle de réinitialisation configurés. Vérifier un envoi réel avant de conclure.')
+  console.log('SMTP Resend et modèles de réinitialisation/confirmation configurés. Vérifier un envoi réel avant de conclure.')
 }
 
 main().catch((error: unknown) => {

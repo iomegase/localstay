@@ -1217,3 +1217,20 @@ la connexion, formulaire de demande accessible, formulaire sans jeton bloqué,
 formats code et token_hash acceptés, bouton œil fonctionnel et aucune erreur
 JavaScript. Ces vérifications utilisent de faux jetons, sans soumission d'un
 nouveau mot de passe. Le mot de passe réel reste à définir par l'utilisateur.
+
+### 009 — Livraison de la confirmation d'inscription (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-01 | AC-01-01, AC-01-02, AC-01-03 | `src/app/api/auth/register/route.ts`, `src/features/auth/lib/registration-email.ts` | `tests/contract/auth.AC-register.test.ts`, `tests/unit/auth.AC-01-04-05.registration-email.test.ts` | Secours Resend après panne explicite, refus des doublons et quotas conservés |
+| 009 | Authentification | US-01 | AC-01-04 | `src/shared/lib/resend.ts` | `tests/unit/auth.AC-01-04-05.registration-email.test.ts` | Expéditeur bienvenue aligné sur le domaine vérifié |
+| 009 | Authentification | US-01 | AC-01-05 | `src/app/auth/register/page.tsx`, `src/features/auth/schemas.ts`, `src/app/api/auth/confirm-registration/route.ts`, `src/app/auth/confirm-registration/page.tsx` | `tests/integration/auth.AC-01-05.registration-confirmation.test.tsx`, `tests/contract/auth.AC-01-05.confirm-registration.test.ts`, `tests/integration/auth.AC-01-05.confirmation-click.test.tsx` | Attente visible, validation explicite du jeton signup/code, redirection depuis le rôle vérifié |
+
+Le défaut a été reproduit en production avec une adresse de test du propriétaire :
+500 SIGNUP_ERROR « Error sending confirmation email ». Les lectures Auth et
+Prisma confirment que la tentative montrée n'a créé aucun compte. Aucun compte
+utilisateur existant n'a été modifié et son mot de passe n'est pas connu.
+
+Les régressions inscription et attente de confirmation ont échoué avant
+correction puis passent. Les contrôles réels de création, livraison, confirmation
+et accès au dashboard seront exécutés sur un compte de test après déploiement.
