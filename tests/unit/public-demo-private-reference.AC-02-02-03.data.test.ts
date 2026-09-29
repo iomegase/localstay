@@ -93,8 +93,8 @@ describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
       addressLabel: '96 rue du Mont-Blanc, 74170 Saint-Gervais-les-Bains',
       checkIn: '16:00',
       checkOut: '10:00',
-      wifiName: 'MyStay-Demo',
-      wifiPassword: 'Exemple-Non-Reel',
+      wifiName: 'MyStay-Le305',
+      wifiPassword: 'Le305-StGervais',
     })
     expect(demoLodging.arrivalInstructions).toHaveLength(3)
     expect(demoLodging.practicalCards).toHaveLength(3)

@@ -20,8 +20,8 @@ export const demoLodging: DemoLodging = {
   surfaceM2: 62,
   checkIn: '16:00',
   checkOut: '10:00',
-  wifiName: 'MyStay-Demo',
-  wifiPassword: 'Exemple-Non-Reel',
+  wifiName: 'MyStay-Le305',
+  wifiPassword: 'Le305-StGervais',
   arrivalInstructions: [
     {
       title: 'Le logement',
@@ -82,13 +82,13 @@ export const demoLodging: DemoLodging = {
       icon: 'cooking-pot',
     },
   ],
+  // Numéros fictifs : plage ARCEP réservée à la fiction (04 65 71 xx xx).
   usefulNumbers: [
-    { label: 'Office de tourisme', number: '04 50 47 76 08' },
+    { label: 'Conciergerie', number: '04 65 71 30 05', hint: 'Une question pendant votre séjour' },
+    { label: 'Office de tourisme', number: '04 65 71 12 34', hint: 'Activités et informations locales' },
   ],
   emergencyNumbers: [
-    { label: 'Urgences européennes', number: '112' },
-    { label: 'SAMU', number: '15' },
-    { label: 'Pompiers', number: '18' },
+    { label: 'Secours', number: '112', hint: 'Numéro d’urgence européen, 24 h/24' },
   ],
   trashBins: [{ type: 'jaune' }, { type: 'verte' }, { type: 'bordeaux' }],
   trashLocation: 'Point de tri public du centre de Saint-Gervais',

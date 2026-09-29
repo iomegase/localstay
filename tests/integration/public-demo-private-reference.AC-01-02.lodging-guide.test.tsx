@@ -49,7 +49,7 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
 
     fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
     expect(within(guide).getByRole('heading', { level: 1, name: 'Informations pratiques' })).toBeInTheDocument()
-    expect(within(guide).getByText('MyStay-Demo')).toBeInTheDocument()
+    expect(within(guide).getByText('MyStay-Le305')).toBeInTheDocument()
 
     fireEvent.click(within(guide).getByRole('button', { name: 'Équipements' }))
     expect(within(guide).getByRole('heading', { level: 1, name: 'Les Équipements' })).toBeInTheDocument()
@@ -83,6 +83,33 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     }
     expect(within(instructions[1]).getByText(/boîte à clés/i)).toBeInTheDocument()
     expect(guide.querySelectorAll('video')).toHaveLength(0)
+  })
+
+  it('E. AC-01-08 shows readable Wi-Fi, a single emergency and fictional useful numbers as home-style cards', () => {
+    const guide = renderLodgingGuide()
+    fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
+
+    const wifi = within(guide).getByTestId('demo-practical-wifi')
+    expect(wifi).toHaveClass('rounded-[22px]', 'bg-slate-900', 'text-white')
+    expect(within(wifi).getByText('MyStay-Le305')).toBeInTheDocument()
+    expect(within(wifi).getByText('Le305-StGervais')).toBeInTheDocument()
+    expect(wifi.innerHTML).not.toMatch(/text-black/)
+
+    const emergencies = within(guide).getAllByTestId('demo-practical-emergency')
+    expect(emergencies).toHaveLength(1)
+    expect(emergencies[0]).toHaveTextContent('Secours')
+    expect(emergencies[0]).toHaveTextContent('112')
+    expect(guide).not.toHaveTextContent(/SAMU|Pompiers/)
+
+    const useful = within(guide).getAllByTestId('demo-practical-useful-number')
+    expect(useful.map(card => card.textContent)).toEqual([
+      expect.stringMatching(/Conciergerie.*04 65 71 30 05/),
+      expect.stringMatching(/Office de tourisme.*04 65 71 12 34/),
+    ])
+    for (const card of [wifi, ...emergencies, ...useful]) {
+      expect(card).toHaveClass('rounded-[22px]', 'bg-slate-900')
+    }
+    expect(guide.querySelectorAll('a[href^="tel:"]')).toHaveLength(0)
   })
 
   it('C. keeps the demo navigation on the public page', () => {

@@ -81,21 +81,29 @@ export function DemoLodgingGuideView({ lodging }: { lodging: DemoLodging }) {
         icon={Info}
         onNavigate={setView}
       >
-        <section className={`${NAVY_CARD} p-5`}>
+        <section
+          data-testid="demo-practical-wifi"
+          className="rounded-[22px] bg-slate-900 px-5 py-4 text-white"
+        >
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-black">
-              <Wifi className="h-5 w-5" aria-hidden="true" />
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sky-600">
+              <Wifi className="h-4 w-4" aria-hidden="true" />
             </span>
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-black/50">
-                Réseau Wi-Fi
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold">Wi-Fi</h2>
+              <p className="mt-0.5 text-[10px] text-white/60">
+                Réseau <span className="font-semibold text-white">{lodging.wifiName}</span>
               </p>
-              <h2 className="text-sm font-semibold text-black">{lodging.wifiName}</h2>
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-white/10 px-3 py-3">
-            <code className="text-xs text-black/90">{lodging.wifiPassword}</code>
-            <Copy className="h-4 w-4 text-black/50" aria-hidden="true" />
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-white/10 px-3 py-2.5">
+            <span className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
+                Mot de passe
+              </span>
+              <code className="text-sm font-semibold text-white">{lodging.wifiPassword}</code>
+            </span>
+            <Copy className="h-4 w-4 shrink-0 text-white/60" aria-hidden="true" />
           </div>
         </section>
         <DemoLodgingPracticalSection lodging={lodging} />

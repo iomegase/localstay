@@ -788,14 +788,15 @@ describe('public demo private-guide isolation', () => {
     )
     expect(demoGuideData.lodging).toHaveProperty('bedroomCount', 2)
     expect(demoGuideData.lodging).not.toHaveProperty('bedrooms')
-    expect(demoGuideData.lodging.usefulNumbers).toEqual([
-      { label: 'Office de tourisme', number: '04 50 47 76 08' },
+    expect(
+      demoGuideData.lodging.usefulNumbers.map(({ label, number }) => ({ label, number })),
+    ).toEqual([
+      { label: 'Conciergerie', number: '04 65 71 30 05' },
+      { label: 'Office de tourisme', number: '04 65 71 12 34' },
     ])
-    expect(demoGuideData.lodging).toHaveProperty('emergencyNumbers', [
-      { label: 'Urgences européennes', number: '112' },
-      { label: 'SAMU', number: '15' },
-      { label: 'Pompiers', number: '18' },
-    ])
+    expect(
+      demoGuideData.lodging.emergencyNumbers.map(({ label, number }) => ({ label, number })),
+    ).toEqual([{ label: 'Secours', number: '112' }])
 
     const expectedEntities = [
       { path: 'demoGuideData.lodging', id: demoGuideData.lodging.id },
@@ -878,10 +879,16 @@ describe('public demo private-guide isolation', () => {
     const privatePhonePattern =
       /(?<!\d)(?:\+33\s?[1-9]|0[1-9])(?:[ .-]?\d{2}){4}(?!\d)/g
     const allowedPublicPhoneNumbers = new Set(['0450477608'])
+    // Plage ARCEP réservée aux œuvres de fiction (04 65 71 00 00 à 04 65 71 99 99).
+    const arcepFictionRange = /^046571\d{4}$/
     const unexpectedPrivatePhones = stayValues
       .flatMap(value => value.match(privatePhonePattern) ?? [])
       .map(normalizePhoneNumber)
-      .filter(number => !allowedPublicPhoneNumbers.has(number))
+      .filter(
+        number =>
+          !allowedPublicPhoneNumbers.has(number) &&
+          !arcepFictionRange.test(number),
+      )
 
     const stayMedia = [
       demoGuideData.lodging.coverImage,
@@ -904,8 +911,8 @@ describe('public demo private-guide isolation', () => {
       ...demoGuideData.blogPosts.map(post => post.coverUrl),
     ]
     expect(serialized).not.toMatch(uuidV1ToV5)
-    expect(demoGuideData.lodging.wifiName).toBe('MyStay-Demo')
-    expect(demoGuideData.lodging.wifiPassword).toBe('Exemple-Non-Reel')
+    expect(demoGuideData.lodging.wifiName).toBe('MyStay-Le305')
+    expect(demoGuideData.lodging.wifiPassword).toBe('Le305-StGervais')
     expect(demoGuideData.lodging.addressLabel).toBe(
       PO_APPROVED_SHOWCASE_ADDRESS,
     )

@@ -85,6 +85,12 @@ export type DemoPracticalCard = {
   videoUrl?: string
 }
 
+export type DemoPhoneNumber = {
+  label: string
+  number: string
+  hint?: string
+}
+
 export type DemoArrivalInstruction = {
   title?: string | null
   text: string
@@ -119,14 +125,8 @@ export type DemoLodging = {
   departureInstructions: string[]
   houseRules: string[]
   practicalCards: DemoPracticalCard[]
-  usefulNumbers: {
-    label: string
-    number: string
-  }[]
-  emergencyNumbers: {
-    label: string
-    number: string
-  }[]
+  usefulNumbers: DemoPhoneNumber[]
+  emergencyNumbers: DemoPhoneNumber[]
   trashBins: {
     type: string
   }[]

@@ -4,6 +4,7 @@ import {
   Info,
   ListChecks,
   MapPin,
+  Phone,
   ScrollText,
   Siren,
   Thermometer,
@@ -13,6 +14,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type {
   DemoLodging,
+  DemoPhoneNumber,
   DemoPracticalCard,
 } from '@/features/guide-demo/types'
 
@@ -100,28 +102,64 @@ export function DemoLodgingDiscoverSection({ lodging }: { lodging: DemoLodging }
 
 export function DemoLodgingPracticalSection({ lodging }: { lodging: DemoLodging }) {
   return (
-    <div className="grid gap-5 border-t border-slate-100 pt-5">
-      <ContentBlock icon={Siren} title="Urgences publiques" accent="pink">
-        <dl className="divide-y divide-slate-100">
-          {lodging.emergencyNumbers.map(item => (
-            <div key={item.number} className="flex items-center justify-between gap-3 py-3">
-              <dt className="text-sm text-slate-600">{item.label}</dt>
-              <dd className="text-lg font-extrabold text-slate-900">{item.number}</dd>
-            </div>
-          ))}
-        </dl>
-      </ContentBlock>
+    <div className="grid gap-5">
+      <section className="grid gap-3">
+        <h2 className="px-1 text-sm font-semibold text-slate-900">Urgences</h2>
+        {lodging.emergencyNumbers.map(item => (
+          <DemoPhoneCard
+            key={item.number}
+            item={item}
+            icon={Siren}
+            iconClass="bg-red-600"
+            testId="demo-practical-emergency"
+          />
+        ))}
+      </section>
 
-      <ContentBlock icon={Info} title="Numéros utiles" accent="blue">
-        <dl className="divide-y divide-slate-100">
-          {lodging.usefulNumbers.map(item => (
-            <div key={item.label} className="flex items-center justify-between gap-3 py-3">
-              <dt className="text-sm text-slate-600">{item.label}</dt>
-              <dd className="text-sm font-bold text-slate-900">{item.number}</dd>
-            </div>
-          ))}
-        </dl>
-      </ContentBlock>
+      <section className="grid gap-3">
+        <h2 className="px-1 text-sm font-semibold text-slate-900">Numéros utiles</h2>
+        {lodging.usefulNumbers.map(item => (
+          <DemoPhoneCard
+            key={item.label}
+            item={item}
+            icon={Phone}
+            iconClass="bg-blue-600"
+            testId="demo-practical-useful-number"
+          />
+        ))}
+      </section>
+    </div>
+  )
+}
+
+function DemoPhoneCard({
+  item,
+  icon: Icon,
+  iconClass,
+  testId,
+}: {
+  item: DemoPhoneNumber
+  icon: LucideIcon
+  iconClass: string
+  testId: string
+}) {
+  return (
+    <div
+      data-testid={testId}
+      className="flex items-center justify-between gap-3 rounded-[22px] bg-slate-900 px-5 py-4 text-white"
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${iconClass}`}>
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold">{item.label}</span>
+          {item.hint ? (
+            <span className="mt-0.5 block text-[10px] text-white/60">{item.hint}</span>
+          ) : null}
+        </span>
+      </span>
+      <span className="shrink-0 whitespace-nowrap text-sm font-bold">{item.number}</span>
     </div>
   )
 }

@@ -92,6 +92,14 @@ contrôle d'accès ni route du guide privé.
   vraies consignes sans préfixe `Exemple fictif`. Les vidéos sont des cadres
   avec icône, sans vidéo réelle ; les photos non encore fournies sont des
   cadres avec icône.
+- **AC-01-08**: Given la page Infos du guide logement de démonstration, When
+  elle est rendue, Then elle affiche, avec le design des cartes de la home
+  (carte `slate-900` arrondie, pastille d'icône ronde colorée, titre et
+  sous-titre) : le Wi-Fi lisible (réseau `MyStay-Le305`, mot de passe
+  `Le305-StGervais`), une seule urgence `Secours 112`, et les numéros utiles
+  `Conciergerie` et `Office de tourisme` avec des numéros fictifs de la plage
+  ARCEP réservée à la fiction (`04 65 71 xx xx`). Les numéros ne sont pas
+  des liens `tel:`.
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -310,9 +318,9 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
   photos et un cadre vidéo à icône (AC-01-07).
 - Faits de séjour et horaires d'arrivée/départ.
 - Accès au logement et média de présentation non sensible.
-- Wi-Fi explicitement fictif.
+- Wi-Fi fictif et lisible (AC-01-08).
 - Équipements, règlement, informations pratiques et contacts publics.
-- Urgences françaises publiques.
+- Urgence unique `Secours 112` et numéros utiles fictifs (AC-01-08).
 - Recyclage et point de tri générique.
 - Checklist et préparation du départ.
 - Même hiérarchie, même ordre et mêmes états interactifs que la référence
@@ -347,6 +355,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-05 | e2e responsive |
 | AC-01-06 | integration |
 | AC-01-07 | integration + security regression |
+| AC-01-08 | integration + security regression |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |
