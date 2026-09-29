@@ -1260,3 +1260,32 @@ des données de production. La création réelle, la livraison, la confirmation
 et l'accès au dashboard après ce correctif restent à vérifier après une
 autorisation explicite de ces actions. Aucun test de ce type n'a été exécuté
 après ce refus.
+
+### 009 / 010 — Provisionnement ponctuel de cinq Owners (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-01, US-02 | AC-01-06, AC-02-01 | Opération locale `/private/tmp/mystay-provision-owners.cjs` ; modèles existants `prisma/schema.prisma` | Contrôle production `/private/tmp/mystay-verify-owner-access.cjs` | Cinq comptes Auth confirmés, cinq Users owner, cinq abonnements free/trial de douze mois ; cinq connexions réelles réussies |
+| 010 | Dashboard Owner | US-02 | AC-02-01, AC-02-02 | Même opération locale ; `src/app/api/dashboard/lodgings/route.ts` | Même contrôle production | Cinq logements rattachés aux bonnes villes et Owners ; éditeurs privé/public accessibles ; accès à un autre Owner refusé |
+
+Le Product Owner a autorisé les vrais emails, la confirmation administrative
+et un mot de passe initial commun choisi dans un fichier local protégé. Le lot
+initialement annoncé de sept comptes a été réduit explicitement à cinq ; le
+nom du dernier logement a été fourni avant exécution. Aucune interface ni
+route publique de provisionnement n'a été ajoutée et les règles d'inscription
+publique restent inchangées.
+
+Le précontrôle en lecture seule confirme l'absence des cinq emails dans Auth
+et Prisma et l'absence de logements homonymes. Les trois villes existent et
+sont actives. L'opération a créé les comptes via Supabase Admin, puis User,
+Subscription et Lodging dans une transaction Prisma par Owner. Aucun compte
+existant n'a été modifié, aucun email envoyé et aucun contenu éditorial inventé.
+
+Les cinq contrôles de production passent : Auth confirmé et rôle owner,
+connexion par `/api/auth/login`, une seule Subscription free/trial de douze
+mois, un seul logement visible dans `/api/dashboard/lodgings`, accès HTTP 200
+aux éditeurs `customize` et `showcase` du logement associé, et HTTP 404 pour la
+vitrine d'un autre Owner. Les sessions de vérification ont été fermées. Les
+rapports locaux protégés restent sous `/private/tmp/mystay-owner-*.json` ; ils
+ne contiennent pas de mot de passe et ne sont pas versionnés. Les emails des
+clients et le mot de passe initial ne sont pas ajoutés à ce document.

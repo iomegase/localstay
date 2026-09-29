@@ -28,6 +28,29 @@ Cette spec couvre uniquement l'authentification commune aux trois rôles via Sup
 
 Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal à `tourist` ne dispose d'aucun accès valide aux espaces protégés. Lorsqu'il accède à `/dashboard/*`, `/merchant/*` ou `/admin/*`, le middleware le redirige vers `/auth/login` afin de resynchroniser son compte, jamais vers une page publique. Le nouveau partage de séjour est différé et ne fait pas partie de cette décision.
 
+### Décision Product Owner — 2026-09-29 — Provisionnement ponctuel Owner
+
+Le Product Owner autorise la création administrative du lot de cinq nouveaux
+Owners et de leurs logements explicitement fournis dans la conversation.
+Ce lot utilise les vrais emails des propriétaires, un mot de passe initial
+commun choisi par le Product Owner et `email_confirm: true` via Supabase Admin.
+Les propriétaires pourront ensuite choisir leur mot de passe par le parcours
+de réinitialisation existant. Il n'existe pas d'obligation technique de changement
+au premier accès dans ce périmètre.
+
+L'opération est exécutée côté serveur, sans nouveau endpoint ni interface. Elle
+crée aussi le `User` applicatif, son abonnement `free` / `trial` de douze mois
+et le `Lodging` rattaché à une `City` active existante selon la spec `010`.
+Elle ne remplace aucun mot de passe existant, ne modifie aucun rôle existant,
+ne réactive aucun compte archivé et ne crée aucune ville. Une relance doit
+reconnaître les comptes et logements déjà créés afin d'éviter les doublons.
+Aucun email n'est envoyé par cette opération ponctuelle : le Product Owner
+prépare le contenu avant la remise des accès. Les secrets restent dans un
+fichier local protégé, non versionné et absent des logs.
+
+Cette autorisation ne s'applique pas au formulaire public `/auth/register`,
+dont la confirmation email reste requise conformément à AC-01-05.
+
 ---
 
 ## Glossary References
@@ -55,6 +78,7 @@ Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal 
 - **AC-01-03**: Given une inscription réussie, When le compte est créé, Then un `Subscription` est créé automatiquement avec `status: trial`, `plan: free`, `trial_ends_at: now + 12 mois`
 - **AC-01-04**: Given une inscription réussie, When le compte est créé, Then un email de bienvenue est envoyé via Resend
 - **AC-01-05**: Given la confirmation email activée dans Supabase, When l'inscription réussit sans session, Then le formulaire indique qu'un email de confirmation a été envoyé ; le clic de confirmation vérifie le jeton côté serveur et ouvre le dashboard selon le rôle. Sans confirmation valide, aucun accès n'est accordé.
+- **AC-01-06**: Given le lot Owner autorisé le 2026-09-29, When son provisionnement administratif est exécuté, Then chaque nouvel Owner possède un compte Auth confirmé, un User `owner`, un seul abonnement d'essai et son logement lié à la bonne ville ; la connexion et la liste des logements sont vérifiées avec le mot de passe initial sans en journaliser la valeur. Une relance ne crée pas de doublon et ne change pas le mot de passe d'un compte existant.
 
 Correction technique du 2026-09-29 — US-01 : une panne serveur indiquant
 explicitement « Error sending confirmation email » déclenche un secours
