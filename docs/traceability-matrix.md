@@ -205,6 +205,7 @@
 | AC-01-01 | QR code généré avec URL correcte | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | AC-01-02 | Téléchargement PNG 1000×1000px | `src/features/qr-code/services/generate-qr.ts` | `tests/unit/qr-code.AC-02-02.generate-qr.test.ts` | ✅ done |
 | AC-01-03 | Régénération supprime physiquement l'ancien QR logement avant création | `src/features/dashboard-owner/queries/qr-code.ts`<br>`src/app/api/dashboard/lodgings/[id]/qr-code/route.ts`<br>`prisma/schema.prisma` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+| AC-01-04 | Échec de génération (PNG, Storage, base) → 500 JSON `QR_GENERATION_FAILED` avec la cause, journalisé côté serveur ; affiché par le dashboard | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | AC-02-01 | qr_scan enregistré dans Analytics via page guide | `src/features/analytics/lib/record-qr-scan.ts` | `tests/contract/guide.AC-02-01.analytics-scan.test.ts` | ✅ done |
 | BR-01 | 1 QR actif max par logement | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | BR-05 | Owner ne génère que ses propres QR codes | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |

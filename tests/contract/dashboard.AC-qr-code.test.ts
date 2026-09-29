@@ -101,6 +101,33 @@ describe('POST /api/dashboard/lodgings/[id]/qr-code', () => {
     mockCreateQrCode.mockResolvedValue(QR_ROW)
   })
 
+  it('AC-01-04: returns a JSON 500 QR_GENERATION_FAILED with the cause when the upload fails', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+    mockUploadQrToStorage.mockRejectedValue(new Error('Storage upload failed: Bucket not found'))
+
+    const res = await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
+
+    expect(res.status).toBe(500)
+    const json = await res.json()
+    expect(json.error.code).toBe('QR_GENERATION_FAILED')
+    expect(json.error.message).toContain('Bucket not found')
+    expect(mockDeleteManyQrCode).not.toHaveBeenCalled()
+    expect(mockCreateQrCode).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalled()
+    consoleError.mockRestore()
+  })
+
+  it('AC-01-04: returns a JSON 500 when the database write fails', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+    mockCreateQrCode.mockRejectedValue(new Error('db down'))
+
+    const res = await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
+
+    expect(res.status).toBe(500)
+    expect((await res.json()).error.code).toBe('QR_GENERATION_FAILED')
+    consoleError.mockRestore()
+  })
+
   it('AC-01-01: returns 201 with generated QR code', async () => {
     const res = await POST(makeReq('POST'), { params: Promise.resolve({ id: 'lodging-1' }) })
     expect(res.status).toBe(201)

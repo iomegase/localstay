@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-06-04
+updated_at: 2026-09-29
 depends_on: [006-qr-code, 010-dashboard-owner]
 ```
 
@@ -42,6 +42,7 @@ En MVP 1, un seul QR code est généré par ville par l'admin. En MVP 2, chaque 
 - **AC-01-01**: Given un Lodging sans QR code, When l'Owner clique "Générer le QR code", Then un QR code PNG est généré encodant `https://[domain]/guide/[city-slug]?lodging=[lodging-id]`
 - **AC-01-02**: Given un QR code généré, When l'Owner clique "Télécharger", Then un fichier PNG 1000×1000px minimum est téléchargé
 - **AC-01-03**: Given un QR code existant, When l'Owner clique "Régénérer" et confirme, Then les anciens QR codes du logement sont supprimés physiquement et un nouveau QR code est généré
+- **AC-01-04**: Given une génération qui échoue (génération PNG, upload Storage ou écriture en base), When l'Owner clique "Générer le QR code", Then l'API répond `500` au format d'erreur JSON standard avec le code `QR_GENERATION_FAILED` et un message lisible incluant la cause, l'erreur est journalisée côté serveur, et le dashboard affiche ce message (ajout du 2026-09-29, suite au bucket `qr-codes` absent)
 
 ### US-02 — Tracker les scans
 
@@ -149,6 +150,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "500":
+          description: "Échec de génération — error.code = QR_GENERATION_FAILED (AC-01-04)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/guide/{city-slug}:
     get:
@@ -226,6 +233,7 @@ components:
 | AC-01-01 | QR code généré avec URL correcte | contract |
 | AC-01-02 | Téléchargement PNG 1000×1000px | unit |
 | AC-01-03 | Régénération archive l'ancien (deleted_at + is_active=false) | contract |
+| AC-01-04 | Échec de génération → 500 JSON `QR_GENERATION_FAILED` avec cause | contract |
 | AC-02-01 | Scan enregistré dans Analytics via page guide côté serveur | contract |
 | AC-02-02 | Stats scans par logement — couvert par spec 010 | — |
 

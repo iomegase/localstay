@@ -80,11 +80,27 @@ export async function POST(_req: NextRequest, { params }: Params): Promise<NextR
   const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
   const guideUrl = `${baseUrl}/guide/${lodging.city.slug}?lodging=${id}`
 
-  const buffer = await generateQrPng(guideUrl)
-  const storageUrl = await uploadQrToStorage(lodging.city.slug, buffer, id)
+  // AC-01-04 : toute erreur (PNG, Storage, base) renvoie une erreur JSON lisible,
+  // jamais une page 500 HTML que le dashboard ne sait pas afficher.
+  try {
+    const buffer = await generateQrPng(guideUrl)
+    const storageUrl = await uploadQrToStorage(lodging.city.slug, buffer, id)
 
-  await deleteExistingLodgingQrCodes(id)
-  const qr = await createLodgingQrCode(id, lodging.city_id, guideUrl, storageUrl)
+    await deleteExistingLodgingQrCodes(id)
+    const qr = await createLodgingQrCode(id, lodging.city_id, guideUrl, storageUrl)
 
-  return NextResponse.json(toResponse(qr), { status: 201 })
+    return NextResponse.json(toResponse(qr), { status: 201 })
+  } catch (cause) {
+    const reason = cause instanceof Error ? cause.message : String(cause)
+    console.error(`[qr-code] generation failed for lodging ${id}:`, cause)
+    return NextResponse.json(
+      {
+        error: {
+          code: 'QR_GENERATION_FAILED',
+          message: `Le QR code n'a pas pu être généré (${reason}). Veuillez réessayer.`,
+        },
+      },
+      { status: 500 },
+    )
+  }
 }
