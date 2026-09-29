@@ -510,13 +510,25 @@ function isAllowedDemoModuleSpecifier(
   )
 }
 
+// Exception AC-02-03 validée par le Product Owner le 2026-09-29.
+const PO_APPROVED_SHOWCASE_ADDRESS =
+  '96 rue du Mont-Blanc, 74170 Saint-Gervais-les-Bains'
+const PO_APPROVED_PUBLIC_PHRASES = [/96 rue du Mont-Blanc/g, /bo[iî]te [àa] cl[ée]s/gi]
+
+function withoutApprovedPublicPhrases(value: string): string {
+  return PO_APPROVED_PUBLIC_PHRASES.reduce(
+    (current, phrase) => current.replace(phrase, ''),
+    value,
+  )
+}
+
 function findUnsafeStayEntries(
   entries: Array<{ path: string; value: string }>,
 ): Array<{ path: string; value: string }> {
   const privateAddress =
     /\b\d{1,5}\s+(?:all[ée]e|avenue|boulevard|chemin|impasse|passage|place|route|rue)\b/i
   const accessLanguage =
-    /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\s*(?::|=)\s*[a-z0-9-]{4,})/i
+    /(?:\bdigicode\b|code d['’]acc[eè]s|bo[iî]te [àa] cl[ée]s?|\bserrure\b|mot de passe|\bpassword\b|\bpin\s*(?::|=)\s*[a-z0-9-]{4,}|\bcode\s*(?::|=)?\s*\d{3,})/i
   const vehiclePlate =
     /(?:plaque d['’]immatriculation|\bimmatriculation\b|\b[a-z]{2}-\d{3}-[a-z]{2}\b)/i
   const privateDocument =
@@ -527,13 +539,15 @@ function findUnsafeStayEntries(
     /\.(?:accessCode|accessMedia|digicode|document(?:Id|Url)?|keyBox(?:Code)?|lock(?:Code)?|password|plaque|plateNumber|(?:host|owner|private)Phone)$/i
 
   return entries.filter(
-    ({ path, value }) =>
-      knownPrivateDetails.test(value) ||
+    ({ path, value: rawValue }) => {
+      const value = withoutApprovedPublicPhrases(rawValue)
+      return knownPrivateDetails.test(value) ||
       privateAddress.test(value) ||
       accessLanguage.test(value) ||
       vehiclePlate.test(value) ||
       privateDocument.test(value) ||
-      sensitiveFixtureField.test(path),
+      sensitiveFixtureField.test(path)
+    },
   )
 }
 
@@ -543,6 +557,7 @@ describe('public demo security guard helpers', () => {
       {
         first: 'Exemple fictif : digicode AB12CD',
         second: 'Mot de passe ExempleAzerty',
+        third: 'Boîte à clés : code 4821',
       },
       'attackFixture',
     )
@@ -892,7 +907,7 @@ describe('public demo private-guide isolation', () => {
     expect(demoGuideData.lodging.wifiName).toBe('MyStay-Demo')
     expect(demoGuideData.lodging.wifiPassword).toBe('Exemple-Non-Reel')
     expect(demoGuideData.lodging.addressLabel).toBe(
-      'Résidence de démonstration, centre de Saint-Gervais',
+      PO_APPROVED_SHOWCASE_ADDRESS,
     )
     expect(demoGuideData.lodging.trashLocation).toBe(
       'Point de tri public du centre de Saint-Gervais',

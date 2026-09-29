@@ -89,7 +89,7 @@ describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
       id: 'demo-le-305',
       name: 'Le 305',
       city: 'Saint-Gervais-les-Bains',
-      addressLabel: 'Résidence de démonstration, centre de Saint-Gervais',
+      addressLabel: '96 rue du Mont-Blanc, 74170 Saint-Gervais-les-Bains',
       checkIn: '16:00',
       checkOut: '10:00',
       wifiName: 'MyStay-Demo',
@@ -108,7 +108,7 @@ describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
       /300 route du Mont-Blanc|1789|Bienvenue2026|Refuge-Mont-Blanc/i,
     )
     expect(serialized).not.toMatch(
-      /bo[iî]te (?:à|a) cl[ée]s|digicode|code d['’]acc[eè]s|garage/i,
+      /digicode|code d['’]acc[eè]s|garage|\\bcode\\s*:?\\s*\\d/i,
     )
     expect(serialized).not.toMatch(uuidPattern)
   })

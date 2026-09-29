@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-01
-updated_at: 2026-09-04
+updated_at: 2026-09-29
 depends_on:
   - 031-public-marketing-site
   - 034-private-guide-app
@@ -83,6 +83,15 @@ contrôle d'accès ni route du guide privé.
   Then il présente uniquement `Nos logements`, `Blog` et `Nous contacter`,
   tandis que les quatre destinations principales restent accessibles par la
   navigation basse.
+- **AC-01-07**: Given la page Accès du guide logement de démonstration, When
+  elle est rendue, Then la carte `Localisation` affiche l'adresse vitrine
+  `96 rue du Mont-Blanc, 74170 Saint-Gervais-les-Bains` et son bouton Maps
+  ouvre Google Maps sur cette adresse ; les instructions sont, dans l'ordre,
+  `Le logement` (photos extérieures + vidéo), `Accès au logement` (photos de
+  la boîte à clés + vidéo) et `Le parking` (photos + vidéo), rédigées comme de
+  vraies consignes sans préfixe `Exemple fictif`. Les vidéos sont des cadres
+  avec icône, sans vidéo réelle ; les photos non encore fournies sont des
+  cadres avec icône.
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -104,6 +113,9 @@ contrôle d'accès ni route du guide privé.
 - **AC-02-03**: Given les contenus fictifs, When ils sont inspectés, Then ils ne
   contiennent aucune adresse privée exacte, aucun code, mot de passe réel,
   numéro privé, document, plaque, serrure, digicode ou média d'accès sensible.
+  Exception validée par le Product Owner le 2026-09-29 : l'adresse vitrine
+  `96 rue du Mont-Blanc, 74170 Saint-Gervais-les-Bains` et la mention/photo de
+  la boîte à clés, sans jamais afficher de code.
 - **AC-02-04**: Given une action susceptible de produire un effet externe,
   When elle est activée dans la démo, Then elle est simulée, désactivée ou
   limitée à une ressource publique explicitement autorisée.
@@ -204,7 +216,8 @@ contrôle d'accès ni route du guide privé.
   Les catalogues `Nos logements` et `Blog` proviennent exclusivement des
   contenus publics publiés existants.
 - **BR-06**: Les POI de démonstration restent des POI publics réels autorisés,
-  sans UUID Prisma. Toutes les données de séjour sont fictives.
+  sans UUID Prisma. Les données de séjour sont fictives, à l'exception de
+  l'adresse vitrine autorisée par AC-02-03.
 - **BR-07**: Les catalogues logement et blog sont chargés côté serveur et
   transmis au modal sous forme de DTO sérialisables. Le client de la démo ne
   déclenche aucun appel `/api/*` pour obtenir ces contenus. Mapbox et les médias
@@ -291,7 +304,10 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 
 ### Guide logement complet
 
-- Hero du logement fictif et localisation générique.
+- Hero du logement fictif ; la carte Localisation affiche l'adresse vitrine
+  et ouvre `https://www.google.com/maps/search/?api=1&query=<adresse>`.
+- Instructions `Le logement`, `Accès au logement`, `Le parking`, chacune avec
+  photos et un cadre vidéo à icône (AC-01-07).
 - Faits de séjour et horaires d'arrivée/départ.
 - Accès au logement et média de présentation non sensible.
 - Wi-Fi explicitement fictif.
@@ -330,6 +346,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-04 | integration + e2e |
 | AC-01-05 | e2e responsive |
 | AC-01-06 | integration |
+| AC-01-07 | integration + security regression |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |
@@ -372,6 +389,9 @@ Aucune question ouverte. Décisions du Product Owner des 2026-09-01 et
 - tout le guide privé sert de modèle de design et de contenu fonctionnel ;
 - aucun fichier, design ou route privé ne peut être modifié ;
 - la démo reste dans le modal public et son séjour demeure fictif ;
+- 2026-09-29 : adresse vitrine `96 rue du Mont-Blanc, 74170
+  Saint-Gervais-les-Bains`, pin Google Maps et mention/photo de la boîte à
+  clés (sans code) autorisés publiquement dans la démo ;
 - le menu plein écran contient uniquement `Nos logements`, `Blog` et
   `Nous contacter` ;
 - les vues Logements et Blog utilisent les contenus réellement publiés,

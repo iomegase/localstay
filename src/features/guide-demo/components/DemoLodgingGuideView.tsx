@@ -9,8 +9,10 @@ import {
   KeyRound,
   ListOrdered,
   LogOut,
+  ImageIcon,
   MapPin,
   Navigation,
+  Play,
   Wifi,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -202,7 +204,7 @@ function DemoGuideSubPage({
 }
 
 function DemoArrivalView({ lodging }: { lodging: DemoLodging }) {
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lodging.latitude},${lodging.longitude}`
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lodging.addressLabel)}`
 
   return (
     <>
@@ -265,6 +267,12 @@ function DemoArrivalInstructionCard({
   instruction: DemoArrivalInstruction
   index: number
 }) {
+  const photoPlaceholders = instruction.photoPlaceholders ?? []
+  const hasMedia =
+    instruction.photos.length > 0 ||
+    photoPlaceholders.length > 0 ||
+    Boolean(instruction.videoPlaceholder)
+
   return (
     <article
       data-testid="demo-arrival-instruction"
@@ -281,7 +289,7 @@ function DemoArrivalInstructionCard({
       <p className="mt-3 text-xs leading-5 tracking-wide text-white/80">
         {instruction.text}
       </p>
-      {instruction.photos.length > 0 ? (
+      {hasMedia ? (
         <div className="mt-3 flex flex-wrap gap-2">
           {instruction.photos.map((photo, photoIndex) => (
             // eslint-disable-next-line @next/next/no-img-element
@@ -292,6 +300,29 @@ function DemoArrivalInstructionCard({
               className="h-16 w-16 rounded-xl border border-white/15 object-cover"
             />
           ))}
+          {photoPlaceholders.map(label => (
+            <div
+              key={label}
+              data-testid="demo-arrival-photo-frame"
+              role="img"
+              aria-label={label}
+              className="grid h-16 w-16 place-items-center rounded-xl border border-dashed border-white/25 bg-white/5 text-white/60"
+            >
+              <ImageIcon className="h-5 w-5" aria-hidden="true" />
+            </div>
+          ))}
+          {instruction.videoPlaceholder ? (
+            <div
+              data-testid="demo-arrival-video-frame"
+              role="img"
+              aria-label={instruction.videoPlaceholder}
+              className="grid h-16 w-28 place-items-center rounded-xl border border-white/15 bg-slate-950"
+            >
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white">
+                <Play className="h-4 w-4 translate-x-px" aria-hidden="true" />
+              </span>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </article>
