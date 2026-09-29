@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-09-27
+updated_at: 2026-09-29
 depends_on: [001-city-guide]
 ```
 
@@ -363,7 +363,12 @@ components:
 ### Page : `/auth/login`
 - Formulaire : email + mot de passe + bouton "Se connecter"
 - Décision Product Owner du 2026-09-27 — **AC-02-05** : mot de passe masqué par défaut ; un bouton œil accessible au clavier permet de l'afficher puis de le masquer sans modifier sa valeur ni soumettre le formulaire. Son libellé accessible indique « Afficher le mot de passe » ou « Masquer le mot de passe ».
-- Lien "Mot de passe oublié ?" → `/auth/forgot-password`
+- Décision Product Owner du 2026-09-29 — **AC-04-01** : l'accès à
+  `/auth/forgot-password` est une action dédiée « Réinitialiser mon mot de passe »
+  sous « Se connecter », hors du formulaire de connexion. Elle est visible sans
+  saisie du mot de passe, soulignée et possède une zone cliquable d'au moins
+  44 px de haut sur toute la largeur du formulaire. Elle remplace le petit lien
+  près du libellé Mot de passe et reste disponible après un échec de connexion.
 - Lien "Créer un compte" → `/auth/register`
 - **Loading** : bouton désactivé + spinner
 - **Error** : message inline "Email ou mot de passe incorrect"
@@ -381,6 +386,11 @@ components:
 ### Page : `/auth/reset-password`
 - Accessible uniquement via le lien Supabase (contient le token en query param)
 - Formulaire : nouveau mot de passe + confirmation + bouton "Définir le mot de passe"
+- Demande Product Owner du 2026-09-29 — **AC-04-02** : chacun des deux champs
+  possède un bouton œil pour afficher ou masquer sa valeur indépendamment.
+  Les valeurs restent masquées par défaut ; le bouton est accessible au clavier,
+  annonce Afficher/Masquer et ne modifie ni la saisie ni la validation, sans
+  soumettre le formulaire.
 - Validation : mots de passe identiques, minimum 8 caractères
 - **Success** : redirection vers `/auth/login` avec message "Mot de passe mis à jour"
 - **Error** : message "Lien invalide ou expiré" si le token est invalide ou expiré

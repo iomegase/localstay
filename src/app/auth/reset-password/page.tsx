@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 
 function ResetPasswordForm() {
   const router = useRouter()
@@ -10,6 +11,8 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const token = searchParams.get('token_hash') ?? ''
 
   // Règle métier strictement non modifiée
@@ -83,12 +86,23 @@ function ResetPasswordForm() {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 required
                 placeholder="••••••••"
                 onChange={e => validatePassword(e.target.value)}
-                className="peer w-full rounded-none border-b-2 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_rgb(248,250,252)_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
+                className="peer w-full rounded-none border-b-2 bg-slate-50 py-2.5 pl-3 pr-12 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_rgb(248,250,252)_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(value => !value)}
+                aria-label={showPassword ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'}
+                aria-controls="password"
+                aria-pressed={showPassword}
+                className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-slate-600 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              >
+                {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+              </button>
               {/* Animation de soulignement au survol (group-hover) et au focus (peer-focus) */}
               <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-black transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
             </div>
@@ -108,11 +122,22 @@ function ResetPasswordForm() {
               <input
                 id="confirm"
                 name="confirm"
-                type="password"
+                type={showConfirmation ? 'text' : 'password'}
+                autoComplete="new-password"
                 required
                 placeholder="••••••••"
-                className="peer w-full rounded-none border-b-2 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_rgb(248,250,252)_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
+                className="peer w-full rounded-none border-b-2 bg-slate-50 py-2.5 pl-3 pr-12 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:outline-none focus:ring-0 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_30px_rgb(248,250,252)_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:black]"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmation(value => !value)}
+                aria-label={showConfirmation ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'}
+                aria-controls="confirm"
+                aria-pressed={showConfirmation}
+                className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-slate-600 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              >
+                {showConfirmation ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+              </button>
               {/* Animation de soulignement au survol (group-hover) et au focus (peer-focus) */}
               <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-black transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
             </div>

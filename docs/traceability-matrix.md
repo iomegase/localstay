@@ -1033,3 +1033,37 @@ lint sans erreur avec les six avertissements antérieurs du formulaire.
 Le navigateur partagé était indisponible ; le contenu exact de la nouvelle
 requête utilisateur n'a pas été capturé. Les deux branches sont reproduites en
 tests : liste inchangée et réordonnancement conservant une URL de logo.
+
+## 009 — Accès visible à la réinitialisation sur la connexion (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-04 | AC-04-01 | `src/features/auth/components/LoginPage.tsx` | `tests/contract/auth.AC-password.test.ts`, contrôle navigateur local | Action dédiée sous Se connecter, lien `/auth/forgot-password` hors formulaire |
+
+Le petit lien près du libellé Mot de passe est remplacé par « Réinitialiser mon
+mot de passe », encadré et souligné, sur toute la largeur. Vérification locale
+dans Chromium à 375, 768 et 1280 px : hauteur cliquable 46 px, action disponible
+après un échec de connexion simulé, navigation vers le formulaire Envoyer le
+lien sans saisir de mot de passe sur ce formulaire. Le contrôle desktop a été
+repris avec attente de fin de chargement après un timeout du premier essai.
+Capture : `/private/tmp/mystay-login-reset-action.png`.
+
+Les trois suites auth ciblées passent (8 tests), TypeScript et lint passent.
+Aucune demande de réinitialisation ni connexion réelle pendant ces contrôles.
+La modification n'a pas été déployée en production.
+
+### 009 — Œil sur les deux champs de réinitialisation (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-04 | AC-04-02 | `src/app/auth/reset-password/page.tsx` | `tests/contract/auth.AC-password.test.ts`, contrôle navigateur local | Affichage/masquage indépendant du nouveau mot de passe et de sa confirmation |
+
+Les boutons Eye/EyeOff sont de type button, associés à leur champ via
+aria-controls, avec libellé Afficher/Masquer et état aria-pressed. Les champs
+restent masqués par défaut et réservent la place de l'icône.
+Contrôle Chromium à 375 et 1280 px : clics, activation clavier, conservation des
+valeurs, validation du minimum de caractères et zéro appel de reset lors des
+basculements ; zones cliquables 44 px. Faux jeton et saisies de test uniquement.
+Capture : `/private/tmp/mystay-reset-password-eyes.png`.
+Deux suites auth ciblées passent (7 tests), TypeScript réussi, lint sans erreur
+avec un avertissement préexistant sur l'effet du jeton manquant. Non déployé.

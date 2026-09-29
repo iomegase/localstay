@@ -71,12 +71,6 @@ export function LoginPage() {
               <label htmlFor="password" className="block text-[10px] uppercase tracking-wider font-light text-slate-900">
                 Mot de passe
               </label>
-              <Link
-                href="/auth/forgot-password"
-                className="font-light uppercase text-[10px] text-slate-900 pl-2 hover:text-slate-900 hover:underline"
-              >
-                Mot de passe oublié ?
-              </Link>
             </div>
             <div className="group relative">
               <input
@@ -125,6 +119,13 @@ export function LoginPage() {
             )}
           </button>
         </form>
+
+        <Link
+          href="/auth/forgot-password"
+          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md border border-slate-300 px-3 py-3 text-center text-sm font-medium text-slate-900 underline underline-offset-4 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        >
+          Réinitialiser mon mot de passe
+        </Link>
 
         <div className="mt-[30px] text-center text-[10px] text-slate-500">
           Pas encore de compte ?{' '}
