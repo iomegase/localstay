@@ -103,7 +103,8 @@ Diagnostic technique du 2026-09-29 — AC-04-01 : si le fournisseur retourne 401
 les logs peuvent qualifier un refus explicite « Invalid API key » et indiquer
 uniquement le projet public ciblé, le type de clé, la présence d'espaces ou de
 guillemets et, pour une clé JWT, si son rôle/projet/expiration correspondent.
-La présence d'une variable de clé publishable peut être indiquée sans sa valeur.
+La présence d'une variable de clé publishable et le nom de la variable retenue
+peuvent être indiqués sans leur valeur.
 Aucune clé, charge JWT complète, email ou réponse brute n'est journalisée. Le
 message public reste générique et ne révèle pas l'existence d'un compte.
 
@@ -127,9 +128,14 @@ Supabase serveur ne doit pas créer de client navigateur. Les clients serveur
 sont créés lors des requêtes. Sans URL/clé configurées, une requête utilisant
 Supabase reste en échec ; aucun client de remplacement ni contournement de
 l'authentification n'est autorisé. Les variables
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et
-`SUPABASE_SERVICE_ROLE_KEY` doivent être disponibles dans l'environnement
-Vercel cible ; la clé service-role reste exclusivement côté serveur.
+`NEXT_PUBLIC_SUPABASE_URL`, une clé publique et `SUPABASE_SERVICE_ROLE_KEY`
+doivent être disponibles dans l'environnement Vercel cible. Les clients
+authentifiés utilisent `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en priorité,
+puis `NEXT_PUBLIC_SUPABASE_ANON_KEY` si la première variable est absente ou
+vide ; les espaces autour des valeurs sont retirés. La clé service-role reste
+exclusivement côté serveur et n'est jamais un remplacement de la clé publique.
+Cette compatibilité technique couvre les clients de route, de page et de
+middleware, sans modifier les règles d'accès ni le contrat de récupération.
 
 ---
 

@@ -16,6 +16,12 @@ l'utilisateur ni la présence dans l'onglet principal de Gmail.
 
 ## Configuration à appliquer dans Supabase
 
+Les clients Auth utilisent `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en priorité.
+Si elle est absente ou vide, ils utilisent `NEXT_PUBLIC_SUPABASE_ANON_KEY` pour
+les anciens projets. Une clé publishable déjà configurée ne doit pas être
+ignorée au profit d'une ancienne variable anon. La clé service-role reste
+réservée aux opérations serveur d'administration.
+
 Dans Authentication → Email → SMTP Settings, activer Custom SMTP :
 
 | Champ | Valeur |

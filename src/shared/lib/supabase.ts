@@ -5,12 +5,14 @@ import { cookies } from 'next/headers'
 import type { NextRequest, NextResponse } from 'next/server'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabasePublicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
+  || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  || ''
 
 // Route handler / Server Action client (reads + writes cookies)
 export async function createSupabaseRouteClient() {
   const cookieStore = await cookies()
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabasePublicKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -27,7 +29,7 @@ export async function createSupabaseRouteClient() {
 // Server Component client (read-only cookie store)
 export async function createSupabasePageClient() {
   const cookieStore = await cookies()
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabasePublicKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -56,7 +58,7 @@ export function createSupabaseMiddlewareClient(
   request: NextRequest,
   response: NextResponse,
 ) {
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabasePublicKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll()

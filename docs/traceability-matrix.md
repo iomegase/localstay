@@ -1166,3 +1166,22 @@ Le contrat public reste inchangé (503 générique).
 Le test API de non-divulgation a échoué avant instrumentation puis passe.
 16 tests ciblés, TypeScript et lint passent. L'instrumentation doit être déployée
 puis une demande réelle contrôlée pour déterminer le refus actuel avec précision.
+
+### 009 — Compatibilité de la clé publique Supabase (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-02, US-04 | AC-02-03, AC-04-01 | `src/shared/lib/supabase.ts`, `src/features/auth/lib/supabase-diagnostics.ts` | `tests/unit/auth.AC-02-03.supabase-initialization.test.ts`, `tests/contract/auth.AC-password.test.ts` | Clé publishable prioritaire, ancien anon en repli, aucun secret dans les diagnostics |
+
+La demande réelle sur le déploiement `efece03` à 13:02 UTC retourne un refus
+Supabase `INVALID_API_KEY` (401). Les diagnostics montrent le bon projet public,
+une clé anon de type non reconnu, sans espaces ni guillemets, et une variable
+publishable configurée. Le code ignorait cette dernière. Les trois clients
+Auth (route, page, middleware) utilisent désormais la clé publishable en priorité ;
+le client service-role reste distinct. Le diagnostic décrit la clé retenue.
+
+Les régressions ont échoué avec l'ancienne clé avant correction puis passent
+avec la clé publishable dans les requêtes réellement produites par le SDK.
+45 tests des cinq suites Auth ciblées passent. Le contrôle d'envoi en production
+sera répété après déploiement, sans ouvrir le lien personnel ni changer le mot
+de passe de l'utilisateur.

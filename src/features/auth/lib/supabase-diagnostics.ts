@@ -1,7 +1,9 @@
 // Non-secret metadata only. Never return the key or decoded JWT payload.
 export function getSupabaseConfigurationDiagnostics() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
+  const key = publishableKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ''
+  const keySource = publishableKey ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : 'NEXT_PUBLIC_SUPABASE_ANON_KEY'
   let project: string | null = null
   try {
     const hostname = new URL(url).hostname
@@ -27,7 +29,7 @@ export function getSupabaseConfigurationDiagnostics() {
   }
 
   return {
-    project, keyKind, hasWhitespace: /\s/.test(key),
+    project, keyKind, keySource, hasWhitespace: /\s/.test(key),
     hasOuterQuotes: /^["']|["']$/.test(key),
     publishableKeyConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()),
     jwtRole, jwtProjectMatches, jwtExpired,
