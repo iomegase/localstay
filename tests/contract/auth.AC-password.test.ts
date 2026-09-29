@@ -70,6 +70,20 @@ describe('POST /api/auth/forgot-password', () => {
     expect(res.status).toBe(503)
     expect(await res.json()).toMatchObject({ error: { code: 'EMAIL_SEND_FAILED' } })
   })
+
+  it('AC-04-01: diagnoses an invalid API key without exposing the key, email or provider hint', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: { status: 401, message: 'Invalid API key', hint: 'private provider hint' } })
+    const res = await forgotPOST(makeRequest('/api/auth/forgot-password', { email: 'owner@test.com' }))
+    expect(res.status).toBe(503)
+    expect(console.error).toHaveBeenCalledWith('[forgot-password]', expect.objectContaining({
+      code: 'INVALID_API_KEY', status: 401,
+      configuration: expect.objectContaining({ keyKind: expect.any(String) }),
+    }))
+    const logs = JSON.stringify((console.error as jest.Mock).mock.calls)
+    expect(logs).not.toContain('owner@test.com')
+    expect(logs).not.toContain('private provider hint')
+    if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) expect(logs).not.toContain(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  })
 })
 
 describe('POST /api/auth/reset-password', () => {

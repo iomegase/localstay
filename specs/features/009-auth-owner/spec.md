@@ -99,6 +99,14 @@ quota, l'API retourne 429 `EMAIL_RATE_LIMITED` ; toute autre panne retourne 503
 sans annoncer un email envoyé. Les détails internes du fournisseur ne sont
 jamais affichés, et les emails/jetons ne sont jamais journalisés.
 
+Diagnostic technique du 2026-09-29 — AC-04-01 : si le fournisseur retourne 401,
+les logs peuvent qualifier un refus explicite « Invalid API key » et indiquer
+uniquement le projet public ciblé, le type de clé, la présence d'espaces ou de
+guillemets et, pour une clé JWT, si son rôle/projet/expiration correspondent.
+La présence d'une variable de clé publishable peut être indiquée sans sa valeur.
+Aucune clé, charge JWT complète, email ou réponse brute n'est journalisée. Le
+message public reste générique et ne révèle pas l'existence d'un compte.
+
 ---
 
 ## Business Rules

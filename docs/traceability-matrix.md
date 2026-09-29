@@ -1120,3 +1120,49 @@ configuration. Vercel doit fournir l’URL, la clé publique anon et la clé ser
 service-role dans l’environnement cible. L’accès connecteur de lecture au détail
 du projet a échoué sur la validation de son paramètre `idOrName` ; aucune variable
 Vercel n’a été lue ou modifiée. Le correctif reste local à ce stade.
+
+Suite de validation distante : les correctifs auth ont été commités et envoyés
+sur `main` dans `bfde817`. Les 36 tests des sept suites auth ciblées passent,
+lint passe, et Vercel a construit ce commit avec succès. Déploiement
+`dpl_4AW9zyzGUU7ZPBc7RKh2jWvdtFbn` : `READY`, alias `www.mystay.city`.
+Les tentatives précédentes reconstruisaient encore `8dac2a1`.
+
+Contrôles après déploiement : `/auth/login` retourne 200 et une demande de
+récupération avec email invalide retourne 400 `VALIDATION_ERROR` sans envoyer
+d’email. `/api/admin/analytics/cities` retourne encore 500 ; les logs runtime
+confirment que l’URL ou la clé publique Supabase manque dans la configuration
+effective. Le build est réparé, pas cette configuration externe. Lecture des
+variables via la session Vercel CLI locale tentée : refus HTTP 403 `forbidden`,
+aucune valeur affichée ni variable modifiée. Les variables de production
+doivent être configurées avec un accès Vercel autorisé avant de conclure que
+l’authentification et les API admin fonctionnent.
+
+Nouvelle investigation du message d’envoi (2026-09-29, 12:36 UTC) : la demande
+réelle de récupération retourne 503 `EMAIL_SEND_FAILED` sur le même déploiement
+`bfde817`, et une nouvelle requête admin retourne 500 avec l’exception Supabase
+« URL and Key are required ». L’URL ou la clé publique reste donc absente dans
+le déploiement actif. Aucun nouveau déploiement n’a eu lieu depuis celui-ci.
+La session CLI locale était expirée ; son renouvellement automatique a abouti,
+mais elle appartient à un autre compte que le créateur du projet. L’API Vercel
+répond toujours 403 sur ses variables. Aucun secret affiché, aucune variable
+distante ni aucun mot de passe modifié pendant ce diagnostic. La configuration
+de Production et un redéploiement avec ces variables restent requis.
+
+### 009 — Qualification du refus Supabase 401 (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-04 | AC-04-01 | `src/app/api/auth/forgot-password/route.ts`, `src/features/auth/lib/supabase-diagnostics.ts` | `tests/contract/auth.AC-password.test.ts` | Diagnostic 401 sans divulgation de clés ni d'emails |
+
+Le nouveau déploiement utilisateur `dpl_2wrghjJh6szEF4U1aZQstL7E5oAZ` est READY.
+Les erreurs ont changé : la construction du client aboutit, et Supabase retourne
+401 sans code sur l'envoi du lien. Les logs indiquent uniquement ce statut ;
+ajout d'un diagnostic limité au projet public, au type de clé, aux espaces ou
+guillemets éventuels, à la présence d'une variable publishable et aux propriétés
+de cohérence d'une clé JWT. Un refus explicite Invalid API key est qualifié dans
+les logs. Aucune valeur de clé, email, JWT complet ni réponse brute affichée.
+Le contrat public reste inchangé (503 générique).
+
+Le test API de non-divulgation a échoué avant instrumentation puis passe.
+16 tests ciblés, TypeScript et lint passent. L'instrumentation doit être déployée
+puis une demande réelle contrôlée pour déterminer le refus actuel avec précision.

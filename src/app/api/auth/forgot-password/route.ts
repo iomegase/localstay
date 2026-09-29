@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ForgotPasswordSchema } from '@/features/auth/schemas'
 import { createSupabaseRouteClient } from '@/shared/lib/supabase'
+import { getSupabaseConfigurationDiagnostics } from '@/features/auth/lib/supabase-diagnostics'
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let body: unknown
@@ -30,7 +31,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Supabase returns no error for unknown accounts. Technical failures must
     // not be confused with that neutral response (AC-04-01).
     if (error) {
-      console.error('[forgot-password]', { code: error.code, status: error.status })
+      const invalidApiKey = error.status === 401 && /invalid api key/i.test(error.message)
+      console.error('[forgot-password]', {
+        code: invalidApiKey ? 'INVALID_API_KEY' : error.code,
+        status: error.status,
+        ...(error.status === 401 ? { configuration: getSupabaseConfigurationDiagnostics() } : {}),
+      })
       const limited = error.status === 429
       return NextResponse.json(
         { error: {
