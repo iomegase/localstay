@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import {
   CookingPot,
   HousePlug,
@@ -15,19 +14,9 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type {
   DemoLodging,
-  DemoPhoneNumber,
   DemoPracticalCard,
 } from '@/features/guide-demo/types'
 import { DemoMediaFrames } from './DemoMediaFrames'
-
-type LodgingAccent = 'orange' | 'green' | 'pink' | 'blue'
-
-const TILE: Record<LodgingAccent, string> = {
-  orange: 'bg-orange-100 text-orange-600',
-  green: 'bg-lime-100 text-lime-700',
-  pink: 'bg-pink-100 text-pink-600',
-  blue: 'bg-blue-100 text-blue-700',
-}
 
 const EQUIPMENT_ICONS: Record<string, LucideIcon> = {
   tv: Tv,
@@ -52,20 +41,17 @@ const TRASH_PRESENTATION = {
   jaune: {
     label: 'Poubelle jaune',
     hint: 'Emballages & papiers recyclables',
-    tileClass: 'bg-yellow-100',
-    iconClass: 'text-yellow-500',
+    pastilleClass: 'bg-yellow-500',
   },
   verte: {
     label: 'Poubelle verte',
     hint: 'Verre',
-    tileClass: 'bg-green-100',
-    iconClass: 'text-green-600',
+    pastilleClass: 'bg-green-600',
   },
   bordeaux: {
     label: 'Poubelle bordeaux',
     hint: 'Ordures ménagères',
-    tileClass: 'bg-red-100',
-    iconClass: 'text-red-900',
+    pastilleClass: 'bg-red-900',
   },
 } as const
 
@@ -123,9 +109,11 @@ export function DemoLodgingPracticalSection({ lodging }: { lodging: DemoLodging 
       <section className="grid gap-3">
         <h2 className="px-1 text-sm font-semibold text-slate-900">Urgences</h2>
         {lodging.emergencyNumbers.map(item => (
-          <DemoPhoneCard
+          <DemoInfoCard
             key={item.number}
-            item={item}
+            title={item.label}
+            hint={item.hint}
+            trailing={item.number}
             icon={Siren}
             iconClass="bg-red-600"
             testId="demo-practical-emergency"
@@ -136,26 +124,60 @@ export function DemoLodgingPracticalSection({ lodging }: { lodging: DemoLodging 
       <section className="grid gap-3">
         <h2 className="px-1 text-sm font-semibold text-slate-900">Numéros utiles</h2>
         {lodging.usefulNumbers.map(item => (
-          <DemoPhoneCard
+          <DemoInfoCard
             key={item.label}
-            item={item}
+            title={item.label}
+            hint={item.hint}
+            trailing={item.number}
             icon={Phone}
             iconClass="bg-blue-600"
             testId="demo-practical-useful-number"
           />
         ))}
       </section>
+
+      <section className="grid gap-3">
+        <h2 className="px-1 text-sm font-semibold text-slate-900">Tri des déchets</h2>
+        {lodging.trashBins.map(bin => {
+          const presentation = getTrashPresentation(bin.type)
+          if (!presentation) return null
+
+          return (
+            <DemoInfoCard
+              key={bin.type}
+              title={presentation.label}
+              hint={presentation.hint}
+              icon={Trash2}
+              iconClass={presentation.pastilleClass}
+              testId="demo-practical-trash-bin"
+            />
+          )
+        })}
+        {lodging.trashLocation ? (
+          <DemoInfoCard
+            title="Point de tri"
+            hint={lodging.trashLocation}
+            icon={MapPin}
+            iconClass="bg-emerald-600"
+            testId="demo-practical-trash-location"
+          />
+        ) : null}
+      </section>
     </div>
   )
 }
 
-function DemoPhoneCard({
-  item,
+function DemoInfoCard({
+  title,
+  hint,
+  trailing,
   icon: Icon,
   iconClass,
   testId,
 }: {
-  item: DemoPhoneNumber
+  title: string
+  hint?: string
+  trailing?: string
   icon: LucideIcon
   iconClass: string
   testId: string
@@ -170,13 +192,15 @@ function DemoPhoneCard({
           <Icon className="h-4 w-4" aria-hidden="true" />
         </span>
         <span className="min-w-0">
-          <span className="block text-sm font-semibold">{item.label}</span>
-          {item.hint ? (
-            <span className="mt-0.5 block text-[10px] text-white/60">{item.hint}</span>
+          <span className="block text-sm font-semibold">{title}</span>
+          {hint ? (
+            <span className="mt-0.5 block text-[10px] text-white/60">{hint}</span>
           ) : null}
         </span>
       </span>
-      <span className="shrink-0 whitespace-nowrap text-sm font-bold">{item.number}</span>
+      {trailing ? (
+        <span className="shrink-0 whitespace-nowrap text-sm font-bold">{trailing}</span>
+      ) : null}
     </div>
   )
 }
@@ -243,41 +267,6 @@ export function DemoLodgingDepartureSection({
         </div>
       </section>
 
-      <ContentBlock icon={Trash2} title="Tri des déchets" accent="green">
-        <div className="grid gap-3">
-          {lodging.trashBins.map(bin => {
-            const presentation = getTrashPresentation(bin.type)
-            if (!presentation) return null
-
-            return (
-              <div key={bin.type} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
-                <span
-                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${presentation.tileClass}`}
-                >
-                  <Trash2
-                    className={`h-5 w-5 ${presentation.iconClass}`}
-                    aria-hidden="true"
-                  />
-                </span>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    {presentation.label}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {presentation.hint}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-        {lodging.trashLocation ? (
-          <p className="mt-4 flex items-start gap-2 rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-blue-900">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            {lodging.trashLocation}
-          </p>
-        ) : null}
-      </ContentBlock>
     </div>
   )
 }
@@ -308,29 +297,5 @@ function EquipmentCard({ card }: { card: DemoPracticalCard }) {
         altPrefix={`Illustration ${card.title}`}
       />
     </article>
-  )
-}
-
-function ContentBlock({
-  icon: Icon,
-  title,
-  accent,
-  children,
-}: {
-  icon: LucideIcon
-  title: string
-  accent: LodgingAccent
-  children: ReactNode
-}) {
-  return (
-    <section>
-      <div className="flex items-center gap-3">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${TILE[accent]}`}>
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <h4 className="text-base font-semibold text-slate-900">{title}</h4>
-      </div>
-      <div className="mt-3 text-[14px] leading-7 text-slate-600">{children}</div>
-    </section>
   )
 }

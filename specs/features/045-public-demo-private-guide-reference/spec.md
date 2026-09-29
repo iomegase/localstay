@@ -107,6 +107,11 @@ contrôle d'accès ni route du guide privé.
   rédigée comme une vraie consigne, des cadres photo à icône et un cadre vidéo
   à icône sans vidéo réelle ; le `Règlement` suit le même style de carte.
   Aucun texte ne mentionne « démonstration » ou « à titre d'exemple ».
+- **AC-01-10**: Given le guide logement de démonstration, When la page Infos
+  est rendue, Then elle présente, après les numéros utiles, une section
+  `Tri des déchets` au design des cartes Infos (carte `slate-900` arrondie,
+  pastille ronde colorée, titre et sous-titre) : une carte par poubelle et
+  une carte `Point de tri` ; la page Départ ne contient plus ce bloc.
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -328,7 +333,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 - Wi-Fi fictif et lisible (AC-01-08).
 - Équipements, règlement, informations pratiques et contacts publics.
 - Urgence unique `Secours 112` et numéros utiles fictifs (AC-01-08).
-- Recyclage et point de tri générique.
+- Recyclage et point de tri générique, sur la page Infos (AC-01-10).
 - Checklist et préparation du départ.
 - Même hiérarchie, même ordre et mêmes états interactifs que la référence
   privée, sans importer ses composants.
@@ -364,6 +369,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-07 | integration + security regression |
 | AC-01-08 | integration + security regression |
 | AC-01-09 | integration |
+| AC-01-10 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |

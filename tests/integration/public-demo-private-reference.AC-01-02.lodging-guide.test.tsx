@@ -135,6 +135,32 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     expect(guide.querySelectorAll('video')).toHaveLength(0)
   })
 
+  it('G. AC-01-10 moves waste sorting to the Infos page with Infos-style cards', () => {
+    const guide = renderLodgingGuide()
+    fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
+
+    expect(
+      within(guide).getAllByRole('heading', { level: 2 }).map(heading => heading.textContent),
+    ).toEqual(['Wi-Fi', 'Urgences', 'Numéros utiles', 'Tri des déchets'])
+
+    const bins = within(guide).getAllByTestId('demo-practical-trash-bin')
+    expect(bins.map(bin => within(bin).getByText(/^Poubelle/).textContent)).toEqual([
+      'Poubelle jaune',
+      'Poubelle verte',
+      'Poubelle bordeaux',
+    ])
+    const location = within(guide).getByTestId('demo-practical-trash-location')
+    expect(location).toHaveTextContent('Point de tri')
+    expect(location).toHaveTextContent('Point de tri public du centre de Saint-Gervais')
+    for (const card of [...bins, location]) {
+      expect(card).toHaveClass('rounded-[22px]', 'bg-slate-900', 'text-white')
+    }
+
+    fireEvent.click(within(guide).getByRole('button', { name: 'Départ' }))
+    expect(within(guide).queryByText('Tri des déchets')).not.toBeInTheDocument()
+    expect(within(guide).queryAllByTestId('demo-practical-trash-bin')).toHaveLength(0)
+  })
+
   it('C. keeps the demo navigation on the public page', () => {
     const guide = renderLodgingGuide()
     fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
