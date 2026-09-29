@@ -83,6 +83,10 @@ export type DemoPracticalCard = {
   phone?: string
   photoUrl?: string
   videoUrl?: string
+  /** Libellés des photos non encore fournies, affichées en cadre avec icône. */
+  photoPlaceholders?: string[]
+  /** Libellé d'un cadre vidéo avec icône, sans vidéo réelle. */
+  videoPlaceholder?: string
 }
 
 export type DemoPhoneNumber = {

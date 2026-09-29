@@ -100,6 +100,13 @@ contrôle d'accès ni route du guide privé.
   `Conciergerie` et `Office de tourisme` avec des numéros fictifs de la plage
   ARCEP réservée à la fiction (`04 65 71 xx xx`). Les numéros ne sont pas
   des liens `tel:`.
+- **AC-01-09**: Given la page Équipements du guide logement de démonstration,
+  When elle est rendue, Then elle reprend la structure de la page Accès : une
+  carte `slate-900` `Équipements` contenant une carte `slate-800` par
+  équipement (Télévision, Chauffage, Cuisine équipée) avec une consigne
+  rédigée comme une vraie consigne, des cadres photo à icône et un cadre vidéo
+  à icône sans vidéo réelle ; le `Règlement` suit le même style de carte.
+  Aucun texte ne mentionne « démonstration » ou « à titre d'exemple ».
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -356,6 +363,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-06 | integration |
 | AC-01-07 | integration + security regression |
 | AC-01-08 | integration + security regression |
+| AC-01-09 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |

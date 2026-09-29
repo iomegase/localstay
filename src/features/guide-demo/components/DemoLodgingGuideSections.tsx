@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import {
   CookingPot,
+  HousePlug,
   Info,
   ListChecks,
   MapPin,
@@ -17,6 +18,7 @@ import type {
   DemoPhoneNumber,
   DemoPracticalCard,
 } from '@/features/guide-demo/types'
+import { DemoMediaFrames } from './DemoMediaFrames'
 
 type LodgingAccent = 'orange' | 'green' | 'pink' | 'blue'
 
@@ -74,29 +76,44 @@ function getTrashPresentation(type: string) {
 
 export function DemoLodgingDiscoverSection({ lodging }: { lodging: DemoLodging }) {
   return (
-    <div className="grid gap-5 border-t border-slate-100 pt-5">
-      <section aria-labelledby="demo-equipment-heading">
-        <h4 id="demo-equipment-heading" className="text-lg font-semibold text-slate-900">
-          Équipements
-        </h4>
-        <div className="mt-3 grid gap-3">
+    <>
+      <section
+        data-testid="demo-equipment-list"
+        className="rounded-[26px] bg-slate-900 p-5 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]"
+      >
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10">
+            <HousePlug className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <h2 className="text-sm font-semibold">Équipements</h2>
+        </div>
+        <div className="mt-4 space-y-5">
           {lodging.practicalCards.map(card => (
             <EquipmentCard key={card.id} card={card} />
           ))}
         </div>
       </section>
 
-      <ContentBlock icon={ScrollText} title="Règlement" accent="blue">
-        <ul className="grid gap-3">
+      <section
+        data-testid="demo-house-rules"
+        className="rounded-[26px] bg-slate-900 p-5 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]"
+      >
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10">
+            <ScrollText className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <h2 className="text-sm font-semibold">Règlement</h2>
+        </div>
+        <ul className="mt-4 grid gap-3 rounded-2xl bg-slate-800 p-4">
           {lodging.houseRules.map(rule => (
-            <li key={rule} className="flex gap-3 text-[13px] leading-6 text-slate-600">
-              <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600" />
+            <li key={rule} className="flex gap-3 text-xs leading-5 tracking-wide text-white/80">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-pink-500" />
               <span>{rule}</span>
             </li>
           ))}
         </ul>
-      </ContentBlock>
-    </div>
+      </section>
+    </>
   )
 }
 
@@ -269,16 +286,27 @@ function EquipmentCard({ card }: { card: DemoPracticalCard }) {
   const Icon = EQUIPMENT_ICONS[card.icon] ?? Info
 
   return (
-    <article className="flex items-start gap-3 rounded-[24px] bg-slate-50 p-4">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-lime-100 text-lime-700">
-        <Icon className="h-5 w-5" aria-hidden="true" />
-      </span>
-      <div>
-        <h5 className="font-semibold text-slate-900">{card.title}</h5>
-        <p className="mt-1 text-[13px] leading-6 text-slate-600">
-          {card.description}
-        </p>
+    <article
+      data-testid="demo-equipment-item"
+      className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]"
+    >
+      <div className="flex items-center gap-3">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-white">
+          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+          {card.title}
+        </h3>
       </div>
+      <p className="mt-3 text-xs leading-5 tracking-wide text-white/80">
+        {card.description}
+      </p>
+      <DemoMediaFrames
+        photos={card.photoUrl ? [card.photoUrl] : []}
+        photoPlaceholders={card.photoPlaceholders}
+        videoPlaceholder={card.videoPlaceholder}
+        altPrefix={`Illustration ${card.title}`}
+      />
     </article>
   )
 }

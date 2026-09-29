@@ -112,6 +112,29 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     expect(guide.querySelectorAll('a[href^="tel:"]')).toHaveLength(0)
   })
 
+  it('F. AC-01-09 lays out equipments like the access page with photo and video frames', () => {
+    const guide = renderLodgingGuide()
+    fireEvent.click(within(guide).getByRole('button', { name: 'Équipements' }))
+
+    const section = within(guide).getByTestId('demo-equipment-list')
+    expect(section).toHaveClass('bg-slate-900')
+    expect(within(section).getByRole('heading', { level: 2, name: 'Équipements' })).toBeInTheDocument()
+
+    const items = within(section).getAllByTestId('demo-equipment-item')
+    expect(
+      items.map(item => within(item).getByRole('heading', { level: 3 }).textContent),
+    ).toEqual(['Télévision', 'Chauffage', 'Cuisine équipée'])
+    for (const item of items) {
+      expect(item).toHaveClass('bg-slate-800')
+      expect(within(item).getAllByTestId('demo-arrival-photo-frame').length).toBeGreaterThan(0)
+      expect(within(item).getAllByTestId('demo-arrival-video-frame')).toHaveLength(1)
+    }
+
+    expect(within(guide).getByTestId('demo-house-rules')).toHaveClass('bg-slate-900')
+    expect(guide).not.toHaveTextContent(/démonstration|à titre d[’']exemple/i)
+    expect(guide.querySelectorAll('video')).toHaveLength(0)
+  })
+
   it('C. keeps the demo navigation on the public page', () => {
     const guide = renderLodgingGuide()
     fireEvent.click(within(guide).getByRole('button', { name: 'Infos' }))
