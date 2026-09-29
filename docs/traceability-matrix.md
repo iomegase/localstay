@@ -1202,5 +1202,18 @@ utilise exclusivement un lien recovery, sans changer le mot de passe ni créer
 de compte. Ni les liens ni les emails ni les clés ne sont journalisés.
 
 Les régressions API et formulaire ont échoué avant correction puis passent.
-58 tests des sept suites Auth ciblées passent. La livraison réelle est à
-contrôler sur le nouveau déploiement avant de conclure que l'envoi est rétabli.
+58 tests des sept suites Auth ciblées passent. TypeScript et lint passent.
+
+Validation production : `6de1623` est READY sur
+`dpl_6MZ5EWK13VSJPtEYr2KjS2fD2fjB`. À 13:18 UTC, une demande réelle retourne
+200 `{ success: true }` ; le mail est accepté par Resend puis confirmé
+`delivered` (identifiant `01a0ed51-4954-738f-832e-457a2461e5b5`). Ses métadonnées
+confirment le destinataire demandé, l'hôte `www.mystay.city`, le chemin
+`/auth/reset-password` et un paramètre `token_hash`, sans afficher ni ouvrir le
+lien. Le SMTP natif Supabase reste en échec ; le secours applicatif fonctionne.
+
+Contrôle Chromium mobile en production : lien de récupération visible depuis
+la connexion, formulaire de demande accessible, formulaire sans jeton bloqué,
+formats code et token_hash acceptés, bouton œil fonctionnel et aucune erreur
+JavaScript. Ces vérifications utilisent de faux jetons, sans soumission d'un
+nouveau mot de passe. Le mot de passe réel reste à définir par l'utilisateur.

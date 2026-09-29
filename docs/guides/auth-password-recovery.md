@@ -16,6 +16,12 @@ l'utilisateur ni la présence dans l'onglet principal de Gmail.
 
 ## Configuration à appliquer dans Supabase
 
+Validation de production du 29 septembre 2026 à 13:18 UTC : la demande réelle
+retourne 200 grâce au secours Resend, dont le statut de livraison est
+`delivered`. Le lien livré vise bien `www.mystay.city/auth/reset-password` avec
+`token_hash`. Le formulaire et les boutons œil ont été vérifiés dans Chromium.
+Le mot de passe de l'utilisateur n'a pas été modifié pendant ces contrôles.
+
 Les clients Auth utilisent `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en priorité.
 Si elle est absente ou vide, ils utilisent `NEXT_PUBLIC_SUPABASE_ANON_KEY` pour
 les anciens projets. Une clé publishable déjà configurée ne doit pas être
