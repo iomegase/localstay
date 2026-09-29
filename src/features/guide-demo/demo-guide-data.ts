@@ -27,8 +27,8 @@ export const demoLodging: DemoLodging = {
       title: 'Le logement',
       text: 'Le 305 se trouve au 3e étage de la résidence, dans le centre de Saint-Gervais-les-Bains. Repérez la façade et l’entrée grâce aux photos et à la vidéo ci-dessous.',
       videoUrl: null,
-      photos: [APPROVED_DEMO_LODGING_MEDIA[3]],
-      photoPlaceholders: ['Façade de la résidence'],
+      photos: [],
+      photoPlaceholders: ['Vue extérieure du logement', 'Façade de la résidence'],
       videoPlaceholder: 'Vidéo de l’extérieur du logement',
     },
     {
