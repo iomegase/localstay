@@ -92,6 +92,13 @@ Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal 
 - **AC-04-01**: Given la page `/auth/forgot-password`, When l'utilisateur soumet son email, Then un email de réinitialisation est envoyé (même réponse si email inexistant)
 - **AC-04-02**: Given un lien de réinitialisation valide, When l'utilisateur soumet un nouveau mot de passe, Then le mot de passe est mis à jour et il est redirigé vers `/auth/login`
 
+Correction technique du 2026-09-29 — AC-04-01 : la réponse neutre concerne
+l'existence du compte, pas les pannes d'envoi. Si Supabase refuse l'envoi pour
+quota, l'API retourne 429 `EMAIL_RATE_LIMITED` ; toute autre panne retourne 503
+`EMAIL_SEND_FAILED`. Le formulaire affiche l'erreur et permet de réessayer,
+sans annoncer un email envoyé. Les détails internes du fournisseur ne sont
+jamais affichés, et les emails/jetons ne sont jamais journalisés.
+
 ---
 
 ## Business Rules
@@ -106,6 +113,15 @@ Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou égal 
 - **BR-08**: Aucune auth sociale (Google, Apple) en MVP 2
 - **BR-09**: `/auth/login` est la route canonique de connexion. Toute route legacy `/login` doit rediriger vers `/auth/login` et ne doit pas rendre un second formulaire de connexion.
 - **BR-10**: Un utilisateur Supabase authentifié dont le rôle est absent, inconnu ou `tourist` ne possède aucun accès valide aux espaces protégés ; toute tentative d'accès à `/dashboard/*`, `/merchant/*` ou `/admin/*` redirige vers `/auth/login` pour resynchronisation, jamais vers une page publique.
+
+Contrainte technique — correction du build du 2026-09-29 : importer les helpers
+Supabase serveur ne doit pas créer de client navigateur. Les clients serveur
+sont créés lors des requêtes. Sans URL/clé configurées, une requête utilisant
+Supabase reste en échec ; aucun client de remplacement ni contournement de
+l'authentification n'est autorisé. Les variables
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et
+`SUPABASE_SERVICE_ROLE_KEY` doivent être disponibles dans l'environnement
+Vercel cible ; la clé service-role reste exclusivement côté serveur.
 
 ---
 
@@ -265,6 +281,20 @@ paths:
       responses:
         "200":
           description: Email envoyé (même réponse si email inexistant)
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          description: Envoi temporairement limité (EMAIL_RATE_LIMITED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Service d'envoi indisponible (EMAIL_SEND_FAILED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/auth/reset-password:
     post:
@@ -381,7 +411,10 @@ components:
 
 ### Page : `/auth/forgot-password`
 - Formulaire : email + bouton "Envoyer le lien"
-- **Success** : "Si cet email existe, un lien vous a été envoyé" (toujours affiché)
+- **Success** : "Si cet email existe, un lien vous a été envoyé" après une réponse
+  API 200, identique pour un compte connu ou inconnu.
+- **Error** : refus d'envoi ou problème réseau annoncé dans une alerte ; email
+  saisi conservé et bouton réactivé, aucun faux message de succès.
 
 ### Page : `/auth/reset-password`
 - Accessible uniquement via le lien Supabase (contient le token en query param)

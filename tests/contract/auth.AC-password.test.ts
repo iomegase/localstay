@@ -26,10 +26,14 @@ function makeRequest(path: string, body: object): NextRequest {
 }
 
 describe('POST /api/auth/forgot-password', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterEach(() => jest.restoreAllMocks())
 
   it('AC-04-01: returns 200 even when email does not exist', async () => {
-    mockResetPasswordForEmail.mockResolvedValue({ error: { message: 'User not found' } })
+    mockResetPasswordForEmail.mockResolvedValue({ error: null })
     const res = await forgotPOST(makeRequest('/api/auth/forgot-password', { email: 'unknown@test.com' }))
     expect(res.status).toBe(200)
   })
@@ -43,6 +47,28 @@ describe('POST /api/auth/forgot-password', () => {
   it('returns 400 when email is invalid', async () => {
     const res = await forgotPOST(makeRequest('/api/auth/forgot-password', { email: 'not-an-email' }))
     expect(res.status).toBe(400)
+  })
+
+  it('AC-04-01: returns 429 rather than false success when Supabase refuses email sending', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: { code: 'over_email_send_rate_limit', status: 429 } })
+    const res = await forgotPOST(makeRequest('/api/auth/forgot-password', { email: 'owner@test.com' }))
+    expect(res.status).toBe(429)
+    expect(await res.json()).toMatchObject({ error: { code: 'EMAIL_RATE_LIMITED' } })
+  })
+
+  it('AC-04-01: reports unavailable email service without exposing provider details', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: { code: 'unexpected_failure', status: 500, message: 'private SMTP details' } })
+    const res = await forgotPOST(makeRequest('/api/auth/forgot-password', { email: 'owner@test.com' }))
+    expect(res.status).toBe(503)
+    expect(JSON.stringify(await res.json())).not.toContain('private SMTP')
+    expect(console.error).toHaveBeenCalledWith('[forgot-password]', { code: 'unexpected_failure', status: 500 })
+  })
+
+  it('AC-04-01: handles transport failures without an unstructured server error', async () => {
+    mockResetPasswordForEmail.mockRejectedValue(new Error('private transport details'))
+    const res = await forgotPOST(makeRequest('/api/auth/forgot-password', { email: 'owner@test.com' }))
+    expect(res.status).toBe(503)
+    expect(await res.json()).toMatchObject({ error: { code: 'EMAIL_SEND_FAILED' } })
   })
 })
 

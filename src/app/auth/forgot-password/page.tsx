@@ -6,24 +6,33 @@ import Link from 'next/link'
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Règle métier strictement non modifiée
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     const form = new FormData(e.currentTarget)
     const email = form.get('email') as string
 
-    await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-
-    // Always show success — AC-04-01
-    setSent(true)
-    setLoading(false)
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!response.ok) {
+        const result: { error?: { message?: string } } = await response.json()
+        setError(result.error?.message ?? 'Impossible d’envoyer le lien. Veuillez réessayer.')
+        return
+      }
+      setSent(true)
+    } catch {
+      setError('Impossible d’envoyer le lien. Vérifiez votre connexion et réessayez.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (sent) {
@@ -81,6 +90,11 @@ export default function ForgotPasswordPage() {
           </div>
 
           {/* Bouton de soumission */}
+          {error && (
+            <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             disabled={loading}

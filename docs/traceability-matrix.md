@@ -1067,3 +1067,56 @@ basculements ; zones cliquables 44 px. Faux jeton et saisies de test uniquement.
 Capture : `/private/tmp/mystay-reset-password-eyes.png`.
 Deux suites auth ciblées passent (7 tests), TypeScript réussi, lint sans erreur
 avec un avertissement préexistant sur l'effet du jeton manquant. Non déployé.
+
+### 009 — Échec réel d’envoi du lien de réinitialisation (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-04 | AC-04-01 | `src/app/api/auth/forgot-password/route.ts`, `src/app/auth/forgot-password/page.tsx` | `tests/contract/auth.AC-password.test.ts`, `tests/integration/auth.AC-04-01.forgot-password-errors.test.tsx` | Quota 429, panne 503 et réseau signalés ; réponse neutre conservée pour compte inconnu |
+
+Diagnostic réel Supabase : `over_email_send_rate_limit` (429) pour le compte
+admin existant. L’API ignorait cette erreur et la page annonçait un email envoyé
+sans examiner la réponse. Les tests de régression ont reproduit ces deux défauts
+avant correction. Les logs ne contiennent ni email, ni jeton, ni détails SMTP.
+Contrôle Chromium mobile local : refus visible, absence de succès, email saisi
+conservé, bouton réactivé ; vérification avec réponse 429 simulée, aucun mot de
+passe changé. Capture : `/private/tmp/mystay-forgot-password-error.png`.
+
+14 tests auth ciblés passent, TypeScript et lint passent. La page publique de
+réinitialisation est accessible. Un nouveau lien Supabase `token_hash` a été
+envoyé séparément par Resend à la demande de l’utilisateur et son statut est
+`delivered` ; cela ne prouve pas sa lecture ni une modification de mot de passe.
+
+Configuration durable préparée dans `scripts/configure-auth-email.ts` et
+`docs/guides/auth-password-recovery.md` : SMTP Resend et modèle de récupération
+conforme au paramètre `token_hash`. Aperçu exécuté ; application arrêtée avant
+toute requête en l’absence de `SUPABASE_ACCESS_TOKEN`. Les clés anon/service-role
+ne donnent pas accès à ces réglages du projet. Les modifications applicatives
+de cette correction ne sont pas encore déployées. Le quota d’envoi reste donc
+un blocage de l’envoi automatique jusqu’à la configuration SMTP effective.
+
+### 009 — Import Supabase serveur pendant le build Vercel (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-02 | AC-02-03, contrainte d’initialisation serveur | `src/shared/lib/supabase.ts` | `tests/unit/auth.AC-02-03.supabase-initialization.test.ts` | Aucun client créé à l’import ; requête non configurée toujours bloquée |
+
+Le build fourni pour le commit `8dac2a1` échoue pendant la collecte des routes :
+le module Supabase serveur crée aussi un client navigateur au niveau global.
+Cet export n’a aucun consommateur dans `src/`. Suppression de sa construction
+et de l’import `createBrowserClient`, sans remplacement par de fausses clés.
+Le test a reproduit la même exception de `@supabase/ssr` avant correction.
+
+Contrôles : 31 tests auth ciblés réussis, TypeScript et lint réussis. Un build
+Next.js 16.2.6 Turbopack complet a été exécuté dans une copie isolée sous
+`/private/tmp/mystay-build-wnjsrhkq`, avec `NEXT_PUBLIC_SUPABASE_URL=''` et
+`NEXT_PUBLIC_SUPABASE_ANON_KEY=''` : compilation, TypeScript, collecte des routes
+et génération des 129 pages statiques réussies (code de sortie 0).
+Les autres variables locales étaient disponibles dans la copie. Aucun serveur
+de développement arrêté et aucun déploiement réalisé pendant ce contrôle.
+
+Cette validation concerne le build, pas le fonctionnement de Supabase sans
+configuration. Vercel doit fournir l’URL, la clé publique anon et la clé serveur
+service-role dans l’environnement cible. L’accès connecteur de lecture au détail
+du projet a échoué sur la validation de son paramètre `idOrName` ; aucune variable
+Vercel n’a été lue ou modifiée. Le correctif reste local à ce stade.

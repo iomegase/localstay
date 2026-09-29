@@ -22,11 +22,34 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
-  const supabase = await createSupabaseRouteClient()
-  // Always return 200 — AC-04-01: même réponse si email inexistant
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${baseUrl}/auth/reset-password`,
-  })
+  try {
+    const supabase = await createSupabaseRouteClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${baseUrl.replace(/\/$/, '')}/auth/reset-password`,
+    })
+    // Supabase returns no error for unknown accounts. Technical failures must
+    // not be confused with that neutral response (AC-04-01).
+    if (error) {
+      console.error('[forgot-password]', { code: error.code, status: error.status })
+      const limited = error.status === 429
+      return NextResponse.json(
+        { error: {
+          code: limited ? 'EMAIL_RATE_LIMITED' : 'EMAIL_SEND_FAILED',
+          message: limited
+            ? 'L’envoi des emails est temporairement limité. Réessayez plus tard.'
+            : 'Impossible d’envoyer le lien pour le moment. Veuillez réessayer.',
+          details: {},
+        } },
+        { status: limited ? 429 : 503 },
+      )
+    }
+  } catch {
+    console.error('[forgot-password]', { code: 'EMAIL_SEND_FAILED' })
+    return NextResponse.json(
+      { error: { code: 'EMAIL_SEND_FAILED', message: 'Impossible d’envoyer le lien pour le moment. Veuillez réessayer.', details: {} } },
+      { status: 503 },
+    )
+  }
 
   return NextResponse.json({ success: true })
 }
