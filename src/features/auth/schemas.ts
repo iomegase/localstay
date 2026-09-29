@@ -19,9 +19,10 @@ export const ForgotPasswordSchema = z.object({
 })
 
 export const ResetPasswordSchema = z.object({
-  token: z.string().min(1),
+  token: z.string().min(1).optional(),
+  code: z.string().min(1).optional(),
   password: z.string().min(8, 'Mot de passe minimum 8 caractères'),
-})
+}).refine(value => Boolean(value.token) !== Boolean(value.code), 'Un seul jeton ou code de récupération est requis')
 
 export type RegisterInput = z.infer<typeof RegisterSchema>
 export type RegisterRole = z.infer<typeof RegisterSchema>['role']

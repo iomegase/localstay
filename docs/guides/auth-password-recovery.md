@@ -22,6 +22,14 @@ les anciens projets. Une clé publishable déjà configurée ne doit pas être
 ignorée au profit d'une ancienne variable anon. La clé service-role reste
 réservée aux opérations serveur d'administration.
 
+Après cette correction, le service Auth a accepté la clé mais a répondu 500
+« Error sending recovery email ». Pour cette panne d'envoi explicite, l'API
+dispose d'un secours : lien `recovery` généré par Supabase Admin, envoyé par
+Resend depuis `bonjour@mystay.city`. Il utilise `SUPABASE_SERVICE_ROLE_KEY` et
+`RESEND_API_KEY` côté serveur. Un quota 429 ou un refus 401 du service Auth
+n'est jamais contourné. L'API annonce le succès seulement après acceptation du
+mail par Resend ; l'identifiant d'envoi permet de contrôler sa livraison.
+
 Dans Authentication → Email → SMTP Settings, activer Custom SMTP :
 
 | Champ | Valeur |
@@ -39,9 +47,12 @@ Dans Email Templates → Reset password, utiliser ce lien :
 <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}">Définir mon nouveau mot de passe</a>
 ```
 
-L'application attend `token_hash` et le vérifie seulement à la soumission du
-nouveau mot de passe. Le lien `ConfirmationURL` par défaut vérifie le jeton
-avant la redirection et ne correspond pas à ce contrat applicatif.
+L'application accepte `token_hash` et le vérifie seulement à la soumission du
+nouveau mot de passe. Elle accepte aussi le lien `ConfirmationURL` standard
+Supabase : son code PKCE est échangé à la soumission avec le vérificateur stocké
+dans le navigateur qui a demandé le lien. Pour ce format standard, ouvrir
+l'email dans ce même navigateur. Le lien personnalisé `token_hash` convient
+aussi à une ouverture depuis un autre appareil.
 
 Dans URL Configuration, autoriser exactement
 `https://www.mystay.city/auth/reset-password`. En production, vérifier que

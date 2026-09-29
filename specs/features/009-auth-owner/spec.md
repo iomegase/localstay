@@ -108,6 +108,25 @@ peuvent être indiqués sans leur valeur.
 Aucune clé, charge JWT complète, email ou réponse brute n'est journalisée. Le
 message public reste générique et ne révèle pas l'existence d'un compte.
 
+Correction technique de livraison du 2026-09-29 — AC-04-01 : si Supabase
+retourne une erreur serveur indiquant explicitement l'échec de l'envoi du mail
+de récupération, le serveur peut générer un lien `recovery` via Supabase Admin
+et l'envoyer avec Resend, depuis `MyStay <bonjour@mystay.city>`. Le lien pointe
+directement vers `/auth/reset-password?token_hash=…`. Une réponse 200 est
+autorisée uniquement après acceptation Resend (identifiant d'email présent),
+ou pour un compte inexistant (réponse neutre). Les refus 401 et quotas 429 de
+Supabase ne déclenchent jamais ce secours. Un échec du secours reste 503,
+ou 429 s'il s'agit d'un quota du fournisseur. Les jetons, adresses et corps des
+emails ne sont pas journalisés ; seul l'identifiant d'envoi peut l'être. Aucun
+compte ni mot de passe n'est créé ou modifié lors de la demande de lien.
+
+Compatibilité technique du 2026-09-29 — AC-04-02 : la réinitialisation accepte
+le lien personnalisé `token_hash` et le lien standard Supabase contenant un
+`code` PKCE. Le code est échangé côté serveur avec le vérificateur du navigateur
+à la soumission, avant la mise à jour du mot de passe. Aucun accès n'est accordé
+sans vérification réussie par Supabase. Un jeton manquant, expiré ou un code
+non vérifiable ne déclenche aucune mise à jour.
+
 ---
 
 ## Business Rules
@@ -320,11 +339,23 @@ paths:
           application/json:
             schema:
               type: object
-              required: [token, password]
+              required: [password]
+              oneOf:
+                - required: [token]
+                  not:
+                    required: [code]
+                - required: [code]
+                  not:
+                    required: [token]
               properties:
                 token:
                   type: string
-                  description: Token extrait de l'URL du lien Supabase
+                  minLength: 1
+                  description: token_hash extrait du lien personnalisé
+                code:
+                  type: string
+                  minLength: 1
+                  description: Code PKCE du lien standard Supabase, vérifié avec le cookie du navigateur
                 password:
                   type: string
                   minLength: 8
@@ -431,7 +462,8 @@ components:
   saisi conservé et bouton réactivé, aucun faux message de succès.
 
 ### Page : `/auth/reset-password`
-- Accessible uniquement via le lien Supabase (contient le token en query param)
+- Accessible uniquement via un lien Supabase contenant `token_hash` ou `code`
+  en query param. Le formulaire reste désactivé en l'absence de l'un des deux.
 - Formulaire : nouveau mot de passe + confirmation + bouton "Définir le mot de passe"
 - Demande Product Owner du 2026-09-29 — **AC-04-02** : chacun des deux champs
   possède un bouton œil pour afficher ou masquer sa valeur indépendamment.

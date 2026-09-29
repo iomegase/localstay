@@ -1186,3 +1186,21 @@ avec la clé publishable dans les requêtes réellement produites par le SDK.
 45 tests des cinq suites Auth ciblées passent. Le contrôle d'envoi en production
 sera répété après déploiement, sans ouvrir le lien personnel ni changer le mot
 de passe de l'utilisateur.
+
+### 009 — Secours de livraison et lien standard Supabase (2026-09-29)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 009 | Authentification | US-04 | AC-04-01 | `src/app/api/auth/forgot-password/route.ts`, `src/features/auth/lib/password-recovery-email.ts` | `tests/contract/auth.AC-password.test.ts`, `tests/unit/auth.AC-04-01.recovery-email.test.ts` | Envoi Resend après panne SMTP explicite, quotas préservés, compte inconnu neutre |
+| 009 | Authentification | US-04 | AC-04-02 | `src/features/auth/schemas.ts`, `src/app/api/auth/reset-password/route.ts`, `src/app/auth/reset-password/page.tsx` | `tests/contract/auth.AC-password.test.ts`, `tests/integration/auth.AC-04-02.reset-link-formats.test.tsx` | token_hash personnalisé et code PKCE standard vérifiés avant mise à jour |
+
+Le déploiement `32aa115` est READY ; la clé publique est désormais acceptée.
+Une demande réelle à 13:08 UTC retourne 503 avec `unexpected_failure` / 500
+en provenance de Supabase. Une requête directe au même projet avec la clé
+locale valide confirme une erreur d'envoi du mail de récupération. Le secours
+utilise exclusivement un lien recovery, sans changer le mot de passe ni créer
+de compte. Ni les liens ni les emails ni les clés ne sont journalisés.
+
+Les régressions API et formulaire ont échoué avant correction puis passent.
+58 tests des sept suites Auth ciblées passent. La livraison réelle est à
+contrôler sur le nouveau déploiement avant de conclure que l'envoi est rétabli.

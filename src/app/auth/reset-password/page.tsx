@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
@@ -14,11 +14,9 @@ function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const token = searchParams.get('token_hash') ?? ''
+  const code = searchParams.get('code') ?? ''
 
-  // Règle métier strictement non modifiée
-  useEffect(() => {
-    if (!token) setError('Lien invalide ou expiré')
-  }, [token])
+  const visibleError = error ?? ((!token && !code) ? 'Lien invalide ou expiré' : null)
 
   // Règle métier strictement non modifiée
   function validatePassword(value: string) {
@@ -45,7 +43,7 @@ function ResetPasswordForm() {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ ...(token ? { token } : { code }), password }),
       })
       const json = await res.json()
 
@@ -144,16 +142,16 @@ function ResetPasswordForm() {
           </div>
 
           {/* Message d'erreur */}
-          {error && (
+          {visibleError && (
             <div className="animate-in fade-in rounded-lg border border-red-200 bg-red-50 p-3 text-center text-xs font-medium text-red-600">
-              {error}
+              {visibleError}
             </div>
           )}
 
           {/* Bouton de soumission */}
           <button
             type="submit"
-            disabled={loading || !token || !!passwordError}
+            disabled={loading || (!token && !code) || !!passwordError}
             className="group mt-2 flex h-12 w-full items-center justify-center border border-black bg-black px-6 text-sm font-light uppercase text-white shadow-md transition-all hover:bg-white hover:text-black hover:shadow-lg disabled:opacity-50 disabled:shadow-none"
           >
             {loading ? (

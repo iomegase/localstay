@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ForgotPasswordSchema } from '@/features/auth/schemas'
 import { createSupabaseRouteClient } from '@/shared/lib/supabase'
 import { getSupabaseConfigurationDiagnostics } from '@/features/auth/lib/supabase-diagnostics'
+import { sendRecoveryEmailViaResend } from '@/features/auth/lib/password-recovery-email'
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   let body: unknown
@@ -37,7 +38,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         status: error.status,
         ...(error.status === 401 ? { configuration: getSupabaseConfigurationDiagnostics() } : {}),
       })
-      const limited = error.status === 429
+      let limited = error.status === 429
+      if (error.status && error.status >= 500 && /sending.*(?:recovery|email)|smtp/i.test(error.message)) {
+        const delivery = await sendRecoveryEmailViaResend(parsed.data.email, `${baseUrl.replace(/\/$/, '')}/auth/reset-password`)
+        if (delivery === 'sent' || delivery === 'unknown') return NextResponse.json({ success: true })
+        limited = delivery === 'limited'
+      }
       return NextResponse.json(
         { error: {
           code: limited ? 'EMAIL_RATE_LIMITED' : 'EMAIL_SEND_FAILED',

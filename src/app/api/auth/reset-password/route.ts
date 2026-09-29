@@ -21,13 +21,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  const { token, password } = parsed.data
+  const { token, code, password } = parsed.data
   const supabase = await createSupabaseRouteClient()
 
-  const { error: verifyError } = await supabase.auth.verifyOtp({
-    token_hash: token,
-    type: 'recovery',
-  })
+  const { error: verifyError } = code
+    ? await supabase.auth.exchangeCodeForSession(code)
+    : await supabase.auth.verifyOtp({ token_hash: token!, type: 'recovery' })
 
   if (verifyError) {
     return NextResponse.json(
