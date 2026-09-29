@@ -131,6 +131,9 @@ contrôle d'accès ni route du guide privé.
   (`Localisation`, `Instructions`, `Urgences`, `Numéros utiles`,
   `Tri des déchets`, `Équipements`, `Règlement`) ne sont pas affichés ; ils
   restent présents pour les lecteurs d'écran (`sr-only`).
+- **AC-01-14**: Given une fiche POI de démonstration avec un mot de l'hôte,
+  When elle est rendue, Then le texte `Le mot de votre hôte` s'affiche en
+  italique et en plus petit (`13px`) que le corps précédent (`15px`).
 
 ### US-02 — Garantir une démonstration publique autonome
 
@@ -392,6 +395,7 @@ utilise un fallback local ; elle ne déclenche pas de récupération privée.
 | AC-01-11 | integration |
 | AC-01-12 | integration |
 | AC-01-13 | integration |
+| AC-01-14 | integration |
 | AC-02-01 | unit + integration + e2e |
 | AC-02-02 | security regression |
 | AC-02-03 | security regression |

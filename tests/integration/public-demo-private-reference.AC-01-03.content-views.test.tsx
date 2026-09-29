@@ -229,6 +229,11 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByTestId('owner-recommendation-note-text'),
     ).toHaveTextContent(/Une belle adresse du coin/i)
+    // AC-01-14 : mot de l'hôte plus petit et en italique.
+    expect(screen.getByTestId('owner-recommendation-note-text')).toHaveClass(
+      'text-[13px]',
+      'italic',
+    )
     expect(screen.getByText('Dimanche')).toBeInTheDocument()
     expect(screen.getByTestId('photo-attribution')).toHaveTextContent(
       'www.ronddecarotte.com',
