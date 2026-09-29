@@ -3,12 +3,10 @@ import {
   ArrowRight,
   BedDouble,
   Clock3,
-  Copy,
   DoorOpen,
   HousePlug,
   Info,
   KeyRound,
-  ListOrdered,
   LogOut,
   MapPin,
   Navigation,
@@ -16,10 +14,8 @@ import {
   Recycle,
   ScrollText,
   Siren,
-  Trash2,
   Wifi,
 } from 'lucide-react'
-import { getTrashBin } from '@/features/guide-customization/lib/trash-bins'
 import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
 import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
@@ -28,6 +24,14 @@ import { ArrivalInstructionCard } from '@/features/guide-app/components/ArrivalI
 import { DepartureChecklist } from '@/features/guide-app/components/DepartureChecklist'
 import { GuideDarkMarkdown } from '@/features/guide-app/components/GuideDarkMarkdown'
 import { GuideLodgingTabs } from '@/features/guide-app/components/GuideLodgingTabs'
+import { GuideWifiCard } from '@/features/guide-app/components/GuideWifiCard'
+import {
+  GUIDE_CARD,
+  GUIDE_PASTILLE,
+  GuideCardHeading,
+  GuideInfoCard,
+  GuideSectionTitle,
+} from '@/features/guide-app/components/GuideCard'
 
 /** Résout une icône Lucide depuis un slug kebab-case (recycle → Recycle). */
 function resolvePracticalIcon(slug: string): LucideIcons.LucideIcon {
@@ -44,12 +48,6 @@ import type {
   GuideView,
 } from '@/features/guide-app/types'
 
-const cardClass =
-  'rounded-[22px] border border-slate-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]'
-
-const navyCardClass =
-  'rounded-[26px] bg-slate-900 text-white shadow-[0_10px_28px_rgba(15,23,42,0.14)]'
-
 function equipmentCountLabel(count: number): string {
   return `${count} équipement${count === 1 ? '' : 's'}`
 }
@@ -59,6 +57,22 @@ function trashLocationHref(location: string): string {
   return /^https?:\/\//i.test(location)
     ? location
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+}
+
+/** Point de tri : lien configuré par l'Owner, sinon recherche « point de tri <ville> ». */
+function trashPointHref(lodging: GuideLodging): string {
+  return lodging.trashLocation
+    ? trashLocationHref(lodging.trashLocation)
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `point de tri ${lodging.city.replace(/-/g, ' ')}`,
+      )}`
+}
+
+function trashPointHint(lodging: GuideLodging): string {
+  if (lodging.trashLocation && !/^https?:\/\//i.test(lodging.trashLocation)) {
+    return lodging.trashLocation
+  }
+  return lodging.trashLocation ? 'Voir sur Google Maps' : 'Rechercher à proximité sur Google Maps'
 }
 
 export function GuideLodgingViews({
@@ -79,6 +93,7 @@ export function GuideLodgingViews({
 
   if (view === 'arrival') {
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lodging.latitude},${lodging.longitude}`
+    const [street, ...locality] = lodging.addressLabel.split(',').map(part => part.trim())
     return (
       <GuideSubPage
         eyebrow=""
@@ -87,35 +102,16 @@ export function GuideLodgingViews({
         view="arrival"
         onNavigate={onNavigate}
       >
-        <section className={`${navyCardClass} p-5`}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
-                <MapPin className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold leading-9 text-white">Localisation</h2>
-                <p className="mt-1 text-xs leading-5 text-white/70">
-                  {lodging.addressLabel.split(',').map((part, index) => (
-                    <span key={index} className="block">
-                      {part.trim()}
-                    </span>
-                  ))}
-                </p>
-              </div>
-            </div>
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
-            >
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
-                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
-              </span>
-              Maps
-            </a>
-          </div>
+        <section className="grid gap-3">
+          <GuideSectionTitle>Localisation</GuideSectionTitle>
+          <GuideInfoCard
+            testId="guide-access-location"
+            icon={MapPin}
+            tone="location"
+            title={street}
+            hint={locality.length > 0 ? locality.join(', ') : undefined}
+            trailing={<MapsButton href={mapsUrl} />}
+          />
         </section>
         <InstructionList items={lodging.arrivalInstructions} />
       </GuideSubPage>
@@ -131,7 +127,11 @@ export function GuideLodgingViews({
         view="departure"
         onNavigate={onNavigate}
       >
-        <section className={`${navyCardClass} p-5`}>
+        <section
+          data-testid="guide-departure-checklist"
+          data-guide-card="true"
+          className={GUIDE_CARD}
+        >
           <DepartureChecklist items={lodging.departureInstructions} />
         </section>
       </GuideSubPage>
@@ -148,36 +148,44 @@ export function GuideLodgingViews({
         onNavigate={onNavigate}
       >
         {lodging.houseRules.length > 0 && (
-          <section className={`${navyCardClass} p-5`}>
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-                <ScrollText className="h-5 w-5" />
-              </span>
-              <h2 className="text-sm font-semibold text-white tracking-wide">Règlement intérieur</h2>
+          <section className="grid gap-3">
+            <GuideSectionTitle>Règlement</GuideSectionTitle>
+            <div data-testid="guide-house-rules" data-guide-card="true" className={GUIDE_CARD}>
+              <GuideCardHeading
+                icon={ScrollText}
+                tone="rules"
+                as="h3"
+                title="Règlement intérieur"
+              />
+              <ul className="mt-3 divide-y divide-white/10">
+                {lodging.houseRules.map(rule => (
+                  <li key={rule} className="flex gap-3 py-2.5 text-[13px] leading-5 text-white/80">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c2457e]" />
+                    <span>{inlineMarkdown(rule)}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="mt-4 space-y-4">
-              {lodging.houseRules.map(rule => (
-                <li key={rule} className="flex items-center gap-2 text-xs tracking-wide leading-5 text-white/90">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                  <span>{inlineMarkdown(rule)}</span>
-                </li>
-              ))}
-            </ul>
           </section>
         )}
 
         {equipmentCards.length > 0 && (
-          <div className="grid gap-3">
+          <section className="grid gap-3">
+            <GuideSectionTitle>Équipements</GuideSectionTitle>
             {equipmentCards.map(card => (
-              <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
+              <PracticalBlockCard key={card.id} card={card} />
             ))}
-          </div>
+          </section>
         )}
       </GuideSubPage>
     )
   }
 
   if (view === 'practical') {
+    const showTrashPoint =
+      Boolean(lodging.trashLocation) ||
+      lodging.trashBins.length > 0 ||
+      recyclingCards.length > 0
     return (
       <GuideSubPage
         eyebrow="Bon à savoir"
@@ -186,103 +194,67 @@ export function GuideLodgingViews({
         view="practical"
         onNavigate={onNavigate}
       >
-        <section className={`${navyCardClass} p-5`}>
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-              <Wifi className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
-                Réseau Wi-Fi
-              </p>
-              <h2 className="text-sm font-semibold text-white">
-                {lodging.wifiName}
-              </h2>
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-white/10 px-3 py-3">
-            <code className="text-xs text-white/90">{lodging.wifiPassword}</code>
-            <Copy className="h-4 w-4 text-white/50" aria-hidden="true" />
-          </div>
-        </section>
-        <section className={`${navyCardClass} p-5`}>
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/20 text-red-300">
-              <Siren className="h-5 w-5" />
-            </span>
-            <h2 className="text-sm font-semibold text-white">Urgences</h2>
-          </div>
-          <div className="mt-4 divide-y divide-white/10">
-            {FRENCH_EMERGENCY_NUMBERS.map(item => (
-              <CallRow key={item.number} label={item.label} number={item.number} />
-            ))}
-          </div>
+        <GuideWifiCard name={lodging.wifiName} password={lodging.wifiPassword} />
+
+        <section className="grid gap-3">
+          <GuideSectionTitle>Urgences</GuideSectionTitle>
+          {FRENCH_EMERGENCY_NUMBERS.map(item => (
+            <GuideInfoCard
+              key={item.number}
+              testId="guide-practical-emergency"
+              href={frenchPhoneHref(item.number)}
+              icon={Siren}
+              tone="emergency"
+              title={item.label}
+              trailing={<PhoneLabel value={item.number} />}
+            />
+          ))}
         </section>
 
         {lodging.usefulNumbers.length > 0 && (
-          <section className={`${navyCardClass} p-5`}>
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-                <Phone className="h-5 w-5" />
-              </span>
-              <h2 className="text-sm font-semibold text-white">Numéros utiles</h2>
-            </div>
-            <div className="mt-4 divide-y divide-white/10">
-              {lodging.usefulNumbers.map(item => (
-                <CallRow key={item.label} label={item.label} number={item.number} />
-              ))}
-            </div>
+          <section className="grid gap-3">
+            <GuideSectionTitle>Numéros utiles</GuideSectionTitle>
+            {lodging.usefulNumbers.map(item => (
+              <GuideInfoCard
+                key={item.label}
+                testId="guide-practical-useful-number"
+                href={frenchPhoneHref(item.number)}
+                icon={Phone}
+                tone="phone"
+                title={item.label}
+                trailing={<PhoneLabel value={formatFrenchPhone(item.number)} />}
+              />
+            ))}
           </section>
         )}
 
-        {recyclingCards.length > 0 && (
-          <div className="grid gap-3">
+        {(recyclingCards.length > 0 || showTrashPoint) && (
+          <section className="grid gap-3">
+            <GuideSectionTitle>Tri des déchets</GuideSectionTitle>
             {recyclingCards.map(card => (
-              <PracticalBlockCard key={card.id} card={card} city={lodging.city} />
+              <article
+                key={card.id}
+                data-testid="guide-practical-recycling"
+                data-guide-card="true"
+                className={GUIDE_CARD}
+              >
+                <GuideCardHeading icon={Recycle} tone="location" as="h3" title={card.title} />
+                <div className="mt-3">
+                  <GuideDarkMarkdown source={card.description} />
+                </div>
+              </article>
             ))}
-          </div>
-        )}
-
-        {lodging.trashBins.length > 0 && (
-          <section className={`${navyCardClass} p-5`}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-                  <Recycle className="h-5 w-5" />
-                </span>
-                <h2 className="text-sm font-semibold text-white">Recyclage</h2>
-              </div>
-              {lodging.trashLocation && (
-                <a
-                  href={trashLocationHref(lodging.trashLocation)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
-                >
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
-                    <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
-                  </span>
-                  Maps
-                </a>
-              )}
-            </div>
-            <div className="mt-4 space-y-3">
-              {lodging.trashBins.map(bin => {
-                const preset = getTrashBin(bin.type)
-                if (!preset) return null
-                return (
-                  <div key={bin.type} className="flex items-center gap-3">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white">
-                      <Trash2 className={`h-5 w-5 ${preset.colorClass}`} />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{preset.label}</p>
-                      <p className="text-[11px] text-white/60">{preset.hint}</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            {showTrashPoint && (
+              <GuideInfoCard
+                testId="guide-practical-trash-location"
+                href={trashPointHref(lodging)}
+                external
+                icon={MapPin}
+                tone="location"
+                title="Point de tri"
+                hint={trashPointHint(lodging)}
+              />
+            )}
           </section>
         )}
       </GuideSubPage>
@@ -358,14 +330,16 @@ function GuideSubPage({
   return (
     <div className="space-y-4 px-4 pb-24 pt-2">
       <GuideLodgingTabs view={view} onNavigate={onNavigate} />
-      <div className="flex items-center gap-4 rounded-[26px] bg-slate-900 p-6 text-white">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-pink-600">
+      <div data-guide-card="true" className={`${GUIDE_CARD} flex items-center gap-4`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${GUIDE_PASTILLE.step}`}>
           <Icon className="h-5 w-5" />
         </span>
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
-            {eyebrow}
-          </p>
+          {eyebrow ? (
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-pink-300">
+              {eyebrow}
+            </p>
+          ) : null}
           <h1 className="mt-1 text-[28px] font-semibold leading-[1.02] tracking-[-0.04em]">
             {title}
           </h1>
@@ -379,20 +353,33 @@ function GuideSubPage({
 function InstructionList({ items }: { items: GuideArrivalInstruction[] }) {
   if (items.length === 0) return null
   return (
-    <section className={`${navyCardClass} p-5`}>
-      <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-          <ListOrdered className="h-5 w-5" />
-        </span>
-        <h2 className="text-sm font-semibold text-white">Instructions</h2>
-      </div>
-      <div className="mt-4 space-y-5">
-        {items.map((instruction, index) => (
-          <ArrivalInstructionCard key={index} index={index} instruction={instruction} />
-        ))}
-      </div>
+    <section className="grid gap-3">
+      <GuideSectionTitle>Instructions</GuideSectionTitle>
+      {items.map((instruction, index) => (
+        <ArrivalInstructionCard key={index} index={index} instruction={instruction} />
+      ))}
     </section>
   )
+}
+
+function MapsButton({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 text-[9px] font-bold uppercase tracking-[0.12em] text-pink-600 shadow-[0_7px_16px_rgba(17,24,39,0.14)] transition-transform active:scale-[0.98]"
+    >
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-pink-600 text-white">
+        <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+      Maps
+    </a>
+  )
+}
+
+function PhoneLabel({ value }: { value: string }) {
+  return <span className="whitespace-nowrap text-sm font-bold">{value}</span>
 }
 
 function TimeCard({
@@ -452,11 +439,8 @@ function GuideLink({
   )
 }
 
-/** Rend une carte « bloc pratique » selon son contenu (tri, média, contact, texte). */
-function PracticalBlockCard({ card, city }: { card: GuidePracticalCard; city: string }) {
-  if (card.icon === 'recycle') {
-    return <WasteCard title={card.title} description={card.description} city={city} />
-  }
+/** Rend une carte « bloc pratique » selon son contenu (média, contact, texte). */
+function PracticalBlockCard({ card }: { card: GuidePracticalCard }) {
   const Icon = resolvePracticalIcon(card.icon)
   if (card.photoUrl || card.videoUrl) {
     return (
@@ -469,155 +453,21 @@ function PracticalBlockCard({ card, city }: { card: GuidePracticalCard; city: st
       />
     )
   }
-  if (card.phone) {
-    return (
-      <ContactCard
-        icon={Icon}
-        title={card.title}
-        description={card.description}
-        phone={card.phone}
-      />
-    )
-  }
-  return <InfoCard icon={Icon} title={card.title} description={card.description} />
-}
-
-const DEMO_TRASH_BINS = ['jaune', 'verte', 'bordeaux'] as const
-
-function WasteCard({
-  title,
-  description,
-  city,
-}: {
-  title: string
-  description: string
-  city: string
-}) {
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `point de tri ${city.replace(/-/g, ' ')}`,
-  )}`
   return (
-    <article className={`${navyCardClass} p-5`}>
-      <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
-          <Trash2 className="h-4 w-4" />
-        </span>
-        <div>
-          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <div className="mt-1">
-            <GuideDarkMarkdown source={description} />
-          </div>
-        </div>
+    <article data-testid="guide-practical-block" data-guide-card="true" className={GUIDE_CARD}>
+      <GuideCardHeading icon={Icon} tone="equipment" as="h3" title={card.title} />
+      <div className="mt-3">
+        <GuideDarkMarkdown source={card.description} />
       </div>
-      <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
-        {DEMO_TRASH_BINS.map(type => {
-          const bin = getTrashBin(type)
-          if (!bin) return null
-          return (
-            <div key={type} className="flex items-center gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white">
-                <Trash2 className={`h-5 w-5 ${bin.colorClass}`} />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-white">{bin.label}</p>
-                <p className="text-[11px] text-white/60">{bin.hint}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <a
-        href={mapsUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-4 flex items-center justify-center rounded-[18px] bg-pink-600 p-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
-      >
-        Point de tri sur Google Maps
-      </a>
-    </article>
-  )
-}
-
-function ContactCard({
-  icon: Icon,
-  title,
-  description,
-  phone,
-}: {
-  icon: typeof Info
-  title: string
-  description: string
-  phone: string
-}) {
-  return (
-    <article className={`${navyCardClass} p-5`}>
-      <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
-          <Icon className="h-4 w-4" />
-        </span>
-        <div>
-          <h2 className="text-sm font-semibold leading-9 text-white">{title}</h2>
-          <div className="mt-1">
-            <GuideDarkMarkdown source={description} />
-          </div>
-        </div>
-      </div>
-      <a
-        href={`tel:${phone.replace(/\s/g, '')}`}
-        className="mt-4 flex items-center justify-center gap-2 rounded-[18px] bg-pink-600 p-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-700"
-      >
-        <Phone className="h-4 w-4" aria-hidden="true" />
-        {phone}
-      </a>
-    </article>
-  )
-}
-
-/** Ligne « libellé → numéro » cliquable pour appeler (icône téléphone verte). */
-function CallRow({ label, number }: { label: string; number: string }) {
-  return (
-    <a
-      href={frenchPhoneHref(number)}
-      className="flex items-center justify-between gap-3 py-2.5 text-xs"
-    >
-      <span className="text-white/60">{label}</span>
-      <span className="flex items-center gap-2 font-semibold text-white">
-        <Phone className="h-3.5 w-3.5 text-green-400" aria-hidden="true" />
-        {formatFrenchPhone(number)}
-      </span>
-    </a>
-  )
-}
-
-function InfoCard({
-  icon: Icon,
-  title,
-  description,
-  tone = 'navy',
-}: {
-  icon: typeof Info
-  title: string
-  description: string
-  tone?: 'light' | 'navy'
-}) {
-  const navy = tone === 'navy'
-  return (
-    <article className={`${navy ? navyCardClass : cardClass} p-5`}>
-      <div className="flex items-start gap-3">
-        <span
-          className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
-            navy ? 'bg-white/10 text-white' : 'bg-blue-50 text-slate-600'
-          }`}
+      {card.phone ? (
+        <a
+          href={`tel:${card.phone.replace(/\s/g, '')}`}
+          className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-slate-100 p-3 text-sm font-semibold text-slate-900 transition-transform active:scale-[0.99]"
         >
-          <Icon className="h-4 w-4" />
-        </span>
-        <h2 className={`text-sm font-semibold leading-9 ${navy ? 'text-white' : 'text-slate-900'}`}>
-          {title}
-        </h2>
-      </div>
-      <div className="mt-3 pl-12">
-        <GuideDarkMarkdown source={description} />
-      </div>
+          <Phone className="h-4 w-4" aria-hidden="true" />
+          {card.phone}
+        </a>
+      ) : null}
     </article>
   )
 }

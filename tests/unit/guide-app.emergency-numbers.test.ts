@@ -1,10 +1,10 @@
 import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 
 describe('French emergency numbers (hard-coded)', () => {
-  it('exposes only the 112 and 114 emergency numbers', () => {
+  it('exposes only the 112 emergency number (spec 050 AC-01-05)', () => {
     const numbers = FRENCH_EMERGENCY_NUMBERS.map(entry => entry.number)
 
-    expect(numbers).toEqual(['112', '114'])
+    expect(numbers).toEqual(['112'])
   })
 
   it('leads with 112 and labels every entry', () => {

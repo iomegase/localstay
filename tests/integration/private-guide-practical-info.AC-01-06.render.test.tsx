@@ -20,12 +20,12 @@ function renderView(view: View, overrides: Overrides = {}, onNavigate = jest.fn(
 }
 
 describe('038 AC — practical view: emergencies, useful numbers', () => {
-  it('always shows the hard-coded French emergency numbers', () => {
+  it('always shows the hard-coded 112 emergency number only (spec 050 AC-01-05)', () => {
     renderView('practical', { usefulNumbers: [] })
 
     expect(screen.getByRole('heading', { name: 'Urgences' })).toBeInTheDocument()
     expect(screen.getByText('112')).toBeInTheDocument()
-    expect(screen.getByText('114')).toBeInTheDocument()
+    expect(screen.queryByText('114')).not.toBeInTheDocument()
   })
 
   it('renders owner useful numbers, formatted and tappable to call', () => {
@@ -48,18 +48,15 @@ describe('038 AC — practical view: emergencies, useful numbers', () => {
     ).toHaveAttribute('href', 'tel:112')
   })
 
-  it('shows the active trash bins in a Recyclage section', () => {
+  it('shows a single Point de tri link instead of the trash bins (spec 050 AC-01-07)', () => {
     renderView('practical', {
       trashBins: [{ type: 'jaune' }, { type: 'verte' }],
       trashLocation: 'https://maps.app.goo.gl/abc',
     })
 
-    expect(screen.getByRole('heading', { name: 'Recyclage' })).toBeInTheDocument()
-    expect(screen.getByText('Poubelle jaune')).toBeInTheDocument()
-    expect(
-      screen.getByText('Emballages & papiers recyclables'),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /maps/i })).toHaveAttribute(
+    expect(screen.getByRole('heading', { name: 'Tri des déchets' })).toBeInTheDocument()
+    expect(screen.queryByText('Poubelle jaune')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Point de tri/i })).toHaveAttribute(
       'href',
       'https://maps.app.goo.gl/abc',
     )
@@ -84,7 +81,7 @@ describe('practical block cards live in Équipements, not in Informations pratiq
     expect(screen.getByText('Écran de cinéma')).toBeInTheDocument()
   })
 
-  it('expands equipment descriptions under the icon column', () => {
+  it('expands equipment descriptions to the full card width (spec 050 AC-01-08)', () => {
     renderView('rules', {
       practicalCards: [
         {
@@ -100,7 +97,8 @@ describe('practical block cards live in Équipements, not in Informations pratiq
       .getByText('L’appartement est équipé d’une climatisation réversible.')
       .closest('div')
 
-    expect(contentWrapper).toHaveClass('mt-3', 'pl-12')
+    expect(contentWrapper).toHaveClass('mt-3')
+    expect(contentWrapper).not.toHaveClass('pl-12')
   })
 
   it('no longer shows the block cards in Informations pratiques', () => {
@@ -127,7 +125,9 @@ describe('practical block cards live in Équipements, not in Informations pratiq
 
     unmount()
     renderView('practical', { practicalCards: [recyclingCard], trashBins: [] })
-    expect(screen.getByText('Tri des déchets')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Tri des déchets' }),
+    ).toBeInTheDocument()
   })
 })
 

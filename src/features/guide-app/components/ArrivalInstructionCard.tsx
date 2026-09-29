@@ -6,6 +6,7 @@ import type { GuideArrivalInstruction } from '@/features/guide-app/types'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from './GuideDarkMarkdown'
 import { MediaLightbox } from './MediaLightbox'
+import { GUIDE_CARD, GuideCardHeading } from './GuideCard'
 
 type Lightbox =
   | { kind: 'photos'; startIndex: number }
@@ -49,14 +50,9 @@ export function ArrivalInstructionCard({
   const { title, body } = splitInstructionText(instruction.text, index, instruction.title)
 
   return (
-    <div className="rounded-2xl bg-slate-800 p-4 shadow-[0_6px_18px_rgba(0,0,0,0.28)]">
-      <div data-testid="arrival-instruction-header" className="flex items-center gap-3">
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">
-          {index + 1}
-        </span>
-        <h3 className="min-w-0 text-xs font-semibold uppercase tracking-[0.14em] text-white">
-          {title}
-        </h3>
+    <article data-testid="guide-arrival-instruction" data-guide-card="true" className={GUIDE_CARD}>
+      <div data-testid="arrival-instruction-header">
+        <GuideCardHeading step={index + 1} tone="step" as="h3" title={title} />
       </div>
 
       {body && (
@@ -118,6 +114,6 @@ export function ArrivalInstructionCard({
           onClose={() => setLightbox(null)}
         />
       )}
-    </div>
+    </article>
   )
 }

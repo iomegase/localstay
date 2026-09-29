@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, ListChecks } from 'lucide-react'
+import { GuideCardHeading } from './GuideCard'
 
 // Phrase d'intro désormais affichée dans l'en-tête : on l'ignore si elle a été
 // saisie comme première ligne des consignes (évite un item en double).
@@ -32,37 +33,34 @@ export function DepartureChecklist({ items }: { items: string[] }) {
   }
 
   return (
-    <div className="tracking-wide">
+    <div>
 
-      <div className="flex items-center justify-between gap-4 ">
-
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-  <p className="text-base font-semibold text-white">Avant votre départ</p>
-  <span className="shrink-0 text-xs font-bold text-pink-400">
-          {checked.size} / {tasks.length}
-        </span>
-            </div>
-
-          <p className="mt-1 text-center py-4 text-xs leading-5 text-white/100 tracking-wider">
-            Afin de faciliter la préparation du logement pour les prochains
-            voyageurs, nous vous remercions de bien vouloir&nbsp;:
-          </p>
-        </div>
-
-      </div>
+      <GuideCardHeading
+        icon={ListChecks}
+        tone="checklist"
+        title="Avant votre départ"
+        trailing={
+          <span aria-live="polite" className="text-sm font-bold">
+            {checked.size} / {tasks.length}
+          </span>
+        }
+      />
+      <p className="mt-3 text-[13px] leading-5 text-white/80">
+        Afin de faciliter la préparation du logement pour les prochains
+        voyageurs, nous vous remercions de bien vouloir&nbsp;:
+      </p>
       <progress
         aria-label="Progression des consignes de départ"
         aria-valuenow={checked.size}
         value={checked.size}
         max={tasks.length}
-        className="mt-3 block h-1.5 w-full overflow-hidden rounded-full bg-white/10 accent-pink-600"
+        className="mt-3 block h-1.5 w-full overflow-hidden rounded-full bg-white/10 accent-[#5b7fc4]"
       />
-      <div className="mt-3">
+      <div className="mt-2 divide-y divide-white/10">
         {tasks.map((item, index) => (
           <label
             key={`${item}-${index}`}
-            className="flex cursor-pointer items-center font-light gap-3 py-3 text-xs tracking-widest leading-4 text-white"
+            className="flex cursor-pointer items-center gap-3 py-3 text-[13px] leading-5 text-white/85"
           >
             <input
               type="checkbox"
@@ -79,7 +77,7 @@ export function DepartureChecklist({ items }: { items: string[] }) {
           </label>
         ))}
       </div>
-      <p className="mt-4 border-t border-white/10 pt-4 text-center tracking-wider text-xs leading-5 text-white">
+      <p className="mt-2 border-t border-white/10 pt-4 text-center text-[13px] leading-5 text-white/80">
         Merci pour votre séjour et votre attention. Nous vous souhaitons un
         excellent retour&nbsp;!
       </p>
