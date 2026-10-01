@@ -15,5 +15,7 @@ describe('031 AC-01-07 — header logo offset on desktop', () => {
     expect(brand).toHaveClass('lg:-translate-x-[30px]', 'lg:-translate-y-[30px]')
     expect(brand.className).not.toMatch(/(^|\s)-?translate-[xy]-/)
     expect(brand).toContainElement(screen.getByRole('link', { name: 'MyStay — Accueil' }))
+    // Marge haute de 30 px sur desktop pour que le logo ne soit pas collé au bord.
+    expect(screen.getByRole('banner')).toHaveClass('lg:mt-[30px]')
   })
 })

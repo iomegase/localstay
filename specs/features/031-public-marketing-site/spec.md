@@ -85,9 +85,10 @@ routes privées, l'authentification et les API existantes restent inchangées.
   responsive prévues à 1050 px et 760 px.
 - **AC-01-07**: Given le header marketing sur desktop (à partir de `lg`), When il
   s'affiche, Then le logo est décalé d'environ 30 px vers la gauche et vers le
-  haut pour aérer l'espace avec le menu, sans déplacer le menu ni les actions ;
-  le logo reste inchangé sur mobile et tablette. Décision du Product Owner
-  (2026-10-01).
+  haut pour aérer l'espace avec le menu, sans déplacer le menu ni les actions,
+  et le header reçoit une marge haute supplémentaire de 30 px pour que le logo
+  ne soit pas collé au bord ; logo et header restent inchangés sur mobile et
+  tablette. Décision du Product Owner (2026-10-01).
 
 ### US-02 — Préserver le guide voyageur privé
 

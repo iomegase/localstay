@@ -22,7 +22,7 @@ export function MarketingBrand({ light = false }: { light?: boolean }) {
 
 export function MarketingHeader() {
   return (
-    <header className="relative z-[80] mb-2.5 bg-white py-1 md:mb-[clamp(14px,1.6vw,24px)] md:py-[clamp(6px,0.7vw,10px)]">
+    <header className="relative z-[80] mb-2.5 bg-white py-1 md:mb-[clamp(14px,1.6vw,24px)] md:py-[clamp(6px,0.7vw,10px)] lg:mt-[30px]">
       <div
         className={`${marketingContainerClass} flex h-[72px] items-center gap-4 md:h-[76px] xl:h-[62px] xl:gap-[14px]`}
       >
