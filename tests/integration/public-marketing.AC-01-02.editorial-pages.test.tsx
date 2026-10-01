@@ -23,7 +23,7 @@ describe('031-public-marketing-site editorial routes', () => {
 
   it('renders the seminars page from the approved mockup', async () => {
     render(await SeminarsPage())
-    expect(screen.getByRole('heading', { level: 1, name: /Réunir vos équipes/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Votre séminaire face au Mont-Blanc/i })).toBeInTheDocument()
     expect(screen.getByTestId('seminar-hero')).toHaveClass(
       'min-[761px]:min-h-[590px]',
       'min-[761px]:px-[54px]',
@@ -32,17 +32,17 @@ describe('031-public-marketing-site editorial routes', () => {
     )
     expect(screen.getByTestId('seminar-hero').querySelector('img')).not.toBeInTheDocument()
     expect(screen.getByTestId('seminar-hero')).toHaveClass('text-slate-900')
-    expect(screen.getByText('Séminaires en Haute-Savoie')).toHaveClass('text-slate-500')
+    expect(screen.getByText('Séminaires d’entreprise · Pays du Mont-Blanc')).toHaveClass('text-slate-500')
     expect(screen.getByTestId('seminar-hero-facts')).toHaveClass('text-slate-600')
     expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-slate-900')
     expect(
-      within(screen.getByTestId('seminar-hero')).getByRole('link', {
-        name: /Nous contacter/i,
+      within(screen.getByTestId('seminar-hero')).getByRole('button', {
+        name: 'Recevoir une proposition',
       }),
     ).toHaveClass('bg-pink-600')
     expect(screen.getAllByTestId('seminar-service-card')).toHaveLength(4)
     expect(screen.getByTestId('seminar-place')).toHaveTextContent('Le bon cadre')
-    expect(screen.getByTestId('seminar-process')).toHaveTextContent('Quatre étapes, aucun flou')
+    expect(screen.getByTestId('seminar-process')).toHaveTextContent('quatre étapes claires')
   })
 
   it('uses the persistent owner contact flow without mailto', async () => {

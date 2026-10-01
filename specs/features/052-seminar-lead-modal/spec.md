@@ -90,6 +90,11 @@ de l'admin et notification e-mail à `bonjour@mystay.city`).
   de la réponse à la demande.
 - **BR-04**: Les landings conciergerie et locations de vacances ne changent
   pas ; seule l'intention séminaire utilise la modal.
+- **BR-05**: Depuis le 2026-10-01 (spec 031 AC-01-09), la page générale
+  `/seminaires` utilise aussi la modal pour ses boutons « Recevoir une
+  proposition » ; sans commune, l'objet devient `Demande séminaire —
+  [Entreprise] — Pays du Mont-Blanc` et le sous-titre « dans le Pays du
+  Mont-Blanc ».
 
 ## Data Model
 
@@ -123,7 +128,6 @@ Aucun changement. `ContactMessage` (spec 024) avec `destination = concierge`.
 
 ## Out of Scope
 
-- La page générale `/seminaires` (ses boutons restent inchangés).
 - Les landings conciergerie et locations de vacances.
 - Tout nouveau champ en base, tableau de bord dédié ou CRM.
 

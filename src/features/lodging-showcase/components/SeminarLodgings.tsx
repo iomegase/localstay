@@ -11,11 +11,11 @@ export function SeminarLodgings({ lodgings }: { lodgings: SeminarLodging[] }) {
       <div className="mb-[34px] max-w-[760px] sm:mb-12">
         <MarketingEyebrow>La sélection MyStay</MarketingEyebrow>
         <h2 id="seminar-lodgings-heading" className="m-0 max-w-[720px] text-[clamp(34px,4vw,40px)] font-bold leading-[1.02] tracking-[-0.05em] text-slate-800">
-          Le cadre idéal pour votre séminaire.
+          Votre chalet de séminaire.
         </h2>
         <p className="mt-5 max-w-[660px] text-sm leading-[1.72] text-slate-500">
-          Découvrez notre sélection de logements pour prolonger les échanges et
-          partager des moments en équipe, dans le cadre de votre séminaire.
+          Le Chalet Rémy, à Saint-Gervais-les-Bains : 590 m², jusqu’à 26
+          personnes, à privatiser pour réunir travail et vie d’équipe.
         </p>
       </div>
       <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

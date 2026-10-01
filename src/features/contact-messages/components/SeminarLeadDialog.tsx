@@ -16,7 +16,10 @@ const PARTICIPANTS = ['Moins de 10', '10 à 15', '16 à 26', 'Plus de 26'] as co
  * Bouton + modal de demande séminaire (spec 052) : alimente le circuit
  * ContactMessage existant avec la source `seminar_lead`.
  */
-export function SeminarLeadDialog({ label, cityName }: { label: string; cityName: string }) {
+export function SeminarLeadDialog({ label, cityName }: { label: string; cityName?: string }) {
+  // Sans commune (page /seminaires) : demande pour le Pays du Mont-Blanc (spec 052 BR-05).
+  const place = cityName ?? 'Pays du Mont-Blanc'
+  const placePhrase = cityName ? `à ${cityName}` : 'dans le Pays du Mont-Blanc'
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<FormState>('idle')
 
@@ -45,7 +48,7 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
           sender_name: text('name'),
           sender_email: text('email'),
           sender_phone: text('phone') || null,
-          subject: `Demande séminaire — ${company} — ${cityName}`,
+          subject: `Demande séminaire — ${company} — ${place}`,
           message: [
             `Entreprise : ${company}`,
             `Participants : ${text('participants')}`,
@@ -89,7 +92,7 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
             Recevoir une proposition
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm leading-6 text-slate-500">
-            Votre séminaire à {cityName} : décrivez votre projet, nous revenons vers vous sous 48 h avec une proposition sur mesure.
+            Votre séminaire {placePhrase} : décrivez votre projet, nous revenons vers vous sous 48 h avec une proposition sur mesure.
           </Dialog.Description>
 
           <form aria-label="Demande séminaire" className="mt-7" onSubmit={submit}>

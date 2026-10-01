@@ -4,27 +4,29 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
   ArrowRight,
+  BadgeCheck,
   BedDouble,
   Clock,
-  MapPin,
   Mountain,
   Presentation,
   Users,
   Utensils,
 } from 'lucide-react'
+import { SeminarLeadDialog } from '@/features/contact-messages/components/SeminarLeadDialog'
+import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 
 import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
-  marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 
 
 export const metadata: Metadata = {
-  title: 'Séminaire d’entreprise en Haute-Savoie | MyStay',
+  // Le layout racine ajoute « | MyStay » (template) : ne pas le répéter ici.
+  title: 'Séminaire d’entreprise en Haute-Savoie, au pied du Mont-Blanc',
   description:
-    'MyStay organise vos séminaires à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : hébergement, salles de réunion, repas, transferts, activités et bien-être.',
+    'Séminaire d’entreprise à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : chalet privatisé jusqu’à 26 personnes, espace de réunion, repas, transferts et activités. Proposition sur mesure sous 48 h.',
   alternates: {
     canonical: '/seminaires',
   },
@@ -32,93 +34,99 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
     url: '/seminaires',
-    title: 'Séminaire d’entreprise en Haute-Savoie | MyStay',
+    title: 'Séminaire d’entreprise en Haute-Savoie, au pied du Mont-Blanc | MyStay',
     description:
-      'Hébergement face au Mont-Blanc, salles de réunion, repas, transferts et activités : MyStay coordonne votre séminaire dans le Pays du Mont-Blanc.',
+      'Chalet privatisé jusqu’à 26 personnes, espace de réunion, repas, transferts et activités : MyStay organise votre séminaire dans le Pays du Mont-Blanc.',
   },
 }
 
 const services = [
   {
     icon: BedDouble,
-    title: 'Lieu & hébergement',
-    copy: 'Des chalets chaleureux, sélectionnés selon la taille de votre équipe, le niveau de confort attendu et votre programme.',
+    title: 'Un chalet privatisé',
+    copy: 'Un lieu rien qu’à vous pour travailler, partager les repas et vivre ensemble, sans dispersion.',
   },
   {
     icon: Presentation,
-    title: 'Temps de travail',
-    copy: 'Des espaces adaptés aux échanges, ateliers et prises de parole, avec les équipements utiles préparés en amont.',
+    title: 'Un espace de réunion sur place',
+    copy: 'Plénière, ateliers ou échanges informels, aménagés selon votre format.',
   },
   {
     icon: Utensils,
-    title: 'Repas & attentions',
-    copy: 'Petits-déjeuners, pauses, déjeuners ou dîner convivial : nous composons une expérience cohérente avec votre rythme.',
+    title: 'Repas sur mesure',
+    copy: 'Petits-déjeuners, pauses, déjeuners et dîner convivial, au rythme de votre programme.',
   },
   {
     icon: Mountain,
-    title: 'Activités & mobilité',
-    copy: 'Randonnée, bien-être, découverte locale ou activité collective : chaque respiration trouve naturellement sa place.',
+    title: 'Activités et transferts',
+    copy: 'Randonnée, thermes, ski ou découverte locale, et les navettes qui vont avec.',
   },
 ] as const
 
 const placePrinciples = [
   {
     number: '01',
-    title: 'Tout réunir au même endroit',
-    copy: 'Hébergement, espaces de travail et moments informels se prolongent naturellement dans un lieu privatisé.',
+    title: 'Tout au même endroit',
+    copy: 'Travail, hébergement et moments informels, sans perte de temps entre deux adresses.',
   },
   {
     number: '02',
-    title: 'Créer le bon rythme',
-    copy: 'Des espaces pensés pour alterner concentration, échanges collectifs et temps de respiration.',
+    title: 'Le bon rythme',
+    copy: 'Des temps de concentration, des échanges collectifs et de vraies pauses, dans le même cadre.',
   },
   {
     number: '03',
-    title: 'Ouvrir de nouvelles perspectives',
-    copy: 'Au cœur du Pays du Mont-Blanc, le décor offre le recul nécessaire pour faire émerger des idées nouvelles.',
+    title: 'Le recul du Mont-Blanc',
+    copy: 'Un décor qui aide à sortir du quotidien et à faire émerger des idées nouvelles.',
   },
 ] as const
 
 const formats = [
   {
     title: 'Comité de direction',
-    copy: 'Un cadre confidentiel pour décider, prendre du recul et aligner les priorités dans un environnement propice aux échanges.',
+    copy: 'Un cadre confidentiel pour décider, arbitrer et aligner les priorités.',
   },
   {
     title: 'Séminaire résidentiel',
-    copy: 'Travail, hébergement, restauration et moments partagés réunis dans un même lieu, au rythme de votre équipe.',
+    copy: 'Deux à trois jours de travail et de vie commune dans un même lieu.',
   },
   {
     title: 'Retraite d’équipe',
-    copy: 'Quelques jours pour renouer les liens, prendre de la hauteur et faire émerger collectivement de nouvelles idées.',
+    copy: 'Renforcer les liens et réfléchir ensemble, loin du bureau.',
   },
 ] as const
 
 const steps = [
   {
     number: '01',
-    title: 'Vous partagez votre brief',
-    copy: 'Dates, participants, objectifs, budget et ambiance recherchée.',
+    title: 'Votre brief',
+    copy: 'Dates, participants, objectifs et budget indicatif.',
   },
   {
     number: '02',
-    title: 'Nous dessinons le séjour',
-    copy: 'Lieu, hébergement, restauration, temps de travail et activités.',
+    title: 'Votre proposition sous 48 h',
+    copy: 'Lieu, hébergement, repas, espace de travail, activités et devis.',
   },
   {
     number: '03',
-    title: 'Nous coordonnons chaque détail',
-    copy: 'Un interlocuteur MyStay pilote les partenaires et la logistique.',
+    title: 'L’organisation complète',
+    copy: 'Nous réservons, coordonnons les prestataires et gérons les imprévus.',
   },
   {
     number: '04',
-    title: 'Votre équipe profite',
-    copy: 'Le programme et les informations utiles restent accessibles simplement.',
+    title: 'Le jour J',
+    copy: 'Votre équipe retrouve programme, accès et recommandations locales dans un guide digital du séjour.',
   },
 ] as const
 
-const contactHref =
-  'mailto:bonjour@mystay.city?subject=Organisation%20d%27un%20s%C3%A9minaire%20MyStay'
+const faq = [
+  { question: 'Pour combien de personnes pouvez-vous organiser un séminaire ?', answer: 'Jusqu’à 26 personnes réunies dans le Chalet Rémy. Au-delà, nous coordonnons plusieurs hébergements proches avec un programme commun.' },
+  { question: 'Dans quel délai recevrai-je une proposition ?', answer: 'Nous vous adressons une proposition détaillée sous 48 h après réception de votre demande.' },
+  { question: 'Les repas, transferts et activités sont-ils inclus ?', answer: 'Oui, nous les intégrons au programme selon vos besoins : traiteur ou chef à domicile, navettes, activités d’équipe en montagne.' },
+  { question: 'Disposez-vous d’un espace de réunion ?', answer: 'Oui. Le chalet dispose d’un espace de réunion sur place, que nous aménageons selon votre format : plénière, ateliers ou sessions informelles.' },
+  { question: 'Quelle est la meilleure saison ?', answer: 'Toute l’année : ski et activités de neige en hiver, randonnée et grand air de mai à octobre, thermes en toute saison.' },
+  { question: 'Comment se passe la facturation ?', answer: 'Vous recevez un devis global, puis une facture unique au nom de votre entreprise.' },
+] as const
 
 export default async function SeminarsPage() {
   const seminarLodgings = await listSeminarLodgings()
@@ -150,7 +158,7 @@ export default async function SeminarsPage() {
           >
             <div className="relative z-10 my-auto max-w-[650px]">
               <MarketingEyebrow>
-                Séminaires en Haute-Savoie
+                Séminaires d’entreprise · Pays du Mont-Blanc
               </MarketingEyebrow>
 
               <h1
@@ -165,11 +173,11 @@ export default async function SeminarsPage() {
                   lg:text-[clamp(42px,4.8vw,50px)]
                 "
               >
-                Réunir vos équipes.
+                Votre séminaire{' '}
                 <br />
 
                 <em className="font-serif font-normal italic tracking-[-0.035em]">
-                  Prendre de la hauteur.
+                  face au Mont-Blanc.
                 </em>
               </h1>
 
@@ -183,19 +191,15 @@ export default async function SeminarsPage() {
                   lg:text-[15px]
                 "
               >
-                MyStay organise des séminaires à Saint-Gervais-les-Bains et
-                dans le Pays du Mont-Blanc : hébergement, salles de réunion,
-                repas, transferts et temps collectifs. Un seul interlocuteur
-                coordonne le séjour, du premier brief au départ de votre équipe.
+                <strong className="block font-semibold text-slate-900">Réunir vos équipes. Prendre de la hauteur.</strong>
+                MyStay organise votre séminaire à Saint-Gervais-les-Bains et
+                dans le Pays du Mont-Blanc : chalet privatisé, espace de
+                réunion, repas, transferts et activités. Un interlocuteur
+                dédié, du premier échange au départ du groupe.
               </p>
 
               <div className="mt-[30px] flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-                <a
-                  className={marketingPrimaryButtonClass}
-                  href={contactHref}
-                >
-                  Nous contacter
-                </a>
+                <SeminarLeadDialog label="Recevoir une proposition" />
               </div>
             </div>
 
@@ -221,11 +225,11 @@ export default async function SeminarsPage() {
               "
             >
               <span className="inline-flex items-center gap-2">
-                <MapPin
+                <Clock
                   aria-hidden="true"
                   className="h-[17px] w-[17px]"
                 />
-                Haute-Savoie
+                Réponse sous 48 h
               </span>
 
               <span className="inline-flex items-center gap-2">
@@ -233,15 +237,15 @@ export default async function SeminarsPage() {
                   aria-hidden="true"
                   className="h-[17px] w-[17px]"
                 />
-                Équipes à taille humaine
+                Jusqu’à 26 personnes en chalet
               </span>
 
               <span className="inline-flex items-center gap-2">
-                <Clock
+                <BadgeCheck
                   aria-hidden="true"
                   className="h-[17px] w-[17px]"
                 />
-                Séjour sur mesure
+                Proposition sur mesure, sans engagement
               </span>
             </div>
           </div>
@@ -273,14 +277,14 @@ export default async function SeminarsPage() {
                 tracking-[-0.05em]
               "
             >
-              Un séminaire fluide, du lieu jusqu’au dernier détail.
+              Tout votre séminaire, organisé en une seule proposition.
             </h2>
 
             <p className="mt-5 max-w-[660px] text-sm leading-[1.72] text-slate-500">
-              Nous réunissons les prestations essentielles dans une proposition
-              claire : hébergement, espaces de travail, restauration, activités
-              et déplacements locaux. Vous gardez la vision, nous coordonnons
-              le reste.
+              Hébergement, espace de travail, restauration, activités et
+              déplacements : nous assemblons les prestations dans un programme
+              clair et un devis unique. Vous gardez la main sur les objectifs,
+              nous gérons l’organisation.
             </p>
           </div>
 
@@ -467,10 +471,10 @@ export default async function SeminarsPage() {
                   min-[761px]:text-[clamp(34px,4vw,40px)]
                 "
               >
-                Le lieu ne doit pas seulement accueillir.
+                Un lieu qui rassemble,
 
                 <em className="mt-2 block font-normal not-italic text-pink-300">
-                  Il doit donner envie de se retrouver.
+                  au lieu d’un planning qui disperse.
                 </em>
               </h2>
 
@@ -486,9 +490,9 @@ export default async function SeminarsPage() {
                   min-[761px]:text-sm
                 "
               >
-                Un séminaire résidentiel fonctionne lorsque le cadre simplifie
-                tout : travailler, partager, respirer et rester ensemble sans
-                perdre de temps dans la logistique.
+                Travailler, partager les repas et souffler au même endroit : vos
+                équipes se concentrent sur l’essentiel, pendant que la
+                logistique suit.
               </p>
             </div>
 
@@ -567,7 +571,7 @@ export default async function SeminarsPage() {
         >
           <div className="mb-12 max-w-[760px]">
             <MarketingEyebrow>
-              À chaque équipe son format
+              Formats de séminaire
             </MarketingEyebrow>
 
             <h2
@@ -580,7 +584,7 @@ export default async function SeminarsPage() {
                 tracking-[-0.05em]
               "
             >
-              Des temps de travail qui laissent aussi place au collectif.
+              À chaque équipe son format.
             </h2>
           </div>
 
@@ -731,10 +735,10 @@ export default async function SeminarsPage() {
                   min-[761px]:text-[clamp(34px,4vw,40px)]
                 "
               >
-                Un seul interlocuteur.
+                Un interlocuteur dédié,
 
                 <em className="mt-2 block font-normal not-italic text-pink-300">
-                  Quatre étapes, aucun flou.
+                  quatre étapes claires.
                 </em>
               </h2>
 
@@ -750,9 +754,8 @@ export default async function SeminarsPage() {
                   min-[761px]:text-sm
                 "
               >
-                Une méthode lisible pour avancer rapidement et rester concentré
-                sur les objectifs de votre équipe. MyStay coordonne le lieu,
-                les partenaires et le déroulé du séjour.
+                Du brief au jour J, vous savez toujours où en est votre
+                séminaire.
               </p>
             </div>
 
@@ -791,6 +794,9 @@ export default async function SeminarsPage() {
             </ol>
           </div>
         </section>
+
+        {/* FAQ */}
+        <MarketingFaqSection items={faq} title="Vos questions, nos réponses." columns={2} />
 
         {/* CTA */}
         <section
@@ -851,9 +857,7 @@ export default async function SeminarsPage() {
                   xl:text-[40px]
                 "
               >
-                Un lieu inspirant.
-                <br />
-                Une organisation sereine.
+                Parlons de votre prochain séminaire.
               </h2>
             </div>
 
@@ -878,21 +882,11 @@ export default async function SeminarsPage() {
                   text-slate-300
                 "
               >
-                Parlez-nous de votre équipe, de vos dates et de vos envies. Nous
-                préparerons une première proposition adaptée à votre projet.
+                Dates, nombre de participants, objectifs : quelques lignes
+                suffisent. Vous recevez une proposition sur mesure sous 48 h.
               </p>
 
-              <a
-                className={`${marketingPrimaryButtonClass} gap-4`}
-                href={contactHref}
-              >
-                Échanger sur mon projet
-
-                <ArrowRight
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                />
-              </a>
+              <SeminarLeadDialog label="Recevoir une proposition" />
             </div>
           </div>
         </section>

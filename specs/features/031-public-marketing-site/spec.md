@@ -100,6 +100,16 @@ routes privées, l'authentification et les API existantes restent inchangées.
   au moins un POI publié dans la découverte publique (même source que
   `/decouvrir`), chaque carte menant à `/decouvrir/[commune]` : aucune carte
   vide ni non cliquable. Décisions du Product Owner (2026-10-01).
+- **AC-01-09**: Given la page `/seminaires`, When elle s'affiche, Then elle présente
+  le contenu validé par le Product Owner le 2026-10-01 : titre SEO « Séminaire
+  d'entreprise en Haute-Savoie, au pied du Mont-Blanc » sans « MyStay » en
+  double ; H1 « Votre séminaire face au Mont-Blanc. » ; pastilles « Réponse
+  sous 48 h », « Jusqu'à 26 personnes en chalet », « Proposition sur mesure,
+  sans engagement » ; sections offre, lieu unique, formats et méthode
+  réécrites sans répétitions (étape 4 : guide digital du séjour) ; FAQ de six
+  questions sur deux colonnes ; appel final « Parlons de votre prochain
+  séminaire. » ; les boutons « Recevoir une proposition » ouvrent la modal de
+  la spec 052 au lieu d'un lien e-mail.
 
 ### US-02 — Préserver le guide voyageur privé
 
@@ -497,6 +507,7 @@ optionnel `source: owner_lead`. Il conserve ses états visuels existants.
 | AC-01-06 | integration + e2e |
 | AC-01-07 | Logo du header décalé (~30 px gauche/haut) sur desktop | unit |
 | AC-01-08 | Corrections home : écart eyebrow/H1, « Nous contacter », eyebrow sur une ligne, territoire sans carte vide | integration |
+| AC-01-09 | Contenu `/seminaires` réécrit, titre SEO corrigé, FAQ et modal | integration |
 | AC-02-01 | e2e existant + unit |
 | AC-02-02 | integration existant |
 | AC-02-03 | unit |

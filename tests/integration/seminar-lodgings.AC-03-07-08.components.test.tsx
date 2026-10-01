@@ -41,9 +41,9 @@ it('omits an empty selection entirely', () => {
 })
 it('renders public title, city, photo and canonical lodging link', () => {
   render(<SeminarLodgings lodgings={[{ id: 'p1', title: 'T2 cosy', surfaceM2: 65, maxGuests: 4, cityName: 'Saint-Gervais', href: '/logements/t2-cosy', photo: { url: '/cover.jpg', alt: 'Salon du logement' } }]} />)
-  expect(screen.getByRole('heading', { name: 'Le cadre idéal pour votre séminaire.' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Votre chalet de séminaire.' })).toBeVisible()
   expect(screen.getByText('La sélection MyStay')).toBeVisible()
-  expect(screen.getByText(/Découvrez notre sélection de logements pour prolonger les échanges/)).toBeVisible()
+  expect(screen.getByText(/Le Chalet Rémy, à Saint-Gervais-les-Bains : 590 m²/)).toBeVisible()
   expect(screen.getByRole('link')).toHaveAttribute('href', '/logements/t2-cosy')
   expect(screen.getByRole('img')).toHaveAttribute('alt', 'Salon du logement')
   expect(screen.getByText('Saint-Gervais')).toBeVisible()

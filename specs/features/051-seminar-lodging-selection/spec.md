@@ -144,7 +144,7 @@ Les DTO de lecture admin existants ajoutent `seminar_selected: boolean`.
   est publiée ; le bouton permet aussi de préparer une fiche non publiée.
 - Pendant l'enregistrement, le bouton est désactivé. Succès : état actualisé.
   Échec : état précédent conservé et erreur accessible affichée.
-- Bloc `Le cadre idéal pour votre séminaire.` avant la section présentant le lieu
+- Bloc `Votre chalet de séminaire.` (titre validé par le Product Owner le 2026-10-01, remplace « Le cadre idéal pour votre séminaire. ») avant la section présentant le lieu
   sur `/seminaires`, et avant le CTA final sur la landing locale.
 - Cartes cohérentes avec les cartes publiques existantes, grille responsive
   d'une colonne mobile, deux sur tablette et trois sur desktop, dès 375 px.
@@ -152,8 +152,9 @@ Les DTO de lecture admin existants ajoutent `seminar_selected: boolean`.
   exactement la hiérarchie du bloc « L’expérience MyStay » fourni en référence :
   `MarketingEyebrow` avec trait rose et surtitre `La sélection MyStay`, H2 gras
   34–40 px, interligne 1.02 et tracking -0.05em, largeur maximale 720 px.
-  Introduction : « Découvrez notre sélection de logements pour prolonger les
-  échanges et partager des moments en équipe, dans le cadre de votre séminaire. »
+  Introduction (PO, 2026-10-01) : « Le Chalet Rémy, à Saint-Gervais-les-Bains :
+  590 m², jusqu'à 26 personnes, à privatiser pour réunir travail et vie
+  d'équipe. »
   Paragraphe slate-500 en 14 px, interligne 1.72, largeur 660 px et marge haute
   20 px. En-tête de largeur 760 px, séparé des cartes de 34 px puis 48 px dès sm.
   Cartes compactes dédiées, inspirées de `MarketingPropertyCard`, selon la

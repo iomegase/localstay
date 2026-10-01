@@ -20,7 +20,7 @@ test('seminar hub and city render without errors or horizontal overflow', async 
       const refuseAnalytics = page.getByRole('button', { name: 'Refuser', exact: true })
       if (await refuseAnalytics.isVisible()) await refuseAnalytics.click()
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-      const selection = page.getByRole('region', { name: 'Le cadre idéal pour votre séminaire.' })
+      const selection = page.getByRole('region', { name: 'Votre chalet de séminaire.' })
       if (path === '/seminaires' && await selection.count()) {
         await selection.screenshot({ path: test.info().outputPath(`selection-${width}.png`) })
       }
@@ -43,7 +43,7 @@ test.describe('Admin selection lifecycle with an authenticated fixture', () => {
       await expect(row.getByText('Sélectionné pour les séminaires')).toBeVisible()
       for (const path of ['/seminaires', `/seminaires/${citySlug}`]) {
         await page.goto(path)
-        const section = page.getByRole('region', { name: 'Le cadre idéal pour votre séminaire.' })
+        const section = page.getByRole('region', { name: 'Votre chalet de séminaire.' })
         const link = section.locator(`a[href="/logements/${lodgingSlug}"]`)
         await expect(link).toBeVisible()
         await link.click()
@@ -54,7 +54,7 @@ test.describe('Admin selection lifecycle with an authenticated fixture', () => {
       await expect(row.getByRole('button', { name: 'Ajouter à la page Séminaires' })).toBeVisible()
       for (const path of ['/seminaires', `/seminaires/${citySlug}`]) {
         await page.goto(path)
-        await expect(page.getByRole('region', { name: 'Le cadre idéal pour votre séminaire.' }).locator(`a[href="/logements/${lodgingSlug}"]`)).toHaveCount(0)
+        await expect(page.getByRole('region', { name: 'Votre chalet de séminaire.' }).locator(`a[href="/logements/${lodgingSlug}"]`)).toHaveCount(0)
       }
     } finally {
       const result = await request.patch(`/api/admin/lodgings/${lodgingId}/seminar-selection`, { data: { seminar_selected: false } })

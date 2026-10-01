@@ -14,7 +14,7 @@ beforeEach(() => { jest.clearAllMocks(); jest.mocked(listSeminarLodgings).mockRe
 it('renders the global selection before the venue section', async () => {
   render(await SeminarsPage())
   expect(listSeminarLodgings).toHaveBeenCalledWith()
-  const section = screen.getByRole('region', { name: 'Le cadre idéal pour votre séminaire.' })
+  const section = screen.getByRole('region', { name: 'Votre chalet de séminaire.' })
   expect(section.compareDocumentPosition(screen.getByTestId('seminar-place')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(screen.getByRole('link', { name: 'Découvrir T2 cosy' })).toHaveAttribute('href', '/logements/t2-cosy')
 })
@@ -23,7 +23,7 @@ it('passes the resolved City.id to the local selection', async () => {
   jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
   render(await SeminarCityPage({ params: Promise.resolve({ 'city-slug': 'saint-gervais-les-bains' }) }))
   expect(listSeminarLodgings).toHaveBeenCalledWith('city-saint-gervais')
-  expect(screen.getByRole('heading', { name: 'Le cadre idéal pour votre séminaire.' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Votre chalet de séminaire.' })).toBeVisible()
 })
 it('does not read or render a selection for an unpublished landing', async () => {
   jest.mocked(getPublishedLocalLanding).mockResolvedValue(null)
