@@ -102,6 +102,7 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 
 - **AC-02-07** : La fiche canonique `/logements/[lodging-slug]` affiche en bas de page « Vous pourriez aussi apprécier » avec au maximum quatre autres logements publiés, actifs et non supprimés, rattachés à une ville active. Le logement courant est exclu. Priorité aux logements de la même ville, puis complément avec les autres villes, selon l'ordre public existant (mis en avant, publication récente, création récente), avec identifiant comme départage stable. Sélection validée par le Product Owner en conversation.
 - **AC-02-08** : Les images des suggestions sont chargées directement depuis leur URL publique comme la galerie principale (sans proxy d’optimisation Next). Une seule rangée de cartes simples, défilante horizontalement sur mobile sans débordement de page ; chaque carte contient uniquement photo de couverture (ou première photo disponible, fond neutre si absente), titre et localisation publique (secteur si disponible, sinon ville), et mène à la fiche canonique. Le bloc est absent sans autre logement éligible. Aucun changement au modèle de données ni au contrat API ; query serveur interne réutilisant les données publiques existantes.
+- **AC-02-10** : Sur la fiche publique `/logements/[lodging-slug]`, les blocs « Équipements » puis « Services sur demande » occupent chacun une ligne pleine largeur, l'un sous l'autre ; à partir du breakpoint `md`, la liste de chaque bloc est répartie sur 2 colonnes, sans filet sous le dernier élément de chaque colonne. En mode compact (vue logement de la démo, modale mobile), chaque liste reste sur une colonne. Mise en page uniquement, aucun changement de données. Décision du Product Owner en conversation (2026-10-01).
 
 ### US-03 — Réserver ou demander des informations
 
@@ -1000,7 +1001,7 @@ Toutes les erreurs utilisent le format standard :
 - Galerie photos accessible, avec textes alternatifs.
 - Bloc facts compact : voyageurs, chambres, lits, salles de bain, surface si disponible.
 - Description structurée avec headings courts.
-- Équipements en grille d'icônes Lucide.
+- Équipements en grille d'icônes Lucide ; « Équipements » puis « Services sur demande » chacun sur une ligne pleine largeur, liste sur 2 colonnes dès `md` (AC-02-10).
 - Localisation approximative :
   - City et zone textuelle par défaut ;
   - mini-carte uniquement si coordonnées publiques autorisées ;
@@ -1069,6 +1070,7 @@ Toutes les erreurs utilisent le format standard :
 | AC-02-07 | Suggestions : priorité ville, complément publié et exclusion du logement courant | unit |
 | AC-02-08 | Rangée de cartes simples, liens publics et bloc vide masqué | integration |
 | AC-02-06 | Commentaires Owner et liens basés sur la City réelle du POI | unit + integration |
+| AC-02-10 | Équipements et Services sur demande en lignes pleine largeur, listes sur 2 colonnes dès md | unit |
 | AC-03-01 | Clic réservation externe ouvre nouvel onglet et analytics | e2e |
 | AC-03-02 | CTA contact préremplit lodging_id | integration |
 | AC-03-03 | Contact désactivé → CTA absent | unit |
