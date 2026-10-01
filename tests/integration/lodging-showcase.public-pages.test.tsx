@@ -211,6 +211,9 @@ describe('lodging showcase public pages', () => {
     expect(screen.getByRole('region', { name: 'Vous pourriez aussi apprécier' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Chalet des Cimes.*Combloux/ })).toHaveAttribute('href', '/logements/chalet-des-cimes')
     expect(screen.getByRole('img', { name: 'Chalet des Cimes' })).toHaveAttribute('src', 'https://images.unsplash.com/chalet.jpg')
+    // Photo carrée, comme les cartes « L'espace de vie ».
+    expect(screen.getByRole('img', { name: 'Chalet des Cimes' }).parentElement).toHaveClass('aspect-square')
+    expect(screen.getByText('Combloux')).toHaveClass('text-[12px]')
   })
 
   it('AC-02-08: hides suggestions when no other lodging is eligible', async () => {
