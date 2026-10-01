@@ -13,7 +13,9 @@ export function MarketingPropertyCard({
   priority?: boolean
   compact?: boolean
 }) {
-  const location = lodging.public_area_label || lodging.city_name
+  // Commune avec tirets plutôt que la zone libre saisie (spec 031 AC-01-10 (5)).
+  const location = lodging.city_name
+  const photoAlt = `${lodging.title} — ${lodging.city_name}`
 
   if (compact) {
     return (
@@ -30,7 +32,7 @@ export function MarketingPropertyCard({
             {lodging.cover_photo_url && (
               <Image
                 src={lodging.cover_photo_url}
-                alt=""
+                alt={photoAlt}
                 fill
                 priority={priority}
                 unoptimized
@@ -61,7 +63,7 @@ export function MarketingPropertyCard({
           {lodging.cover_photo_url && (
             <Image
               src={lodging.cover_photo_url}
-              alt=""
+              alt={photoAlt}
               fill
               priority={priority}
               unoptimized

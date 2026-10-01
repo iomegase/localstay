@@ -1,6 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['192.0.0.2'],
+  async redirects() {
+    return [
+      // Slug renommé par le Product Owner le 2026-10-01 (audit home) : l'ancienne URL reste valide en 301.
+      {
+        source: '/logements/t2-cosy-le-mont-joly-saint-gervais-les-bains',
+        destination: '/logements/les-hauts-de-saint-gervais',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },

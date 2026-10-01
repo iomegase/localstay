@@ -36,12 +36,12 @@ export function FooterDestinations({ className = '' }: { className?: string }) {
       <h2 className="mb-6 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Nos destinations</h2>
       <div className="grid gap-8 sm:grid-cols-3">
         {columns.map(column => (
-          <div key={column.key} className="flex flex-col items-start gap-3 text-xs text-slate-400 [&_a:hover]:text-white">
-            <Link href={column.hub} className="mb-1 text-[11px] font-semibold text-slate-200">
+          <div key={column.key} className="flex flex-col items-start gap-1 text-[13px] text-slate-400 sm:text-xs [&_a:hover]:text-white">
+            <Link href={column.hub} className="mb-1 inline-flex min-h-8 items-center text-[11px] font-semibold text-slate-200">
               {column.title}
             </Link>
             {links[column.key].map(link => (
-              <Link key={link.href} href={link.href}>
+              <Link key={link.href} href={link.href} className="inline-flex min-h-8 items-center">
                 {link.name}
               </Link>
             ))}

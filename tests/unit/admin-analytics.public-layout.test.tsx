@@ -61,7 +61,7 @@ describe('030 public layout analytics wiring', () => {
       }),
     )
 
-    expect(await screen.findByRole('heading', { name: /mesure analytics/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /mesure d’audience|mesure d'audience/i })).toBeInTheDocument()
     expect(screen.getByTestId('vercel-analytics')).toBeInTheDocument()
     expect(screen.getByTestId('vercel-speed-insights')).toBeInTheDocument()
 

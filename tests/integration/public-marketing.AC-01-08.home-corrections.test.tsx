@@ -37,7 +37,8 @@ describe('031 AC-01-08 — home corrections', () => {
   it('(1) adds 40px between the hero eyebrow and the H1', () => {
     render(<MarketingHome lodgings={[]} />)
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveClass('mt-10')
+    // Depuis AC-01-10 (1), l'eyebrow est dans le H1 : l'écart est porté par le slogan.
+    expect(screen.getByText(/Votre logement,/).closest('span')).toHaveClass('mt-10')
   })
 
   it('(2) labels every former « Confier mon logement » button « Nous contacter », still pointing to the owner form', () => {

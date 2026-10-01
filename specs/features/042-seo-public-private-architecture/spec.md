@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-28
-updated_at: 2026-09-01
+updated_at: 2026-10-01
 depends_on:
   - 006-qr-code
   - 028-lodging-showcase-seo
@@ -175,9 +175,12 @@ existe.
 #### Acceptance Criteria
 
 - **AC-05-01**: Given la homepage, When ses metadata sont générées, Then son
-  titre absolu est `Conciergerie à Saint-Gervais-les-Bains | MyStay`, sa
+  titre absolu est `Conciergerie dans le Pays du Mont-Blanc | MyStay`, sa
   description présente la conciergerie locale, la préparation des logements et
   l'accueil voyageurs dans le Pays du Mont-Blanc, et son canonical est `/`.
+  (Amendé le 2026-10-01 : la requête « Conciergerie à Saint-Gervais-les-Bains »
+  est laissée à la landing `/conciergerie/saint-gervais-les-bains` pour éviter
+  la cannibalisation — décision du Product Owner.)
 - **AC-05-02**: Given le schéma `Organization`, When il est émis, Then son
   `@id` stable est `https://www.mystay.city/#organization` et seules des
   informations réellement connues et publiques sont incluses.

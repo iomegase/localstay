@@ -22,7 +22,7 @@ describe('030 analytics consent banner', () => {
   it('shows the banner when consent is unset and persists refusal', async () => {
     render(<AnalyticsConsentBanner />)
 
-    expect(screen.getByRole('heading', { name: /mesure analytics/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /mesure d’audience|mesure d'audience/i })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /refuser/i }))
 
@@ -30,7 +30,7 @@ describe('030 analytics consent banner', () => {
       expect(window.localStorage.getItem(ANALYTICS_CONSENT_KEY)).toBe('refused')
     })
 
-    expect(screen.queryByText(/mesure analytics/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/mesure d’audience|mesure d'audience/i)).not.toBeInTheDocument()
   })
 
   it('persists acceptance and records consented public interactions only after accept', async () => {

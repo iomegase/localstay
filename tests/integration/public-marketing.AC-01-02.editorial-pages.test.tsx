@@ -2,7 +2,7 @@
 
 import { render, screen, within } from '@testing-library/react'
 
-jest.mock('next/navigation', () => ({ redirect: jest.fn() }))
+jest.mock('next/navigation', () => ({ redirect: jest.fn(), usePathname: () => '/concept' }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({
   listPublishedLocalLandingSummaries: jest.fn(async () => []),
 }))

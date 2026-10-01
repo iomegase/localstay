@@ -2,13 +2,16 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { ArrowRight, UserRound, X } from 'lucide-react'
 
 import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemoPhoneButton'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
-import { marketingNavigation } from './marketing-navigation'
+import { marketingNavigationFor } from './marketing-navigation'
 
 export function MarketingMobileMenu() {
+  const pathname = usePathname()
+
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -159,7 +162,7 @@ export function MarketingMobileMenu() {
             "
           >
             <div className="grid gap-1">
-              {marketingNavigation.map((item) => (
+              {marketingNavigationFor(pathname).map((item) => (
                 <Dialog.Close asChild key={item.href}>
                   <Link
                     href={item.href}

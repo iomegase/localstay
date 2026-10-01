@@ -14,7 +14,7 @@ export function SeminarLodgings({ lodgings }: { lodgings: SeminarLodging[] }) {
           Votre chalet de séminaire.
         </h2>
         <p className="mt-5 max-w-[660px] text-sm leading-[1.72] text-slate-500">
-          Le Chalet Rémy, à Saint-Gervais-les-Bains : 590 m², jusqu’à 26
+          Le Chalet Rémy, à Saint-Gervais-les-Bains : 525 m², jusqu’à 26
           personnes, à privatiser pour réunir travail et vie d’équipe.
         </p>
       </div>

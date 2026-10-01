@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react'
 
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLauncher'
+import { GuidePhoneShowcase } from './GuidePhoneShowcase'
 
 import { MarketingPropertyCard } from './MarketingPropertyCard'
 import { MarketingFaqSection } from './MarketingFaqSection'
@@ -48,7 +49,7 @@ const conciergeServices = [
   },
   {
     number: '02',
-    title: 'Accueil voyageurs',
+    title: 'Accueil des voyageurs',
     copy:
       'Préparation de l’arrivée, informations pratiques et assistance pendant toute la durée du séjour.',
   },
@@ -72,28 +73,11 @@ const conciergeServices = [
   },
 ] as const
 
+// Bloc « Le guide MyStay » repris des landings conciergerie (spec 031 AC-01-11).
 const guideBenefits = [
-  {
-    number: '01',
-    label: 'Avant l’arrivée',
-    title: 'Une arrivée déjà préparée',
-    copy:
-      'Accès, stationnement, horaires et informations pratiques sont disponibles avant même le départ du voyageur.',
-  },
-  {
-    number: '02',
-    label: 'Pendant le séjour',
-    title: 'Les bonnes informations au bon moment',
-    copy:
-      'Équipements, consignes et recommandations locales restent accessibles à tout moment, sans application à installer.',
-  },
-  {
-    number: '03',
-    label: 'Pour le propriétaire',
-    title: 'Moins de questions répétitives',
-    copy:
-      'Les informations essentielles sont centralisées. Nous restons disponibles pour les demandes qui nécessitent réellement une présence humaine.',
-  },
+  'Moins de questions répétitives.',
+  'Une arrivée plus fluide.',
+  'Une information toujours accessible.',
 ] as const
 
 // Textes éditoriaux par commune ; seules les communes ayant des POI publiés
@@ -218,25 +202,17 @@ export function MarketingHome({
             className="
               relative
               flex min-h-[580px] flex-col
-              px-4 pb-14 pt-16
+              pb-14 pt-16
               text-slate-800
-              sm:px-10
-              min-[761px]:px-[46px]
               min-[761px]:pt-[76px]
-              min-[1051px]:px-16
-              xl:px-[52px]
               xl:pb-[48px]
               xl:pt-[64px]
             "
           >
             <div className="max-w-[760px] xl:max-w-[690px]">
-              <MarketingEyebrow>
-                Conciergerie locale en Haute-Savoie
-              </MarketingEyebrow>
-
+              {/* Le H1 porte le mot-clé (au style eyebrow) puis le slogan (spec 031 AC-01-10 (1)). */}
               <h1
                 className="
-                  mt-10
                   max-w-[760px]
                   text-[42px]
                   font-bold
@@ -247,9 +223,14 @@ export function MarketingHome({
                   xl:text-[54px]
                 "
               >
-                Votre logement, 
-                <br />
-               suivi localement.
+                <MarketingEyebrow>
+                  Conciergerie dans le Pays du Mont-Blanc
+                </MarketingEyebrow>{' '}
+                <span className="mt-10 block">
+                  Votre logement,
+                  <br />
+                  suivi localement.
+                </span>{' '}
                 <span
                   className="
                     mt-3 block
@@ -581,155 +562,48 @@ export function MarketingHome({
       {/* =========================================================
           GUIDE DIGITAL
       ========================================================== */}
-    <section
-  data-testid="editorial-process"
-  className={`
-    ${marketingContainerClass}
-    pb-20 pt-10
-    sm:pb-28
-    xl:pb-[96px] xl:pt-[72px]
-  `}
->
-  <div className="max-w-[700px]">
-    <MarketingEyebrow>Ce qui distingue MyStay</MarketingEyebrow>
+      <section
+        data-testid="editorial-process"
+        className={`
+          ${marketingContainerClass}
+          grid gap-12
+          pb-20 pt-10
+          sm:pb-28
+          lg:grid-cols-[1fr_.8fr]
+          lg:items-center
+          xl:pb-[96px] xl:pt-[72px]
+        `}
+      >
+        <div>
+          <MarketingEyebrow>Le guide MyStay</MarketingEyebrow>
 
-    <h2
-      className="
-        max-w-[680px]
-        text-3xl
-        font-bold
-        leading-[1.15]
-        tracking-[-0.05em]
-        sm:text-[44px]
-        xl:text-[40px]
-        xl:leading-[1.1]
-      "
-    >
-      Une conciergerie prolongée par le digital.
-    </h2>
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px] xl:leading-[1.1]">
+            Moins de questions, plus de bons avis.
+          </h2>
 
-    <p
-      className="
-        mt-7
-        max-w-[620px]
-        text-sm
-        leading-7
-        text-slate-500
-        xl:text-[13px]
-        xl:leading-[1.75]
-      "
-    >
-      Le voyageur retrouve dans son guide MyStay les informations de son
-      logement, les consignes d’arrivée, les équipements et une sélection de
-      recommandations locales. Toutes ces informations restent accessibles
-      depuis un simple lien ou un QR code.
-    </p>
-
-    <div className="mt-7">
-      <GuideDemoLauncher />
-    </div>
-  </div>
-
-  <div
-    className="
-      mt-12
-      grid
-      grid-cols-2
-      gap-3
-      sm:gap-4
-      lg:grid-cols-3
-    "
-  >
-    {guideBenefits.map((item, index) => {
-      const isLast = index === guideBenefits.length - 1
-      const isOdd = guideBenefits.length % 2 !== 0
-
-      return (
-        <article
-          key={item.number}
-          className={`
-            group
-            relative
-            min-h-[190px]
-            min-w-0
-            overflow-hidden
-            rounded-[22px]
-            bg-[#f8f7f5]
-            px-4
-            py-5
-            transition-all
-            duration-300
-            hover:-translate-y-[3px]
-            hover:bg-white
-            hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)]
-            sm:px-5
-
-            ${
-              isLast && isOdd
-                ? 'col-span-2 lg:col-span-1'
-                : ''
-            }
-          `}
-        >
-          <span
-            aria-hidden="true"
-            className="
-              absolute
-              left-4
-              top-0
-              h-[3px]
-              w-10
-              rounded-b-full
-              bg-pink-600
-              sm:left-5
-            "
-          />
-
-          <span
-            className="
-              text-[9px]
-              font-semibold
-              uppercase
-              tracking-[0.14em]
-              text-slate-400
-              sm:text-[10px]
-            "
-          >
-            {item.label}
-          </span>
-
-          <h3
-            className="
-              mt-4
-              text-[15px]
-              font-bold
-              leading-[1.2]
-              tracking-[-0.035em]
-              text-slate-900
-              sm:text-[17px]
-            "
-          >
-            {item.title}
-          </h3>
-
-          <p
-            className="
-              mt-4
-              text-[12px]
-              leading-[1.55]
-              text-slate-500
-              sm:max-w-[250px]
-              sm:text-[12.5px]
-              sm:leading-[1.6]
-            "
-          >
-            {item.copy}
+          <p className="mt-7 text-sm leading-7 text-slate-500 xl:text-[13px] xl:leading-[1.75]">
+            Chaque logement a son guide personnalisé : vos voyageurs y trouvent
+            l’arrivée, le Wi-Fi, les équipements, les consignes et nos
+            recommandations dans le Pays du Mont-Blanc. Ils sont autonomes, et
+            votre logement est mieux respecté.
           </p>
-        </article>
-      )
-    })}
-  </div>
-</section>
+
+          <ul className="mt-7 space-y-3 text-sm font-bold text-slate-800">
+            {guideBenefits.map(benefit => (
+              <li key={benefit} data-testid="home-guide-benefit">
+                {benefit}
+              </li>
+            ))}
+          </ul>
+
+          <GuideDemoLauncher />
+        </div>
+
+        <GuidePhoneShowcase
+          className="flex"
+          alt="Aperçu du guide voyageur MyStay sur téléphone"
+        />
+      </section>
 
       {/* =========================================================
           LOGEMENTS
@@ -1149,7 +1023,7 @@ export function MarketingHome({
               href="/confier-mon-logement"
               className={`${marketingPrimaryButtonClass} mt-6`}
             >
-              Échanger sur mon projet
+              Nous contacter
             </Link>
           </div>
         </div>

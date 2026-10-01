@@ -8,7 +8,7 @@ import SeminarCityPage from '@/app/(public)/seminaires/[city-slug]/page'
 
 jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({ listSeminarLodgings: jest.fn() }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn(), listPublishedLocalLandingSummaries: jest.fn().mockResolvedValue([]) }))
-jest.mock('next/navigation', () => ({ notFound: () => { throw new Error('NEXT_NOT_FOUND') } }))
+jest.mock('next/navigation', () => ({ usePathname: () => '/logements', notFound: () => { throw new Error('NEXT_NOT_FOUND') } }))
 const card = { id: 'p1', title: 'T2 cosy', surfaceM2: 65, maxGuests: 4, cityName: 'Saint-Gervais', href: '/logements/t2-cosy', photo: null }
 beforeEach(() => { jest.clearAllMocks(); jest.mocked(listSeminarLodgings).mockResolvedValue([card]) })
 it('renders the global selection before the venue section', async () => {

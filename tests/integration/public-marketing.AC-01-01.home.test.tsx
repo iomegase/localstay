@@ -27,9 +27,10 @@ describe('031-public-marketing-site home', () => {
     expect(screen.queryByText('Accès sur invitation')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Nous connaissons les logements que nous accompagnons/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Un accompagnement concret,.*avant, pendant et après chaque séjour/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Une conciergerie prolongée par le digital/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Moins de questions, plus de bons avis.' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Coordination des séjours' })).toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { name: 'Accueil voyageurs' })).toHaveLength(2)
+    expect(screen.getByRole('heading', { name: 'Accueil voyageurs' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Accueil des voyageurs' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Ménage & linge' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Intendance' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Guide digital MyStay' })).toBeInTheDocument()
@@ -46,7 +47,6 @@ describe('031-public-marketing-site home', () => {
     expect(screen.getByTestId('editorial-hero-content')).toHaveClass(
       'text-slate-800',
       'min-h-[580px]',
-      'xl:px-[52px]',
       'xl:pb-[48px]',
       'xl:pt-[64px]',
     )

@@ -73,9 +73,9 @@ routes privées, l'authentification et les API existantes restent inchangées.
   l'échelle artificielle : surface de 1184 px avec rayon de 34 px, conteneurs
   éditoriaux de 944 px, header de 62 px, logo de 118 px et hero clair sans
   image de fond de 580 px minimum avec les classes desktop
-  `xl:px-[52px] xl:pt-[64px] xl:pb-[48px]`. La home actuelle approuvée présente
-  une présence locale, cinq services et trois bénéfices du guide sous forme de
-  cartes textuelles à liseré rose, sans numéro visible ni ancien bloc
+  `xl:pt-[64px] xl:pb-[48px]` (sans padding horizontal depuis AC-01-10). La home actuelle approuvée présente
+  une présence locale, cinq services sous forme de cartes textuelles à liseré rose
+  puis le bloc « Le guide MyStay » (AC-01-11), sans numéro visible ni ancien bloc
   d'introduction éditoriale.
 - **AC-01-06**: Given la page `/seminaires`, When elle s'affiche, Then sa
   composition reprend la version éditoriale validée : hero clair sans image de
@@ -110,6 +110,33 @@ routes privées, l'authentification et les API existantes restent inchangées.
   questions sur deux colonnes ; appel final « Parlons de votre prochain
   séminaire. » ; les boutons « Recevoir une proposition » ouvrent la modal de
   la spec 052 au lieu d'un lien e-mail.
+- **AC-01-10**: Given la home et le chrome marketing, When ils s'affichent, Then
+  les corrections de l'audit du 2026-10-01 validées par le Product Owner sont
+  appliquées : (1) le H1 commence par le mot-clé « Conciergerie dans le Pays du
+  Mont-Blanc » au style eyebrow, suivi du slogan inchangé visuellement ; (2) le
+  contenu du hero n'a plus de padding horizontal propre et s'aligne sur les
+  sections suivantes ; (3) la carte service s'intitule « Accueil des
+  voyageurs » ; (4) le bloc final affiche « Nous contacter » ; (5) les cartes
+  logement affichent la commune (`city_name`, avec tirets) et non
+  `public_area_label`, et leur photo reçoit l'alternative « [Titre] —
+  [Commune] » ; (6) l'entrée « Nos services » est masquée du menu (desktop et
+  mobile) sur `/` et mène à `/#services` sur les autres pages, footer compris ;
+  (7) le footer masque les icônes réseaux sociaux, ne répète plus « Découvrir »
+  en titre de colonne, rend les liens légaux cliquables, offre des cibles
+  tactiles d'au moins 32 px sur mobile et dispose ses colonnes de liens sur
+  deux colonnes dès 375 px ; « Aide & contact » ouvre la modal de la spec 053 ;
+  (8) données : le logement « Les Hauts de Saint-Gervais » est servi sous
+  `/logements/les-hauts-de-saint-gervais` et son ancienne URL
+  `/logements/t2-cosy-le-mont-joly-saint-gervais-les-bains` redirige de façon
+  permanente ; la surface du Chalet Rémy est de 525 m² partout.
+- **AC-01-11**: Given la home, When elle s'affiche, Then la section « Ce qui
+  distingue MyStay » est remplacée par le bloc « Le guide MyStay » des landings
+  conciergerie (titre « Moins de questions, plus de bons avis. », texte, trois
+  bénéfices en gras « Moins de questions répétitives. », « Une arrivée plus
+  fluide. », « Une information toujours accessible. » et visuel téléphone
+  `GuidePhoneShowcase`) ; le bouton est « Voir le guide d'exemple » (démo) et
+  non un lien vers `/concept`, page appelée à disparaître. Décision du Product
+  Owner (2026-10-01).
 
 ### US-02 — Préserver le guide voyageur privé
 
@@ -508,6 +535,8 @@ optionnel `source: owner_lead`. Il conserve ses états visuels existants.
 | AC-01-07 | Logo du header décalé (~30 px gauche/haut) sur desktop | unit |
 | AC-01-08 | Corrections home : écart eyebrow/H1, « Nous contacter », eyebrow sur une ligne, territoire sans carte vide | integration |
 | AC-01-09 | Contenu `/seminaires` réécrit, titre SEO corrigé, FAQ et modal | integration |
+| AC-01-10 | Corrections audit home : H1 mot-clé, hero aligné, libellés, cartes logement, menu « Nos services », footer | integration + unit |
+| AC-01-11 | Bloc « Le guide MyStay » sur la home | integration |
 | AC-02-01 | e2e existant + unit |
 | AC-02-02 | integration existant |
 | AC-02-03 | unit |

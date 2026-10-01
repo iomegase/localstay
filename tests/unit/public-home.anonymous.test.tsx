@@ -23,7 +23,8 @@ jest.mock('@/shared/lib/prisma', () => ({
   },
 }))
 
-jest.mock('next/navigation', () => ({ useSearchParams: () => ({ get: () => null }) }))
+jest.mock('next/navigation', () => ({ useSearchParams: () => ({ get: () => null }), usePathname: () => '/' }))
+jest.mock('@/features/public-discovery/queries/public-discovery', () => ({ getDiscoveryIndex: jest.fn(async () => []) }))
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,

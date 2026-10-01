@@ -153,7 +153,7 @@ Les DTO de lecture admin existants ajoutent `seminar_selected: boolean`.
   `MarketingEyebrow` avec trait rose et surtitre `La sélection MyStay`, H2 gras
   34–40 px, interligne 1.02 et tracking -0.05em, largeur maximale 720 px.
   Introduction (PO, 2026-10-01) : « Le Chalet Rémy, à Saint-Gervais-les-Bains :
-  590 m², jusqu'à 26 personnes, à privatiser pour réunir travail et vie
+  525 m², jusqu'à 26 personnes, à privatiser pour réunir travail et vie
   d'équipe. »
   Paragraphe slate-500 en 14 px, interligne 1.72, largeur 660 px et marge haute
   20 px. En-tête de largeur 760 px, séparé des cartes de 34 px puis 48 px dès sm.

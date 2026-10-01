@@ -3,7 +3,7 @@ import { UserRound } from 'lucide-react'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemoPhoneButton'
 import { MarketingMobileMenu } from './MarketingMobileMenu'
-import { marketingNavigation } from './marketing-navigation'
+import { MarketingDesktopNav } from './MarketingDesktopNav'
 import { marketingContainerClass } from './marketing-styles'
 
 export function MarketingBrand({ light = false }: { light?: boolean }) {
@@ -31,20 +31,7 @@ export function MarketingHeader() {
           <MarketingBrand />
         </span>
 
-        <nav
-          aria-label="Navigation principale"
-          className="ml-auto hidden shrink-0 items-center gap-1 text-[12px] font-semibold lg:flex xl:gap-1.5"
-        >
-          {marketingNavigation.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="whitespace-nowrap rounded-full px-3 py-2.5 transition-colors hover:bg-pink-50 hover:text-pink-600 xl:px-[9px] xl:py-2"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <MarketingDesktopNav />
 
         <GuideDemoPhoneButton className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-pink-600 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]" />
 

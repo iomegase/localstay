@@ -7,6 +7,7 @@ import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-p
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn() }))
 
 jest.mock('next/navigation', () => ({
+  usePathname: () => '/conciergerie/saint-gervais-les-bains',
   notFound: jest.fn(() => {
     throw new Error('NEXT_NOT_FOUND')
   }),

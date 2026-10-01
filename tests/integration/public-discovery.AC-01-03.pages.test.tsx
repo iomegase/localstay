@@ -16,7 +16,7 @@ import {
 } from '@/features/public-discovery/queries/public-discovery'
 import { buildDiscoveryDirectionsHref } from '@/features/public-discovery/lib/directions'
 
-jest.mock('next/navigation', () => ({ notFound: jest.fn() }))
+jest.mock('next/navigation', () => ({ usePathname: () => '/decouvrir', notFound: jest.fn() }))
 jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
   getDiscoveryCity: jest.fn(),
   getDiscoveryCategory: jest.fn(),

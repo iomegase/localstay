@@ -72,11 +72,13 @@ function openGraph(input: {
  * "gestion locative" ou "gestion immobilière".
  */
 export function homeMetadata(): Metadata {
+  // « Conciergerie à Saint-Gervais-les-Bains » est laissé à la landing locale
+  // pour éviter la cannibalisation (spec 042 AC-05-01, amendé le 2026-10-01).
   const title =
-    'Conciergerie à Saint-Gervais-les-Bains | MyStay'
+    'Conciergerie dans le Pays du Mont-Blanc | MyStay'
 
   const description = truncate(
-    'MyStay, conciergerie à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : accueil voyageurs, préparation des logements, ménage, linge et intendance.',
+    'MyStay, conciergerie dans le Pays du Mont-Blanc : accueil des voyageurs, préparation des logements, ménage, linge, intendance et guide digital.',
   )
 
   const path = '/'

@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import { publicLocalLanding } from '../fixtures/public-local-landing'
 import { siteBaseUrl } from '@/features/seo/lib/site'
 
-jest.mock('next/navigation', () => ({ notFound: jest.fn(() => { throw new Error('NEXT_NOT_FOUND') }) }))
+jest.mock('next/navigation', () => ({ usePathname: () => '/decouvrir', notFound: jest.fn(() => { throw new Error('NEXT_NOT_FOUND') }) }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({
   getPublishedLocalLanding: jest.fn(),
   listPublishedLocalLandingSummaries: jest.fn(),

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-19
-updated_at: 2026-06-22
+updated_at: 2026-10-01
 depends_on:
   - 001-city-guide
   - 011-qr-code-owner
@@ -1058,6 +1058,12 @@ components:
 - Une fois un choix persisté, la bannière ne se réaffiche plus à chaque navigation tant que le choix n'est pas effacé.
 - Le choix `accepted` permet le chargement client du tracking GA4.
 - Le choix `refused` conserve le site pleinement utilisable sans charger GA4.
+- Texte (Product Owner, 2026-10-01) : eyebrow « Cookies », titre « Mesure
+  d'audience », texte « Avec votre accord, nous utilisons Google Analytics pour
+  savoir quelles pages sont consultées et améliorer le site. Si vous refusez,
+  aucun outil de mesure n'est chargé et le site fonctionne normalement. »
+- Placement : compacte en bas de l'écran sur mobile ; à partir de `sm`, ancrée
+  en bas à gauche (largeur max 360 px) pour ne pas masquer le contenu central.
 
 ---
 

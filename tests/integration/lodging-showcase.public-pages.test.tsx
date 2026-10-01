@@ -30,7 +30,7 @@ jest.mock('mapbox-gl', () => ({
 const mockNotFound = jest.fn()
 const mockPermanentRedirect = jest.fn()
 
-jest.mock('next/navigation', () => ({
+jest.mock('next/navigation', () => ({ usePathname: () => '/logements',
   notFound: () => mockNotFound(),
   permanentRedirect: (destination: string) => mockPermanentRedirect(destination),
 }))
