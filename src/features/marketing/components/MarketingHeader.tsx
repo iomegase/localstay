@@ -26,7 +26,10 @@ export function MarketingHeader() {
       <div
         className={`${marketingContainerClass} flex h-[72px] items-center gap-4 md:h-[76px] xl:h-[62px] xl:gap-[14px]`}
       >
-        <MarketingBrand />
+        {/* Logo décalé (~30 px gauche/haut) sur desktop pour aérer le menu (spec 031 AC-01-07). */}
+        <span data-testid="marketing-header-brand" className="inline-flex lg:-translate-x-[30px] lg:-translate-y-[30px]">
+          <MarketingBrand />
+        </span>
 
         <nav
           aria-label="Navigation principale"

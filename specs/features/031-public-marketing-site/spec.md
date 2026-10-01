@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-07-29
-updated_at: 2026-09-13
+updated_at: 2026-10-01
 depends_on:
   - 006-qr-code
   - 009-auth-owner
@@ -83,6 +83,11 @@ routes privées, l'authentification et les API existantes restent inchangées.
   CTA rose, quatre cartes de services, section sombre « Le bon cadre », trois
   formats, processus sombre en quatre étapes et CTA final, avec les adaptations
   responsive prévues à 1050 px et 760 px.
+- **AC-01-07**: Given le header marketing sur desktop (à partir de `lg`), When il
+  s'affiche, Then le logo est décalé d'environ 30 px vers la gauche et vers le
+  haut pour aérer l'espace avec le menu, sans déplacer le menu ni les actions ;
+  le logo reste inchangé sur mobile et tablette. Décision du Product Owner
+  (2026-10-01).
 
 ### US-02 — Préserver le guide voyageur privé
 
@@ -478,6 +483,7 @@ optionnel `source: owner_lead`. Il conserve ses états visuels existants.
 | AC-01-04 | integration + e2e |
 | AC-01-05 | integration + e2e |
 | AC-01-06 | integration + e2e |
+| AC-01-07 | Logo du header décalé (~30 px gauche/haut) sur desktop | unit |
 | AC-02-01 | e2e existant + unit |
 | AC-02-02 | integration existant |
 | AC-02-03 | unit |
