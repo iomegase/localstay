@@ -13,7 +13,7 @@ describe('031-public-marketing-site navigation', () => {
       'href',
       '/auth/login',
     )
-    expect(screen.getAllByRole('link', { name: /Confier mon logement/i })[0]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: /Nous contacter/i })[0]).toHaveAttribute(
       'href',
       '/confier-mon-logement',
     )
@@ -37,7 +37,7 @@ describe('031-public-marketing-site navigation', () => {
       'Notre approche',
       'Journal',
       'Connexion',
-      'Confier mon logement',
+      'Nous contacter',
     ])
     expect(within(mobileNavigation).getByText('Guide démo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
-updated_at: 2026-08-31
+updated_at: 2026-10-01
 depends_on:
   - 001-city-guide
   - 002-categories
@@ -565,7 +565,7 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
   département et région disponibles.
 - Grille de catégories publiée avec nom, icône, nombre de POI et lien public.
 - Sélection de POI illustrés utilisant la première photo exploitable.
-- Bloc final sombre avec CTA principal `Confier mon logement` et lien vers
+- Bloc final sombre avec CTA principal `Nous contacter` (vers `/confier-mon-logement`, libellé changé le 2026-10-01, spec 031 AC-01-08) et lien vers
   `/concept` pour relier l'expertise locale à l'offre de conciergerie.
 - Aucun menu, bottom navigation ou contenu appartenant au séjour privé.
 

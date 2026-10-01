@@ -50,7 +50,7 @@ describe('031-public-marketing-site home', () => {
       'xl:pb-[48px]',
       'xl:pt-[64px]',
     )
-    expect(screen.getAllByRole('link', { name: 'Confier mon logement' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: 'Nous contacter' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: 'Découvrir MyStay' })).toHaveAttribute('href', '/concept')
     expect(screen.getByTestId('editorial-process')).toHaveClass(
       'xl:pb-[96px]',

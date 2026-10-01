@@ -266,7 +266,7 @@ export function MarketingMobileMenu() {
                     focus-visible:outline-pink-600
                   "
                 >
-                  Confier mon logement
+                  Nous contacter
                 </Link>
               </Dialog.Close>
             </div>

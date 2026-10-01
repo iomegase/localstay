@@ -115,7 +115,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
             <MarketingEyebrow light>Votre logement</MarketingEyebrow>
             <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">Offrez cette expertise locale à vos voyageurs.</h2>
           </div>
-          <Link className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-white px-6 text-xs font-bold text-slate-800 transition-colors hover:bg-pink-600 hover:text-white" href="/confier-mon-logement">Confier mon logement</Link>
+          <Link className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-white px-6 text-xs font-bold text-slate-800 transition-colors hover:bg-pink-600 hover:text-white" href="/confier-mon-logement">Nous contacter</Link>
         </aside>
       </article>
     </MarketingShell>

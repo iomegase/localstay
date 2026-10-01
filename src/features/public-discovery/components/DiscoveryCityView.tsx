@@ -82,7 +82,7 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
             </Link>
           </div>
           <Link className={`${marketingDarkButtonClass} shrink-0 bg-white text-slate-800 hover:text-white`} href="/confier-mon-logement">
-            Confier mon logement
+            Nous contacter
           </Link>
         </aside>
       </div>

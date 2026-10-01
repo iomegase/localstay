@@ -6,6 +6,7 @@ import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLau
 
 import { MarketingPropertyCard } from './MarketingPropertyCard'
 import { MarketingFaqSection } from './MarketingFaqSection'
+import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
 
 import {
   MarketingEyebrow,
@@ -95,33 +96,48 @@ const guideBenefits = [
   },
 ] as const
 
-const destinations = [
-  {
+// Textes éditoriaux par commune ; seules les communes ayant des POI publiés
+// dans la découverte publique sont affichées (spec 031 AC-01-08).
+const destinationCopy: Record<string, { name: string; description: string }> = {
+  'saint-gervais-les-bains': {
     name: 'Saint-Gervais-les-Bains',
     description: 'Montagne, thermalisme, ski et vallée du Mont-Blanc.',
-    href: '/decouvrir/saint-gervais-les-bains',
   },
-  {
+  'les-contamines-montjoie': {
     name: 'Les Contamines-Montjoie',
     description: 'Randonnées, réserve naturelle et grands espaces.',
-    href: null,
   },
-  {
+  'saint-nicolas-de-veroce': {
     name: 'Saint-Nicolas-de-Véroce',
     description: 'Alpages, Mont-Joly et versant sauvage du massif.',
-    href: null,
   },
-  {
+  megeve: {
     name: 'Megève',
     description: 'Village alpin, gastronomie et domaine skiable.',
-    href: null,
   },
-  {
+  chamonix: {
     name: 'Chamonix',
     description: 'Haute montagne et accès au massif du Mont-Blanc.',
-    href: null,
   },
-] as const
+}
+
+const editorialOrder = Object.keys(destinationCopy)
+
+export type MarketingTerritoryCity = { slug: string; name: string }
+
+function territoryDestinations(cities: MarketingTerritoryCity[]) {
+  return [...cities]
+    .sort((left, right) => {
+      const a = editorialOrder.indexOf(left.slug)
+      const b = editorialOrder.indexOf(right.slug)
+      return (a === -1 ? Infinity : a) - (b === -1 ? Infinity : b) || left.name.localeCompare(right.name, 'fr')
+    })
+    .map(city => ({
+      name: destinationCopy[city.slug]?.name ?? city.name.replace(/\s+/g, ' ').trim(),
+      description: destinationCopy[city.slug]?.description ?? null,
+      href: publicDiscoveryCityPath(city.slug),
+    }))
+}
 
 const discoveryItems = [
   {
@@ -177,9 +193,13 @@ const faqs = [
 
 export function MarketingHome({
   lodgings,
+  territoryCities = [],
 }: {
   lodgings: MarketingLodgingCard[]
+  territoryCities?: MarketingTerritoryCity[]
 }) {
+  const destinations = territoryDestinations(territoryCities)
+
   return (
     <MarketingShell>
       {/* =========================================================
@@ -216,6 +236,7 @@ export function MarketingHome({
 
               <h1
                 className="
+                  mt-10
                   max-w-[760px]
                   text-[42px]
                   font-bold
@@ -266,7 +287,7 @@ export function MarketingHome({
                   href="/confier-mon-logement"
                   className={marketingPrimaryButtonClass}
                 >
-                  Confier mon logement
+                  Nous contacter
                 </Link>
 
                 <Link
@@ -728,7 +749,7 @@ export function MarketingHome({
       >
         <div className="xl:sticky xl:top-7">
           <MarketingEyebrow>
-            Les logements confiés à MyStay
+            <span className="whitespace-nowrap">Les logements confiés à MyStay</span>
           </MarketingEyebrow>
 
           <h2
@@ -862,10 +883,29 @@ export function MarketingHome({
     </p>
   </div>
 
-  <div className="mt-12 grid gap-3">
-    {destinations.map((destination, index) => {
-      const content = (
-        <>
+  {destinations.length > 0 && (
+    <div data-testid="home-territory" className="mt-12 grid gap-3">
+      {destinations.map((destination, index) => (
+        <Link
+          key={destination.href}
+          href={destination.href}
+          className="
+            group
+            grid
+            grid-cols-[32px_minmax(0,1fr)_auto]
+            items-center
+            gap-4
+            rounded-[18px]
+            bg-[#f8f7f5]
+            px-5
+            py-4
+            transition-all
+            duration-300
+            hover:-translate-y-[1px]
+            hover:bg-white
+            hover:shadow-[0_10px_30px_rgba(15,23,42,0.06)]
+          "
+        >
           <span className="text-[11px] font-semibold text-slate-400">
             {String(index + 1).padStart(2, '0')}
           </span>
@@ -882,87 +922,42 @@ export function MarketingHome({
               {destination.name}
             </h3>
 
-            <p className="mt-1 text-[12.5px] leading-6 text-slate-500">
-              {destination.description}
-            </p>
+            {destination.description ? (
+              <p className="mt-1 text-[12.5px] leading-6 text-slate-500">
+                {destination.description}
+              </p>
+            ) : null}
           </div>
 
-          {destination.href ? (
-            <span
-              aria-hidden="true"
-              className="
-                ml-auto
-                flex
-                size-9
-                shrink-0
-                items-center
-                justify-center
-                rounded-full
-                bg-white
-                text-slate-400
-                shadow-[0_4px_14px_rgba(15,23,42,0.05)]
-                transition-all
-                duration-300
-                group-hover:translate-x-0.5
-                group-hover:bg-pink-600
-                group-hover:text-white
-              "
-            >
-              <ChevronRight
-                className="size-4"
-                strokeWidth={1.8}
-              />
-            </span>
-          ) : null}
-        </>
-      )
-
-      if (destination.href) {
-        return (
-          <Link
-            key={destination.name}
-            href={destination.href}
+          <span
+            aria-hidden="true"
             className="
-              group
-              grid
-              grid-cols-[32px_minmax(0,1fr)_auto]
+              ml-auto
+              flex
+              size-9
+              shrink-0
               items-center
-              gap-4
-              rounded-[18px]
-              bg-[#f8f7f5]
-              px-5
-              py-4
+              justify-center
+              rounded-full
+              bg-white
+              text-slate-400
+              shadow-[0_4px_14px_rgba(15,23,42,0.05)]
               transition-all
               duration-300
-              hover:-translate-y-[1px]
-              hover:bg-white
-              hover:shadow-[0_10px_30px_rgba(15,23,42,0.06)]
+              group-hover:translate-x-0.5
+              group-hover:bg-pink-600
+              group-hover:text-white
             "
           >
-            {content}
-          </Link>
-        )
-      }
-
-      return (
-        <div
-          key={destination.name}
-          className="
-            grid
-            grid-cols-[32px_minmax(0,1fr)]
-            items-center
-            gap-4
-            rounded-[18px]
-            bg-[#f8f7f5]
-            px-5
-            py-4
-          "
-        >
-          {content}
-        </div>
-      )
-    })}
-  </div>
+            <ChevronRight
+              className="size-4"
+              strokeWidth={1.8}
+            />
+          </span>
+        </Link>
+      ))}
+    </div>
+  )}
 </section>
 
       {/* =========================================================
@@ -997,7 +992,7 @@ export function MarketingHome({
             href="/confier-mon-logement"
             className={`${marketingPrimaryButtonClass} mt-7`}
           >
-            Confier mon logement
+            Nous contacter
           </Link>
         </article>
 

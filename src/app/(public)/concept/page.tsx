@@ -169,7 +169,7 @@ export default function ConceptPage() {
                 href="/confier-mon-logement"
                 className={marketingPrimaryButtonClass}
               >
-                Confier mon logement
+                Nous contacter
               </Link>
 
               <GuideDemoLauncher

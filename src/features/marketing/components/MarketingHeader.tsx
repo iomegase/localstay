@@ -65,7 +65,7 @@ export function MarketingHeader() {
           href="/confier-mon-logement"
           className="hidden min-h-10 shrink-0 items-center rounded-full bg-slate-800 px-4 text-[12px] font-bold text-white transition-colors hover:bg-pink-600 lg:inline-flex xl:min-h-[38px] xl:px-[15px]"
         >
-          Confier mon logement
+          Nous contacter
         </Link>
 
         <MarketingMobileMenu />

@@ -89,6 +89,17 @@ routes privées, l'authentification et les API existantes restent inchangées.
   et le header reçoit une marge haute supplémentaire de 30 px pour que le logo
   ne soit pas collé au bord ; logo et header restent inchangés sur mobile et
   tablette. Décision du Product Owner (2026-10-01).
+- **AC-01-08**: Given la home marketing, When elle s'affiche, Then (1) l'écart
+  entre l'eyebrow « Conciergerie locale en Haute-Savoie » et le titre H1 est
+  augmenté de 40 px ; (2) tous les boutons du site codés « Confier mon
+  logement » (home, header, menu mobile, `/concept`, pages `/decouvrir`)
+  s'intitulent « Nous contacter » et mènent toujours à `/confier-mon-logement`
+  (les libellés éditables en base, fils d'Ariane et titres de page ne
+  changent pas) ; (3) l'eyebrow « Les logements confiés à MyStay » tient sur
+  une seule ligne ; (4) « Notre territoire » n'affiche que les communes ayant
+  au moins un POI publié dans la découverte publique (même source que
+  `/decouvrir`), chaque carte menant à `/decouvrir/[commune]` : aucune carte
+  vide ni non cliquable. Décisions du Product Owner (2026-10-01).
 
 ### US-02 — Préserver le guide voyageur privé
 
@@ -171,7 +182,7 @@ routes privées, l'authentification et les API existantes restent inchangées.
 
 - **AC-04-01**: Given le header marketing, When l'Owner active « Se connecter »,
   Then il atteint `/auth/login`. Sur mobile, le menu expose un lien visible
-  « Connexion » au-dessus des actions « Guide démo » et « Confier mon logement » ;
+  « Connexion » au-dessus des actions « Guide démo » et « Nous contacter » ;
   son activation ferme le menu et mène à la même route.
 - **AC-04-02**: Given `/connexion`, When la route est ouverte, Then elle redirige
   vers `/auth/login`.
@@ -485,6 +496,7 @@ optionnel `source: owner_lead`. Il conserve ses états visuels existants.
 | AC-01-05 | integration + e2e |
 | AC-01-06 | integration + e2e |
 | AC-01-07 | Logo du header décalé (~30 px gauche/haut) sur desktop | unit |
+| AC-01-08 | Corrections home : écart eyebrow/H1, « Nous contacter », eyebrow sur une ligne, territoire sans carte vide | integration |
 | AC-02-01 | e2e existant + unit |
 | AC-02-02 | integration existant |
 | AC-02-03 | unit |
