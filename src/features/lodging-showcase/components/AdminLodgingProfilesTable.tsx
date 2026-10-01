@@ -1,5 +1,6 @@
 'use client'
 
+import { SeminarSelectionButton } from './SeminarSelectionButton'
 import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -64,6 +65,7 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
 
   return (
     <div className="space-y-4">
+      <p className="text-sm text-gray-500">Les logements sélectionnés pour les séminaires apparaissent sur la page Séminaires et sur celle de leur commune uniquement lorsque leur fiche est publiée.</p>
       {error && (
         <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -92,7 +94,8 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                 return (
                   <tr key={row.id} className="border-t border-gray-100 align-top">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-charcoal">{row.lodging.name}</div>
+                      <div className="font-medium text-charcoal">{row.title}</div>
+                      {row.title !== row.lodging.name && <p className="mt-1 text-xs text-gray-500">{row.lodging.name}</p>}
                       <div className="mt-1 text-xs text-gray-500">
                         {shortDescriptionText(row.short_description) || 'Fiche publique a preparer'}
                       </div>
@@ -165,6 +168,7 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                             </Button>
                           </>
                         )}
+                        <SeminarSelectionButton lodgingId={row.lodging.id} selected={row.seminar_selected} />
                         <DeleteLodgingButton lodgingId={row.lodging.id} name={row.lodging.name} />
                       </div>
                     </td>

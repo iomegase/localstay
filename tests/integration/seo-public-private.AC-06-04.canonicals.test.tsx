@@ -42,3 +42,5 @@ describe('042 AC-06-04 public page canonicals', () => {
     expect(metadata.alternates?.canonical).toBe(canonical)
   })
 })
+
+jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({ listSeminarLodgings: jest.fn().mockResolvedValue([]) }))

@@ -136,3 +136,5 @@ describe('048 persisted public local landings', () => {
     })]))
   })
 })
+
+jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({ listSeminarLodgings: jest.fn().mockResolvedValue([]) }))

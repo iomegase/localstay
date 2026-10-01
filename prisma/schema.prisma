@@ -864,6 +864,7 @@ model Lodging {
   city_id   String
   city      City    @relation(fields: [city_id], references: [id])
   is_active Boolean @default(true)
+  seminar_selected Boolean @default(false)
 
   qr_codes                     QrCode[]
   analytics                    Analytics[]

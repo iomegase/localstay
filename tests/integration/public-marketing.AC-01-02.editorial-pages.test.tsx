@@ -37,7 +37,7 @@ describe('031-public-marketing-site editorial routes', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-slate-900')
     expect(
       within(screen.getByTestId('seminar-hero')).getByRole('link', {
-        name: /Parler de mon séminaire/i,
+        name: /Nous contacter/i,
       }),
     ).toHaveClass('bg-pink-600')
     expect(screen.getAllByTestId('seminar-service-card')).toHaveLength(4)
@@ -56,3 +56,5 @@ describe('031-public-marketing-site editorial routes', () => {
     expect(redirect).toHaveBeenCalledWith('/auth/login')
   })
 })
+
+jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({ listSeminarLodgings: jest.fn().mockResolvedValue([]) }))

@@ -1,3 +1,5 @@
+import { listSeminarLodgings } from '@/features/lodging-showcase/queries/seminar-lodgings'
+import { SeminarLodgings } from '@/features/lodging-showcase/components/SeminarLodgings'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
@@ -119,6 +121,7 @@ const contactHref =
   'mailto:bonjour@mystay.city?subject=Organisation%20d%27un%20s%C3%A9minaire%20MyStay'
 
 export default async function SeminarsPage() {
+  const seminarLodgings = await listSeminarLodgings()
   return (
     <MarketingShell>
       <div className="overflow-hidden">
@@ -399,6 +402,8 @@ export default async function SeminarsPage() {
             })}
           </div>
         </section>
+
+        <SeminarLodgings lodgings={seminarLodgings} />
 
         {/* PLACE */}
         <section

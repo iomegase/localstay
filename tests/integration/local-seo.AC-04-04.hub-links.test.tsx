@@ -37,3 +37,4 @@ describe('046 AC-04-04 — hubs without in-content local landing links', () => {
   })
 })
 
+jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({ listSeminarLodgings: jest.fn().mockResolvedValue([]) }))

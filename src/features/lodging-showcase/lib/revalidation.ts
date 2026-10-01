@@ -9,6 +9,8 @@ export function revalidatePublicLodgingPaths(
   revalidatePath('/sitemap.xml')
   revalidatePath('/confier-mon-logement', 'page')
   revalidatePath('/seminaires', 'page')
+  revalidatePath('/seminaires/[city-slug]', 'page')
+  revalidatePath('/admin/lodgings', 'page')
   revalidatePath('/conciergerie/[city-slug]', 'page')
   for (const slug of new Set(citySlugs.filter((value): value is string => Boolean(value)))) {
     revalidatePath(`/locations-vacances/${encodeURIComponent(slug)}`, 'page')

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -50,7 +51,9 @@ function PrimaryCta({
 
 export function LocalServiceLanding({
   landing,
+  beforeFinalCta,
 }: {
+  beforeFinalCta?: ReactNode
   landing: PublicLocalLandingDto
 }) {
   const content = landing.page
@@ -288,6 +291,8 @@ export function LocalServiceLanding({
         </section>
 
         <MarketingFaqSection items={content.faq} />
+
+        {beforeFinalCta}
 
         {/* FINAL CTA */}
         <section

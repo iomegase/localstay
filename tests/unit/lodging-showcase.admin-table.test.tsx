@@ -16,6 +16,7 @@ global.fetch = jest.fn()
 
 const row = {
   id: '11111111-1111-4111-8111-111111111111',
+  seminar_selected: false,
   profile_id: '11111111-1111-4111-8111-111111111111',
   publication_status: 'review' as const,
   title: 'Chalet Hygge',
@@ -40,6 +41,7 @@ const row = {
 
 const missingProfileRow = {
   id: 'lodging-1',
+  seminar_selected: false,
   profile_id: null,
   publication_status: 'draft' as const,
   title: 'Le 305',
@@ -117,4 +119,11 @@ describe('028 lodging showcase admin table', () => {
     expect(screen.queryByRole('button', { name: 'Corrections' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Archiver' })).not.toBeInTheDocument()
   })
+})
+
+it('051 AC-03: identifies the public lodging title and retains a different internal name', () => {
+  render(<AdminLodgingProfilesTable rows={[{ ...row, title: 'T2 cosy - Le Mont Joly', lodging: { ...row.lodging, name: 'Les Hauts de Saint Gervais' } }]} />)
+  expect(screen.getByText('T2 cosy - Le Mont Joly')).toBeVisible()
+  expect(screen.getByText('Les Hauts de Saint Gervais')).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Ajouter à la page Séminaires' })).toBeVisible()
 })

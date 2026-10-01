@@ -8,7 +8,7 @@ type SessionResult =
   | { user: User; error: null }
   | { user: null; error: NextResponse }
 
-async function getSessionRole(role: 'merchant' | 'admin', forbiddenMessage: string): Promise<SessionResult> {
+async function getSessionRole(role: 'merchant' | 'admin', forbiddenMessage: string, unavailableAccountStatus: 401 | 403 = 401): Promise<SessionResult> {
   const supabase = await createSupabaseRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -21,6 +21,9 @@ async function getSessionRole(role: 'merchant' | 'admin', forbiddenMessage: stri
   })
 
   if (!dbUser) {
+    if (unavailableAccountStatus === 403) {
+      return { user: null, error: apiError('FORBIDDEN', forbiddenMessage, 403) }
+    }
     return { user: null, error: apiError('UNAUTHORIZED', 'Non authentifié', 401) }
   }
 
@@ -35,6 +38,6 @@ export function getSessionMerchant(): Promise<SessionResult> {
   return getSessionRole('merchant', 'Accès réservé aux commerçants')
 }
 
-export function getSessionAdmin(): Promise<SessionResult> {
-  return getSessionRole('admin', 'Accès réservé aux administrateurs')
+export function getSessionAdmin(options?: { unavailableAccountStatus: 401 | 403 }): Promise<SessionResult> {
+  return getSessionRole('admin', 'Accès réservé aux administrateurs', options?.unavailableAccountStatus)
 }

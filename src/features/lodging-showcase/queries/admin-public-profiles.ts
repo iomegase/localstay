@@ -6,6 +6,7 @@ import { revalidatePublicLodgingPaths } from '../lib/revalidation'
 
 export type AdminLodgingProfileRow = {
   id: string
+  seminar_selected: boolean
   profile_id: string | null
   publication_status: LodgingPublicationStatus
   title: string
@@ -59,6 +60,7 @@ const adminProfileSelect: Prisma.LodgingPublicProfileSelect = {
 
 const adminLodgingSelect = {
   id: true,
+  seminar_selected: true,
   name: true,
   updated_at: true,
   owner: {
@@ -100,6 +102,7 @@ function toAdminRow(
   return {
     id: profile.id,
     profile_id: profile.id,
+    seminar_selected: lodging.seminar_selected,
     publication_status: profile.publication_status,
     title: profile.title,
     short_description: profile.short_description,
@@ -122,6 +125,7 @@ function toMissingProfileAdminRow(lodging: AdminLodgingQueryRow): AdminLodgingPr
   return {
     id: lodging.id,
     profile_id: null,
+    seminar_selected: lodging.seminar_selected,
     publication_status: 'draft',
     title: lodging.name,
     short_description: '',
