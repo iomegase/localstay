@@ -111,7 +111,7 @@ function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
 
       <span
         data-testid="lodging-room-label"
-        className="pointer-events-none absolute right-2 top-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900 shadow-sm backdrop-blur-sm"
+        className="pointer-events-none absolute right-2 top-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-white/60 px-2.5 py-1 text-[11px] font-medium text-slate-900 backdrop-blur-sm"
       >
         {group.label}
       </span>
@@ -119,7 +119,7 @@ function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
       {multiple && (
         <div
           data-testid="lodging-room-dots"
-          className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 backdrop-blur-sm"
+          className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/30 py-1.5 pl-2 pr-2.5 backdrop-blur-sm"
         >
           {dotWindow(group.photos.length, active).map(index => (
             <button
@@ -134,7 +134,7 @@ function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
               }}
             />
           ))}
-          <span data-testid="lodging-room-count" className="ml-1 text-[10px] font-semibold leading-none text-white">
+          <span data-testid="lodging-room-count" className="ml-1 text-[11px] font-medium leading-none text-white">
             {group.photos.length}
           </span>
         </div>

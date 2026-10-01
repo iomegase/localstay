@@ -21,6 +21,8 @@ export async function listSeminarLodgings(cityId?: string) {
       id: true,
       title: true,
       slug: true,
+      surface_m2: true,
+      max_guests: true,
       lodging: { select: { city: { select: { name: true } } } },
       photos: {
         where: { deleted_at: null },
@@ -34,6 +36,8 @@ export async function listSeminarLodgings(cityId?: string) {
   return profiles.map(profile => ({
     id: profile.id,
     title: profile.title,
+    surfaceM2: profile.surface_m2,
+    maxGuests: profile.max_guests,
     href: publicLodgingPath(profile.slug),
     cityName: profile.lodging.city.name,
     photo: profile.photos[0] ?? null,

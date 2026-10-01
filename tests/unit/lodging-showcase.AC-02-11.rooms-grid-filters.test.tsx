@@ -98,7 +98,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
     const salon = screen.getAllByTestId('lodging-room-card')[0]
     expect(within(salon).getByTestId('lodging-room-label')).toHaveClass('top-2', 'right-2')
     const dots = within(salon).getByTestId('lodging-room-dots')
-    expect(dots).toHaveClass('bottom-2', 'right-2', 'rounded-full', 'bg-black/45')
+    expect(dots).toHaveClass('bottom-2', 'right-2', 'rounded-full', 'bg-black/30')
     expect(within(dots).getAllByRole('button')).toHaveLength(2)
     expect(within(dots).getByTestId('lodging-room-count')).toHaveTextContent('2')
   })
@@ -119,6 +119,6 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
     const card = screen.getAllByTestId('lodging-room-card')[0]
     expect(card.querySelector('[class*="bg-gradient-to-t"]')).toBeNull()
     expect(card.querySelector('[class*="from-black"]')).toBeNull()
-    expect(within(card).getByTestId('lodging-room-label')).toHaveClass('rounded-full', 'bg-white/90', 'text-slate-900')
+    expect(within(card).getByTestId('lodging-room-label')).toHaveClass('rounded-full', 'bg-white/60', 'font-medium', 'text-slate-900')
   })
 })

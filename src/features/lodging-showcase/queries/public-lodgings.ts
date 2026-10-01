@@ -100,6 +100,8 @@ export type SuggestedLodging = {
   href: string
   coverPhotoUrl: string | null
   location: string
+  surfaceM2: number | null
+  maxGuests: number
 }
 
 export async function listSuggestedLodgings(currentId: string, citySlug: string): Promise<SuggestedLodging[]> {
@@ -111,6 +113,7 @@ export async function listSuggestedLodgings(currentId: string, citySlug: string)
   }
   const select = {
     id: true, slug: true, title: true, public_area_label: true,
+    surface_m2: true, max_guests: true,
     city: { select: { name: true } }, photos: listPhotoArgs,
   } as const
   const orderBy = [
@@ -129,6 +132,8 @@ export async function listSuggestedLodgings(currentId: string, citySlug: string)
     id: row.id, title: row.title, href: publicLodgingPath(row.slug),
     coverPhotoUrl: row.photos[0]?.url ?? null,
     location: row.public_area_label?.trim() || row.city.name,
+    surfaceM2: row.surface_m2,
+    maxGuests: row.max_guests,
   }))
 }
 

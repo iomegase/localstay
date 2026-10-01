@@ -69,8 +69,8 @@ logements choisis appartenant à la City de cette landing publiée.
   avec des logements non sélectionnés ou d'autres communes n'est permis.
 - BR-09 : sans résultat, le bloc est absent. Tri par titre public croissant puis
   identifiant ; pas de limite arbitraire ni de classement manuel.
-- BR-10 : les cartes utilisent le titre public, la photo de couverture, la ville
-  et un lien vers `/logements/[lodging-slug]`. Aucune capacité de salle de réunion
+- BR-10 : les cartes utilisent le titre public, la photo de couverture, la ville,
+  la surface et le nombre de voyageurs enregistrés, ainsi qu’un lien vers `/logements/[lodging-slug]`. Aucune capacité de salle de réunion
   ou prestation séminaire n'est déduite de cette sélection.
 - BR-11 : ajout/retrait et changements d'éligibilité revalident les pages
   séminaires concernées, y compris ancienne et nouvelle commune si déplacement.
@@ -144,10 +144,26 @@ Les DTO de lecture admin existants ajoutent `seminar_selected: boolean`.
   est publiée ; le bouton permet aussi de préparer une fiche non publiée.
 - Pendant l'enregistrement, le bouton est désactivé. Succès : état actualisé.
   Échec : état précédent conservé et erreur accessible affichée.
-- Bloc `Nos logements pour vos séminaires` avant la section présentant le lieu
+- Bloc `Le cadre idéal pour votre séminaire.` avant la section présentant le lieu
   sur `/seminaires`, et avant le CTA final sur la landing locale.
 - Cartes cohérentes avec les cartes publiques existantes, grille responsive
   d'une colonne mobile, deux sur tablette et trois sur desktop, dès 375 px.
+- Ajustement visuel demandé et approuvé en conversation le 2026-10-01 : reprendre
+  exactement la hiérarchie du bloc « L’expérience MyStay » fourni en référence :
+  `MarketingEyebrow` avec trait rose et surtitre `La sélection MyStay`, H2 gras
+  34–40 px, interligne 1.02 et tracking -0.05em, largeur maximale 720 px.
+  Introduction : « Découvrez notre sélection de logements pour prolonger les
+  échanges et partager des moments en équipe, dans le cadre de votre séminaire. »
+  Paragraphe slate-500 en 14 px, interligne 1.72, largeur 660 px et marge haute
+  20 px. En-tête de largeur 760 px, séparé des cartes de 34 px puis 48 px dès sm.
+  Cartes compactes dédiées, inspirées de `MarketingPropertyCard`, selon la
+  référence et la demande complémentaire explicite du Product Owner : photo 4/3,
+  fond blanc, arrondis 26 px, ombre douce atténuée
+  (0 10px 24px -10px, slate à 12 %, ajustement PO du 2026-10-01), ville rose uppercase, titre public gras.
+  Uniquement deux statistiques en une rangée : Surface et Voyageurs, avec icônes
+  Scan et Users. Surface absente rendue « — ». Pas de description, chambres ni
+  salles de bains. Les données viennent de `surface_m2` et `max_guests` existants.
+  Même composant sur le hub et les landings locales.
 - Aucun bloc vide, logement fictif, compteur de salle ou prix ajouté.
 
 ## Acceptance Criteria
@@ -161,7 +177,7 @@ Les DTO de lecture admin existants ajoutent `seminar_selected: boolean`.
 | AC-05 | Landing Saint-Gervais : uniquement logements choisis avec sa City ; logement d'une autre commune exclu | unit + integration |
 | AC-06 | Brouillons, review, archives, logements/villes inactifs ou supprimés et profils supprimés exclus ; choix conservé après dépublication | unit + integration |
 | AC-07 | Aucun résultat masque le bloc ; landing inactive reste 404 malgré une sélection | integration |
-| AC-08 | Cartes : titre, photo, ville et lien public corrects ; parcours Admin → hub → landing → fiche sans débordement mobile | e2e |
+| AC-08 | Cartes compactes : titre, photo, ville, surface (ou —), voyageurs et lien public corrects ; parcours Admin → hub → landing → fiche sans débordement mobile | e2e |
 | AC-09 | Mutations de sélection, publication, suppression et changement de ville invalident les surfaces concernées | unit |
 | AC-10 | Migration initialise à false sans sélection automatique et conserve les données existantes | integration |
 

@@ -1,31 +1,32 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { MapPin } from 'lucide-react'
 import type { SuggestedLodging } from '../queries/public-lodgings'
+import { CompactLodgingCard } from './CompactLodgingCard'
+import { MarketingEyebrow } from '@/features/marketing/components/MarketingShell'
 
 export function SuggestedLodgings({ lodgings }: { lodgings: SuggestedLodging[] }) {
   if (!lodgings.length) return null
 
   return (
     <section aria-labelledby="suggested-lodgings-heading" className="min-w-0">
-      <h2 id="suggested-lodgings-heading" className="text-[28px] font-semibold leading-tight tracking-[-0.04em] text-slate-800 md:text-[36px]">
-        Vous pourriez aussi apprécier
-      </h2>
-      <ul className="mt-7 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4">
+      <div className="mb-[34px] max-w-[760px] sm:mb-12">
+        <MarketingEyebrow>À découvrir aussi</MarketingEyebrow>
+        <h2 id="suggested-lodgings-heading" className="m-0 max-w-[720px] text-[clamp(34px,4vw,40px)] font-bold leading-[1.02] tracking-[-0.05em] text-slate-800">
+          D’autres adresses pour votre prochain séjour.
+        </h2>
+        <p className="mt-5 max-w-[660px] text-sm leading-[1.72] text-slate-500">
+          Découvrez d’autres logements de la collection MyStay et trouvez le cadre qui vous correspond.
+        </p>
+      </div>
+      <ul className="no-scrollbar -mx-4 -mt-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-8 pt-6">
         {lodgings.map(lodging => (
-          <li key={lodging.id} className="w-[80%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75rem)/4)]">
-            <Link href={lodging.href} className="group block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600">
-              <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
-                {lodging.coverPhotoUrl && (
-                  <Image src={lodging.coverPhotoUrl} alt={lodging.title} fill unoptimized sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 80vw" className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105" />
-                )}
-              </div>
-              <h3 className="mt-4 text-lg font-semibold tracking-tight text-slate-800 group-hover:text-pink-600">{lodging.title}</h3>
-              <p className="mt-1 flex items-center gap-1.5 text-[12px] text-slate-500">
-                <MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-                {lodging.location}
-              </p>
-            </Link>
+          <li key={lodging.id} className="w-[85%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]">
+            <CompactLodgingCard lodging={{
+              title: lodging.title,
+              href: lodging.href,
+              cityName: lodging.location,
+              surfaceM2: lodging.surfaceM2,
+              maxGuests: lodging.maxGuests,
+              photo: lodging.coverPhotoUrl ? { url: lodging.coverPhotoUrl, alt: lodging.title } : null,
+            }} />
           </li>
         ))}
       </ul>

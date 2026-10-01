@@ -1370,6 +1370,16 @@ clients et le mot de passe initial ne sont pas ajoutés à ce document.
 
 Validation 051 : TypeScript, ESLint ciblé et Prisma validate réussis. Suite élargie : 273 tests réussis (38 suites), un test DB opt-in exclu puis exécuté séparément avec succès et rollback complet. Contrôle navigateur public réussi : `/seminaires` et `/seminaires/saint-gervais-les-bains` en 375 px et 1280 px, sans erreur JavaScript ni débordement horizontal. Le scénario connecté Admin est livré mais non exécuté faute de session Admin de test. Test éditorial 031 aligné sur le libellé « Nous contacter » modifié simultanément, sans modifier ce CTA. Serveur local redémarré pour charger le client Prisma régénéré.
 
+| 051 | Harmonisation avec « L’expérience MyStay » demandée le 2026-10-01 : surtitre rose, nouveau titre et introduction, typographie et arrondis MyStay | US-02, US-03 | AC-08 | `src/features/lodging-showcase/components/SeminarLodgings.tsx` | `tests/integration/seminar-lodgings.AC-03-07-08.components.test.tsx`, `tests/integration/seminar-lodgings.AC-04-05-07.pages.test.tsx`, `tests/e2e/seminar-lodgings.AC-08.public-admin-flow.test.ts` | Vérifié : tests ciblés, TypeScript et ESLint réussis ; rendu public mobile/desktop sans débordement |
+
+| 051 | Carte logement compacte MyStay : photo, ville, titre, Surface et Voyageurs uniquement ; référence fournie par le Product Owner | US-02, US-03 | AC-08 | `src/features/lodging-showcase/components/CompactLodgingCard.tsx`, `src/features/lodging-showcase/components/SeminarLodgings.tsx`, `src/features/lodging-showcase/queries/seminar-lodgings.ts` | `tests/integration/seminar-lodgings.AC-03-07-08.components.test.tsx`, `tests/unit/seminar-lodgings.AC-01-04-05-06-09.queries.test.ts` | Vérifié : tests ciblés, TypeScript et ESLint réussis ; rendu public mobile/desktop sans débordement |
+
+| 028 | Suggestions refondues selon la demande PO du 2026-10-01 : en-tête MyStay et composant compact partagé, Surface/Voyageurs ; remplace les cartes simples carrées AC-02-08 précédentes | US-02 | AC-02-07, AC-02-08 | `src/features/lodging-showcase/components/SuggestedLodgings.tsx`, `src/features/lodging-showcase/components/CompactLodgingCard.tsx`, `src/features/lodging-showcase/queries/public-lodgings.ts` | `tests/unit/lodging-showcase.AC-02-07.suggestions.test.ts`, `tests/integration/lodging-showcase.public-pages.test.tsx` | Vérifié : 25 tests ciblés réussis, TypeScript/ESLint valides ; contrôle visuel 375/1280 px, Surface/Voyageurs visibles et aucun débordement de page |
+
+| 028 / 051 | Barre de défilement masquée, espace réservé à l’ombre et ombre atténuée des cartes compactes (demande PO) | US-02 | AC-02-08 / AC-08 | `src/features/lodging-showcase/components/SuggestedLodgings.tsx`, `src/features/lodging-showcase/components/CompactLodgingCard.tsx` | Contrôle navigateur ciblé mobile/desktop | Ajustement visuel ; classe utilitaire no-scrollbar existante réutilisée |
+
+| 028 | Pills sur les photos logement : texte 11 px, fond blanc 60 % sans ombre ; compteur 11 px et fond noir 30 % | US-02 | AC-02-11 | `src/features/lodging-showcase/components/LodgingRoomsGrid.tsx` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | Ajustement visuel demandé par le Product Owner |
+
 ## 052 — Seminar Lead Modal
 
 | Spec ID | User Story | Acceptance Criterion | Description | Source File | Test File | Status |

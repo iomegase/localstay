@@ -15,12 +15,12 @@ beforeEach(() => {
 })
 it.each([undefined, 'saint-gervais-city-id'])('queries only selected public active lodgings, scoped by City.id %s', async cityId => {
   ;(prisma.lodgingPublicProfile.findMany as jest.Mock).mockResolvedValue([
-    { id: 'profile', title: 'T2 cosy', slug: 't2-cosy', lodging: { city: { name: 'Saint-Gervais' } }, photos: [{ url: '/cover.jpg', alt: 'Salon' }] },
-    { id: 'profile-no-photo', title: 'Z chalet', slug: 'z-chalet', lodging: { city: { name: 'Saint-Gervais' } }, photos: [] },
+    { id: 'profile', title: 'T2 cosy', surface_m2: 65, max_guests: 4, slug: 't2-cosy', lodging: { city: { name: 'Saint-Gervais' } }, photos: [{ url: '/cover.jpg', alt: 'Salon' }] },
+    { id: 'profile-no-photo', title: 'Z chalet', surface_m2: null, max_guests: 8, slug: 'z-chalet', lodging: { city: { name: 'Saint-Gervais' } }, photos: [] },
   ])
   expect(await listSeminarLodgings(cityId)).toEqual([
-    { id: 'profile', title: 'T2 cosy', href: '/logements/t2-cosy', cityName: 'Saint-Gervais', photo: { url: '/cover.jpg', alt: 'Salon' } },
-    { id: 'profile-no-photo', title: 'Z chalet', href: '/logements/z-chalet', cityName: 'Saint-Gervais', photo: null },
+    { id: 'profile', title: 'T2 cosy', surfaceM2: 65, maxGuests: 4, href: '/logements/t2-cosy', cityName: 'Saint-Gervais', photo: { url: '/cover.jpg', alt: 'Salon' } },
+    { id: 'profile-no-photo', title: 'Z chalet', surfaceM2: null, maxGuests: 8, href: '/logements/z-chalet', cityName: 'Saint-Gervais', photo: null },
   ])
   expect(prisma.lodgingPublicProfile.findMany).toHaveBeenCalledWith(expect.objectContaining({
     where: {

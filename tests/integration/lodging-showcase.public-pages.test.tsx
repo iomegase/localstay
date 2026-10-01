@@ -204,21 +204,23 @@ describe('lodging showcase public pages', () => {
     ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue(detailResult)
   })
 
-  it('AC-02-08: shows simple suggestion cards linking to public lodging pages', async () => {
-    ;(listSuggestedLodgings as jest.Mock).mockResolvedValue([{ id: 'other', title: 'Chalet des Cimes', href: '/logements/chalet-des-cimes', coverPhotoUrl: 'https://images.unsplash.com/chalet.jpg', location: 'Combloux' }])
+  it('AC-02-08: shows compact MyStay suggestion cards linking to public lodging pages', async () => {
+    ;(listSuggestedLodgings as jest.Mock).mockResolvedValue([{ id: 'other', title: 'Chalet des Cimes', href: '/logements/chalet-des-cimes', coverPhotoUrl: 'https://images.unsplash.com/chalet.jpg', location: 'Combloux', surfaceM2: 65, maxGuests: 4 }])
     render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
     expect(listSuggestedLodgings).toHaveBeenCalledWith(detailResult.id, detailResult.city_slug)
-    expect(screen.getByRole('region', { name: 'Vous pourriez aussi apprécier' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Chalet des Cimes.*Combloux/ })).toHaveAttribute('href', '/logements/chalet-des-cimes')
+    expect(screen.getByRole('region', { name: 'D’autres adresses pour votre prochain séjour.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Découvrir Chalet des Cimes' })).toHaveAttribute('href', '/logements/chalet-des-cimes')
     expect(screen.getByRole('img', { name: 'Chalet des Cimes' })).toHaveAttribute('src', 'https://images.unsplash.com/chalet.jpg')
-    // Photo carrée, comme les cartes « L'espace de vie ».
-    expect(screen.getByRole('img', { name: 'Chalet des Cimes' }).parentElement).toHaveClass('aspect-square')
-    expect(screen.getByText('Combloux')).toHaveClass('text-[12px]')
+    // Même carte compacte que les pages séminaires.
+    expect(screen.getByRole('img', { name: 'Chalet des Cimes' }).parentElement).toHaveClass('aspect-[4/3]')
+    expect(screen.getByText('Combloux')).toHaveClass('text-pink-600')
+    expect(screen.getByText('65 m²')).toBeInTheDocument()
+    expect(screen.getByText('À découvrir aussi')).toBeInTheDocument()
   })
 
   it('AC-02-08: hides suggestions when no other lodging is eligible', async () => {
     render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
-    expect(screen.queryByRole('region', { name: 'Vous pourriez aussi apprécier' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'D’autres adresses pour votre prochain séjour.' })).not.toBeInTheDocument()
   })
 
   it('permanently redirects the legacy city lodging list without querying lodging data', async () => {
