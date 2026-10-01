@@ -60,6 +60,8 @@ export function AdminTrailsLauncher({ cities }: { cities: CityOption[] }) {
         return
       }
       window.location.assign(`/admin/trails/runs/${json.data.id}`)
+    } catch {
+      setError("Connexion interrompue. Consultez l’historique des imports avant de relancer : des candidats peuvent déjà être enregistrés.")
     } finally {
       setLoading(false)
     }
@@ -199,11 +201,12 @@ export function AdminTrailsLauncher({ cities }: { cities: CityOption[] }) {
               disabled={loading || !cityId || sourceTypes.length === 0}
               className="h-[52px] w-full rounded-xl bg-[#0B1437] px-8 text-[13px] font-bold text-white transition-all hover:bg-gray-900 hover:shadow-md disabled:opacity-50 disabled:hover:shadow-none md:w-auto"
             >
-              {loading ? 'Lancement...' : 'Lancer l\'acquisition'}
+              {loading ? 'Acquisition en cours…' : 'Lancer l\'acquisition'}
             </Button>
           </div>
 
-          {error && (
+          {loading && <p role="status" className="text-sm text-gray-500">L’import peut prendre quelques minutes. Les candidats sont conservés avant les enrichissements.</p>}
+        {error && (
             <div className="animate-in fade-in rounded-xl border border-rose-100 bg-rose-50 p-4 text-[13px] font-bold text-rose-600">
               {error}
             </div>

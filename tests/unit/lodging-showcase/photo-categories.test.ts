@@ -1,3 +1,4 @@
+import { LodgingPhotoCategoryInputSchema } from '@/features/lodging-showcase/schemas'
 import { buildPhotoCategoryOptions, parsePhotoCategoryValue } from '@/features/lodging-showcase/lib/photo-categories'
 
 describe('buildPhotoCategoryOptions', () => {
@@ -18,7 +19,7 @@ describe('buildPhotoCategoryOptions', () => {
   it('numbers bathrooms by ceil of the count', () => {
     const opts = buildPhotoCategoryOptions(0, 1.5)
     const baths = opts.filter(o => o.roomType === 'bathroom')
-    expect(baths.map(o => o.label)).toEqual(['Salle de bain 1', 'Salle de bain 2'])
+    expect(baths.map(o => o.label)).toEqual(['Salle de bains 1', 'Salle de bains 2'])
   })
 
   it('single generic bathroom when count <= 1', () => {
@@ -47,5 +48,24 @@ describe('parsePhotoCategoryValue', () => {
   })
   it('returns null label for a plain value', () => {
     expect(parsePhotoCategoryValue('common_area')).toEqual({ roomType: 'common_area', roomLabel: null })
+  })
+})
+
+
+describe('AC-05-15: room choices', () => {
+  it('supports ten distinct bedrooms and the Salon and Salle de bains categories', () => {
+    const options = buildPhotoCategoryOptions(10, 1)
+    expect(options.filter(option => option.roomType === 'bedroom')).toHaveLength(10)
+    expect(options).toContainEqual({ value: 'bedroom::Chambre 10', label: 'Chambre 10', roomType: 'bedroom', roomLabel: 'Chambre 10' })
+    expect(options).toContainEqual({ value: 'common_area::Salon', label: 'Salon', roomType: 'common_area', roomLabel: 'Salon' })
+    expect(options).toContainEqual({ value: 'bathroom', label: 'Salle de bains', roomType: 'bathroom', roomLabel: null })
+    for (const label of ['Terrasse', 'Piscine', 'Hammam', 'Jacuzzi', 'Cinéma', 'Salle à manger', 'Bowling', 'Parking', 'Skiroom', 'Sauna', 'Salle de sport', 'Bibliothèque', 'Entrée', 'Garage']) {
+      const option = options.find(item => item.label === label)
+      expect(option).toBeDefined()
+      const category = parsePhotoCategoryValue(option!.value)
+      expect(category.roomLabel).toBe(label)
+      expect(LodgingPhotoCategoryInputSchema.safeParse({ room_type: category.roomType, room_label: category.roomLabel }).success).toBe(true)
+    }
+    expect(new Set(options.map(option => option.value)).size).toBe(options.length)
   })
 })

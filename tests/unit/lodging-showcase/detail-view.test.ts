@@ -113,3 +113,9 @@ describe('ROOM_TYPE_LABELS', () => {
     )
   })
 })
+
+it('AC-05-16: room groups follow saved order independently of the hero cover', () => {
+  const cover = { id: 'a', url: '/a', alt: 'Salon', room_type: 'common_area', sort_order: 1, is_cover: true }
+  const bedroom = { id: 'b', url: '/b', alt: 'Chambre', room_type: 'bedroom', sort_order: 0, is_cover: false }
+  expect(groupRoomPhotos([cover, bedroom]).map(g => g.label)).toEqual(['Chambre', 'Pièce de vie'])
+})

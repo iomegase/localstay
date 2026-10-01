@@ -1,3 +1,4 @@
+import { dedupeTrailPhotos, extractTrailPhotos } from './photos'
 type SourceRef = { type: string; attribution: string; used_for: string[] }
 
 type MergeableCandidate = {
@@ -83,6 +84,11 @@ function mergeCluster<T extends MergeableCandidate>(cluster: T[]): T {
   }
 
   base.source_refs = dedupeRefs(allRefs)
+  const photos = dedupeTrailPhotos(sorted.flatMap(candidate => extractTrailPhotos(candidate.raw_payload)))
+  if (photos.length) {
+    const payload = base.raw_payload && typeof base.raw_payload === 'object' && !Array.isArray(base.raw_payload) ? base.raw_payload : {}
+    base.raw_payload = { ...payload, acquired_photos: photos }
+  }
   // Choisir le titre le plus long (souvent le plus descriptif)
   base.title = sorted.reduce((best, c) => (c.title.length > best.length ? c.title : best), base.title)
 

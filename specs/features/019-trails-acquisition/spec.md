@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-25
-updated_at: 2026-05-25
+updated_at: 2026-09-30
 depends_on: [003-poi-list, 004-poi-detail, 005-map, 007-gemini-fetch, 017-admin-taxonomy, 018-poi-acquisition-pipeline]
 bounded_context: trails
 ```
@@ -81,6 +81,10 @@ Références de cadrage :
 - **AC-01-04**: Given un run avec Gemini activé, When Gemini propose des noms ou descriptions de randonnées, Then ces données sont utilisées uniquement comme découverte ou texte éditorial, jamais comme métrique géographique.
 - **AC-01-05**: Given une acquisition échouée partiellement, When au moins une source a répondu, Then le run se termine en `partial_success` et conserve les erreurs par source.
 
+- **AC-01-06**: Les candidats dédupliqués sont persistés après la découverte, avant les enrichissements, puis après chaque phase. Les identifiants restent stables ; une modification/revue concurrente par un Admin n'est jamais écrasée.
+- **AC-01-07**: Une source ou phase trop lente est bornée et signalée dans `source_errors`. Le run conserve les résultats disponibles et termine en `partial_success` (ou `failed` sans candidat). Une exception inattendue clôt aussi le run avec une erreur explicite.
+- **AC-01-08**: Un run `running` sans mise à jour depuis 10 minutes est clôturé à la prochaine consultation admin : `partial_success` avec candidats, `failed` sinon, avec explication d'interruption. Les candidats et les runs terminés sont conservés. La clôture compare aussi `updated_at` pour ne pas interrompre un run qui vient de progresser.
+
 ### US-02 — Enrichir les candidats avec données géographiques fiables
 
 **As a** System  
@@ -94,6 +98,13 @@ Références de cadrage :
 - **AC-02-03**: Given un candidat sans géométrie fiable mais avec point de départ fiable, When l'Admin tente de publier, Then la publication est bloquée sauf confirmation explicite qui crée une randonnée avec `data_quality_status = incomplete`.
 - **AC-02-04**: Given une distance ou un dénivelé provenant de Gemini, When la donnée est traitée, Then elle est rejetée et n'est jamais persistée comme donnée fiable.
 - **AC-02-05**: Given une source officielle contenant distance, durée ou difficulté, When la donnée est importée, Then elle est stockée avec `metric_source = official_website` et reste modifiable par l'Admin.
+
+### Complément validé — acquisition des photos (demande propriétaire du 30/09/2026)
+
+- **AC-02-06** : Les photos disponibles dans les galeries des sources (Camptocamp, fiches officielles, Geotrek) sont conservées dans `raw_payload.acquired_photos`, sans plafond arbitraire de huit images, avec URL, page source, légende et attribution disponibles. Les fichiers GPX eux-mêmes ne contiennent pas la galerie : celle-ci est récupérée depuis leur source.
+- **AC-02-07** : La publication et la fusion copient les URL de photos acquises sans remplacer les photos existantes vers `PointOfInterest.photos`, quelle que soit la source principale du candidat. Les crédits et références des photos sont conservés dans `TrailDetail.source_refs`. Les anciennes associations d'images Camptocamp restent lisibles. Les photos restent acquises lors d'une déduplication multi-sources.
+- **AC-02-08** : La revue admin montre la galerie, le nombre de photos et les crédits disponibles. Une absence reste explicite ; aucune image générique ni image d'une recommandation sans lien avec le parcours n'est ajoutée automatiquement.
+- Format photo dans le JSON existant et dans le DTO admin `photos` : `{ url, source_url, attribution, caption?, license? }`. Aucune migration de base n'est nécessaire. La récupération rétrospective conserve les photos déjà présentes ; elle peut compléter les POI déjà publiés sans publier de nouveaux parcours.
 
 ### US-03 — Revoir, corriger et publier les randonnées
 
@@ -174,6 +185,8 @@ Références de cadrage :
 - **BR-20**: Les zones géographiques globales StayLocal s'appliquent depuis le point de départ : primary zone ≤ 15 km, nearby zone 15-30 km, out of range > 30 km rejeté ou non publié.
 - **BR-21**: Overpass ne crée un candidat publiable que pour une relation `route=hiking` ou un chemin nommé avec signaux randonnée forts. Les chemins bruts, parkings, refuges, sommets et points d'eau servent d'enrichissement.
 - **BR-22**: Les difficultés canoniques sont `easy`, `medium`, `hard`, `expert`, `unknown`. Le mapping public vers `Facile`, `Moyen`, `Difficile` est géré par la SubCategory active correspondante quand elle existe.
+- **BR-24**: Correctif technique approuvé en conversation le 2026-09-30 : découverte des sources en parallèle, budget global 210 s pour les appels externes, maximum 65 s par source de découverte et 35 s par phase d'enrichissement. Route d'import configurée à 300 s pour laisser le temps de sauvegarder. Aucun nouvel appel n'est lancé après expiration ; une réponse tardive ne modifie pas les résultats persistés. Les imports restent synchrones ; aucune dépendance à une tâche détachée non durable.
+- **BR-25**: Les checkpoints utilisent les modèles existants, sans migration. Seuls les candidats encore non revus et inchangés depuis le précédent checkpoint peuvent être mis à jour. Aucune publication automatique. La récupération des imports anciens ne supprime ni candidat ni historique.
 - **BR-23**: Les sources doivent être suffisamment explicites pour permettre une vérification manuelle ultérieure par le Super-admin.
 
 ---
@@ -506,11 +519,31 @@ components:
           type: array
           items:
             type: string
-            enum: [content, geometry, elevation, description, manual_review]
+            enum: [content, geometry, elevation, description, manual_review, photos]
+    TrailPhoto:
+      type: object
+      required: [url, source_url, attribution]
+      properties:
+        url:
+          type: string
+          format: uri
+        source_url:
+          type: string
+          format: uri
+        attribution:
+          type: string
+        caption:
+          type: string
+        license:
+          type: string
     TrailCandidate:
       type: object
-      required: [id, city_id, title, primary_source_type, source_refs, geometry_status, elevation_status, review_status]
+      required: [id, city_id, title, primary_source_type, source_refs, geometry_status, elevation_status, review_status, photos]
       properties:
+        photos:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrailPhoto"
         id:
           type: string
         city_id:
@@ -679,6 +712,7 @@ components:
 
 ### `/admin/trails`
 
+- Le lancement informe que l’import peut prendre quelques minutes et les erreurs réseau sont affichées. Les runs interrompus montrent une erreur et peuvent être relancés via le formulaire existant.
 - Liste des runs récents : ville, sources, statut, nombre de candidats, erreurs éventuelles.
 - Formulaire de lancement : City, rayon, sources activées, URL officielle optionnelle.
 - Les sources proposées sont : site officiel, Overpass, IGN, Gemini descriptif, GPX, manuel.
@@ -717,11 +751,17 @@ components:
 | AC-01-03 | Overpass relations/chemins nommés vers candidats normalisés | integration |
 | AC-01-04 | Gemini limité à découverte/descriptif | unit |
 | AC-01-05 | Run partiel conserve erreurs par source | integration |
+| AC-01-06 | Checkpoints avant et pendant enrichissement, protection des éditions | integration |
+| AC-01-07 | Budget temporel et échec explicite avec résultats conservés | integration |
+| AC-01-08 | Clôture des imports interrompus à la consultation admin | integration |
 | AC-02-01 | Géométrie GeoJSON stockée côté serveur | unit |
 | AC-02-02 | Dénivelé via source fiable | unit |
 | AC-02-03 | Publication bloquée sans géométrie fiable | contract |
 | AC-02-04 | Métriques Gemini rejetées | unit |
 | AC-02-05 | Métriques source officielle tracées | unit |
+| AC-02-06 | Galeries acquises sans plafond arbitraire avec provenance | unit |
+| AC-02-07 | Photos multi-sources préservées et copiées à la publication | integration |
+| AC-02-08 | Galerie et crédits visibles en revue admin | integration |
 | AC-03-01 | UI admin liste statuts candidats | e2e |
 | AC-03-02 | Publication crée POI + TrailDetail | integration |
 | AC-03-03 | Fusion sans nouveau POI | integration |

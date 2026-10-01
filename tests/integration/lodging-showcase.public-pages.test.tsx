@@ -51,6 +51,7 @@ jest.mock('@/features/seo/queries/page-data', () => ({
 
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgingsForCity: jest.fn(),
+  listSuggestedLodgings: jest.fn(),
   getPublishedLodgingDetail: jest.fn(),
   getPublishedLodgingDetailBySlug: jest.fn(),
 }))
@@ -66,6 +67,7 @@ import {
   getPublishedLodgingDetail,
   getPublishedLodgingDetailBySlug,
   listPublishedLodgingsForCity,
+  listSuggestedLodgings,
 } from '@/features/lodging-showcase/queries/public-lodgings'
 import LegacyLodgingListPage from '@/app/(public)/guide/[city-slug]/logements/page'
 import LegacyLodgingDetailPage from '@/app/(public)/guide/[city-slug]/logements/[lodging-slug]/page'
@@ -191,10 +193,25 @@ describe('lodging showcase public pages', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    ;(listSuggestedLodgings as jest.Mock).mockResolvedValue([])
     ;(getCityForSeo as jest.Mock).mockResolvedValue(city)
     ;(listPublishedLodgingsForCity as jest.Mock).mockResolvedValue(listResult)
     ;(getPublishedLodgingDetail as jest.Mock).mockResolvedValue(detailResult)
     ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue(detailResult)
+  })
+
+  it('AC-02-08: shows simple suggestion cards linking to public lodging pages', async () => {
+    ;(listSuggestedLodgings as jest.Mock).mockResolvedValue([{ id: 'other', title: 'Chalet des Cimes', href: '/logements/chalet-des-cimes', coverPhotoUrl: 'https://images.unsplash.com/chalet.jpg', location: 'Combloux' }])
+    render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
+    expect(listSuggestedLodgings).toHaveBeenCalledWith(detailResult.id, detailResult.city_slug)
+    expect(screen.getByRole('region', { name: 'Vous pourriez aussi apprécier' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Chalet des Cimes.*Combloux/ })).toHaveAttribute('href', '/logements/chalet-des-cimes')
+    expect(screen.getByRole('img', { name: 'Chalet des Cimes' })).toHaveAttribute('src', 'https://images.unsplash.com/chalet.jpg')
+  })
+
+  it('AC-02-08: hides suggestions when no other lodging is eligible', async () => {
+    render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
+    expect(screen.queryByRole('region', { name: 'Vous pourriez aussi apprécier' })).not.toBeInTheDocument()
   })
 
   it('permanently redirects the legacy city lodging list without querying lodging data', async () => {

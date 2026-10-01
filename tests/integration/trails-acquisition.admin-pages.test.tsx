@@ -54,6 +54,7 @@ jest.mock('@/features/trails-acquisition/queries/runs', () => ({
       {
         id: 'cand-1',
         title: 'Boucle des alpages',
+        photos: [{ url: 'https://photos.example/rando.jpg', source_url: 'https://source.example/rando', attribution: 'Alice OT', caption: 'Vue des alpages' }],
         description: 'Depuis le Bettex.',
         primary_source_type: 'official_website',
         source_refs: [{ type: 'official_website', attribution: 'Office de tourisme', used_for: ['content'] }],
@@ -97,6 +98,9 @@ describe('019 admin trail pages', () => {
     render(await AdminTrailRunPage({ params: Promise.resolve({ id: 'run-1' }) }))
 
     expect(screen.getByText('Boucle des alpages')).toBeInTheDocument()
+    expect(screen.getByText('1 photo')).toBeInTheDocument()
+    expect(screen.getByAltText('Vue des alpages')).toHaveAttribute('src', 'https://photos.example/rando.jpg')
+    expect(screen.getByText('Alice OT')).toBeInTheDocument()
     expect(screen.getAllByText('valid')).toHaveLength(2)
     expect(screen.getByText('2h 30')).toBeInTheDocument()
     expect(screen.getByText(/Départ : Parking du Bettex/i)).toBeInTheDocument()

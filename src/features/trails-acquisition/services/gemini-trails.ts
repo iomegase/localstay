@@ -16,31 +16,18 @@ export function sanitizeGeminiTrailDiscovery(candidate: GeminiTrailDiscovery) {
   return rejectGeminiGeoMetrics(candidate)
 }
 
-// Schemas étendus depuis l'activation du grounding Google Search : Gemini peut
-// désormais extraire des métriques factuelles (distance/dénivelé/durée) depuis
-// les sources web (visorando, camptocamp). L'admin valide ces valeurs en revue.
-const DifficultyEnum = z.enum(['easy', 'medium', 'hard', 'expert']).nullable().optional()
-const PositiveNumber = z.number().positive().nullable().optional()
-
+// ADR-006: Gemini is limited to discovery and editorial text.
 const DiscoverySchema = z.object({
   trails: z.array(z.object({
     title: z.string().min(2).max(120),
     description: z.string().min(20).max(600),
     start_label: z.string().min(2).max(120).nullable().optional(),
-    distance_km: PositiveNumber,
-    elevation_gain_m: PositiveNumber,
-    estimated_duration_min: PositiveNumber,
-    difficulty: DifficultyEnum,
   })).max(20),
 })
 
 const DescriptionSchema = z.object({
   description: z.string().min(20).max(600),
   start_label: z.string().min(2).max(120).nullable().optional(),
-  distance_km: PositiveNumber,
-  elevation_gain_m: PositiveNumber,
-  estimated_duration_min: PositiveNumber,
-  difficulty: DifficultyEnum,
 })
 
 type CityRef = { name: string; latitude: number; longitude: number }
@@ -70,10 +57,6 @@ type DiscoveredTrail = {
   title: string
   description: string
   start_label: string | null
-  distance_km: number | null
-  elevation_gain_m: number | null
-  estimated_duration_min: number | null
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert' | null
 }
 
 export async function discoverTrailsWithGemini(city: CityRef): Promise<DiscoveredTrail[]> {
@@ -88,16 +71,12 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
     {
       "title": "Nom usuel de la randonnée tel qu'utilisé localement",
       "description": "Description éditoriale 2-4 phrases riches : intérêt, paysages traversés, difficulté générale, période favorable. Synthèse de ce que tu as trouvé via Google Search.",
-      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée d'après les sources (ex: 'Parking du Bettex'). null si introuvable.",
-      "distance_km": 12.5,          // distance aller-retour en km, seulement si trouvée sur visorando/camptocamp/etc. null sinon.
-      "elevation_gain_m": 800,      // dénivelé positif en m, idem null si non sourcé.
-      "estimated_duration_min": 240, // durée estimée en min, idem.
-      "difficulty": "medium"        // easy/medium/hard/expert d'après la cotation officielle. null si inconnu.
+      "start_label": "Lieu/hameau/parking où démarre habituellement la randonnée d'après les sources (ex: 'Parking du Bettex'). null si introuvable."
     }
   ]
 }
 
-Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. **N'invente AUCUN chiffre** : mets null si la source ne confirme pas. La précision factuelle prime sur la complétude.`
+Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Ne fournis aucune coordonnée GPS, distance, durée, dénivelé ou métrique géographique, même trouvée sur le web. Limite la réponse au contenu éditorial.`
 
   const model = getModel()
   // 60s : la discovery avec grounding sur 10 randos peut prendre du temps
@@ -109,20 +88,12 @@ Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. **N'invente AU
     title: t.title,
     description: t.description,
     start_label: t.start_label ?? null,
-    distance_km: t.distance_km ?? null,
-    elevation_gain_m: t.elevation_gain_m ?? null,
-    estimated_duration_min: t.estimated_duration_min ?? null,
-    difficulty: t.difficulty ?? null,
   }))
 }
 
 type DescriptionResult = {
   description: string
   start_label: string | null
-  distance_km: number | null
-  elevation_gain_m: number | null
-  estimated_duration_min: number | null
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert' | null
 }
 
 export async function generateTrailDescription(title: string, city: CityRef): Promise<DescriptionResult> {
@@ -134,14 +105,10 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
 
 {
   "description": "Description éditoriale 2-4 phrases riches : paysages traversés, intérêt (sommet, lac, alpage, refuge), difficulté générale, période favorable. Synthèse factuelle des sources trouvées.",
-  "start_label": "Lieu/hameau/parking de départ d'après les sources (ex: 'Parking du Bettex'). null si introuvable.",
-  "distance_km": 12.5,             // aller-retour en km, seulement si trouvé sur visorando/camptocamp/etc. null sinon.
-  "elevation_gain_m": 800,         // dénivelé positif m, null si non sourcé.
-  "estimated_duration_min": 240,   // durée estimée en min.
-  "difficulty": "medium"           // easy/medium/hard/expert d'après cotation officielle. null si inconnu.
+  "start_label": "Lieu/hameau/parking de départ d'après les sources (ex: 'Parking du Bettex'). null si introuvable."
 }
 
-**N'invente AUCUN chiffre** : mets null si la source ne confirme pas. La précision factuelle prime sur la complétude.`
+Ne fournis aucune coordonnée GPS, distance, durée, dénivelé ou métrique géographique, même trouvée sur le web. Limite la réponse au contenu éditorial.`
 
   const model = getModel()
   // 30s : descriptions avec grounding sont plus rapides que discovery mais laissent de la marge
@@ -152,10 +119,6 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sa
   return {
     description: parsed.data.description,
     start_label: parsed.data.start_label ?? null,
-    distance_km: parsed.data.distance_km ?? null,
-    elevation_gain_m: parsed.data.elevation_gain_m ?? null,
-    estimated_duration_min: parsed.data.estimated_duration_min ?? null,
-    difficulty: parsed.data.difficulty ?? null,
   }
 }
 
@@ -178,28 +141,17 @@ const GEMINI_DESCRIPTION_CONCURRENCY = 5      // OK : Gemini Tier 1 supporte lar
 export async function enrichCandidatesWithGeminiDescriptions<T extends EnrichableCandidate>(
   candidates: T[],
   city: CityRef,
+  signal?: AbortSignal,
 ): Promise<{ enriched: number; errors: number }> {
   let enriched = 0
   let errors = 0
 
-  const toEnrich = candidates.filter(c => {
-    const needsDescription = !c.description || c.description.trim().length === 0
-    const needsStart = !c.start_label
-    const needsDistance = c.distance_km == null
-    const needsElevation = c.elevation_gain_m == null
-    const needsDuration = c.estimated_duration_min == null
-    const needsDifficulty = !c.difficulty || c.difficulty === 'unknown'
-    return needsDescription || needsStart || needsDistance || needsElevation || needsDuration || needsDifficulty
-  })
+  const toEnrich = candidates.filter(c => !c.description?.trim() || !c.start_label)
 
   await mapWithConcurrency(toEnrich, GEMINI_DESCRIPTION_CONCURRENCY, async candidate => {
-    const needsDescription = !candidate.description || candidate.description.trim().length === 0
+    signal?.throwIfAborted()
+    const needsDescription = !candidate.description?.trim()
     const needsStart = !candidate.start_label
-    const needsDistance = candidate.distance_km == null
-    const needsElevation = candidate.elevation_gain_m == null
-    const needsDuration = candidate.estimated_duration_min == null
-    const needsDifficulty = !candidate.difficulty || candidate.difficulty === 'unknown'
-
     try {
       const result = await withTimeout(
         generateTrailDescription(candidate.title, city),
@@ -214,29 +166,8 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
         candidate.start_label = result.start_label
         usedFor.push('start_label')
       }
-      if (needsDistance && result.distance_km != null) {
-        candidate.distance_km = result.distance_km
-        usedFor.push('distance_km')
-      }
-      if (needsElevation && result.elevation_gain_m != null) {
-        candidate.elevation_gain_m = result.elevation_gain_m
-        candidate.elevation_status = 'valid'
-        usedFor.push('elevation_gain_m')
-      }
-      if (needsDuration && result.estimated_duration_min != null) {
-        candidate.estimated_duration_min = result.estimated_duration_min
-        usedFor.push('estimated_duration_min')
-      }
-      if (needsDifficulty && result.difficulty != null) {
-        candidate.difficulty = result.difficulty
-        usedFor.push('difficulty')
-      }
       if (usedFor.length > 0) {
         candidate.source_refs = appendGeminiRef(candidate.source_refs, usedFor)
-        // Marquer la métrique comme gemini_grounded si on a complété des chiffres
-        if (usedFor.some(f => ['distance_km', 'elevation_gain_m', 'estimated_duration_min'].includes(f))) {
-          if (!candidate.metric_source) candidate.metric_source = 'gemini_grounded'
-        }
         enriched += 1
       }
     } catch {

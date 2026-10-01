@@ -94,6 +94,44 @@ const amenityArgs = {
   select: { code: true, label: true, availability: true },
 }
 
+export type SuggestedLodging = {
+  id: string
+  title: string
+  href: string
+  coverPhotoUrl: string | null
+  location: string
+}
+
+export async function listSuggestedLodgings(currentId: string, citySlug: string): Promise<SuggestedLodging[]> {
+  const where = {
+    id: { not: currentId },
+    publication_status: 'published' as const,
+    deleted_at: null,
+    lodging: { is_active: true, deleted_at: null },
+  }
+  const select = {
+    id: true, slug: true, title: true, public_area_label: true,
+    city: { select: { name: true } }, photos: listPhotoArgs,
+  } as const
+  const orderBy = [
+    { is_featured: 'desc' as const }, { published_at: 'desc' as const },
+    { created_at: 'desc' as const }, { id: 'asc' as const },
+  ]
+  const local = await prisma.lodgingPublicProfile.findMany({
+    where: { ...where, city: { slug: citySlug, is_active: true, deleted_at: null } },
+    select, orderBy, take: 4,
+  })
+  const others = local.length < 4 ? await prisma.lodgingPublicProfile.findMany({
+    where: { ...where, city: { slug: { not: citySlug }, is_active: true, deleted_at: null } },
+    select, orderBy, take: 4 - local.length,
+  }) : []
+  return [...local, ...others].map(row => ({
+    id: row.id, title: row.title, href: publicLodgingPath(row.slug),
+    coverPhotoUrl: row.photos[0]?.url ?? null,
+    location: row.public_area_label?.trim() || row.city.name,
+  }))
+}
+
 async function getActiveCityBySlug(citySlug: string) {
   return prisma.city.findFirst({
     where: { slug: citySlug, is_active: true, deleted_at: null },

@@ -23,6 +23,7 @@ type CityRef = { name: string; latitude: number; longitude: number }
 export async function enrichCandidatesWithStartGeocoding<T extends GeocodableCandidate>(
   candidates: T[],
   city: CityRef,
+  signal?: AbortSignal,
 ): Promise<{ enriched: number; errors: number }> {
   let enriched = 0
   let errors = 0
@@ -33,6 +34,7 @@ export async function enrichCandidatesWithStartGeocoding<T extends GeocodableCan
   )
 
   await mapWithConcurrency(toEnrich, GEOCODING_CONCURRENCY, async candidate => {
+    signal?.throwIfAborted()
     try {
       const query = `${candidate.start_label}, ${city.name}`
       const result = await withTimeout(

@@ -1,11 +1,14 @@
 'use client'
 
+import Image from 'next/image'
+import type { TrailPhoto } from '../lib/photos'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ExternalLink, MapPin, Search } from 'lucide-react'
 import { AdminTrailCandidateActions } from './AdminTrailCandidateActions'
 
 type Candidate = {
+  photos?: TrailPhoto[]
   id: string
   title: string
   description: string | null
@@ -146,6 +149,19 @@ function CandidateRow({ candidate: c, rowNumber }: { candidate: Candidate; rowNu
           >
             {c.description ?? <span className="italic opacity-60">Sans description.</span>}
           </span>
+          {c.photos?.length ? (
+            <details className="mt-2 text-xs text-gray-600">
+              <summary className="cursor-pointer">{c.photos.length} photo{c.photos.length > 1 ? 's' : ''}</summary>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {c.photos.map(photo => (
+                  <a key={photo.url} href={photo.url} target="_blank" rel="noopener noreferrer" className="overflow-hidden rounded-lg border border-gray-100">
+                    <Image src={photo.url} alt={photo.caption ?? c.title} width={160} height={100} unoptimized className="h-24 w-full object-cover" />
+                    <span className="block p-1 text-[10px]">{photo.attribution}</span>
+                  </a>
+                ))}
+              </div>
+            </details>
+          ) : <span className="mt-2 text-[10px] text-gray-400">Aucune photo acquise</span>}
           {departText && (
             <span className="mt-1 flex items-center gap-1 text-[10px] font-mono text-gray-400">
               <MapPin size={10} />

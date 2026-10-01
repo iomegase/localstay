@@ -1,18 +1,11 @@
 import { TrailsAcquisitionError } from './errors'
 
-// Gemini sans grounding : on n'autorise que les champs éditoriaux (pas de hallucinations chiffrées).
-// Gemini avec Google Search grounding : on autorise désormais les métriques factuelles
-// (extraites de sources web réelles type visorando/camptocamp via la recherche). L'admin
-// valide en revue, et les valeurs sont marquées metric_source='gemini_grounded' pour traçabilité.
+// ADR-006: even grounded responses cannot supply geographic metrics.
 const GEMINI_ALLOWED_KEYS = [
   'title',
   'description',
   'source_refs',
   'start_label',
-  'distance_km',
-  'elevation_gain_m',
-  'estimated_duration_min',
-  'difficulty',
 ] as const
 
 export function assertAllowedTrailSource(url: string): true {

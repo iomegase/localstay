@@ -3,13 +3,8 @@ import { prisma } from '@/shared/lib/prisma'
 import { TrailsAcquisitionError } from '../lib/errors'
 import { createTrailSlug } from '../lib/slug'
 import { mapTrailCandidate } from './runs'
-import { extractCamptocampImageUrls } from '../services/camptocamp'
+import { extractTrailPhotos } from '../lib/photos'
 import { classifyTrailQuality } from '../lib/geometry-quality'
-
-function extractPhotosForCandidate(primarySourceType: string, rawPayload: Prisma.JsonValue): string[] {
-  if (primarySourceType === 'camptocamp') return extractCamptocampImageUrls(rawPayload)
-  return []
-}
 
 type PublishOptions = {
   confirm_duplicate: boolean
@@ -75,7 +70,7 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
         address: candidate.start_label ?? candidate.city.name,
         latitude: startLatitude,
         longitude: startLongitude,
-        photos: extractPhotosForCandidate(candidate.primary_source_type, candidate.raw_payload),
+        photos: extractTrailPhotos(candidate.raw_payload).map(photo => photo.url),
         tags: ['rando'],
         geocode_status: 'success',
         geocoded_at: new Date(),
@@ -101,7 +96,9 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
         start_longitude: startLongitude,
         geometry_geojson: candidate.geometry_geojson ?? Prisma.JsonNull,
         primary_source_type: candidate.primary_source_type,
-        source_refs: jsonInput(candidate.source_refs),
+        source_refs: [...(Array.isArray(candidate.source_refs) ? candidate.source_refs : []),
+          ...extractTrailPhotos(candidate.raw_payload).map(photo => ({ type: photo.source_url.includes('camptocamp.org') ? 'camptocamp' : 'official_website', url: photo.source_url, attribution: [photo.attribution, photo.license].filter(Boolean).join(' — '), name: photo.caption ?? 'Photo', used_for: ['photos'] })),
+        ],
         metric_source: candidate.metric_source,
         parking_info: candidate.parking_info,
         kids_friendly: candidate.kids_friendly,
@@ -149,7 +146,7 @@ export async function mergeTrailCandidate(candidateId: string, poiId: string, ad
 
   const poi = await prisma.pointOfInterest.findFirst({
     where: { id: poiId, is_active: true, deleted_at: null },
-    select: { id: true, trail_detail: { select: { id: true, is_active: true, deleted_at: true } } },
+    select: { id: true, photos: true, trail_detail: { select: { id: true, is_active: true, deleted_at: true, source_refs: true } } },
   })
   if (!poi || !poi.trail_detail || !poi.trail_detail.is_active || poi.trail_detail.deleted_at) {
     throw new TrailsAcquisitionError('NOT_FOUND', 404)
@@ -157,6 +154,15 @@ export async function mergeTrailCandidate(candidateId: string, poiId: string, ad
   const trailDetail = poi.trail_detail
 
   return prisma.$transaction(async tx => {
+    const photos = extractTrailPhotos(candidate.raw_payload)
+    if (photos.length) {
+      await tx.pointOfInterest.update({ where: { id: poi.id }, data: { photos: [...new Set([...poi.photos, ...photos.map(photo => photo.url)])] } })
+      await tx.trailDetail.update({ where: { id: trailDetail.id }, data: {
+        source_refs: [...(Array.isArray(trailDetail.source_refs) ? trailDetail.source_refs : []),
+          ...photos.map(photo => ({ type: photo.source_url.includes('camptocamp.org') ? 'camptocamp' : 'official_website', url: photo.source_url, attribution: [photo.attribution, photo.license].filter(Boolean).join(' — '), name: photo.caption ?? 'Photo', used_for: ['photos'] })),
+        ],
+      } })
+    }
     const updated = await tx.trailCandidate.update({
       where: { id: candidate.id },
       data: {
@@ -282,6 +288,7 @@ export async function updateTrailCandidate(
 
 const trailCandidateSelect = {
   id: true,
+  raw_payload: true,
   title: true,
   description: true,
   primary_source_type: true,
@@ -323,8 +330,4 @@ function candidateAudit(candidate: TrailCandidateAudit): Prisma.InputJsonObject 
     trail_detail_id: candidate.trail_detail_id,
     admin_note: candidate.admin_note,
   }
-}
-
-function jsonInput(value: Prisma.JsonValue): Prisma.InputJsonValue {
-  return value === null ? [] : value
 }

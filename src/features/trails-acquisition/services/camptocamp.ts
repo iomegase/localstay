@@ -1,22 +1,15 @@
+import { extractTrailPhotos } from '../lib/photos'
 import type { Prisma } from '@prisma/client'
 import { bboxAroundPoint, bboxToMercator, mercatorXToLng, mercatorYToLat } from '../lib/projection'
 import type { TrailDifficulty, TrailSourceRef } from '../types'
 
 const CAMPTOCAMP_API = 'https://api.camptocamp.org'
-const CAMPTOCAMP_MEDIA = 'https://media.camptocamp.org/c2corg-active'
 const PAGE_SIZE = 30
 const MAX_ROUTES_PER_RUN = 50
 const DETAIL_CONCURRENCY = 4
-const MAX_PHOTOS_PER_TRAIL = 8
 
 export function extractCamptocampImageUrls(rawPayload: unknown): string[] {
-  if (!rawPayload || typeof rawPayload !== 'object') return []
-  const detail = rawPayload as { associations?: { images?: Array<{ filename?: string }> } }
-  const images = detail.associations?.images ?? []
-  return images
-    .map(img => (typeof img.filename === 'string' && img.filename.length > 0 ? `${CAMPTOCAMP_MEDIA}/${img.filename}` : null))
-    .filter((url): url is string => url !== null)
-    .slice(0, MAX_PHOTOS_PER_TRAIL)
+  return extractTrailPhotos(rawPayload).map(photo => photo.url)
 }
 
 export type CamptocampTrailCandidate = {
@@ -68,34 +61,38 @@ export async function fetchCamptocampTrails(input: {
   latitude: number
   longitude: number
   radiusKm: number
+  signal?: AbortSignal
+  onCandidate?: (candidate: CamptocampTrailCandidate) => void
 }): Promise<CamptocampTrailCandidate[]> {
   const bbox = bboxToMercator(bboxAroundPoint(input.longitude, input.latitude, input.radiusKm))
   const bboxParam = `${Math.round(bbox.minX)},${Math.round(bbox.minY)},${Math.round(bbox.maxX)},${Math.round(bbox.maxY)}`
 
-  const list = await listHikingRoutes(bboxParam)
+  const list = await listHikingRoutes(bboxParam, input.signal)
   const limited = list.slice(0, MAX_ROUTES_PER_RUN)
 
   const details = await mapWithConcurrency(limited, DETAIL_CONCURRENCY, async item => {
     try {
-      return await fetchRouteDetail(item.document_id)
+      input.signal?.throwIfAborted()
+      const detail = await fetchRouteDetail(item.document_id, input.signal)
+      const candidate = normalize(detail)
+      if (candidate) input.onCandidate?.(candidate)
+      return candidate
     } catch {
       return null
     }
   })
 
-  return details
-    .filter((detail): detail is RouteDetail => detail !== null)
-    .map(normalize)
-    .filter((candidate): candidate is CamptocampTrailCandidate => candidate !== null)
+  return details.filter((candidate): candidate is CamptocampTrailCandidate => candidate !== null)
 }
 
-async function listHikingRoutes(bboxParam: string): Promise<RouteListItem[]> {
+async function listHikingRoutes(bboxParam: string, signal?: AbortSignal): Promise<RouteListItem[]> {
   const results: RouteListItem[] = []
   let offset = 0
   // Cap raisonnable : 5 pages × 30 = 150 routes max parcourues
   for (let page = 0; page < 5; page += 1) {
+    signal?.throwIfAborted()
     const url = `${CAMPTOCAMP_API}/routes?bbox=${bboxParam}&act=hiking&limit=${PAGE_SIZE}&offset=${offset}`
-    const response = await fetch(url, { headers: { Accept: 'application/json' } })
+    const response = await fetch(url, { headers: { Accept: 'application/json' }, signal })
     if (!response.ok) throw new Error(`Camptocamp HTTP ${response.status}`)
     const payload = (await response.json()) as ListResponse
     const docs = payload.documents ?? []
@@ -107,8 +104,8 @@ async function listHikingRoutes(bboxParam: string): Promise<RouteListItem[]> {
   return results
 }
 
-async function fetchRouteDetail(id: number): Promise<RouteDetail> {
-  const response = await fetch(`${CAMPTOCAMP_API}/routes/${id}?l=fr`, { headers: { Accept: 'application/json' } })
+async function fetchRouteDetail(id: number, signal?: AbortSignal): Promise<RouteDetail> {
+  const response = await fetch(`${CAMPTOCAMP_API}/routes/${id}?l=fr`, { headers: { Accept: 'application/json' }, signal })
   if (!response.ok) throw new Error(`Camptocamp detail HTTP ${response.status}`)
   return (await response.json()) as RouteDetail
 }

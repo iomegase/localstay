@@ -15,6 +15,7 @@ import type {
   OwnerLodgingShowcasePageData,
 } from '../types'
 import type {
+  LodgingPhotoCategoryInput,
   LodgingPublicProfileInput,
   SourceUrlInput,
 } from '../schemas'
@@ -957,4 +958,58 @@ export async function setAdminCoverPhoto(lodgingId: string, photoId: string): Pr
   const lodging = await getLodgingForAdminShowcase(lodgingId)
   if (!lodging) return false
   return setCoverPhotoForLodging(lodging, photoId)
+}
+
+async function updatePhotoCategoryForLodging(
+  lodging: ShowcaseLodging,
+  photoId: string,
+  category: LodgingPhotoCategoryInput,
+): Promise<boolean> {
+  const profile = await prisma.lodgingPublicProfile.findFirst({
+    where: { lodging_id: lodging.id, deleted_at: null },
+    select: { id: true, slug: true, city: { select: { slug: true } } },
+  })
+  if (!profile) return false
+  const result = await prisma.lodgingPhoto.updateMany({
+    where: { id: photoId, profile_id: profile.id, deleted_at: null },
+    data: { room_type: category.room_type, room_label: category.room_label },
+  })
+  if (result.count === 0) return false
+  revalidatePublicLodgingPaths([profile.city.slug, lodging.city.slug], [profile.slug])
+  return true
+}
+
+export async function updateOwnerPhotoCategory(ownerId: string, lodgingId: string, photoId: string, category: LodgingPhotoCategoryInput) {
+  const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
+  if (!lodging) return false
+  return updatePhotoCategoryForLodging(lodging, photoId, category)
+}
+
+export async function updateAdminPhotoCategory(lodgingId: string, photoId: string, category: LodgingPhotoCategoryInput) {
+  const lodging = await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return false
+  return updatePhotoCategoryForLodging(lodging, photoId, category)
+}
+
+export async function reorderLodgingPhotos(lodgingId: string, photoIds: string[], ownerId?: string): Promise<boolean> {
+  const lodging = ownerId
+    ? await getOwnedLodgingForShowcase(ownerId, lodgingId)
+    : await getLodgingForAdminShowcase(lodgingId)
+  if (!lodging) return false
+  const profile = await prisma.lodgingPublicProfile.findFirst({
+    where: { lodging_id: lodging.id, deleted_at: null },
+    select: { id: true, slug: true, city: { select: { slug: true } } },
+  })
+  if (!profile) return false
+  const ok = await prisma.$transaction(async tx => {
+    const photos = await tx.lodgingPhoto.findMany({ where: { profile_id: profile.id, deleted_at: null }, select: { id: true } })
+    const ids = new Set(photoIds)
+    if (ids.size !== photoIds.length || photos.length !== photoIds.length || photos.some(photo => !ids.has(photo.id))) return false
+    for (const [sort_order, id] of photoIds.entries()) {
+      await tx.lodgingPhoto.update({ where: { id }, data: { sort_order } })
+    }
+    return true
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 15_000 })
+  if (ok) revalidatePublicLodgingPaths([profile.city.slug, lodging.city.slug], [profile.slug])
+  return ok
 }

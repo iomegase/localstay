@@ -1,6 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent, type CollisionDetection } from '@dnd-kit/core'
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
+import { SortablePhotoCard } from './SortablePhotoCard'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
@@ -8,9 +11,21 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { AMENITY_CATALOG, AMENITY_CATALOG_CODES } from '../lib/amenity-catalog'
 import { ROOM_TYPE_LABELS } from '../lib/detail-view'
-import { buildPhotoCategoryOptions, parsePhotoCategoryValue } from '../lib/photo-categories'
+import { buildPhotoCategoryOptions } from '../lib/photo-categories'
+import { uploadPhotos } from '../lib/upload-photos'
+import { PhotoCategorySelect } from './PhotoCategorySelect'
 import { publicLodgingPath, publicLodgingsPath } from '../lib/public-paths'
 import type { OwnerLodgingPublicProfileDto } from '../types'
+
+const photoCollisionDetection: CollisionDetection = args => {
+  const point = args.pointerCoordinates
+  if (point) {
+    const rects = [...args.droppableRects.values()]
+    if (!rects.length || point.x < Math.min(...rects.map(rect => rect.left)) || point.x > Math.max(...rects.map(rect => rect.right))
+      || point.y < Math.min(...rects.map(rect => rect.top)) || point.y > Math.max(...rects.map(rect => rect.bottom))) return []
+  }
+  return closestCenter(args)
+}
 
 type ApiErrorPayload = {
   error?: {
@@ -85,11 +100,15 @@ export function LodgingShowcaseForm(props: {
   const [message, setMessage] = useState<string | null>(null)
   const [missingFields, setMissingFields] = useState<string[]>([])
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null)
+  const [uploadErrors, setUploadErrors] = useState<string[]>([])
+  const [fileInputKey, setFileInputKey] = useState(0)
   const [photoAlt, setPhotoAlt] = useState('')
   const [photoCategory, setPhotoCategory] = useState('common_area')
   const [photoActionId, setPhotoActionId] = useState<string | null>(null)
 
+  const photosBusy = uploadProgress !== null || status === 'saving' || photoActionId !== null
   const photoCategoryOptions = buildPhotoCategoryOptions(profile.bedroom_count, profile.bathroom_count)
   const selectedPhotoCategory = photoCategoryOptions.some(option => option.value === photoCategory)
     ? photoCategory
@@ -193,51 +212,96 @@ export function LodgingShowcaseForm(props: {
   }
 
   async function uploadPhoto() {
-    if (!photoFile) return
-
+    if (photoFiles.length === 0 || photosBusy) return
     setStatus('saving')
     setMessage(null)
     setValidationErrors([])
-
-    const parsedCategory = parsePhotoCategoryValue(selectedPhotoCategory)
-    const formData = new FormData()
-    formData.set('file', photoFile)
-    formData.set('alt', photoAlt)
-    formData.set('room_type', parsedCategory.roomType)
-    if (parsedCategory.roomLabel) formData.set('room_label', parsedCategory.roomLabel)
-
-    const res = await fetch(`${apiBase}/public-profile/photos`, {
-      method: 'POST',
-      body: formData,
+    setUploadErrors([])
+    setUploadProgress({ completed: 0, total: photoFiles.length })
+    const category = photoCategoryOptions.find(option => option.value === selectedPhotoCategory)!
+    const failures = await uploadPhotos({
+      apiBase,
+      files: photoFiles,
+      alt: photoAlt,
+      category,
+      onUploaded: photo => setProfile(current => ({ ...current, photos: [...current.photos, photo] })),
+      onProgress: completed => setUploadProgress({ completed, total: photoFiles.length }),
     })
+    const succeeded = photoFiles.length - failures.length
+    setPhotoFiles(failures.map(failure => failure.file))
+    setUploadErrors(failures.map(failure => `${failure.file.name} : ${failure.message}`))
+    setFileInputKey(key => key + 1)
+    setUploadProgress(null)
+    if (failures.length === 0) setPhotoAlt('')
+    setStatus(failures.length ? 'error' : 'saved')
+    setMessage(`${succeeded} photo(s) ajoutée(s).${failures.length ? ` ${failures.length} fichier(s) à réessayer.` : ''}`)
+  }
 
-    const payload = await res.json().catch(() => null) as Record<string, unknown> | null
-    if (!res.ok) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  function onPhotoDragEnd({ active, over }: DragEndEvent) {
+    if (!over || active.id === over.id || photosBusy) return
+    const from = profile.photos.findIndex(photo => photo.id === active.id)
+    const to = profile.photos.findIndex(photo => photo.id === over.id)
+    void movePhoto(from, to - from)
+  }
+
+  async function movePhoto(index: number, direction: number) {
+    const target = index + direction
+    if (photosBusy || index < 0 || target < 0 || target >= profile.photos.length || index === target) return
+    const ordered = arrayMove(profile.photos, index, target)
+    if (ordered.some(photo => !photo.id)) return
+    const previousPhotos = profile.photos
+    setProfile(current => ({ ...current, photos: ordered.map((photo, sort_order) => ({ ...photo, sort_order })) }))
+    setPhotoActionId('reorder')
+    setMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/public-profile/photos`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo_ids: ordered.map(photo => photo.id) }),
+      })
+      if (!res.ok) throw new Error('Order failed')
+      setProfile(current => ({ ...current, photos: ordered.map((photo, sort_order) => ({ ...photo, sort_order })) }))
+      setStatus('saved')
+      setMessage('Ordre des photos enregistré.')
+    } catch {
+      setProfile(current => ({ ...current, photos: previousPhotos }))
       setStatus('error')
-      setMessage((payload?.error as { message?: string } | undefined)?.message ?? 'Upload impossible.')
-      return
+      setMessage('Ordre non enregistré. Actualisez la galerie puis réessayez.')
+    } finally {
+      setPhotoActionId(null)
     }
+  }
 
-    setProfile(current => ({
-      ...current,
-      photos: [
-        ...current.photos,
-        {
-          id: String(payload?.id ?? ''),
-          url: String(payload?.url ?? ''),
-          alt: String(payload?.alt ?? ''),
-          room_type: (payload?.room_type as OwnerLodgingPublicProfileDto['photos'][number]['room_type']) ?? null,
-          room_label: payload?.room_label != null ? String(payload.room_label) : null,
-          sort_order: Number(payload?.sort_order ?? current.photos.length),
-          is_cover: Boolean(payload?.is_cover),
-        },
-      ],
-    }))
-    setPhotoFile(null)
-    setPhotoAlt('')
-    setPhotoCategory('common_area')
-    setStatus('saved')
-    setMessage('Photo ajoutee au brouillon.')
+  async function changePhotoCategory(photoId: string, value: string) {
+    const category = photoCategoryOptions.find(option => option.value === value)
+    if (!category || photosBusy) return
+    setPhotoActionId(photoId)
+    setMessage(null)
+    try {
+      const res = await fetch(`${apiBase}/public-profile/photos/${photoId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room_type: category.roomType, room_label: category.roomLabel }),
+      })
+      if (!res.ok) throw new Error('Catégorie non enregistrée. Veuillez réessayer.')
+      setProfile(current => ({
+        ...current,
+        photos: current.photos.map(photo => photo.id === photoId
+          ? { ...photo, room_type: category.roomType, room_label: category.roomLabel }
+          : photo),
+      }))
+      setStatus('saved')
+      setMessage('Catégorie enregistrée.')
+    } catch {
+      setStatus('error')
+      setMessage('Catégorie non enregistrée. Veuillez réessayer.')
+    } finally {
+      setPhotoActionId(null)
+    }
   }
 
   async function deletePhoto(photoId: string) {
@@ -472,7 +536,7 @@ export function LodgingShowcaseForm(props: {
   }
 
   return (
-    <div className="space-y-6 pb-20">
+    <fieldset disabled={uploadProgress !== null || photoActionId !== null} className="min-w-0 space-y-6 pb-20">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           {props.mode !== 'admin' && (
@@ -718,13 +782,14 @@ export function LodgingShowcaseForm(props: {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
                 <div className="space-y-2">
-                  <Label htmlFor="photo-alt">Texte alternatif</Label>
-                  <Input id="photo-alt" value={photoAlt} onChange={event => setPhotoAlt(event.target.value)} placeholder="Salon principal lumineux" />
+                  <Label htmlFor="photo-alt">Texte alternatif (facultatif, commun au lot)</Label>
+                  <Input id="photo-alt" disabled={photosBusy} maxLength={160} value={photoAlt} onChange={event => setPhotoAlt(event.target.value)} placeholder="Salon principal lumineux" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="photo-room-type">Type de piece</Label>
                   <select
                     id="photo-room-type"
+                    disabled={photosBusy}
                     value={selectedPhotoCategory}
                     onChange={event => setPhotoCategory(event.target.value)}
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
@@ -735,19 +800,41 @@ export function LodgingShowcaseForm(props: {
                   </select>
                 </div>
               </div>
-              <Input type="file" accept="image/png,image/jpeg,image/jpg,image/webp,image/avif" onChange={event => setPhotoFile(event.target.files?.[0] ?? null)} />
-              <Button type="button" variant="outline" onClick={uploadPhoto} disabled={!photoFile || photoAlt.trim().length < 5}>
-                Uploader la photo
+              <p className="text-sm text-gray-500">Sélectionnez plusieurs photos, puis choisissez leur pièce sur chaque vignette. Les chambres et salles de bains suivent les nombres renseignés ci-dessus.</p>
+              <Label htmlFor="photo-files">Photos à importer</Label>
+              <Input key={fileInputKey} id="photo-files" type="file" multiple disabled={photosBusy} accept="image/png,image/jpeg,image/jpg,image/webp,image/avif" onChange={event => { setPhotoFiles(Array.from(event.target.files ?? [])); setUploadErrors([]) }} />
+              {photoFiles.length > 0 && <p className="text-sm">{photoFiles.length} fichier(s) sélectionné(s)</p>}
+              <Button type="button" variant="outline" onClick={uploadPhoto} disabled={photosBusy || photoFiles.length === 0 || (photoAlt.trim().length > 0 && photoAlt.trim().length < 5)}>
+                {uploadProgress ? `Envoi ${uploadProgress.completed}/${uploadProgress.total}…` : 'Importer les photos'}
               </Button>
+              {uploadProgress && <p role="status" className="text-sm">{uploadProgress.completed} / {uploadProgress.total} photos traitées</p>}
+              {uploadErrors.length > 0 && <ul role="alert" className="space-y-1 text-sm text-destructive">{uploadErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
+              {photoActionId === 'reorder' && <p role="status" className="text-sm">Enregistrement de l’ordre…</p>}
               {profile.photos.length > 0 && (
+                <DndContext id={`lodging-photos-${props.lodgingId}`} sensors={sensors} collisionDetection={photoCollisionDetection} onDragEnd={onPhotoDragEnd}
+                  accessibility={{ screenReaderInstructions: { draggable: 'Appuyez sur Espace pour saisir la photo, utilisez les flèches pour la déplacer, Espace pour déposer ou Échap pour annuler.' } }}>
+                  <SortableContext items={profile.photos.map(photo => photo.id ?? photo.url)} strategy={rectSortingStrategy}>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {profile.photos.map(photo => (
-                    <div
-                      key={photo.id ?? photo.url}
-                      className={`overflow-hidden rounded-xl border bg-white ${photo.is_cover ? 'border-pink-600 ring-1 ring-pink-600' : 'border-gray-100'}`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full object-cover" />
+                  {profile.photos.map((photo, photoIndex) => (
+                    <SortablePhotoCard key={photo.id ?? photo.url} id={photo.id ?? photo.url} label={photo.alt} cover={photo.is_cover} disabled={photosBusy || !photo.id || profile.photos.length < 2}>
+                      <div className="relative">
+                        <div className="absolute inset-x-3 top-3 z-10 flex justify-between gap-2">
+                          <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} avant`} disabled={photosBusy || photoIndex === 0 || !photo.id} onClick={() => movePhoto(photoIndex, -1)}>← Avant</Button>
+                          <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} après`} disabled={photosBusy || photoIndex === profile.photos.length - 1 || !photo.id} onClick={() => movePhoto(photoIndex, 1)}>Après →</Button>
+                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img draggable={false} src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full object-cover" />
+                        <div className="absolute inset-x-3 bottom-3">
+                          <PhotoCategorySelect
+                            options={photoCategoryOptions}
+                            roomType={photo.room_type}
+                            roomLabel={photo.room_label}
+                            label={`Catégorie de ${photo.alt}`}
+                            disabled={photosBusy || !photo.id}
+                            onChange={value => photo.id && changePhotoCategory(photo.id, value)}
+                          />
+                        </div>
+                      </div>
                       <div className="space-y-1 p-3 text-xs text-gray-500">
                         <p className="font-medium text-charcoal">{photo.alt}</p>
                         <p>{photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type ?? 'other'] ?? 'Autre'}</p>
@@ -763,7 +850,7 @@ export function LodgingShowcaseForm(props: {
                               type="button"
                               size="sm"
                               variant="outline"
-                              disabled={photoActionId === photo.id}
+                              disabled={photosBusy}
                               onClick={() => photo.id && setCoverPhoto(photo.id)}
                             >
                               Definir couverture
@@ -774,16 +861,18 @@ export function LodgingShowcaseForm(props: {
                             size="sm"
                             variant="ghost"
                             className="text-destructive hover:text-destructive"
-                            disabled={photoActionId === photo.id}
+                            disabled={photosBusy}
                             onClick={() => photo.id && deletePhoto(photo.id)}
                           >
                             Supprimer
                           </Button>
                         </div>
                       )}
-                    </div>
+                    </SortablePhotoCard>
                   ))}
                 </div>
+                  </SortableContext>
+                </DndContext>
               )}
             </CardContent>
           </Card>
@@ -796,11 +885,11 @@ export function LodgingShowcaseForm(props: {
               <CardDescription>Statut actuel: {profile.publication_status}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button type="button" className="w-full" onClick={saveDraft} disabled={status === 'saving'}>
+              <Button type="button" className="w-full" onClick={saveDraft} disabled={photosBusy}>
                 Sauvegarder le brouillon
               </Button>
               {props.mode !== 'admin' && (
-                <Button type="button" variant="outline" className="w-full" onClick={submitForReview} disabled={status === 'saving'}>
+                <Button type="button" variant="outline" className="w-full" onClick={submitForReview} disabled={photosBusy}>
                   Demander publication
                 </Button>
               )}
@@ -871,6 +960,6 @@ export function LodgingShowcaseForm(props: {
           </Card>
         </div>
       </div>
-    </div>
+    </fieldset>
   )
 }

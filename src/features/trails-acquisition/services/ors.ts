@@ -67,7 +67,7 @@ export function naismithDurationMin(distanceKm: number | null | undefined, eleva
   return Math.round(flatMinutes + climbMinutes)
 }
 
-export async function fetchOrsHikingDuration(coordinates: Array<[number, number]>): Promise<number | null> {
+export async function fetchOrsHikingDuration(coordinates: Array<[number, number]>, signal?: AbortSignal): Promise<number | null> {
   const apiKey = process.env.ORS_API_KEY
   if (!apiKey) return null
   if (coordinates.length < 2) return null
@@ -75,6 +75,7 @@ export async function fetchOrsHikingDuration(coordinates: Array<[number, number]
   const sampled = sampleCoordinates(coordinates, ORS_MAX_WAYPOINTS)
 
   const response = await fetch(ORS_ENDPOINT, {
+    signal,
     method: 'POST',
     headers: {
       Authorization: apiKey,
@@ -110,6 +111,7 @@ type DurationEnrichable = {
 
 export async function enrichCandidatesWithDuration<T extends DurationEnrichable>(
   candidates: T[],
+  signal?: AbortSignal,
 ): Promise<{ naismith: number; ors: number; errors: number }> {
   let naismith = 0
   let ors = 0
@@ -117,6 +119,7 @@ export async function enrichCandidatesWithDuration<T extends DurationEnrichable>
   const orsEnabled = Boolean(process.env.ORS_API_KEY)
 
   for (const candidate of candidates) {
+    signal?.throwIfAborted()
     if (candidate.estimated_duration_min != null) continue
 
     // Priorité 1 : ORS si clé disponible et géométrie présente
@@ -124,7 +127,7 @@ export async function enrichCandidatesWithDuration<T extends DurationEnrichable>
       const coords = extractCoordinates(candidate.geometry_geojson)
       if (coords.length >= 2) {
         try {
-          const duration = await fetchOrsHikingDuration(coords)
+          const duration = await fetchOrsHikingDuration(coords, signal)
           if (duration != null) {
             candidate.estimated_duration_min = duration
             candidate.source_refs = appendOrsRef(candidate.source_refs)

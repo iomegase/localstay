@@ -1,4 +1,7 @@
+import { dedupeTrailPhotos, type TrailPhoto } from '../lib/photos'
 import { Prisma } from '@prisma/client'
+import { parseGpxToGeoJson } from '../lib/gpx'
+import { computeLineDistanceKm } from '../lib/gpx-parser'
 import { normalizeTrailDifficulty } from '../lib/difficulty'
 import type { TrailDataQualityStatus, TrailDifficulty, TrailElevationStatus, TrailGeometryStatus, TrailSourceRef } from '../types'
 
@@ -23,6 +26,7 @@ export type OfficialWebsiteTrailCandidate = {
   raw_payload: {
     source_url: string
     extracted_from: 'html'
+    acquired_photos?: TrailPhoto[]
   }
 }
 
@@ -42,10 +46,20 @@ export function extractOfficialWebsiteTrailCandidates(html: string, sourceUrl: s
     .filter(block => TRAIL_TITLE_PATTERN.test(block.title))
     .map(block => candidateFromBlock(block, sourceRef, sourceUrl, structuredData))
 
-  if (headingCandidates.length > 0) return headingCandidates
+  if (headingCandidates.length > 0) {
+    if (headingCandidates.length === 1) {
+      const photos = extractOfficialWebsiteTrailPhotos(html, sourceUrl)
+      if (photos.length) headingCandidates[0].raw_payload.acquired_photos = photos
+    }
+    return headingCandidates
+  }
 
   const pageCandidate = extractPageCandidate(html, sourceUrl)
-  return pageCandidate ? [candidateFromBlock(pageCandidate, sourceRef, sourceUrl, structuredData)] : []
+  if (!pageCandidate) return []
+  const candidate = candidateFromBlock(pageCandidate, sourceRef, sourceUrl, structuredData)
+  const photos = extractOfficialWebsiteTrailPhotos(html, sourceUrl)
+  if (photos.length) candidate.raw_payload.acquired_photos = photos
+  return [candidate]
 }
 
 function candidateFromBlock(
@@ -68,7 +82,7 @@ function candidateFromBlock(
 }
 
 function extractHeadingBlocks(html: string): Array<{ title: string; description: string | null }> {
-  const headingPattern = /<h[1-3]\b[^>]*>(.*?)<\/h[1-3]>([\s\S]{0,600})/gi
+  const headingPattern = /<h[1-3]\b[^>]*>(.*?)<\/h[1-3]>([\s\S]*?)(?=<h[1-3]\b|$)/gi
   const paragraphPattern = /<p\b[^>]*>(.*?)<\/p>/i
   const blocks: Array<{ title: string; description: string | null }> = []
 
@@ -450,4 +464,93 @@ function dedupeByTitle(blocks: Array<{ title: string; description: string | null
     seen.add(key)
     return true
   })
+}
+
+// Fetch only attachments explicitly linked from the admin-provided detail page.
+// Cross-origin attachments are limited to the public publishers used by these offices.
+const GPX_PUBLISHERS = new Set(['static.apidae-tourisme.com', 'geotrek.nature-haute-savoie.fr'])
+
+export async function fetchOfficialWebsiteTrailCandidates(
+  sourceUrl: string,
+  signal: AbortSignal,
+  onCandidate?: (candidate: OfficialWebsiteTrailCandidate) => void,
+): Promise<OfficialWebsiteTrailCandidate[]> {
+  const response = await fetch(sourceUrl, { signal })
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  const html = await response.text()
+  const candidates = extractOfficialWebsiteTrailCandidates(html, sourceUrl)
+  candidates.forEach(candidate => onCandidate?.(candidate))
+  // A directory page cannot associate one attachment with several different trails.
+  if (candidates.length !== 1 || candidates[0].geometry_geojson) return candidates
+  const page = new URL(response.url || sourceUrl)
+  const links = new Set<string>()
+  for (const match of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const href = parseAttributes(match[0]).href
+    if (!href || !/\.gpx(?:[?#]|$)|\bGPX\b/i.test(`${href} ${cleanHtml(match[1])}`)) continue
+    const url = new URL(href.replace(/&amp;/g, '&'), page)
+    if (url.protocol !== 'https:' || url.username || url.password) continue
+    if (url.origin !== page.origin && !GPX_PUBLISHERS.has(url.hostname)) continue
+    links.add(url.href)
+  }
+  if (links.size === 0) return candidates
+  if (links.size > 1) throw new Error('Plusieurs GPX sur la fiche : choix du parcours requis')
+  const gpxUrl = [...links][0]
+  const gpxResponse = await fetch(gpxUrl, { signal, redirect: 'error' })
+  if (!gpxResponse.ok) throw new Error(`GPX HTTP ${gpxResponse.status}`)
+  const reader = gpxResponse.body?.getReader()
+  if (!reader) throw new Error('GPX vide')
+  const chunks: Uint8Array[] = []
+  let size = 0
+  try {
+    while (true) {
+      signal.throwIfAborted()
+      const { value, done } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > 5_000_000) throw new Error('GPX trop volumineux (max 5 MB)')
+      chunks.push(value)
+    }
+  } finally {
+    await reader.cancel()
+  }
+  const xml = Buffer.concat(chunks).toString('utf8')
+  // Preserve segment boundaries instead of inventing a line across gaps in a track.
+  const segments = [...xml.matchAll(/<trkseg\b[^>]*>([\s\S]*?)<\/trkseg>/gi)].map(match => match[1])
+  const parsed = (segments.length ? segments : [xml]).map(parseGpxToGeoJson)
+  if (parsed.some(segment => segment.status !== 'valid')) throw new Error('GPX invalide')
+  const lines = parsed.map(segment => (segment.geometry as { coordinates: Array<[number, number]> }).coordinates)
+  const candidate = candidates[0]
+  signal.throwIfAborted()
+  candidate.geometry_geojson = lines.length === 1
+    ? { type: 'LineString', coordinates: lines[0] }
+    : { type: 'MultiLineString', coordinates: lines }
+  candidate.geometry_status = 'valid'
+  candidate.start_longitude = lines[0][0][0]
+  candidate.start_latitude = lines[0][0][1]
+  candidate.distance_km ??= Math.round(lines.reduce((sum, line) => sum + computeLineDistanceKm(line), 0) * 10) / 10
+  candidate.metric_source = 'official_website'
+  candidate.source_refs.push({ type: 'gpx', url: gpxUrl, attribution: page.hostname, used_for: ['geometry'] })
+  return candidates
+}
+
+export function extractOfficialWebsiteTrailPhotos(html: string, sourceUrl: string): TrailPhoto[] {
+  const photos: TrailPhoto[] = []
+  const attribution = new URL(sourceUrl).hostname
+  const add = (url: unknown, caption?: unknown, credit?: unknown) => {
+    if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return
+    photos.push({ url, source_url: sourceUrl, attribution: typeof credit === 'string' && credit ? cleanHtml(credit) : attribution,
+      ...(typeof caption === 'string' && caption ? { caption: cleanHtml(caption) } : {}) })
+  }
+  const sheet = extractHwSheet(html)
+  for (const entry of getRecordArrayValue(sheet, 'gallery')) {
+    if (!isRecord(entry) || entry.type !== '03.01.01') continue
+    add(entry.URL, (isRecord(entry.caption) ? entry.caption.fr : entry.caption) ?? entry.title ?? entry.legend, entry.copyright ?? entry.author)
+  }
+  for (const match of html.matchAll(/<(?:button|a|div)\b[^>]*>/gi)) {
+    const attrs = parseAttributes(match[0])
+    if (attrs['data-hc-lightbox'] !== 'wpet-gallery') continue
+    add(attrs['data-src'], attrs['data-caption'], attrs['data-caption'])
+  }
+  if (!photos.length) add(extractMetaContent(html, 'og:image'))
+  return dedupeTrailPhotos(photos)
 }

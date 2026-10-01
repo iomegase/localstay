@@ -1,7 +1,8 @@
+import type { TrailPhoto } from './lib/photos'
 export const TRAIL_SOURCE_TYPES = ['official_website', 'overpass', 'ign', 'gemini', 'gpx', 'manual', 'camptocamp'] as const
 export type TrailSourceType = (typeof TRAIL_SOURCE_TYPES)[number]
 
-export const TRAIL_SOURCE_USES = ['content', 'geometry', 'elevation', 'description', 'manual_review'] as const
+export const TRAIL_SOURCE_USES = ['content', 'geometry', 'elevation', 'description', 'manual_review', 'photos'] as const
 export type TrailSourceUse = (typeof TRAIL_SOURCE_USES)[number]
 
 export const TRAIL_REVIEW_STATUSES = ['needs_review', 'published', 'merged', 'rejected'] as const
@@ -28,6 +29,7 @@ export type TrailSourceRef = {
 }
 
 export type TrailCandidateDto = {
+  photos: TrailPhoto[]
   id: string
   title: string
   description: string | null

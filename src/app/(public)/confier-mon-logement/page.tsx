@@ -4,7 +4,7 @@ import {
   MarketingShell,
   marketingContainerClass,
 } from '@/features/marketing/components/MarketingShell'
-import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
+// import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
 import { listPublishedLocalLandingSummaries } from '@/features/local-seo/queries/landing-pages'
 import { OwnerLeadForm } from '@/features/contact-messages/components/OwnerLeadForm'
 
@@ -21,9 +21,9 @@ const process = [
 ] as const
 
 export default async function OwnerContactPage() {
-  const destinations = (await listPublishedLocalLandingSummaries())
-    .filter(destination => destination.publication.concierge)
-    .map(destination => destination.city)
+  // const destinations = (await listPublishedLocalLandingSummaries())
+  //   .filter(destination => destination.publication.concierge)
+  //   .map(destination => destination.city)
 
   return (
     <MarketingShell>
@@ -63,16 +63,16 @@ export default async function OwnerContactPage() {
         </div>
       </section>
 
-      <LocalDestinationLinks intent="concierge" destinations={destinations} />
+      {/* <LocalDestinationLinks intent="concierge" destinations={destinations} /> */}
 
-      <section className="bg-slate-800 py-10 text-white">
+      {/* <section className="bg-slate-800 py-10 text-white">
         <div className={`${marketingContainerClass} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>
           <span className="text-sm text-slate-300">Vous préférez nous écrire directement ?</span>
           <a className="font-bold hover:text-pink-400" href="mailto:bonjour@mystay.city">
             bonjour@mystay.city ↗
           </a>
         </div>
-      </section>
+      </section> */}
     </MarketingShell>
   )
 }

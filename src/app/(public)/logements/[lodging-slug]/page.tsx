@@ -10,7 +10,8 @@ import {
   vacationRentalSchema,
 } from '@/features/seo/lib/structured-data'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
-import { getPublishedLodgingDetailBySlug } from '@/features/lodging-showcase/queries/public-lodgings'
+import { getPublishedLodgingDetailBySlug, listSuggestedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
+import { SuggestedLodgings } from '@/features/lodging-showcase/components/SuggestedLodgings'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { LodgingMarketingGallery } from '@/features/lodging-showcase/components/LodgingMarketingGallery'
 import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
@@ -59,6 +60,7 @@ export default async function LodgingDetailPage({ params }: Props) {
   }
 
   const citySlug = detail.city_slug
+  const suggestions = await listSuggestedLodgings(detail.id, citySlug)
   const detailPath = publicLodgingPath(detail.slug)
 
   const breadcrumb = breadcrumbSchema([
@@ -258,6 +260,7 @@ export default async function LodgingDetailPage({ params }: Props) {
                 </div>
               </section>
             )}
+            <SuggestedLodgings lodgings={suggestions} />
           </div>
         </div>
       </MarketingShell>

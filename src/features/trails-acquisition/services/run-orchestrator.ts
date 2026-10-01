@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { extractOfficialWebsiteTrailCandidates } from './official-website'
+import { fetchOfficialWebsiteTrailCandidates } from './official-website'
 import { fetchCamptocampTrails } from './camptocamp'
 import { enrichCandidatesWithIgn } from './ign'
 import { enrichCandidatesWithDuration } from './ors'
@@ -7,7 +7,7 @@ import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extra
 import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
-import { inheritGeometryByTitle } from '../lib/geometry-inheritance'
+import { IMPORT_WORK_BUDGET_MS, IMPORT_SOURCE_TIMEOUT_MS, IMPORT_ENRICHMENT_TIMEOUT_MS, runWithDeadline } from '../lib/import-budget'
 import type { TrailSourceType } from '../types'
 
 type RunSourceInput = {
@@ -46,125 +46,83 @@ export type RunSourceResult = {
   source_errors: Record<string, string>
 }
 
-export async function collectTrailCandidatesFromSources(input: RunSourceInput): Promise<RunSourceResult> {
-  const candidates: RunSourceResult['candidates'] = []
+export async function collectTrailCandidatesFromSources(
+  input: RunSourceInput,
+  onCheckpoint?: (result: RunSourceResult) => Promise<void>,
+): Promise<RunSourceResult> {
+  const deadline = Date.now() + IMPORT_WORK_BUDGET_MS
   const sourceErrors: Record<string, string> = {}
+  type Candidate = RunSourceResult['candidates'][number]
+  const discoveries: Array<{ name: string; partial?: Candidate[]; work: (signal: AbortSignal) => Promise<Candidate[]> }> = []
 
   if (input.sourceTypes.includes('official_website') && input.sourceUrl) {
-    try {
-      const response = await fetch(input.sourceUrl)
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const html = await response.text()
-      candidates.push(...extractOfficialWebsiteTrailCandidates(html, input.sourceUrl))
-    } catch (error) {
-      sourceErrors.official_website = error instanceof Error ? error.message : String(error)
-    }
+    const partial: Candidate[] = []
+    discoveries.push({ name: 'official_website', partial, work: signal =>
+      fetchOfficialWebsiteTrailCandidates(input.sourceUrl!, signal, candidate => partial.push(candidate)),
+    })
   }
-
   if (input.sourceTypes.includes('camptocamp')) {
-    try {
-      const trails = await fetchCamptocampTrails({
-        latitude: input.city.latitude,
-        longitude: input.city.longitude,
-        radiusKm: input.zoneRadiusKm ?? 15,
-      })
-      candidates.push(...trails)
-    } catch (error) {
-      sourceErrors.camptocamp = error instanceof Error ? error.message : String(error)
-    }
+    const partial: Candidate[] = []
+    discoveries.push({ name: 'camptocamp', partial, work: signal => fetchCamptocampTrails({
+      latitude: input.city.latitude, longitude: input.city.longitude,
+      radiusKm: input.zoneRadiusKm ?? 15, signal, onCandidate: candidate => partial.push(candidate),
+    }) })
   }
-
   if (input.sourceTypes.includes('overpass')) {
-    try {
-      const payload = await fetchOverpassPayload(input)
-      candidates.push(...normalizeOverpassTrails(payload))
-    } catch (error) {
-      sourceErrors.overpass = error instanceof Error ? error.message : String(error)
-    }
+    discoveries.push({ name: 'overpass', work: async signal => normalizeOverpassTrails(await fetchOverpassPayload(input, signal)) })
   }
-
-  if (input.sourceTypes.includes('ign')) {
-    try {
-      await enrichCandidatesWithIgn(candidates)
-    } catch (error) {
-      sourceErrors.ign = error instanceof Error ? error.message : String(error)
-    }
-  }
-
   if (input.sourceTypes.includes('gemini')) {
-    // 1. Découverte de randos emblématiques absentes d'OSM (sans coords → needs_review)
-    try {
-      const discoveries = await discoverTrailsWithGemini(input.city)
-      const existingTitles = new Set(candidates.map(c => c.title.toLowerCase()))
-      for (const trail of discoveries) {
-        if (existingTitles.has(trail.title.toLowerCase())) continue
-        const usedFor = ['title', 'description']
-        if (trail.distance_km != null) usedFor.push('distance_km')
-        if (trail.elevation_gain_m != null) usedFor.push('elevation_gain_m')
-        if (trail.estimated_duration_min != null) usedFor.push('estimated_duration_min')
-        if (trail.difficulty != null) usedFor.push('difficulty')
-        candidates.push({
-          primary_source_type: 'gemini',
-          source_refs: [{ type: 'gemini', attribution: 'Gemini (Google Search grounded)', used_for: usedFor }] as Prisma.InputJsonValue,
-          raw_payload: { trail } as Prisma.InputJsonValue,
-          title: trail.title,
-          description: trail.description,
-          start_label: trail.start_label,
-          distance_km: trail.distance_km,
-          elevation_gain_m: trail.elevation_gain_m,
-          estimated_duration_min: trail.estimated_duration_min,
-          difficulty: trail.difficulty,
-          metric_source: trail.distance_km != null || trail.elevation_gain_m != null ? 'gemini_grounded' : null,
-          geometry_status: 'missing',
-          elevation_status: trail.elevation_gain_m != null ? 'valid' : 'missing',
-          data_quality_status: 'needs_review',
-        })
-      }
-    } catch (error) {
-      sourceErrors.gemini_discovery = error instanceof Error ? error.message : String(error)
-    }
-
-    // 2. Enrichissement des descriptions manquantes (candidats Overpass sans description)
-    try {
-      await enrichCandidatesWithGeminiDescriptions(candidates, input.city)
-    } catch (error) {
-      sourceErrors.gemini_descriptions = error instanceof Error ? error.message : String(error)
-    }
+    discoveries.push({ name: 'gemini_discovery', work: async () => (await discoverTrailsWithGemini(input.city)).map(trail => ({
+      primary_source_type: 'gemini',
+      source_refs: [{ type: 'gemini', attribution: 'Gemini', used_for: ['title', 'description', 'start_label'] }],
+      raw_payload: { trail }, title: trail.title, description: trail.description,
+      start_label: trail.start_label, geometry_status: 'missing', elevation_status: 'missing', data_quality_status: 'needs_review',
+    })) })
   }
 
-  // 3. Fallback regex pour start_label depuis la description (cas où Gemini n'a pas structuré)
+  const results = await Promise.allSettled(discoveries.map(source =>
+    runWithDeadline(deadline, IMPORT_SOURCE_TIMEOUT_MS, source.work),
+  ))
+  const collected: Candidate[] = []
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled') collected.push(...result.value)
+    else {
+      collected.push(...structuredClone(discoveries[index].partial ?? []))
+      sourceErrors[discoveries[index].name] = result.reason instanceof Error ? result.reason.message : 'Source indisponible'
+    }
+  })
+  let candidates = mergeDuplicateCandidates(collected)
+  const checkpoint = async () => {
+    await onCheckpoint?.({ candidates: structuredClone(candidates), source_errors: { ...sourceErrors } })
+  }
+  // Persist discovery before starting any potentially expensive enrichment.
+  await checkpoint()
+
+  async function enrich(name: string, work: (items: Candidate[], signal: AbortSignal) => Promise<{ errors?: number }>) {
+    if (candidates.length === 0) return
+    if (Date.now() >= deadline) {
+      sourceErrors[name] = 'Budget de temps de l’import épuisé'
+      return
+    }
+    const draft = structuredClone(candidates)
+    try {
+      const result = await runWithDeadline(deadline, IMPORT_ENRICHMENT_TIMEOUT_MS, signal => work(draft, signal))
+      if (result.errors) sourceErrors[name] = `${result.errors} enrichissement(s) en échec`
+    } catch (error) {
+      sourceErrors[name] = error instanceof Error ? error.message : 'Enrichissement indisponible'
+    }
+    // Capture completed items; late responses only mutate the detached draft.
+    candidates = structuredClone(draft)
+    await checkpoint()
+  }
+  if (input.sourceTypes.includes('ign')) await enrich('ign', (items, signal) => enrichCandidatesWithIgn(items, signal))
+  if (input.sourceTypes.includes('gemini')) await enrich('gemini_descriptions', (items, signal) => enrichCandidatesWithGeminiDescriptions(items, input.city, signal))
   for (const candidate of candidates) {
-    if (!candidate.start_label && candidate.description) {
-      const extracted = extractStartLabelFromDescription(candidate.description)
-      if (extracted) candidate.start_label = extracted
-    }
+    if (!candidate.start_label && candidate.description) candidate.start_label = extractStartLabelFromDescription(candidate.description)
   }
-
-  // 4. Géocodage Mapbox du start_label pour les candidats sans coordonnées de départ
-  // (typiquement les randos découvertes via Gemini-only). "Parking du Bettex" →
-  // (45.8732, 6.6731). Permet la publication même sans géométrie Overpass/C2C.
-  try {
-    await enrichCandidatesWithStartGeocoding(candidates, input.city)
-  } catch (error) {
-    sourceErrors.start_geocoding = error instanceof Error ? error.message : String(error)
-  }
-
-  // 5. Estimation de durée : ORS si clé dispo + géométrie, sinon Naismith local
-  try {
-    await enrichCandidatesWithDuration(candidates)
-  } catch (error) {
-    sourceErrors.duration = error instanceof Error ? error.message : String(error)
-  }
-
-  // 6. Fusion des doublons inter-sources (mêmes randos avec titres légèrement différents)
-  const merged = mergeDuplicateCandidates(candidates)
-
-  // 7. Héritage de géométrie par titre — DÉSACTIVÉ (plan 2026-06-05, Phase B).
-  // Produisait des tracés faux (rando homonyme mais itinéraire différent). L'appel est
-  // conservé mais retourne un no-op ; voir TITLE_INHERITANCE_ENABLED dans geometry-inheritance.
-  inheritGeometryByTitle(merged)
-
-  return { candidates: merged, source_errors: sourceErrors }
+  await enrich('start_geocoding', (items, signal) => enrichCandidatesWithStartGeocoding(items, input.city, signal))
+  await enrich('duration', (items, signal) => enrichCandidatesWithDuration(items, signal))
+  return { candidates, source_errors: sourceErrors }
 }
 
 const OVERPASS_FALLBACK_ENDPOINTS = [
@@ -174,13 +132,13 @@ const OVERPASS_FALLBACK_ENDPOINTS = [
 
 const TRANSIENT_HTTP_STATUSES = new Set([429, 502, 503, 504])
 
-async function fetchOverpassPayload(input: RunSourceInput): Promise<OverpassPayload> {
+async function fetchOverpassPayload(input: RunSourceInput, signal: AbortSignal): Promise<OverpassPayload> {
   const primary = process.env.OVERPASS_API_URL
-  if (!primary) return { elements: [] }
+  if (!primary) throw new Error('OVERPASS_API_URL non configurée')
 
   const radiusMeters = Math.round((input.zoneRadiusKm ?? 15) * 1000)
   const query = `
-    [out:json][timeout:60];
+    [out:json][timeout:18];
     (
       relation["route"="hiking"](around:${radiusMeters},${input.city.latitude},${input.city.longitude});
     );
@@ -192,8 +150,12 @@ async function fetchOverpassPayload(input: RunSourceInput): Promise<OverpassPayl
 
   for (let i = 0; i < endpoints.length; i += 1) {
     try {
-      return await postOverpass(endpoints[i], query)
+      signal.throwIfAborted()
+      return await runWithDeadline(Date.now() + 20_000, 20_000, attemptSignal =>
+        postOverpass(endpoints[i], query, AbortSignal.any([signal, attemptSignal])),
+      )
     } catch (error) {
+      signal.throwIfAborted()
       lastError = error instanceof Error ? error : new Error(String(error))
       const status = readStatus(lastError)
       const isTransient = status === null || TRANSIENT_HTTP_STATUSES.has(status)
@@ -206,8 +168,9 @@ async function fetchOverpassPayload(input: RunSourceInput): Promise<OverpassPayl
   throw lastError ?? new Error('Overpass failed')
 }
 
-async function postOverpass(endpoint: string, query: string): Promise<OverpassPayload> {
+async function postOverpass(endpoint: string, query: string, signal: AbortSignal): Promise<OverpassPayload> {
   const response = await fetch(endpoint, {
+    signal,
     method: 'POST',
     headers: {
       Accept: 'application/json',

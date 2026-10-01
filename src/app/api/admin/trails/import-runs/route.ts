@@ -8,6 +8,8 @@ import {
 } from '@/features/trails-acquisition/lib/api'
 import { createTrailImportRun, listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
 
+export const maxDuration = 300
+
 export async function GET(): Promise<NextResponse> {
   const session = await getSessionAdmin()
   if (session.error) return session.error

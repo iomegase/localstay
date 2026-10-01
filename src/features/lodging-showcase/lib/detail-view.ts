@@ -57,7 +57,7 @@ export function groupRoomPhotos(photos: Photo[]): RoomPhotoGroup[] {
   const order: string[] = []
   const byLabel = new Map<string, RoomPhotoGroup['photos']>()
 
-  for (const room of selectRoomPhotos(photos)) {
+  for (const room of selectRoomPhotos([...photos].sort((a, b) => a.sort_order - b.sort_order))) {
     let bucket = byLabel.get(room.label)
     if (!bucket) {
       bucket = []

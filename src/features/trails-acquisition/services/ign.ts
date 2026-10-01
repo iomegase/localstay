@@ -12,7 +12,7 @@ type IgnProfile = {
 const IGN_ENDPOINT = 'https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevationLine.json'
 const IGN_MAX_POINTS = 50
 
-export async function fetchIgnElevationProfile(coordinates: Array<[number, number]>): Promise<IgnProfile> {
+export async function fetchIgnElevationProfile(coordinates: Array<[number, number]>, signal?: AbortSignal): Promise<IgnProfile> {
   if (coordinates.length < 2) return { elevations: [] }
 
   const sampled = sampleCoordinates(coordinates, IGN_MAX_POINTS)
@@ -29,6 +29,7 @@ export async function fetchIgnElevationProfile(coordinates: Array<[number, numbe
   url.searchParams.set('zonly', 'false')
 
   const response = await fetch(url.toString(), {
+    signal,
     headers: {
       Accept: 'application/json',
       'User-Agent': 'MyStay/0.1 contact:dev@mystay.city',
@@ -60,7 +61,7 @@ const IGN_TIMEOUT_MS = 30_000        // 30s : l'API publique IGN peut être lent
 const IGN_CONCURRENCY = 1            // séquentiel : l'API publique IGN throttle agressivement le parallèle
 const IGN_RETRY_DELAY_MS = 2_000     // 2s d'attente avant retry sur échec transient
 
-export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T[]): Promise<{ enriched: number; errors: number }> {
+export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T[], signal?: AbortSignal): Promise<{ enriched: number; errors: number }> {
   let enriched = 0
   let errors = 0
 
@@ -70,8 +71,9 @@ export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T
   // l'API IGN (rate limit silencieux → 92% d'échec). Avec concurrency=1, on
   // retrouve les ~95% de succès du séquentiel d'origine.
   await mapWithConcurrency(toEnrich, IGN_CONCURRENCY, async candidate => {
+    signal?.throwIfAborted()
     const coordinates = extractLineStringCoordinates(candidate.geometry_geojson)
-    const profile = await fetchWithRetry(() => fetchIgnElevationProfile(coordinates))
+    const profile = await fetchWithRetry(() => fetchIgnElevationProfile(coordinates, signal), signal)
     if (!profile) {
       errors += 1
       return
@@ -88,13 +90,15 @@ export async function enrichCandidatesWithIgn<T extends Candidate>(candidates: T
   return { enriched, errors }
 }
 
-async function fetchWithRetry<T>(fetcher: () => Promise<T>): Promise<T | null> {
+async function fetchWithRetry<T>(fetcher: () => Promise<T>, signal?: AbortSignal): Promise<T | null> {
   try {
     return await withTimeout(fetcher(), IGN_TIMEOUT_MS)
   } catch {
+    signal?.throwIfAborted()
     // Retry une fois après pause (récupère les timeouts/429 transitoires)
     await new Promise(r => setTimeout(r, IGN_RETRY_DELAY_MS))
     try {
+      signal?.throwIfAborted()
       return await withTimeout(fetcher(), IGN_TIMEOUT_MS)
     } catch {
       return null

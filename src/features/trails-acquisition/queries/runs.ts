@@ -1,8 +1,10 @@
+import { extractTrailPhotos } from '../lib/photos'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { assertAllowedTrailSource } from '../lib/source-policy'
 import { TrailsAcquisitionError } from '../lib/errors'
-import { collectTrailCandidatesFromSources } from '../services/run-orchestrator'
+import { IMPORT_STALE_AFTER_MS } from '../lib/import-budget'
+import { collectTrailCandidatesFromSources, type RunSourceResult } from '../services/run-orchestrator'
 import type {
   TrailCandidateDto,
   TrailDataQualityStatus,
@@ -24,6 +26,7 @@ type RunCreateInput = {
 }
 
 type TrailCandidateRow = {
+  raw_payload?: Prisma.JsonValue
   id: string
   title: string
   description: string | null
@@ -72,65 +75,84 @@ export async function createTrailImportRun(
     select: { id: true },
   })
 
-  const sourceResult = await collectTrailCandidatesFromSources({
-    city,
-    sourceTypes: input.source_types,
-    sourceUrl: input.source_url,
-    zoneRadiusKm: input.zone_radius_km,
-  })
+  const cityId = city.id
+  const saved = new Map<number, { id: string; updatedAt: Date }>()
+  let lastErrors: Record<string, string> = {}
+  async function checkpoint(result: RunSourceResult) {
+    await prisma.$transaction(async tx => {
+      const active = await tx.trailImportRun.updateMany({
+        where: { id: run.id, status: 'running', deleted_at: null },
+        data: { updated_at: new Date(), source_errors: Object.keys(result.source_errors).length ? result.source_errors : Prisma.JsonNull },
+      })
+      if (!active.count) throw new Error('Import interrompu ou supprimé')
+      for (const [index, candidate] of result.candidates.entries()) {
+        const updatedAt = new Date()
+        const data = {
+          primary_source_type: candidate.primary_source_type,
+          source_refs: candidate.source_refs,
+          raw_payload: candidate.raw_payload,
+          title: candidate.title,
+          description: candidate.description,
+          difficulty: candidate.difficulty ?? null,
+          distance_km: candidate.distance_km ?? null,
+          elevation_gain_m: candidate.elevation_gain_m ?? null,
+          estimated_duration_min: candidate.estimated_duration_min ?? null,
+          loop_type: candidate.loop_type ?? null,
+          start_label: candidate.start_label ?? null,
+          start_latitude: candidate.start_latitude ?? null,
+          start_longitude: candidate.start_longitude ?? null,
+          geometry_geojson: candidate.geometry_geojson ?? Prisma.JsonNull,
+          metric_source: candidate.metric_source ?? null,
+          geometry_status: candidate.geometry_status ?? 'missing',
+          elevation_status: candidate.elevation_status ?? 'missing',
+          data_quality_status: candidate.data_quality_status ?? 'draft',
+          updated_at: updatedAt,
+        }
+        const previous = saved.get(index)
+        if (previous) {
+          const updated = await tx.trailCandidate.updateMany({
+            where: { id: previous.id, run_id: run.id, deleted_at: null, review_status: 'needs_review', updated_at: previous.updatedAt },
+            data,
+          })
+          if (updated.count) saved.set(index, { id: previous.id, updatedAt })
+        } else {
+          const row = await tx.trailCandidate.create({
+            data: { ...data, run_id: run.id, city_id: cityId, duplicate_poi_ids: [], review_status: 'needs_review' },
+            select: { id: true },
+          })
+          saved.set(index, { id: row.id, updatedAt })
+        }
+      }
+    }, { timeout: 30_000 })
+    lastErrors = { ...result.source_errors }
+  }
 
-  for (const candidate of sourceResult.candidates) {
-    await prisma.trailCandidate.create({
+  try {
+  await prisma.trailAuditLog.create({ data: {
+    admin_id: adminId, action: 'import_started', target_type: 'TrailImportRun', target_id: run.id,
+    after: { source_types: input.source_types },
+  } })
+    const sourceResult = await collectTrailCandidatesFromSources({
+      city, sourceTypes: input.source_types, sourceUrl: input.source_url, zoneRadiusKm: input.zone_radius_km,
+    }, checkpoint)
+    const hasErrors = Object.keys(sourceResult.source_errors).length > 0
+    const status = hasErrors ? (sourceResult.candidates.length ? 'partial_success' : 'failed') : 'completed'
+    await prisma.trailImportRun.updateMany({
+      where: { id: run.id, status: 'running', deleted_at: null },
+      data: { status, source_errors: hasErrors ? sourceResult.source_errors : Prisma.JsonNull, error: status === 'failed' ? 'Toutes les sources ont échoué' : null },
+    })
+  } catch (error) {
+    console.error('[trails-import] failed', { runId: run.id, error: error instanceof Error ? error.message : 'Unknown error' })
+    const count = await prisma.trailCandidate.count({ where: { run_id: run.id, deleted_at: null } })
+    await prisma.trailImportRun.updateMany({
+      where: { id: run.id, status: 'running', deleted_at: null },
       data: {
-        run_id: run.id,
-        city_id: city.id,
-        primary_source_type: candidate.primary_source_type,
-        source_refs: candidate.source_refs,
-        raw_payload: candidate.raw_payload,
-        title: candidate.title,
-        description: candidate.description,
-        difficulty: candidate.difficulty ?? null,
-        distance_km: candidate.distance_km ?? null,
-        elevation_gain_m: candidate.elevation_gain_m ?? null,
-        estimated_duration_min: candidate.estimated_duration_min ?? null,
-        loop_type: candidate.loop_type ?? null,
-        start_label: candidate.start_label ?? null,
-        start_latitude: candidate.start_latitude ?? null,
-        start_longitude: candidate.start_longitude ?? null,
-        geometry_geojson: candidate.geometry_geojson ?? Prisma.JsonNull,
-        metric_source: candidate.metric_source ?? null,
-        geometry_status: candidate.geometry_status ?? 'missing',
-        elevation_status: candidate.elevation_status ?? 'missing',
-        data_quality_status: candidate.data_quality_status ?? 'draft',
-        duplicate_poi_ids: [],
-        review_status: 'needs_review',
+        status: count > 0 ? 'partial_success' : 'failed',
+        error: 'Import interrompu. Les candidats déjà enregistrés sont conservés. Vous pouvez relancer l’acquisition.',
+        source_errors: { ...lastErrors, pipeline: 'Erreur pendant le traitement de l’import' },
       },
     })
   }
-
-  const sourceErrorCount = Object.keys(sourceResult.source_errors).length
-  const status = sourceErrorCount > 0
-    ? sourceResult.candidates.length > 0 ? 'partial_success' : 'failed'
-    : 'completed'
-
-  await prisma.trailImportRun.update({
-    where: { id: run.id },
-    data: {
-      status,
-      source_errors: sourceErrorCount > 0 ? sourceResult.source_errors : Prisma.JsonNull,
-      error: status === 'failed' ? 'Toutes les sources ont échoué' : null,
-    },
-  })
-
-  await prisma.trailAuditLog.create({
-    data: {
-      admin_id: adminId,
-      action: 'import_started',
-      target_type: 'TrailImportRun',
-      target_id: run.id,
-      after: { source_types: input.source_types, status },
-    },
-  })
 
   const detail = await getTrailImportRun(run.id)
   if (!detail) throw new TrailsAcquisitionError('NOT_FOUND', 404)
@@ -166,6 +188,7 @@ export async function deleteTrailImportRun(id: string, adminId: string): Promise
 }
 
 export async function listTrailImportRuns(): Promise<TrailImportRunListItem[]> {
+  await recoverStaleTrailImportRuns()
   const runs = await prisma.trailImportRun.findMany({
     where: { deleted_at: null },
     orderBy: { created_at: 'desc' },
@@ -202,6 +225,7 @@ export async function listTrailImportRuns(): Promise<TrailImportRunListItem[]> {
 }
 
 export async function getTrailImportRun(id: string): Promise<TrailImportRunDetail | null> {
+  await recoverStaleTrailImportRuns(id)
   const run = await prisma.trailImportRun.findFirst({
     where: { id, deleted_at: null },
     select: {
@@ -257,6 +281,7 @@ export async function getTrailImportRun(id: string): Promise<TrailImportRunDetai
 export function mapTrailCandidate(candidate: TrailCandidateRow): TrailCandidateDto {
   return {
     id: candidate.id,
+    photos: extractTrailPhotos(candidate.raw_payload),
     title: candidate.title,
     description: candidate.description,
     primary_source_type: candidate.primary_source_type as TrailSourceType,
@@ -297,4 +322,36 @@ function toStringRecord(value: Prisma.JsonValue | null): Record<string, string> 
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
   const entries = Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
   return entries.length > 0 ? Object.fromEntries(entries) : null
+}
+
+
+export async function recoverStaleTrailImportRuns(id?: string): Promise<number> {
+  const cutoff = new Date(Date.now() - IMPORT_STALE_AFTER_MS)
+  const stale = await prisma.trailImportRun.findMany({
+    where: { ...(id ? { id } : {}), status: 'running', deleted_at: null, updated_at: { lt: cutoff } },
+    select: { id: true, updated_at: true, source_errors: true, started_by: true },
+  })
+  let recovered = 0
+  for (const run of stale) {
+    // Compare the observed timestamp: a concurrent checkpoint takes precedence.
+    await prisma.$transaction(async tx => {
+      const count = await tx.trailCandidate.count({ where: { run_id: run.id, deleted_at: null } })
+      const result = await tx.trailImportRun.updateMany({
+        where: { id: run.id, status: 'running', deleted_at: null, updated_at: run.updated_at },
+        data: {
+          status: count > 0 ? 'partial_success' : 'failed',
+          error: 'Import interrompu (aucune progression depuis 10 minutes). Les candidats enregistrés sont conservés. Relancez l’acquisition.',
+          source_errors: { ...toStringRecord(run.source_errors), pipeline: 'IMPORT_INTERRUPTED' },
+        },
+      })
+      if (result.count && run.started_by) {
+        await tx.trailAuditLog.create({ data: {
+          admin_id: run.started_by, action: 'import_interrupted', target_type: 'TrailImportRun', target_id: run.id,
+          before: { status: 'running' }, after: { status: count > 0 ? 'partial_success' : 'failed', candidate_count: count },
+        } })
+      }
+      recovered += result.count
+    })
+  }
+  return recovered
 }

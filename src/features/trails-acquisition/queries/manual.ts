@@ -90,6 +90,7 @@ function resolveManualGeometry(input: ManualTrailInput): Prisma.InputJsonValue |
 
 const trailCandidateSelect = {
   id: true,
+  raw_payload: true,
   title: true,
   description: true,
   primary_source_type: true,

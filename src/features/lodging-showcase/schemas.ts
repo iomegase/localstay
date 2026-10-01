@@ -60,6 +60,13 @@ export const LodgingPhotoItemSchema = z.object({
   is_cover: z.boolean(),
 })
 
+export const LodgingPhotoCategoryInputSchema = z.object({
+  room_type: LodgingPhotoRoomTypeSchema,
+  room_label: z.string().trim().min(1).max(40).nullable(),
+}).strict()
+
+export type LodgingPhotoCategoryInput = z.infer<typeof LodgingPhotoCategoryInputSchema>
+
 export const LodgingPublicProfileInputSchema = z.object({
   title: trimmedString(5, 90, 'Le titre doit contenir entre 5 et 90 caracteres.'),
   short_description: trimmedString(40, 180, 'La description courte doit contenir entre 40 et 180 caracteres.'),
@@ -120,3 +127,7 @@ export type LodgingPhotoItemInput = z.infer<typeof LodgingPhotoItemSchema>
 export type LodgingPublicProfileInput = z.infer<typeof LodgingPublicProfileInputSchema>
 export type LodgingRewriteRequestInput = z.infer<typeof LodgingRewriteRequestSchema>
 export type LodgingListFiltersInput = z.infer<typeof LodgingListFiltersSchema>
+
+export const LodgingPhotoOrderInputSchema = z.object({
+  photo_ids: z.array(z.string().uuid()).min(1).refine(ids => new Set(ids).size === ids.length, 'Photos dupliquées'),
+}).strict()

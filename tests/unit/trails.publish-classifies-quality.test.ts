@@ -3,6 +3,8 @@ const mockCategoryFindFirst = jest.fn()
 const mockTransaction = jest.fn()
 const mockPoiFindFirst = jest.fn()
 const mockPoiCreate = jest.fn()
+const mockPoiUpdate = jest.fn()
+const mockTrailDetailUpdate = jest.fn()
 const mockTrailDetailCreate = jest.fn()
 const mockCandidateUpdate = jest.fn()
 const mockAuditCreate = jest.fn()
@@ -10,19 +12,21 @@ const mockAuditCreate = jest.fn()
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     trailCandidate: { findFirst: (...a: unknown[]) => mockCandidateFindFirst(...a) },
+    pointOfInterest: { findFirst: (...a: unknown[]) => mockPoiFindFirst(...a) },
     category: { findFirst: (...a: unknown[]) => mockCategoryFindFirst(...a) },
     $transaction: (...a: unknown[]) => mockTransaction(...a),
   },
 }))
 
-import { publishTrailCandidate } from '@/features/trails-acquisition/queries/review'
+import { publishTrailCandidate, mergeTrailCandidate } from '@/features/trails-acquisition/queries/review'
 
 const tx = {
   pointOfInterest: {
     findFirst: (...a: unknown[]) => mockPoiFindFirst(...a),
     create: (...a: unknown[]) => mockPoiCreate(...a),
+    update: (...a: unknown[]) => mockPoiUpdate(...a),
   },
-  trailDetail: { create: (...a: unknown[]) => mockTrailDetailCreate(...a) },
+  trailDetail: { create: (...a: unknown[]) => mockTrailDetailCreate(...a), update: (...a: unknown[]) => mockTrailDetailUpdate(...a) },
   trailCandidate: { update: (...a: unknown[]) => mockCandidateUpdate(...a) },
   trailAuditLog: { create: (...a: unknown[]) => mockAuditCreate(...a) },
 }
@@ -100,4 +104,24 @@ describe('publishTrailCandidate — data_quality_status comes from the geometry 
       expect.objectContaining({ data: expect.objectContaining({ data_quality_status: 'complete' }) }),
     )
   })
+  it('AC-02-07 publishes recovered GPX-source photos and preserves their credit', async () => {
+    const photo = { url: 'https://photos.example/trail.jpg', source_url: 'https://source.example/trail', attribution: 'Alice — OT', license: 'Source license' }
+    mockCandidateFindFirst.mockResolvedValue({
+      ...baseCandidate({ type: 'LineString', coordinates: [[6.7, 45.8], [6.71, 45.81]] }),
+      primary_source_type: 'gpx', raw_payload: { acquired_photos: [photo] },
+    })
+    await publishTrailCandidate('cand-1', 'admin-1', { confirm_duplicate: false, confirm_incomplete_geometry: false })
+    expect(mockPoiCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ photos: [photo.url] }) }))
+    expect(mockTrailDetailCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ source_refs: expect.arrayContaining([expect.objectContaining({ url: photo.source_url, attribution: 'Alice — OT — Source license', used_for: ['photos'] })]) }) }))
+  })
+
+  it('AC-02-07 merges new photos without removing an existing POI gallery', async () => {
+    const photo = { url: 'https://photos.example/new.jpg', source_url: 'https://source.example/trail', attribution: 'Alice' }
+    mockCandidateFindFirst.mockResolvedValue({ ...baseCandidate(null), raw_payload: { acquired_photos: [photo] } })
+    mockPoiFindFirst.mockResolvedValue({ id: 'poi-1', photos: ['https://photos.example/existing.jpg', photo.url], trail_detail: { id: 'td-1', is_active: true, deleted_at: null, source_refs: [] } })
+    await mergeTrailCandidate('cand-1', 'poi-1', 'admin-1')
+    expect(mockPoiUpdate).toHaveBeenCalledWith({ where: { id: 'poi-1' }, data: { photos: ['https://photos.example/existing.jpg', photo.url] } })
+    expect(mockTrailDetailUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ source_refs: expect.arrayContaining([expect.objectContaining({ attribution: 'Alice' })]) }) }))
+  })
+
 })

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
-updated_at: 2026-06-23
+updated_at: 2026-09-30
 depends_on:
   - 001-city-guide
   - 003-poi-list
@@ -98,6 +98,11 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-02-05**: Given une fiche publiée avec des recommandations Owner, When la fiche marketing s'affiche, Then ces recommandations ne sont pas rendues dans un bloc dédié, conformément à `031-public-marketing-site` AC-03-08, et leurs données restent disponibles pour les autres parcours du Guide.
 - **AC-02-06**: Given une recommandation Owner avec un commentaire, When la fiche marketing s'affiche, Then le commentaire n'est pas exposé dans cette fiche, mais reste conservé sans modification dans `LodgingFeaturedPoi`.
 
+### Complément approuvé — suggestions de logements (2026-09-30)
+
+- **AC-02-07** : La fiche canonique `/logements/[lodging-slug]` affiche en bas de page « Vous pourriez aussi apprécier » avec au maximum quatre autres logements publiés, actifs et non supprimés, rattachés à une ville active. Le logement courant est exclu. Priorité aux logements de la même ville, puis complément avec les autres villes, selon l'ordre public existant (mis en avant, publication récente, création récente), avec identifiant comme départage stable. Sélection validée par le Product Owner en conversation.
+- **AC-02-08** : Les images des suggestions sont chargées directement depuis leur URL publique comme la galerie principale (sans proxy d’optimisation Next). Une seule rangée de cartes simples, défilante horizontalement sur mobile sans débordement de page ; chaque carte contient uniquement photo de couverture (ou première photo disponible, fond neutre si absente), titre et localisation publique (secteur si disponible, sinon ville), et mène à la fiche canonique. Le bloc est absent sans autre logement éligible. Aucun changement au modèle de données ni au contrat API ; query serveur interne réutilisant les données publiques existantes.
+
 ### US-03 — Réserver ou demander des informations
 
 **As a** Tourist intéressé par un logement  
@@ -144,6 +149,15 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-05-10**: Given l'Owner colle son texte Airbnb dans le champ source et que Gemini est configuré côté serveur, When il demande une réécriture MyStay, Then MyStay propose un Lodging Rewrite Draft plus SEO, premium et local, sans modifier automatiquement la fiche publiée.
 - **AC-05-11**: Given un Lodging Rewrite Draft est généré, When l'Owner l'accepte, Then le texte accepté remplit les champs MyStay (`short_description`, `description`, `seo_title`, `seo_description`) en brouillon et reste soumis à validation Admin avant publication.
 - **AC-05-12**: Given Gemini n'est pas configuré ou retourne une erreur, When l'Owner demande une réécriture MyStay, Then l'API retourne une erreur structurée et conserve le texte source en brouillon.
+
+- **AC-05-13**: Owner et Admin sélectionnent plusieurs images en une fois et lancent un seul envoi. Chaque fichier est envoyé via le POST existant ; les succès restent dans la galerie, les échecs sont nommés et seuls ces fichiers restent à réessayer. Une progression est affichée. Le texte alternatif facultatif commun est utilisé si fourni ; sinon le nom du fichier sans extension, nettoyé et limité à 160 caractères, sert de texte initial (préfixe « Photo » si moins de 5 caractères).
+- **AC-05-14**: Chaque photo existante possède un sélecteur de catégorie sur sa vignette. Le changement est enregistré immédiatement, sans modifier couverture, ordre ni autres champs du formulaire. En cas d'échec, la catégorie précédente reste affichée avec un message d'erreur.
+- **AC-05-15**: Les choix incluent Salon, Pièce de vie, Cuisine, Extérieur, Autre, Salle de bains, Terrasse, Piscine, Hammam, Jacuzzi, Cinéma, Salle à manger, Bowling, Parking, Skiroom, Sauna, Salle de sport, Bibliothèque, Entrée et Garage. Les chambres et salles de bains sont numérotées selon les compteurs du formulaire (dont 10 chambres), conformément au choix A validé par le Product Owner le 2026-09-29. Plusieurs photos peuvent partager la même pièce. Les catégories déjà enregistrées restent affichées si les compteurs diminuent, sans réaffectation implicite.
+
+### Complément approuvé — ordre des photos (2026-09-30)
+
+- **AC-05-16** : Owner et Admin peuvent réagencer les photos par glisser-déposer via une poignée dédiée (souris, tactile et clavier), ainsi que déplacer chaque photo avant/après sa voisine via des boutons accessibles sur sa carte. Le déplacement insère la photo à la position cible sans permuter les autres. Échap ou dépôt hors cible ne sauvegarde rien. Réutiliser dnd-kit déjà installé ; exception de style autorisée pour les seules propriétés dynamiques transform/transition de son animation. L'ordre visuel est mis à jour dès le dépôt, y compris entre deux cartes à l'intérieur de la grille, puis sauvegardé ; un échec rétablit l'ordre précédent. La transaction accepte jusqu'à 15 secondes pour les galeries volumineuses ; pendant l'enregistrement les actions photo sont désactivées. En cas d'échec, l'ordre précédent est conservé avec un message. La couverture et les catégories ne changent pas. Les groupes de pièces de la fiche publique suivent l'ordre des premières photos de chaque groupe ; la couverture reste prioritaire dans la galerie principale.
+- **AC-05-17** : `PATCH /api/dashboard/lodgings/{id}/public-profile/photos` (Owner du logement) et `PATCH /api/admin/lodgings/{id}/public-profile/photos` (Admin) acceptent `{ "photo_ids": [uuid, ...] }` contenant exactement toutes les photos actives du profil, sans doublon. Réponse 200 `{ "ok": true }` ; 400 VALIDATION_ERROR si corps invalide, 404 PHOTO_NOT_FOUND si logement inaccessible ou ensemble obsolète/invalide ; 500 PHOTO_ORDER_FAILED si la transaction échoue. Mise à jour transactionnelle de `sort_order` (0..n-1), sans altérer statut de publication ni autres données ; invalidation des pages publiques. Modèle existant, aucune migration.
 
 ### US-06 — Contrôler la publication côté Super-admin
 
@@ -211,6 +225,8 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-19**: La liste logements City trie d'abord les fiches `is_featured = true`, puis par `published_at desc`, puis par `created_at desc`.
 - **BR-20**: La découverte des logements depuis le Guide ville passe par une entrée dédiée `Logements` dans le menu burger ; le flux principal de `/guide/[city-slug]` n'affiche aucun bloc logements.
 - **BR-21**: Les photos logement sont validées côté serveur, limitées à 5 Mo, converties si nécessaire via le service d'upload existant et stockées dans le bucket `guide-photos`.
+- **BR-21a**: La sélection multiple ne change pas les limites par fichier. Les envois sont séquentiels pour conserver ordre et couverture. Les commandes de sauvegarde et de mutation photo sont désactivées pendant un envoi ou une modification de catégorie.
+- **BR-21b**: Salon est stocké avec `room_type = common_area`, `room_label = Salon`. Les catégories Terrasse et Parking utilisent `room_type = exterior` ; Piscine, Hammam, Jacuzzi, Cinéma, Salle à manger, Bowling, Skiroom, Sauna, Salle de sport, Bibliothèque, Entrée et Garage utilisent `room_type = common_area`. Chacune conserve son libellé exact dans `room_label`, selon la demande complémentaire du Product Owner. Salle de bains conserve `room_type = bathroom` et les labels historiques `Salle de bain N` pour compatibilité. Le libellé affiché dans le sélecteur est « Salle de bains N ». Les autres catégories et labels existants sont conservés.
 - **BR-22**: Chaque Lodging Photo doit avoir un `alt` public non vide avant publication.
 - **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` 40–180, `description` 80–4000, `seo_title` 30–70, `seo_description` 80–180.
 - **BR-23a**: Le passage en `review` n'exige pas 200 caractères minimum pour `description`. Une description entre 80 et 199 caractères est autorisée pour la revue, mais reste sous-optimale sur le plan éditorial et SEO.
@@ -349,6 +365,7 @@ model LodgingPhoto {
   url          String
   alt          String
   room_type    String? // bedroom | bathroom | common_area | exterior | kitchen | other
+  room_label   String? // champ existant : Chambre N, Salle de bain N, Salon
   sort_order   Int @default(0)
   is_cover     Boolean @default(false)
 
@@ -711,6 +728,7 @@ paths:
                 file: { type: string, format: binary }
                 alt: { type: string, minLength: 5, maxLength: 160 }
                 room_type: { type: string, enum: [bedroom, bathroom, common_area, exterior, kitchen, other] }
+                room_label: { type: string, maxLength: 40, nullable: true }
       responses:
         "201":
           description: Photo créée
@@ -720,6 +738,70 @@ paths:
                 $ref: "#/components/schemas/LodgingPhoto"
         "400":
           $ref: "#/components/responses/BadRequest"
+
+  /api/dashboard/lodgings/{id}/public-profile/photos/{photoId}:
+    put:
+      summary: Modifier uniquement la catégorie d'une photo active du logement de l'Owner
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: photoId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [room_type, room_label]
+              properties:
+                room_type: { type: string, enum: [bedroom, bathroom, common_area, exterior, kitchen, other] }
+                room_label: { type: string, maxLength: 40, nullable: true }
+      responses:
+        "200":
+          description: Catégorie enregistrée, caches publics invalidés
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean, const: true }
+        "400": { description: JSON ou catégorie invalide, erreur standard VALIDATION_ERROR }
+        "401": { description: Session absente }
+        "404": { description: Photo ou logement absent, supprimé ou non autorisé, erreur standard PHOTO_NOT_FOUND }
+  /api/admin/lodgings/{id}/public-profile/photos/{photoId}:
+    put:
+      summary: Modifier uniquement la catégorie d'une photo active du logement (Admin uniquement)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: photoId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [room_type, room_label]
+              properties:
+                room_type: { type: string, enum: [bedroom, bathroom, common_area, exterior, kitchen, other] }
+                room_label: { type: string, maxLength: 40, nullable: true }
+      responses:
+        "200":
+          description: Catégorie enregistrée, caches publics invalidés
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean, const: true }
+        "400": { description: JSON ou catégorie invalide, erreur standard VALIDATION_ERROR }
+        "401": { description: Session absente }
+        "403": { description: Rôle Admin requis }
+        "404": { description: Photo ou logement absent, supprimé ou non autorisé, erreur standard PHOTO_NOT_FOUND }
 
   /api/admin/lodgings/public-profiles:
     get:
@@ -863,6 +945,7 @@ components:
         url: { type: string }
         alt: { type: string }
         room_type: { type: string, nullable: true }
+        room_label: { type: string, maxLength: 40, nullable: true }
         sort_order: { type: integer }
         is_cover: { type: boolean }
     PaginationMeta:
@@ -957,6 +1040,7 @@ Toutes les erreurs utilisent le format standard :
   - confirmation obligatoire des droits avant soumission en review ;
   - upload manuel des photos depuis l'ordinateur ;
   - bouton "Proposer une version MyStay" qui crée un brouillon de réécriture non publié.
+- Galerie Owner et Admin : sélection multiple, progression et reprise des échecs (AC-05-13), sélecteur accessible superposé sur chaque photo avec sauvegarde immédiate (AC-05-14), catégories et numérotation selon AC-05-15.
 - Sauvegarde en `draft`.
 - Affichage des erreurs de complétude avant soumission en `review`.
 
@@ -982,6 +1066,8 @@ Toutes les erreurs utilisent le format standard :
 | AC-02-03 | Fiche inconnue/non publiée → 404 | integration |
 | AC-02-04 | Moins de 5 photos → consultable avec signal qualité SEO dashboard | unit |
 | AC-02-05 | Recommandations locales et inter-villes séparées sur la fiche logement | unit + integration |
+| AC-02-07 | Suggestions : priorité ville, complément publié et exclusion du logement courant | unit |
+| AC-02-08 | Rangée de cartes simples, liens publics et bloc vide masqué | integration |
 | AC-02-06 | Commentaires Owner et liens basés sur la City réelle du POI | unit + integration |
 | AC-03-01 | Clic réservation externe ouvre nouvel onglet et analytics | e2e |
 | AC-03-02 | CTA contact préremplit lodging_id | integration |
@@ -1003,6 +1089,11 @@ Toutes les erreurs utilisent le format standard :
 | AC-05-10 | Réécriture MyStay proposée depuis texte Owner | contract |
 | AC-05-11 | Acceptation du rewrite remplit les champs en brouillon | integration |
 | AC-05-12 | Gemini absent/indisponible → erreur structurée sans perte du texte source | contract |
+| AC-05-13 | Import multiple et reprise des échecs | integration |
+| AC-05-14 | Catégorie modifiable immédiatement et isolation des photos | contract + integration |
+| AC-05-16 | Réagencement enregistré et ordre public des pièces | integration |
+| AC-05-17 | Ordre atomique, validation et isolation Owner | unit + contract |
+| AC-05-15 | Catégories des pièces et espaces, salles de bains et chambres numérotées | unit + integration |
 | AC-06-01 | Admin liste et filtre les fiches | integration |
 | AC-06-02 | Admin publie une fiche | contract |
 | AC-06-03 | Admin demande correction | contract |
@@ -1048,3 +1139,5 @@ Toutes les erreurs utilisent le format standard :
 | OQ-03 | La réservation MyStay est-elle incluse dans ce chantier ? | Product Owner | 2026-06-12 | Non. Chantier séparé après la vitrine, avec paiement, disponibilités et synchronisation calendrier. |
 | OQ-04 | Le lien Airbnb est-il une intégration API ? | Product Owner | 2026-06-12 | Non. Chantier 1 utilise uniquement un External Booking Link validé. |
 | OQ-05 | Peut-on partir d'une URL Airbnb pour générer une fiche MyStay ? | Product Owner | 2026-06-12 | Oui, mais uniquement comme source déclarée : validation URL, détection plateforme, import manuel des photos/textes, confirmation de droits et réécriture MyStay en brouillon. Aucun scraping Airbnb. |
+
+Décision du 2026-09-29 : demande d’import multiple et modification des catégories approuvée en conversation ; option A confirmée pour la numérotation.

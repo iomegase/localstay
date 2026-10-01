@@ -1,3 +1,5 @@
+import { LodgingPhotoOrderInputSchema } from '@/features/lodging-showcase/schemas'
+import { reorderLodgingPhotos } from '@/features/lodging-showcase/queries/owner-public-profile'
 import { NextRequest, NextResponse } from 'next/server'
 import { resolveUploadFormat } from '@/shared/lib/image-upload'
 import { uploadGuideImage } from '@/shared/lib/image-upload-service'
@@ -63,4 +65,19 @@ export async function POST(
   }
 
   return NextResponse.json(photo, { status: 201 })
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSessionAdmin()
+  if (!session.user) return session.error
+  const parsed = LodgingPhotoOrderInputSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) return apiError('VALIDATION_ERROR', 'Ordre des photos invalide', 400, parsed.error.flatten())
+  const { id } = await params
+  try {
+    const ok = await reorderLodgingPhotos(id, parsed.data.photo_ids)
+    if (!ok) return apiError('PHOTO_NOT_FOUND', 'Galerie modifiée ou inaccessible. Actualisez la page.', 404)
+    return NextResponse.json({ ok: true })
+  } catch {
+    return apiError('PHOTO_ORDER_FAILED', 'Ordre non enregistré. Veuillez réessayer.', 500)
+  }
 }
