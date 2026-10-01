@@ -8,29 +8,45 @@ type MarketingFaqItem = {
   answer: string
 }
 
+/** Deux piles indépendantes : ouvrir une question ne décale pas l'autre colonne. */
+function splitInTwo<T>(items: readonly T[]): T[][] {
+  const half = Math.ceil(items.length / 2)
+  return [items.slice(0, half), items.slice(half)]
+}
+
 export function MarketingFaqSection({
   items,
   title = 'Comprendre simplement notre fonctionnement.',
+  columns = 1,
 }: {
   items: readonly MarketingFaqItem[]
   title?: string
+  /** 2 : titre au-dessus et questions sur deux colonnes dès `md` (spec 052 AC-01-06). */
+  columns?: 1 | 2
 }) {
+  const twoColumns = columns === 2
+
   return (
     <section
       data-testid="marketing-faq-section"
       className={`${marketingContainerClass} pb-20 pt-10 sm:pb-28 xl:py-[92px]`}
     >
-      <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20">
+      <div className={twoColumns ? 'grid gap-10' : 'grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20'}>
         <div>
           <MarketingEyebrow>Questions fréquentes</MarketingEyebrow>
 
-          <h2 className="max-w-[430px] text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px]">
+          <h2 className={`${twoColumns ? 'max-w-[620px]' : 'max-w-[430px]'} text-3xl font-bold leading-[1.15] tracking-[-0.05em] sm:text-[44px] xl:text-[40px]`}>
             {title}
           </h2>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {items.map(item => (
+        <div
+          data-testid="marketing-faq-items"
+          className={twoColumns ? 'grid gap-3 md:grid-cols-2 md:items-start' : 'flex flex-col gap-3'}
+        >
+          {(twoColumns ? splitInTwo(items) : [items]).map((column, columnIndex) => (
+            <div key={columnIndex} className="flex flex-col gap-3">
+              {column.map(item => (
             <details
               key={item.question}
               name="mystay-faq"
@@ -57,6 +73,8 @@ export function MarketingFaqSection({
                 </p>
               </div>
             </details>
+              ))}
+            </div>
           ))}
         </div>
       </div>

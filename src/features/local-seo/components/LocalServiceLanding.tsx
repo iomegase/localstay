@@ -301,6 +301,7 @@ export function LocalServiceLanding({
         <MarketingFaqSection
           items={content.faq}
           title={isConcierge ? undefined : 'Vos questions, nos réponses.'}
+          columns={isConcierge ? 1 : 2}
         />
 
         {beforeFinalCta}
@@ -318,7 +319,7 @@ export function LocalServiceLanding({
               sm:px-10
               sm:py-12
               lg:flex
-              lg:items-end
+              lg:items-center
               lg:justify-between
               lg:gap-12
             "
@@ -345,25 +346,6 @@ export function LocalServiceLanding({
               </h2>
 
           <div className="mt-7 flex flex-wrap gap-2">
-  <Link
-    href="/logements"
-    className="
-      inline-flex
-      items-center
-      rounded-full
-      bg-slate-200
-      px-4
-      py-2
-      text-[10px]
-      font-bold
-      text-slate-700
-      transition-colors
-      hover:bg-slate-300
-      hover:text-slate-900
-    "
-  >
-    Voir les logements
-  </Link>
 
   <Link
     href="/decouvrir"
@@ -385,25 +367,6 @@ export function LocalServiceLanding({
     Découvrir la région
   </Link>
 
-  <Link
-    href={isConcierge ? '/concept' : '/seminaires'}
-    className="
-      inline-flex
-      items-center
-      rounded-full
-      bg-slate-200
-      px-4
-      py-2
-      text-[10px]
-      font-bold
-      text-slate-700
-      transition-colors
-      hover:bg-slate-300
-      hover:text-slate-900
-    "
-  >
-    {isConcierge ? 'Notre approche' : 'Tous les séminaires'}
-  </Link>
 </div>
             </div>
 

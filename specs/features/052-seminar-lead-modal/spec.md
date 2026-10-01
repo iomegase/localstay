@@ -72,7 +72,12 @@ de l'admin et notification e-mail à `bonjour@mystay.city`).
 - **AC-01-06**: Given une landing séminaire, When elle s'affiche, Then la FAQ
   s'intitule « Vos questions, nos réponses. » et le bloc final « Parlons de
   votre prochain séminaire. » (textes du code validés par le Product Owner le
-  2026-10-01 ; les landings conciergerie gardent leurs titres).
+  2026-10-01 ; les landings conciergerie gardent leurs titres). Le titre de la
+  FAQ est placé au-dessus des questions, réparties sur 2 colonnes à partir de
+  `md` (une colonne sur mobile), en deux piles indépendantes ; la home et les
+  landings conciergerie gardent leur disposition. Dans le bloc final, le bouton
+  principal est centré verticalement et seul le lien « Découvrir la région »
+  est conservé (« Voir les logements » et « Tous les séminaires » retirés).
 
 ## Business Rules
 

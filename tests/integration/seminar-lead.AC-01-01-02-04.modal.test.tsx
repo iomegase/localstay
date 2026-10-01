@@ -113,6 +113,14 @@ describe('052 seminar lead modal', () => {
     renderSeminar()
 
     expect(screen.getByRole('heading', { name: 'Vos questions, nos réponses.' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Parlons de votre prochain séminaire.' })).toBeInTheDocument()
+    // FAQ sur 2 colonnes à partir de md, titre au-dessus.
+    expect(screen.getByTestId('marketing-faq-items')).toHaveClass('md:grid-cols-2', 'md:items-start')
+    expect(screen.getByTestId('marketing-faq-section').firstElementChild).not.toHaveClass('lg:grid-cols-[0.75fr_1.25fr]')
+    const finalHeading = screen.getByRole('heading', { name: 'Parlons de votre prochain séminaire.' })
+    const finalBlock = finalHeading.closest('section')!
+    expect(within(finalBlock).queryByRole('link', { name: 'Voir les logements' })).not.toBeInTheDocument()
+    expect(within(finalBlock).queryByRole('link', { name: 'Tous les séminaires' })).not.toBeInTheDocument()
+    expect(within(finalBlock).getByRole('link', { name: 'Découvrir la région' })).toHaveAttribute('href', '/decouvrir')
+    expect(within(finalBlock).getByRole('button', { name: 'Parler de mon séminaire' }).closest('.lg\\:items-center')).not.toBeNull()
   })
 })
