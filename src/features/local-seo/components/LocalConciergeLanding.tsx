@@ -28,9 +28,11 @@ function SerifCityHeading({ text }: { text: string }) {
   return (
     <>
       {text.slice(0, index)}{' '}
-      {/* whitespace-nowrap : la commune ne se coupe pas sur ses tirets (texte SEO inchangé). */}
-      <span className="mt-1 block whitespace-nowrap font-serif text-[0.64em] font-normal italic leading-[1.1] tracking-[-0.02em]">
-        {text.slice(index + 1)}
+      {/* Trois lignes : « à » en retrait, puis la commune sans coupure sur ses tirets.
+          Les espaces sont conservés : le texte lu reste « Conciergerie à [Commune] ». */}
+      <span className="mt-1 block font-serif text-[0.64em] font-normal italic leading-[1.1] tracking-[-0.02em]">
+        <span className="block pl-[0.9em]">à</span>{' '}
+        <span className="block whitespace-nowrap">{text.slice(index + 3)}</span>
       </span>
     </>
   )

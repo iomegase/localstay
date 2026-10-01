@@ -82,8 +82,13 @@ describe('046 AC-01-04 — concierge landing content', () => {
     expect(screen.getByTestId('local-concierge-hero')).not.toHaveClass('bg-slate-50')
     const h1 = screen.getByRole('heading', { level: 1 })
     expect(h1).toHaveTextContent('Conciergerie à Saint-Gervais-les-Bains')
-    const cityLine = within(h1).getByText('à Saint-Gervais-les-Bains')
-    expect(cityLine).toHaveClass('font-serif', 'italic', 'whitespace-nowrap')
+    // Trois lignes : « Conciergerie » / « à » en retrait / commune sur une ligne, en serif.
+    const preposition = within(h1).getByText('à')
+    expect(preposition).toHaveClass('block', 'pl-[0.9em]')
+    const cityLine = within(h1).getByText('Saint-Gervais-les-Bains')
+    expect(cityLine).toHaveClass('block', 'whitespace-nowrap')
+    expect(preposition.closest('.font-serif')).toBe(cityLine.closest('.font-serif'))
+    expect(cityLine.closest('.font-serif')).toHaveClass('italic')
 
     const contact = within(screen.getByTestId('local-concierge-hero')).getByRole('link', { name: 'Nous contacter' })
     expect(contact.querySelector('svg')).toBeNull()

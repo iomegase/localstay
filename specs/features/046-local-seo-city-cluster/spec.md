@@ -87,8 +87,9 @@ Lodging Public Profile publié et éligible.
   souhaitez déléguer. Premier échange sans engagement. » ; la FAQ est sur deux
   colonnes (titre au-dessus, piles indépendantes dès `md`) ; aucun espace
   propriétaire ni tarif n'est promis. Mise en forme : hero sans fond coloré,
-  H1 dont la partie « à [Commune] » est en serif italique (comme le hero de la
-  home) ; boutons « Nous contacter » et « Voir les logements » sans flèche ;
+  H1 sur trois lignes « Conciergerie » / « à » (en retrait) / « [Commune] » sur
+  une ligne, la partie « à [Commune] » en serif italique (comme le hero de la
+  home), texte accessible inchangé ; boutons « Nous contacter » et « Voir les logements » sans flèche ;
   bloc guide sans bouton, avec les pills « Arrivée plus fluide » et
   « Informations toujours accessibles » ; section « Sur place / Notre
   fonctionnement » sur fond sombre identique au footer (comme « Le bon cadre »
