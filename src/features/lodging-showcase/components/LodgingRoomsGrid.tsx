@@ -65,6 +65,15 @@ export function LodgingRoomsGrid({ photos, compact = false }: { photos: Photo[];
   )
 }
 
+const MAX_DOTS = 5
+
+/** Indices des points affichés : au plus 5, fenêtre centrée sur la photo active. */
+function dotWindow(total: number, active: number): number[] {
+  const size = Math.min(total, MAX_DOTS)
+  const start = Math.min(Math.max(active - Math.floor(size / 2), 0), total - size)
+  return Array.from({ length: size }, (_, i) => start + i)
+}
+
 function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
@@ -102,32 +111,33 @@ function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
 
       <span
         data-testid="lodging-room-label"
-        className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900 shadow-sm backdrop-blur-sm"
+        className="pointer-events-none absolute right-2 top-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900 shadow-sm backdrop-blur-sm"
       >
         {group.label}
       </span>
 
       {multiple && (
-        <>
-          <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-900 shadow-sm backdrop-blur-sm">
+        <div
+          data-testid="lodging-room-dots"
+          className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 py-1.5 pl-2 pr-2.5 backdrop-blur-sm"
+        >
+          {dotWindow(group.photos.length, active).map(index => (
+            <button
+              key={group.photos[index].id}
+              type="button"
+              aria-label={`Voir la photo ${index + 1} de ${group.label}`}
+              onClick={() => goTo(index)}
+              className="h-1.5 rounded-full transition-all duration-300"
+              style={{
+                width: active === index ? 14 : 6,
+                background: active === index ? '#fff' : 'rgba(255,255,255,0.65)',
+              }}
+            />
+          ))}
+          <span data-testid="lodging-room-count" className="ml-1 text-[10px] font-semibold leading-none text-white">
             {group.photos.length}
           </span>
-          <div className="absolute bottom-3.5 right-3 flex gap-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]">
-            {group.photos.map((photo, index) => (
-              <button
-                key={photo.id}
-                type="button"
-                aria-label={`Voir la photo ${index + 1} de ${group.label}`}
-                onClick={() => goTo(index)}
-                className="h-1.5 rounded-full transition-all duration-300"
-                style={{
-                  width: active === index ? 14 : 6,
-                  background: active === index ? '#fff' : 'rgba(255,255,255,0.5)',
-                }}
-              />
-            ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   )
