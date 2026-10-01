@@ -145,8 +145,11 @@ de réservation configurée
   conciergerie et séminaires des deux communes actives et les pages locations des
   seules communes possédant des logements publiés.
 - **AC-04-04**: Given les hubs `/logements`, `/seminaires` et
-  `/confier-mon-logement`, When ils sont rendus, Then ils proposent des liens
-  internes vers les pages locales publiées pertinentes.
+  `/confier-mon-logement`, When ils sont rendus, Then leur contenu ne propose
+  aucun lien vers les pages locales et ne charge pas les destinations ; le
+  maillage vers les pages locales publiées est assuré par le footer
+  « Nos destinations » (AC-04-06). Amendé par décision du Product Owner le
+  2026-10-01 : contenu redondant et perturbant pour l'utilisateur.
 - **AC-04-05**: Given les pages locales, When elles sont comparées, Then leur
   contenu principal reste spécifique à chaque commune et à chaque intention ; le
   même paragraphe SEO n'est pas dupliqué entre plusieurs routes.
@@ -213,8 +216,9 @@ de réservation configurée
   locations utilisent `ItemList` avec les URL courtes des logements.
 - **BR-14**: Chaque page possède exactement un H1, des headings descriptifs et
   des liens internes cohérents avec son intention.
-- **BR-15**: Les pages locales indexables sont reliées depuis au moins un hub
-  public et vers au moins deux autres surfaces publiques utiles.
+- **BR-15**: Les pages locales indexables sont reliées depuis le footer
+  « Nos destinations » de toutes les pages marketing (AC-04-06) et vers au moins
+  deux autres surfaces publiques utiles.
 - **BR-16**: Le sitemap ne contient aucune destination future de service ni page
   locations vide.
 - **BR-17**: Cette feature ne modifie ni Prisma, ni les règles de publication, ni
@@ -296,10 +300,10 @@ statique approuvé.
 
 ### Hubs
 
-- `/logements` expose les destinations de location du catalogue.
-- `/seminaires` expose les deux pages séminaires publiées.
-- `/confier-mon-logement` expose les deux pages conciergerie publiées.
-- Les nouveaux blocs restent compacts et réutilisent les styles MyStay existants.
+- `/logements`, `/seminaires` et `/confier-mon-logement` n'affichent plus de bloc
+  de destinations dans leur contenu (AC-04-04, amendé le 2026-10-01).
+- Les pages locales publiées sont listées dans le footer « Nos destinations »
+  (AC-04-06).
 
 ---
 
@@ -321,7 +325,7 @@ statique approuvé.
 | AC-04-01 | Metadata locales uniques | unit |
 | AC-04-02 | Breadcrumb et JSON-LD visibles/factuels | unit + integration |
 | AC-04-03 | Sitemap progressif et conditionné à l'inventaire | unit |
-| AC-04-04 | Liens internes depuis les hubs | integration |
+| AC-04-04 | Aucun lien vers les pages locales dans le contenu des hubs | integration |
 | AC-04-05 | Aucun paragraphe principal dupliqué | unit |
 | AC-04-06 | Bloc « Nos destinations » du footer limité aux pages publiées | unit + integration |
 | AC-05-01 | Rendu 375 px sans serif et sans débordement | integration + e2e |

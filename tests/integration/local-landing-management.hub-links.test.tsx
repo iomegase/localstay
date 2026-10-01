@@ -1,28 +1,20 @@
-/** @jest-environment jsdom */
-
-import { render, screen, within } from '@testing-library/react'
 import { landingDate, landingDestinationRow } from '../fixtures/local-landing-management'
 
 const mockDestinations = jest.fn()
 const mockProfiles = jest.fn()
-const mockListPublishedLodgings = jest.fn()
 
 jest.mock('@/shared/lib/prisma', () => ({ prisma: {
   localLandingDestination: { findMany: (...args: unknown[]) => mockDestinations(...args) },
   lodgingPublicProfile: { findMany: (...args: unknown[]) => mockProfiles(...args) },
 } }))
-jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
-  listPublishedLodgings: (...args: unknown[]) => mockListPublishedLodgings(...args),
-}))
 
-import LodgingsPage from '@/app/(public)/logements/page'
-import SeminarsPage from '@/app/(public)/seminaires/page'
-import OwnerContactPage from '@/app/(public)/confier-mon-logement/page'
+import { getFooterLocalLandingLinks } from '@/features/local-seo/queries/footer-links'
 
-describe('048 persisted local landing hub links', () => {
+// Depuis le 2026-10-01, les pages locales persistées sont exposées par le footer
+// « Nos destinations » (spec 046 AC-04-06) et non plus par les hubs.
+describe('048 persisted local landing links in the footer', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockListPublishedLodgings.mockResolvedValue([])
     const combloux = landingDestinationRow()
     combloux.id = 'destination-2'
     combloux.city_id = 'city-2'
@@ -31,66 +23,33 @@ describe('048 persisted local landing hub links', () => {
     mockProfiles.mockResolvedValue([{ city_id: 'city-1' }])
   })
 
-  it('shows only persisted concierge destinations on the owner hub', async () => {
-    render(await OwnerContactPage())
-    const links = within(screen.getByTestId('local-links-concierge'))
+  it('lists only persisted concierge and seminar destinations, and inventory-eligible rentals', async () => {
+    const links = await getFooterLocalLandingLinks()
 
-    expect(links.getByRole('link', { name: 'Conciergerie à Combloux' })).toHaveAttribute('href', '/conciergerie/combloux')
-    expect(links.getByRole('link', { name: 'Conciergerie à Megève' })).toHaveAttribute('href', '/conciergerie/megeve')
-    expect(links.queryByRole('link', { name: /Séminaire|Locations/ })).not.toBeInTheDocument()
-    expect(links.getAllByRole('link').map(link => link.getAttribute('href'))).toEqual([
-      '/conciergerie/combloux', '/conciergerie/megeve',
-    ])
+    expect(links.concierge.map(link => link.href)).toEqual(['/conciergerie/combloux', '/conciergerie/megeve'])
+    expect(links.seminar.map(link => link.href)).toEqual(['/seminaires/combloux', '/seminaires/megeve'])
+    expect(links.vacationRental.map(link => link.href)).toEqual(['/locations-vacances/megeve'])
     expect(mockDestinations).toHaveBeenCalledTimes(1)
     expect(mockProfiles).toHaveBeenCalledTimes(1)
   })
 
-  it('shows only persisted seminar destinations on the seminar hub', async () => {
-    render(await SeminarsPage())
-    const links = within(screen.getByTestId('local-links-seminar'))
-
-    expect(links.getByRole('link', { name: 'Séminaire à Combloux' })).toHaveAttribute('href', '/seminaires/combloux')
-    expect(links.getByRole('link', { name: 'Séminaire à Megève' })).toHaveAttribute('href', '/seminaires/megeve')
-    expect(links.queryByRole('link', { name: /Conciergerie|Locations/ })).not.toBeInTheDocument()
-  })
-
-  it('shows only inventory-eligible vacation destinations on the lodging hub', async () => {
-    render(await LodgingsPage())
-    const links = within(screen.getByTestId('local-links-vacation-rental'))
-
-    expect(links.getByRole('link', { name: 'Locations à Megève' })).toHaveAttribute('href', '/locations-vacances/megeve')
-    expect(links.queryByRole('link', { name: 'Locations à Combloux' })).not.toBeInTheDocument()
-    expect(links.queryByRole('link', { name: /Conciergerie|Séminaire/ })).not.toBeInTheDocument()
-  })
-
-  it.each(['archived', 'deleted', 'incomplete'])('removes an %s destination from every hub', async state => {
+  it.each(['archived', 'deleted', 'incomplete'])('removes an %s destination from every footer column', async state => {
     const destination = landingDestinationRow()
     if (state === 'archived') destination.is_active = false
     if (state === 'deleted') destination.deleted_at = landingDate
     if (state === 'incomplete') destination.pages[0].h1 = ''
     mockDestinations.mockResolvedValue([destination])
 
-    for (const [Page, intent] of [
-      [OwnerContactPage, 'concierge'],
-      [SeminarsPage, 'seminar'],
-      [LodgingsPage, 'vacation-rental'],
-    ] as const) {
-      const { unmount } = render(await Page())
-      expect(screen.queryByTestId(`local-links-${intent}`)).not.toBeInTheDocument()
-      expect(screen.queryByText('Par destination')).not.toBeInTheDocument()
-      unmount()
-    }
+    await expect(getFooterLocalLandingLinks()).resolves.toEqual({ vacationRental: [], concierge: [], seminar: [] })
   })
 
-  it('keeps services visible when only the vacation content is incomplete', async () => {
+  it('keeps services listed when only the vacation content is incomplete', async () => {
     const destination = landingDestinationRow()
     destination.pages[2].empty_copy = null
     mockDestinations.mockResolvedValue([destination])
 
-    const { unmount } = render(await LodgingsPage())
-    expect(screen.queryByTestId('local-links-vacation-rental')).not.toBeInTheDocument()
-    unmount()
-    render(await OwnerContactPage())
-    expect(screen.getByRole('link', { name: 'Conciergerie à Megève' })).toHaveAttribute('href', '/conciergerie/megeve')
+    const links = await getFooterLocalLandingLinks()
+    expect(links.vacationRental).toEqual([])
+    expect(links.concierge).toEqual([{ name: 'Megève', href: '/conciergerie/megeve' }])
   })
 })

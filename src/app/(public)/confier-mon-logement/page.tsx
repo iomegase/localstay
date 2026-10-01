@@ -4,8 +4,6 @@ import {
   MarketingShell,
   marketingContainerClass,
 } from '@/features/marketing/components/MarketingShell'
-// import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
-import { listPublishedLocalLandingSummaries } from '@/features/local-seo/queries/landing-pages'
 import { OwnerLeadForm } from '@/features/contact-messages/components/OwnerLeadForm'
 
 export const metadata: Metadata = {
@@ -20,11 +18,7 @@ const process = [
   ['03', 'Nous organisons la mise en gestion', 'Une proposition claire, un interlocuteur dédié et un lancement coordonné.'],
 ] as const
 
-export default async function OwnerContactPage() {
-  // const destinations = (await listPublishedLocalLandingSummaries())
-  //   .filter(destination => destination.publication.concierge)
-  //   .map(destination => destination.city)
-
+export default function OwnerContactPage() {
   return (
     <MarketingShell>
       <section className="bg-slate-50 py-16 sm:py-24">
@@ -62,8 +56,6 @@ export default async function OwnerContactPage() {
           </div>
         </div>
       </section>
-
-      {/* <LocalDestinationLinks intent="concierge" destinations={destinations} /> */}
 
       {/* <section className="bg-slate-800 py-10 text-white">
         <div className={`${marketingContainerClass} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>

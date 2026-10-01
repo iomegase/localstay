@@ -7,19 +7,11 @@ import {
   marketingContainerClass,
 } from '@/features/marketing/components/MarketingShell'
 import { lodgingListMetadata } from '@/features/seo/lib/metadata'
-import { LocalDestinationLinks } from '@/features/local-seo/components/LocalDestinationLinks'
-import { listPublishedLocalLandingSummaries } from '@/features/local-seo/queries/landing-pages'
 
 export const metadata: Metadata = lodgingListMetadata()
 
 export default async function LodgingsPage() {
-  const [lodgings, landingSummaries] = await Promise.all([
-    listPublishedLodgings(),
-    listPublishedLocalLandingSummaries(),
-  ])
-  const destinations = landingSummaries
-    .filter(destination => destination.publication.vacationRental)
-    .map(destination => destination.city)
+  const lodgings = await listPublishedLodgings()
 
   return (
     <MarketingShell>
@@ -50,9 +42,6 @@ export default async function LodgingsPage() {
         )}
       </section>
 
-      <div className="bg-slate-50">
-        <LocalDestinationLinks intent="vacation-rental" destinations={destinations} />
-      </div>
     </MarketingShell>
   )
 }

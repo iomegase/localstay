@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-08
-updated_at: 2026-09-08
+updated_at: 2026-10-01
 depends_on:
   - 016-dashboard-superadmin
   - 046-local-seo-city-cluster
@@ -125,7 +125,8 @@ la spec 047, dont les avis deviennent rattachés à une configuration persistée
 - **AC-05-01**: La suppression renseigne `deleted_at` sur la destination, ses
   trois pages et tous ses avis dans une transaction unique.
 - **AC-05-02**: Les trois routes répondent 404 et disparaissent immédiatement du
-  sitemap, des hubs et de la liste Admin active.
+  sitemap, du footer « Nos destinations » (spec 046 AC-04-06, qui remplace les
+  liens des hubs depuis le 2026-10-01) et de la liste Admin active.
 - **AC-05-03**: La City, ses logements, POI, articles et guides ne sont jamais
   modifiés par cette action.
 - **AC-05-04**: Aucune suppression physique n'est exécutée.
