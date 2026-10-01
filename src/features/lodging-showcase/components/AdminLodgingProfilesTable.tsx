@@ -1,5 +1,6 @@
 'use client'
 
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -93,7 +94,7 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                     <td className="px-4 py-4">
                       <div className="font-medium text-charcoal">{row.lodging.name}</div>
                       <div className="mt-1 text-xs text-gray-500">
-                        {row.short_description || 'Fiche publique a preparer'}
+                        {shortDescriptionText(row.short_description) || 'Fiche publique a preparer'}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-gray-600">{row.city.name}</td>

@@ -1,3 +1,4 @@
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import { organizationId, SITE, siteBaseUrl } from './site'
 
 import { canEmitVacationRentalSchema } from '@/features/lodging-showcase/lib/completeness'
@@ -717,7 +718,7 @@ function lodgingPlaceSchemaWithVisiblePhotos(
       input.title,
 
     description:
-      input.shortDescription,
+      shortDescriptionText(input.shortDescription),
 
     url:
       `${siteBaseUrl()}${path}`,
@@ -800,7 +801,7 @@ export function vacationRentalSchema(
         input.title,
 
       short_description:
-        input.shortDescription,
+        shortDescriptionText(input.shortDescription),
 
       description:
         input.description,

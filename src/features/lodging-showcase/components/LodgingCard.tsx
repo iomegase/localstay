@@ -1,3 +1,4 @@
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Users, BedDouble, MapPin, ChevronRight, Sparkles } from 'lucide-react'
@@ -81,7 +82,7 @@ export function LodgingCard({
 
           {/* Description courte */}
           <p className="mb-6 line-clamp-2 text-sm leading-relaxed text-zinc-100">
-            {shortDescription}
+            {shortDescriptionText(shortDescription)}
           </p>
 
           {/* La rangée de métriques séparée par des lignes (comme sur le screenshot) */}

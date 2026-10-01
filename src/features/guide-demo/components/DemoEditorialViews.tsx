@@ -1,5 +1,7 @@
 'use client'
 
+import { MarkdownText } from '@/shared/components/MarkdownText'
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import {
   ArrowLeft,
   BedDouble,
@@ -134,7 +136,7 @@ export function DemoLodgingsView({
                     {lodging.title}
                   </span>
                   <span className="mt-3 block text-xs leading-5 text-slate-500">
-                    {lodging.shortDescription}
+                    {shortDescriptionText(lodging.shortDescription)}
                   </span>
                   <span className="mt-5 grid grid-cols-2 border-t border-slate-200 text-slate-800">
                     <DemoPropertyStat
@@ -199,10 +201,7 @@ export function DemoLodgingDetailView({
   lodging,
   onBack,
 }: DemoLodgingDetailViewProps) {
-  const descriptionParagraphs = lodging.description
-    .split(/\n\s*\n/)
-    .map(paragraph => paragraph.trim())
-    .filter(Boolean)
+
   const amenities = [...lodging.amenitiesIncluded, ...lodging.amenitiesOnRequest]
   const photos = lodging.photos.map((photo, index) => ({
     id: `${lodging.id}-photo-${index}`,
@@ -264,16 +263,16 @@ export function DemoLodgingDetailView({
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
             Le logement
           </span>
-          <h2 className="mt-4 text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800">
-            {lodging.shortDescription}
-          </h2>
-          <div className="mt-7 space-y-5">
-            {descriptionParagraphs.map((paragraph, index) => (
-              <p key={`${lodging.id}-description-${index}`} className="whitespace-pre-line text-justify text-[13px] leading-[1.85] text-slate-500">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <MarkdownText
+            source={lodging.shortDescription}
+            breaks
+            className="mt-4 break-words text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800 [&_p]:text-[16px] [&_p]:leading-[1.7]"
+          />
+          <MarkdownText
+            source={lodging.description}
+            breaks
+            className="mt-7 break-words text-[13px] leading-[1.85] text-slate-500 [&_p]:mb-5 [&_p]:text-[13px] [&_p]:leading-[1.85]"
+          />
         </div>
 
         <aside data-testid="lodging-stay-card" className="rounded-[26px] bg-[#f8f7f5] p-7">

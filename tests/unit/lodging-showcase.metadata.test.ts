@@ -4,8 +4,9 @@ import { lodgingPlaceSchema } from '@/features/seo/lib/structured-data'
 describe('lodgingListMetadata', () => {
   it('builds metadata for the canonical global lodging list', () => {
     const metadata = lodgingListMetadata()
-    expect(metadata.title).toBe('Nos logements')
-    expect(metadata.title).not.toContain('MyStay')
+    expect(metadata.title).toEqual({
+      absolute: 'Chalets et appartements dans le Pays du Mont-Blanc | MyStay',
+    })
     expect(metadata.alternates?.canonical).toBe('/logements')
   })
 })

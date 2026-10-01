@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
-updated_at: 2026-09-30
+updated_at: 2026-10-01
 depends_on:
   - 001-city-guide
   - 003-poi-list
@@ -161,6 +161,13 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **AC-05-16** : Owner et Admin peuvent réagencer les photos par glisser-déposer via une poignée dédiée (souris, tactile et clavier), ainsi que déplacer chaque photo avant/après sa voisine via des boutons accessibles sur sa carte. Le déplacement insère la photo à la position cible sans permuter les autres. Échap ou dépôt hors cible ne sauvegarde rien. Réutiliser dnd-kit déjà installé ; exception de style autorisée pour les seules propriétés dynamiques transform/transition de son animation. L'ordre visuel est mis à jour dès le dépôt, y compris entre deux cartes à l'intérieur de la grille, puis sauvegardé ; un échec rétablit l'ordre précédent. La transaction accepte jusqu'à 15 secondes pour les galeries volumineuses ; pendant l'enregistrement les actions photo sont désactivées. En cas d'échec, l'ordre précédent est conservé avec un message. La couverture et les catégories ne changent pas. Les groupes de pièces de la fiche publique suivent l'ordre des premières photos de chaque groupe ; la couverture reste prioritaire dans la galerie principale.
 - **AC-05-17** : `PATCH /api/dashboard/lodgings/{id}/public-profile/photos` (Owner du logement) et `PATCH /api/admin/lodgings/{id}/public-profile/photos` (Admin) acceptent `{ "photo_ids": [uuid, ...] }` contenant exactement toutes les photos actives du profil, sans doublon. Réponse 200 `{ "ok": true }` ; 400 VALIDATION_ERROR si corps invalide, 404 PHOTO_NOT_FOUND si logement inaccessible ou ensemble obsolète/invalide ; 500 PHOTO_ORDER_FAILED si la transaction échoue. Mise à jour transactionnelle de `sort_order` (0..n-1), sans altérer statut de publication ni autres données ; invalidation des pages publiques. Modèle existant, aucune migration.
 
+### Complément approuvé — description courte libre (2026-10-01)
+
+Décision explicite du Product Owner en conversation : supprimer les limites de caractères de la description courte et autoriser le Markdown.
+
+- **AC-05-18** : La sauvegarde Owner/Admin, la réécriture et le contrôle de complétude acceptent toute description courte non vide après trim, y compris moins de 40 caractères ou plus de 180 caractères, sans plafond applicatif. Le champ reste obligatoire ; les autres champs gardent leurs validations.
+- **AC-02-09** : La fiche publique et sa vue détaillée dans le guide/démo rendent `short_description` et `description` en Markdown (paragraphes, gras, italique, listes et liens), avec le composant Markdown sécurisé existant, sans HTML brut. Le formulaire indique cette possibilité pour les deux champs. Les limites existantes de `description` (80–4000 caractères) restent applicables ; seule `short_description` est sans plafond. Les cartes, aperçus SEO et métadonnées utilisent du texte lisible sans syntaxe Markdown ; les extraits visuels et SEO restent possibles sans tronquer la valeur enregistrée. Cette présentation remplace le précédent sous-titre en texte brut. Aucun changement de modèle ni de route API.
+
 ### US-06 — Contrôler la publication côté Super-admin
 
 **As a** Super-admin  
@@ -230,7 +237,7 @@ La réservation native MyStay, les paiements, la synchronisation de calendriers,
 - **BR-21a**: La sélection multiple ne change pas les limites par fichier. Les envois sont séquentiels pour conserver ordre et couverture. Les commandes de sauvegarde et de mutation photo sont désactivées pendant un envoi ou une modification de catégorie.
 - **BR-21b**: Salon est stocké avec `room_type = common_area`, `room_label = Salon`. Les catégories Terrasse et Parking utilisent `room_type = exterior` ; Piscine, Hammam, Jacuzzi, Cinéma, Salle à manger, Bowling, Skiroom, Sauna, Salle de sport, Bibliothèque, Entrée et Garage utilisent `room_type = common_area`. Chacune conserve son libellé exact dans `room_label`, selon la demande complémentaire du Product Owner. Salle de bains conserve `room_type = bathroom` et les labels historiques `Salle de bain N` pour compatibilité. Le libellé affiché dans le sélecteur est « Salle de bains N ». Les autres catégories et labels existants sont conservés.
 - **BR-22**: Chaque Lodging Photo doit avoir un `alt` public non vide avant publication.
-- **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` 40–180, `description` 80–4000, `seo_title` 30–70, `seo_description` 80–180.
+- **BR-23**: Les textes libres sont validés avec Zod : `title` 5–90 caractères, `short_description` obligatoire après trim, sans minimum éditorial ni maximum de caractères, Markdown autorisé, `description` 80–4000, `seo_title` 30–70, `seo_description` 80–180.
 - **BR-23a**: Le passage en `review` n'exige pas 200 caractères minimum pour `description`. Une description entre 80 et 199 caractères est autorisée pour la revue, mais reste sous-optimale sur le plan éditorial et SEO.
 - **BR-24**: Aucune fiche `draft`, `review` ou `archived` ne doit être présente dans le sitemap, dans les listes publiques ou dans les JSON-LD publics.
 - **BR-25**: Les pages non publiées retournent 404 plutôt que `noindex` pour éviter l'exposition de contenu privé.
@@ -1071,8 +1078,6 @@ Toutes les erreurs utilisent le format standard :
 | AC-02-07 | Suggestions : priorité ville, complément publié et exclusion du logement courant | unit |
 | AC-02-08 | Rangée de cartes simples, liens publics et bloc vide masqué | integration |
 | AC-02-06 | Commentaires Owner et liens basés sur la City réelle du POI | unit + integration |
-| AC-02-10 | Équipements et Services sur demande en lignes pleine largeur, listes sur 2 colonnes dès md | unit |
-| AC-02-11 | Grille « L'espace de vie » sans voile, pills de filtre par catégorie | unit |
 | AC-03-01 | Clic réservation externe ouvre nouvel onglet et analytics | e2e |
 | AC-03-02 | CTA contact préremplit lodging_id | integration |
 | AC-03-03 | Contact désactivé → CTA absent | unit |
@@ -1081,6 +1086,10 @@ Toutes les erreurs utilisent le format standard :
 | AC-04-02 | Guide City sans bloc logements dans le flux principal | integration |
 | AC-04-03 | Entrée `Logements` du menu redirige vers la liste dédiée | unit |
 | AC-04-04 | Rendu mobile 375px sans chevauchement ni scroll horizontal | e2e |
+| AC-05-18 | Description courte obligatoire sans limites de longueur | unit |
+| AC-02-09 | Description courte Markdown et extraits en texte lisible | unit + integration |
+| AC-02-10 | Équipements et Services sur demande en lignes pleine largeur, listes sur 2 colonnes dès md | unit |
+| AC-02-11 | Grille « L'espace de vie » sans voile, pills de filtre par catégorie | unit |
 | AC-05-01 | Owner accède à sa page showcase | integration |
 | AC-05-02 | Sauvegarde Owner validée Zod en draft | contract |
 | AC-05-03 | Isolation Owner | contract |

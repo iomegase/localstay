@@ -69,7 +69,7 @@ export type LodgingPhotoCategoryInput = z.infer<typeof LodgingPhotoCategoryInput
 
 export const LodgingPublicProfileInputSchema = z.object({
   title: trimmedString(5, 90, 'Le titre doit contenir entre 5 et 90 caracteres.'),
-  short_description: trimmedString(40, 180, 'La description courte doit contenir entre 40 et 180 caracteres.'),
+  short_description: z.string().trim().min(1, 'La description courte est obligatoire.'),
   description: trimmedString(80, 4000, 'La description principale doit contenir entre 80 et 4000 caracteres.'),
   property_type: trimmedString(1, 80, 'Le type de logement est obligatoire.'),
   max_guests: z.number().int().min(1).max(100),

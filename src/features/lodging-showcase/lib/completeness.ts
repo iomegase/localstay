@@ -18,7 +18,7 @@ export function evaluateProfileCompleteness(profile: ProfileLike): CompletenessR
   const missingFields: string[] = []
 
   if (!profile.title || profile.title.trim().length < 5) missingFields.push('title')
-  if (!profile.short_description || profile.short_description.trim().length < 40) missingFields.push('short_description')
+  if (!profile.short_description || profile.short_description.trim().length === 0) missingFields.push('short_description')
   if (!profile.description || profile.description.trim().length < 80) missingFields.push('description')
   if (!profile.property_type) missingFields.push('property_type')
   if (!profile.max_guests || profile.max_guests < 1) missingFields.push('max_guests')

@@ -1,3 +1,4 @@
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import type { Metadata } from 'next'
 
 import type {
@@ -532,7 +533,7 @@ export function lodgingDetailMetadata(input: {
     `${input.title} — Séjour MyStay`
 
   const description =
-    truncate(input.shortDescription)
+    truncate(shortDescriptionText(input.shortDescription))
 
   const path =
     publicLodgingPath(

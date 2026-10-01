@@ -1,9 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { z } from 'zod'
+import { LodgingPublicProfileInputSchema } from '../schemas'
 import { buildLodgingRewritePrompt } from '../lib/rewrite-prompt'
 
 const RewriteSchema = z.object({
-  short_description: z.string().min(40).max(180),
+  short_description: LodgingPublicProfileInputSchema.shape.short_description,
   description: z.string().min(200).max(4000),
   seo_title: z.string().min(30).max(70),
   seo_description: z.string().min(80).max(180),

@@ -1,5 +1,6 @@
 'use client'
 
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import { useMemo, useState } from 'react'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent, type CollisionDetection } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
@@ -8,6 +9,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { AMENITY_CATALOG, AMENITY_CATALOG_CODES } from '../lib/amenity-catalog'
 import { ROOM_TYPE_LABELS } from '../lib/detail-view'
@@ -132,7 +134,7 @@ export function LodgingShowcaseForm(props: {
   const seoPreview = useMemo(
     () => ({
       title: profile.seo_title?.trim() || profile.title.trim(),
-      description: profile.seo_description?.trim() || profile.short_description.trim(),
+      description: profile.seo_description?.trim() || shortDescriptionText(profile.short_description),
     }),
     [profile.seo_description, profile.seo_title, profile.short_description, profile.title],
   )
@@ -617,6 +619,8 @@ export function LodgingShowcaseForm(props: {
                   onChange={event => setField('short_description', event.target.value)}
                   rows={3}
                 />
+                <p className="text-xs text-gray-500">Markdown accepté · sans limite de caractères.</p>
+                <MarkdownHint />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="showcase-description">Description principale</Label>
@@ -626,6 +630,7 @@ export function LodgingShowcaseForm(props: {
                   onChange={event => setField('description', event.target.value)}
                   rows={8}
                 />
+                <MarkdownHint />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="source-description-text">Texte source Owner</Label>

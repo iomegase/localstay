@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-09-29
+updated_at: 2026-10-01
 depends_on: [001-city-guide]
 ```
 
@@ -50,6 +50,20 @@ fichier local protégé, non versionné et absent des logs.
 
 Cette autorisation ne s'applique pas au formulaire public `/auth/register`,
 dont la confirmation email reste requise conformément à AC-01-05.
+
+---
+
+### Décision Product Owner — 2026-10-01 — Activation Chalet Remy
+
+Le Product Owner autorise explicitement l'activation du compte Owner existant
+associé au Chalet Remy : confirmation administrative de son email, application
+du mot de passe fourni en conversation et création de son logement à
+Saint-Gervais-les-Bains. Conserver le User actif, le rôle Owner et tout abonnement
+existant ; créer l'essai gratuit standard uniquement s'il manque. Aucun doublon,
+aucun email envoyé, aucune modification des autres comptes. Vérifier la connexion
+et l'accès au logement. Les identifiants secrets restent hors dépôt et hors logs.
+Cette exception ponctuelle à la conservation du mot de passe existant ne modifie
+pas les règles du formulaire public d'inscription.
 
 ---
 

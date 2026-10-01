@@ -12,6 +12,7 @@ import {
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { getPublishedLodgingDetailBySlug, listSuggestedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { SuggestedLodgings } from '@/features/lodging-showcase/components/SuggestedLodgings'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { LodgingMarketingGallery } from '@/features/lodging-showcase/components/LodgingMarketingGallery'
 import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
@@ -95,10 +96,7 @@ export default async function LodgingDetailPage({ params }: Props) {
   const rentalSchema = vacationRentalSchema(lodgingSchemaInput)
   const fallbackSchema = lodgingPlaceSchema(lodgingSchemaInput)
   const contactHref = `${contextualContactPath(citySlug)}?lodging=${detail.id}`
-  const descriptionParagraphs = detail.description
-    .split(/\n\s*\n/)
-    .map(paragraph => paragraph.trim())
-    .filter(Boolean)
+
 
   return (
     <>
@@ -161,16 +159,16 @@ export default async function LodgingDetailPage({ params }: Props) {
               <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
                 Le logement
               </span>
-              <h2 className="mt-4 text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800">
-                {detail.short_description}
-              </h2>
-              <div className="mt-7 space-y-5">
-                {descriptionParagraphs.map(paragraph => (
-                  <p key={paragraph} className="whitespace-pre-line text-[13px] text-justify leading-[1.85] text-slate-500">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
+              <MarkdownText
+                source={detail.short_description}
+                breaks
+                className="mt-4 break-words text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800 [&_p]:text-[16px] [&_p]:leading-[1.7]"
+              />
+              <MarkdownText
+                source={detail.description}
+                breaks
+                className="mt-7 break-words text-[13px] leading-[1.85] text-slate-500 [&_p]:mb-5 [&_p]:text-[13px] [&_p]:leading-[1.85]"
+              />
             </div>
 
             <aside

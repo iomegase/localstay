@@ -2,6 +2,13 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
+import { MarkdownText } from '@/shared/components/MarkdownText'
+
+jest.mock('@/shared/components/MarkdownText', () => ({
+  MarkdownText: jest.fn(({ source, className }: { source: string; className?: string }) => (
+    <div className={className}>{source}</div>
+  )),
+}))
 
 jest.mock('mapbox-gl', () => ({
   __esModule: true,
@@ -106,9 +113,6 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 }))
 jest.mock('@/features/categories/queries/all-poi-cards', () => ({
   getAllPoiCards: jest.fn().mockResolvedValue({ items: [], meta: { page: 1, limit: 10, total: 0, total_pages: 0 } }),
-}))
-jest.mock('@/shared/components/MarkdownText', () => ({
-  MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
 }))
 
 const city = { name: 'Annecy', slug: 'annecy', region: 'Auvergne-Rhone-Alpes' }
@@ -313,8 +317,11 @@ describe('lodging showcase public pages', () => {
       'Photos de Chalet Hygge',
     )
     expect(screen.getByTestId('lodging-story')).toContainElement(
-      screen.getByRole('heading', { name: 'Un chalet lumineux pour decouvrir Annecy.' }),
+      screen.getByText('Un chalet lumineux pour decouvrir Annecy.'),
     )
+    for (const source of [detailResult.short_description, detailResult.description]) {
+      expect(jest.mocked(MarkdownText).mock.calls.some(([props]) => props.source === source)).toBe(true)
+    }
     expect(screen.getByTestId('lodging-stay-card')).toHaveTextContent('Votre séjour')
     expect(screen.getByRole('heading', { name: 'Les essentiels, en un coup d’œil.' })).toBeInTheDocument()
     const features = screen.getByTestId('lodging-feature-sections')

@@ -1,3 +1,4 @@
+import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import Image from 'next/image'
 import Link from 'next/link'
 import { BedDouble, Scan, ShowerHead, Users } from 'lucide-react'
@@ -74,7 +75,7 @@ export function MarketingPropertyCard({
           <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600">{location}</p>
           <h3 className="mt-2 text-xl font-bold tracking-[-0.035em] text-slate-800">{lodging.title}</h3>
           <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500">
-            {lodging.short_description}
+            {shortDescriptionText(lodging.short_description)}
           </p>
 
           <dl className="mt-5 grid grid-cols-2 border-t border-slate-200 text-slate-800">
