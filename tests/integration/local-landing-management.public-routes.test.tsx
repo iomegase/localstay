@@ -41,7 +41,12 @@ describe('048 persisted public local landings', () => {
     expect(notFound).not.toHaveBeenCalled()
     expect(getPublishedLocalLanding).toHaveBeenCalledWith('megeve', intent)
     expect(screen.getByRole('heading', { level: 1, name: landing.page.h1 })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: landing.page.cta_label })[0]).toHaveAttribute('href', landing.page.cta_href)
+    if (intent === 'SEMINAR') {
+      // Spec 052 : le CTA séminaire ouvre la modal de demande, avec le libellé saisi dans l'admin.
+      expect(screen.getAllByRole('button', { name: landing.page.cta_label }).length).toBeGreaterThan(0)
+    } else {
+      expect(screen.getAllByRole('link', { name: landing.page.cta_label })[0]).toHaveAttribute('href', landing.page.cta_href)
+    }
     for (const text of [landing.page.eyebrow, landing.page.hero_title, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
       expect(screen.getAllByText(text).length).toBeGreaterThan(0)
     }

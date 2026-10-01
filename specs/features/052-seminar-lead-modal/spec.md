@@ -69,6 +69,10 @@ de l'admin et notification e-mail à `bonjour@mystay.city`).
 - **AC-01-05**: Given une demande `seminar_lead` avec un logement ou une
   destination `owner`, When l'API la reçoit, Then elle répond 400 au format
   d'erreur standard et ne crée aucun message.
+- **AC-01-06**: Given une landing séminaire, When elle s'affiche, Then la FAQ
+  s'intitule « Vos questions, nos réponses. » et le bloc final « Parlons de
+  votre prochain séminaire. » (textes du code validés par le Product Owner le
+  2026-10-01 ; les landings conciergerie gardent leurs titres).
 
 ## Business Rules
 
@@ -110,6 +114,7 @@ Aucun changement. `ContactMessage` (spec 024) avec `destination = concierge`.
 | AC-01-03 | contract + integration |
 | AC-01-04 | integration |
 | AC-01-05 | contract |
+| AC-01-06 | integration |
 
 ## Out of Scope
 

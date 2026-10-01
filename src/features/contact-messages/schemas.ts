@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const contactMessageDestinationSchema = z.enum(['owner', 'concierge'])
 
 export const publicContactMessageSchema = z.object({
-  source: z.literal('owner_lead').optional(),
+  source: z.enum(['owner_lead', 'seminar_lead']).optional(),
   lodging_id: z.string().uuid().nullable().optional(),
   destination: contactMessageDestinationSchema,
   sender_name: z.string().trim().min(2).max(120),
@@ -15,6 +15,9 @@ export const publicContactMessageSchema = z.object({
 }).refine(
   (input) => input.source !== 'owner_lead' || (input.destination === 'concierge' && !input.lodging_id),
   { message: 'Une demande propriétaire doit être destinée à la conciergerie sans logement associé.', path: ['source'] },
+).refine(
+  (input) => input.source !== 'seminar_lead' || (input.destination === 'concierge' && !input.lodging_id),
+  { message: 'Une demande séminaire doit être destinée à la conciergerie sans logement associé.', path: ['source'] },
 )
 
 export const contactMessageReplySchema = z.object({

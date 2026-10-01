@@ -54,7 +54,7 @@ describe('046 local SEO service pages', () => {
     expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull()
   })
 
-  it('renders a unique active seminar page with the approved email CTA', async () => {
+  it('renders a unique active seminar page whose CTA opens the lead modal (spec 052)', async () => {
     const landing = publicLocalLanding('SEMINAR', {
       id: 'city-2', name: 'Saint-Nicolas-de-Véroce', slug: 'saint-nicolas-de-veroce',
     })
@@ -69,13 +69,11 @@ describe('046 local SEO service pages', () => {
       level: 1,
       name: 'Séminaire à Saint-Nicolas-de-Véroce',
     })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Parler de mon séminaire' })[0]).toHaveAttribute(
-      'href',
-      expect.stringMatching(/^mailto:bonjour@mystay\.city/),
-    )
+    expect(screen.queryByRole('link', { name: 'Parler de mon séminaire' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Parler de mon séminaire' }).length).toBeGreaterThan(0)
     expect(screen.getAllByTestId('local-service-reassurance-pill')).toHaveLength(3)
     expect(screen.getByText('Un interlocuteur')).toHaveClass('rounded-full')
-    expect(screen.getByRole('heading', { name: 'Préparons votre séminaire à Saint-Nicolas-de-Véroce.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Parlons de votre prochain séminaire.' })).toBeInTheDocument()
     expect(screen.getByTestId('marketing-highlight-card')).toHaveClass(
       'rounded-[22px]',
       'hover:-translate-y-[3px]',
@@ -85,7 +83,7 @@ describe('046 local SEO service pages', () => {
       landing.page.highlights[0].title,
     )
     const faq = screen.getByTestId('marketing-faq-section')
-    expect(faq).toHaveTextContent('Comprendre simplement notre fonctionnement.')
+    expect(faq).toHaveTextContent('Vos questions, nos réponses.')
     expect(faq).toHaveTextContent(landing.page.faq[0].question)
     expect(screen.getByTestId('marketing-faq-toggle')).toHaveClass('group-open:bg-pink-600')
     expect(screen.getByTestId('marketing-faq-plus')).toHaveClass('group-open:rotate-45')

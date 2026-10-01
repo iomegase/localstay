@@ -16,13 +16,21 @@ import {
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
+import { SeminarLeadDialog } from '@/features/contact-messages/components/SeminarLeadDialog'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 
 function PrimaryCta({
   content,
+  cityName,
 }: {
   content: LocalLandingPageInput
+  cityName: string
 }) {
+  // Spec 052 : l'intention séminaire ouvre la modal de demande au lieu du lien.
+  if (content.intent === 'SEMINAR') {
+    return <SeminarLeadDialog label={content.cta_label} cityName={cityName} />
+  }
+
   if (content.cta_href.startsWith('mailto:')) {
     return (
       <a
@@ -133,7 +141,7 @@ export function LocalServiceLanding({
               </p>
 
               <div className="mt-7">
-                <PrimaryCta content={content} />
+                <PrimaryCta content={content} cityName={landing.city.name} />
               </div>
 
               {reassuranceItems.length > 0 && (
@@ -290,7 +298,10 @@ export function LocalServiceLanding({
           </div>
         </section>
 
-        <MarketingFaqSection items={content.faq} />
+        <MarketingFaqSection
+          items={content.faq}
+          title={isConcierge ? undefined : 'Vos questions, nos réponses.'}
+        />
 
         {beforeFinalCta}
 
@@ -330,7 +341,7 @@ export function LocalServiceLanding({
               >
                 {isConcierge
                   ? `Parlons de votre logement à ${landing.city.name}.`
-                  : `Préparons votre séminaire à ${landing.city.name}.`}
+                  : 'Parlons de votre prochain séminaire.'}
               </h2>
 
           <div className="mt-7 flex flex-wrap gap-2">
@@ -397,7 +408,7 @@ export function LocalServiceLanding({
             </div>
 
             <div className="mt-8 shrink-0 lg:mt-0">
-              <PrimaryCta content={content} />
+              <PrimaryCta content={content} cityName={landing.city.name} />
             </div>
           </div>
         </section>
