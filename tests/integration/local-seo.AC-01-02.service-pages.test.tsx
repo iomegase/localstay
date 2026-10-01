@@ -49,7 +49,10 @@ describe('046 local SEO service pages', () => {
     expect(container.querySelectorAll('h1')).toHaveLength(1)
     expect(screen.getByText(landing.page.eyebrow)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Vous avez un logement à Saint-Gervais-les-Bains ?' })).toBeInTheDocument()
-    expect(container.innerHTML).not.toContain('font-serif')
+    // AC-05-01 : seule la partie « à [Commune] » du H1 est en serif (AC-01-04).
+    const serifElements = container.querySelectorAll('.font-serif')
+    expect(serifElements).toHaveLength(1)
+    expect(serifElements[0].closest('h1')).not.toBeNull()
     expect(container.innerHTML).not.toContain('scale(')
     expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull()
   })

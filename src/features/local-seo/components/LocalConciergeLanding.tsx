@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight, MapPin } from 'lucide-react'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
@@ -9,7 +8,6 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
-  marketingDarkButtonClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
@@ -21,6 +19,21 @@ type LocalConciergeLandingProps = {
   landing: PublicLocalLandingDto
   lodgings: MarketingLodgingCard[]
   reviews: GuestReview[]
+}
+
+/** H1 « Conciergerie à [Commune] » : la partie « à [Commune] » en serif italique, comme le hero de la home. */
+function SerifCityHeading({ text }: { text: string }) {
+  const index = text.indexOf(' à ')
+  if (index === -1) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, index)}{' '}
+      {/* whitespace-nowrap : la commune ne se coupe pas sur ses tirets (texte SEO inchangé). */}
+      <span className="mt-1 block whitespace-nowrap font-serif text-[0.64em] font-normal italic leading-[1.1] tracking-[-0.02em]">
+        {text.slice(index + 1)}
+      </span>
+    </>
+  )
 }
 
 export function LocalConciergeLanding({
@@ -41,24 +54,23 @@ export function LocalConciergeLanding({
         <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
           <div
             data-testid="local-concierge-hero"
-            className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:min-h-[620px] lg:grid-cols-[1.05fr_.95fr] lg:items-stretch lg:gap-16 lg:px-14"
+            className="rounded-[28px] px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:min-h-[620px] lg:grid-cols-[1.05fr_.95fr] lg:items-stretch lg:gap-16 lg:px-14"
           >
             <div className="flex flex-col justify-center">
               <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
               <h1 className="break-words text-[39px] font-bold leading-[1] tracking-[-0.055em] text-slate-900 sm:text-[56px] lg:text-[62px]">
-                {content.h1}
+                <SerifCityHeading text={content.h1} />
               </h1>
             </div>
             <div className="mt-8 flex flex-col justify-center lg:mt-0">
               <h2 className="text-[25px] font-bold leading-tight tracking-[-0.035em] text-slate-900 sm:text-[30px]">
                 {content.hero_title}
               </h2>
-              <p className="mt-5 text-[13px] text-justify leading-7 text-slate-600">
+              <p className="mt-5 text-[14px] leading-7 text-slate-600">
                 {content.hero_copy}
               </p>
-              <Link className={`${marketingPrimaryButtonClass} mt-7`} href={content.cta_href}>
+              <Link className={`${marketingPrimaryButtonClass} mt-7 self-start`} href={content.cta_href}>
                 {content.cta_label}
-                <ArrowRight className="ml-3 h-4 w-4" aria-hidden="true" />
               </Link>
               {reassuranceItems.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -89,7 +101,7 @@ export function LocalConciergeLanding({
                 </p>
               </div>
               <Link className="shrink-0 text-xs font-bold text-pink-600" href="/logements">
-                Voir les logements <span aria-hidden="true">→</span>
+                Voir les logements
               </Link>
             </div>
             {/* Cartes compactes de la page séminaires (spec 046 AC-01-04 / spec 051). */}
@@ -137,45 +149,51 @@ export function LocalConciergeLanding({
             <p className="mt-6 text-[13px] text-justify leading-7 text-slate-500">
               Chaque logement a son guide personnalisé : vos voyageurs y trouvent l’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour de {city.name}. Ils sont autonomes, et votre logement est mieux respecté.
             </p>
-            <ul className="mt-7 space-y-3 text-sm font-bold text-slate-800">
-              <li>Moins de questions répétitives.</li>
-              <li>Une arrivée plus fluide.</li>
-              <li>Une information toujours accessible.</li>
+            <ul className="mt-7 flex flex-wrap gap-2">
+              {['Arrivée plus fluide', 'Informations toujours accessibles'].map(benefit => (
+                <li
+                  key={benefit}
+                  data-testid="guide-benefit-pill"
+                  className="inline-flex rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[11px] font-semibold leading-none text-slate-700"
+                >
+                  {benefit}
+                </li>
+              ))}
             </ul>
-            <Link className={`${marketingDarkButtonClass} mt-8`} href="/concept">
-              Découvrir le concept MyStay
-            </Link>
           </div>
           <GuidePhoneShowcase className="flex" alt="Aperçu du guide voyageur MyStay sur téléphone" />
         </section>
 
-        <section className="bg-[#f8f7f5] py-16 sm:py-24">
+        <section
+          data-testid="local-concierge-place"
+          className="bg-[radial-gradient(circle_at_10%_105%,rgba(219,39,119,0.14),transparent_31%)] bg-slate-800 py-16 text-white sm:py-24"
+        >
           <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-2 lg:items-center`}>
             <div className="flex flex-col justify-center">
-              <MarketingEyebrow>Sur place</MarketingEyebrow>
+              <MarketingEyebrow light>Sur place</MarketingEyebrow>
               {/* <MapPin className="mb-5 h-7 w-7 text-pink-600" aria-hidden="true" /> */}
-              <h2 className="text-[32px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[40px]">
+              <h2 className="text-[32px] font-bold tracking-[-0.04em] text-white sm:text-[40px]">
                 {content.local_title}
               </h2>
-              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-600">{content.local_copy}</p>
-              <Link className="mt-6 inline-flex text-xs font-bold text-pink-600" href={guidePath}>
+              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-300">{content.local_copy}</p>
+              <Link className="mt-6 inline-flex text-xs font-bold text-pink-300 hover:text-white" href={guidePath}>
                 Découvrir {city.name} 
               </Link>
             </div>
             <div className="flex flex-col justify-center">
-              <MarketingEyebrow>Notre fonctionnement</MarketingEyebrow>
+              <MarketingEyebrow light>Notre fonctionnement</MarketingEyebrow>
               {content.process_title && (
-                <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900">
+                <h2 className="text-[30px] font-bold tracking-[-0.04em] text-white">
                   {content.process_title}
                 </h2>
               )}
-              <ol className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+              <ol className="mt-6 divide-y divide-white/15 border-y border-white/15">
                 {content.steps.map(({ title, copy }, index) => (
                   <li key={title} className="grid grid-cols-[32px_1fr] gap-4 py-5">
-                    <span className="text-xs font-bold text-pink-600">0{index + 1}</span>
+                    <span className="text-xs font-bold text-pink-400">0{index + 1}</span>
                     <div>
-                      <h3 className="font-bold">{title}</h3>
-                      <p className="mt-2 text-[13px] text-justify leading-6 text-slate-500">{copy}</p>
+                      <h3 className="font-bold text-white">{title}</h3>
+                      <p className="mt-2 text-[13px] text-justify leading-6 text-slate-400">{copy}</p>
                     </div>
                   </li>
                 ))}

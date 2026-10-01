@@ -76,6 +76,31 @@ describe('046 AC-01-04 — concierge landing content', () => {
     expect(screen.getByTestId('marketing-faq-items')).toHaveClass('md:grid-cols-2')
   })
 
+  it('applies the PO layout tweaks (hero, H1 serif, arrows, guide pills, dark local section)', async () => {
+    await renderConcierge()
+
+    expect(screen.getByTestId('local-concierge-hero')).not.toHaveClass('bg-slate-50')
+    const h1 = screen.getByRole('heading', { level: 1 })
+    expect(h1).toHaveTextContent('Conciergerie à Saint-Gervais-les-Bains')
+    const cityLine = within(h1).getByText('à Saint-Gervais-les-Bains')
+    expect(cityLine).toHaveClass('font-serif', 'italic', 'whitespace-nowrap')
+
+    const contact = within(screen.getByTestId('local-concierge-hero')).getByRole('link', { name: 'Nous contacter' })
+    expect(contact.querySelector('svg')).toBeNull()
+    expect(contact).toHaveClass('self-start')
+    const allLodgings = screen.getByRole('link', { name: 'Voir les logements' })
+    expect(allLodgings).toHaveTextContent(/^Voir les logements$/)
+
+    const guide = screen.getByRole('heading', { name: 'Moins de questions, plus de bons avis.' }).closest('section')!
+    expect(within(guide).queryByRole('link', { name: 'Découvrir le concept MyStay' })).not.toBeInTheDocument()
+    const pills = within(guide).getAllByTestId('guide-benefit-pill')
+    expect(pills.map(pill => pill.textContent)).toEqual(['Arrivée plus fluide', 'Informations toujours accessibles'])
+    pills.forEach(pill => expect(pill).toHaveClass('rounded-full'))
+
+    const local = screen.getByTestId('local-concierge-place')
+    expect(local).toHaveClass('bg-slate-800', 'text-white')
+  })
+
   it('never promises an owner area', async () => {
     const { container } = await renderConcierge()
 

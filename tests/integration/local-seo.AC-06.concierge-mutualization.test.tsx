@@ -113,7 +113,10 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     expect(screen.queryByText("L'expérience de nos voyageurs")).not.toBeInTheDocument()
     expect(container.querySelectorAll('h1')).toHaveLength(1)
     expect(container.innerHTML).not.toContain('aggregateRating')
-    expect(container.innerHTML).not.toContain('font-serif')
+    // AC-05-01 : seule la partie « à [Commune] » du H1 est en serif (AC-01-04).
+    const serifElements = container.querySelectorAll('.font-serif')
+    expect(serifElements).toHaveLength(1)
+    expect(serifElements[0].closest('h1')).not.toBeNull()
     expect(mockedListPublishedLodgings).toHaveBeenLastCalledWith({ limit: 3 })
     expect(mockedListPublicLandingReviews).toHaveBeenLastCalledWith(slug)
   })

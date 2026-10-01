@@ -86,7 +86,13 @@ Lodging Public Profile publié et éligible.
   Saint-Gervais) avec le texte « Parlons de votre logement et de ce que vous
   souhaitez déléguer. Premier échange sans engagement. » ; la FAQ est sur deux
   colonnes (titre au-dessus, piles indépendantes dès `md`) ; aucun espace
-  propriétaire ni tarif n'est promis. Décisions du Product Owner (2026-10-01).
+  propriétaire ni tarif n'est promis. Mise en forme : hero sans fond coloré,
+  H1 dont la partie « à [Commune] » est en serif italique (comme le hero de la
+  home) ; boutons « Nous contacter » et « Voir les logements » sans flèche ;
+  bloc guide sans bouton, avec les pills « Arrivée plus fluide » et
+  « Informations toujours accessibles » ; section « Sur place / Notre
+  fonctionnement » sur fond sombre identique au footer (comme « Le bon cadre »
+  de `/seminaires`). Décisions du Product Owner (2026-10-01).
 
 ### US-02 — Trouver un séminaire local
 
@@ -186,7 +192,9 @@ de réservation configurée
 
 - **AC-05-01**: Given un viewport de 375 px, When une page locale est rendue,
   Then elle utilise le `MarketingShell`, la police sans serif, les boutons MyStay,
-  une seule colonne par défaut et aucun défilement horizontal.
+  une seule colonne par défaut et aucun défilement horizontal. Seule exception :
+  la partie « à [Commune] » du H1 des landings conciergerie est en serif
+  italique (décision du Product Owner du 2026-10-01, AC-01-04).
 - **AC-05-02**: Given un écran plus large, When la page est rendue, Then les
   sections deviennent multi-colonnes sans `zoom` ni `transform: scale()`.
 
