@@ -134,6 +134,26 @@ export async function sendSeminarLeadNotificationEmail(input: OwnerLeadNotificat
   }, `seminar-lead-${input.id}`)
 }
 
+export async function sendHelpContactNotificationEmail(input: OwnerLeadNotificationParams): Promise<boolean> {
+  return sendContactEmail({
+    from: 'MyStay <bonjour@mystay.city>',
+    to: 'bonjour@mystay.city',
+    replyTo: input.senderEmail,
+    subject: input.subject.replace(/[\r\n]+/g, ' '),
+    text: [
+      'Nouveau message Aide & contact MyStay',
+      `Nom : ${input.senderName}`,
+      `Email : ${input.senderEmail}`,
+      `Téléphone : ${input.senderPhone || 'Non renseigné'}`,
+      '',
+      input.message,
+      '',
+      'Consulter les demandes : https://www.mystay.city/admin',
+      `Référence : ${input.id}`,
+    ].join('\n'),
+  }, `help-contact-${input.id}`)
+}
+
 export async function sendOwnerLeadNotificationEmail(input: OwnerLeadNotificationParams): Promise<boolean> {
   return sendContactEmail({
     from: 'MyStay <bonjour@mystay.city>',
