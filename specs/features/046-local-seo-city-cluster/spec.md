@@ -79,7 +79,9 @@ Lodging Public Profile publié et éligible.
 - **AC-01-04**: Given une landing conciergerie publiée, When elle est rendue,
   Then les logements accompagnés utilisent `CompactLodgingCard` (spec 051 :
   photo 4/3, nom de commune issu de la City, surface et voyageurs) ; le bloc
-  guide s'intitule « Moins de questions, plus de bons avis. » ; le bloc final
+  guide s'intitule « Moins de questions, plus de bons avis. » et reprend le
+  visuel du guide de `/concept` (téléphone, étiquettes « Équipe MyStay » et
+  « Voyageur », QR code ; composant partagé `GuidePhoneShowcase`) ; le bloc final
   propose un bouton unique (libellé `cta_label`, « Nous contacter » pour
   Saint-Gervais) avec le texte « Parlons de votre logement et de ce que vous
   souhaitez déléguer. Premier échange sans engagement. » ; la FAQ est sur deux

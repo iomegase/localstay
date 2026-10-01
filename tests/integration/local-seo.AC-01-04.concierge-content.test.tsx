@@ -44,10 +44,17 @@ describe('046 AC-01-04 — concierge landing content', () => {
     expect(card).toHaveTextContent('6')
   })
 
-  it('uses the new guide block title', async () => {
+  it('uses the new guide block title and the /concept guide visual', async () => {
     await renderConcierge()
 
-    expect(screen.getByRole('heading', { name: 'Moins de questions, plus de bons avis.' })).toBeInTheDocument()
+    const heading = screen.getByRole('heading', { name: 'Moins de questions, plus de bons avis.' })
+    const guideSection = heading.closest('section')!
+    const showcase = within(guideSection).getByTestId('guide-phone-showcase')
+    expect(within(showcase).getByRole('img', { name: /guide/i })).toHaveAttribute('src', expect.stringContaining('telephone-demo-trim.png'))
+    expect(showcase).toHaveTextContent('Équipe MyStay')
+    expect(showcase).toHaveTextContent('Prépare et accompagne le séjour')
+    expect(showcase).toHaveTextContent('Voyageur')
+    expect(showcase).toHaveTextContent('Profite pleinement du séjour')
   })
 
   it('ends with a single « Nous contacter » button and the no-commitment promise', async () => {

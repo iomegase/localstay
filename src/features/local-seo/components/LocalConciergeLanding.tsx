@@ -1,10 +1,10 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, MapPin } from 'lucide-react'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 import { CompactLodgingCard } from '@/features/lodging-showcase/components/CompactLodgingCard'
+import { GuidePhoneShowcase } from '@/features/marketing/components/GuidePhoneShowcase'
 import {
   MarketingEyebrow,
   MarketingShell,
@@ -146,15 +146,7 @@ export function LocalConciergeLanding({
               Découvrir le concept MyStay
             </Link>
           </div>
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-[330px]">
-            <Image
-              src="/marketing/telephone-demo-trim.png"
-              alt="Aperçu du guide voyageur MyStay sur téléphone"
-              fill
-              className="object-contain"
-              sizes="(max-width: 1023px) 330px, 300px"
-            />
-          </div>
+          <GuidePhoneShowcase className="flex" alt="Aperçu du guide voyageur MyStay sur téléphone" />
         </section>
 
         <section className="bg-[#f8f7f5] py-16 sm:py-24">
