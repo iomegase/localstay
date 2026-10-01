@@ -11,12 +11,8 @@ describe('031 AC-01-11 — « Le guide MyStay » block on the home', () => {
     const section = screen.getByRole('heading', { level: 2, name: 'Moins de questions, plus de bons avis.' }).closest('section')!
     expect(section).toHaveTextContent('Le guide MyStay')
     expect(section).toHaveTextContent('Chaque logement a son guide personnalisé')
-    const benefits = within(section).getAllByTestId('home-guide-benefit')
-    expect(benefits.map(item => item.textContent)).toEqual([
-      'Moins de questions répétitives.', 'Une arrivée plus fluide.', 'Une information toujours accessible.',
-    ])
+    // Pastilles et visuel cliquable : voir AC-01-12 (2).
     expect(within(section).getByTestId('guide-phone-showcase')).toBeInTheDocument()
-    expect(within(section).getByRole('button', { name: /Voir le guide d’exemple/ })).toBeInTheDocument()
     expect(within(section).queryByRole('link', { name: /concept/i })).not.toBeInTheDocument()
   })
 })

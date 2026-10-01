@@ -164,6 +164,59 @@ export function websiteSchema(): JsonLdObject {
 }
 
 /**
+ * FAQ visible d'une page, reprise à l'identique (spec 042 AC-05-05 / AC-05-06).
+ */
+export function faqPageSchema(
+  items: ReadonlyArray<{ question: string; answer: string }>,
+): JsonLdObject {
+  return {
+    '@context': SCHEMA,
+    '@type': 'FAQPage',
+    mainEntity: items.map(item => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  }
+}
+
+/**
+ * Offre de conciergerie de la homepage (spec 042 AC-05-06) : uniquement les
+ * prestations et communes visibles, sans prix, avis, téléphone ni adresse.
+ */
+export function conciergeServiceSchema(input: {
+  services: ReadonlyArray<{ title: string; copy: string }>
+  cities: ReadonlyArray<{ name: string }>
+}): JsonLdObject {
+  return {
+    '@context': SCHEMA,
+    '@type': 'Service',
+    name: 'Conciergerie de location saisonnière',
+    serviceType: 'Conciergerie',
+    provider: { '@id': organizationId() },
+    areaServed: [
+      { '@type': 'AdministrativeArea', name: 'Pays du Mont-Blanc' },
+      ...input.cities.map(city => ({ '@type': 'City', name: city.name })),
+    ],
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Services de conciergerie MyStay',
+      itemListElement: input.services.map(service => ({
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: service.title,
+          description: service.copy,
+        },
+      })),
+    },
+  }
+}
+
+/**
  * Fil d'Ariane Schema.org.
  */
 export function breadcrumbSchema(

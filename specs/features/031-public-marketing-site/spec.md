@@ -137,6 +137,16 @@ routes privées, l'authentification et les API existantes restent inchangées.
   `GuidePhoneShowcase`) ; le bouton est « Voir le guide d'exemple » (démo) et
   non un lien vers `/concept`, page appelée à disparaître. Décision du Product
   Owner (2026-10-01).
+- **AC-01-12**: Given la home, When elle s'affiche, Then (Product Owner,
+  2026-10-01) : (1) le hero n'a plus de bouton « Découvrir MyStay », seul
+  « Nous contacter » reste ; (2) le bloc « Le guide MyStay » reprend le design
+  des landings conciergerie : deux pastilles « Arrivée plus fluide » et
+  « Informations toujours accessibles » à la place des trois bénéfices, sans
+  bouton « Voir le guide d'exemple » ; le visuel téléphone devient un bouton
+  « Ouvrir le guide d'exemple » qui ouvre la démo ; (3) dans la FAQ sur une
+  colonne (home, landings conciergerie), le titre est centré verticalement
+  face aux questions à partir de `lg` ; (4) le bloc final s'intitule
+  « Parlons de votre projet. ».
 
 ### US-02 — Préserver le guide voyageur privé
 
@@ -537,6 +547,7 @@ optionnel `source: owner_lead`. Il conserve ses états visuels existants.
 | AC-01-09 | Contenu `/seminaires` réécrit, titre SEO corrigé, FAQ et modal | integration |
 | AC-01-10 | Corrections audit home : H1 mot-clé, hero aligné, libellés, cartes logement, menu « Nos services », footer | integration + unit |
 | AC-01-11 | Bloc « Le guide MyStay » sur la home | integration |
+| AC-01-12 | Hero sans « Découvrir MyStay », guide en pastilles + visuel cliquable, FAQ centrée, « Parlons de votre projet. » | integration |
 | AC-02-01 | e2e existant + unit |
 | AC-02-02 | integration existant |
 | AC-02-03 | unit |

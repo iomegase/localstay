@@ -193,6 +193,14 @@ existe.
 - **AC-05-05**: Given une donnée structurée, When elle est inspectée, Then tous
   les faits balisés sont visibles sur la page et issus de données MyStay
   validées.
+- **AC-05-06**: Given la homepage, When elle est rendue, Then elle émet en plus
+  (1) un `FAQPage` reprenant exactement les questions et réponses visibles de
+  sa FAQ et (2) un `Service` « Conciergerie de location saisonnière » dont le
+  `provider` est l'organisation (`@id` stable), l'`areaServed` le « Pays du
+  Mont-Blanc » et les communes affichées dans « Notre territoire », et
+  l'`hasOfferCatalog` les cinq prestations visibles (titre et texte des
+  cartes « Nos services ») ; aucun prix, avis, téléphone ou adresse n'est
+  ajouté. Décision du Product Owner (2026-10-01).
 
 ### US-06 — Publier uniquement des URL indexables dans le sitemap
 
@@ -433,6 +441,7 @@ Aucune nouvelle route API n'est introduite.
 | AC-05-03 | Schemas logement sur URL courte et provider stable | unit |
 | AC-05-04 | Mapping POI spécialisé avec fallback | unit |
 | AC-05-05 | Parité JSON-LD / contenu visible | unit + integration |
+| AC-05-06 | FAQPage + Service sur la homepage | unit + integration |
 | AC-06-01 | Sitemap contient seulement les espaces publics | unit + contract |
 | AC-06-02 | Toutes les surfaces privées sont exclues | unit + contract |
 | AC-06-03 | Aucun token, UUID ou query dans le sitemap | unit + security regression |

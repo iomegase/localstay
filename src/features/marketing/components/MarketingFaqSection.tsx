@@ -31,7 +31,7 @@ export function MarketingFaqSection({
       data-testid="marketing-faq-section"
       className={`${marketingContainerClass} pb-20 pt-10 sm:pb-28 xl:py-[92px]`}
     >
-      <div className={twoColumns ? 'grid gap-10' : 'grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20'}>
+      <div className={twoColumns ? 'grid gap-10' : 'grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:items-center lg:gap-20'}>
         <div>
           <MarketingEyebrow>Questions fréquentes</MarketingEyebrow>
 

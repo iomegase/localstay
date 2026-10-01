@@ -8,6 +8,8 @@ import { GuidePhoneShowcase } from './GuidePhoneShowcase'
 import { MarketingPropertyCard } from './MarketingPropertyCard'
 import { MarketingFaqSection } from './MarketingFaqSection'
 import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
+import { JsonLd } from '@/shared/components/JsonLd'
+import { conciergeServiceSchema, faqPageSchema } from '@/features/seo/lib/structured-data'
 
 import {
   MarketingEyebrow,
@@ -73,12 +75,8 @@ const conciergeServices = [
   },
 ] as const
 
-// Bloc « Le guide MyStay » repris des landings conciergerie (spec 031 AC-01-11).
-const guideBenefits = [
-  'Moins de questions répétitives.',
-  'Une arrivée plus fluide.',
-  'Une information toujours accessible.',
-] as const
+// Pastilles du bloc « Le guide MyStay », comme sur les landings conciergerie (spec 031 AC-01-12).
+const guideBenefits = ['Arrivée plus fluide', 'Informations toujours accessibles'] as const
 
 // Textes éditoriaux par commune ; seules les communes ayant des POI publiés
 // dans la découverte publique sont affichées (spec 031 AC-01-08).
@@ -186,6 +184,13 @@ export function MarketingHome({
 
   return (
     <MarketingShell>
+      {/* Données structurées de la home, alignées sur le contenu visible (spec 042 AC-05-06). */}
+      <JsonLd
+        data={[
+          faqPageSchema(faqs),
+          conciergeServiceSchema({ services: conciergeServices, cities: destinations }),
+        ]}
+      />
       {/* =========================================================
           HERO
       ========================================================== */}
@@ -269,13 +274,6 @@ export function MarketingHome({
                   className={marketingPrimaryButtonClass}
                 >
                   Nous contacter
-                </Link>
-
-                <Link
-                  href="/concept"
-                  className={marketingDarkButtonClass}
-                >
-                  Découvrir MyStay
                 </Link>
               </div>
             </div>
@@ -588,21 +586,26 @@ export function MarketingHome({
             votre logement est mieux respecté.
           </p>
 
-          <ul className="mt-7 space-y-3 text-sm font-bold text-slate-800">
+          <ul className="mt-7 flex flex-wrap gap-2">
             {guideBenefits.map(benefit => (
-              <li key={benefit} data-testid="home-guide-benefit">
+              <li
+                key={benefit}
+                data-testid="guide-benefit-pill"
+                className="inline-flex rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[11px] font-semibold leading-none text-slate-700"
+              >
                 {benefit}
               </li>
             ))}
           </ul>
-
-          <GuideDemoLauncher />
         </div>
 
-        <GuidePhoneShowcase
-          className="flex"
-          alt="Aperçu du guide voyageur MyStay sur téléphone"
-        />
+        {/* Le visuel du guide ouvre la démo (spec 031 AC-01-12 (2)). */}
+        <GuideDemoLauncher
+          ariaLabel="Ouvrir le guide d’exemple"
+          className="block w-full cursor-pointer rounded-[34px] text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
+        >
+          <GuidePhoneShowcase className="flex" alt="" />
+        </GuideDemoLauncher>
       </section>
 
       {/* =========================================================
@@ -1007,9 +1010,7 @@ export function MarketingHome({
             <MarketingEyebrow light>Votre projet</MarketingEyebrow>
 
             <h2 className="text-4xl font-bold leading-[1.12] tracking-[-0.05em] xl:text-[40px] xl:leading-[1.03]">
-              Parlons de votre logement.
-              <br />
-              Nous nous occupons du reste.
+              Parlons de votre projet.
             </h2>
           </div>
 

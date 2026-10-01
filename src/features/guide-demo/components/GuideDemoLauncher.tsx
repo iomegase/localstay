@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Smartphone } from 'lucide-react'
 import { marketingDarkButtonClass } from '@/features/marketing/components/MarketingShell'
 import { useDemoPublishedContent } from './DemoPublishedContentProvider'
@@ -18,11 +19,14 @@ export function GuideDemoLauncher({
   label = 'Voir le guide d’exemple',
   showIcon = true,
   ariaLabel,
+  children,
 }: {
   className?: string
   label?: string
   showIcon?: boolean
   ariaLabel?: string
+  /** Contenu personnalisé du déclencheur (ex. visuel du guide cliquable, spec 031 AC-01-12). */
+  children?: ReactNode
 } = {}) {
   const publishedContent = useDemoPublishedContent()
   const [isLoaded, setIsLoaded] = useState(false)
@@ -56,8 +60,12 @@ export function GuideDemoLauncher({
         className={className}
         aria-label={ariaLabel}
       >
-        {showIcon ? <Smartphone className="h-4 w-4" aria-hidden="true" /> : null}
-        {label}
+        {children ?? (
+          <>
+            {showIcon ? <Smartphone className="h-4 w-4" aria-hidden="true" /> : null}
+            {label}
+          </>
+        )}
       </button>
       {isLoaded ? (
         <GuideDemoModal
