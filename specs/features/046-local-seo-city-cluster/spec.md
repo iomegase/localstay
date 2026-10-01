@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-07
-updated_at: 2026-09-08
+updated_at: 2026-10-01
 depends_on:
   - 028-lodging-showcase-seo
   - 031-public-marketing-site
@@ -150,6 +150,15 @@ de réservation configurée
 - **AC-04-05**: Given les pages locales, When elles sont comparées, Then leur
   contenu principal reste spécifique à chaque commune et à chaque intention ; le
   même paragraphe SEO n'est pas dupliqué entre plusieurs routes.
+- **AC-04-06**: Given une page utilisant le footer marketing, When il est rendu,
+  Then il affiche un bloc « Nos destinations » en trois colonnes : « Locations de
+  vacances » (titre lié à `/logements`), « Conciergerie » (titre lié à
+  `/confier-mon-logement`) et « Séminaires » (titre lié à `/seminaires`) ; chaque
+  colonne liste, par nom de commune, uniquement les pages locales publiées
+  (mêmes règles que le sitemap, AC-04-03). Une colonne vide est masquée, le bloc
+  entier aussi s'il n'y a aucune page publiée ; une erreur de lecture masque le
+  bloc sans casser la page. Décision du Product Owner en conversation
+  (2026-10-01).
 
 ### US-05 — Consulter les pages sur mobile
 
@@ -314,6 +323,7 @@ statique approuvé.
 | AC-04-03 | Sitemap progressif et conditionné à l'inventaire | unit |
 | AC-04-04 | Liens internes depuis les hubs | integration |
 | AC-04-05 | Aucun paragraphe principal dupliqué | unit |
+| AC-04-06 | Bloc « Nos destinations » du footer limité aux pages publiées | unit + integration |
 | AC-05-01 | Rendu 375 px sans serif et sans débordement | integration + e2e |
 | AC-05-02 | Responsive sans mise à l'échelle artificielle | integration + e2e |
 | AC-06-01 | Landing mutualisée pour chaque destination conciergerie publiée et alimentée par les logements publiés | integration |

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { MarketingBrand } from './MarketingHeader'
 import { marketingContainerClass } from './marketing-styles'
+import { FooterDestinations } from './FooterDestinations'
 
 export function MarketingFooter() {
   return (
@@ -50,6 +51,8 @@ export function MarketingFooter() {
           <p>Haute-Savoie, France</p>
         </FooterColumn>
       </div>
+
+      <FooterDestinations className={`${marketingContainerClass} mt-14 border-t border-slate-700 pt-10`} />
 
       <div
         className={`${marketingContainerClass} mt-14 flex flex-col gap-5 border-t border-slate-700 pt-6 text-[10px] text-slate-500 sm:flex-row sm:items-center sm:justify-between`}

@@ -9,6 +9,8 @@ import { PublicAnalyticsTracker } from '@/features/admin-analytics/components/Pu
 import { GoogleAnalyticsClient } from '@/features/admin-analytics/components/GoogleAnalyticsClient'
 import { DemoPublishedContentProvider } from '@/features/guide-demo/components/DemoPublishedContentProvider'
 import { getGuideDemoPublishedContent } from '@/features/marketing/queries/guide-demo-content'
+import { FooterDestinationsProvider } from '@/features/marketing/components/FooterDestinations'
+import { getFooterLocalLandingLinks } from '@/features/local-seo/queries/footer-links'
 
 export default async function PublicLayout({
   children,
@@ -34,11 +36,16 @@ export default async function PublicLayout({
   // Une page marketing (dont `/decouvrir`) ne doit jamais lire le cookie séjour
   // ni charger Lodging/Owner, même si le navigateur porte encore un ancien cookie.
   if (isMarketingRoute) {
-    const publishedContent = await getGuideDemoPublishedContent()
+    const [publishedContent, footerLinks] = await Promise.all([
+      getGuideDemoPublishedContent(),
+      getFooterLocalLandingLinks(),
+    ])
     return (
       <DemoPublishedContentProvider value={publishedContent}>
-        {children}
-        {analytics}
+        <FooterDestinationsProvider value={footerLinks}>
+          {children}
+          {analytics}
+        </FooterDestinationsProvider>
       </DemoPublishedContentProvider>
     )
   }
