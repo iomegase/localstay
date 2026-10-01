@@ -76,6 +76,15 @@ Lodging Public Profile publié et éligible.
 - **AC-01-03**: Given une page conciergerie publiée, When elle est rendue, Then
   elle décrit uniquement les services déjà proposés par MyStay, sans statistique,
   promesse de revenu, tarif ou couverture géographique inventés.
+- **AC-01-04**: Given une landing conciergerie publiée, When elle est rendue,
+  Then les logements accompagnés utilisent `CompactLodgingCard` (spec 051 :
+  photo 4/3, nom de commune issu de la City, surface et voyageurs) ; le bloc
+  guide s'intitule « Moins de questions, plus de bons avis. » ; le bloc final
+  propose un bouton unique (libellé `cta_label`, « Nous contacter » pour
+  Saint-Gervais) avec le texte « Parlons de votre logement et de ce que vous
+  souhaitez déléguer. Premier échange sans engagement. » ; la FAQ est sur deux
+  colonnes (titre au-dessus, piles indépendantes dès `md`) ; aucun espace
+  propriétaire ni tarif n'est promis. Décisions du Product Owner (2026-10-01).
 
 ### US-02 — Trouver un séminaire local
 
@@ -314,6 +323,7 @@ statique approuvé.
 | AC-01-01 | Pages conciergerie actives, uniques et canoniques | unit + integration |
 | AC-01-02 | Destinations service futures ou inconnues en 404 | unit + integration |
 | AC-01-03 | Contenu conciergerie factuel | unit + editorial review |
+| AC-01-04 | Landing conciergerie : cartes compactes, bloc guide et bloc final à bouton unique | integration |
 | AC-02-01 | Pages séminaires actives, uniques et canoniques | unit + integration |
 | AC-02-02 | Destinations séminaires futures ou inconnues en 404 | unit + integration |
 | AC-02-03 | Aucun prix/capacité/disponibilité inventé | unit |

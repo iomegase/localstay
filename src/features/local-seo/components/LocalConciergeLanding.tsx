@@ -4,7 +4,7 @@ import { ArrowRight, MapPin } from 'lucide-react'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
-import { MarketingPropertyCard } from '@/features/marketing/components/MarketingPropertyCard'
+import { CompactLodgingCard } from '@/features/lodging-showcase/components/CompactLodgingCard'
 import {
   MarketingEyebrow,
   MarketingShell,
@@ -92,11 +92,23 @@ export function LocalConciergeLanding({
                 Voir les logements <span aria-hidden="true">→</span>
               </Link>
             </div>
-            <div className="mt-9 grid gap-6 md:grid-cols-3">
-              {lodgings.slice(0, 3).map((lodging, index) => (
-                <MarketingPropertyCard key={lodging.id} lodging={lodging} priority={index === 0} compact />
+            {/* Cartes compactes de la page séminaires (spec 046 AC-01-04 / spec 051). */}
+            <ul className="mt-9 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {lodgings.slice(0, 3).map(lodging => (
+                <li key={lodging.id} className="min-w-0">
+                  <CompactLodgingCard
+                    lodging={{
+                      title: lodging.title,
+                      href: lodging.href,
+                      cityName: lodging.city_name,
+                      surfaceM2: lodging.surface_m2,
+                      maxGuests: lodging.max_guests,
+                      photo: lodging.cover_photo_url ? { url: lodging.cover_photo_url, alt: lodging.title } : null,
+                    }}
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         )}
 
@@ -120,10 +132,10 @@ export function LocalConciergeLanding({
           <div>
             <MarketingEyebrow>Le guide MyStay</MarketingEyebrow>
             <h2 className="text-[32px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[42px]">
-              Une conciergerie locale, prolongée par le digital
+              Moins de questions, plus de bons avis.
             </h2>
             <p className="mt-6 text-[13px] text-justify leading-7 text-slate-500">
-              Chaque logement dispose de son guide personnalisé. Les voyageurs retrouvent les informations d’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour de {city.name}.
+              Chaque logement a son guide personnalisé : vos voyageurs y trouvent l’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour de {city.name}. Ils sont autonomes, et votre logement est mieux respecté.
             </p>
             <ul className="mt-7 space-y-3 text-sm font-bold text-slate-800">
               <li>Moins de questions répétitives.</li>
@@ -186,28 +198,23 @@ export function LocalConciergeLanding({
           </section>
         )}
 
-        <MarketingFaqSection items={content.faq} />
+        <MarketingFaqSection items={content.faq} columns={2} />
 
         <section className={`${marketingContainerClass} pb-20 sm:pb-28`}>
-          <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:flex lg:items-end lg:justify-between">
+          <div className="rounded-[28px] bg-slate-50 px-6 py-10 sm:px-10 sm:py-14 lg:flex lg:items-center lg:justify-between lg:gap-12">
             <div>
               <MarketingEyebrow>Votre logement</MarketingEyebrow>
               <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[38px]">
                 Vous avez un logement à {city.name} ?
               </h2>
               <p className="mt-4 max-w-[620px] text-[13px] text-justify leading-7 text-slate-500">
-                Parlons de votre logement, de son fonctionnement et du niveau de délégation dont vous avez besoin.
+                Parlons de votre logement et de ce que vous souhaitez déléguer. Premier échange sans engagement.
               </p>
-              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-slate-700">
-                <Link href="/concept">Découvrir notre approche</Link>
-                <Link href="/logements">Voir les logements</Link>
-              </div>
             </div>
-            <div className="mt-8 lg:mt-0">
-              <Link className={marketingPrimaryButtonClass} href={content.cta_href}>
+            <div className="mt-8 shrink-0 lg:mt-0">
+              <Link className={`${marketingPrimaryButtonClass} whitespace-nowrap`} href={content.cta_href}>
                 {content.cta_label}
               </Link>
-              <p className="mt-3 text-center text-[10px] text-slate-500">Premier échange personnalisé</p>
             </div>
           </div>
         </section>
