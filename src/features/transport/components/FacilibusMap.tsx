@@ -156,7 +156,15 @@ export function FacilibusMap({
         {liveVehicles.map(vehicle => {
           const line = vehicle.routeId ? routeById.get(vehicle.routeId) : undefined
           return (
-            <Marker key={vehicle.publicId} longitude={vehicle.longitude} latitude={vehicle.latitude} anchor="center">
+            // Décalée en haut à droite de sa position : l'étiquette d'un arrêt où elle
+            // stationne reste lisible.
+            <Marker
+              key={vehicle.publicId}
+              longitude={vehicle.longitude}
+              latitude={vehicle.latitude}
+              anchor="bottom-left"
+              offset={[6, -6]}
+            >
               <span
                 role="img"
                 aria-label={`Navette ligne ${line?.shortName ?? ''}`.trim()}
