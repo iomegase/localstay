@@ -200,45 +200,103 @@ export function GuideArrivalFlow({
   )
 }
 
+const GRID_COLUMNS = ['grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4'] as const
+
+/**
+ * Médias d'une étape (spec 054 AC-02-05) : première photo en image principale,
+ * autres photos puis vidéo dessous sur 1 à 4 colonnes ; sans photo, la vidéo
+ * devient l'image principale.
+ */
 function StepMedia({ step }: { step: GuideArrivalInstruction }) {
   const [lightbox, setLightbox] = useState<LightboxContent | null>(null)
   const videoId = step.videoUrl ? extractYouTubeId(step.videoUrl) : null
-  if (!videoId && step.photos.length === 0) return null
+  const video = videoId && step.videoUrl ? { id: videoId, url: step.videoUrl } : null
+  if (!video && step.photos.length === 0) return null
+
+  const openPhoto = (index: number) => setLightbox({ kind: 'photos', photos: step.photos, startIndex: index })
+  const openVideo = () => video && setLightbox({ kind: 'video', url: video.url })
+  const heroIsPhoto = step.photos.length > 0
+  const secondaryPhotos = heroIsPhoto ? step.photos.slice(1) : []
+  const secondaryCount = secondaryPhotos.length + (heroIsPhoto && video ? 1 : 0)
 
   return (
     <div className="grid gap-1.5 p-1.5">
-      {videoId && step.videoUrl ? (
-        <button
-          type="button"
-          aria-label="Lire la vidéo"
-          onClick={() => setLightbox({ kind: 'video', url: step.videoUrl as string })}
-          className="relative h-[200px] overflow-hidden rounded-[18px] bg-[#E8E6E2]"
+      <div data-testid="arrival-step-hero">
+        {heroIsPhoto ? (
+          <button
+            type="button"
+            aria-label="Photo 1"
+            onClick={() => openPhoto(0)}
+            className="block h-[210px] w-full overflow-hidden rounded-[18px] bg-[#E8E6E2]"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={step.photos[0]} alt="" className="h-full w-full object-cover" />
+          </button>
+        ) : video ? (
+          <VideoTile videoId={video.id} onOpen={openVideo} className="h-[200px] w-full rounded-[18px]" large />
+        ) : null}
+      </div>
+
+      {secondaryCount > 0 ? (
+        <div
+          data-testid="arrival-step-media-grid"
+          className={`grid gap-1.5 ${GRID_COLUMNS[Math.min(secondaryCount, 4) - 1]}`}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={youTubeThumbnailUrl(videoId)} alt="" className="h-full w-full object-cover" />
-          <span className="absolute inset-0 grid place-items-center bg-black/20">
-            <span className="grid h-14 w-14 place-items-center rounded-full bg-white text-[#111111] shadow-[0_2px_8px_rgba(17,17,17,0.15)]">
-              <Play className="h-5 w-5 translate-x-0.5 fill-current" aria-hidden="true" />
-            </span>
-          </span>
-        </button>
+          {secondaryPhotos.map((photo, index) => (
+            <button
+              key={index}
+              type="button"
+              aria-label={`Photo ${index + 2}`}
+              onClick={() => openPhoto(index + 1)}
+              className="aspect-square overflow-hidden rounded-[14px] bg-[#E8E6E2]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+          {heroIsPhoto && video ? (
+            <VideoTile videoId={video.id} onOpen={openVideo} className="aspect-square rounded-[14px]" />
+          ) : null}
+        </div>
       ) : null}
-      {step.photos.map((photo, index) => (
-        <button
-          key={index}
-          type="button"
-          aria-label={`Photo ${index + 1}`}
-          onClick={() => setLightbox({ kind: 'photos', photos: step.photos, startIndex: index })}
-          className={`overflow-hidden rounded-[18px] bg-[#E8E6E2] ${!videoId && index === 0 ? 'h-[210px]' : 'h-[120px]'}`}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photo} alt="" className="h-full w-full object-cover" />
-        </button>
-      ))}
+
       {lightbox && (
         <MediaLightbox title={stepLabel(step)} content={lightbox} onClose={() => setLightbox(null)} />
       )}
     </div>
+  )
+}
+
+function VideoTile({
+  videoId,
+  onOpen,
+  className,
+  large = false,
+}: {
+  videoId: string
+  onOpen: () => void
+  className: string
+  large?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      aria-label="Lire la vidéo"
+      onClick={onOpen}
+      className={`relative overflow-hidden bg-[#E8E6E2] ${className}`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={youTubeThumbnailUrl(videoId)} alt="" className="h-full w-full object-cover" />
+      <span className="absolute inset-0 grid place-items-center bg-black/20">
+        <span
+          className={`grid place-items-center rounded-full bg-white text-[#111111] shadow-[0_2px_8px_rgba(17,17,17,0.15)] ${
+            large ? 'h-14 w-14' : 'h-9 w-9'
+          }`}
+        >
+          <Play className={`${large ? 'h-5 w-5' : 'h-3.5 w-3.5'} translate-x-0.5 fill-current`} aria-hidden="true" />
+        </span>
+      </span>
+    </button>
   )
 }
 

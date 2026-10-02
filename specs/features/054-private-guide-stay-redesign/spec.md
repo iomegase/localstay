@@ -97,6 +97,10 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
   validée) et une carte d'étape montrent : médias (vidéo 200 px avec bouton
   lecture, photos), « Étape X sur N », titre, introduction, repères clé/valeur,
   sous-étapes numérotées et encart « Le conseil MyStay ».
+- **AC-02-05** *(ajout PO du 2026-10-02)*: Given les médias d'une étape, When
+  elle s'affiche, Then la première photo est l'image principale (pleine
+  largeur) et les autres photos puis la vidéo sont disposées dessous en grille
+  de 1 à 4 colonnes ; sans photo, la vidéo occupe l'image principale.
 - **AC-02-02**: Given une étape de type `address`, When elle s'affiche, Then
   l'adresse est montrée avec « Ouvrir dans Maps » et « Copier l'adresse »
   (→ « Copié ✓ » 1,6 s).
@@ -155,6 +159,10 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
   When on édite une étape, Then on peut choisir son type (Adresse, Accès,
   Garage, Local à skis, Autre), saisir une introduction, des sous-étapes
   (titre + détail), des repères (libellé + valeur) et un conseil.
+- **AC-05-03** *(ajout PO du 2026-10-02)*: Given l'éditeur d'une étape, When on
+  gère ses médias, Then on peut désigner l'image principale (« Définir comme
+  image principale ») et l'ajout est bloqué au-delà de 5 médias (1 image
+  principale + 4 photos ou vidéo) ; l'API refuse au-delà (`400`).
 - **AC-05-02**: Given la personnalisation du logement, When on saisit le code de
   boîte à clés (1 à 20 caractères), Then il est enregistré et exposé
   uniquement au guide privé de ce logement.

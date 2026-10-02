@@ -54,3 +54,10 @@ export function parseArrivalSubsteps(value: unknown): ArrivalSubstep[] {
 export function parseArrivalFacts(value: unknown): ArrivalFact[] {
   return parseList(value, arrivalFactSchema)
 }
+
+/** Médias d'une étape : 1 image principale + 4 photos ou vidéo (spec 054 AC-05-03). */
+export const ARRIVAL_STEP_MAX_MEDIA = 5
+
+export function arrivalMediaCount(photos: readonly string[], videoUrl: string | null | undefined): number {
+  return photos.length + (videoUrl ? 1 : 0)
+}

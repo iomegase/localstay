@@ -1,7 +1,7 @@
 'use client'
 
 import { useId } from 'react'
-import { GripVertical, Plus, Trash2, X } from 'lucide-react'
+import { GripVertical, Plus, Star, Trash2, X } from 'lucide-react'
 import {
   closestCenter,
   DndContext,
@@ -26,7 +26,9 @@ import { YouTubeUrlField } from './YouTubeUrlField'
 import { reorderById } from '@/features/guide-customization/lib/validation'
 import type { ArrivalInstructionInput } from '@/features/guide-customization/types'
 import {
+  arrivalMediaCount,
   ARRIVAL_STEP_ITEMS_MAX,
+  ARRIVAL_STEP_MAX_MEDIA,
   ARRIVAL_STEP_KIND_LABELS,
   ARRIVAL_STEP_KINDS,
   type ArrivalStepKind,
@@ -85,6 +87,12 @@ export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props)
     update(index, { photos: value[index].photos.filter((_, i) => i !== photoIndex) })
   }
 
+  // Spec 054 AC-05-03 : l'image principale est la première photo de l'étape.
+  function makeHero(index: number, photoIndex: number) {
+    const photos = value[index].photos
+    update(index, { photos: [photos[photoIndex], ...photos.filter((_, i) => i !== photoIndex)] })
+  }
+
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over) return
@@ -122,6 +130,7 @@ export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props)
                 onUpdate={update}
                 onRemove={removeInstruction}
                 onAddPhoto={addPhoto}
+                onMakeHero={makeHero}
                 onRemovePhoto={removePhoto}
               />
             ))}
@@ -140,6 +149,7 @@ function SortableInstructionRow({
   onRemove,
   onAddPhoto,
   onRemovePhoto,
+  onMakeHero,
 }: {
   instruction: ArrivalInstructionInput
   index: number
@@ -147,12 +157,14 @@ function SortableInstructionRow({
   onUpdate: (index: number, patch: Partial<ArrivalInstructionInput>) => void
   onRemove: (index: number) => void
   onAddPhoto: (index: number, url: string) => void
+  onMakeHero: (index: number, photoIndex: number) => void
   onRemovePhoto: (index: number, photoIndex: number) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: instruction.id ?? String(index),
   })
   const style = { transform: CSS.Transform.toString(transform), transition }
+  const mediaCount = arrivalMediaCount(instruction.photos, instruction.video_url)
   const substeps = instruction.substeps ?? []
   const facts = instruction.facts ?? []
   const smallLabelClass = 'block text-[10px] font-semibold uppercase tracking-widest text-gray-400'
@@ -330,20 +342,51 @@ function SortableInstructionRow({
       </div>
 
       <div className="space-y-2">
-        <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-          Photos (optionnelles)
-        </Label>
-        <ImageUpload
-          endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
-          onUploaded={url => onAddPhoto(index, url)}
-          label="Ajouter une photo"
-        />
+        <div className="flex items-baseline justify-between gap-3">
+          <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+            Photos et vidéo (optionnelles)
+          </Label>
+          <span className="text-[11px] text-gray-500">{mediaCount} / {ARRIVAL_STEP_MAX_MEDIA} médias</span>
+        </div>
+        <p className="text-[11px] text-gray-500">
+          La première photo est l&apos;image principale ; les autres photos et la vidéo s&apos;affichent dessous.
+        </p>
+        {mediaCount < ARRIVAL_STEP_MAX_MEDIA ? (
+          <ImageUpload
+            endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
+            onUploaded={url => onAddPhoto(index, url)}
+            label="Ajouter une photo"
+          />
+        ) : (
+          <p className="text-[11px] font-semibold text-gray-500">
+            Limite atteinte : 1 image principale + 4 photos ou vidéo.
+          </p>
+        )}
         {instruction.photos.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {instruction.photos.map((photo, photoIndex) => (
               <div key={photoIndex} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo} alt="" className="h-16 w-20 rounded-lg object-cover" />
+                <img
+                  src={photo}
+                  alt=""
+                  className={`h-16 w-20 rounded-lg object-cover ${photoIndex === 0 ? 'ring-2 ring-pink-600 ring-offset-1' : ''}`}
+                />
+                {photoIndex === 0 ? (
+                  <span className="absolute inset-x-0 bottom-0 rounded-b-lg bg-pink-600/90 px-1 text-center text-[9px] font-bold text-white">
+                    Image principale
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onMakeHero(index, photoIndex)}
+                    aria-label={`Définir la photo ${photoIndex + 1} comme image principale`}
+                    title="Définir comme image principale"
+                    className="absolute -left-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-white text-pink-600 shadow"
+                  >
+                    <Star className="h-3 w-3" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => onRemovePhoto(index, photoIndex)}
@@ -358,12 +401,16 @@ function SortableInstructionRow({
         )}
       </div>
 
-      <YouTubeUrlField
-        id={`instruction-video-${index}`}
-        label="Vidéo YouTube (optionnelle)"
-        value={instruction.video_url}
-        onChange={url => onUpdate(index, { video_url: url })}
-      />
+      {!instruction.video_url && instruction.photos.length >= ARRIVAL_STEP_MAX_MEDIA ? (
+        <p className="text-[11px] text-gray-500">Retirez une photo pour ajouter une vidéo.</p>
+      ) : (
+        <YouTubeUrlField
+          id={`instruction-video-${index}`}
+          label="Vidéo YouTube (optionnelle)"
+          value={instruction.video_url}
+          onChange={url => onUpdate(index, { video_url: url })}
+        />
+      )}
     </div>
   )
 }

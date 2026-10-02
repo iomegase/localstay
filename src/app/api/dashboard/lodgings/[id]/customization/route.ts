@@ -16,7 +16,9 @@ import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/p
 import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 import {
+  arrivalMediaCount,
   ARRIVAL_STEP_ITEMS_MAX,
+  ARRIVAL_STEP_MAX_MEDIA,
   ARRIVAL_STEP_KINDS,
   arrivalFactSchema,
   arrivalSubstepSchema,
@@ -109,7 +111,7 @@ const arrivalInstructionSchema = z.object({
     .min(1, "Le texte de l'instruction est requis.")
     .max(2000, "L'instruction doit faire 2000 caractères maximum."),
   video_url: youtubeUrlSchema,
-  photos: z.array(z.string().trim().url()).max(20).default([]),
+  photos: z.array(z.string().trim().url()).max(ARRIVAL_STEP_MAX_MEDIA).default([]),
   sort_order: z.number().int().min(0),
   // Spec 054 AC-05-01 — étapes typées.
   kind: z.enum(ARRIVAL_STEP_KINDS).default('custom'),
@@ -128,7 +130,13 @@ const arrivalInstructionSchema = z.object({
     .array(arrivalFactSchema.extend({ label: z.string().trim().max(40), value: z.string().trim().max(60) }))
     .max(ARRIVAL_STEP_ITEMS_MAX)
     .default([]),
-})
+}).refine(
+  instruction => arrivalMediaCount(instruction.photos, instruction.video_url) <= ARRIVAL_STEP_MAX_MEDIA,
+  {
+    message: `${ARRIVAL_STEP_MAX_MEDIA} médias maximum par étape : 1 image principale + 4 photos ou vidéo.`,
+    path: ['photos'],
+  },
+)
 
 const customizationSchema = z.object({
   welcome_message: z

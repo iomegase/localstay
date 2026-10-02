@@ -61,4 +61,13 @@ describe('054 AC-05-01/02 — customization API', () => {
     })).status).toBe(400)
     expect(mockSaveCustomization).not.toHaveBeenCalled()
   })
+
+  it('AC-05-03: rejects more than five media per step (1 hero + 4 photos or video)', async () => {
+    const photos = (count: number) => Array.from({ length: count }, (_, index) => `https://cdn.example.com/${index}.jpg`)
+    const instruction = (count: number, video: string | null) => ({ text: 'Entrez', video_url: video, photos: photos(count), sort_order: 0 })
+
+    expect((await put({ ...base, arrival_instructions: [instruction(6, null)] })).status).toBe(400)
+    expect((await put({ ...base, arrival_instructions: [instruction(5, 'https://youtu.be/dQw4w9WgXcQ')] })).status).toBe(400)
+    expect((await put({ ...base, arrival_instructions: [instruction(4, 'https://youtu.be/dQw4w9WgXcQ')] })).status).toBe(200)
+  })
 })
