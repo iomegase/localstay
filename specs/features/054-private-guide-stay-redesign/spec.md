@@ -102,6 +102,9 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
   largeur) et les autres photos puis la vidéo sont disposées dessous en grille
   de 4 colonnes (vignettes compactes) ; sans photo, la vidéo occupe l'image
   principale.
+- **AC-02-06** *(ajout PO du 2026-10-02)*: Given la visionneuse de photos, When
+  on glisse (doigt ou souris) ou utilise les flèches du clavier, Then la photo
+  voisine s'affiche ; les boutons fléchés ne sont visibles qu'avec une souris.
 - **AC-02-02**: Given une étape de type `address`, When elle s'affiche, Then
   l'adresse est montrée avec « Ouvrir dans Maps » et « Copier l'adresse »
   (→ « Copié ✓ » 1,6 s).
