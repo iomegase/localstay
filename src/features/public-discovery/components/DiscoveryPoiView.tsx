@@ -106,7 +106,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
         <section className={`${marketingContainerClass} pb-16`} aria-labelledby="poi-map-title">
           <h2 id="poi-map-title" className="mb-6 text-3xl font-semibold tracking-[-0.045em] text-slate-900">Localiser cette adresse</h2>
           <div className="overflow-hidden rounded-[24px] bg-slate-100 [&>img]:aspect-[16/7] [&>img]:min-h-[260px]">
-            <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={944} height={420} zoom={15} />
+            <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={944} height={420} zoom={17} />
           </div>
         </section>
 

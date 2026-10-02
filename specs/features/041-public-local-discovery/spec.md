@@ -605,7 +605,8 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
 - Actions compactes Appeler, Itinéraire et Site officiel selon disponibilité.
 - Aucune action Partager n'est exposée sur la fiche publique ; elle reste dans
   le guide de séjour privé.
-- Mini-carte statique ou composant existant conforme à ADR-001.
+- Mini-carte statique ou composant existant conforme à ADR-001, au zoom 17
+  (niveau rue) pour que le marqueur reste lisible (Product Owner, 2026-10-02).
 - Bloc final de conversion vers `/confier-mon-logement`, sans recommandation
   Owner ni données de séjour.
 

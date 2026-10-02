@@ -229,6 +229,11 @@ describe('041 public discovery pages', () => {
       'src',
       expect.stringContaining(`${poi.longitude},${poi.latitude}`),
     )
+    // Zoom rapproché (niveau rue) pour que le marqueur ne soit pas perdu (Product Owner, 2026-10-02).
+    expect(screen.getByTestId('mini-map')).toHaveAttribute(
+      'src',
+      expect.stringContaining(`/${poi.longitude},${poi.latitude},17/`),
+    )
     expect(screen.getByText(`${poi.rating?.toLocaleString('fr-FR')} / 5 · ${poi.rating_count} avis`)).toBeInTheDocument()
     expect(screen.getByText('09:00–18:00')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'bonjour@mystay.city' })).toHaveAttribute(
