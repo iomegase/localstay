@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import React from 'react'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
 
@@ -61,7 +61,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     window.history.replaceState({}, '', '/seminaires')
   })
 
-  it('renders the fictional private-guide home hierarchy without links', () => {
+  it('054 AC-06-01: renders the stay home with the shared tabs and without links', () => {
     render(<DemoGuideApp />)
 
     const guide = screen.getByTestId('autonomous-demo-guide')
@@ -69,62 +69,62 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     expect(
       within(guide).getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()
-    expect(
-      within(guide).getByText('Logement fictif · démonstration'),
-    ).toBeInTheDocument()
-    const videoButton = within(guide).getByRole('button', {
-      name: /Voir la vidéo du logement/i,
-    })
-    expect(videoButton).toBeDisabled()
-    expect(videoButton).toHaveAttribute('aria-disabled', 'true')
-    expect(
-      within(guide).getByText(
-        'Vidéo indisponible dans cette démonstration',
-      ),
-    ).toBeInTheDocument()
-    expect(
-      within(guide).getByRole('button', {
-        name: /Découvrir le livret d’accueil/i,
-      }),
-    ).toBeInTheDocument()
-    expect(
-      within(guide).getByRole('button', { name: /Explorer Saint-Gervais/i }),
-    ).toBeInTheDocument()
-
-    const gpsButton = within(guide).getByRole('button', {
-      name: /Activer mon GPS/i,
-    })
-    expect(gpsButton).toBeDisabled()
-    expect(gpsButton).toHaveAttribute('aria-disabled', 'true')
-    expect(within(guide).getByText(/désactivé dans la démonstration/i)).toBeInTheDocument()
-    expect(
-      within(
-        within(guide).getByRole('navigation', {
-          name: 'Navigation de démonstration',
-        }),
-      ).getByText('Coups de cœur'),
-    ).toBeInTheDocument()
+    expect(within(guide).getByText('Votre guide de séjour')).toBeInTheDocument()
+    expect(within(guide).getByRole('button', { name: /^Arrivée/ })).toBeInTheDocument()
+    expect(within(guide).getByRole('button', { name: /^Wi-Fi/ })).toBeInTheDocument()
+    const tabs = within(
+      within(guide).getByRole('navigation', { name: 'Navigation du guide' }),
+    ).getAllByRole('button')
+    expect(tabs.map(tab => tab.textContent)).toEqual(['Séjour', 'Guide', 'Carte', 'Aide'])
     expect(guide.querySelectorAll('a')).toHaveLength(0)
   })
 
   it('switches bottom-navigation views locally without changing the URL', () => {
     render(<DemoGuideApp />)
 
-    const guideButton = screen.getByRole('button', { name: 'Guide logement' })
-    expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute(
       'aria-current',
       'page',
     )
 
-    fireEvent.click(guideButton)
-    expect(screen.getByRole('heading', { name: 'Bienvenue' })).toBeInTheDocument()
-    expect(guideButton).toHaveAttribute('aria-current', 'page')
+    fireEvent.click(screen.getByRole('button', { name: 'Aide' }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Aide' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aide' })).toHaveAttribute('aria-current', 'page')
+    // Spec 045 AC-01-08 : aucun lien tel: ni lien externe dans la démo.
+    expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Accueil' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Séjour' }))
     expect(
       screen.getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()
     expect(window.location.pathname).toBe('/seminaires')
+  })
+
+  it('054 AC-06-01: confirms arrival and departure locally without calling the API', async () => {
+    const fetchSpy = jest.fn()
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchSpy as unknown as typeof fetch
+    try {
+      render(<DemoGuideApp />)
+
+      fireEvent.click(screen.getByRole('button', { name: /^Arrivée/ }))
+      fireEvent.click(screen.getAllByRole('tab')[1])
+      expect(screen.queryByTestId('guide-key-box-code')).not.toBeInTheDocument()
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Je suis arrivé·e !' }))
+      })
+      expect(screen.getByText('Bienvenue au 305 !')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Départ/ }))
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Je suis parti·e' }))
+      })
+      expect(screen.getByText("Merci d'avoir séjourné au 305 !")).toBeInTheDocument()
+      expect(fetchSpy).not.toHaveBeenCalled()
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it.each([

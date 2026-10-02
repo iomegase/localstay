@@ -73,7 +73,7 @@ jest.mock('react-map-gl/mapbox', () => {
 
 function openFavorites() {
   render(<DemoGuideApp />)
-  fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
 }
 
 describe('045-public-demo-private-guide-reference discovery views', () => {
@@ -399,7 +399,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
   it('restores marker focus after closing a favorites-selected preview', async () => {
     const user = userEvent.setup()
     render(<DemoGuideApp />)
-    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    await user.click(screen.getByRole('button', { name: 'Guide' }))
     await user.click(
       screen.getByRole('button', {
         name: 'Afficher Rond de Carotte sur la carte',
@@ -475,7 +475,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const user = userEvent.setup()
     render(<DemoGuideApp />)
 
-    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    await user.click(screen.getByRole('button', { name: 'Guide' }))
     expect(
       screen.getByRole('heading', { name: 'Nos coups de cœur' }),
     ).toHaveFocus()

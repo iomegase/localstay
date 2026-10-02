@@ -1,7 +1,8 @@
 /** @jest-environment jsdom */
 
 import { render, screen } from '@testing-library/react'
-import { GuideLodgingViews } from '@/features/guide-app/components/GuideLodgingViews'
+import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouseGuide'
+import { GuidePracticalView } from '@/features/guide-app/components/GuidePracticalView'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 
 jest.mock('@/features/guide-app/components/GuideDarkMarkdown', () => ({
@@ -54,11 +55,7 @@ describe('BR-23 — Markdown des blocs pratiques privés', () => {
     }
 
     const { unmount } = render(
-      <GuideLodgingViews
-        view="rules"
-        lodging={lodging}
-        onNavigate={jest.fn()}
-      />,
+      <GuideHouseGuide lodging={lodging} onBack={jest.fn()} />,
     )
 
     expect(
@@ -67,11 +64,7 @@ describe('BR-23 — Markdown des blocs pratiques privés', () => {
 
     unmount()
     render(
-      <GuideLodgingViews
-        view="practical"
-        lodging={lodging}
-        onNavigate={jest.fn()}
-      />,
+      <GuidePracticalView lodging={lodging} onBack={jest.fn()} />,
     )
     expect(
       screen.getAllByTestId('guide-dark-markdown').map(node => node.textContent),

@@ -1,22 +1,21 @@
 /** @jest-environment jsdom */
 
 import type { ComponentProps } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
-import { GuideLodgingViews } from '@/features/guide-app/components/GuideLodgingViews'
+import { render, screen } from '@testing-library/react'
+import { GuidePracticalView } from '@/features/guide-app/components/GuidePracticalView'
+import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouseGuide'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 
-type View = ComponentProps<typeof GuideLodgingViews>['view']
-type Overrides = Partial<ComponentProps<typeof GuideLodgingViews>['lodging']>
+type Overrides = Partial<ComponentProps<typeof GuidePracticalView>['lodging']>
 
-function renderView(view: View, overrides: Overrides = {}, onNavigate = jest.fn()) {
+// Spec 054 : « rules » = Guide logement (équipements), « practical » = Infos pratiques.
+function renderView(view: 'practical' | 'rules', overrides: Overrides = {}) {
+  const lodging = { ...demoLodging, practicalCards: [], ...overrides }
   render(
-    <GuideLodgingViews
-      view={view}
-      lodging={{ ...demoLodging, practicalCards: [], ...overrides }}
-      onNavigate={onNavigate}
-    />,
+    view === 'practical'
+      ? <GuidePracticalView lodging={lodging} onBack={jest.fn()} />
+      : <GuideHouseGuide lodging={lodging} onBack={jest.fn()} />,
   )
-  return onNavigate
 }
 
 describe('038 AC — practical view: emergencies, useful numbers', () => {
@@ -81,26 +80,6 @@ describe('practical block cards live in Équipements, not in Informations pratiq
     expect(screen.getByText('Écran de cinéma')).toBeInTheDocument()
   })
 
-  it('expands equipment descriptions to the full card width (spec 050 AC-01-08)', () => {
-    renderView('rules', {
-      practicalCards: [
-        {
-          id: 'c1',
-          title: 'Climatisation',
-          description: 'L’appartement est équipé d’une climatisation réversible.',
-          icon: 'air-vent',
-        },
-      ],
-    })
-
-    const contentWrapper = screen
-      .getByText('L’appartement est équipé d’une climatisation réversible.')
-      .closest('div')
-
-    expect(contentWrapper).toHaveClass('mt-3')
-    expect(contentWrapper).not.toHaveClass('pl-12')
-  })
-
   it('no longer shows the block cards in Informations pratiques', () => {
     renderView('practical', { practicalCards: blocks })
     expect(screen.queryByText('Écran de cinéma')).not.toBeInTheDocument()
@@ -115,11 +94,7 @@ describe('practical block cards live in Équipements, not in Informations pratiq
     }
 
     const { unmount } = render(
-      <GuideLodgingViews
-        view="rules"
-        lodging={{ ...demoLodging, practicalCards: [recyclingCard] }}
-        onNavigate={jest.fn()}
-      />,
+      <GuideHouseGuide lodging={{ ...demoLodging, practicalCards: [recyclingCard] }} onBack={jest.fn()} />,
     )
     expect(screen.queryByText('Tri des déchets')).not.toBeInTheDocument()
 
@@ -128,61 +103,5 @@ describe('practical block cards live in Équipements, not in Informations pratiq
     expect(
       screen.getByRole('heading', { level: 3, name: 'Tri des déchets' }),
     ).toBeInTheDocument()
-  })
-})
-
-describe('Équipements view (rules)', () => {
-  it('lists the house rules', () => {
-    renderView('rules', {
-      houseRules: ['Non-fumeur', 'Animaux sur demande'],
-    })
-
-    expect(
-      screen.getByRole('heading', { name: 'Les Équipements' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Règlement intérieur' }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Non-fumeur')).toBeInTheDocument()
-  })
-})
-
-describe('arrival view (Bienvenue)', () => {
-  it('groups the arrival steps under an "Instructions" section', () => {
-    renderView('arrival', {
-      arrivalInstructions: [
-        { text: 'Ouvrez le portail avec le badge', videoUrl: null, photos: [] },
-      ],
-    })
-
-    expect(
-      screen.getByRole('heading', { name: 'Instructions' }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Ouvrez le portail avec le badge')).toBeInTheDocument()
-  })
-
-  it('embeds a compact Maps link in the Localisation card, address on two lines', () => {
-    renderView('arrival', {
-      addressLabel: '1094 route de la croix, 74170 Saint-Gervais-les-Bains',
-    })
-
-    // Bouton Maps intégré (plus de gros bouton "Google Maps")
-    const maps = screen.getByRole('link', { name: /^maps$/i })
-    expect(maps.getAttribute('href')).toContain('google.com/maps')
-    expect(screen.queryByText('Google Maps')).not.toBeInTheDocument()
-
-    // Adresse découpée en lignes
-    expect(screen.getByText('1094 route de la croix')).toBeInTheDocument()
-    expect(screen.getByText('74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
-  })
-})
-
-describe('lodging hub navigation', () => {
-  it('routes the "Équipements" link to the rules view', () => {
-    const onNavigate = renderView('lodging')
-
-    fireEvent.click(screen.getByRole('button', { name: /Équipements/i }))
-
-    expect(onNavigate).toHaveBeenCalledWith('rules')
   })
 })

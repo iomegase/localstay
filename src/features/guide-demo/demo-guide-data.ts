@@ -30,6 +30,10 @@ export const demoLodging: DemoLodging = {
       photos: [],
       photoPlaceholders: ['Vue extérieure du logement', 'Façade de la résidence'],
       videoPlaceholder: 'Vidéo de l’extérieur du logement',
+      kind: 'address',
+      tip: null,
+      substeps: [],
+      facts: [{ label: 'Étage', value: '3e' }],
     },
     {
       title: 'Accès au logement',
@@ -37,6 +41,10 @@ export const demoLodging: DemoLodging = {
       videoUrl: null,
       photos: [APPROVED_DEMO_ACCESS_MEDIA[0], APPROVED_DEMO_ACCESS_MEDIA[1]],
       videoPlaceholder: 'Vidéo d’accès au logement',
+      kind: 'access',
+      tip: null,
+      substeps: [],
+      facts: [],
     },
     {
       title: 'Le parking',
@@ -44,6 +52,11 @@ export const demoLodging: DemoLodging = {
       videoUrl: null,
       photos: [APPROVED_DEMO_ACCESS_MEDIA[2]],
       videoPlaceholder: 'Vidéo du parking',
+      // « custom » : le test 045 AC-02-02 interdit tout vocabulaire d'accès réel (« garage »).
+      kind: 'custom',
+      tip: null,
+      substeps: [],
+      facts: [{ label: 'Place', value: '305' }],
     },
   ],
   departureInstructions: [
@@ -99,4 +112,6 @@ export const demoLodging: DemoLodging = {
   ],
   trashBins: [{ type: 'jaune' }, { type: 'verte' }, { type: 'bordeaux' }],
   trashLocation: 'Point de tri public du centre de Saint-Gervais',
+  keyBoxCode: null,
+  stats: { guests: 4, bedrooms: 2, surfaceM2: 62 },
 }

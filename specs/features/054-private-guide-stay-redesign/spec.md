@@ -39,6 +39,12 @@ Décisions :
    s'appuyant sur la spec 027).
 5. Navigation basse remplacée par 4 onglets : Séjour · Guide · Carte · Aide.
 
+Remplace : l'accueil privé à boutons (034 AC-01-03/04, carte GPS comprise), le
+hub logement et ses onglets Accès / Infos / Équipements / Départ (036, 039, 050
+AC-01-03/08/09) et la vue « Guide logement » de la démo (045 AC-01-07..13). La
+vue « Infos pratiques » (Wi-Fi, numéros utiles, tri) est conservée et ouverte
+depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuiles.
+
 ## Glossary References
 
 - **Lodging**, **Guide**, **Tourist**, **Owner**, **QR Code** (glossary.md).

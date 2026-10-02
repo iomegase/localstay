@@ -2,12 +2,12 @@
 
 import type { ComponentProps } from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { GuideLodgingViews } from '@/features/guide-app/components/GuideLodgingViews'
+import { GuidePracticalView } from '@/features/guide-app/components/GuidePracticalView'
+import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouseGuide'
 import { GUIDE_CARD } from '@/features/guide-app/components/GuideCard'
 import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 
-type Lodging = ComponentProps<typeof GuideLodgingViews>['lodging']
-type View = Exclude<ComponentProps<typeof GuideLodgingViews>['view'], 'lodging'>
+type Lodging = ComponentProps<typeof GuidePracticalView>['lodging']
 
 const lodging: Lodging = {
   id: 'lodging-fixture',
@@ -24,8 +24,10 @@ const lodging: Lodging = {
   wifiName: 'Chalet-Wifi',
   wifiPassword: 'Sapins-2026',
   arrivalInstructions: [
-    { title: 'Arrivée', text: 'Rendez-vous devant la **porte**.', videoUrl: null, photos: ['/p1.jpg'] },
-    { title: null, text: '## Clés\nRécupérez les clés.', videoUrl: null, photos: [] },
+    {
+      title: 'Arrivée', text: 'Rendez-vous devant la **porte**.', videoUrl: null, photos: ['/p1.jpg'],
+      kind: 'address', tip: null, substeps: [], facts: [],
+    },
   ],
   departureInstructions: ['Fermer les fenêtres.', 'Éteindre les lumières.'],
   houseRules: ['Non-fumeur', 'Calme après 22 h'],
@@ -38,13 +40,17 @@ const lodging: Lodging = {
   usefulNumbers: [{ label: 'Office de tourisme', number: '0450477608' }],
   trashBins: [{ type: 'jaune' }, { type: 'verte' }],
   trashLocation: 'https://maps.app.goo.gl/abc',
+  keyBoxCode: null,
+  stats: { guests: null, bedrooms: null, surfaceM2: null },
 }
 
 const CARD_CLASSES = GUIDE_CARD.split(' ')
 
-function renderView(view: View, overrides: Partial<Lodging> = {}) {
+// Spec 054 : seule la vue « Infos pratiques » garde le design de cartes 050 ;
+// arrivée, guide logement et départ suivent le handoff (tests private-guide-stay.*).
+function renderPractical(overrides: Partial<Lodging> = {}) {
   const { container } = render(
-    <GuideLodgingViews view={view} lodging={{ ...lodging, ...overrides }} onNavigate={jest.fn()} />,
+    <GuidePracticalView lodging={{ ...lodging, ...overrides }} onBack={jest.fn()} />,
   )
   return container
 }
@@ -60,72 +66,33 @@ describe('050 private guide card design', () => {
     expect(CARD_CLASSES).toEqual(expect.arrayContaining(['bg-white', 'text-slate-900']))
     expect(GUIDE_CARD).toMatch(/shadow-/)
 
-    for (const view of ['arrival', 'practical', 'rules', 'departure'] as const) {
-      const container = renderView(view)
-      const cards = Array.from(container.querySelectorAll('[data-guide-card]'))
-      expect(cards.length).toBeGreaterThan(1)
-      cards.forEach(expectGuideCard)
-      expect(container.querySelector('.bg-slate-800, .bg-slate-900, .bg-indigo-950')).toBeNull()
-      // Aucun texte blanc sur fond blanc : seul le contenu des pastilles colorées reste blanc.
-      const whiteText = Array.from(container.querySelectorAll('[data-guide-card] [class*="text-white"]'))
-        .filter(element => !element.closest('[data-guide-pastille]'))
-      expect(whiteText).toEqual([])
-      container.querySelectorAll('[data-guide-pastille]').forEach(pastille => {
-        expect(pastille).toHaveClass('text-white')
-      })
-      document.body.innerHTML = ''
-    }
-  })
-
-  it('AC-01-02 hides section titles outside cards on every tab', () => {
-    const titles: Record<View, string[]> = {
-      arrival: ['Localisation', 'Instructions'],
-      practical: ['Urgences', 'Numéros utiles', 'Tri des déchets'],
-      rules: ['Règlement', 'Équipements'],
-      departure: [],
-    }
-
-    for (const [view, names] of Object.entries(titles) as [View, string[]][]) {
-      renderView(view)
-      for (const name of names) {
-        const heading = screen
-          .getAllByRole('heading', { level: 2, name })
-          .find(element => element.classList.contains('sr-only'))
-        expect(heading).toBeDefined()
-      }
-      document.body.innerHTML = ''
-    }
-  })
-
-  it('AC-01-03 renders location and one card per arrival instruction, media still open the lightbox', () => {
-    renderView('arrival')
-
-    const location = screen.getByTestId('guide-access-location')
-    expectGuideCard(location)
-    expect(within(location).getByText('12 chemin des Sapins')).toBeInTheDocument()
-    expect(within(location).getByText('74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
-    expect(within(location).getByRole('link', { name: 'Maps' })).toHaveAttribute(
-      'href',
-      'https://www.google.com/maps/dir/?api=1&destination=45.89,6.71',
-    )
-
-    const instructions = screen.getAllByTestId('guide-arrival-instruction')
-    expect(instructions).toHaveLength(2)
-    instructions.forEach((instruction, index) => {
-      expectGuideCard(instruction)
-      expect(within(instruction).getByTestId('guide-step')).toHaveTextContent(String(index + 1))
+    const container = renderPractical()
+    const cards = Array.from(container.querySelectorAll('[data-guide-card]'))
+    expect(cards.length).toBeGreaterThan(1)
+    cards.forEach(expectGuideCard)
+    // Aucun texte blanc sur fond blanc : seul le contenu des pastilles colorées reste blanc.
+    const whiteText = Array.from(container.querySelectorAll('[data-guide-card] [class*="text-white"]'))
+      .filter(element => !element.closest('[data-guide-pastille]'))
+    expect(whiteText).toEqual([])
+    container.querySelectorAll('[data-guide-pastille]').forEach(pastille => {
+      expect(pastille).toHaveClass('text-white')
     })
-    expect(within(instructions[0]).getByRole('heading', { level: 3, name: 'Arrivée' })).toBeInTheDocument()
-    expect(within(instructions[1]).getByRole('heading', { level: 3, name: 'Clés' })).toBeInTheDocument()
+  })
 
-    fireEvent.click(within(instructions[0]).getByRole('button', { name: 'Photo 1' }))
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  it('AC-01-02 hides section titles outside cards in Infos pratiques', () => {
+    renderPractical()
+    for (const name of ['Urgences', 'Numéros utiles', 'Tri des déchets']) {
+      const heading = screen
+        .getAllByRole('heading', { level: 2, name })
+        .find(element => element.classList.contains('sr-only'))
+      expect(heading).toBeDefined()
+    }
   })
 
   it('AC-01-04 copies the Wi-Fi password from the light box', async () => {
     const writeText = jest.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
-    renderView('practical')
+    renderPractical()
 
     const wifi = screen.getByTestId('guide-practical-wifi')
     expectGuideCard(wifi)
@@ -141,7 +108,7 @@ describe('050 private guide card design', () => {
 
   it('AC-01-05 shows a single 112 emergency card', () => {
     expect(FRENCH_EMERGENCY_NUMBERS.map(item => item.number)).toEqual(['112'])
-    renderView('practical')
+    renderPractical()
 
     const emergencies = screen.getAllByTestId('guide-practical-emergency')
     expect(emergencies).toHaveLength(1)
@@ -151,7 +118,7 @@ describe('050 private guide card design', () => {
   })
 
   it('AC-01-06 renders each useful number as a tel: card link', () => {
-    renderView('practical')
+    renderPractical()
 
     const useful = screen.getAllByTestId('guide-practical-useful-number')
     expect(useful).toHaveLength(1)
@@ -161,7 +128,7 @@ describe('050 private guide card design', () => {
   })
 
   it('AC-01-07 drops trash bin rows, keeps recycle text and one Point de tri card', () => {
-    renderView('practical')
+    renderPractical()
 
     expect(screen.queryByText(/Poubelle/)).not.toBeInTheDocument()
     expect(screen.getByText('Verre au conteneur vert.')).toBeInTheDocument()
@@ -174,7 +141,7 @@ describe('050 private guide card design', () => {
   })
 
   it('AC-01-07 falls back to a city search when no trash location is set', () => {
-    renderView('practical', { trashLocation: null })
+    renderPractical({ trashLocation: null })
 
     expect(screen.getByTestId('guide-practical-trash-location')).toHaveAttribute(
       'href',
@@ -182,35 +149,20 @@ describe('050 private guide card design', () => {
     )
   })
 
-  it('AC-01-08 renders house rules and every practical block as flat cards', () => {
-    renderView('rules')
+  it('054 AC-04-01 keeps equipment media and phone actions in the house guide', () => {
+    render(<GuideHouseGuide lodging={lodging} onBack={jest.fn()} />)
 
-    const rules = screen.getByTestId('guide-house-rules')
-    expectGuideCard(rules)
-    expect(within(rules).getAllByRole('listitem')).toHaveLength(2)
-
-    const blocks = screen.getAllByTestId('guide-practical-block')
+    const blocks = screen.getAllByTestId('guide-equipment')
     expect(blocks.map(block => within(block).getByRole('heading', { level: 3 }).textContent)).toEqual([
       'Télévision',
       'Spa',
       'Plombier',
     ])
-    blocks.forEach(expectGuideCard)
-    expect(within(blocks[1]).getByRole('button', { name: 'Voir — Spa' })).toBeInTheDocument()
+    fireEvent.click(within(blocks[1]).getByRole('button', { name: 'Voir — Spa' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(within(blocks[2]).getByRole('link', { name: /0450000000/ })).toHaveAttribute(
       'href',
       'tel:0450000000',
     )
-  })
-
-  it('AC-01-09 renders the departure checklist as one flat card', () => {
-    renderView('departure')
-
-    const checklist = screen.getByTestId('guide-departure-checklist')
-    expectGuideCard(checklist)
-    expect(within(checklist).getAllByRole('checkbox')).toHaveLength(2)
-    expect(within(checklist).getByText('0 / 2')).toBeInTheDocument()
-    fireEvent.click(within(checklist).getAllByRole('checkbox')[0])
-    expect(within(checklist).getByText('1 / 2')).toBeInTheDocument()
   })
 })

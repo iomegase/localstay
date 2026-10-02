@@ -2,26 +2,10 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import type { ReactNode, RefObject } from 'react'
-import { BookOpen, Heart, Home, Map, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
+import { GuideNavigation } from '@/features/guide-app/components/GuideNavigation'
 import type { DemoGuideView } from '@/features/guide-demo/types'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
-
-const bottomNavigation = [
-  { view: 'home' as const, ariaLabel: 'Accueil', label: 'Accueil', icon: Home },
-  {
-    view: 'lodging' as const,
-    ariaLabel: 'Guide logement',
-    label: 'Guide',
-    icon: BookOpen,
-  },
-  {
-    view: 'favorites' as const,
-    ariaLabel: 'Coups de cœur',
-    label: 'Coups de cœur',
-    icon: Heart,
-  },
-  { view: 'map' as const, ariaLabel: 'Carte', label: 'Carte', icon: Map },
-]
 
 const menuNavigation = [
   { view: 'lodgings' as const, label: 'Nos logements' },
@@ -202,42 +186,8 @@ export function DemoGuideChrome({
           {children}
         </main>
 
-        {!immersive ? <nav
-          aria-label="Navigation de démonstration"
-          className="absolute inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-full border border-slate-100 bg-white p-1.5 shadow-[0_16px_36px_rgba(15,23,42,0.18)]"
-        >
-          <div className="grid grid-cols-4 gap-1">
-            {bottomNavigation.map(item => {
-              const active =
-                item.view === activeView ||
-                (item.view === 'favorites' && activeView === 'poi')
-              const Icon = item.icon
-
-              return (
-                <button
-                  key={item.view}
-                  type="button"
-                  aria-label={item.ariaLabel}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => onNavigate(item.view)}
-                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[8px] font-bold uppercase tracking-wide leading-tight transition-colors ${
-                    active
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <Icon
-                    className={`h-[17px] w-[17px] ${
-                      item.view === 'favorites' ? 'text-pink-600' : ''
-                    }`}
-                    aria-hidden="true"
-                  />
-                  <span>{item.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </nav> : null}
+        {/* Spec 054 AC-06-01 : même barre d'onglets que le guide privé. */}
+        {!immersive ? <GuideNavigation activeView={activeView} onNavigate={onNavigate} /> : null}
       </div>
 
       {menuOpen ? (

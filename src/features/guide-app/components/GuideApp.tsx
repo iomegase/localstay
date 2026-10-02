@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
-import { GuideHome } from './GuideHome'
-import { GuideLodgingViews } from './GuideLodgingViews'
+import { GuidePracticalView } from './GuidePracticalView'
 import { GuideLodgingsView } from './GuideLodgingsView'
 import { GuideBlogView } from './GuideBlogView'
 import { GuideLodgingDetailView } from './GuideLodgingDetailView'
@@ -16,6 +15,14 @@ import { GuideMenuOverlay } from './GuideMenuOverlay'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
 import { GuidePoiDetails } from './GuidePoiDetails'
+import { GuideArrivalFlow } from './stay/GuideArrivalFlow'
+import { GuideDepartureView } from './stay/GuideDepartureView'
+import { GuideHelpView } from './stay/GuideHelpView'
+import { GuideHouseGuide } from './stay/GuideHouseGuide'
+import { GuideStayHome } from './stay/GuideStayHome'
+import { GuideWifiSheet } from './stay/GuideWifiSheet'
+import { useStayProgress } from './stay/useStayProgress'
+import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
 import type {
   GuideBlogDetail,
   GuideBlogPost,
@@ -107,7 +114,27 @@ function GuideAppShell({
 }) {
   const [activeView, setActiveView] = useState<GuideView>(initialView)
   const scrollRef = useRef<HTMLElement>(null)
-  const navHidden = useAutoHideOnScroll(scrollRef, activeView)
+  const [wifiOpen, setWifiOpen] = useState(false)
+  const stay = useStayProgress(lodging.id, { persist: mode === 'private' })
+  const departureDone = departureTasks(lodging.departureInstructions).filter((_, index) =>
+    stay.checked.has(index),
+  ).length
+  // Écrans secondaires plein écran (spec 054) : sans en-tête ni barre d'onglets.
+  const fullScreen = ['poi', 'arrival', 'departure', 'rules', 'practical'].includes(activeView)
+
+  // Spec 054 US-03 : la démo n'émet aucun événement (AC-06-01).
+  async function sendStayEvent(type: 'arrived' | 'departed') {
+    if (mode === 'private') {
+      const response = await fetch('/api/guide/stay-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      })
+      if (!response.ok) throw new Error('stay_event_failed')
+    }
+    if (type === 'arrived') stay.markArrived()
+    else stay.markDeparted()
+  }
   const [selectedPoiId, setSelectedPoiId] = useState<string | null>(null)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(
     null,
@@ -199,7 +226,7 @@ function GuideAppShell({
       data-guide-mode={mode}
       className="relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-white text-slate-900"
     >
-      {activeView !== 'poi' && (
+      {!fullScreen && (
         <GuideHeader
           city={lodging.city}
           onOpenHome={() => navigate('home')}
@@ -212,20 +239,46 @@ function GuideAppShell({
         ref={scrollRef}
         className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-        {activeView === 'home' && (
-          <GuideHome lodging={lodging} pois={pois} onNavigate={navigate} />
-        )}
-        {['lodging', 'arrival', 'departure', 'practical', 'rules'].includes(activeView) && (
-          <GuideLodgingViews
-            view={
-              activeView as Extract<
-                GuideView,
-                'lodging' | 'arrival' | 'departure' | 'practical' | 'rules'
-              >
-            }
+        {(activeView === 'home' || activeView === 'lodging') && (
+          <GuideStayHome
             lodging={lodging}
+            pois={pois}
+            departureDone={departureDone}
             onNavigate={navigate}
+            onOpenWifi={() => setWifiOpen(true)}
+            onOpenPoi={openPoi}
           />
+        )}
+        {activeView === 'arrival' && (
+          <GuideArrivalFlow
+            lodging={lodging}
+            arrived={stay.arrived}
+            onArrived={() => sendStayEvent('arrived')}
+            onBack={() => navigate('home')}
+          />
+        )}
+        {activeView === 'departure' && (
+          <GuideDepartureView
+            lodging={lodging}
+            checked={stay.checked}
+            onToggle={stay.toggle}
+            departed={stay.departed}
+            onDeparted={() => sendStayEvent('departed')}
+            onBack={() => navigate('home')}
+          />
+        )}
+        {activeView === 'rules' && (
+          <GuideHouseGuide
+            lodging={lodging}
+            onBack={() => navigate('home')}
+            onOpenPractical={() => navigate('practical')}
+          />
+        )}
+        {activeView === 'practical' && (
+          <GuidePracticalView lodging={lodging} onBack={() => navigate('rules')} />
+        )}
+        {activeView === 'help' && (
+          <GuideHelpView lodging={lodging} onWrite={() => navigate('contact')} />
         )}
         {activeView === 'lodgings' && (
           <GuideLodgingsView lodgings={lodgings ?? []} onOpen={openLodgingDetail} />
@@ -277,13 +330,16 @@ function GuideAppShell({
         )}
       </main>
 
-      {activeView !== 'poi' && (
-        <GuideNavigation
-          activeView={activeView}
-          onNavigate={navigateFromTab}
-          hidden={navHidden}
-        />
+      {!fullScreen && (
+        <GuideNavigation activeView={activeView} onNavigate={navigateFromTab} />
       )}
+
+      <GuideWifiSheet
+        open={wifiOpen}
+        name={lodging.wifiName}
+        password={lodging.wifiPassword}
+        onClose={() => setWifiOpen(false)}
+      />
 
       {menuEnabled ? (
         <GuideMenuOverlay
@@ -296,54 +352,4 @@ function GuideAppShell({
       ) : null}
     </div>
   )
-}
-
-/**
- * Masque la barre de nav quand on scrolle vers le bas dans le conteneur donné,
- * la révèle en scrollant vers le haut, à l'arrêt du scroll, et toujours en
- * haut/bas de contenu. Respecte prefers-reduced-motion. Réinitialisée à chaque
- * changement de vue.
- */
-function useAutoHideOnScroll(
-  ref: React.RefObject<HTMLElement | null>,
-  resetKey: unknown,
-): boolean {
-  const [hidden, setHidden] = useState(false)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    setHidden(false)
-
-    const reduce =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let lastY = el.scrollTop
-    let idleTimer = 0
-
-    const onScroll = () => {
-      const y = el.scrollTop
-      const max = el.scrollHeight - el.clientHeight
-
-      if (reduce || y <= 8 || y >= max - 8) {
-        setHidden(false)
-      } else if (y > lastY + 4) {
-        setHidden(true)
-      } else if (y < lastY - 4) {
-        setHidden(false)
-      }
-      lastY = y
-
-      window.clearTimeout(idleTimer)
-      idleTimer = window.setTimeout(() => setHidden(false), 160)
-    }
-
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      el.removeEventListener('scroll', onScroll)
-      window.clearTimeout(idleTimer)
-    }
-  }, [ref, resetKey])
-
-  return hidden
 }

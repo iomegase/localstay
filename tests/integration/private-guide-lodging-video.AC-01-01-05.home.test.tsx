@@ -2,7 +2,7 @@
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { GuideHome } from '@/features/guide-app/components/GuideHome'
+import { GuideStayHome } from '@/features/guide-app/components/stay/GuideStayHome'
 import type { GuideLodging } from '@/features/guide-app/types'
 
 const lodging: GuideLodging = {
@@ -26,17 +26,19 @@ const lodging: GuideLodging = {
   usefulNumbers: [],
   trashBins: [],
   trashLocation: null,
+  keyBoxCode: null,
+  stats: { guests: null, bedrooms: null, surfaceM2: null },
   presentationVideoUrl: 'https://youtu.be/dQw4w9WgXcQ',
 }
 
 describe('044-private-guide-lodging-video home module', () => {
-  it('renders the video action before the lodging guide and loads no iframe', () => {
-    render(<GuideHome lodging={lodging} pois={[]} onNavigate={jest.fn()} />)
+  it('renders the video action after the stay tiles (spec 054) and loads no iframe', () => {
+    render(<GuideStayHome lodging={lodging} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />)
 
     const video = screen.getByRole('button', { name: /^Voir la vidéo du logement/i })
-    const guide = screen.getByRole('button', { name: /Découvrir le livret d'accueil/i })
+    const guide = screen.getByRole('button', { name: /Guide logement/i })
     expect(
-      video.compareDocumentPosition(guide) & Node.DOCUMENT_POSITION_FOLLOWING,
+      video.compareDocumentPosition(guide) & Node.DOCUMENT_POSITION_PRECEDING,
     ).toBeTruthy()
     expect(screen.queryByRole('dialog', { name: 'Vidéo du logement' })).toBeNull()
     expect(document.querySelector('iframe')).toBeNull()
@@ -44,7 +46,7 @@ describe('044-private-guide-lodging-video home module', () => {
 
   it('opens the dialog, keeps YouTube click-to-load, and closes every supported way', async () => {
     const user = userEvent.setup()
-    render(<GuideHome lodging={lodging} pois={[]} onNavigate={jest.fn()} />)
+    render(<GuideStayHome lodging={lodging} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />)
 
     const opener = screen.getByRole('button', { name: /^Voir la vidéo du logement/i })
     await user.click(opener)
@@ -79,11 +81,7 @@ describe('044-private-guide-lodging-video home module', () => {
     'omits the whole module when the URL is %p',
     (presentationVideoUrl) => {
       render(
-        <GuideHome
-          lodging={{ ...lodging, presentationVideoUrl }}
-          pois={[]}
-          onNavigate={jest.fn()}
-        />,
+        <GuideStayHome lodging={{ ...lodging, presentationVideoUrl }} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />,
       )
 
       expect(

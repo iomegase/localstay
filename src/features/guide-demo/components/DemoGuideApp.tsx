@@ -10,8 +10,14 @@ import {
   DemoLodgingsView,
 } from './DemoEditorialViews'
 import { DemoFavoritesView } from './DemoFavoritesView'
-import { DemoHomeView } from './DemoHomeView'
-import { DemoLodgingGuideView } from './DemoLodgingGuideView'
+import { GuideArrivalFlow } from '@/features/guide-app/components/stay/GuideArrivalFlow'
+import { GuideDepartureView } from '@/features/guide-app/components/stay/GuideDepartureView'
+import { GuideHelpView } from '@/features/guide-app/components/stay/GuideHelpView'
+import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouseGuide'
+import { GuideStayHome } from '@/features/guide-app/components/stay/GuideStayHome'
+import { GuideWifiSheet } from '@/features/guide-app/components/stay/GuideWifiSheet'
+import { useStayProgress } from '@/features/guide-app/components/stay/useStayProgress'
+import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
 import { DemoMapView } from './DemoMapView'
 import { DemoPoiDetailView } from './DemoPoiDetailView'
 import { demoGuideData } from '@/features/guide-demo/demo-content'
@@ -61,6 +67,13 @@ export function DemoGuideApp({
   const [detailOrigin, setDetailOrigin] = useState<'favorites' | 'map'>('favorites')
   const mainRef = useRef<HTMLElement>(null)
   const pendingHeadingFocusRef = useRef(false)
+  const [wifiOpen, setWifiOpen] = useState(false)
+  const lodging = demoGuideData.lodging
+  // Spec 054 AC-06-01 : aucune API appelée, la démo affiche seulement la confirmation.
+  const stay = useStayProgress(lodging.id, { persist: false })
+  const departureDone = departureTasks(lodging.departureInstructions).filter((_, index) =>
+    stay.checked.has(index),
+  ).length
 
   useEffect(() => {
     if (!pendingHeadingFocusRef.current || menuOpen) return
@@ -148,17 +161,38 @@ export function DemoGuideApp({
       onCloseMenu={() => setMenuOpen(false)}
       onNavigate={navigate}
       onOpenMenu={() => setMenuOpen(true)}
-      immersive={activeView === 'poi'}
+      immersive={['poi', 'arrival', 'departure', 'rules'].includes(activeView)}
     >
-      {activeView === 'home' ? (
-        <DemoHomeView
-          favoriteCount={demoPois.length}
-          lodgingName={demoGuideData.lodging.name}
-          lodgingCity={demoGuideData.lodging.city}
+      {activeView === 'home' || activeView === 'lodging' ? (
+        <GuideStayHome
+          lodging={lodging}
+          pois={demoPois}
+          departureDone={departureDone}
           onNavigate={navigate}
+          onOpenWifi={() => setWifiOpen(true)}
+          onOpenPoi={poi => openPoi(poi, 'favorites')}
         />
-      ) : activeView === 'lodging' ? (
-        <DemoLodgingGuideView lodging={demoGuideData.lodging} />
+      ) : activeView === 'arrival' ? (
+        <GuideArrivalFlow
+          lodging={lodging}
+          arrived={stay.arrived}
+          onArrived={async () => stay.markArrived()}
+          onBack={() => navigate('home')}
+          demo
+        />
+      ) : activeView === 'departure' ? (
+        <GuideDepartureView
+          lodging={lodging}
+          checked={stay.checked}
+          onToggle={stay.toggle}
+          departed={stay.departed}
+          onDeparted={async () => stay.markDeparted()}
+          onBack={() => navigate('home')}
+        />
+      ) : activeView === 'rules' ? (
+        <GuideHouseGuide lodging={lodging} onBack={() => navigate('home')} />
+      ) : activeView === 'help' ? (
+        <GuideHelpView lodging={lodging} onWrite={() => navigate('contact')} demo />
       ) : activeView === 'favorites' ? (
         <DemoFavoritesView
           pois={demoPois}
@@ -208,6 +242,12 @@ export function DemoGuideApp({
       ) : activeView === 'contact' ? (
         <DemoContactView contact={demoGuideData.contact} />
       ) : null}
+      <GuideWifiSheet
+        open={wifiOpen}
+        name={lodging.wifiName}
+        password={lodging.wifiPassword}
+        onClose={() => setWifiOpen(false)}
+      />
     </DemoGuideChrome>
   )
 }

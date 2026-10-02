@@ -73,11 +73,9 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       name: 'Voir le guide d’exemple',
     })
     await user.click(trigger)
-    await user.click(
-      screen.getByRole('button', { name: /découvrir le livret d['’]accueil/i }),
-    )
+    await user.click(screen.getByRole('button', { name: /^Guide logement/ }))
 
-    expect(await screen.findByTestId('demo-lodging-guide')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Guide logement' })).toBeInTheDocument()
 
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() => {
@@ -89,7 +87,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
     expect(
       await screen.findByRole('heading', { name: /bienvenue/i }),
     ).toBeInTheDocument()
-    expect(screen.queryByTestId('demo-lodging-guide')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Guide logement' })).not.toBeInTheDocument()
   })
 
   it('BR-11 keeps focus and page scrolling inside the outer dialog and closes from its overlay', async () => {
@@ -169,7 +167,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       await user.click(
         screen.getByRole('button', { name: 'Voir le guide d’exemple' }),
       )
-      await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+      await user.click(screen.getByRole('button', { name: 'Guide' }))
       expect(
         await screen.findByRole('heading', { name: 'Nos coups de cœur' }),
       ).toBeInTheDocument()

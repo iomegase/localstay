@@ -57,26 +57,27 @@ describe('034-private-guide-app route-aware shell', () => {
     mockPathname = '/sejour'
   })
 
-  it('uses private routes from the shared GuideApp home', () => {
+  it('054 AC-01-01/02: uses private routes from the stay home tiles and tabs', () => {
     render(
       <GuideApp
         mode="private"
         lodging={{ ...demoLodging, name: 'Le Chalet Hygge' }}
         pois={[]}
-        routes={{
-          home: '/sejour',
-          favorites: '/sejour/coups-de-coeur',
-          lodging: '/sejour/logement',
-          map: '/map',
-        }}
+        routes={PRIVATE_GUIDE_ROUTES}
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /explorer/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement')
+    fireEvent.click(screen.getByRole('button', { name: /^Guide logement/ }))
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/consignes')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Arrivée/ }))
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/arrivee')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Départ/ }))
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
   })
 
   it('does not render a routed destination before its App Router transition completes', () => {
@@ -89,12 +90,10 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /explorer/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
 
     expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
-    expect(
-      screen.queryByRole('heading', { name: 'Nos coups de cœur' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('favorites-bento-grid')).not.toBeInTheDocument()
   })
 
   it('040 AC-01: opens the shared map view inside the private guide frame', () => {
@@ -135,7 +134,7 @@ describe('034-private-guide-app route-aware shell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
     expect(screen.getByText('Chargement de la carte…')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
     expect(screen.queryByText('Chargement de la carte…')).not.toBeInTheDocument()
   })
 
@@ -163,7 +162,7 @@ describe('034-private-guide-app route-aware shell', () => {
       value: jest.fn(),
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
 
     expect(screen.getByTestId('favorites-bento-grid')).toBe(originalGrid)
     expect(mockPush).not.toHaveBeenCalled()
@@ -194,90 +193,55 @@ describe('034-private-guide-app route-aware shell', () => {
     )
   })
 
-  it('opens the canonical arrival page from the lodging guide', () => {
-    // Les deux entrées du hub logement (« Arrivée » et « Accéder au logement »)
-    // mènent à /arrivee. Chacune quitte le hub, donc on les vérifie sur un rendu
-    // frais plutôt qu'enchaînées (ce que seul l'ancien no-op de navigation permettait).
-    const lodgingRoutes = {
-      home: '/sejour',
-      lodging: '/sejour/logement',
-      arrival: '/sejour/logement/arrivee',
-    }
-
-    const first = render(
-      <GuideApp
-        mode="private"
-        lodging={demoLodging}
-        pois={[]}
-        initialView="lodging"
-        routes={lodgingRoutes}
-      />,
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: `Arrivée ${demoLodging.checkIn}`,
-      }),
-    )
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/arrivee')
-    first.unmount()
-
+  it('054: the legacy lodging route renders the stay home', () => {
     render(
       <GuideApp
         mode="private"
         lodging={demoLodging}
         pois={[]}
         initialView="lodging"
-        routes={lodgingRoutes}
+        routes={PRIVATE_GUIDE_ROUTES}
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /Accéder au logement/i }))
-    expect(mockPush).toHaveBeenLastCalledWith('/sejour/logement/arrivee')
+    expect(screen.getByText('Votre guide de séjour')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('opens the canonical practical information page from the lodging guide', () => {
+  it('opens the canonical practical information page from the house guide', () => {
+    mockPathname = '/sejour/logement/consignes'
     render(
       <GuideApp
         mode="private"
         lodging={demoLodging}
         pois={[]}
-        initialView="lodging"
-        routes={{
-          home: '/sejour',
-          lodging: '/sejour/logement',
-          practical: '/sejour/logement/informations-pratiques',
-        }}
+        initialView="rules"
+        routes={PRIVATE_GUIDE_ROUTES}
       />,
     )
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /Informations pratiques/i }),
-    )
-    expect(mockPush).toHaveBeenCalledWith(
-      '/sejour/logement/informations-pratiques',
-    )
+    fireEvent.click(screen.getByRole('button', { name: /Infos pratiques/i }))
+    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/informations-pratiques')
   })
 
-  it('opens the canonical departure page from the lodging guide', () => {
+  it('054 AC-01-05: opens the help tab locally and writes to the concierge', () => {
     render(
       <GuideApp
         mode="private"
         lodging={demoLodging}
         pois={[]}
-        initialView="lodging"
-        routes={{
-          home: '/sejour',
-          lodging: '/sejour/logement',
-          departure: '/sejour/logement/depart',
-        }}
+        routes={PRIVATE_GUIDE_ROUTES}
+        contact={{ lodgingId: 'lodging-1', lodgingName: 'Le 305', cityName: 'Saint-Gervais-les-Bains' }}
       />,
     )
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /Préparer le départ/i }),
-    )
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
+    fireEvent.click(screen.getByRole('button', { name: 'Aide' }))
+    expect(mockPush).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { level: 1, name: 'Aide' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Écrire' }))
+    expect(screen.getByRole('heading', { name: 'Votre hôte' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Aide' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('021 AC-02-02 + 012 BR-03/BR-08: opens a cross-city private trail from its actual city', () => {

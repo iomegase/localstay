@@ -1,6 +1,12 @@
+import type { ArrivalFact, ArrivalStepKind, ArrivalSubstep } from '@/features/guide-app/lib/arrival-steps'
+
 export type DemoGuideView =
   | 'home'
   | 'lodging'
+  | 'arrival'
+  | 'departure'
+  | 'rules'
+  | 'help'
   | 'favorites'
   | 'map'
   | 'poi'
@@ -100,6 +106,11 @@ export type DemoArrivalInstruction = {
   text: string
   videoUrl: string | null
   photos: string[]
+  /** Spec 054 — étape typée, comme dans le guide privé. */
+  kind: ArrivalStepKind
+  tip: string | null
+  substeps: ArrivalSubstep[]
+  facts: ArrivalFact[]
   /** Libellés des photos non encore fournies, affichées en cadre avec icône. */
   photoPlaceholders?: string[]
   /** Libellé d'un cadre vidéo avec icône, sans vidéo réelle. */
@@ -135,6 +146,9 @@ export type DemoLodging = {
     type: string
   }[]
   trashLocation: string | null
+  /** Spec 054 BR-03 : jamais de code de boîte à clés dans la démo. */
+  keyBoxCode: null
+  stats: { guests: number; bedrooms: number; surfaceM2: number }
 }
 
 export type DemoLodgingCard = {

@@ -39,6 +39,10 @@ const privateLodging: GuideLodging = {
       text: 'Garez-vous sur l’emplacement gravillonné en face du chalet.',
       videoUrl: null,
       photos: [],
+      kind: 'garage',
+      tip: null,
+      substeps: [],
+      facts: [],
     },
   ],
   departureInstructions: [
@@ -63,6 +67,8 @@ const privateLodging: GuideLodging = {
   usefulNumbers: [{ label: 'Conciergerie', number: '06 12 34 56 78' }],
   trashBins: [{ type: 'jaune' }, { type: 'verte' }],
   trashLocation: 'Point de tri communal, route des Thermes',
+  keyBoxCode: null,
+  stats: { guests: 6, bedrooms: 3, surfaceM2: 110 },
 }
 
 const privatePois: GuidePoi[] = [
@@ -144,30 +150,21 @@ describe('045 private active stay render isolation', () => {
     expect(container.querySelector('[data-guide-mode="demo"]')).toBeNull()
     expect(container.querySelector('[data-testid="autonomous-demo-guide"]')).toBeNull()
     expect(
-      screen.getByRole('heading', { name: 'Bienvenue au Chalet Horizon' }),
+      screen.getByRole('heading', { level: 1, name: 'Bienvenue au Chalet Horizon' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', {
-        name: /Explorer Saint-Gervais-Mont-Blanc 1 adresses sélectionnées/,
-      }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
     expect(screen.queryByText(/démonstration|guide d['’]exemple/i)).toBeNull()
     expect(container.innerHTML).not.toMatch(/demo-[a-z0-9-]+/i)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guide logement' }))
-    expect(screen.getByText('16:00')).toBeInTheDocument()
-    expect(screen.getByText('10:00')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /Informations pratiques/ }),
-    ).toBeInTheDocument()
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /Informations pratiques/ }),
-    )
+    fireEvent.click(screen.getByRole('button', { name: /Guide logement/ }))
+    expect(screen.getByText('Chauffage')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Infos pratiques/ }))
     expect(screen.getByText('Chalet-Horizon')).toBeInTheDocument()
     expect(screen.getByText('Montblanc-Invite')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
     expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
     expect(screen.getByText('Le Sérac')).toBeInTheDocument()
     expect(screen.queryByText(/démonstration|guide d['’]exemple/i)).toBeNull()
