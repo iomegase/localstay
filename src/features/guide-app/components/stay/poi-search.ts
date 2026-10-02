@@ -58,3 +58,6 @@ export function primaryTravel(travel: TravelTimeValues | undefined): { mode: Tra
   if (travel.walkingSeconds !== null) return { mode: 'walking', label: formatTravelDuration(travel.walkingSeconds) }
   return null
 }
+
+/** Catégories exclues du carrousel de la page Séjour (décision PO du 2026-10-02). */
+export const STAY_HOME_EXCLUDED_CATEGORIES = new Set(['urgences', 'urgence', 'mobilite'])

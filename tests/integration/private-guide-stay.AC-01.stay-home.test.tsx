@@ -93,7 +93,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
     )
 
     expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /le bettex/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir Le Bettex' }))
     expect(onOpenPoi).toHaveBeenCalledWith(poi)
     fireEvent.click(screen.getByRole('button', { name: 'Tout voir' }))
     expect(onNavigate).toHaveBeenCalledWith('favorites')
@@ -139,5 +139,35 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=45.89,6.71',
     )
+  })
+
+  it('054 AC-01-03: uses the photo cards with travel time and hides emergency and mobility places', () => {
+    const onShowPoiOnMap = jest.fn()
+    const cafe = buildStayPoi({ id: 'c1', name: 'Lulu', isOpenNow: true, category: { slug: 'cafes', name: 'Cafés', icon: 'coffee', color: '#000' } })
+    const pharmacy = buildStayPoi({ id: 'u1', name: 'Pharmacie', category: { slug: 'urgences', name: 'Urgences', icon: 'cross', color: '#000' } })
+    const taxi = buildStayPoi({ id: 'm1', name: 'Taxi Alpin', category: { slug: 'mobilite', name: 'Mobilité', icon: 'car', color: '#000' } })
+    render(
+      <GuideStayHome
+        lodging={buildStayLodging()}
+        pois={[cafe, pharmacy, taxi]}
+        departureDone={0}
+        travelTimes={{ c1: { walkingSeconds: 600, drivingSeconds: 200 } }}
+        onNavigate={jest.fn()}
+        onOpenWifi={jest.fn()}
+        onOpenPoi={jest.fn()}
+        onShowPoiOnMap={onShowPoiOnMap}
+      />,
+    )
+
+    const carousel = screen.getByRole('region', { name: 'Nos coups de cœur' })
+    const cards = within(carousel).getAllByTestId('favorite-bento-card')
+    expect(cards).toHaveLength(1)
+    expect(within(cards[0]).getByText('Ouvert')).toBeInTheDocument()
+    expect(within(cards[0]).getByLabelText('À pied')).toBeInTheDocument()
+    expect(within(cards[0]).getByText('10 min')).toBeInTheDocument()
+    expect(within(carousel).queryByText('Pharmacie')).not.toBeInTheDocument()
+    expect(within(carousel).queryByText('Taxi Alpin')).not.toBeInTheDocument()
+    fireEvent.click(within(cards[0]).getByRole('button', { name: 'Voir Lulu sur la carte' }))
+    expect(onShowPoiOnMap).toHaveBeenCalledWith(cafe)
   })
 })

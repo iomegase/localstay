@@ -22,10 +22,10 @@ const PRIVATE_DEMO_ROUTE =
   /^\/(?:sejour|le-logement|nos-recommandations|map|mes-favoris|guide)(?:\/|$)/
 
 // Modules de présentation partagés approuvés pour la démo : écrans du séjour
-// (spec 054 AC-06-01) et transports (spec 055 AC-05-01). Aucun ne lit de query,
+// (spec 054 AC-06-01, carte photo du carrousel) et transports (spec 055 AC-05-01). Aucun ne lit de query,
 // de cookie ni de base ; chemins relatifs à `src/`, sans extension.
 const APPROVED_SHARED_DEMO_MODULE =
-  /^features\/(?:guide-app\/(?:components\/stay\/[A-Za-z-]+|components\/(?:GuideNavigation|GuideLodgingVideoButton|GuideDarkMarkdown|MediaLightbox|ShortVideoPlayer)|lib\/(?:arrival-steps|fixed-lodging-content|emergency-numbers|inline-markdown)|types)|transport\/(?:components\/[A-Za-z]+|hooks\/[A-Za-z]+|lib\/time|types))$/
+  /^features\/(?:guide-app\/(?:components\/stay\/[A-Za-z-]+|components\/(?:GuideNavigation|GuideLodgingVideoButton|GuideDarkMarkdown|MediaLightbox|ShortVideoPlayer|GuideFavoriteBentoCard)|lib\/(?:arrival-steps|fixed-lodging-content|emergency-numbers|inline-markdown|poi-image|favorite-bento)|types)|transport\/(?:components\/[A-Za-z]+|hooks\/[A-Za-z]+|lib\/time|types))$/
 // Seule ressource réseau autorisée dans la démo, à la demande du visiteur (spec 055 AC-05-01).
 const APPROVED_DEMO_API_ROUTE = /^\/api\/transport\/facilibus\//
 const APPROVED_RUNTIME_USES: Record<string, string[]> = {

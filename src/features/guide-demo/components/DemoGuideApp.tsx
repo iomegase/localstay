@@ -174,6 +174,7 @@ export function DemoGuideApp({
           onNavigate={navigate}
           onOpenWifi={() => setWifiOpen(true)}
           onOpenPoi={poi => openPoi(poi, 'favorites')}
+          onShowPoiOnMap={poi => showOnMap(poi)}
           // Démo jamais localisée : simple ligne, aucun appel réseau (spec 055 AC-05-01).
           transportEntry={<GuideTransportEntry lodging={lodging} onOpen={() => navigate('transport')} />}
         />

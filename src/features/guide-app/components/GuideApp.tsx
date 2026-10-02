@@ -252,6 +252,8 @@ function GuideAppShell({
             onNavigate={navigate}
             onOpenWifi={() => setWifiOpen(true)}
             onOpenPoi={openPoi}
+            onShowPoiOnMap={showOnMap}
+            travelTimes={travelTimes}
             transportEntry={<GuideTransportEntry lodging={lodging} onOpen={() => navigate('transport')} />}
           />
         )}

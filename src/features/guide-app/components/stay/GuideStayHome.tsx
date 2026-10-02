@@ -5,6 +5,14 @@ import type { LucideIcon } from 'lucide-react'
 import { GuideLodgingVideoButton } from '@/features/guide-app/components/GuideLodgingVideoButton'
 import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
 import type { GuideLodging, GuidePoi, GuideView } from '@/features/guide-app/types'
+import { haversineMeters } from '@/features/transport/lib/geo'
+import { GuideFavoriteBentoCard, type BentoPoi } from '../GuideFavoriteBentoCard'
+import {
+  formatDistanceMeters,
+  primaryTravel,
+  STAY_HOME_EXCLUDED_CATEGORIES,
+  type TravelTimeValues,
+} from './poi-search'
 import { formatFrenchPlaceReference } from '@/shared/lib/french-place'
 import { formatGuideHour, STAY_SECTION_TITLE } from './stay-styles'
 
@@ -21,7 +29,7 @@ export function splitWelcome(name: string): { lead: string; name: string } {
 }
 
 /** Champs d'un lieu utiles au carrousel (lieux privés ou de démonstration). */
-export type StayPoiCard = Pick<GuidePoi, 'id' | 'name' | 'photos' | 'category' | 'distanceLabel'>
+export type StayPoiCard = BentoPoi & Pick<GuidePoi, 'latitude' | 'longitude'> & { travel?: TravelTimeValues }
 
 export function GuideStayHome<P extends StayPoiCard>({
   lodging,
@@ -30,6 +38,8 @@ export function GuideStayHome<P extends StayPoiCard>({
   onNavigate,
   onOpenWifi,
   onOpenPoi,
+  onShowPoiOnMap,
+  travelTimes,
   transportEntry,
 }: {
   lodging: GuideLodging
@@ -38,10 +48,26 @@ export function GuideStayHome<P extends StayPoiCard>({
   onNavigate: (view: Extract<GuideView, 'arrival' | 'rules' | 'departure' | 'favorites'>) => void
   onOpenWifi: () => void
   onOpenPoi: (poi: P) => void
+  onShowPoiOnMap?: (poi: P) => void
+  /** Temps MapBox depuis le logement (spec 057) ; sinon `poi.travel` (démo). */
+  travelTimes?: Record<string, TravelTimeValues> | null
   /** Spec 055 : ligne « Se déplacer » ou carte « Prochaines navettes ». */
   transportEntry?: React.ReactNode
 }) {
   const welcome = splitWelcome(lodging.name)
+  // Carrousel : sans urgences ni mobilité, avec un temps réel ou à défaut une
+  // distance à vol d'oiseau depuis un logement localisé (specs 054 / 057).
+  const featured = pois
+    .filter(poi => !STAY_HOME_EXCLUDED_CATEGORIES.has(poi.category.slug))
+    .map(poi => {
+      const travel = primaryTravel(travelTimes?.[poi.id] ?? poi.travel)
+      if (travel) return { poi, display: { ...poi, distanceLabel: travel.label, distanceMode: travel.mode } }
+      if (lodging.locationPrecise) {
+        const meters = haversineMeters(lodging.latitude, lodging.longitude, poi.latitude, poi.longitude)
+        return { poi, display: { ...poi, distanceLabel: formatDistanceMeters(meters), distanceMode: 'crow' as const } }
+      }
+      return { poi, display: poi }
+    })
   const departureTotal = departureTasks(lodging.departureInstructions).length
   const stats = [
     lodging.stats.guests !== null ? { value: String(lodging.stats.guests), label: 'Voyageurs' } : null,
@@ -115,10 +141,10 @@ export function GuideStayHome<P extends StayPoiCard>({
 
       {transportEntry ? <div className="mx-5 mt-2.5">{transportEntry}</div> : null}
 
-      {pois.length > 0 && (
-        <section className="mt-[26px]">
+      {featured.length > 0 && (
+        <section aria-labelledby="stay-featured-title" className="mt-[26px]">
           <div className="mx-5 flex items-baseline justify-between">
-            <h2 className={STAY_SECTION_TITLE}>Nos coups de cœur</h2>
+            <h2 id="stay-featured-title" className={STAY_SECTION_TITLE}>Nos coups de cœur</h2>
             <button
               type="button"
               onClick={() => onNavigate('favorites')}
@@ -128,30 +154,15 @@ export function GuideStayHome<P extends StayPoiCard>({
             </button>
           </div>
           <div className="no-scrollbar mt-2 flex snap-x gap-3 overflow-x-auto px-5 pb-1">
-            {pois.map(poi => (
-              <button
-                key={poi.id}
-                type="button"
-                onClick={() => onOpenPoi(poi)}
-                aria-label={poi.name}
-                className="w-[220px] shrink-0 snap-start overflow-hidden rounded-[18px] bg-white text-left shadow-[0_1px_2px_rgba(17,17,17,0.06)]"
-              >
-                <span className="relative block h-[130px] bg-[#E8E6E2]">
-                  {poi.photos[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={poi.photos[0]} alt="" className="h-full w-full object-cover" />
-                  ) : null}
-                  <span className="absolute left-2.5 top-2.5 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#111111]">
-                    {poi.category.name}
-                  </span>
-                </span>
-                <span className="block p-3">
-                  <span className="block truncate text-[15px] font-semibold text-[#111111]">{poi.name}</span>
-                  <span className="mt-0.5 block truncate text-[12px] text-[#697386]">
-                    {[poi.distanceLabel, poi.category.name].filter(Boolean).join(' · ')}
-                  </span>
-                </span>
-              </button>
+            {featured.map(({ poi, display }) => (
+              <div key={poi.id} className="w-[200px] shrink-0 snap-start">
+                <GuideFavoriteBentoCard
+                  poi={display}
+                  variant="compact"
+                  onSelectPoi={() => onOpenPoi(poi)}
+                  onShowOnMap={() => (onShowPoiOnMap ? onShowPoiOnMap(poi) : onOpenPoi(poi))}
+                />
+              </div>
             ))}
           </div>
         </section>

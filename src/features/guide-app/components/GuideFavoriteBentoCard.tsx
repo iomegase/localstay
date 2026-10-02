@@ -7,13 +7,19 @@ import { capitalizeFirst } from '@/shared/lib/utils'
 import type { FavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import type { GuidePoi } from '@/features/guide-app/types'
 
-type Props = {
-  poi: GuidePoi
+/** Champs affichés par la carte (lieux privés ou de démonstration). */
+export type BentoPoi = Pick<
+  GuidePoi,
+  'id' | 'name' | 'category' | 'photos' | 'isOpenNow' | 'distanceLabel' | 'distanceMode' | 'durationLabel'
+>
+
+type Props<P extends BentoPoi> = {
+  poi: P
   variant: FavoriteBentoVariant
   index?: number
   revealRoot?: RefObject<HTMLElement | null>
-  onSelectPoi: (poi: GuidePoi) => void
-  onShowOnMap: (poi: GuidePoi) => void
+  onSelectPoi: (poi: P) => void
+  onShowOnMap: (poi: P) => void
 }
 
 /**
@@ -22,12 +28,12 @@ type Props = {
  * pour le type `GuidePoi`, sans importer de `Link`, de type Prisma ni de route
  * privée : le clic principal appelle `onSelectPoi`, l'action Carte `onShowOnMap`.
  */
-export function GuideFavoriteBentoCard({
+export function GuideFavoriteBentoCard<P extends BentoPoi>({
   poi,
   variant,
   onSelectPoi,
   onShowOnMap,
-}: Props) {
+}: Props<P>) {
   const heroSrc = getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: poi.photos })
   const fallbackSrc = getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: [] })
   const [src, setSrc] = useState(heroSrc)

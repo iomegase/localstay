@@ -74,7 +74,9 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
   **Wi‑Fi**, **Guide logement**, **Départ** (« n sur m faits »).
 - **AC-01-03**: Given l'onglet Séjour, When des lieux sont mis en avant, Then un
   carrousel « Nos coups de cœur » (cartes 220 px) affiche les lieux sélectionnés
-  et « Tout voir » ouvre l'onglet Guide.
+  et « Tout voir » ouvre l'onglet Guide. *(Amendé par le PO le 2026-10-02 :
+  cartes photo de l'onglet Guide — statut d'ouverture, bouton carte, temps de
+  trajet spec 057 — et catégories Urgences et Mobilité exclues du carrousel.)*
 - **AC-01-04**: Given la tuile Wi‑Fi, When on la touche, Then une feuille basse
   (rayon haut 28 px, voile `rgba(17,17,17,.4)`) montre le réseau et le mot de
   passe ; « Copier le mot de passe » copie la valeur et affiche « Copié ✓ » sur
