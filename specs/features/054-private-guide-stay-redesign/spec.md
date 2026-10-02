@@ -165,6 +165,11 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
   When on édite une étape, Then on peut choisir son type (Adresse, Accès,
   Garage, Local à skis, Autre), saisir une introduction, des sous-étapes
   (titre + détail), des repères (libellé + valeur) et un conseil.
+- **AC-05-04** *(ajout PO du 2026-10-02)*: Given l'admin sur l'édition d'un
+  logement, When il ouvre la carte « Accès voyageurs », Then il peut saisir,
+  afficher/masquer, modifier ou effacer le code de boîte à clés (1 à 20
+  caractères) ; le code reste exposé au seul guide privé (BR-03), sur l'étape
+  de type « Accès ».
 - **AC-05-03** *(ajout PO du 2026-10-02)*: Given l'éditeur d'une étape, When on
   gère ses médias, Then on peut désigner l'image principale (« Définir comme
   image principale ») et l'ajout est bloqué au-delà de 5 médias (1 image
