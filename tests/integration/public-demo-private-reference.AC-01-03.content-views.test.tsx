@@ -85,7 +85,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     openFavorites()
 
     expect(
-      screen.getByRole('heading', { name: 'Nos coups de cœur' }),
+      screen.getByRole('heading', { level: 1, name: 'Saint-Gervais' }),
     ).toBeInTheDocument()
     const filterBar = screen.getByRole('group', {
       name: 'Filtrer les catégories',
@@ -95,7 +95,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       'top-0',
       'z-20',
       'overflow-x-auto',
-      'bg-white/95',
+      'bg-[#F6F6F4]/95',
       'backdrop-blur-xl',
     )
     expect(within(filterBar).getByRole('button', { name: 'Tous' })).toHaveAttribute(
@@ -159,7 +159,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     ).toHaveAttribute('aria-pressed', 'true')
     expect(within(restoredGrid).getAllByTestId('favorite-bento-card')).toHaveLength(3)
     expect(
-      screen.getByRole('heading', { name: 'Nos coups de cœur' }),
+      screen.getByRole('heading', { level: 1, name: 'Saint-Gervais' }),
     ).toHaveFocus()
     expect(window.location.pathname).toBe('/seminaires')
     expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
@@ -477,7 +477,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
 
     await user.click(screen.getByRole('button', { name: 'Guide' }))
     expect(
-      screen.getByRole('heading', { name: 'Nos coups de cœur' }),
+      screen.getByRole('heading', { level: 1, name: 'Saint-Gervais' }),
     ).toHaveFocus()
     await user.click(
       screen.getByRole('button', { name: 'Afficher Rond de Carotte sur la carte' }),

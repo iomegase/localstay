@@ -169,7 +169,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       )
       await user.click(screen.getByRole('button', { name: 'Guide' }))
       expect(
-        await screen.findByRole('heading', { name: 'Nos coups de cœur' }),
+        await screen.findByRole('heading', { level: 1, name: 'Saint-Gervais' }),
       ).toBeInTheDocument()
       expect(window.location.href).toBe(expectedHref)
 

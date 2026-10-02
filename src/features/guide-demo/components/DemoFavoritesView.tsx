@@ -2,7 +2,9 @@
 
 import { motion } from 'framer-motion'
 import { Clock3, Map as MapIcon, MapPin } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { GuideSearchEmpty, GuideSearchHeader } from '@/features/guide-app/components/stay/GuideSearchHeader'
+import { filterPoisByQuery } from '@/features/guide-app/components/stay/poi-search'
 import type { DemoPoi } from '@/features/guide-demo/types'
 import { DemoPoiImage } from './DemoPoiImage'
 
@@ -12,6 +14,7 @@ function capitalizeFirst(value: string) {
 
 type DemoFavoritesViewProps = {
   pois: readonly DemoPoi[]
+  city: string
   selectedCategorySlug: string | null
   onFilter: (categorySlug: string | null) => void
   onOpenPoi: (poi: DemoPoi) => void
@@ -20,6 +23,7 @@ type DemoFavoritesViewProps = {
 
 export function DemoFavoritesView({
   pois,
+  city,
   selectedCategorySlug,
   onFilter,
   onOpenPoi,
@@ -32,26 +36,26 @@ export function DemoFavoritesView({
       ),
     [pois],
   )
-  const visiblePois = selectedCategorySlug
+  const [query, setQuery] = useState('')
+  const inCategory = selectedCategorySlug
     ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
     : pois
+  const visiblePois = filterPoisByQuery(inCategory, query)
 
   return (
-    <section className="min-h-full bg-white px-3 pb-24 pt-5">
-      <div className="px-2">
-        <h1
-          data-demo-view-heading="true"
-          tabIndex={-1}
-          className="text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900"
-        >
-          Nos coups de cœur
-        </h1>
-      </div>
+    <section className="min-h-full bg-[#F6F6F4] px-3 pb-[120px] pt-5">
+      {/* Spec 056 AC-01-01 : même en-tête et recherche que le guide privé. */}
+      <GuideSearchHeader
+        city={city}
+        query={query}
+        onQueryChange={setQuery}
+        headingProps={{ 'data-demo-view-heading': 'true', tabIndex: -1 }}
+      />
 
       <div
         role="group"
         aria-label="Filtrer les catégories"
-        className="sticky top-0 z-20 -mx-3 mt-5 flex gap-2 overflow-x-auto bg-white/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="sticky top-0 z-20 -mx-3 mt-3 flex gap-2 overflow-x-auto bg-[#F6F6F4]/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <FilterButton
           label="Tous"
@@ -83,6 +87,8 @@ export function DemoFavoritesView({
             />
           ))}
         </div>
+      ) : query.trim() ? (
+        <GuideSearchEmpty query={query} onClear={() => setQuery('')} />
       ) : (
         <p className="px-2 pt-10 text-sm text-slate-600">
           Aucun coup de cœur dans cette catégorie.

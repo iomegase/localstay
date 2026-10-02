@@ -1,14 +1,19 @@
 'use client'
 
-import type { RefObject } from 'react'
+import { useMemo, useState, type RefObject } from 'react'
 import { motion } from 'framer-motion'
+import { haversineMeters } from '@/features/transport/lib/geo'
 import { capitalizeFirst } from '@/shared/lib/utils'
 import type { GuidePoi } from '@/features/guide-app/types'
 import { getFavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import { GuideFavoriteBentoCard } from './GuideFavoriteBentoCard'
+import { GuideSearchEmpty, GuideSearchHeader } from './stay/GuideSearchHeader'
+import { filterPoisByQuery, formatDistanceMeters } from './stay/poi-search'
 
 export function GuideFavoritesPage({
   pois,
+  city,
+  origin = null,
   selectedCategorySlug,
   scrollContainerRef,
   onFilter,
@@ -16,6 +21,9 @@ export function GuideFavoritesPage({
   onShowOnMap,
 }: {
   pois: GuidePoi[]
+  city: string
+  /** Coordonnées géocodées du logement ; null = aucune distance (spec 056 BR-01). */
+  origin?: { latitude: number; longitude: number } | null
   selectedCategorySlug: string | null
   scrollContainerRef?: RefObject<HTMLElement | null>
   onFilter: (categorySlug: string | null) => void
@@ -27,20 +35,30 @@ export function GuideFavoritesPage({
       pois.map(poi => [poi.category.slug, poi.category]),
     ).values(),
   )
-  const visiblePois = selectedCategorySlug
-    ? pois.filter(poi => poi.category.slug === selectedCategorySlug)
-    : pois
+  const [query, setQuery] = useState('')
+  const located = useMemo(
+    () => origin
+      ? pois.map(poi => ({
+          ...poi,
+          distanceLabel: formatDistanceMeters(
+            haversineMeters(origin.latitude, origin.longitude, poi.latitude, poi.longitude),
+          ),
+        }))
+      : pois,
+    [pois, origin],
+  )
+  const inCategory = selectedCategorySlug
+    ? located.filter(poi => poi.category.slug === selectedCategorySlug)
+    : located
+  const visiblePois = filterPoisByQuery(inCategory, query)
+  const originalPoi = (poi: GuidePoi) => pois.find(candidate => candidate.id === poi.id) ?? poi
 
   return (
-    <div className="px-3 pb-24 pt-5">
-      <div className="px-2">
-        <h1 className="text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
-          Nos coups de cœur
-        </h1>
-      </div>
+    <div className="min-h-full bg-[#F6F6F4] px-3 pb-[120px] pt-5">
+      <GuideSearchHeader city={city} query={query} onQueryChange={setQuery} />
 
       <div
-        className="sticky top-0 z-20 -mx-3 mt-5 flex gap-2 overflow-x-auto bg-white/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="sticky top-0 z-20 -mx-3 mt-3 flex gap-2 overflow-x-auto bg-[#F6F6F4]/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-label="Filtrer les catégories"
       >
         <FilterButton
@@ -58,19 +76,27 @@ export function GuideFavoritesPage({
         ))}
       </div>
 
-      <div data-testid="favorites-bento-grid" className="mt-3 grid grid-cols-2 gap-3">
-        {visiblePois.map((poi, index) => (
-          <GuideFavoriteBentoCard
-            key={poi.id}
-            poi={poi}
-            variant={getFavoriteBentoVariant(index)}
-            index={index}
-            revealRoot={scrollContainerRef}
-            onSelectPoi={onSelectPoi}
-            onShowOnMap={onShowOnMap}
-          />
-        ))}
-      </div>
+      {origin ? (
+        <p className="px-2 text-[12px] text-[#697386]">Distances à vol d&apos;oiseau depuis le logement</p>
+      ) : null}
+
+      {visiblePois.length > 0 ? (
+        <div data-testid="favorites-bento-grid" className="mt-3 grid grid-cols-2 gap-3">
+          {visiblePois.map((poi, index) => (
+            <GuideFavoriteBentoCard
+              key={poi.id}
+              poi={poi}
+              variant={getFavoriteBentoVariant(index)}
+              index={index}
+              revealRoot={scrollContainerRef}
+              onSelectPoi={selected => onSelectPoi(originalPoi(selected))}
+              onShowOnMap={selected => onShowOnMap(originalPoi(selected))}
+            />
+          ))}
+        </div>
+      ) : query.trim() ? (
+        <GuideSearchEmpty query={query} onClear={() => setQuery('')} />
+      ) : null}
     </div>
   )
 }

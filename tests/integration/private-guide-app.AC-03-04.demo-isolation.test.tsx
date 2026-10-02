@@ -168,7 +168,7 @@ describe('045 private active stay render isolation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
     fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
     fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
-    expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Saint-Gervais-Mont-Blanc' })).toBeInTheDocument()
     expect(screen.getByText('Le Sérac')).toBeInTheDocument()
     expect(screen.queryByText(/démonstration|guide d['’]exemple/i)).toBeNull()
     expect(container.innerHTML).not.toMatch(/demo-[a-z0-9-]+/i)

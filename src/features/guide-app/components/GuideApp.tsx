@@ -313,6 +313,8 @@ function GuideAppShell({
         {activeView === 'favorites' && (
           <GuideFavoritesPage
             pois={pois}
+            city={lodging.city}
+            origin={lodging.locationPrecise ? { latitude: lodging.latitude, longitude: lodging.longitude } : null}
             selectedCategorySlug={selectedCategorySlug}
             scrollContainerRef={scrollRef}
             onFilter={filterCategory}

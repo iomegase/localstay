@@ -209,6 +209,7 @@ export function DemoGuideApp({
       ) : activeView === 'favorites' ? (
         <DemoFavoritesView
           pois={demoPois}
+          city={lodging.city}
           selectedCategorySlug={selectedCategorySlug}
           onFilter={setSelectedCategorySlug}
           onOpenPoi={poi => openPoi(poi, 'favorites')}
