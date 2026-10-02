@@ -1,3 +1,5 @@
+import { faqPageSchema } from '@/features/seo/lib/structured-data'
+import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import type {
@@ -30,7 +32,8 @@ export function LocalVacationRentalLanding({
   const content = landing.page
 
   return (
-    <MarketingShell>
+    <MarketingShell localNavigation={{ city: landing.city, publication: landing.publication }}>
+      {content.faq.length > 0 && <JsonLd data={faqPageSchema(content.faq)} />}
       <div className="overflow-hidden font-sans text-slate-800">
         <section className={`${marketingContainerClass} pb-14 pt-10 sm:pb-20 sm:pt-16`}>
           <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>

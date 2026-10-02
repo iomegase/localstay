@@ -52,7 +52,7 @@ describe('029 blog admin delete API', () => {
 
     expect(response.status).toBe(200)
     expect(mockDeleteBlogArticle).toHaveBeenCalledWith('article-1')
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/blog', 'page')
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/journal', 'page')
   })
 
   it('preserves the forbidden response from the admin session guard', async () => {

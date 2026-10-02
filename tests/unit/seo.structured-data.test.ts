@@ -47,7 +47,7 @@ describe('structured-data', () => {
       url: BASE,
       logo: {
         '@type': 'ImageObject',
-        url: `${BASE}/mystay-logo-approved/mystay-logo-approved.png`,
+        url: `${BASE}/mystay-logo-approved/mystay-logo-approved@4x.png`,
       },
       description:
         'MyStay est une conciergerie locale à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : accueil voyageurs, préparation des logements, ménage, linge, intendance, assistance sur place, guides digitaux et accompagnement de séjours en groupe et séminaires.',
@@ -57,8 +57,13 @@ describe('structured-data', () => {
         { '@type': 'City', name: 'Saint-Nicolas-de-Véroce' },
       ],
     })
-    expect(s.telephone).toBeUndefined()
-    expect(s.contactPoint).toBeUndefined()
+    expect(s.telephone).toBe('+33607859058')
+    expect(s.contactPoint).toEqual({
+      '@type': 'ContactPoint',
+      telephone: '+33607859058',
+      email: 'bonjour@mystay.city',
+      url: `${BASE}/confier-mon-logement`,
+    })
     expect(s.sameAs).toBeUndefined()
   })
 
@@ -80,7 +85,7 @@ describe('structured-data', () => {
       url: 'https://preview.mystay.vercel.app',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://preview.mystay.vercel.app/mystay-logo-approved/mystay-logo-approved.png',
+        url: 'https://preview.mystay.vercel.app/mystay-logo-approved/mystay-logo-approved@4x.png',
       },
     })
     expect(website).toMatchObject({

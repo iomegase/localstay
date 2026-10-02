@@ -475,3 +475,21 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-28 :
 - les QR historiques restent prioritaires et atterrissent sur `/sejour`.
 - les quatre routes `/auth/*` existantes restent fonctionnelles, crawlables et
   explicitement non indexables via leur layout commun.
+
+### Amendement approuvé — Retrait de `/concept` (2026-10-01)
+
+Décision Product Owner, spec 031 AC-04-02 : `/concept` n'est plus une page éditoriale indexable ni une entrée du sitemap. L'adresse conserve seulement une redirection permanente vers l'accueil. Aucun lien public ne pointe vers elle.
+
+### Amendement approuvé — Journal (2026-10-01)
+
+Décision Product Owner : nom public « Journal », routes `/journal` et `/journal/[slug]`, migration des références et redirections permanentes des anciennes URL `/blog` (spec 029 AC-07-01 à AC-07-03).
+
+### Amendement approuvé — Organization Google (2026-10-01)
+
+Demande Product Owner : optimiser les données Organization pour Google.
+**AC-05-02**, complété : le logo utilise l'asset approuvé HD `mystay-logo-approved@4x.png` (1684 × 444), avec dimensions exactes et URL absolue, afin de respecter le minimum Google de 112 × 112. Un `ContactPoint` expose uniquement l'e-mail public `bonjour@mystay.city` et l'URL du formulaire existant `/confier-mon-logement`. L'identifiant Organization reste stable ; les URL suivent toujours la base du déploiement. Aucun téléphone, adresse, raison sociale ou profil `sameAs` non vérifié n'est ajouté. Aucun changement de données, route ou UI.
+Référence : https://developers.google.com/search/docs/appearance/structured-data/organization
+
+### Coordonnée validée — 2026-10-02
+
+Le Product Owner fournit le téléphone public +33 6 07 85 90 58. AC-05-02 : émettre `telephone: +33607859058` sur Organization et son ContactPoint ; afficher le même numéro cliquable dans le footer marketing afin de maintenir la cohérence avec les coordonnées visibles. Aucun avis ou profil social n'est ajouté sans source vérifiée.

@@ -51,7 +51,7 @@ function anonymousItems(citySlug?: string | null): MenuItem[] {
 
 function lodgingItems(citySlug?: string | null): MenuItem[] {
   const welcome = { href: '/nos-recommandations', label: 'Bienvenue' }
-  const blog = { href: '/blog', label: 'Blog' }
+  const blog = { href: '/journal', label: 'Journal' }
   const contact = { href: contextualContactPath(citySlug), label: 'Nous Contacter' }
 
   if (!citySlug) return [welcome, blog, contact]

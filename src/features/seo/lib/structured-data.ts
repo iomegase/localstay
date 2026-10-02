@@ -104,13 +104,23 @@ export function organizationSchema(): JsonLdObject {
 
     logo: {
       '@type': 'ImageObject',
-      url: `${base}/mystay-logo-approved/mystay-logo-approved.png`,
+      url: `${base}/mystay-logo-approved/mystay-logo-approved@4x.png`,
+      width: 1684,
+      height: 444,
     },
 
     description:
       'MyStay est une conciergerie locale à Saint-Gervais-les-Bains et dans le Pays du Mont-Blanc : accueil voyageurs, préparation des logements, ménage, linge, intendance, assistance sur place, guides digitaux et accompagnement de séjours en groupe et séminaires.',
 
     email: 'bonjour@mystay.city',
+    telephone: '+33607859058',
+
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+33607859058',
+      email: 'bonjour@mystay.city',
+      url: `${base}/confier-mon-logement`,
+    },
 
     areaServed: [
       {

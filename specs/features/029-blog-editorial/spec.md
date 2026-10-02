@@ -753,3 +753,11 @@ components:
 | ID | Question | Owner | Due | Resolution |
 |---|---|---|---|---|
 | OQ-00 | Aucune question ouverte. | Product Owner | 2026-06-15 | resolved |
+
+## Amendement approuvé — Nom public Journal (2026-10-01)
+
+Demande du Product Owner : harmoniser tous les noms, liens et fils d'Ariane en « Journal ».
+- **AC-07-01** : les pages publiques canoniques deviennent `/journal` et `/journal/[slug]`, y compris le filtre `?city=`, le partage, les cartes, les fils d'Ariane, les metadata, le sitemap et la revalidation après mutation admin.
+- **AC-07-02** : `/blog` et `/blog/[slug]` redirigent définitivement (308) vers les URL Journal correspondantes en conservant les paramètres.
+- **AC-07-03** : tous les libellés d'interface de cette rubrique (navigation, footer, pages, guide, démo, administration) utilisent Journal. Les noms techniques internes, routes admin/API, schéma et données éditoriales existantes restent inchangés.
+Ces règles remplacent les anciens noms publics de cette spec et des specs 031/042. Aucun nouveau modèle ou contrat API.

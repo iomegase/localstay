@@ -65,7 +65,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
     coverAlt: article.cover?.alt ?? null,
     cityName: article.city?.name ?? null,
   })
-  const backHref = [...breadcrumbs].reverse().find(item => item.href)?.href ?? '/blog'
+  const backHref = [...breadcrumbs].reverse().find(item => item.href)?.href ?? '/journal'
   const heroPhotos = [article.cover?.url, ...article.gallery.map(photo => photo.url)].filter(
     (url): url is string => Boolean(url),
   )
@@ -131,7 +131,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
               variant="blog"
             >
               <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-end opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-                <HeroShareButton poiName={article.title} poiUrl={`/blog/${article.slug}`} />
+                <HeroShareButton poiName={article.title} poiUrl={`/journal/${article.slug}`} />
               </div>
               <span className="absolute bottom-[22px] left-6 right-6 z-10 text-[8px] font-extrabold uppercase tracking-[0.14em] text-white/80">
                 Journal MyStay · {blogCategoryLabel(article.category)}
@@ -240,7 +240,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
               {relatedArticles.map(related => (
                 <Link
                   className="grid min-h-28 grid-cols-[80px_1fr_auto] items-center gap-3 rounded-[22px] shadow-[0_4px_12px_rgba(0,0,0,0.1)] bg-white p-3 transition-colors hover:border-slate-300 min-[701px]:grid-cols-[74px_1fr_auto] min-[1051px]:grid-cols-[92px_1fr_auto]"
-                  href={`/blog/${related.slug}`}
+                  href={`/journal/${related.slug}`}
                   key={related.id}
                 >
                   {related.cover ? (

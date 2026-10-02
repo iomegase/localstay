@@ -97,7 +97,7 @@ describe('036-private-guide-lodging-home page', () => {
     expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
     expect(guide).toHaveAttribute(
       'data-menu-labels',
-      'Tous nos logements,Blog,Nous contacter',
+      'Tous nos logements,Journal,Nous contacter',
     )
     expect(guide).toHaveAttribute('data-check-in', '16:00')
     expect(guide).toHaveAttribute('data-check-out', '10:00')

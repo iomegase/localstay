@@ -26,12 +26,12 @@ const ANONYMOUS_MARKETING_EXACT_PATHS = new Set([
   '/confier-mon-logement',
   '/connexion',
   '/logements',
-  '/blog',
+  '/journal',
   '/decouvrir',
 ])
 const ANONYMOUS_MARKETING_PREFIXES = [
   '/logements/',
-  '/blog/',
+  '/journal/',
   '/decouvrir/',
   '/conciergerie/',
   '/seminaires/',

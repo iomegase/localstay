@@ -2,7 +2,7 @@
 
 import { render, screen, within } from '@testing-library/react'
 
-jest.mock('next/navigation', () => ({ redirect: jest.fn(), usePathname: () => '/concept' }))
+jest.mock('next/navigation', () => ({ redirect: jest.fn(), permanentRedirect: jest.fn(), usePathname: () => '/seminaires' }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({
   listPublishedLocalLandingSummaries: jest.fn(async () => []),
 }))
@@ -11,14 +11,12 @@ import ConceptPage from '@/app/(public)/concept/page'
 import ConnexionPage from '@/app/(public)/connexion/page'
 import OwnerContactPage from '@/app/(public)/confier-mon-logement/page'
 import SeminarsPage from '@/app/(public)/seminaires/page'
-import { redirect } from 'next/navigation'
+import { redirect, permanentRedirect } from 'next/navigation'
 
 describe('031-public-marketing-site editorial routes', () => {
-  it('renders the concept page from the approved mockup', () => {
-    render(<ConceptPage />)
-    expect(
-      screen.getAllByRole('heading', { level: 1, name: /Une conciergerie.*prolongée par.*le digital/i }),
-    ).not.toHaveLength(0)
+  it('permanently redirects the retired concept page to home', () => {
+    ConceptPage()
+    expect(permanentRedirect).toHaveBeenCalledWith('/')
   })
 
   it('renders the seminars page from the approved mockup', async () => {

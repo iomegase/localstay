@@ -10,8 +10,8 @@ describe('031-public-marketing-site anonymous access policy', () => {
     '/connexion',
     '/logements',
     '/logements/chalet-hygge',
-    '/blog',
-    '/blog/bien-preparer-son-sejour',
+    '/journal',
+    '/journal/bien-preparer-son-sejour',
     '/decouvrir',
   ])('allows the marketing route %s without a lodging cookie', pathname => {
     expect(isAnonymousMarketingPath(pathname)).toBe(true)

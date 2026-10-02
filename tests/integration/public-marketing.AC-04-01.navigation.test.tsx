@@ -31,10 +31,9 @@ describe('031-public-marketing-site navigation', () => {
 
     const mobileNavigation = screen.getByRole('navigation', { name: 'Navigation mobile' })
     expect(within(mobileNavigation).getAllByRole('link').map(link => link.textContent)).toEqual([
-      'Nos services',
+      'Accueil',
       'Nos logements',
       'Séminaires',
-      'Notre approche',
       'Journal',
       'Connexion',
       'Nous contacter',
@@ -69,8 +68,9 @@ describe('031-public-marketing-site navigation', () => {
     expect(screen.queryByRole('link', { name: 'Découvrir nos destinations', exact: true })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Nos logements' })).toHaveAttribute('href', '/logements')
     expect(screen.getByRole('link', { name: 'Séminaires' })).toHaveAttribute('href', '/seminaires')
-    expect(screen.getByRole('link', { name: 'Notre approche' })).toHaveAttribute('href', '/concept')
-    expect(screen.getByRole('link', { name: 'Le blog' })).toHaveAttribute('href', '/blog')
+    expect(screen.queryByRole('link', { name: 'Notre approche' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Journal' })).toHaveAttribute('href', '/journal')
+    expect(screen.getByRole('link', { name: '+33 6 07 85 90 58' })).toHaveAttribute('href', 'tel:+33607859058')
     expect(screen.getByRole('link', { name: 'bonjour@mystay.city' })).toHaveAttribute(
       'href',
       'mailto:bonjour@mystay.city',

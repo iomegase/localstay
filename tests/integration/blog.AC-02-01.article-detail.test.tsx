@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
-import BlogArticlePage from '@/app/(public)/blog/[slug]/page'
+import { render, screen, within } from '@testing-library/react'
+import BlogArticlePage from '@/app/(public)/journal/[slug]/page'
 
 jest.mock('next/link', () => ({
   __esModule: true,
@@ -81,15 +81,15 @@ describe('029 blog article detail page', () => {
 
     expect(screen.getByRole('heading', { name: 'Un week-end à Saint-Gervais' })).toBeInTheDocument()
     expect(screen.getByText('Guide local')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
+    expect(within(screen.getByRole('navigation', { name: 'Breadcrumb' })).getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Guide Saint-Gervais-les-Bains' })).toHaveAttribute(
       'href',
       '/decouvrir/saint-gervais-les-bains',
     )
     expect(
       screen
-        .getAllByRole('link', { name: 'Blog' })
-        .some(link => link.getAttribute('href') === '/blog?city=saint-gervais-les-bains'),
+        .getAllByRole('link', { name: 'Journal' })
+        .some(link => link.getAttribute('href') === '/journal?city=saint-gervais-les-bains'),
     ).toBe(true)
     // Toutes les photos (couverture + galerie) alimentent le carousel du hero :
     // la couverture est la première image affichée, et la navigation n'apparaît
@@ -115,7 +115,7 @@ describe('029 blog article detail page', () => {
     expect(screen.getByText('À lire ensuite')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Les adresses du Mont-Blanc/i })).toHaveAttribute(
       'href',
-      '/blog/adresses-du-mont-blanc',
+      '/journal/adresses-du-mont-blanc',
     )
     expect(screen.getByText('SEJOUR')).toBeInTheDocument()
     expect(screen.getByText('ALPES')).toBeInTheDocument()

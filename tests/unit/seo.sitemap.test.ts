@@ -187,7 +187,7 @@ describe('buildSitemapEntries', () => {
         '/g%75ide/legacy',
         `/logements/${encodedUuid}`,
         '/logements/c%6Fntact',
-        '/blog/%6Dap',
+        '/journal/%6Dap',
         '/logements/%E0%A4%A',
       ],
       cities: [],

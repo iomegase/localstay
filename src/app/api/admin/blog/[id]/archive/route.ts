@@ -16,7 +16,7 @@ export async function POST(_: Request, context: Context): Promise<NextResponse> 
   try {
     const { id } = await context.params
     const article = await archiveBlogArticle(id)
-    revalidatePath('/blog', 'page')
+    revalidatePath('/journal', 'page')
     revalidatePath(buildBlogArticlePath(article.slug), 'page')
     revalidatePath('/sitemap.xml')
     return NextResponse.json(article)

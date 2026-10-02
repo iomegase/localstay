@@ -191,8 +191,8 @@ function deriveSeoTitle(rawSeoTitle: string | undefined, title: string, plainCon
   const normalizedTitle = normalizeWhitespace(title)
   const titleCandidates = [
     normalizedTitle,
-    `${normalizedTitle} | Article Blog MyStay`,
-    `${normalizedTitle} | Blog MyStay`,
+    `${normalizedTitle} | Article Journal MyStay`,
+    `${normalizedTitle} | Journal MyStay`,
     `${normalizedTitle} | MyStay`,
     smartTruncate(`${normalizedTitle} ${plainContent}`, SEO_TITLE_MAX_LENGTH),
   ]
@@ -373,7 +373,7 @@ function buildPrompt(
   requestedWordCount: number | null,
 ): string {
   return [
-    'Tu assistes la rédaction du blog MyStay.',
+    'Tu assistes la rédaction du journal MyStay.',
     'N\'invente aucun fait. Refuse toute coordonnée, distance, durée, prix, disponibilité, horaire temps réel ou donnée personnelle.',
     'Utilise Google Search uniquement pour grounding et citations de travail ; les faits restent soumis à revue Admin.',
     'Retourne uniquement du JSON strict avec les clés: title, excerpt, content_markdown, seo_title, seo_description.',

@@ -33,5 +33,5 @@ export function getBlogSlugCandidates(rawSlug: string): string[] {
 }
 
 export function buildBlogArticlePath(slug: string): string {
-  return `/blog/${encodeURIComponent(slug)}`
+  return `/journal/${encodeURIComponent(slug)}`
 }

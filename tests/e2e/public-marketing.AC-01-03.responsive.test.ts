@@ -146,7 +146,7 @@ for (const viewport of [
           },
     )
 
-    await page.goto('/blog/article-3aa3a774', { waitUntil: 'domcontentloaded' })
+    await page.goto('/journal/article-3aa3a774', { waitUntil: 'domcontentloaded' })
     await expect(page.getByTestId('blog-article-intro')).toBeVisible()
     const blogCover = page.getByTestId('blog-article-cover')
     await expect(blogCover).toBeVisible()

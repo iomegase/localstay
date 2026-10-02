@@ -3,7 +3,7 @@ import { ArrowRight, Heart, Home, QrCode } from 'lucide-react'
 
 /**
  * Visuel du guide MyStay (téléphone, étiquettes « Équipe MyStay » / « Voyageur »
- * et QR code), partagé par `/concept` et les landings conciergerie (spec 046 AC-01-04).
+ * et QR code), utilisé par les landings conciergerie (spec 046 AC-01-04).
  */
 export function GuidePhoneShowcase({
   className = '',

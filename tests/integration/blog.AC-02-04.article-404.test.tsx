@@ -1,4 +1,4 @@
-import BlogArticlePage from '@/app/(public)/blog/[slug]/page'
+import BlogArticlePage from '@/app/(public)/journal/[slug]/page'
 
 const mockNotFound = jest.fn()
 

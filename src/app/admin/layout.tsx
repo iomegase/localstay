@@ -34,7 +34,7 @@ const NAV_ITEMS = [
   { href: '/admin/merchant-claims', label: 'Revendications', icon: BarChart3 },
   { href: '/admin/cities', label: 'Villes', icon: Building2 },
   { href: '/admin/taxonomy', label: 'Taxonomie', icon: Tags },
-  { href: '/admin/blog', label: 'Blog', icon: Newspaper },
+  { href: '/admin/blog', label: 'Journal', icon: Newspaper },
   { href: '/admin/landing-pages', label: 'Landing pages', icon: PanelsTopLeft },
   { href: '/admin/poi-acquisition', label: 'Acquisition POI', icon: Radar },
   { href: '/admin/pois', label: 'POI par ville', icon: MapPinned },

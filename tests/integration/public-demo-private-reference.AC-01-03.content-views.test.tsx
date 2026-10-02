@@ -78,7 +78,7 @@ function openFavorites() {
 
 describe('045-public-demo-private-guide-reference discovery views', () => {
   beforeEach(() => {
-    window.history.replaceState({}, '', '/concept')
+    window.history.replaceState({}, '', '/seminaires')
   })
 
   it('renders and filters the local favorite bento, then restores favorites from a POI', () => {
@@ -161,7 +161,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(
       screen.getByRole('heading', { name: 'Nos coups de cœur' }),
     ).toHaveFocus()
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
     expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
   })
 
@@ -301,7 +301,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
     expect(geolocation.getCurrentPosition).not.toHaveBeenCalled()
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
   })
 
   it('replaces failed public images with the local category fallback', () => {
@@ -448,7 +448,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       'true',
     )
     expect(screen.queryByTestId('demo-map-preview')).not.toBeInTheDocument()
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
   })
 
   it('keeps a useful local fallback when the static map has no POIs', () => {
@@ -483,7 +483,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       screen.getByRole('button', { name: 'Afficher Rond de Carotte sur la carte' }),
     )
     expect(screen.getByTestId('demo-map-preview')).toHaveFocus()
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
   })
 
   it('renders unavailable trail metrics without an empty geometry preview', () => {
@@ -585,14 +585,14 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Journal' }))
     const blogHeading = screen.getByRole('heading', {
       name: 'Inspirations... et conseils pour vos séjours',
     })
     await waitFor(() => expect(blogHeading).toHaveFocus())
-    expect(screen.getByText('Blog & Guides')).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'Fil d’Ariane du blog' })).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'Catégories du blog' })).toBeInTheDocument()
+    expect(screen.getByText('Journal & Guides')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Fil d’Ariane du journal' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Catégories du journal' })).toBeInTheDocument()
     const firstBlogCard = screen.getAllByTestId('demo-blog-card')[0]
     const firstBlogCardImage = firstBlogCard.querySelector(
       '[data-testid="demo-blog-card-image"]',
@@ -645,7 +645,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     ).toBeDisabled()
     expect(screen.getByTestId('autonomous-demo-guide').querySelector('form')).toBeNull()
     expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
   })
 
   it('renders injected published lodging and blog content instead of local fixtures', () => {
@@ -680,7 +680,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     ).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Journal' }))
     expect(
       screen.getByRole('button', { name: 'Lire Le véritable article publié' }),
     ).toBeInTheDocument()
@@ -773,7 +773,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     expect(within(lodgingCard).queryByText('Voir Chalet des Cimes — démonstration')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Blog' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Journal' }))
     const blogCard = screen.getAllByTestId('demo-blog-card')[0]
     expect(blogCard.tagName).toBe('BUTTON')
     expect(blogCard).toHaveAccessibleName(

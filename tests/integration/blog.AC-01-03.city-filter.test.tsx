@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
-import BlogListPage from '@/app/(public)/blog/page'
+import BlogListPage from '@/app/(public)/journal/page'
 
 jest.mock('next/link', () => ({
   __esModule: true,
@@ -32,10 +32,10 @@ describe('029 blog city filter', () => {
   it('renders the city-filtered list and contextual title', async () => {
     render(await BlogListPage({ searchParams: Promise.resolve({ city: 'saint-gervais-les-bains' }) }))
 
-    expect(screen.getByRole('heading', { name: /Blog Saint-Gervais-les-Bains/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Journal Saint-Gervais-les-Bains/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Nos adresses à Saint-Gervais/i })).toHaveAttribute(
       'href',
-      '/blog/adresses-saint-gervais',
+      '/journal/adresses-saint-gervais',
     )
   })
 })

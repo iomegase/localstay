@@ -77,9 +77,6 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
             <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">
               Un accueil local qui valorise aussi votre logement.
             </h2>
-            <Link className="mt-5 inline-block text-xs font-bold text-slate-300 underline-offset-4 hover:text-white hover:underline" href="/concept">
-              Découvrir notre approche
-            </Link>
           </div>
           <Link className={`${marketingDarkButtonClass} shrink-0 bg-white text-slate-800 hover:text-white`} href="/confier-mon-logement">
             Nous contacter

@@ -16,7 +16,7 @@ describe('029 blog city breadcrumb', () => {
         label: 'Guide Saint-Gervais-les-Bains',
         href: '/decouvrir/saint-gervais-les-bains',
       },
-      { label: 'Blog', href: '/blog?city=saint-gervais-les-bains' },
+      { label: 'Journal', href: '/journal?city=saint-gervais-les-bains' },
       { label: 'Que faire à Saint-Gervais en été', href: null },
     ])
   })

@@ -30,7 +30,7 @@ describe('029 blog BlogPosting json-ld', () => {
     expect(schema['@type']).toBe('BlogPosting')
     expect(schema.headline).toBe('Week-end à Saint-Gervais')
     expect(schema.image).toEqual(['https://img.test/cover.jpg'])
-    expect(schema.mainEntityOfPage).toBe('https://www.mystay.city/blog/week-end-saint-gervais')
+    expect(schema.mainEntityOfPage).toBe('https://www.mystay.city/journal/week-end-saint-gervais')
     expect(schema.author).toEqual({ '@id': 'https://www.mystay.city/#organization' })
     expect(schema.publisher).toEqual({ '@id': 'https://www.mystay.city/#organization' })
   })
@@ -48,7 +48,7 @@ describe('029 blog BlogPosting json-ld', () => {
       cityName: null,
     })
 
-    expect(schema.mainEntityOfPage).toBe('https://preview.mystay.vercel.app/blog/article-preview')
+    expect(schema.mainEntityOfPage).toBe('https://preview.mystay.vercel.app/journal/article-preview')
     expect(schema.author).toEqual({ '@id': 'https://www.mystay.city/#organization' })
     expect(schema.publisher).toEqual({ '@id': 'https://www.mystay.city/#organization' })
   })

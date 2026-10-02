@@ -20,7 +20,7 @@ const DEFAULT_MENU_ITEMS: GuideMenuItem[] = [
   { label: 'Vos favoris' },
   { label: 'Tous nos logements' },
   { label: 'Agenda' },
-  { label: 'Blog' },
+  { label: 'Journal' },
   { label: 'Nous contacter' },
 ]
 

@@ -109,7 +109,7 @@ describe('030 google analytics sync', () => {
                   ],
                 },
                 {
-                  dimensionValues: [{ value: '20260619' }, { value: '/blog/seo-local' }],
+                  dimensionValues: [{ value: '20260619' }, { value: '/journal/seo-local' }],
                   metricValues: [
                     { value: '4' },
                     { value: '4' },

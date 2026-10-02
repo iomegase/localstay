@@ -1,3 +1,4 @@
+import type { LocalMarketingNavigation } from './marketing-navigation'
 import type { ReactNode } from 'react'
 import { MarketingFooter } from './MarketingFooter'
 import { MarketingHeader } from './MarketingHeader'
@@ -8,7 +9,7 @@ export {
   marketingPrimaryButtonClass,
 } from './marketing-styles'
 
-export function MarketingShell({ children }: { children: ReactNode }) {
+export function MarketingShell({ children, localNavigation }: { children: ReactNode; localNavigation?: LocalMarketingNavigation }) {
   return (
     <div
       data-testid="marketing-stage"
@@ -18,9 +19,9 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         data-testid="marketing-surface"
         className="mx-auto min-h-[100dvh] w-full overflow-hidden bg-white md:min-h-0 md:max-w-[1184px] md:rounded-[42px] md:pt-[17px] md:shadow-[0_30px_90px_rgba(0,0,0,0.28)] xl:rounded-[34px]"
       >
-        <MarketingHeader />
+        <MarketingHeader localNavigation={localNavigation} />
         <main>{children}</main>
-        <MarketingFooter />
+        <MarketingFooter brandLinked={!localNavigation} />
       </div>
     </div>
   )

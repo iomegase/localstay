@@ -18,8 +18,7 @@ const ALLOWED_SAME_ORIGIN_RESOURCE_TYPES = new Set([
 const ALLOWED_BOOTSTRAP_FETCH_PATHS = new Set([
   '/',
   '/auth/login',
-  '/blog',
-  '/concept',
+  '/journal',
   '/confier-mon-logement',
   '/logements',
   '/seminaires',
@@ -68,7 +67,7 @@ function isAllowedPresentationRequest(
     }
 
     if (resourceType === 'document') {
-      return /^\/concept\/?$/.test(url.pathname)
+      return url.pathname === '/'
     }
 
     if (resourceType === 'fetch') {
@@ -132,9 +131,9 @@ async function expectBoxContainedWithin(
 }
 
 async function openDemo(page: Page) {
-  await page.goto('/concept?preview=demo#guide')
+  await page.goto('/?preview=demo#guide')
   const initialUrl = page.url()
-  const trigger = page.getByRole('button', { name: 'Voir le guide voyageur' })
+  const trigger = page.getByRole('button', { name: 'Ouvrir le guide d’exemple' })
 
   await trigger.scrollIntoViewIfNeeded()
   await trigger.click()
@@ -295,8 +294,8 @@ for (const viewport of viewports) {
     await expect(
       dialog.getByRole('navigation', { name: 'Menu de démonstration' }),
     ).toBeVisible()
-    await dialog.getByRole('button', { name: 'Blog' }).click()
-    await expect(dialog.getByRole('heading', { name: 'Blog' })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Journal' }).click()
+    await expect(dialog.getByRole('heading', { name: 'Journal' })).toBeVisible()
     await expect(page).toHaveURL(initialUrl)
 
     await dialog.getByRole('button', { name: 'Ouvrir le menu' }).click()

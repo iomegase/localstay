@@ -17,11 +17,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     blogArticles,
     staticPaths: [
       '/decouvrir',
-      '/concept',
       '/seminaires',
       '/confier-mon-logement',
       '/logements',
-      '/blog',
+      '/journal',
       ...localLandingPaths,
     ],
   })

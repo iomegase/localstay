@@ -7,12 +7,12 @@ import { FooterDestinations } from './FooterDestinations'
 // Cibles tactiles d'au moins 32 px (spec 031 AC-01-10 (7)).
 const footerLinkClass = 'inline-flex min-h-8 items-center text-left transition-colors hover:text-white'
 
-export function MarketingFooter() {
+export function MarketingFooter({ brandLinked = true }: { brandLinked?: boolean } = {}) {
   return (
     <footer className="bg-slate-800 pb-7 pt-16 text-white sm:pt-20 xl:mt-[clamp(56px,7vw,80px)] xl:pt-[54px]">
       <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-[1.4fr_2fr]`}>
         <div>
-          <MarketingBrand light />
+          <MarketingBrand light linked={brandLinked} />
           <p className="mt-5 max-w-xs text-xs leading-6 text-slate-400">
             La conciergerie locale qui prend soin des logements et accueille chaque voyageur avec
             attention.
@@ -22,12 +22,11 @@ export function MarketingFooter() {
 
         <div data-testid="marketing-footer-columns" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
           <FooterColumn title="Explorer">
-            <Link className={footerLinkClass} href="/#services">Nos services</Link>
+            <Link className={footerLinkClass} href="/">Accueil</Link>
             <Link className={footerLinkClass} href="/logements">Nos logements</Link>
             <Link className={footerLinkClass} href="/seminaires">Séminaires</Link>
             <Link className={footerLinkClass} href="/decouvrir">Découvrir</Link>
-            <Link className={footerLinkClass} href="/concept">Notre approche</Link>
-            <Link className={footerLinkClass} href="/blog">Le blog</Link>
+            <Link className={footerLinkClass} href="/journal">Journal</Link>
           </FooterColumn>
 
           <FooterColumn title="Propriétaires">
@@ -38,6 +37,7 @@ export function MarketingFooter() {
           <FooterColumn title="Nous contacter">
             <HelpContactDialog className={footerLinkClass} />
             <a className={footerLinkClass} href="mailto:bonjour@mystay.city">bonjour@mystay.city</a>
+            <a className={footerLinkClass} href="tel:+33607859058">+33 6 07 85 90 58</a>
             <p className="inline-flex min-h-8 items-center">Haute-Savoie, France</p>
           </FooterColumn>
         </div>

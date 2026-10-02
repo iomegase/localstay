@@ -101,7 +101,7 @@ describe('045 private active stay render isolation', () => {
         initialView="home"
         menuItems={[
           { label: 'Tous nos logements', view: 'lodgings' },
-          { label: 'Blog', view: 'blog' },
+          { label: 'Journal', view: 'blog' },
           { label: 'Nous contacter', view: 'contact' },
         ]}
         lodgings={[

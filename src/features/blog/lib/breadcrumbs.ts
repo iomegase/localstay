@@ -12,14 +12,14 @@ export function buildBlogArticleBreadcrumb(input: {
         label: `Guide ${input.city.name}`,
         href: publicDiscoveryCityPath(input.city.slug),
       },
-      { label: 'Blog', href: `/blog?city=${input.city.slug}` },
+      { label: 'Journal', href: `/journal?city=${input.city.slug}` },
       { label: input.articleTitle, href: null },
     ]
   }
 
   return [
     { label: 'Accueil', href: '/' },
-    { label: 'Blog', href: '/blog' },
+    { label: 'Journal', href: '/journal' },
     { label: input.articleTitle, href: null },
   ]
 }

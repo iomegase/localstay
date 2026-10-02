@@ -48,6 +48,7 @@ describe('041 AC-06-05 application sitemap route', () => {
       'https://mystay.test/locations-vacances/megeve',
     ]))
     expect(urls).not.toContain('https://mystay.test/contact')
+    expect(urls).not.toContain('https://mystay.test/concept')
     expect(urls.some(url => url.includes('/guide'))).toBe(false)
   })
 

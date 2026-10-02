@@ -1,5 +1,7 @@
 'use client'
 
+import type { LocalMarketingNavigation } from './marketing-navigation'
+
 import * as Dialog from '@radix-ui/react-dialog'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,7 +11,7 @@ import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemo
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { marketingNavigationFor } from './marketing-navigation'
 
-export function MarketingMobileMenu() {
+export function MarketingMobileMenu({ localNavigation }: { localNavigation?: LocalMarketingNavigation } = {}) {
   const pathname = usePathname()
 
   return (
@@ -111,7 +113,11 @@ export function MarketingMobileMenu() {
           </Dialog.Description>
 
           <div className="flex items-center justify-between">
-            <Dialog.Close asChild>
+            {localNavigation ? (
+              <span className="inline-flex items-center">
+                <MyStayLogo alt="MyStay" className="h-auto w-[142px] object-contain" priority sizes="142px" />
+              </span>
+            ) : <Dialog.Close asChild>
               <Link
                 href="/"
                 aria-label="MyStay — Accueil"
@@ -124,7 +130,7 @@ export function MarketingMobileMenu() {
                   sizes="142px"
                 />
               </Link>
-            </Dialog.Close>
+            </Dialog.Close>}
 
             <Dialog.Close asChild>
               <button
@@ -162,7 +168,7 @@ export function MarketingMobileMenu() {
             "
           >
             <div className="grid gap-1">
-              {marketingNavigationFor(pathname).map((item) => (
+              {marketingNavigationFor(pathname, localNavigation).map((item) => (
                 <Dialog.Close asChild key={item.href}>
                   <Link
                     href={item.href}

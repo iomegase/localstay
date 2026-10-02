@@ -35,7 +35,7 @@ export default async function AdminBlogPage({ searchParams }: PageProps) {
       <header className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Éditorial</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Blog admin</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Journal admin</h1>
         </div>
         <Link href="/admin/blog/new" className="rounded-xl bg-[#0B1437] px-5 py-3 text-sm font-semibold text-white">
           Nouvel article

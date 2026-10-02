@@ -1,3 +1,5 @@
+import { faqPageSchema } from '@/features/seo/lib/structured-data'
+import { JsonLd } from '@/shared/components/JsonLd'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import {
@@ -72,7 +74,8 @@ export function LocalServiceLanding({
     .filter(Boolean) ?? []
 
   return (
-    <MarketingShell>
+    <MarketingShell localNavigation={{ city: landing.city, publication: landing.publication }}>
+      {content.faq.length > 0 && <JsonLd data={faqPageSchema(content.faq)} />}
       <div className="overflow-hidden font-sans text-slate-800">
 
         {/* HERO */}

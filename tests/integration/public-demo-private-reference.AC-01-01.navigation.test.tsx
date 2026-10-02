@@ -58,7 +58,7 @@ jest.mock('react-map-gl/mapbox', () => {
 
 describe('045-public-demo-private-guide-reference autonomous navigation', () => {
   beforeEach(() => {
-    window.history.replaceState({}, '', '/concept')
+    window.history.replaceState({}, '', '/seminaires')
   })
 
   it('renders the fictional private-guide home hierarchy without links', () => {
@@ -124,12 +124,12 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     expect(
       screen.getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
   })
 
   it.each([
     { destination: 'Nos logements', heading: 'Des lieux suivis avec attention.' },
-    { destination: 'Blog', heading: 'Inspirations... et conseils pour vos séjours' },
+    { destination: 'Journal', heading: 'Inspirations... et conseils pour vos séjours' },
     { destination: 'Nous contacter', heading: 'Votre hôte' },
   ])(
     'navigates to $destination from the local menu, closes it and focuses the destination heading',
@@ -152,7 +152,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
       expect(
         screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
       ).not.toBeInTheDocument()
-      expect(window.location.pathname).toBe('/concept')
+      expect(window.location.pathname).toBe('/seminaires')
       expect(viewHeading).toHaveFocus()
       expect(opener).not.toHaveFocus()
     },
@@ -169,7 +169,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
 
     expect(
       within(menu).getAllByRole('button').map(button => button.textContent),
-    ).toEqual(['Nos logements', 'Blog', 'Nous contacter'])
+    ).toEqual(['Nos logements', 'Journal', 'Nous contacter'])
     expect(within(menu).queryByRole('button', { name: 'Accueil' })).toBeNull()
     expect(
       within(menu).queryByRole('button', { name: 'Guide du logement' }),

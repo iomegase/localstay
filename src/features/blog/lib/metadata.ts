@@ -25,17 +25,17 @@ export function blogListMetadata(input: {
   city: { name: string; slug: string } | null
 }): Metadata {
   const title = input.city
-    ? `Blog ${input.city.name} — Guides locaux MyStay`
-    : 'Blog MyStay — Guides locaux et conseils de séjour'
+    ? `Journal ${input.city.name} — Guides locaux MyStay`
+    : 'Journal MyStay — Guides locaux et conseils de séjour'
   const description = input.city
     ? truncate(`Découvrez nos articles, conseils et guides locaux pour préparer un séjour à ${input.city.name} avec MyStay.`)
-    : truncate('Découvrez le blog MyStay : guides locaux, conseils de séjour et inspirations éditoriales pour voyager plus simplement.')
+    : truncate('Découvrez le journal MyStay : guides locaux, conseils de séjour et inspirations éditoriales pour voyager plus simplement.')
 
   return {
     title,
     description,
-    alternates: { canonical: '/blog' },
-    openGraph: openGraph({ title, description, path: '/blog' }),
+    alternates: { canonical: '/journal' },
+    openGraph: openGraph({ title, description, path: '/journal' }),
     twitter: { card: 'summary_large_image', title, description },
   }
 }

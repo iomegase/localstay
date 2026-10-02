@@ -81,7 +81,7 @@ export async function PrivateGuidePage({
   // Vues internes (aucun lien sortant) ; contact reste guide-scopé (autorisé).
   const menuItems: GuideMenuItem[] = [
     { label: 'Tous nos logements', view: 'lodgings' },
-    { label: 'Blog', view: 'blog' },
+    { label: 'Journal', view: 'blog' },
     { label: 'Nous contacter', view: 'contact' },
   ]
 

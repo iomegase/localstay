@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
-import BlogListPage from '@/app/(public)/blog/page'
+import BlogListPage from '@/app/(public)/journal/page'
 
 jest.mock('@/features/blog/queries/public-blog', () => ({
   getPublishedBlogArticles: jest.fn(async () => ({ city: null, items: [] })),

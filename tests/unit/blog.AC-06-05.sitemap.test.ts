@@ -4,7 +4,7 @@ describe('029 blog sitemap entries', () => {
   it('includes only published blog article URLs', () => {
     const result = buildSitemapEntries({
       baseUrl: 'https://mystay.example.com',
-      staticPaths: ['/contact', '/blog'],
+      staticPaths: ['/contact', '/journal'],
       cities: [],
       pois: [],
       lodgings: [],
@@ -15,7 +15,7 @@ describe('029 blog sitemap entries', () => {
     })
 
     const urls = result.map(entry => entry.url)
-    expect(urls).toContain('https://mystay.example.com/blog/week-end-saint-gervais')
-    expect(urls).toContain('https://mystay.example.com/blog/adresses-megeve')
+    expect(urls).toContain('https://mystay.example.com/journal/week-end-saint-gervais')
+    expect(urls).toContain('https://mystay.example.com/journal/adresses-megeve')
   })
 })

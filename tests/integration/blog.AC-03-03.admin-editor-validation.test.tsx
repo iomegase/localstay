@@ -89,7 +89,7 @@ describe('029 blog admin editor validation feedback', () => {
           category: 'local_guide',
           tags: [],
           city_id: null,
-          seo_title: 'Guide local Saint-Nicolas — Blog MyStay',
+          seo_title: 'Guide local Saint-Nicolas — Journal MyStay',
           seo_description:
             'Préparez un séjour à Saint-Nicolas avec un guide éditorial local, des repères utiles et une lecture claire.',
           photos: [],
@@ -150,7 +150,7 @@ describe('029 blog admin editor validation feedback', () => {
           category: 'local_guide',
           tags: [],
           city_id: null,
-          seo_title: 'Guide local Saint-Nicolas — Blog MyStay',
+          seo_title: 'Guide local Saint-Nicolas — Journal MyStay',
           seo_description:
             'Préparez un séjour à Saint-Nicolas avec un guide éditorial local, des repères utiles et une lecture claire.',
           photos: [],
@@ -208,7 +208,7 @@ describe('029 blog admin editor validation feedback', () => {
           category: 'local_guide',
           tags: [],
           city_id: null,
-          seo_title: 'Guide local Saint-Nicolas — Blog MyStay',
+          seo_title: 'Guide local Saint-Nicolas — Journal MyStay',
           seo_description:
             'Préparez un séjour à Saint-Nicolas avec un guide éditorial local, des repères utiles et une lecture claire.',
           photos: [],
@@ -330,7 +330,7 @@ describe('029 blog admin editor validation feedback', () => {
           suggestion_title: 'Vivre en Haute-Savoie en 1900',
           suggestion_excerpt: 'Une proposition éditoriale sur la rudesse du quotidien et les équilibres locaux vers 1900.',
           suggestion_markdown: 'a'.repeat(320),
-          suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+          suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Journal MyStay',
           suggestion_seo_description:
             'Une proposition éditoriale sur la Haute-Savoie vers 1900, entre climat rude, solidarités locales et adaptation quotidienne.',
           text: 'a'.repeat(320),
@@ -381,7 +381,7 @@ describe('029 blog admin editor validation feedback', () => {
         suggestion_title: 'Vivre en Haute-Savoie en 1900',
         suggestion_excerpt: 'Une proposition éditoriale sur la rudesse du quotidien et les équilibres locaux vers 1900.',
         suggestion_markdown: '# Vivre en Haute-Savoie en 1900\n\nUn premier paragraphe.\n\n- Point 1\n- Point 2',
-        suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+        suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Journal MyStay',
         suggestion_seo_description:
           'Une proposition éditoriale sur la Haute-Savoie vers 1900, entre climat rude, solidarités locales et adaptation quotidienne.',
         text: '# Vivre en Haute-Savoie en 1900\n\nUn premier paragraphe.\n\n- Point 1\n- Point 2',

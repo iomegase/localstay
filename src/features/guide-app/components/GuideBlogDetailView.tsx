@@ -22,7 +22,7 @@ export function GuideBlogDetailView({
         className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
       >
         <ArrowLeft className="h-4 w-4" />
-        Blog
+        Journal
       </button>
 
       {!detail ? (

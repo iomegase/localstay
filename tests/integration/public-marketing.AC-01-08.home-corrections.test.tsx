@@ -63,7 +63,6 @@ describe('031 AC-01-08 — home corrections', () => {
       'src/features/marketing/components/MarketingHome.tsx',
       'src/features/marketing/components/MarketingHeader.tsx',
       'src/features/marketing/components/MarketingMobileMenu.tsx',
-      'src/app/(public)/concept/page.tsx',
       'src/features/public-discovery/components/DiscoveryCityView.tsx',
       'src/features/public-discovery/components/DiscoveryPoiView.tsx',
     ]

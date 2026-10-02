@@ -203,7 +203,7 @@ describe('029 blog gemini draft service', () => {
           '  "title": "Vivre en Haute-Savoie en 1900",',
           '  "excerpt": "Une proposition editoriale ancree dans le quotidien, les contraintes et les solidarites locales de la Haute-Savoie vers 1900.",',
           '  "content_markdown": "' + 'mot '.repeat(90).trim() + '",',
-          '  "seo_title": "Vivre en Haute-Savoie en 1900 | Blog MyStay",',
+          '  "seo_title": "Vivre en Haute-Savoie en 1900 | Journal MyStay",',
           '  "seo_description": "Une lecture editoriale de la Haute-Savoie vers 1900, entre climat rude, vie locale contrainte et adaptation quotidienne."',
           '}',
           '',
@@ -219,7 +219,7 @@ describe('029 blog gemini draft service', () => {
     })
 
     expect(result.draft.title).toBe('Vivre en Haute-Savoie en 1900')
-    expect(result.draft.seo_title).toBe('Vivre en Haute-Savoie en 1900 | Blog MyStay')
+    expect(result.draft.seo_title).toBe('Vivre en Haute-Savoie en 1900 | Journal MyStay')
   })
 
   it('defaults to gemini-3.5-flash when no explicit Gemini model is configured', async () => {
@@ -232,7 +232,7 @@ describe('029 blog gemini draft service', () => {
             excerpt:
               'Une proposition editoriale locale pour organiser un week-end utile et lisible autour de Saint-Gervais.',
             content_markdown: 'mot '.repeat(90).trim(),
-            seo_title: 'Week-end à Saint-Gervais | Blog MyStay',
+            seo_title: 'Week-end à Saint-Gervais | Journal MyStay',
             seo_description:
               'Une proposition editoriale locale pour Saint-Gervais, avec angle clair, sources grounded et lecture utile.',
           }),
@@ -283,7 +283,7 @@ describe('029 blog gemini draft service', () => {
               excerpt:
                 'Une proposition editoriale locale pour organiser un week-end utile et lisible autour de Saint-Gervais.',
               content_markdown: 'mot '.repeat(90).trim(),
-              seo_title: 'Week-end à Saint-Gervais | Blog MyStay',
+              seo_title: 'Week-end à Saint-Gervais | Journal MyStay',
               seo_description:
                 'Une proposition editoriale locale pour Saint-Gervais, avec angle clair, sources grounded et lecture utile.',
             }),

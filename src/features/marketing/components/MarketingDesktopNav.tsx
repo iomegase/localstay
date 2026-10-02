@@ -1,10 +1,12 @@
 'use client'
 
+import type { LocalMarketingNavigation } from './marketing-navigation'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { marketingNavigationFor } from './marketing-navigation'
 
-export function MarketingDesktopNav() {
+export function MarketingDesktopNav({ localNavigation }: { localNavigation?: LocalMarketingNavigation } = {}) {
   const pathname = usePathname()
 
   return (
@@ -12,7 +14,7 @@ export function MarketingDesktopNav() {
       aria-label="Navigation principale"
       className="ml-auto hidden shrink-0 items-center gap-1 text-[12px] font-semibold lg:flex xl:gap-1.5"
     >
-      {marketingNavigationFor(pathname).map(item => (
+      {marketingNavigationFor(pathname, localNavigation).map(item => (
         <Link
           key={item.href}
           href={item.href}

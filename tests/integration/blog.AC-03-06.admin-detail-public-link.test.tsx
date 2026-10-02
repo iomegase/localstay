@@ -48,7 +48,7 @@ describe('029 blog admin detail page public link', () => {
 
     expect(screen.getByRole('link', { name: /ouvrir l’article public/i })).toHaveAttribute(
       'href',
-      '/blog/week-end-saint-gervais',
+      '/journal/week-end-saint-gervais',
     )
   })
 

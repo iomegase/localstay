@@ -384,3 +384,20 @@ Aucune question ouverte. Décisions Product Owner du 2026-09-07 :
 - indexation d'une page locations uniquement avec au moins un logement publié ;
 - CTA Airbnb uniquement lorsqu'un lien Airbnb validé existe ;
 - trois intentions et trois namespaces distincts pour éviter la cannibalisation.
+
+## Amendement approuvé — Navigation locale (2026-10-01)
+
+Validation explicite du Product Owner : « ok parfait ».
+
+- **AC-04-07** : sur les trois types de landing locale, les menus desktop et mobile utilisent la commune et les indicateurs `publication` du DTO public (spec 048). Nos services mène à `/conciergerie/[city-slug]` si publiée, sinon `/#services` ; Nos logements à `/locations-vacances/[city-slug]` si publiée, sinon `/logements` ; Séminaires à `/seminaires/[city-slug]` si publiée, sinon `/seminaires`. Chaque repli est indépendant. Les autres liens restent identiques.
+- **AC-04-08** : le logo MyStay reste visible sans lien ni action dans le header, le menu mobile et le footer des landings locales. Hors de ces landings, il conserve le lien `/`. Le menu mobile se ferme après sélection d'un lien.
+- Exception explicite au hors périmètre « refonte du header/footer » : adaptation des liens et du logo uniquement, sans changement visuel. Aucune persistance de destination, nouvelle API ou modification du modèle de données.
+
+### Amendement approuvé — Accueil toujours visible (2026-10-01)
+
+Demande Product Owner : remplacer le lien de navigation « Nos services » par « Accueil », supprimer l'ancre `#services` et l'afficher aussi sur `/`. Header desktop/mobile et footer pointent vers `/` ; sur les landings locales, le menu conserve le lien conciergerie publié de la commune avec `/` comme repli (046 AC-04-07). La section de présentation des services garde son contenu. Remplace 031 AC-01-10 (6).
+
+### Amendement approuvé — FAQ structurées des landings (2026-10-02)
+
+Demande explicite du Product Owner : baliser les FAQ des landings.
+**AC-04-09** : chaque landing conciergerie, séminaire ou locations de vacances émet exactement un `FAQPage` côté serveur lorsque sa FAQ contient des entrées. `mainEntity` reprend toutes les questions et réponses affichées, dans le même ordre, depuis `landing.page.faq`. Aucun balisage FAQ si cette liste est vide. Réutiliser `faqPageSchema` et la sérialisation sûre `JsonLd`. Aucun changement d'API, données, contenu éditorial ou apparence. Ce balisage Schema.org ne promet pas de résultats enrichis Google : cette fonctionnalité a été retirée en mai 2026 (https://developers.google.com/search/updates).

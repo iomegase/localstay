@@ -18,10 +18,10 @@ jest.mock('next/link', () => ({
 import { PublicBottomNav } from '@/features/city-guide/components/PublicBottomNav'
 
 describe('029 blog public bottom nav', () => {
-  it('replaces the anonymous Contact entry with Blog', () => {
+  it('replaces the anonymous Contact entry with Journal', () => {
     render(<PublicBottomNav mode="anonymous" citySlug={null} />)
 
-    expect(screen.getByRole('link', { name: 'Blog' })).toHaveAttribute('href', '/blog')
+    expect(screen.getByRole('link', { name: 'Journal' })).toHaveAttribute('href', '/journal')
     expect(screen.queryByRole('link', { name: 'Contact' })).not.toBeInTheDocument()
   })
 })

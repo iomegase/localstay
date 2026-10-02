@@ -32,7 +32,7 @@ export default async function BlogListPage({ searchParams }: PageProps) {
     return null
   }
 
-  const title = result?.city ? `Blog ${result.city.name}` : 'Inspirations... et conseils pour vos séjours'
+  const title = result?.city ? `Journal ${result.city.name}` : 'Inspirations... et conseils pour vos séjours'
   const items = result?.items ?? []
   const categories = [...new Set(items.map(article => blogCategoryLabel(article.category)))]
 
@@ -40,7 +40,7 @@ export default async function BlogListPage({ searchParams }: PageProps) {
     <MarketingShell>
       <section className=" py-16 sm:py-24">
         <div className={marketingContainerClass}>
-          <MarketingEyebrow>Blog &amp; Guides</MarketingEyebrow>
+          <MarketingEyebrow>Journal &amp; Guides</MarketingEyebrow>
           <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.055em] text-slate-900 sm:text-6xl">
             {title}
           </h1>
@@ -53,13 +53,13 @@ export default async function BlogListPage({ searchParams }: PageProps) {
           >
             <Link href="/" className="hover:text-pink-600">Accueil</Link>
             <span aria-hidden="true">/</span>
-            <Link href="/blog" className="hover:text-pink-600">Blog</Link>
+            <Link href="/journal" className="hover:text-pink-600">Journal</Link>
           </nav>
         </div>
       </section>
 
       <section className={`${marketingContainerClass} py-16 sm:py-24`}>
-        <div className="flex flex-wrap gap-2.5" aria-label="Catégories du blog">
+        <div className="flex flex-wrap gap-2.5" aria-label="Catégories du journal">
           <span className="inline-flex items-center rounded-full bg-slate-800 px-5 py-2.5 text-[10px] font-bold uppercase tracking-wide text-white">
             Toutes
           </span>

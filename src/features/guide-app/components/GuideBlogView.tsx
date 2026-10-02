@@ -2,8 +2,8 @@ import { MapPin, Newspaper } from 'lucide-react'
 import type { GuideBlogPost } from '@/features/guide-app/types'
 
 /**
- * Vue « Blog » rendue DANS l'app (guest confiné). Reprend le langage visuel des
- * cartes du blog public, mais SANS lien sortant vers le site public.
+ * Vue « Journal » rendue DANS l'app (guest confiné). Reprend le langage visuel des
+ * cartes du journal public, mais SANS lien sortant vers le site public.
  */
 export function GuideBlogView({
   posts,
@@ -15,7 +15,7 @@ export function GuideBlogView({
   return (
     <div className="px-3 pb-24 pt-5">
       <h1 className="px-2 text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
-        Blog
+        Journal
       </h1>
 
       {posts.length > 0 ? (

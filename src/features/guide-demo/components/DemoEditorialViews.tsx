@@ -320,7 +320,7 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
       <header className="px-4 pb-16 pt-16">
         <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
           <span aria-hidden="true" className="h-0.5 w-5 shrink-0 bg-pink-600" />
-          Blog &amp; Guides
+          Journal &amp; Guides
         </div>
         <h1
           data-demo-view-heading="true"
@@ -333,19 +333,19 @@ export function DemoBlogView({ posts, onOpenPost }: DemoBlogViewProps) {
           Sélectionnez une catégorie ou parcourez nos articles pour optimiser vos séjours et votre expérience.
         </p>
         <nav
-          aria-label="Fil d’Ariane du blog"
+          aria-label="Fil d’Ariane du journal"
           className="mt-8 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500"
         >
           <span>Accueil</span>
           <span aria-hidden="true">/</span>
-          <span>Blog</span>
+          <span>Journal</span>
         </nav>
       </header>
 
       <div className="px-4">
         <div
           role="group"
-          aria-label="Catégories du blog"
+          aria-label="Catégories du journal"
           className="no-scrollbar flex gap-2.5 overflow-x-auto pb-2"
         >
           <span className="inline-flex shrink-0 items-center rounded-full bg-slate-800 px-5 py-3 text-[10px] font-bold uppercase tracking-wide text-white">

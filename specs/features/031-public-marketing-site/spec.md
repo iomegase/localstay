@@ -602,3 +602,20 @@ optionnel `source: owner_lead`. Il conserve ses états visuels existants.
 | ID | Question | Owner | Resolution |
 |---|---|---|---|
 | OQ-00 | Aucune question ouverte. | Product Owner | resolved |
+
+### Amendement approuvé — Navigation des landings locales (2026-10-01)
+
+Décision Product Owner « ok parfait » : les landings locales appliquent les URL contextuelles et les replis définis en spec 046 AC-04-07, par exception aux liens génériques du header. Le logo y est non cliquable (header, tiroir mobile, footer), tout en conservant sa présentation ; ailleurs il pointe vers `/` (046 AC-04-08).
+
+### Amendement approuvé — Retrait de Notre approche (2026-10-01)
+
+Demande explicite du Product Owner : enlever la page et ne plus la référencer.
+**AC-04-02** : suppression du contenu éditorial `/concept`, des liens desktop/mobile/footer et du CTA « Découvrir notre approche » des pages découverte. L'ancienne adresse devient uniquement une redirection permanente vers `/`, sans metadata propres. Elle reste accessible anonymement pour cette compatibilité, mais sort du sitemap. Les composants du guide partagés avec les autres pages sont conservés. Cet amendement remplace AC-01-02 pour `/concept` et les références antérieures à sa publication ; aucun changement de données ni API.
+
+### Amendement approuvé — Journal (2026-10-01)
+
+Décision Product Owner : nom public « Journal », routes `/journal` et `/journal/[slug]`, migration des références et redirections permanentes des anciennes URL `/blog` (spec 029 AC-07-01 à AC-07-03).
+
+### Amendement approuvé — Accueil toujours visible (2026-10-01)
+
+Demande Product Owner : remplacer le lien de navigation « Nos services » par « Accueil », supprimer l'ancre `#services` et l'afficher aussi sur `/`. Header desktop/mobile et footer pointent vers `/` ; sur les landings locales, le menu conserve le lien conciergerie publié de la commune avec `/` comme repli (046 AC-04-07). La section de présentation des services garde son contenu. Remplace 031 AC-01-10 (6).

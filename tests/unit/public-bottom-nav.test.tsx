@@ -75,9 +75,9 @@ describe('PublicBottomNav', () => {
       '/guide/saint-gervais-les-bains',
     )
     expect(screen.queryByRole('link', { name: /Vos favoris/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Blog/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Journal/i })).toHaveAttribute(
       'href',
-      '/blog',
+      '/journal',
     )
     expect(screen.getByRole('link', { name: /Coup de coeur/i })).toHaveAttribute('href', '/')
   })
@@ -92,9 +92,9 @@ describe('PublicBottomNav', () => {
       '/guide/saint-gervais-les-bains',
     )
     expect(screen.queryByRole('link', { name: /Vos favoris/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Blog/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Journal/i })).toHaveAttribute(
       'href',
-      '/blog',
+      '/journal',
     )
   })
 

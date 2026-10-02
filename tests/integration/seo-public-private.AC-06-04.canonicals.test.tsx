@@ -13,7 +13,6 @@ jest.mock('next/font/google', () => {
 
 import { metadata as rootMetadata } from '@/app/layout'
 import { metadata as homePageMetadata } from '@/app/(public)/page'
-import { metadata as conceptMetadata } from '@/app/(public)/concept/page'
 import { metadata as ownerContactMetadata } from '@/app/(public)/confier-mon-logement/page'
 import { metadata as discoveryMetadata } from '@/app/(public)/decouvrir/page'
 import { metadata as lodgingsMetadata } from '@/app/(public)/logements/page'
@@ -33,7 +32,6 @@ describe('042 AC-06-04 public page canonicals', () => {
 
   it.each([
     ['homepage', homePageMetadata, '/'],
-    ['concept', conceptMetadata, '/concept'],
     ['owner contact', ownerContactMetadata, '/confier-mon-logement'],
     ['discovery', discoveryMetadata, '/decouvrir'],
     ['lodgings', lodgingsMetadata, '/logements'],

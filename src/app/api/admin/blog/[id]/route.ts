@@ -48,7 +48,7 @@ export async function DELETE(_: NextRequest, context: Context): Promise<NextResp
   try {
     const { id } = await context.params
     const article = await deleteBlogArticle(id)
-    revalidatePath('/blog', 'page')
+    revalidatePath('/journal', 'page')
     revalidatePath(buildBlogArticlePath(article.slug), 'page')
     revalidatePath('/sitemap.xml')
     return NextResponse.json(article)

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
-import BlogListPage from '@/app/(public)/blog/page'
+import BlogListPage from '@/app/(public)/journal/page'
 
 jest.mock('next/link', () => ({
   __esModule: true,
@@ -36,11 +36,11 @@ describe('029 blog public list', () => {
     expect(screen.getByRole('heading', { name: /Inspirations.*conseils pour vos séjours/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Un week-end à Saint-Gervais/i })).toHaveAttribute(
       'href',
-      '/blog/week-end-saint-gervais',
+      '/journal/week-end-saint-gervais',
     )
     expect(screen.getAllByText('Guide local')).toHaveLength(2)
-    expect(screen.getByText('Blog & Guides')).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Accueil/Blog')
+    expect(screen.getByText('Journal & Guides')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Accueil/Journal')
     expect(screen.getByText('Toutes')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toBeInTheDocument()
     expect(screen.getByTestId('blog-grid')).toHaveClass('lg:grid-cols-3')

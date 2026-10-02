@@ -813,7 +813,7 @@ export function AdminBlogEditor({
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-slate-950">Effacer cet article ?</h2>
               <p className="text-sm text-slate-600">
-                L’article « {article.title || 'Sans titre'} » sera retiré du blog et de la liste admin. Cette action est définitive depuis l’interface.
+                L’article « {article.title || 'Sans titre'} » sera retiré du journal et de la liste admin. Cette action est définitive depuis l’interface.
               </p>
             </div>
             <div className="flex justify-end gap-3">

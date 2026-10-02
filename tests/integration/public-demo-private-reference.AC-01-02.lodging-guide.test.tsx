@@ -19,7 +19,7 @@ function expectDemoCard(element: HTMLElement) {
 }
 
 describe('045-public-demo-private-guide-reference lodging guide', () => {
-  beforeEach(() => window.history.replaceState({}, '', '/concept'))
+  beforeEach(() => window.history.replaceState({}, '', '/seminaires'))
 
   it('A. reproduces the private arrival page structure and visual tokens', () => {
     const guide = renderLodgingGuide()
@@ -241,6 +241,6 @@ describe('045-public-demo-private-guide-reference lodging guide', () => {
     fireEvent.click(within(guide).getAllByRole('checkbox')[0])
 
     expect(guide.querySelectorAll('form')).toHaveLength(0)
-    expect(window.location.pathname).toBe('/concept')
+    expect(window.location.pathname).toBe('/seminaires')
   })
 })

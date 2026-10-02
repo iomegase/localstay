@@ -104,7 +104,7 @@ describe('045-public-demo-private-guide-reference published catalogs', () => {
             name: 'Saint-Gervais-les-Bains',
             slug: 'saint-gervais-les-bains',
           },
-          cover: { url: '/blog.webp', alt: 'Été à Saint-Gervais' },
+          cover: { url: '/journal.webp', alt: 'Été à Saint-Gervais' },
         },
       ],
     })
@@ -123,7 +123,7 @@ describe('045-public-demo-private-guide-reference published catalogs', () => {
         name: 'Saint-Gervais-les-Bains',
         slug: 'saint-gervais-les-bains',
       },
-      cover: { url: '/blog.webp', alt: 'Été à Saint-Gervais' },
+      cover: { url: '/journal.webp', alt: 'Été à Saint-Gervais' },
       gallery: [],
     })
 

@@ -1,3 +1,5 @@
+import { faqPageSchema } from '@/features/seo/lib/structured-data'
+import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
@@ -51,7 +53,8 @@ export function LocalConciergeLanding({
     .filter(Boolean) ?? []
 
   return (
-    <MarketingShell>
+    <MarketingShell localNavigation={{ city: landing.city, publication: landing.publication }}>
+      {content.faq.length > 0 && <JsonLd data={faqPageSchema(content.faq)} />}
       <div className="overflow-hidden font-sans text-slate-800">
         <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
           <div

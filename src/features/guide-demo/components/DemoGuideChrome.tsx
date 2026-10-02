@@ -25,7 +25,7 @@ const bottomNavigation = [
 
 const menuNavigation = [
   { view: 'lodgings' as const, label: 'Nos logements' },
-  { view: 'blog' as const, label: 'Blog' },
+  { view: 'blog' as const, label: 'Journal' },
   { view: 'contact' as const, label: 'Nous contacter' },
 ]
 

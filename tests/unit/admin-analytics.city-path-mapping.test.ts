@@ -27,7 +27,7 @@ describe('030 admin analytics city path mapping', () => {
       pageType: 'lodging_detail',
     })
 
-    expect(resolveAnalyticsCityContext('/blog')).toEqual({
+    expect(resolveAnalyticsCityContext('/journal')).toEqual({
       citySlug: null,
       pageType: 'global',
     })

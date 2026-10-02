@@ -127,7 +127,7 @@ const discoveryItems = [
     title: 'Les plus belles randonnées autour de Saint-Gervais',
     copy:
       'Miage, Porcherey, Mont-Joly, Lacs Jovet… notre sélection selon votre niveau et le temps dont vous disposez.',
-    href: '/blog/randonnees-saint-gervais',
+    href: '/journal/randonnees-saint-gervais',
   },
   {
     eyebrow: 'Sélection locale',
@@ -141,7 +141,7 @@ const discoveryItems = [
     title: 'Que faire quand la météo change ?',
     copy:
       'Quelques alternatives aux activités de montagne lorsque la pluie s’invite dans la vallée.',
-    href: '/blog',
+    href: '/journal',
   },
 ] as const
 
@@ -424,7 +424,6 @@ export function MarketingHome({
           SERVICES
       ========================================================== */}
 <section
-  id="services"
   className={`
     ${marketingContainerClass}
     pb-20 pt-10

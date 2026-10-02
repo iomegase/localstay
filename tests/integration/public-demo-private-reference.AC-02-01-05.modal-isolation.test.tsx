@@ -16,7 +16,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
     const fetchSpy = jest.fn()
     const originalFetch = globalThis.fetch
     globalThis.fetch = fetchSpy
-    window.history.replaceState({}, '', '/concept')
+    window.history.replaceState({}, '', '/seminaires')
 
     try {
       render(<GuideDemoLauncher />)
@@ -58,7 +58,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       ).toBeInTheDocument()
       expect(dialog.querySelector('[data-testid="shared-guide-app"]')).toBeNull()
       expect(dialog.querySelector('[data-guide-mode="private"]')).toBeNull()
-      expect(window.location.pathname).toBe('/concept')
+      expect(window.location.pathname).toBe('/seminaires')
       expect(fetchSpy).not.toHaveBeenCalled()
     } finally {
       globalThis.fetch = originalFetch
@@ -156,7 +156,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       'sendBeacon',
     )
     const sendBeaconSpy = jest.fn()
-    window.history.replaceState({}, '', '/concept?preview=demo#guide')
+    window.history.replaceState({}, '', '/seminaires?preview=demo#guide')
     const expectedHref = window.location.href
     globalThis.fetch = fetchSpy
     Object.defineProperty(navigator, 'sendBeacon', {

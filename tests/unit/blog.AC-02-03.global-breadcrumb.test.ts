@@ -9,7 +9,7 @@ describe('029 blog global breadcrumb', () => {
       }),
     ).toEqual([
       { label: 'Accueil', href: '/' },
-      { label: 'Blog', href: '/blog' },
+      { label: 'Journal', href: '/journal' },
       { label: '10 conseils pour un séjour plus fluide', href: null },
     ])
   })

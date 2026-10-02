@@ -15,7 +15,7 @@ describe('029 blog article metadata', () => {
 
     expect(metadata.title).toBe('Week-end à Saint-Gervais — Guide local MyStay')
     expect(metadata.description).toContain('Préparez un week-end')
-    expect(metadata.alternates?.canonical).toBe('/blog/week-end-saint-gervais')
+    expect(metadata.alternates?.canonical).toBe('/journal/week-end-saint-gervais')
     expect(metadata.openGraph?.images).toEqual(['https://img.test/cover.jpg'])
   })
 })

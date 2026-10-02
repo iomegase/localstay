@@ -24,7 +24,7 @@ export default async function AdminBlogDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <header className="space-y-3">
-        <Link href="/admin/blog" className="text-sm font-semibold text-slate-500">Retour au blog</Link>
+        <Link href="/admin/blog" className="text-sm font-semibold text-slate-500">Retour au journal</Link>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{article.title}</h1>
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
           <p className="font-semibold text-slate-900">URL publique</p>

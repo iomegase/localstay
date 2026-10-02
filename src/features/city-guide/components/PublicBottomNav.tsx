@@ -58,10 +58,10 @@ function buildAnonymousItems(pathname: string | null): NavItemConfig[] {
 
   items.push(
     {
-      href: '/blog',
-      label: 'Blog',
+      href: '/journal',
+      label: 'Journal',
       icon: <Newspaper className="w-5 h-5" />,
-      active: isPathActive(pathname, '/blog'),
+      active: isPathActive(pathname, '/journal'),
     },
   )
 

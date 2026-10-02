@@ -10,7 +10,7 @@ export default async function AdminNewBlogPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-3">
-        <Link href="/admin/blog" className="text-sm font-semibold text-slate-500">Retour au blog</Link>
+        <Link href="/admin/blog" className="text-sm font-semibold text-slate-500">Retour au journal</Link>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Nouvel article</h1>
       </header>
       <AdminBlogEditor cities={cities} />

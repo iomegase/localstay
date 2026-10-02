@@ -62,20 +62,20 @@ describe('031 AC-01-10 — home audit corrections', () => {
     expect(card.querySelector('img')).toHaveAttribute('alt', 'Les Hauts de Saint-Gervais — Saint-Gervais-les-Bains')
   })
 
-  it('(6) hides « Nos services » on / and points it to /#services elsewhere', () => {
-    expect(marketingNavigationFor('/').map(item => item.label)).not.toContain('Nos services')
-    expect(marketingNavigationFor('/logements')[0]).toEqual({ href: '/#services', label: 'Nos services' })
-    expect(marketingNavigationFor(null)[0]).toEqual({ href: '/#services', label: 'Nos services' })
+  it('(6) always shows Accueil pointing to /', () => {
+    expect(marketingNavigationFor('/').map(item => item.label)).toContain('Accueil')
+    expect(marketingNavigationFor('/logements')[0]).toEqual({ href: '/', label: 'Accueil' })
+    expect(marketingNavigationFor(null)[0]).toEqual({ href: '/', label: 'Accueil' })
 
     const { unmount } = render(<MarketingHeader />)
-    expect(within(screen.getByRole('navigation', { name: 'Navigation principale' })).queryByRole('link', { name: 'Nos services' })).not.toBeInTheDocument()
+    expect(within(screen.getByRole('navigation', { name: 'Navigation principale' })).queryByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    expect(within(screen.getByRole('navigation', { name: 'Navigation mobile' })).queryByRole('link', { name: 'Nos services' })).not.toBeInTheDocument()
+    expect(within(screen.getByRole('navigation', { name: 'Navigation mobile' })).queryByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     unmount()
 
     mockPathname.mockReturnValue('/logements')
     render(<MarketingHeader />)
-    expect(within(screen.getByRole('navigation', { name: 'Navigation principale' })).getByRole('link', { name: 'Nos services' })).toHaveAttribute('href', '/#services')
+    expect(within(screen.getByRole('navigation', { name: 'Navigation principale' })).getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
   })
 
   it('(7) cleans up the footer', () => {
@@ -84,7 +84,7 @@ describe('031 AC-01-10 — home audit corrections', () => {
     expect(screen.queryByRole('link', { name: 'Instagram' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'LinkedIn' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Découvrir' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Nos services' })).toHaveAttribute('href', '/#services')
+    expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Mentions légales' })).toHaveAttribute('href', '/mentions-legales')
     expect(screen.getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '/confidentialite')
     expect(screen.getByRole('link', { name: 'CGU' })).toHaveAttribute('href', '/cgu')

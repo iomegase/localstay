@@ -51,7 +51,7 @@ export function BlogDeleteButton({ id, title }: { id: string; title: string }) {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-slate-950">Effacer cet article ?</h2>
               <p className="text-sm text-slate-600">
-                L’article « {title || 'Sans titre'} » sera retiré du blog et de la liste admin.
+                L’article « {title || 'Sans titre'} » sera retiré du journal et de la liste admin.
               </p>
               {error && <p className="text-sm text-rose-600">{error}</p>}
             </div>

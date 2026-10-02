@@ -171,7 +171,7 @@ describe('029 blog generation draft persistence', () => {
         title: 'Vivre en Haute-Savoie en 1900',
         excerpt: 'Une ouverture éditoriale solide sur le quotidien, les contraintes et les équilibres sociaux de la Haute-Savoie vers 1900.',
         content_markdown: 'a'.repeat(320),
-        seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+        seo_title: 'Vivre en Haute-Savoie en 1900 | Journal MyStay',
         seo_description:
           'Une lecture éditoriale de la Haute-Savoie vers 1900, entre climat rude, vie locale contrainte et adaptation quotidienne.',
       },
@@ -184,7 +184,7 @@ describe('029 blog generation draft persistence', () => {
       suggestion_title: 'Vivre en Haute-Savoie en 1900',
       suggestion_excerpt: 'Une ouverture éditoriale solide sur le quotidien, les contraintes et les équilibres sociaux de la Haute-Savoie vers 1900.',
       suggestion_markdown: 'a'.repeat(320),
-      suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Blog MyStay',
+      suggestion_seo_title: 'Vivre en Haute-Savoie en 1900 | Journal MyStay',
       suggestion_seo_description:
         'Une lecture éditoriale de la Haute-Savoie vers 1900, entre climat rude, vie locale contrainte et adaptation quotidienne.',
     })
