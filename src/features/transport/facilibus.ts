@@ -1,12 +1,14 @@
 import { cachedLoad } from './lib/cache'
 import { computeDepartures, ESTIMATE_MAX_AGE_SECONDS, VEHICLE_MAX_AGE_SECONDS } from './lib/departures'
 import { buildStations, findNearbyStations } from './lib/stations'
+import { buildLines } from './lib/lines'
 import { createPysaeProvider } from './providers/pysae'
 import { getCachedTravelTimes, type TravelTimes } from './travel-times'
 import type { GtfsStatic } from './lib/gtfs-static'
 import type { RealtimeInputs, StopTimeObservation } from './lib/departures'
 import type { TransportProvider } from './providers/types'
 import type {
+  LinesResult,
   DeparturesResult,
   NearbyResult,
   PublicStation,
@@ -102,6 +104,21 @@ export async function getFacilibusStations(): Promise<TransportEnvelope<PublicSt
   } catch (error) {
     logFailure('static', error)
     return { status: 'unavailable', data: [], meta: { fetchedAt: isoOf(Date.now()), sourceUpdatedAt: null, freshness: 'unknown' } }
+  }
+}
+
+/** Tracés des lignes du réseau (spec 058). */
+export async function getFacilibusLines(): Promise<TransportEnvelope<LinesResult>> {
+  try {
+    const loaded = await loadStatic()
+    return {
+      status: loaded.stale ? 'stale' : 'available',
+      data: { lines: buildLines(loaded.value.gtfs) },
+      meta: { fetchedAt: isoOf(loaded.fetchedAt), sourceUpdatedAt: null, freshness: loaded.stale ? 'stale' : 'unknown' },
+    }
+  } catch (error) {
+    logFailure('static', error)
+    return { status: 'unavailable', data: { lines: [] }, meta: { fetchedAt: isoOf(Date.now()), sourceUpdatedAt: null, freshness: 'unknown' } }
   }
 }
 

@@ -16,6 +16,7 @@ export type GtfsTrip = {
   routeId: string
   serviceId: string
   headsign: string
+  shapeId: string | null
 }
 
 export type GtfsStopTime = {
@@ -43,6 +44,8 @@ export type GtfsStatic = {
   calendars: GtfsCalendar[]
   /** service_id → date → 1 (ajout) | 2 (suppression). */
   calendarDates: Map<string, Map<string, 1 | 2>>
+  /** shape_id → tracé ordonné en [longitude, latitude] (spec 058). */
+  shapes: Map<string, [number, number][]>
 }
 
 const WEEKDAY_COLUMNS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
@@ -86,6 +89,7 @@ export function parseGtfsStatic(entries: Map<string, string>): GtfsStatic {
       routeId: row.route_id,
       serviceId: row.service_id,
       headsign: row.trip_headsign,
+      shapeId: row.shape_id || null,
     })
   }
 
@@ -135,8 +139,27 @@ export function parseGtfsStatic(entries: Map<string, string>): GtfsStatic {
     }
   }
 
+  const shapePoints = new Map<string, { sequence: number; point: [number, number] }[]>()
+  if (entries.has('shapes.txt')) {
+    for (const row of parseCsv(entries.get('shapes.txt') as string)) {
+      const latitude = Number(row.shape_pt_lat)
+      const longitude = Number(row.shape_pt_lon)
+      if (!row.shape_id || !Number.isFinite(latitude) || !Number.isFinite(longitude)) continue
+      const points = shapePoints.get(row.shape_id) ?? []
+      points.push({ sequence: Number(row.shape_pt_sequence), point: [longitude, latitude] })
+      shapePoints.set(row.shape_id, points)
+    }
+  }
+  const shapes = new Map<string, [number, number][]>(
+    [...shapePoints.entries()].map(([id, points]) => [
+      id,
+      points.sort((a, b) => a.sequence - b.sequence).map(entry => entry.point),
+    ]),
+  )
+
   return {
     timezone: agency?.agency_timezone || 'Europe/Paris',
+    shapes,
     stops,
     routes,
     trips,

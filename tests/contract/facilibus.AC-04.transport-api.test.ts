@@ -18,6 +18,7 @@ import { GET as nearby } from '@/app/api/transport/facilibus/nearby/route'
 import { GET as stops } from '@/app/api/transport/facilibus/stops/route'
 import { GET as departures } from '@/app/api/transport/facilibus/departures/route'
 import { GET as vehicles } from '@/app/api/transport/facilibus/vehicles/route'
+import { GET as lines } from '@/app/api/transport/facilibus/lines/route'
 
 const fixture = (name: string) => readFileSync(path.join(__dirname, '../fixtures/facilibus', name))
 const gtfs = parseGtfsStatic(readZipEntries(fixture('gtfs-pub.zip')))
@@ -153,5 +154,15 @@ describe('055 transport API', () => {
     const body = await (await nearby(get('/api/transport/facilibus/nearby?lat=45.8915&lng=6.7085'))).json()
     expect(body.status).toBe('available')
     expect(body.data.stations[0].travel).toBeNull()
+  })
+
+  it('058 AC-01-01: serves the network lines with their colours', async () => {
+    const response = await lines()
+    expect(response.headers.get('cache-control')).toContain('s-maxage=3600')
+    const body = await response.json()
+    expect(body.status).toBe('available')
+    expect(body.data.lines.map((line: { routeId: string; color: string }) => [line.routeId, line.color])).toEqual([
+      ['L1', '#228947'], ['L2', '#e72438'],
+    ])
   })
 })

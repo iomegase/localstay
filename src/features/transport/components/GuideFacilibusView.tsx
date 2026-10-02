@@ -1,11 +1,26 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { GuideStayScreen } from '@/features/guide-app/components/stay/GuideStayScreen'
 import type { GuideLodging } from '@/features/guide-app/types'
 import { useTransportResource } from '../hooks/useTransportResource'
 import { formatParisTime } from '../lib/time'
-import type { DeparturesResult, NearbyResult, PublicRoute, PublicStation } from '../types'
+import type {
+  DeparturesResult,
+  LinesResult,
+  NearbyResult,
+  PublicRoute,
+  PublicStation,
+  PublicVehicle,
+} from '../types'
+
+// MapBox chargé seulement côté client, à l'ouverture de la page (spec 058).
+const FacilibusMap = dynamic(() => import('./FacilibusMap').then(module => module.FacilibusMap), {
+  ssr: false,
+  loading: () => <div className="h-[260px] rounded-[20px] bg-[#E8E6E2]" aria-hidden="true" />,
+})
+const VEHICLES_REFRESH_MS = 15_000
 import { FacilibusDepartureRow } from './FacilibusDepartureRow'
 import { RoutePill } from './RoutePill'
 import { StationDistance } from './StationDistance'
@@ -54,6 +69,10 @@ export function GuideFacilibusView({
   const routes = networkRoutes(allStations)
   const selectedName = selectedNearby?.name ?? allStations.find(station => station.id === selectedId)?.name
 
+  const lines = useTransportResource<LinesResult>('/api/transport/facilibus/lines')
+  const vehicles = useTransportResource<PublicVehicle[]>('/api/transport/facilibus/vehicles', VEHICLES_REFRESH_MS)
+  const linesAvailable = lines.envelope?.status === 'available' || lines.envelope?.status === 'stale'
+
   const departures = useTransportResource<DeparturesResult>(
     selectedId ? `/api/transport/facilibus/departures?stationId=${encodeURIComponent(selectedId)}` : null,
     DEPARTURES_REFRESH_MS,
@@ -72,6 +91,19 @@ export function GuideFacilibusView({
             </p>
           ))}
         </section>
+      ) : null}
+
+      {linesAvailable && allStations.length > 0 ? (
+        <div className="mb-5">
+          <FacilibusMap
+            stations={allStations}
+            lines={lines.envelope?.data.lines ?? []}
+            vehicles={vehicles.envelope?.data ?? []}
+            selectedId={selectedId}
+            origin={lodging.locationPrecise ? { latitude: lodging.latitude, longitude: lodging.longitude } : null}
+            onSelect={setChosenId}
+          />
+        </div>
       ) : null}
 
       {nearbyStations.length > 1 ? (

@@ -139,3 +139,11 @@ export type DeparturesResult = {
 }
 
 export type PublicVehicle = TransportVehicle & { network: string; freshness: TransportFreshness }
+
+export type PublicLine = PublicRoute & {
+  routeId: string
+  /** Chemins en [longitude, latitude]. */
+  paths: [number, number][][]
+}
+
+export type LinesResult = { lines: PublicLine[] }
