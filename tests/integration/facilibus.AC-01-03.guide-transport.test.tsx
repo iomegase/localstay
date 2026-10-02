@@ -9,7 +9,11 @@ import { buildStayLodging } from '../support/guide-stay-lodging'
 const meta = { fetchedAt: '2026-10-02T08:00:00.000Z', sourceUpdatedAt: null, freshness: 'unknown' as const }
 const station = {
   id: 'dmc', name: 'Télécabine de Saint Gervais / Le Chatelet', latitude: 45.89, longitude: 6.707,
-  routes: [{ shortName: '1', color: '#228947', textColor: '#ffffff' }], distanceMeters: 105,
+  routes: [
+    { shortName: '2', longName: 'Télécabines/Le Châtelet - Les Pratz/Sporting Club', color: '#e72438', textColor: '#ffffff' },
+    { shortName: '1', longName: 'Télécabines/Le Châtelet - Saint Nicolas de Véroce', color: '#228947', textColor: '#ffffff' },
+  ],
+  distanceMeters: 105,
 }
 const departure = (overrides: Record<string, unknown> = {}) => ({
   id: 'L1A_5:20261002:0:DMC', tripId: 'L1A_5', serviceDate: '20261002', stopSequence: 0, quayId: 'DMC',
@@ -107,6 +111,14 @@ describe('055 US-02 — Facilibus page', () => {
 
     expect(await screen.findByText("105 m à vol d'oiseau")).toBeInTheDocument()
     expect(await screen.findByText('En approche')).toBeInTheDocument()
+
+    // Légende des couleurs : une ligne par numéro, nom officiel du réseau.
+    const legend = screen.getByRole('region', { name: 'Lignes' })
+    expect(within(legend).getAllByText(/↔/).map(node => node.textContent)).toEqual([
+      'Télécabines / Le Châtelet ↔ Saint Nicolas de Véroce',
+      'Télécabines / Le Châtelet ↔ Les Pratz / Sporting Club',
+    ])
+    expect(within(legend).getByLabelText('Ligne 1')).toBeInTheDocument()
     expect(screen.getByText('Navette en circulation')).toBeInTheDocument()
 
     await act(async () => {

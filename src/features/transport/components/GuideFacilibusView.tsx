@@ -5,8 +5,9 @@ import { GuideStayScreen } from '@/features/guide-app/components/stay/GuideStayS
 import type { GuideLodging } from '@/features/guide-app/types'
 import { useTransportResource } from '../hooks/useTransportResource'
 import { formatParisTime } from '../lib/time'
-import type { DeparturesResult, NearbyResult, PublicStation } from '../types'
+import type { DeparturesResult, NearbyResult, PublicRoute, PublicStation } from '../types'
 import { FacilibusDepartureRow } from './FacilibusDepartureRow'
+import { RoutePill } from './RoutePill'
 import { DEPARTURES_REFRESH_MS } from './FacilibusNextDeparturesCard'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit' })
@@ -14,6 +15,18 @@ const dateFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris
 /** Dernier jour couvert : la fin de couverture est exclusive. */
 function coverageEndLabel(iso: string): string {
   return dateFormatter.format(new Date(Date.parse(iso) - 1000))
+}
+
+/** « Télécabines/Le Châtelet - Saint Nicolas » → « Télécabines / Le Châtelet ↔ Saint Nicolas ». */
+export function formatRouteName(longName: string): string {
+  return longName.replace(/\s*\/\s*/g, ' / ').replace(/\s+-\s+/g, ' ↔ ').trim()
+}
+
+/** Lignes du réseau, une seule fois chacune, dans l'ordre des numéros. */
+function networkRoutes(stations: PublicStation[]): PublicRoute[] {
+  const byName = new Map<string, PublicRoute>()
+  for (const station of stations) for (const route of station.routes) byName.set(route.shortName, route)
+  return [...byName.values()].sort((a, b) => a.shortName.localeCompare(b.shortName, 'fr', { numeric: true }))
 }
 
 /** Page horaires Facilibus (spec 055 US-02). */
@@ -36,6 +49,7 @@ export function GuideFacilibusView({
   const selectedId = chosenId ?? nearbyStations[0]?.id ?? null
   const selectedNearby = nearbyStations.find(station => station.id === selectedId)
   const allStations = stops.envelope?.data ?? []
+  const routes = networkRoutes(allStations)
   const selectedName = selectedNearby?.name ?? allStations.find(station => station.id === selectedId)?.name
 
   const departures = useTransportResource<DeparturesResult>(
@@ -47,6 +61,17 @@ export function GuideFacilibusView({
 
   return (
     <GuideStayScreen title="Navette gratuite" subtitle="Réseau Facilibus · Saint-Gervais ↔ Saint-Nicolas-de-Véroce" onBack={onBack}>
+      {routes.length > 0 ? (
+        <section aria-label="Lignes" className="mb-5 grid gap-2">
+          {routes.map(route => (
+            <p key={route.shortName} className="flex items-center gap-3 text-[14px] text-[#111111]">
+              <RoutePill route={route} />
+              <span>{route.longName ? formatRouteName(route.longName) : `Ligne ${route.shortName}`}</span>
+            </p>
+          ))}
+        </section>
+      ) : null}
+
       {nearbyStations.length > 1 ? (
         <div className="mb-4">
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#697386]">Arrêts proches</p>

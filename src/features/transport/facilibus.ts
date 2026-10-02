@@ -70,7 +70,12 @@ function routeLookup(routes: TransportRoute[]) {
   const byId = new Map(routes.map(route => [route.id, route]))
   return (routeId: string) => {
     const route = byId.get(routeId)
-    return { shortName: route?.shortName ?? routeId, color: route?.color ?? null, textColor: route?.textColor ?? null }
+    return {
+      shortName: route?.shortName ?? routeId,
+      longName: route?.longName ?? '',
+      color: route?.color ?? null,
+      textColor: route?.textColor ?? null,
+    }
   }
 }
 

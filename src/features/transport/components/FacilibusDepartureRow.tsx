@@ -1,4 +1,5 @@
 import { formatParisTime } from '../lib/time'
+import { RoutePill } from './RoutePill'
 import type { PublicDeparture } from '../types'
 
 function formatDelay(seconds: number): string {
@@ -19,13 +20,7 @@ export function FacilibusDepartureRow({ departure }: { departure: PublicDepartur
 
   return (
     <li className="flex items-center gap-3 py-3">
-      <span
-        className="grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-[13px] font-bold"
-        style={{ backgroundColor: departure.route.color ?? '#111111', color: departure.route.textColor ?? '#ffffff' }}
-        aria-label={`Ligne ${departure.route.shortName}`}
-      >
-        {departure.route.shortName}
-      </span>
+      <RoutePill route={departure.route} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[14px] font-semibold text-[#111111]">{departure.headsign}</span>
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#697386]">

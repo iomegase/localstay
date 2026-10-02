@@ -64,7 +64,9 @@ Limites constatées : calendrier publié jusqu'au 2026-12-18 ; `eta` et
 - **AC-02-01**: Given l'écran « Se déplacer » d'une ville desservie, When on
   touche « Navette gratuite », Then la page Facilibus présente la station la
   plus proche (si le logement est localisé), jusqu'à 2 alternatives à moins de
-  800 m, et un choix parmi toutes les stations.
+  800 m, et un choix parmi toutes les stations. Une légende rappelle chaque
+  ligne (pastille aux couleurs GTFS + nom officiel, ex. « Télécabines / Le
+  Châtelet ↔ Saint Nicolas de Véroce ») — ajout PO du 2026-10-02.
 - **AC-02-02**: Given une station, When ses départs sont demandés, Then
   `GET /api/transport/facilibus/departures?stationId=…` agrège tous ses quais
   et retourne au plus 5 passages sur 24 h, toutes directions confondues, triés

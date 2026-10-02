@@ -103,17 +103,25 @@ export type TransportVehicle = {
 
 // ─── Réponses publiques des routes /api/transport/facilibus ───
 
+export type PublicRoute = {
+  shortName: string
+  /** Nom officiel de la ligne (GTFS `route_long_name`). */
+  longName: string
+  color: string | null
+  textColor: string | null
+}
+
 export type PublicStation = {
   id: string
   name: string
   latitude: number
   longitude: number
-  routes: { shortName: string; color: string | null; textColor: string | null }[]
+  routes: PublicRoute[]
 }
 
 export type PublicDeparture = Omit<TransportDeparture, 'routeId'> & {
   id: string
-  route: { shortName: string; color: string | null; textColor: string | null }
+  route: PublicRoute
 }
 
 export type NearbyResult = {
