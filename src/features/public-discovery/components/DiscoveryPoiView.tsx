@@ -110,12 +110,13 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
           </div>
         </section>
 
-        <aside className={`${marketingContainerClass} mb-16 flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between`}>
+        {/* Bloc final de la fiche : bouton rose centré verticalement (spec 041, PO 2026-10-02). */}
+        <aside className={`${marketingContainerClass} mb-16 flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between`}>
           <div>
             <MarketingEyebrow light>Votre logement</MarketingEyebrow>
-            <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">Offrez cette expertise locale à vos voyageurs.</h2>
+            <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">Offrez ces recommandations à vos voyageurs.</h2>
           </div>
-          <Link className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-white px-6 text-xs font-bold text-slate-800 transition-colors hover:bg-pink-600 hover:text-white" href="/confier-mon-logement">Nous contacter</Link>
+          <Link className={`${marketingPrimaryButtonClass} shrink-0 px-6`} href="/confier-mon-logement">Rejoindre MyStay</Link>
         </aside>
       </article>
     </MarketingShell>

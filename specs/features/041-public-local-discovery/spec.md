@@ -609,6 +609,10 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
   (niveau rue) pour que le marqueur reste lisible (Product Owner, 2026-10-02).
 - Bloc final de conversion vers `/confier-mon-logement`, sans recommandation
   Owner ni données de séjour.
+  Sur la fiche POI (Product Owner, 2026-10-02) : titre « Offrez ces
+  recommandations à vos voyageurs. », bouton rose « Rejoindre MyStay »
+  (style primaire) centré verticalement dans le bloc à partir de `lg` ; cette
+  fiche fait exception au libellé « Nous contacter » de la spec 031 AC-01-08.
 
 ### Administration `/admin/pois`
 

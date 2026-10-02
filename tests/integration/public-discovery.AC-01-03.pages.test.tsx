@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { notFound } from 'next/navigation'
 import type {
   DiscoveryCategory,
@@ -229,6 +229,13 @@ describe('041 public discovery pages', () => {
       'src',
       expect.stringContaining(`${poi.longitude},${poi.latitude}`),
     )
+    // Bloc final de la fiche (Product Owner, 2026-10-02).
+    const finalBlock = screen.getByRole('heading', { level: 2, name: 'Offrez ces recommandations à vos voyageurs.' }).closest('aside')!
+    expect(finalBlock).toHaveClass('lg:items-center')
+    const join = within(finalBlock).getByRole('link', { name: 'Rejoindre MyStay' })
+    expect(join).toHaveAttribute('href', '/confier-mon-logement')
+    expect(join).toHaveClass('bg-pink-600')
+    expect(join).not.toHaveClass('bg-white')
     // Zoom rapproché (niveau rue) pour que le marqueur ne soit pas perdu (Product Owner, 2026-10-02).
     expect(screen.getByTestId('mini-map')).toHaveAttribute(
       'src',
