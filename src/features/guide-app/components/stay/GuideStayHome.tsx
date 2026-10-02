@@ -155,7 +155,7 @@ export function GuideStayHome<P extends StayPoiCard>({
           </div>
           <div className="no-scrollbar mt-2 flex snap-x gap-3 overflow-x-auto px-5 pb-1">
             {featured.map(({ poi, display }) => (
-              <div key={poi.id} className="w-[200px] shrink-0 snap-start">
+              <div key={poi.id} className="w-[160px] shrink-0 snap-start">
                 <GuideFavoriteBentoCard
                   poi={display}
                   variant="compact"

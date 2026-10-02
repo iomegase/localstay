@@ -73,7 +73,7 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
   sont connues ; puis 4 tuiles 2×2 : **Arrivée** (fond `#111111`, « Dès [heure] »),
   **Wi‑Fi**, **Guide logement**, **Départ** (« n sur m faits »).
 - **AC-01-03**: Given l'onglet Séjour, When des lieux sont mis en avant, Then un
-  carrousel « Nos coups de cœur » (cartes 220 px) affiche les lieux sélectionnés
+  carrousel « Nos coups de cœur » (cartes 160 px, réduites de 20 % le 2026-10-02) affiche les lieux sélectionnés
   et « Tout voir » ouvre l'onglet Guide. *(Amendé par le PO le 2026-10-02 :
   cartes photo de l'onglet Guide — statut d'ouverture, bouton carte, temps de
   trajet spec 057 — et catégories Urgences et Mobilité exclues du carrousel.)*
