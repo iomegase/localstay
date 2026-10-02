@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { useTransportResource } from '../hooks/useTransportResource'
 import type { DeparturesResult, NearbyResult } from '../types'
 import { FacilibusDepartureRow } from './FacilibusDepartureRow'
+import { StationDistance } from './StationDistance'
 
 export const DEPARTURES_REFRESH_MS = 30_000
 
@@ -45,7 +46,7 @@ export function FacilibusNextDeparturesCard({
     >
       <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#DB2777]">Prochaines navettes</p>
       <h2 className="mt-1 text-[16px] font-semibold text-[#111111]">{nearest.name}</h2>
-      <p className="text-[13px] text-[#697386]">{nearest.distanceMeters} m à vol d&apos;oiseau</p>
+      <StationDistance station={nearest} />
       {list.length > 0 ? (
         <ul className="mt-1 divide-y divide-[rgba(17,17,17,0.08)]">
           {list.map(departure => <FacilibusDepartureRow key={departure.id} departure={departure} />)}

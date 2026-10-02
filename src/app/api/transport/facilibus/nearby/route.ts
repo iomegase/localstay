@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { validationError } from '@/features/merchant/lib/responses'
 import { getFacilibusNearby } from '@/features/transport/facilibus'
 import { transportJson } from '@/features/transport/lib/http'
+import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 
 const querySchema = z.object({
   lat: z.coerce.number().finite().min(-90).max(90),
@@ -16,5 +17,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     lng: request.nextUrl.searchParams.get('lng') ?? undefined,
   })
   if (!parsed.success) return validationError(parsed.error.flatten())
-  return transportJson(await getFacilibusNearby(parsed.data.lat, parsed.data.lng), 3600)
+
+  // Temps MapBox réservés aux voyageurs en séjour (coût maîtrisé, spec 057).
+  const withTravel = Boolean(await getActiveLodgingContext())
+  const response = transportJson(
+    await getFacilibusNearby(parsed.data.lat, parsed.data.lng, { withTravel }),
+    3600,
+  )
+  if (withTravel) response.headers.set('Cache-Control', 'private, max-age=3600')
+  return response
 }

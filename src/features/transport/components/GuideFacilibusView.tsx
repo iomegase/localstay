@@ -8,6 +8,8 @@ import { formatParisTime } from '../lib/time'
 import type { DeparturesResult, NearbyResult, PublicRoute, PublicStation } from '../types'
 import { FacilibusDepartureRow } from './FacilibusDepartureRow'
 import { RoutePill } from './RoutePill'
+import { StationDistance } from './StationDistance'
+import { primaryTravel } from '@/features/guide-app/components/stay/poi-search'
 import { DEPARTURES_REFRESH_MS } from './FacilibusNextDeparturesCard'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit' })
@@ -88,7 +90,7 @@ export function GuideFacilibusView({
                     : 'border-[rgba(17,17,17,0.15)] bg-white text-[#111111]'
                 }`}
               >
-                {station.name} · {station.distanceMeters} m
+                {station.name} · {primaryTravel(station.travel ?? undefined)?.label ?? `${station.distanceMeters} m`}
               </button>
             ))}
           </div>
@@ -112,9 +114,7 @@ export function GuideFacilibusView({
       {selectedId ? (
         <section aria-label="Prochains départs" className="mt-5 rounded-[20px] bg-white p-4 shadow-[0_1px_2px_rgba(17,17,17,0.06)]">
           <h2 className="text-[16px] font-semibold text-[#111111]">{selectedName ?? 'Prochains départs'}</h2>
-          {selectedNearby ? (
-            <p className="text-[13px] text-[#697386]">{selectedNearby.distanceMeters} m à vol d&apos;oiseau</p>
-          ) : null}
+          {selectedNearby ? <StationDistance station={selectedNearby} /> : null}
 
           {outage ? (
             <p role="status" className="mt-3 text-[14px] text-[#697386]">Horaires momentanément indisponibles.</p>

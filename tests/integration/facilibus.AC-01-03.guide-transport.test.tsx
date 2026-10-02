@@ -162,3 +162,23 @@ describe('055 US-02 — Facilibus page', () => {
     expect(await screen.findByText('Horaires momentanément indisponibles.')).toBeInTheDocument()
   })
 })
+
+describe('057 — walking time to the station', () => {
+  it('shows the real walking time instead of the crow-fly distance', async () => {
+    mockApi({
+      '/api/transport/facilibus/nearby': {
+        status: 'available', meta,
+        data: { stations: [{ ...station, travel: { walkingSeconds: 150, drivingSeconds: 90 } }], maxDistanceMeters: 800 },
+      },
+      '/api/transport/facilibus/departures': {
+        status: 'available', meta, data: { station: { id: 'dmc', name: station.name }, departures: [departure()] },
+      },
+    })
+    render(<FacilibusNextDeparturesCard latitude={45.8915} longitude={6.7085} onOpen={jest.fn()} fallback={fallback} />)
+
+    const card = await screen.findByRole('region', { name: 'Prochaines navettes' })
+    expect(within(card).getByLabelText('À pied')).toBeInTheDocument()
+    expect(within(card).getByText('3 min')).toBeInTheDocument()
+    expect(within(card).queryByText(/vol d'oiseau/)).not.toBeInTheDocument()
+  })
+})

@@ -2,6 +2,7 @@ import { cachedLoad } from './lib/cache'
 import { computeDepartures, ESTIMATE_MAX_AGE_SECONDS, VEHICLE_MAX_AGE_SECONDS } from './lib/departures'
 import { buildStations, findNearbyStations } from './lib/stations'
 import { createPysaeProvider } from './providers/pysae'
+import { getCachedTravelTimes, type TravelTimes } from './travel-times'
 import type { GtfsStatic } from './lib/gtfs-static'
 import type { RealtimeInputs, StopTimeObservation } from './lib/departures'
 import type { TransportProvider } from './providers/types'
@@ -104,11 +105,33 @@ export async function getFacilibusStations(): Promise<TransportEnvelope<PublicSt
   }
 }
 
-export async function getFacilibusNearby(latitude: number, longitude: number): Promise<TransportEnvelope<NearbyResult>> {
+/**
+ * Stations proches ; avec `withTravel`, ajoute le temps réel MapBox jusqu'au
+ * quai le plus proche (spec 057). Un échec MapBox laisse `travel: null`.
+ */
+export async function getFacilibusNearby(
+  latitude: number,
+  longitude: number,
+  { withTravel = false }: { withTravel?: boolean } = {},
+): Promise<TransportEnvelope<NearbyResult>> {
   const empty: NearbyResult = { stations: [], maxDistanceMeters: FACILIBUS.nearbyMaxMeters }
   try {
     const loaded = await loadStatic()
     const nearby = findNearbyStations(loaded.value.stations, latitude, longitude, FACILIBUS.nearbyMaxMeters)
+    let travel: TravelTimes = {}
+    if (withTravel && nearby.length > 0) {
+      try {
+        travel = await getCachedTravelTimes(
+          { latitude, longitude },
+          nearby.flatMap(item => {
+            const quay = item.station.quays.find(candidate => candidate.stopId === item.nearestQuayId)
+            return quay ? [{ id: item.station.id, latitude: quay.latitude, longitude: quay.longitude }] : []
+          }),
+        )
+      } catch (error) {
+        logFailure('travel-times', error)
+      }
+    }
     return {
       status: nearby.length === 0 ? 'outside_coverage' : loaded.stale ? 'stale' : 'available',
       data: {
@@ -116,6 +139,7 @@ export async function getFacilibusNearby(latitude: number, longitude: number): P
         stations: nearby.map(item => ({
           ...toPublicStation(item.station, loaded.value.gtfs.routes),
           distanceMeters: item.distanceMeters,
+          travel: travel[item.station.id] ?? null,
         })),
       },
       meta: { fetchedAt: isoOf(loaded.fetchedAt), sourceUpdatedAt: null, freshness: loaded.stale ? 'stale' : 'unknown' },

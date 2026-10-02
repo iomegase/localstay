@@ -56,6 +56,15 @@ l'onglet Guide.
 - **AC-02-02**: Given la démo, When elle s'affiche, Then aucun bouton de
   position n'est proposé (045 BR-08).
 
+### US-04 — Accès à l'arrêt de navette *(ajout PO du 2026-10-02)*
+
+- **AC-04-01**: Given un voyageur en séjour, When la carte « Prochaines
+  navettes » ou la page Navette affiche l'arrêt le plus proche, Then le temps
+  réel MapBox jusqu'au quai remplace la distance à vol d'oiseau (à pied si
+  ≤ 25 min, sinon en voiture) ; sans séjour ou si MapBox échoue, la distance à
+  vol d'oiseau reste affichée. Le calcul n'est jamais déclenché sans séjour
+  actif (maîtrise du coût).
+
 ### US-03 — Démo
 
 - **AC-03-01**: Given les lieux de démonstration, When ils s'affichent, Then les

@@ -125,7 +125,11 @@ export type PublicDeparture = Omit<TransportDeparture, 'routeId'> & {
 }
 
 export type NearbyResult = {
-  stations: (PublicStation & { distanceMeters: number })[]
+  stations: (PublicStation & {
+    distanceMeters: number
+    /** Temps MapBox jusqu'au quai le plus proche (spec 057), voyageur en séjour uniquement. */
+    travel: { walkingSeconds: number | null; drivingSeconds: number | null } | null
+  })[]
   maxDistanceMeters: number
 }
 

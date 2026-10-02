@@ -9,6 +9,11 @@ import { parseGtfsStatic } from '@/features/transport/lib/gtfs-static'
 import { normalizeVehicles } from '@/features/transport/lib/vehicles'
 import { readZipEntries } from '@/features/transport/lib/zip'
 import type { TransportProvider } from '@/features/transport/providers/types'
+const mockStayContext = jest.fn()
+const mockTravelTimes = jest.fn()
+jest.mock('@/features/public-menu/lib/lodging-mode', () => ({ getActiveLodgingContext: () => mockStayContext() }))
+jest.mock('@/features/transport/travel-times', () => ({ getCachedTravelTimes: (...args: unknown[]) => mockTravelTimes(...args) }))
+
 import { GET as nearby } from '@/app/api/transport/facilibus/nearby/route'
 import { GET as stops } from '@/app/api/transport/facilibus/stops/route'
 import { GET as departures } from '@/app/api/transport/facilibus/departures/route'
@@ -35,6 +40,8 @@ beforeEach(() => {
   jest.useFakeTimers({ now: new Date('2026-10-02T08:00:00Z') })
   resetTransportCache()
   setFacilibusProvider(provider())
+  mockStayContext.mockResolvedValue(null)
+  mockTravelTimes.mockReset()
   errorLog = jest.spyOn(console, 'error').mockImplementation(() => {})
 })
 afterEach(() => {
@@ -124,5 +131,27 @@ describe('055 transport API', () => {
     expect(Object.keys(body.data[0]).sort()).toEqual([
       'freshness', 'latitude', 'longitude', 'measuredAt', 'network', 'publicId', 'routeId', 'startDate', 'status', 'stopId', 'tripId',
     ])
+  })
+
+  it('057: adds real walking times to nearby stations for a guest with a stay only', async () => {
+    const anonymous = await (await nearby(get('/api/transport/facilibus/nearby?lat=45.8915&lng=6.7085'))).json()
+    expect(anonymous.data.stations[0].travel).toBeNull()
+    expect(mockTravelTimes).not.toHaveBeenCalled()
+
+    mockStayContext.mockResolvedValue({ lodgingId: 'lodging-1' })
+    mockTravelTimes.mockImplementation(async (_origin: unknown, destinations: { id: string }[]) =>
+      Object.fromEntries(destinations.map(destination => [destination.id, { walkingSeconds: 150, drivingSeconds: 90 }])))
+    const response = await nearby(get('/api/transport/facilibus/nearby?lat=45.8915&lng=6.7085'))
+    const body = await response.json()
+    expect(body.data.stations[0].travel).toEqual({ walkingSeconds: 150, drivingSeconds: 90 })
+    expect(response.headers.get('cache-control')).toContain('private')
+  })
+
+  it('057: keeps nearby stations when the travel computation fails', async () => {
+    mockStayContext.mockResolvedValue({ lodgingId: 'lodging-1' })
+    mockTravelTimes.mockRejectedValue(new Error('mapbox down'))
+    const body = await (await nearby(get('/api/transport/facilibus/nearby?lat=45.8915&lng=6.7085'))).json()
+    expect(body.status).toBe('available')
+    expect(body.data.stations[0].travel).toBeNull()
   })
 })
