@@ -22,7 +22,7 @@ function renderStep(photos: string[], videoUrl: string | null = null) {
 }
 
 describe('054 AC-02-05 — step media layout', () => {
-  it('shows the first photo as hero and the others plus the video in a grid of up to 4 columns', () => {
+  it('shows the first photo as hero and the others plus the video in a 4-column grid', () => {
     renderStep(['/hero.jpg', '/a.jpg', '/b.jpg', '/c.jpg'], 'https://youtu.be/dQw4w9WgXcQ')
 
     expect(screen.getByTestId('arrival-step-hero')).toContainElement(screen.getByRole('button', { name: 'Photo 1' }))
@@ -33,9 +33,9 @@ describe('054 AC-02-05 — step media layout', () => {
     ])
   })
 
-  it('sizes the grid to the number of secondary media', () => {
-    renderStep(['/hero.jpg', '/a.jpg'])
-    expect(screen.getByTestId('arrival-step-media-grid')).toHaveClass('grid-cols-1')
+  it('always uses four columns so thumbnails stay small', () => {
+    renderStep(['/hero.jpg', '/a.jpg'], 'https://youtu.be/dQw4w9WgXcQ')
+    expect(screen.getByTestId('arrival-step-media-grid')).toHaveClass('grid-cols-4')
   })
 
   it('uses the video as hero when the step has no photo', () => {

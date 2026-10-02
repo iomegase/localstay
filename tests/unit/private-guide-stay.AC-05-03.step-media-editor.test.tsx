@@ -40,3 +40,24 @@ describe('054 AC-05-03 — step media editor', () => {
     expect(screen.getByText('Retirez une photo pour ajouter une vidéo.')).toBeInTheDocument()
   })
 })
+
+describe('054 AC-05-03 — multiple upload in the step editor', () => {
+  const originalFetch = globalThis.fetch
+  afterEach(() => { globalThis.fetch = originalFetch })
+
+  it('adds several photos at once without exceeding five media', async () => {
+    const { act } = await import('@testing-library/react')
+    let call = 0
+    globalThis.fetch = jest.fn(async () => ({ ok: true, json: async () => ({ url: `/u${++call}.webp` }) })) as unknown as typeof fetch
+    const { container } = render(<Harness photos={['/a.jpg', '/b.jpg']} />)
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement
+    expect(input).toHaveAttribute('multiple')
+
+    await act(async () => {
+      fireEvent.change(input, { target: { files: ['1', '2', '3', '4'].map(name => new File(['x'], `${name}.png`, { type: 'image/png' })) } })
+    })
+
+    expect(JSON.parse(screen.getByTestId('state').textContent ?? '[]')).toEqual(['/a.jpg', '/b.jpg', '/u1.webp', '/u2.webp', '/u3.webp'])
+    expect(screen.getByText('5 / 5 médias')).toBeInTheDocument()
+  })
+})

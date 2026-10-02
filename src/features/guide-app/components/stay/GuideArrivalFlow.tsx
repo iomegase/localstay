@@ -200,11 +200,9 @@ export function GuideArrivalFlow({
   )
 }
 
-const GRID_COLUMNS = ['grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4'] as const
-
 /**
  * Médias d'une étape (spec 054 AC-02-05) : première photo en image principale,
- * autres photos puis vidéo dessous sur 1 à 4 colonnes ; sans photo, la vidéo
+ * autres photos puis vidéo dessous sur 4 colonnes ; sans photo, la vidéo
  * devient l'image principale.
  */
 function StepMedia({ step }: { step: GuideArrivalInstruction }) {
@@ -240,7 +238,8 @@ function StepMedia({ step }: { step: GuideArrivalInstruction }) {
       {secondaryCount > 0 ? (
         <div
           data-testid="arrival-step-media-grid"
-          className={`grid gap-1.5 ${GRID_COLUMNS[Math.min(secondaryCount, 4) - 1]}`}
+          // Toujours 4 colonnes : vignettes compactes quel que soit leur nombre.
+          className="grid grid-cols-4 gap-1.5"
         >
           {secondaryPhotos.map((photo, index) => (
             <button

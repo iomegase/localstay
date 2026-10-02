@@ -57,6 +57,8 @@ export function parseArrivalFacts(value: unknown): ArrivalFact[] {
 
 /** Médias d'une étape : 1 image principale + 4 photos ou vidéo (spec 054 AC-05-03). */
 export const ARRIVAL_STEP_MAX_MEDIA = 5
+/** Nombre d'images sélectionnables en un seul envoi. */
+export const ARRIVAL_STEP_MULTI_UPLOAD_MAX = 4
 
 export function arrivalMediaCount(photos: readonly string[], videoUrl: string | null | undefined): number {
   return photos.length + (videoUrl ? 1 : 0)

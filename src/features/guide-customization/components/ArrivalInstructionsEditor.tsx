@@ -29,6 +29,7 @@ import {
   arrivalMediaCount,
   ARRIVAL_STEP_ITEMS_MAX,
   ARRIVAL_STEP_MAX_MEDIA,
+  ARRIVAL_STEP_MULTI_UPLOAD_MAX,
   ARRIVAL_STEP_KIND_LABELS,
   ARRIVAL_STEP_KINDS,
   type ArrivalStepKind,
@@ -79,8 +80,11 @@ export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props)
     onChange(value.filter((_, i) => i !== index))
   }
 
-  function addPhoto(index: number, url: string) {
-    update(index, { photos: [...value[index].photos, url] })
+  // Ajout groupé (upload multiple), borné à 5 médias par étape (spec 054 AC-05-03).
+  function addPhotos(index: number, urls: string[]) {
+    const instruction = value[index]
+    const room = ARRIVAL_STEP_MAX_MEDIA - arrivalMediaCount(instruction.photos, instruction.video_url)
+    update(index, { photos: [...instruction.photos, ...urls.slice(0, Math.max(0, room))] })
   }
 
   function removePhoto(index: number, photoIndex: number) {
@@ -129,7 +133,7 @@ export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props)
                 lodgingId={lodgingId}
                 onUpdate={update}
                 onRemove={removeInstruction}
-                onAddPhoto={addPhoto}
+                onAddPhotos={addPhotos}
                 onMakeHero={makeHero}
                 onRemovePhoto={removePhoto}
               />
@@ -147,7 +151,7 @@ function SortableInstructionRow({
   lodgingId,
   onUpdate,
   onRemove,
-  onAddPhoto,
+  onAddPhotos,
   onRemovePhoto,
   onMakeHero,
 }: {
@@ -156,7 +160,7 @@ function SortableInstructionRow({
   lodgingId: string
   onUpdate: (index: number, patch: Partial<ArrivalInstructionInput>) => void
   onRemove: (index: number) => void
-  onAddPhoto: (index: number, url: string) => void
+  onAddPhotos: (index: number, urls: string[]) => void
   onMakeHero: (index: number, photoIndex: number) => void
   onRemovePhoto: (index: number, photoIndex: number) => void
 }) {
@@ -354,8 +358,10 @@ function SortableInstructionRow({
         {mediaCount < ARRIVAL_STEP_MAX_MEDIA ? (
           <ImageUpload
             endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
-            onUploaded={url => onAddPhoto(index, url)}
-            label="Ajouter une photo"
+            onUploaded={url => onAddPhotos(index, [url])}
+            onUploadedMany={urls => onAddPhotos(index, urls)}
+            maxFiles={Math.min(ARRIVAL_STEP_MULTI_UPLOAD_MAX, ARRIVAL_STEP_MAX_MEDIA - mediaCount)}
+            label="Ajouter des photos"
           />
         ) : (
           <p className="text-[11px] font-semibold text-gray-500">
