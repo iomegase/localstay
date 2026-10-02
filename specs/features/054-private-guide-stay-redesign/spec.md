@@ -1,0 +1,293 @@
+# Spec — 054 Private Guide Stay Redesign
+
+## Metadata
+
+```yaml
+id: 054-private-guide-stay-redesign
+title: "Refonte du guide privé voyageur (handoff « Le 305 », option B)"
+status: approved
+mvp: 2
+owner: "Product Owner"
+created_at: 2026-10-02
+updated_at: 2026-10-02
+depends_on:
+  - 012-guide-customization
+  - 024-contact-messages
+  - 045-public-demo-private-guide-reference
+  - 050-private-guide-card-design
+bounded_context: guide-app
+design_reference: "handoff_README_mystay.md + handoff_prototype_mystay.html (fournis par le PO le 2026-10-02)"
+implementation_gate: "Décisions du Product Owner du 2026-10-02 : option B ; 1-A, 2-A, 3-A, 4-A, 5-B ; ne pas modifier le design de la carte"
+```
+
+## Context
+
+Le Product Owner a fourni un handoff haute fidélité pour le guide privé
+voyageur (`/sejour`). Il retient l'option B : refonte visuelle + nouvelles
+données d'arrivée + signal « Je suis arrivé·e / parti·e ». Le chat conciergerie,
+les conditions montagne/remontées et l'écran « Se déplacer » sont exclus faute
+de backend ou de source de données fiable. L'écran Carte existant ne change pas.
+
+Décisions :
+
+1. En-tête sans nom du voyageur ni dates (aucune réservation n'est connue) :
+   « Bienvenue au [logement] » + heures d'arrivée / départ.
+2. « Je suis arrivé·e » / « Je suis parti·e » : événement anonyme horodaté par
+   logement + e-mail à `bonjour@mystay.city`, avec limitation anti-abus.
+3. Code de boîte à clés : champ dédié, masqué par défaut, bouton « Afficher ».
+4. Guide en français uniquement (l'anglais fera l'objet d'une spec dédiée
+   s'appuyant sur la spec 027).
+5. Navigation basse remplacée par 4 onglets : Séjour · Guide · Carte · Aide.
+
+## Glossary References
+
+- **Lodging**, **Guide**, **Tourist**, **Owner**, **QR Code** (glossary.md).
+- **Étape d'arrivée** : une `LodgingArrivalInstruction` typée.
+- **Événement de séjour** : signal anonyme « arrivé » ou « parti » émis depuis le guide.
+
+## User Stories
+
+### US-01 — Naviguer dans le nouveau guide
+
+**As a** voyageur  
+**I want to** retrouver mon séjour, le guide local, la carte et l'aide en un geste  
+**So that** je trouve l'information sans chercher
+
+#### Acceptance Criteria
+
+- **AC-01-01**: Given le guide privé, When il s'affiche, Then une barre basse fixe
+  propose 4 onglets égaux **Séjour · Guide · Carte · Aide** (icône 24 px trait 1,8,
+  libellé 11 px/600 ; actif `#111111`, inactif `#9CA3AF` ; fond blanc 94 % flouté,
+  bordure haute `rgba(17,17,17,.08)`). « Guide » ouvre la liste des lieux
+  (vue coups de cœur), « Carte » la carte existante, inchangée.
+- **AC-01-02**: Given l'onglet Séjour, When il s'affiche, Then il présente le logo,
+  un hero photo (300 px, rayon 28 px, dégradé sombre) avec la pastille rose
+  « Votre guide de séjour », « Bienvenue au » + nom du logement en serif
+  italique, la commune, et 3 stats (Voyageurs, Chambres, Surface) quand elles
+  sont connues ; puis 4 tuiles 2×2 : **Arrivée** (fond `#111111`, « Dès [heure] »),
+  **Wi‑Fi**, **Guide logement**, **Départ** (« n sur m faits »).
+- **AC-01-03**: Given l'onglet Séjour, When des lieux sont mis en avant, Then un
+  carrousel « Nos coups de cœur » (cartes 220 px) affiche les lieux sélectionnés
+  et « Tout voir » ouvre l'onglet Guide.
+- **AC-01-04**: Given la tuile Wi‑Fi, When on la touche, Then une feuille basse
+  (rayon haut 28 px, voile `rgba(17,17,17,.4)`) montre le réseau et le mot de
+  passe ; « Copier le mot de passe » copie la valeur et affiche « Copié ✓ » sur
+  fond rose pendant 1,8 s ; un tap sur le voile ferme la feuille.
+- **AC-01-05**: Given l'onglet Aide, When il s'affiche, Then il présente la carte
+  **Conciergerie MyStay** avec le bouton « Écrire » (vue contact existante,
+  spec 024), le bloc **Urgences** (numéros en dur de la spec 050, cliquables
+  `tel:`) et le bloc **Adresse** du logement avec « Ouvrir dans Maps ».
+
+### US-02 — Arriver sans aide
+
+**As a** voyageur  
+**I want to** suivre un parcours d'arrivée étape par étape  
+**So that** j'entre dans le logement sans appeler personne
+
+#### Acceptance Criteria
+
+- **AC-02-01**: Given des étapes d'arrivée, When on ouvre l'écran Arrivée, Then
+  des onglets d'étapes (grille, boutons ≥ 64 px, pastille numérotée ou ✓ si
+  validée) et une carte d'étape montrent : médias (vidéo 200 px avec bouton
+  lecture, photos), « Étape X sur N », titre, introduction, repères clé/valeur,
+  sous-étapes numérotées et encart « Le conseil MyStay ».
+- **AC-02-02**: Given une étape de type `address`, When elle s'affiche, Then
+  l'adresse est montrée avec « Ouvrir dans Maps » et « Copier l'adresse »
+  (→ « Copié ✓ » 1,6 s).
+- **AC-02-03**: Given une étape de type `access` et un code de boîte à clés
+  renseigné, When elle s'affiche, Then le code apparaît masqué (`••••`) avec le
+  bouton rose « Afficher le code » / « Masquer ».
+- **AC-02-04**: Given la navigation entre étapes, When on avance, Then « Retour »
+  (blanc bordé) et l'action principale (`#111111`) sont affichés ; sur l'étape
+  `access` l'action principale devient « Je suis arrivé·e ! » (rose) ; à la
+  dernière étape seul « Retour » reste.
+
+### US-03 — Prévenir la conciergerie
+
+**As a** conciergerie MyStay  
+**I want to** savoir quand les voyageurs arrivent et partent  
+**So that** j'organise le ménage et l'accueil
+
+#### Acceptance Criteria
+
+- **AC-03-01**: Given un voyageur dans le guide, When il touche « Je suis
+  arrivé·e ! », Then `POST /api/guide/stay-events` enregistre un événement
+  `arrived` pour le logement de la session, un e-mail « Arrivée voyageur —
+  [logement] » part à `bonjour@mystay.city`, et l'écran affiche « Bienvenue au
+  [logement] ! La conciergerie a été prévenue de votre arrivée. ».
+- **AC-03-02**: Given l'écran Départ, When le voyageur touche « Je suis
+  parti·e », Then un événement `departed` est enregistré, un e-mail « Départ
+  voyageur — [logement] » est envoyé, et le bouton est remplacé par une carte
+  noire « Merci d'avoir séjourné au [logement] ! » ; le bouton est `#111111`
+  tant que la checklist n'est pas complète (aide « Encore n tâche(s) — vous
+  pouvez quand même partir ») et rose quand elle l'est (« La conciergerie sera
+  prévenue »).
+- **AC-03-03**: Given un événement du même type déjà enregistré pour ce logement
+  il y a moins de 10 minutes, When un nouveau signal arrive, Then l'API répond
+  `201` sans créer de doublon ni renvoyer d'e-mail.
+- **AC-03-04**: Given aucune session de logement valide, When l'API est appelée,
+  Then elle répond `401 UNAUTHORIZED` au format d'erreur standard.
+- **AC-03-05**: Given un échec d'envoi de l'e-mail, When l'événement est créé,
+  Then l'échec est journalisé sans bloquer la réponse.
+
+### US-04 — Consulter le guide logement et préparer le départ
+
+#### Acceptance Criteria
+
+- **AC-04-01**: Given l'écran Guide logement, When il s'affiche, Then la section
+  « Équipements » liste les blocs pratiques (vignette 76 px, titre, texte) et la
+  section « Règles » est un accordéon (un seul élément ouvert, signe +/− rose).
+- **AC-04-02**: Given l'écran Départ, When il s'affiche, Then il montre l'heure
+  de départ, une barre de progression rose de 8 px et « n sur m faits », et la
+  checklist (cases 24 px, cochées : fond rose, texte barré).
+
+### US-05 — Renseigner les nouvelles données
+
+#### Acceptance Criteria
+
+- **AC-05-01**: Given l'éditeur des instructions d'arrivée (Owner et Admin),
+  When on édite une étape, Then on peut choisir son type (Adresse, Accès,
+  Garage, Local à skis, Autre), saisir une introduction, des sous-étapes
+  (titre + détail), des repères (libellé + valeur) et un conseil.
+- **AC-05-02**: Given la personnalisation du logement, When on saisit le code de
+  boîte à clés (1 à 20 caractères), Then il est enregistré et exposé
+  uniquement au guide privé de ce logement.
+
+### US-06 — Démo publique
+
+- **AC-06-01**: Given la démo publique (spec 045), When elle s'ouvre, Then elle
+  reprend la nouvelle navigation et les nouveaux écrans avec les données de
+  démonstration ; elle n'émet aucun événement de séjour (boutons « arrivé /
+  parti » affichent seulement la confirmation).
+
+## Business Rules
+
+- **BR-01**: Aucun nom de voyageur, aucune date de séjour n'est affiché ni stocké.
+- **BR-02**: L'événement de séjour ne contient aucune donnée personnelle :
+  logement, type, horodatage.
+- **BR-03**: Le code de boîte à clés n'est jamais exposé hors du guide privé
+  du logement (ni API publique, ni démo, ni site marketing).
+- **BR-04**: L'écran Carte et ses composants ne sont pas modifiés.
+- **BR-05**: Les numéros d'urgence restent ceux de la spec 050 (112).
+- **BR-06**: Les distances et coordonnées ne sont jamais inventées : elles
+  viennent des données existantes.
+- **BR-07**: Soft delete pour toutes les nouvelles entités.
+
+## Data Model
+
+```prisma
+enum ArrivalStepKind {
+  address
+  access
+  garage
+  ski
+  custom
+}
+
+model LodgingArrivalInstruction {
+  // champs existants inchangés
+  kind     ArrivalStepKind @default(custom)
+  tip      String?
+  substeps Json?   // [{ title: string, detail: string }]
+  facts    Json?   // [{ label: string, value: string }]
+}
+
+model LodgingCustomization {
+  // champs existants inchangés
+  key_box_code String?
+}
+
+enum StayEventType {
+  arrived
+  departed
+}
+
+model LodgingStayEvent {
+  id         String        @id @default(uuid())
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  deleted_at DateTime?
+  lodging_id String
+  lodging    Lodging       @relation(fields: [lodging_id], references: [id])
+  type       StayEventType
+
+  @@index([lodging_id, type, created_at])
+}
+```
+
+## API Contract
+
+```yaml
+/api/guide/stay-events:
+  post:
+    summary: Signal anonyme d'arrivée ou de départ depuis le guide privé
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [type]
+            properties:
+              type: { type: string, enum: [arrived, departed] }
+    responses:
+      '201':
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [recorded] }
+      '400': { description: VALIDATION_ERROR }
+      '401': { description: UNAUTHORIZED (aucune session de logement) }
+```
+
+Le logement est lu depuis la session du guide (cookie `lodging_id`), jamais
+depuis le corps de la requête.
+
+## UI Behaviour
+
+Tokens du handoff : rose `#DB2777`, rose foncé `#BE185D`, rose pâle `#FCE7F3`,
+encre `#111111`, fond `#F6F6F4`, texte secondaire `#697386`, inactif `#9CA3AF`,
+bordures `rgba(17,17,17,.15)`, séparateurs `rgba(17,17,17,.08)`. Police Plus
+Jakarta Sans (déjà en place), titre logement en serif italique. Marges écran
+20 px, cibles tactiles ≥ 44 px. Écrans secondaires (Arrivée, Guide logement,
+Départ, fiche lieu) : entrée `slideIn` 280 ms, bouton retour rond 44 px.
+
+## Acceptance Criteria
+
+| Criterion | Test type |
+|---|---|
+| AC-01-01 | integration |
+| AC-01-02 | integration |
+| AC-01-03 | integration |
+| AC-01-04 | integration |
+| AC-01-05 | integration |
+| AC-02-01 | integration |
+| AC-02-02 | integration |
+| AC-02-03 | integration |
+| AC-02-04 | integration |
+| AC-03-01 | contract + integration |
+| AC-03-02 | integration |
+| AC-03-03 | contract |
+| AC-03-04 | contract |
+| AC-03-05 | contract |
+| AC-04-01 | integration |
+| AC-04-02 | integration |
+| AC-05-01 | integration |
+| AC-05-02 | contract |
+| AC-06-01 | integration |
+
+## Out of Scope
+
+- Chat conciergerie temps réel, bouton « Appeler » (aucun numéro de
+  conciergerie en base).
+- Conditions montagne, prévisions, état des remontées.
+- Écran « Se déplacer » (aucune source de contenu).
+- Bilingue FR/EN.
+- Nom du voyageur, dates de séjour, réservations.
+- Toute modification de l'écran Carte.
+- Checklist de départ éditable (la liste fixe actuelle est conservée).
+
+## Open Questions
+
+Aucune.
