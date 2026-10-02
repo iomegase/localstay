@@ -7,7 +7,7 @@ import { FacilibusMap } from '@/features/transport/components/FacilibusMap'
 jest.mock('react-map-gl/mapbox', () => {
   const MockMap = React.forwardRef<unknown, { children: React.ReactNode; onZoom?: (event: { viewState: { zoom: number } }) => void }>(
     ({ children, onZoom }, ref) => {
-      React.useImperativeHandle(ref, () => ({ flyTo: jest.fn() }))
+      React.useImperativeHandle(ref, () => ({ flyTo: jest.fn(), resize: jest.fn() }))
       return (
         <div data-testid="mapbox-map">
           <button type="button" onClick={() => onZoom?.({ viewState: { zoom: 15 } })}>zoom-in-test</button>
@@ -84,5 +84,23 @@ describe('058 Facilibus map', () => {
     const shuttles = screen.getAllByRole('img', { name: /Navette ligne/ })
     expect(shuttles).toHaveLength(1)
     expect(within(shuttles[0]).getByText('1')).toBeInTheDocument()
+    expect(within(shuttles[0]).getByTestId('shuttle-bus-icon')).toBeInTheDocument()
+  })
+
+  it('opens the map full screen and closes it with the button or Escape', () => {
+    renderMap()
+    const container = screen.getByTestId('facilibus-map')
+    expect(container).toHaveClass('h-[260px]')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Afficher la carte en plein écran' }))
+    expect(container).toHaveClass('absolute', 'inset-0')
+    expect(container).toHaveAttribute('role', 'dialog')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quitter le plein écran' }))
+    expect(container).toHaveClass('h-[260px]')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Afficher la carte en plein écran' }))
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(container).toHaveClass('h-[260px]')
   })
 })

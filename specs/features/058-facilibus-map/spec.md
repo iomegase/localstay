@@ -45,6 +45,10 @@ souhaite les voir sur une carte, avec les lignes et les navettes en circulation.
   de sa ligne, actualisée toutes les 15 s ; les positions anciennes ou sans
   heure de mesure ne sont jamais affichées.
 
+- **AC-01-05** *(ajout PO du 2026-10-02)*: Given la carte, When on touche
+  « Afficher la carte en plein écran », Then elle occupe tout l'écran du guide ;
+  « Quitter le plein écran » ou Échap la remet en place.
+
 ## Business Rules
 
 - **BR-01**: Données publiques uniquement (arrêts, tracés, positions sans
@@ -68,8 +72,8 @@ Aucun changement.
 ## UI Behaviour
 
 Pins arrêts : point blanc bordé ; sélection : pastille `#111111`. Étiquettes
-11 px / 600 sur fond blanc. Navettes : pastille ronde à la couleur de la ligne
-avec son numéro, halo pulsé. Logement : pin rose `#DB2777`.
+11 px / 600 sur fond blanc. Navettes : pastille à la couleur de la ligne avec
+une icône bus et son numéro (ajout PO du 2026-10-02), halo pulsé. Logement : pin rose `#DB2777`.
 
 ## Acceptance Criteria
 

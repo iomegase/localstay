@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { House } from 'lucide-react'
+import { Bus, House, Maximize2, Minimize2 } from 'lucide-react'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import type { PublicLine, PublicStation, PublicVehicle } from '../types'
 
@@ -32,6 +32,7 @@ export function FacilibusMap({
 }) {
   const mapRef = useRef<MapRef>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
+  const [fullscreen, setFullscreen] = useState(false)
   const selected = stations.find(station => station.id === selectedId) ?? null
   const center = selected ?? origin ?? stations[0] ?? null
 
@@ -52,10 +53,42 @@ export function FacilibusMap({
     if (selected) mapRef.current?.flyTo({ center: [selected.longitude, selected.latitude], duration: 600 })
   }, [selected])
 
+  // Le conteneur change de taille : MapBox doit recalculer son canevas.
+  useEffect(() => {
+    mapRef.current?.resize()
+    if (!fullscreen) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setFullscreen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [fullscreen])
+
   if (!center) return null
 
   return (
-    <div className="h-[260px] overflow-hidden rounded-[20px] bg-[#E8E6E2] shadow-[0_1px_2px_rgba(17,17,17,0.06)]">
+    <div
+      data-testid="facilibus-map"
+      role={fullscreen ? 'dialog' : undefined}
+      aria-modal={fullscreen ? true : undefined}
+      aria-label={fullscreen ? 'Carte des navettes' : undefined}
+      // Plein écran = tout le cadre du guide (premier ancêtre positionné), pas la fenêtre.
+      className={
+        fullscreen
+          ? 'absolute inset-0 z-[60] bg-[#E8E6E2]'
+          : 'relative h-[260px] overflow-hidden rounded-[20px] bg-[#E8E6E2] shadow-[0_1px_2px_rgba(17,17,17,0.06)]'
+      }
+    >
+      <button
+        type="button"
+        onClick={() => setFullscreen(value => !value)}
+        aria-label={fullscreen ? 'Quitter le plein écran' : 'Afficher la carte en plein écran'}
+        className={`absolute right-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-[#111111] shadow-[0_2px_8px_rgba(17,17,17,0.15)] ${
+          fullscreen ? 'top-[calc(12px+env(safe-area-inset-top))]' : 'top-3'
+        }`}
+      >
+        {fullscreen ? <Minimize2 className="h-5 w-5" aria-hidden="true" /> : <Maximize2 className="h-5 w-5" aria-hidden="true" />}
+      </button>
       <Map
         ref={mapRef}
         style={{ width: '100%', height: '100%' }}
@@ -127,15 +160,16 @@ export function FacilibusMap({
               <span
                 role="img"
                 aria-label={`Navette ligne ${line?.shortName ?? ''}`.trim()}
-                className="relative grid h-7 w-7 place-items-center rounded-full border-2 border-white text-[12px] font-bold shadow-[0_2px_8px_rgba(17,17,17,0.3)]"
+                className="relative flex h-8 items-center gap-1 rounded-full border-2 border-white px-2 text-[13px] font-bold shadow-[0_2px_8px_rgba(17,17,17,0.3)]"
                 style={{ backgroundColor: line?.color ?? '#111111', color: line?.textColor ?? '#ffffff' }}
               >
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 animate-ping rounded-full opacity-30 motion-reduce:animate-none"
+                  className="absolute inset-0 animate-ping rounded-full opacity-25 motion-reduce:animate-none"
                   style={{ backgroundColor: line?.color ?? '#111111' }}
                 />
-                <span className="relative">{line?.shortName ?? '•'}</span>
+                <Bus data-testid="shuttle-bus-icon" className="relative h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
+                {line ? <span className="relative leading-none">{line.shortName}</span> : null}
               </span>
             </Marker>
           )
