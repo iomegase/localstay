@@ -238,9 +238,14 @@ describe('034-private-guide-app private data adapter', () => {
       practical_blocks: [],
       arrival_instructions: [
         {
+          title: null,
           text: 'Ouvrez le portail',
           video_url: 'https://youtu.be/abc',
           photos: ['https://cdn.example.com/a.jpg'],
+          kind: 'custom',
+          tip: null,
+          substeps: null,
+          facts: null,
         },
       ],
     })
@@ -250,9 +255,14 @@ describe('034-private-guide-app private data adapter', () => {
 
     expect(result?.lodging.arrivalInstructions).toEqual([
       {
+        title: null,
         text: 'Ouvrez le portail',
         videoUrl: 'https://youtu.be/abc',
         photos: ['https://cdn.example.com/a.jpg'],
+        kind: 'custom',
+        tip: null,
+        substeps: [],
+        facts: [],
       },
     ])
   })

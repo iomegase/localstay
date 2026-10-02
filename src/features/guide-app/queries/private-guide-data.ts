@@ -14,6 +14,7 @@ import type {
 } from '@/features/guide-app/types'
 import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
 import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
+import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/lib/arrival-steps'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiHours } from '@/features/categories/types'
 
@@ -40,7 +41,11 @@ export async function getPrivateGuideData(
           trash_bins: true,
           trash_location: true,
           presentation_video_url: true,
+          key_box_code: true,
         },
+      },
+      public_profile: {
+        select: { max_guests: true, bedroom_count: true, surface_m2: true, deleted_at: true },
       },
       practical_blocks: {
         where: { deleted_at: null },
@@ -57,7 +62,16 @@ export async function getPrivateGuideData(
       arrival_instructions: {
         where: { deleted_at: null },
         orderBy: { sort_order: 'asc' },
-        select: { title: true, text: true, video_url: true, photos: true },
+        select: {
+          title: true,
+          text: true,
+          video_url: true,
+          photos: true,
+          kind: true,
+          tip: true,
+          substeps: true,
+          facts: true,
+        },
       },
     },
   })
@@ -112,6 +126,7 @@ export async function getPrivateGuideData(
   })
 
   const customization = lodging.customization
+  const profile = lodging.public_profile?.deleted_at ? null : lodging.public_profile
   const coverImage = customization?.cover_photo_url?.trim()
 
   return {
@@ -138,6 +153,10 @@ export async function getPrivateGuideData(
         text: instruction.text,
         videoUrl: instruction.video_url,
         photos: instruction.photos,
+        kind: instruction.kind,
+        tip: instruction.tip?.trim() || null,
+        substeps: parseArrivalSubsteps(instruction.substeps),
+        facts: parseArrivalFacts(instruction.facts),
       })),
       departureInstructions: [...FIXED_DEPARTURE_INSTRUCTIONS],
       houseRules: [...FIXED_HOUSE_RULES],
@@ -154,6 +173,12 @@ export async function getPrivateGuideData(
         (customization?.trash_bins as unknown as { type: string }[] | null) ?? []
       ).filter(bin => isTrashBinType(bin.type)),
       trashLocation: customization?.trash_location?.trim() || null,
+      keyBoxCode: customization?.key_box_code?.trim() || null,
+      stats: {
+        guests: profile?.max_guests ?? null,
+        bedrooms: profile?.bedroom_count ?? null,
+        surfaceM2: profile?.surface_m2 ?? null,
+      },
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
   }

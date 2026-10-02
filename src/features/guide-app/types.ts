@@ -1,4 +1,5 @@
 import type { PoiHours } from '@/features/categories/types'
+import type { ArrivalFact, ArrivalStepKind, ArrivalSubstep } from '@/features/guide-app/lib/arrival-steps'
 
 export type GuideMode = 'private' | 'demo'
 
@@ -17,6 +18,7 @@ export type GuideView =
   | 'lodging-detail'
   | 'blog-detail'
   | 'contact'
+  | 'help'
 
 /** Carte logement affichée dans l'app (données injectées, aucun lien sortant). */
 export type GuideLodgingCard = {
@@ -156,6 +158,18 @@ export type GuideArrivalInstruction = {
   text: string
   videoUrl: string | null
   photos: string[]
+  /** Spec 054 — étape typée (onglet du parcours d'arrivée). */
+  kind: ArrivalStepKind
+  tip: string | null
+  substeps: ArrivalSubstep[]
+  facts: ArrivalFact[]
+}
+
+/** Spec 054 AC-01-02 — stats affichées sous le hero quand elles sont connues. */
+export type GuideLodgingStats = {
+  guests: number | null
+  bedrooms: number | null
+  surfaceM2: number | null
 }
 
 export type GuideLodging = {
@@ -183,6 +197,9 @@ export type GuideLodging = {
   /** Bacs de tri actifs (recyclage) + localisation du point de tri. */
   trashBins: { type: string }[]
   trashLocation: string | null
+  /** Spec 054 AC-02-03 — code de boîte à clés (guide privé uniquement, BR-03). */
+  keyBoxCode: string | null
+  stats: GuideLodgingStats
 }
 
 export type PrivateGuideData = {

@@ -113,6 +113,32 @@ async function sendContactEmail(
   }
 }
 
+interface StayEventNotificationParams {
+  id: string
+  type: 'arrived' | 'departed'
+  lodgingName: string
+  cityName: string
+}
+
+/** Signal anonyme d'arrivée / de départ depuis le guide privé (spec 054 AC-03-01/02). */
+export async function sendStayEventNotificationEmail(input: StayEventNotificationParams): Promise<boolean> {
+  const arrived = input.type === 'arrived'
+  const lodgingName = input.lodgingName.replace(/[\r\n]+/g, ' ')
+  return sendContactEmail({
+    from: 'MyStay <bonjour@mystay.city>',
+    to: 'bonjour@mystay.city',
+    subject: `${arrived ? 'Arrivée' : 'Départ'} voyageur — ${lodgingName}`,
+    text: [
+      arrived
+        ? `Un voyageur vient de signaler son arrivée au logement ${lodgingName} (${input.cityName}).`
+        : `Un voyageur vient de signaler son départ du logement ${lodgingName} (${input.cityName}).`,
+      `Heure : ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
+      '',
+      `Référence : ${input.id}`,
+    ].join('\n'),
+  }, `stay-event-${input.id}`)
+}
+
 /** Notification interne d'une demande séminaire (spec 052 AC-01-03). */
 export async function sendSeminarLeadNotificationEmail(input: OwnerLeadNotificationParams): Promise<boolean> {
   return sendContactEmail({
