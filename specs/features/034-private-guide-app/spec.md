@@ -134,9 +134,10 @@ les routes privées historiques existantes.
 - **BR-12**: La largeur privée historique reste limitée à 430 px hors modal de
   démonstration. Aucun `zoom` ni `transform: scale()` n'est autorisé.
 - **BR-13**: Dans le `GuideApp` partagé par le guide privé et le guide démo, le
-  bouton burger et `GuideMenuOverlay` ne sont pas rendus lorsque
-  `NODE_ENV === 'production'`. Ils restent disponibles hors production. Les
-  autres menus publics ne sont pas concernés.
+  bouton burger et `GuideMenuOverlay` sont rendus dans tous les environnements,
+  production comprise (amendé par le Product Owner le 2026-10-02 ; masqués en
+  production du 2026-08-09 au 2026-10-02). Les autres menus publics ne sont pas
+  concernés.
 
 ## Data Model
 

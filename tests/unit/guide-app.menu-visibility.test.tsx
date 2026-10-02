@@ -7,10 +7,14 @@ import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 describe('034 BR-13 — visibilité temporaire du menu GuideApp', () => {
-  it('active le menu hors production et le désactive en production', () => {
-    expect(isGuideMenuEnabled('development')).toBe(true)
-    expect(isGuideMenuEnabled('test')).toBe(true)
-    expect(isGuideMenuEnabled('production')).toBe(false)
+  it('active le menu dans tous les environnements, production comprise (BR-13 amendée le 2026-10-02)', () => {
+    const previous = process.env.NODE_ENV
+    Object.assign(process.env, { NODE_ENV: 'production' })
+    try {
+      expect(isGuideMenuEnabled()).toBe(true)
+    } finally {
+      Object.assign(process.env, { NODE_ENV: previous })
+    }
   })
 
   it('conserve le burger et l’overlay lorsque le menu est activé', () => {
