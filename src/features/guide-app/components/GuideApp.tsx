@@ -22,6 +22,7 @@ import { GuideHouseGuide } from './stay/GuideHouseGuide'
 import { GuideStayHome } from './stay/GuideStayHome'
 import { GuideWifiSheet } from './stay/GuideWifiSheet'
 import { useStayProgress } from './stay/useStayProgress'
+import { useTravelTimes } from './stay/useTravelTimes'
 import { GuideFacilibusView } from '@/features/transport/components/GuideFacilibusView'
 import { GuideTransportEntry } from '@/features/transport/components/GuideTransportEntry'
 import { GuideTransportView } from '@/features/transport/components/GuideTransportView'
@@ -119,6 +120,7 @@ function GuideAppShell({
   const scrollRef = useRef<HTMLElement>(null)
   const [wifiOpen, setWifiOpen] = useState(false)
   const stay = useStayProgress(lodging.id, { persist: mode === 'private' })
+  const travelTimes = useTravelTimes(mode === 'private' && lodging.locationPrecise && pois.length > 0)
   const departureDone = departureTasks(lodging.departureInstructions).filter((_, index) =>
     stay.checked.has(index),
   ).length
@@ -315,6 +317,7 @@ function GuideAppShell({
             pois={pois}
             city={lodging.city}
             origin={lodging.locationPrecise ? { latitude: lodging.latitude, longitude: lodging.longitude } : null}
+            travelTimes={travelTimes}
             selectedCategorySlug={selectedCategorySlug}
             scrollContainerRef={scrollRef}
             onFilter={filterCategory}
@@ -327,6 +330,7 @@ function GuideAppShell({
             mode={mode}
             poi={selectedPoi}
             lodging={lodging}
+            travel={travelTimes?.[selectedPoi.id]}
             onBack={() => navigate(poiOrigin)}
             onShowOnMap={showOnMap}
             onStartTrail={onStartTrail}

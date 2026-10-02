@@ -8,12 +8,21 @@ import type { GuidePoi } from '@/features/guide-app/types'
 import { getFavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import { GuideFavoriteBentoCard } from './GuideFavoriteBentoCard'
 import { GuideSearchEmpty, GuideSearchHeader } from './stay/GuideSearchHeader'
-import { filterPoisByQuery, formatDistanceMeters } from './stay/poi-search'
+import { GuideLocationToggle } from './stay/GuideLocationToggle'
+import { filterPoisByQuery, formatDistanceMeters, primaryTravel, type TravelTimeValues } from './stay/poi-search'
+import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
+
+const DISTANCE_SOURCE_LABELS = {
+  position: "Distances à vol d'oiseau depuis votre position",
+  travel: 'Temps de trajet estimés depuis le logement',
+  lodging: "Distances à vol d'oiseau depuis le logement",
+} as const
 
 export function GuideFavoritesPage({
   pois,
   city,
   origin = null,
+  travelTimes = null,
   selectedCategorySlug,
   scrollContainerRef,
   onFilter,
@@ -24,6 +33,8 @@ export function GuideFavoritesPage({
   city: string
   /** Coordonnées géocodées du logement ; null = aucune distance (spec 056 BR-01). */
   origin?: { latitude: number; longitude: number } | null
+  /** Temps MapBox depuis le logement par POI (spec 057) ; null = indisponibles. */
+  travelTimes?: Record<string, TravelTimeValues> | null
   selectedCategorySlug: string | null
   scrollContainerRef?: RefObject<HTMLElement | null>
   onFilter: (categorySlug: string | null) => void
@@ -36,16 +47,30 @@ export function GuideFavoritesPage({
     ).values(),
   )
   const [query, setQuery] = useState('')
+  const userLocation = useUserLocation()
+  const position = userLocation.status === 'ready' ? userLocation.location : null
+  const hasTravel = Boolean(travelTimes && Object.keys(travelTimes).length > 0)
+  // Priorité (spec 057 / 003 BR-01a) : position GPS, puis temps depuis le logement,
+  // puis vol d'oiseau depuis le logement ; rien sans origine fiable.
+  const distanceSource: 'position' | 'travel' | 'lodging' | null =
+    position ? 'position' : hasTravel ? 'travel' : origin ? 'lodging' : null
   const located = useMemo(
-    () => origin
-      ? pois.map(poi => ({
-          ...poi,
-          distanceLabel: formatDistanceMeters(
-            haversineMeters(origin.latitude, origin.longitude, poi.latitude, poi.longitude),
-          ),
-        }))
-      : pois,
-    [pois, origin],
+    () => pois.map((poi): GuidePoi => {
+      if (position) {
+        const meters = haversineMeters(position.latitude, position.longitude, poi.latitude, poi.longitude)
+        return { ...poi, distanceLabel: `${formatDistanceMeters(meters)} de vous`, distanceMode: 'crow' }
+      }
+      if (hasTravel) {
+        const travel = primaryTravel(travelTimes?.[poi.id])
+        return travel ? { ...poi, distanceLabel: travel.label, distanceMode: travel.mode } : poi
+      }
+      if (origin) {
+        const meters = haversineMeters(origin.latitude, origin.longitude, poi.latitude, poi.longitude)
+        return { ...poi, distanceLabel: formatDistanceMeters(meters), distanceMode: 'crow' }
+      }
+      return poi
+    }),
+    [pois, origin, position, hasTravel, travelTimes],
   )
   const inCategory = selectedCategorySlug
     ? located.filter(poi => poi.category.slug === selectedCategorySlug)
@@ -55,7 +80,20 @@ export function GuideFavoritesPage({
 
   return (
     <div className="min-h-full bg-[#F6F6F4] px-3 pb-[120px] pt-5">
-      <GuideSearchHeader city={city} query={query} onQueryChange={setQuery} />
+      <GuideSearchHeader
+        city={city}
+        query={query}
+        onQueryChange={setQuery}
+        locationControl={
+          <GuideLocationToggle
+            active={Boolean(position)}
+            loading={userLocation.status === 'loading'}
+            denied={userLocation.status === 'denied' || userLocation.status === 'unavailable'}
+            onRequest={userLocation.requestLocation}
+            onClear={userLocation.clearLocation}
+          />
+        }
+      />
 
       <div
         className="sticky top-0 z-20 -mx-3 mt-3 flex gap-2 overflow-x-auto bg-[#F6F6F4]/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -76,8 +114,8 @@ export function GuideFavoritesPage({
         ))}
       </div>
 
-      {origin ? (
-        <p className="px-2 text-[12px] text-[#697386]">Distances à vol d&apos;oiseau depuis le logement</p>
+      {distanceSource ? (
+        <p className="px-2 text-[12px] text-[#697386]">{DISTANCE_SOURCE_LABELS[distanceSource]}</p>
       ) : null}
 
       {visiblePois.length > 0 ? (

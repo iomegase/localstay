@@ -1,5 +1,7 @@
 'use client'
 
+import { primaryTravel } from '@/features/guide-app/components/stay/poi-search'
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Home, Minus, Navigation, Plus } from 'lucide-react'
@@ -467,7 +469,7 @@ export function DemoMapView({
                   {selectedPoi.name}
                 </strong>
                 <span className="mt-1.5 block text-[10px] leading-4 text-slate-500">
-                  {selectedPoi.distanceLabel ??
+                  {travelSummary(selectedPoi) ??
                     selectedPoi.address.split(',').map((part, index) => (
                       <span key={index} className="block">
                         {part.trim()}
@@ -528,4 +530,11 @@ function MapFilter({
       {label}
     </button>
   )
+}
+
+/** « À pied 6 min depuis le logement » (temps MapBox figés, spec 057). */
+function travelSummary(poi: DemoPoi): string | null {
+  const travel = primaryTravel(poi.travel)
+  if (!travel) return null
+  return `${travel.mode === 'walking' ? 'À pied' : 'En voiture'} ${travel.label} depuis le logement`
 }

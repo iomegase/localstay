@@ -70,6 +70,8 @@ const walkingRoutesByPoiId: Partial<
   'demo-poi-porcherey': [[6.708127,45.892295],[6.707487,45.891947],[6.707575,45.890896],[6.706315,45.890009],[6.706648,45.889387],[6.70612,45.889028],[6.704138,45.888747],[6.702898,45.887817],[6.701872,45.888571],[6.703632,45.885369],[6.703889,45.883827],[6.704806,45.882775],[6.704816,45.881395],[6.704069,45.88024],[6.704714,45.877885],[6.706284,45.875925],[6.706053,45.875771],[6.703994,45.876878],[6.705122,45.874897],[6.703049,45.872936],[6.702273,45.870166],[6.702889,45.86997],[6.703788,45.870668],[6.706328,45.87101],[6.709015,45.869777],[6.70594,45.869082],[6.709137,45.867912],[6.711045,45.868169],[6.71225,45.867915],[6.713059,45.867152],[6.715197,45.86621],[6.717467,45.863934]],
 }
 
+// Temps de trajet MapBox (Matrix) calculés le 2026-10-02 depuis l'adresse vitrine
+// et figés ici : la démo n'appelle aucune API (spec 057 AC-03-01, 045 BR-05).
 const baseDemoPois: DemoPoi[] = [
   {
     id: 'demo-poi-rond-de-carotte',
@@ -87,7 +89,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.893744,
     longitude: 6.711702,
     address: '50 rue de la Vignette, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 4 min',
+    travel: { walkingSeconds: 319, drivingSeconds: 255 },
     durationLabel: '1 h 30',
     recommended: true,
     website: 'https://www.ronddecarotte.com/',
@@ -108,7 +110,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.892444,
     longitude: 6.711432,
     address: '38 avenue du Mont Paccard, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 3 min',
+    travel: { walkingSeconds: 407, drivingSeconds: 105 },
     durationLabel: '1 h 30',
     website: 'https://www.3serac.fr/',
     phone: '04 50 98 43 35',
@@ -131,7 +133,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.864073,
     longitude: 6.687634,
     address: '1635 route des Communailles, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 18 min',
+    travel: { walkingSeconds: 3938, drivingSeconds: 1015 },
     durationLabel: '2 h',
     recommended: true,
     website: 'https://lerelaisdescommunailles.com/',
@@ -152,7 +154,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.888729,
     longitude: 6.712794,
     address: '28 impasse de la Cascade, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 5 min',
+    travel: { walkingSeconds: 601, drivingSeconds: 127 },
     durationLabel: '20 min',
     familyFriendly: true,
     website:
@@ -172,7 +174,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.892358,
     longitude: 6.712075,
     address: '28 rue du Mont Blanc, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 3 min',
+    travel: { walkingSeconds: 434, drivingSeconds: 184 },
     durationLabel: '20 min',
     nearby: true,
     website: 'https://www.carrefour.fr/magasin/express-saint-gervais',
@@ -196,7 +198,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.892541,
     longitude: 6.713033,
     address: '114 passage Montjoux, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 5 min',
+    travel: { walkingSeconds: 507, drivingSeconds: 274 },
     durationLabel: '1 h',
     recommended: true,
     familyFriendly: true,
@@ -219,7 +221,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.892227,
     longitude: 6.710875,
     address: '15 avenue du Mont Paccard, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 2 min',
+    travel: { walkingSeconds: 460, drivingSeconds: 129 },
     durationLabel: '1 h',
     familyFriendly: true,
     website:
@@ -241,7 +243,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.897875,
     longitude: 6.711024,
     address: '571 rue du Mont Lachat, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 9 min',
+    travel: { walkingSeconds: 531, drivingSeconds: 96 },
     durationLabel: 'Demi-journée',
     recommended: true,
     familyFriendly: true,
@@ -262,7 +264,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.891922,
     longitude: 6.713623,
     address: '201 avenue du Mont d’Arbois, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 5 min',
+    travel: { walkingSeconds: 519, drivingSeconds: 158 },
     durationLabel: 'Demi-journée',
     familyFriendly: true,
     website:
@@ -283,7 +285,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.884329,
     longitude: 6.715136,
     address: '798 avenue de Miage, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 8 min',
+    travel: { walkingSeconds: 1031, drivingSeconds: 252 },
     durationLabel: '2 h',
     familyFriendly: true,
     website:
@@ -303,7 +305,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.906164,
     longitude: 6.706591,
     address: 'Parc thermal, Le Fayet, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 12 min',
+    travel: { walkingSeconds: 1490, drivingSeconds: 425 },
     durationLabel: '1 h',
     familyFriendly: true,
     nearby: true,
@@ -323,7 +325,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.896529,
     longitude: 6.70612,
     address: '355 allée du Docteur Lépinay, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 8 min',
+    travel: { walkingSeconds: 838, drivingSeconds: 623 },
     durationLabel: 'Demi-journée',
     website: 'https://www.thermes-saint-gervais.com/',
     directionsUrl: directions(45.896529, 6.70612),
@@ -341,7 +343,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.88841,
     longitude: 6.714553,
     address: 'Pont du Diable, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 6 min',
+    travel: { walkingSeconds: 844, drivingSeconds: 228 },
     durationLabel: '30 min',
     familyFriendly: true,
     website:
@@ -360,7 +362,7 @@ const baseDemoPois: DemoPoi[] = [
     latitude: 45.863934,
     longitude: 6.717467,
     address: 'Départ à Saint-Nicolas de Véroce, 74170 Saint-Gervais-les-Bains',
-    distanceLabel: 'À 17 min',
+    travel: { walkingSeconds: 3520, drivingSeconds: 660 },
     durationLabel: '3 h 30',
     recommended: true,
     website:

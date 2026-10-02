@@ -32,3 +32,29 @@ export function formatDistanceMeters(meters: number): string {
 export function guideCityTitle(city: string): string {
   return city.replace(/-les-bains$/i, '')
 }
+
+/** Au-delà de 25 min à pied, la grille affiche le temps en voiture (spec 057 AC-01-01). */
+export const WALKING_MAX_SECONDS = 25 * 60
+
+export type TravelTimeValues = { walkingSeconds: number | null; drivingSeconds: number | null }
+export type TravelMode = 'walking' | 'driving'
+
+/** « 6 min », « 1 h 05 », « 2 h ». */
+export function formatTravelDuration(seconds: number): string {
+  const minutes = Math.max(1, Math.round(seconds / 60))
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return rest === 0 ? `${hours} h` : `${hours} h ${String(rest).padStart(2, '0')}`
+}
+
+/** Le temps réel le plus pertinent pour une carte : à pied si court, sinon en voiture. */
+export function primaryTravel(travel: TravelTimeValues | undefined): { mode: TravelMode; label: string } | null {
+  if (!travel) return null
+  if (travel.walkingSeconds !== null && travel.walkingSeconds <= WALKING_MAX_SECONDS) {
+    return { mode: 'walking', label: formatTravelDuration(travel.walkingSeconds) }
+  }
+  if (travel.drivingSeconds !== null) return { mode: 'driving', label: formatTravelDuration(travel.drivingSeconds) }
+  if (travel.walkingSeconds !== null) return { mode: 'walking', label: formatTravelDuration(travel.walkingSeconds) }
+  return null
+}

@@ -118,6 +118,8 @@ export type GuidePoi = {
   longitude: number
   address: string
   distanceLabel?: string
+  /** Spec 057 — icône du libellé de distance (marche, voiture, vol d'oiseau). */
+  distanceMode?: 'walking' | 'driving' | 'crow'
   durationLabel?: string
   recommended?: boolean
   familyFriendly?: boolean

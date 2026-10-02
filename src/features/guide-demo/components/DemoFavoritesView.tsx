@@ -1,10 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Clock3, Map as MapIcon, MapPin } from 'lucide-react'
+import { Car, Clock3, Footprints, Map as MapIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { GuideSearchEmpty, GuideSearchHeader } from '@/features/guide-app/components/stay/GuideSearchHeader'
-import { filterPoisByQuery } from '@/features/guide-app/components/stay/poi-search'
+import { filterPoisByQuery, primaryTravel } from '@/features/guide-app/components/stay/poi-search'
 import type { DemoPoi } from '@/features/guide-demo/types'
 import { DemoPoiImage } from './DemoPoiImage'
 
@@ -110,6 +110,7 @@ function DemoFavoriteBentoCard({
   onShowOnMap: (poi: DemoPoi) => void
 }) {
   const isBig = variant === 'big'
+  const travel = primaryTravel(poi.travel)
   const durationLabel =
     poi.durationLabel && poi.durationLabel !== 'Demi-journée'
       ? poi.durationLabel
@@ -167,16 +168,20 @@ function DemoFavoriteBentoCard({
           {capitalizeFirst(poi.name)}
         </h2>
 
-        {poi.distanceLabel || durationLabel ? (
+        {travel || durationLabel ? (
           <div
             className={`mt-2 flex items-center gap-3 text-white/80 ${
               isBig ? 'text-[11px]' : 'text-[9px]'
             }`}
           >
-            {poi.distanceLabel ? (
+            {travel ? (
               <span className="flex items-center gap-1">
-                <MapPin className={isBig ? 'h-3.5 w-3.5' : 'h-3 w-3'} />
-                {poi.distanceLabel}
+                <span role="img" aria-label={travel.mode === 'walking' ? 'À pied' : 'En voiture'}>
+                  {travel.mode === 'walking'
+                    ? <Footprints className={isBig ? 'h-3.5 w-3.5' : 'h-3 w-3'} aria-hidden="true" />
+                    : <Car className={isBig ? 'h-3.5 w-3.5' : 'h-3 w-3'} aria-hidden="true" />}
+                </span>
+                {travel.label}
               </span>
             ) : null}
             {durationLabel ? (

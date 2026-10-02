@@ -1,7 +1,11 @@
 'use client'
 
+import { formatTravelDuration } from '@/features/guide-app/components/stay/poi-search'
+
 import {
   ArrowLeft,
+  Car,
+  Footprints,
   Globe,
   Map,
   MapPin,
@@ -178,6 +182,24 @@ export function DemoPoiDetailView({
             </div>
           ) : null}
         </div>
+
+        {poi.travel && (poi.travel.walkingSeconds !== null || poi.travel.drivingSeconds !== null) ? (
+          // Spec 057 AC-01-02 : temps MapBox figés depuis l'adresse vitrine.
+          <span data-testid="poi-detail-travel" className="mx-6 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-pink-600">
+            {poi.travel.walkingSeconds !== null ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Footprints className="h-3 w-3" aria-hidden="true" />
+                À pied {formatTravelDuration(poi.travel.walkingSeconds)}
+              </span>
+            ) : null}
+            {poi.travel.drivingSeconds !== null ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Car className="h-3 w-3" aria-hidden="true" />
+                En voiture {formatTravelDuration(poi.travel.drivingSeconds)}
+              </span>
+            ) : null}
+          </span>
+        ) : null}
 
         <span data-testid="poi-detail-distance" className="mx-6 inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
           <MapPin className="h-3 w-3" aria-hidden="true" />

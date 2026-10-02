@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type RefObject } from 'react'
-import { Clock3, Map as MapIcon, MapPin } from 'lucide-react'
+import { Car, Clock3, Footprints, Map as MapIcon, MapPin } from 'lucide-react'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import { capitalizeFirst } from '@/shared/lib/utils'
 import type { FavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
@@ -93,7 +93,7 @@ export function GuideFavoriteBentoCard({
           <div className={`mt-2 flex items-center gap-3 text-white/80 ${isBig ? 'text-[11px]' : 'text-[9px]'}`}>
             {poi.distanceLabel && (
               <span className="flex items-center gap-1">
-                <MapPin className={isBig ? 'h-3.5 w-3.5' : 'h-3 w-3'} />
+                <DistanceIcon mode={poi.distanceMode} className={isBig ? 'h-3.5 w-3.5' : 'h-3 w-3'} />
                 {poi.distanceLabel}
               </span>
             )}
@@ -118,4 +118,15 @@ export function GuideFavoriteBentoCard({
       </button>
     </article>
   )
+}
+
+/** Icône du libellé de distance : marche, voiture (temps MapBox) ou vol d'oiseau (spec 057). */
+function DistanceIcon({ mode, className }: { mode: GuidePoi['distanceMode']; className: string }) {
+  if (mode === 'walking') {
+    return <span role="img" aria-label="À pied"><Footprints className={className} aria-hidden="true" /></span>
+  }
+  if (mode === 'driving') {
+    return <span role="img" aria-label="En voiture"><Car className={className} aria-hidden="true" /></span>
+  }
+  return <MapPin className={className} aria-hidden="true" />
 }

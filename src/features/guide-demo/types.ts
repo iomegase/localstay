@@ -65,6 +65,8 @@ export type DemoPoi = {
   longitude: number
   address: string
   distanceLabel?: string
+  /** Spec 057 : temps MapBox figés depuis l'adresse vitrine. */
+  travel?: { walkingSeconds: number | null; drivingSeconds: number | null }
   durationLabel?: string
   recommended?: boolean
   familyFriendly?: boolean

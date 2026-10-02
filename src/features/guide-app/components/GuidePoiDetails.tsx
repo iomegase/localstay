@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, MapPin, Navigation, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Car, Footprints, MapPin, Navigation, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HoursBlock } from '@/features/categories/components/HoursBlock'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
@@ -11,6 +11,7 @@ import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import { canStartTrail } from '@/features/guide-app/lib/trail-access'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
 import type { GuideLodging, GuideMode, GuidePoi } from '@/features/guide-app/types'
+import { formatTravelDuration, type TravelTimeValues } from './stay/poi-search'
 
 export function GuidePoiDetails({
   mode,
@@ -19,10 +20,13 @@ export function GuidePoiDetails({
   onBack,
   onShowOnMap,
   onStartTrail,
+  travel,
 }: {
   mode: GuideMode
   poi: GuidePoi
   lodging: GuideLodging
+  /** Temps MapBox depuis le logement (spec 057 AC-01-02). */
+  travel?: TravelTimeValues
   onBack: () => void
   onShowOnMap: (poi: GuidePoi) => void
   onStartTrail?: (poi: GuidePoi) => void
@@ -87,12 +91,30 @@ export function GuidePoiDetails({
           )}
         </div>
 
-        {/* Distance from lodging (+ from user if GPS is active) */}
+        {/* Temps depuis le logement (spec 057), sinon distance logement ; + distance GPS si active */}
         <div className="flex flex-col gap-1 px-6">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
-            <MapPin className="h-3 w-3" />
-            <span data-testid="poi-detail-distance">{lodgingDistanceLabel(distanceKm)}</span>
-          </span>
+          {travel && (travel.walkingSeconds !== null || travel.drivingSeconds !== null) ? (
+            <span data-testid="poi-detail-travel" className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-pink-600">
+              {travel.walkingSeconds !== null ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <Footprints className="h-3 w-3" aria-hidden="true" />
+                  À pied {formatTravelDuration(travel.walkingSeconds)}
+                </span>
+              ) : null}
+              {travel.drivingSeconds !== null ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <Car className="h-3 w-3" aria-hidden="true" />
+                  En voiture {formatTravelDuration(travel.drivingSeconds)}
+                </span>
+              ) : null}
+              <span className="font-normal text-charcoal/60">depuis le logement</span>
+            </span>
+          ) : lodging.locationPrecise ? (
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
+              <MapPin className="h-3 w-3" />
+              <span data-testid="poi-detail-distance">{lodgingDistanceLabel(distanceKm)}</span>
+            </span>
+          ) : null}
           {userDistanceKm !== null && (
             <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
               <Navigation className="h-3 w-3" />

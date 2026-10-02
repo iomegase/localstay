@@ -9,12 +9,15 @@ export function GuideSearchHeader({
   query,
   onQueryChange,
   headingProps,
+  locationControl,
 }: {
   city: string
   query: string
   onQueryChange: (query: string) => void
   /** Attributs du titre (focus d'annonce de vue, data-*) fournis par l'appelant. */
   headingProps?: React.HTMLAttributes<HTMLHeadingElement> & Record<`data-${string}`, string>
+  /** Bouton « Utiliser ma position » (guide privé uniquement, spec 057). */
+  locationControl?: React.ReactNode
 }) {
   return (
     <div className="px-2">
@@ -45,6 +48,7 @@ export function GuideSearchHeader({
           </button>
         ) : null}
       </label>
+      {locationControl}
     </div>
   )
 }
