@@ -127,6 +127,31 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     }
   })
 
+  it('055 AC-05-01: shows the transport row without any request, then live shuttles on demand', async () => {
+    const fetchSpy = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({ status: 'available', data: [], meta: { fetchedAt: '2026-10-02T08:00:00.000Z', sourceUpdatedAt: null, freshness: 'unknown' } }),
+    }))
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchSpy as unknown as typeof fetch
+    try {
+      render(<DemoGuideApp />)
+      expect(screen.queryByRole('region', { name: 'Prochaines navettes' })).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /Se déplacer/ }))
+      expect(screen.getByRole('heading', { name: 'Tramway du Mont-Blanc' })).toBeInTheDocument()
+      expect(fetchSpy).not.toHaveBeenCalled()
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /Navette gratuite/ }))
+      })
+      expect(fetchSpy).toHaveBeenCalled()
+      expect((fetchSpy.mock.calls as unknown as [string][]).every(([url]) => url.startsWith('/api/transport/facilibus/'))).toBe(true)
+      expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   it.each([
     { destination: 'Nos logements', heading: 'Des lieux suivis avec attention.' },
     { destination: 'Journal', heading: 'Inspirations... et conseils pour vos séjours' },

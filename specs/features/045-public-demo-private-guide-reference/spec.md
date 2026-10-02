@@ -242,6 +242,15 @@ contrôle d'accès ni route du guide privé.
   et le déclencheur restent rendus et les vues concernées utilisent leur état
   vide.
 
+## Amendements
+
+- **2026-10-02 (specs 054 AC-06-01 et 055 AC-05-01)** : la démo réutilise les
+  écrans de séjour partagés (`guide-app/components/stay`, `GuideNavigation`,
+  libs de présentation) et les composants `transport`, sans query, cookie ni
+  base. Exception à AC-02-04 / BR-07 : la page Facilibus, ouverte par le
+  visiteur, appelle `/api/transport/facilibus/*` (ressource publique
+  autorisée). La liste blanche du test d'isolation reflète ces modules.
+
 ## Business Rules
 
 - **BR-01**: Le guide privé est une référence en lecture seule. Le chantier ne

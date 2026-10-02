@@ -50,6 +50,43 @@ describe('054 AC-02-01/AC-05-02 — private guide data', () => {
     })
   })
 
+  it('055: exposes precise location, Facilibus coverage and the city transport cards', async () => {
+    lodgingFindFirst.mockResolvedValue({
+      ...baseLodging,
+      city: {
+        ...baseLodging.city,
+        slug: 'saint-gervais-les-bains',
+        transport_cards: [{ id: 'card-1', title: 'Taxi', tag: null, body: 'Sur réservation.' }],
+      },
+      customization: { lodging_latitude: 45.8915, lodging_longitude: 6.7085 },
+      public_profile: null,
+      arrival_instructions: [],
+    })
+
+    const result = await getPrivateGuideData('lodging-1')
+
+    expect(result?.lodging).toMatchObject({
+      locationPrecise: true,
+      facilibus: true,
+      latitude: 45.8915,
+      transportCards: [{ id: 'card-1', title: 'Taxi', tag: null, body: 'Sur réservation.' }],
+    })
+  })
+
+  it('055: never treats the city centre fallback as a precise location', async () => {
+    lodgingFindFirst.mockResolvedValue({
+      ...baseLodging,
+      city: { ...baseLodging.city, slug: 'les-contamines-montjoie', transport_cards: [] },
+      customization: { lodging_latitude: null, lodging_longitude: null },
+      public_profile: null,
+      arrival_instructions: [],
+    })
+
+    const result = await getPrivateGuideData('lodging-1')
+
+    expect(result?.lodging).toMatchObject({ locationPrecise: false, facilibus: false, latitude: 45.891 })
+  })
+
   it('leaves stats and key code empty when unknown', async () => {
     lodgingFindFirst.mockResolvedValue({
       ...baseLodging,

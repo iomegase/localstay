@@ -19,6 +19,8 @@ export type GuideView =
   | 'blog-detail'
   | 'contact'
   | 'help'
+  | 'transport'
+  | 'facilibus'
 
 /** Carte logement affichée dans l'app (données injectées, aucun lien sortant). */
 export type GuideLodgingCard = {
@@ -200,6 +202,19 @@ export type GuideLodging = {
   /** Spec 054 AC-02-03 — code de boîte à clés (guide privé uniquement, BR-03). */
   keyBoxCode: string | null
   stats: GuideLodgingStats
+  /** Spec 055 — coordonnées issues de l'adresse géocodée (pas le centre-ville). */
+  locationPrecise: boolean
+  /** Spec 055 — ville desservie par les navettes Facilibus. */
+  facilibus: boolean
+  transportCards: GuideTransportCard[]
+}
+
+/** Carte « Se déplacer » saisie par l'admin pour la ville (spec 055 AC-03-01). */
+export type GuideTransportCard = {
+  id: string
+  title: string
+  tag: string | null
+  body: string
 }
 
 export type PrivateGuideData = {

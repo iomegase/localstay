@@ -30,6 +30,7 @@ export function GuideStayHome<P extends StayPoiCard>({
   onNavigate,
   onOpenWifi,
   onOpenPoi,
+  transportEntry,
 }: {
   lodging: GuideLodging
   pois: P[]
@@ -37,6 +38,8 @@ export function GuideStayHome<P extends StayPoiCard>({
   onNavigate: (view: Extract<GuideView, 'arrival' | 'rules' | 'departure' | 'favorites'>) => void
   onOpenWifi: () => void
   onOpenPoi: (poi: P) => void
+  /** Spec 055 : ligne « Se déplacer » ou carte « Prochaines navettes ». */
+  transportEntry?: React.ReactNode
 }) {
   const welcome = splitWelcome(lodging.name)
   const departureTotal = departureTasks(lodging.departureInstructions).length
@@ -109,6 +112,8 @@ export function GuideStayHome<P extends StayPoiCard>({
           <GuideLodgingVideoButton url={lodging.presentationVideoUrl} />
         </div>
       ) : null}
+
+      {transportEntry ? <div className="mx-5 mt-2.5">{transportEntry}</div> : null}
 
       {pois.length > 0 && (
         <section className="mt-[26px]">

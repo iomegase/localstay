@@ -114,4 +114,32 @@ export const demoLodging: DemoLodging = {
   trashLocation: 'Point de tri public du centre de Saint-Gervais',
   keyBoxCode: null,
   stats: { guests: 4, bedrooms: 2, surfaceM2: 62 },
+  locationPrecise: false,
+  facilibus: true,
+  transportCards: [
+    {
+      id: 'demo-transport-tramway',
+      title: 'Tramway du Mont-Blanc',
+      tag: 'Gare du village',
+      body: 'Monte vers Bellevue en hiver et vers le Nid d’Aigle en été.',
+    },
+    {
+      id: 'demo-transport-train',
+      title: 'Gare Saint-Gervais–Le Fayet',
+      tag: 'Train',
+      body: 'TER régionaux, TGV en saison et Mont-Blanc Express vers Chamonix.',
+    },
+    {
+      id: 'demo-transport-airport',
+      title: 'Aéroport de Genève',
+      tag: 'Transfert',
+      body: 'Transferts en navette sur réservation.',
+    },
+    {
+      id: 'demo-transport-taxi',
+      title: 'Taxi',
+      tag: 'Sur réservation',
+      body: 'La conciergerie vous réserve un taxi local de confiance.',
+    },
+  ],
 }

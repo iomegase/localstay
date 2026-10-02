@@ -1,0 +1,214 @@
+{
+ "header": {
+  "gtfsRealtimeVersion": "2.0",
+  "incrementality": "FULL_DATASET",
+  "timestamp": "1790940811"
+ },
+ "entity": [
+  {
+   "id": "trip:L1A_7",
+   "tripUpdate": {
+    "trip": {
+     "tripId": "L1A_7",
+     "scheduleRelationship": "SCHEDULED",
+     "routeId": "L1"
+    },
+    "stopTimeUpdate": [
+     {
+      "stopSequence": 0,
+      "arrival": {
+       "time": "1790940358"
+      },
+      "departure": {
+       "time": "1790941800"
+      },
+      "stopId": "DMC",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 1,
+      "arrival": {
+       "time": "1790941980"
+      },
+      "departure": {
+       "time": "1790941980"
+      },
+      "stopId": "ST MARTIN",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 2,
+      "arrival": {
+       "time": "1790942040"
+      },
+      "departure": {
+       "time": "1790942040"
+      },
+      "stopId": "LE CHATEAU",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 3,
+      "arrival": {
+       "time": "1790942100"
+      },
+      "departure": {
+       "time": "1790942100"
+      },
+      "stopId": "PISTE ROUGE",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 4,
+      "arrival": {
+       "time": "1790942160"
+      },
+      "departure": {
+       "time": "1790942160"
+      },
+      "stopId": "LA PLANCHETTE",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 5,
+      "arrival": {
+       "time": "1790942220"
+      },
+      "departure": {
+       "time": "1790942220"
+      },
+      "stopId": "ORSIN",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 6,
+      "arrival": {
+       "time": "1790942340"
+      },
+      "departure": {
+       "time": "1790942340"
+      },
+      "stopId": "LE GOLLET",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 7,
+      "arrival": {
+       "time": "1790942400"
+      },
+      "departure": {
+       "time": "1790942400"
+      },
+      "stopId": "LA COMBE",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 8,
+      "arrival": {
+       "time": "1790942460"
+      },
+      "departure": {
+       "time": "1790942460"
+      },
+      "stopId": "LACHAT",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 9,
+      "arrival": {
+       "time": "1790942520"
+      },
+      "departure": {
+       "time": "1790942520"
+      },
+      "stopId": "LES VINCENTS",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 10,
+      "arrival": {
+       "time": "1790942580"
+      },
+      "departure": {
+       "time": "1790942580"
+      },
+      "stopId": "LES PLANS",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 11,
+      "arrival": {
+       "time": "1790942640"
+      },
+      "departure": {
+       "time": "1790942640"
+      },
+      "stopId": "LES CHATTRIX",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 12,
+      "arrival": {
+       "time": "1790942670"
+      },
+      "departure": {
+       "time": "1790942670"
+      },
+      "stopId": "NANT BLANCHET",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 13,
+      "arrival": {
+       "time": "1790942700"
+      },
+      "departure": {
+       "time": "1790942700"
+      },
+      "stopId": "EGLISE",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 14,
+      "arrival": {
+       "time": "1790942730"
+      },
+      "departure": {
+       "time": "1790942730"
+      },
+      "stopId": "Télésiège du Centre A",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 15,
+      "arrival": {
+       "time": "1790942760"
+      },
+      "departure": {
+       "time": "1790942760"
+      },
+      "stopId": "SAINT NICOLAS DE VEROCE",
+      "scheduleRelationship": "SCHEDULED"
+     },
+     {
+      "stopSequence": 16,
+      "arrival": {
+       "time": "1790942820"
+      },
+      "departure": {
+       "time": "1790942820"
+      },
+      "stopId": "ROUTE DE LA CROIX",
+      "scheduleRelationship": "SCHEDULED"
+     }
+    ],
+    "vehicle": {
+     "id": "675ae519bb2b7e4329bf98a2",
+     "label": "newVehicle",
+     "licensePlate": "FV-751-TL"
+    },
+    "timestamp": "1790940807"
+   }
+  }
+ ]
+}

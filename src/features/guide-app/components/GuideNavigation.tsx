@@ -11,7 +11,7 @@ const items: { view: GuideTabView; label: string; icon: typeof House; matches: s
     view: 'home',
     label: 'Séjour',
     icon: House,
-    matches: ['home', 'lodging', 'arrival', 'departure', 'practical', 'rules'],
+    matches: ['home', 'lodging', 'arrival', 'departure', 'practical', 'rules', 'transport', 'facilibus'],
   },
   { view: 'favorites', label: 'Guide', icon: BookOpen, matches: ['favorites', 'poi'] },
   { view: 'map', label: 'Carte', icon: Map, matches: ['map'] },

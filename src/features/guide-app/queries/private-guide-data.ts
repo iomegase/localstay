@@ -15,6 +15,7 @@ import type {
 import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
 import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/lib/arrival-steps'
+import { isFacilibusCity } from '@/features/transport/facilibus'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiHours } from '@/features/categories/types'
 
@@ -26,7 +27,19 @@ export async function getPrivateGuideData(
     select: {
       id: true,
       name: true,
-      city: { select: { name: true, latitude: true, longitude: true } },
+      city: {
+        select: {
+          name: true,
+          slug: true,
+          latitude: true,
+          longitude: true,
+          transport_cards: {
+            where: { deleted_at: null },
+            orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
+            select: { id: true, title: true, tag: true, body: true },
+          },
+        },
+      },
       customization: {
         select: {
           welcome_message: true,
@@ -179,6 +192,10 @@ export async function getPrivateGuideData(
         bedrooms: profile?.bedroom_count ?? null,
         surfaceM2: profile?.surface_m2 ?? null,
       },
+      locationPrecise:
+        customization?.lodging_latitude != null && customization?.lodging_longitude != null,
+      facilibus: isFacilibusCity(lodging.city.slug),
+      transportCards: lodging.city.transport_cards ?? [],
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
   }

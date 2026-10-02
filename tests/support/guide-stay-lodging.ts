@@ -41,6 +41,11 @@ export function buildStayLodging(overrides: Partial<GuideLodging> = {}): GuideLo
     trashLocation: null,
     keyBoxCode: '4810',
     stats: { guests: 4, bedrooms: 2, surfaceM2: 52 },
+    locationPrecise: true,
+    facilibus: true,
+    transportCards: [
+      { id: 'card-taxi', title: 'Taxi', tag: 'Sur réservation', body: 'La conciergerie réserve votre taxi.' },
+    ],
     ...overrides,
   }
 }

@@ -22,6 +22,9 @@ import { GuideHouseGuide } from './stay/GuideHouseGuide'
 import { GuideStayHome } from './stay/GuideStayHome'
 import { GuideWifiSheet } from './stay/GuideWifiSheet'
 import { useStayProgress } from './stay/useStayProgress'
+import { GuideFacilibusView } from '@/features/transport/components/GuideFacilibusView'
+import { GuideTransportEntry } from '@/features/transport/components/GuideTransportEntry'
+import { GuideTransportView } from '@/features/transport/components/GuideTransportView'
 import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
 import type {
   GuideBlogDetail,
@@ -120,7 +123,7 @@ function GuideAppShell({
     stay.checked.has(index),
   ).length
   // Écrans secondaires plein écran (spec 054) : sans en-tête ni barre d'onglets.
-  const fullScreen = ['poi', 'arrival', 'departure', 'rules', 'practical'].includes(activeView)
+  const fullScreen = ['poi', 'arrival', 'departure', 'rules', 'practical', 'transport', 'facilibus'].includes(activeView)
 
   // Spec 054 US-03 : la démo n'émet aucun événement (AC-06-01).
   async function sendStayEvent(type: 'arrived' | 'departed') {
@@ -247,7 +250,18 @@ function GuideAppShell({
             onNavigate={navigate}
             onOpenWifi={() => setWifiOpen(true)}
             onOpenPoi={openPoi}
+            transportEntry={<GuideTransportEntry lodging={lodging} onOpen={() => navigate('transport')} />}
           />
+        )}
+        {activeView === 'transport' && (
+          <GuideTransportView
+            lodging={lodging}
+            onBack={() => navigate('home')}
+            onOpenFacilibus={() => navigate('facilibus')}
+          />
+        )}
+        {activeView === 'facilibus' && (
+          <GuideFacilibusView lodging={lodging} onBack={() => navigate('transport')} />
         )}
         {activeView === 'arrival' && (
           <GuideArrivalFlow

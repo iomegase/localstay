@@ -41,6 +41,7 @@ model City {
   analytics_page_daily_snapshots  AnalyticsPageDailySnapshot[]
   analytics_query_daily_snapshots AnalyticsQueryDailySnapshot[]
   analytics_city_daily_snapshots  AnalyticsCityDailySnapshot[]
+  transport_cards                 CityTransportCard[]
   analytics_perf_daily_snapshots  AnalyticsPerfDailySnapshot[]
   analytics_interaction_events    AnalyticsInteractionEvent[]
   local_landing_destination       LocalLandingDestination?
@@ -1463,4 +1464,22 @@ model LodgingStayEvent {
   type       StayEventType
 
   @@index([lodging_id, type, created_at])
+}
+
+// ─── Spec 055 — Transports de la ville (écran « Se déplacer ») ──────────────
+
+model CityTransportCard {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  city_id    String
+  city       City      @relation(fields: [city_id], references: [id])
+  title      String
+  tag        String?
+  body       String
+  sort_order Int       @default(0)
+
+  @@index([city_id, deleted_at])
 }

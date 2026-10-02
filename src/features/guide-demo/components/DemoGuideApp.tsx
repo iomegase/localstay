@@ -17,6 +17,9 @@ import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouse
 import { GuideStayHome } from '@/features/guide-app/components/stay/GuideStayHome'
 import { GuideWifiSheet } from '@/features/guide-app/components/stay/GuideWifiSheet'
 import { useStayProgress } from '@/features/guide-app/components/stay/useStayProgress'
+import { GuideFacilibusView } from '@/features/transport/components/GuideFacilibusView'
+import { GuideTransportEntry } from '@/features/transport/components/GuideTransportEntry'
+import { GuideTransportView } from '@/features/transport/components/GuideTransportView'
 import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
 import { DemoMapView } from './DemoMapView'
 import { DemoPoiDetailView } from './DemoPoiDetailView'
@@ -161,7 +164,7 @@ export function DemoGuideApp({
       onCloseMenu={() => setMenuOpen(false)}
       onNavigate={navigate}
       onOpenMenu={() => setMenuOpen(true)}
-      immersive={['poi', 'arrival', 'departure', 'rules'].includes(activeView)}
+      immersive={['poi', 'arrival', 'departure', 'rules', 'transport', 'facilibus'].includes(activeView)}
     >
       {activeView === 'home' || activeView === 'lodging' ? (
         <GuideStayHome
@@ -171,7 +174,17 @@ export function DemoGuideApp({
           onNavigate={navigate}
           onOpenWifi={() => setWifiOpen(true)}
           onOpenPoi={poi => openPoi(poi, 'favorites')}
+          // Démo jamais localisée : simple ligne, aucun appel réseau (spec 055 AC-05-01).
+          transportEntry={<GuideTransportEntry lodging={lodging} onOpen={() => navigate('transport')} />}
         />
+      ) : activeView === 'transport' ? (
+        <GuideTransportView
+          lodging={lodging}
+          onBack={() => navigate('home')}
+          onOpenFacilibus={() => navigate('facilibus')}
+        />
+      ) : activeView === 'facilibus' ? (
+        <GuideFacilibusView lodging={lodging} onBack={() => navigate('transport')} />
       ) : activeView === 'arrival' ? (
         <GuideArrivalFlow
           lodging={lodging}

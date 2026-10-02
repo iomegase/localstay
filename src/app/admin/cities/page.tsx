@@ -5,6 +5,7 @@ import { AdminCityCreateButton } from '@/features/admin/components/AdminCityCrea
 import { AdminCityEditButton } from '@/features/admin/components/AdminCityEditButton'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { CityQrCodeModalButton } from '@/features/admin/components/CityQrCodeModalButton'
+import { AdminCityTransportButton } from '@/features/transport/components/AdminCityTransportButton'
 
 const STATUS_LABELS = {
   active: 'Active',
@@ -114,6 +115,7 @@ export default async function AdminCitiesPage() {
                     <td className="px-8 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <AdminCityEditButton city={city} />
+                        <AdminCityTransportButton city={city} />
                         <CityQrCodeModalButton citySlug={city.slug} cityName={city.name} />
                         <Link
                           href={`/guide/${city.slug}`}

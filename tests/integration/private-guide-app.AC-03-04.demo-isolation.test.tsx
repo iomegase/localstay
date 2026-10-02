@@ -69,6 +69,9 @@ const privateLodging: GuideLodging = {
   trashLocation: 'Point de tri communal, route des Thermes',
   keyBoxCode: null,
   stats: { guests: 6, bedrooms: 3, surfaceM2: 110 },
+  locationPrecise: false,
+  facilibus: false,
+  transportCards: [],
 }
 
 const privatePois: GuidePoi[] = [

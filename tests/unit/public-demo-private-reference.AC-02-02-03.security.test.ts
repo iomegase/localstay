@@ -21,6 +21,23 @@ const FORBIDDEN_RESOLVED_DEMO_TARGET =
 const PRIVATE_DEMO_ROUTE =
   /^\/(?:sejour|le-logement|nos-recommandations|map|mes-favoris|guide)(?:\/|$)/
 
+// Modules de présentation partagés approuvés pour la démo : écrans du séjour
+// (spec 054 AC-06-01) et transports (spec 055 AC-05-01). Aucun ne lit de query,
+// de cookie ni de base ; chemins relatifs à `src/`, sans extension.
+const APPROVED_SHARED_DEMO_MODULE =
+  /^features\/(?:guide-app\/(?:components\/stay\/[A-Za-z-]+|components\/(?:GuideNavigation|GuideLodgingVideoButton|GuideDarkMarkdown|MediaLightbox|ShortVideoPlayer)|lib\/(?:arrival-steps|fixed-lodging-content|emergency-numbers|inline-markdown)|types)|transport\/(?:components\/[A-Za-z]+|hooks\/[A-Za-z]+|lib\/time|types))$/
+// Seule ressource réseau autorisée dans la démo, à la demande du visiteur (spec 055 AC-05-01).
+const APPROVED_DEMO_API_ROUTE = /^\/api\/transport\/facilibus\//
+const APPROVED_RUNTIME_USES: Record<string, string[]> = {
+  'features/transport/hooks/useTransportResource': ['fetch()'],
+  // Persistance désactivée dans la démo (`persist: false`, spec 054 AC-06-01).
+  'features/guide-app/components/stay/useStayProgress': ['window.localStorage'],
+}
+
+function srcModulePath(absolutePath: string, sourceRoot: string): string {
+  return relative(sourceRoot, absolutePath).replace(/\.tsx?$/, '')
+}
+
 const AUTONOMOUS_DATA_MODULES = new Set([
   'demo-content.ts',
   'demo-guide-data.ts',
@@ -165,12 +182,19 @@ function findDemoIsolationViolations(
   const violations: DemoIsolationViolation[] = []
 
   for (const file of files) {
+    const fileModule = srcModulePath(file.absolutePath, sourceRoot)
     for (const dependency of readModuleDependencies(file.source)) {
       const resolvedPath = resolveLocalTypeScriptModule(
         file.absolutePath,
         dependency.specifier,
         sourceRoot,
       )
+      if (
+        resolvedPath &&
+        APPROVED_SHARED_DEMO_MODULE.test(srcModulePath(resolvedPath, sourceRoot))
+      ) {
+        continue
+      }
       if (
         resolvedPath &&
         isForbiddenResolvedDemoTarget(resolvedPath, sourceRoot)
@@ -197,10 +221,12 @@ function findDemoIsolationViolations(
     }
 
     for (const dependency of findRuntimeDependencyUses(file.source)) {
+      if (APPROVED_RUNTIME_USES[fileModule]?.includes(dependency)) continue
       violations.push({ file: file.path, dependency, kind: 'runtime' })
     }
 
     for (const route of readRouteLiteralDependencies(file.source)) {
+      if (APPROVED_DEMO_API_ROUTE.test(route)) continue
       if (PRIVATE_DEMO_ROUTE.test(route) || route.startsWith('/api/')) {
         violations.push({ file: file.path, dependency: route, kind: 'route' })
       }
