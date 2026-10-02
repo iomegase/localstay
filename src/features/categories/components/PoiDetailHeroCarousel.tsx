@@ -12,7 +12,7 @@ interface Props {
   poiId?: string
   /** Si true, flèches et pastilles restent masquées (opacity-0) et n'apparaissent qu'au survol du hero. */
   revealControlsOnHover?: boolean
-  /** Variante paysage utilisée par les articles du blog. */
+  /** Variante paysage utilisée par les articles du journal. */
   variant?: 'default' | 'blog'
   children?: ReactNode
 }
