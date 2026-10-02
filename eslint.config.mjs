@@ -54,5 +54,11 @@ export default defineConfig([
     'next-env.d.ts',
     'out/**',
     'references/**',
+    // /design-sync (Claude Design) : scripts préparés et bundle régénéré.
+    '.ds-sync/**',
+    'ds-bundle/**',
+    '.design-sync/.cache/**',
+    '.design-sync/pkg/types/**',
+    '.design-sync/pkg/css/**',
   ]),
 ])

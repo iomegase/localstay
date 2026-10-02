@@ -1,0 +1,9 @@
+{
+  "name": "@mystay/design-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Composants de présentation MyStay synchronisés vers Claude Design (/design-sync).",
+  "module": "entry.ts",
+  "types": "types/.design-sync/pkg/entry.d.ts",
+  "peerDependencies": { "react": "^19", "react-dom": "^19" }
+}

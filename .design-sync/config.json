@@ -1,0 +1,153 @@
+{
+  "projectId": "2b532ead-89a0-419d-ae98-cef69b7c2c1d",
+  "shape": "package",
+  "pkg": "@mystay/design-system",
+  "globalName": "MyStay",
+  "entry": ".design-sync/pkg/entry.ts",
+  "buildCmd": "node .design-sync/build-ds.mjs",
+  "srcDir": "../../src",
+  "tsconfig": "../../tsconfig.json",
+  "cssEntry": "css/mystay.css",
+  "componentSrcMap": {
+    "AccordionContent": null,
+    "AccordionItem": null,
+    "AccordionTrigger": null,
+    "AlertDialogAction": null,
+    "AlertDialogCancel": null,
+    "AlertDialogContent": null,
+    "AlertDialogDescription": null,
+    "AlertDialogFooter": null,
+    "AlertDialogHeader": null,
+    "AlertDialogOverlay": null,
+    "AlertDialogPortal": null,
+    "AlertDialogTitle": null,
+    "AlertDialogTrigger": null,
+    "Bar": null,
+    "BarChart": null,
+    "CardContent": null,
+    "CardDescription": null,
+    "CardFooter": null,
+    "CardHeader": null,
+    "CardTitle": null,
+    "CartesianGrid": null,
+    "ChartContainer": "../../src/shared/components/ui/chart.tsx",
+    "ChartLegend": null,
+    "ChartLegendContent": null,
+    "ChartStyle": null,
+    "ChartTooltip": null,
+    "ChartTooltipContent": null,
+    "DialogClose": null,
+    "DialogContent": null,
+    "DialogDescription": null,
+    "DialogFooter": null,
+    "DialogHeader": null,
+    "DialogOverlay": null,
+    "DialogPortal": null,
+    "DialogTitle": null,
+    "DialogTrigger": null,
+    "GuideSearchEmpty": "../../src/features/guide-app/components/stay/GuideSearchHeader.tsx",
+    "Line": null,
+    "LineChart": null,
+    "SelectContent": null,
+    "SelectGroup": null,
+    "SelectItem": null,
+    "SelectLabel": null,
+    "SelectScrollDownButton": null,
+    "SelectScrollUpButton": null,
+    "SelectSeparator": null,
+    "SelectTrigger": null,
+    "SelectValue": null,
+    "TableBody": null,
+    "TableCaption": null,
+    "TableCell": null,
+    "TableFooter": null,
+    "TableHead": null,
+    "TableHeader": null,
+    "TableRow": null,
+    "XAxis": null,
+    "YAxis": null
+  },
+  "dtsPropsFor": {
+    "GuideStayHome": "lodging: {\n    id: string; name: string; city: string; tagline: string;\n    /** URL de la photo principale du logement (hero de la page Séjour). */\n    coverImage: string; gallery: string[];\n    latitude: number; longitude: number; addressLabel: string;\n    /** Heures « HH:MM », ex. \"16:00\" / \"10:00\". */\n    checkIn: string; checkOut: string;\n    wifiName: string; wifiPassword: string;\n    /** URL YouTube de la vidéo de présentation (optionnelle). */\n    presentationVideoUrl?: string;\n    arrivalInstructions: {\n      title?: string | null; text: string; videoUrl: string | null;\n      /** 1re photo = image principale de l'étape ; 5 médias max (photos + vidéo). */\n      photos: string[];\n      /** \"access\" affiche le code de boîte à clés masqué ; \"address\" l'adresse + Maps. */\n      kind: \"address\" | \"access\" | \"garage\" | \"ski\" | \"custom\";\n      tip: string | null;\n      substeps: { title: string; detail: string }[];\n      facts: { label: string; value: string }[];\n    }[];\n    departureInstructions: string[];\n    houseRules: string[];\n    /** Équipements ; icon = slug Lucide kebab-case, \"recycle\" = tri des déchets. */\n    practicalCards: { id: string; title: string; description: string; icon: string; phone?: string; photoUrl?: string; videoUrl?: string }[];\n    usefulNumbers: { label: string; number: string }[];\n    trashBins: { type: string }[];\n    trashLocation: string | null;\n    keyBoxCode: string | null;\n    stats: { guests: number | null; bedrooms: number | null; surfaceM2: number | null };\n    /** true si latitude/longitude viennent de l'adresse géocodée (sinon : centre-ville). */\n    locationPrecise: boolean;\n    facilibus: boolean;\n    transportCards: { id: string; title: string; tag: string | null; body: string }[];\n  };\n  /** Coups de cœur du carrousel (Urgences et Mobilité y sont masqués). */\n  pois: {\n    id: string; name: string;\n    category: { slug: string; name: string; icon: string; color: string };\n    /** URL de photos ; la 1re sert d'image de carte. */\n    photos: string[];\n    latitude: number; longitude: number;\n    /** Statut d'ouverture ; absent = pas de badge. */\n    isOpenNow?: boolean;\n    /** Libellé de distance/temps affiché en bas de carte, ex. \"6 min\" ou \"350 m\". */\n    distanceLabel?: string;\n    /** Icône du libellé : marcheur, voiture ou repère (vol d'oiseau). */\n    distanceMode?: \"walking\" | \"driving\" | \"crow\";\n    durationLabel?: string;\n    /** Temps MapBox depuis le logement (secondes). */\n    travel?: { walkingSeconds: number | null; drivingSeconds: number | null };\n  }[];\n  /** Nombre de tâches de départ cochées (tuile « Départ »). */\n  departureDone: number;\n  onNavigate: (view: \"arrival\" | \"rules\" | \"departure\" | \"favorites\") => void;\n  onOpenWifi: () => void;\n  onOpenPoi: (poi: {\n    id: string; name: string;\n    category: { slug: string; name: string; icon: string; color: string };\n    /** URL de photos ; la 1re sert d'image de carte. */\n    photos: string[];\n    latitude: number; longitude: number;\n    /** Statut d'ouverture ; absent = pas de badge. */\n    isOpenNow?: boolean;\n    /** Libellé de distance/temps affiché en bas de carte, ex. \"6 min\" ou \"350 m\". */\n    distanceLabel?: string;\n    /** Icône du libellé : marcheur, voiture ou repère (vol d'oiseau). */\n    distanceMode?: \"walking\" | \"driving\" | \"crow\";\n    durationLabel?: string;\n    /** Temps MapBox depuis le logement (secondes). */\n    travel?: { walkingSeconds: number | null; drivingSeconds: number | null };\n  }) => void;\n  onShowPoiOnMap?: (poi: {\n    id: string; name: string;\n    category: { slug: string; name: string; icon: string; color: string };\n    /** URL de photos ; la 1re sert d'image de carte. */\n    photos: string[];\n    latitude: number; longitude: number;\n    /** Statut d'ouverture ; absent = pas de badge. */\n    isOpenNow?: boolean;\n    /** Libellé de distance/temps affiché en bas de carte, ex. \"6 min\" ou \"350 m\". */\n    distanceLabel?: string;\n    /** Icône du libellé : marcheur, voiture ou repère (vol d'oiseau). */\n    distanceMode?: \"walking\" | \"driving\" | \"crow\";\n    durationLabel?: string;\n    /** Temps MapBox depuis le logement (secondes). */\n    travel?: { walkingSeconds: number | null; drivingSeconds: number | null };\n  }) => void;\n  /** Temps de trajet par id de lieu (secondes). */\n  travelTimes?: Record<string, { walkingSeconds: number | null; drivingSeconds: number | null }> | null;\n  /** Nœud affiché sous les tuiles, typiquement <GuideTransportRow />. */\n  transportEntry?: React.ReactNode;",
+    "GuideArrivalFlow": "lodging: {\n    id: string; name: string; city: string; tagline: string;\n    /** URL de la photo principale du logement (hero de la page Séjour). */\n    coverImage: string; gallery: string[];\n    latitude: number; longitude: number; addressLabel: string;\n    /** Heures « HH:MM », ex. \"16:00\" / \"10:00\". */\n    checkIn: string; checkOut: string;\n    wifiName: string; wifiPassword: string;\n    /** URL YouTube de la vidéo de présentation (optionnelle). */\n    presentationVideoUrl?: string;\n    arrivalInstructions: {\n      title?: string | null; text: string; videoUrl: string | null;\n      /** 1re photo = image principale de l'étape ; 5 médias max (photos + vidéo). */\n      photos: string[];\n      /** \"access\" affiche le code de boîte à clés masqué ; \"address\" l'adresse + Maps. */\n      kind: \"address\" | \"access\" | \"garage\" | \"ski\" | \"custom\";\n      tip: string | null;\n      substeps: { title: string; detail: string }[];\n      facts: { label: string; value: string }[];\n    }[];\n    departureInstructions: string[];\n    houseRules: string[];\n    /** Équipements ; icon = slug Lucide kebab-case, \"recycle\" = tri des déchets. */\n    practicalCards: { id: string; title: string; description: string; icon: string; phone?: string; photoUrl?: string; videoUrl?: string }[];\n    usefulNumbers: { label: string; number: string }[];\n    trashBins: { type: string }[];\n    trashLocation: string | null;\n    keyBoxCode: string | null;\n    stats: { guests: number | null; bedrooms: number | null; surfaceM2: number | null };\n    /** true si latitude/longitude viennent de l'adresse géocodée (sinon : centre-ville). */\n    locationPrecise: boolean;\n    facilibus: boolean;\n    transportCards: { id: string; title: string; tag: string | null; body: string }[];\n  };\n  /** Le voyageur a déjà signalé son arrivée (affiche la confirmation sur l'étape « access »). */\n  arrived: boolean;\n  /** Appelé par « Je suis arrivé·e ! » ; rejeter la promesse affiche une erreur. */\n  onArrived: () => Promise<void>;\n  onBack: () => void;\n  /** Démo : pas de lien externe vers Maps. */\n  demo?: boolean;",
+    "GuideDepartureView": "lodging: {\n    id: string; name: string; city: string; tagline: string;\n    /** URL de la photo principale du logement (hero de la page Séjour). */\n    coverImage: string; gallery: string[];\n    latitude: number; longitude: number; addressLabel: string;\n    /** Heures « HH:MM », ex. \"16:00\" / \"10:00\". */\n    checkIn: string; checkOut: string;\n    wifiName: string; wifiPassword: string;\n    /** URL YouTube de la vidéo de présentation (optionnelle). */\n    presentationVideoUrl?: string;\n    arrivalInstructions: {\n      title?: string | null; text: string; videoUrl: string | null;\n      /** 1re photo = image principale de l'étape ; 5 médias max (photos + vidéo). */\n      photos: string[];\n      /** \"access\" affiche le code de boîte à clés masqué ; \"address\" l'adresse + Maps. */\n      kind: \"address\" | \"access\" | \"garage\" | \"ski\" | \"custom\";\n      tip: string | null;\n      substeps: { title: string; detail: string }[];\n      facts: { label: string; value: string }[];\n    }[];\n    departureInstructions: string[];\n    houseRules: string[];\n    /** Équipements ; icon = slug Lucide kebab-case, \"recycle\" = tri des déchets. */\n    practicalCards: { id: string; title: string; description: string; icon: string; phone?: string; photoUrl?: string; videoUrl?: string }[];\n    usefulNumbers: { label: string; number: string }[];\n    trashBins: { type: string }[];\n    trashLocation: string | null;\n    keyBoxCode: string | null;\n    stats: { guests: number | null; bedrooms: number | null; surfaceM2: number | null };\n    /** true si latitude/longitude viennent de l'adresse géocodée (sinon : centre-ville). */\n    locationPrecise: boolean;\n    facilibus: boolean;\n    transportCards: { id: string; title: string; tag: string | null; body: string }[];\n  };\n  /** Index des tâches cochées dans departureInstructions. */\n  checked: ReadonlySet<number>;\n  onToggle: (index: number) => void;\n  departed: boolean;\n  onDeparted: () => Promise<void>;\n  onBack: () => void;",
+    "GuideHouseGuide": "lodging: {\n    id: string; name: string; city: string; tagline: string;\n    /** URL de la photo principale du logement (hero de la page Séjour). */\n    coverImage: string; gallery: string[];\n    latitude: number; longitude: number; addressLabel: string;\n    /** Heures « HH:MM », ex. \"16:00\" / \"10:00\". */\n    checkIn: string; checkOut: string;\n    wifiName: string; wifiPassword: string;\n    /** URL YouTube de la vidéo de présentation (optionnelle). */\n    presentationVideoUrl?: string;\n    arrivalInstructions: {\n      title?: string | null; text: string; videoUrl: string | null;\n      /** 1re photo = image principale de l'étape ; 5 médias max (photos + vidéo). */\n      photos: string[];\n      /** \"access\" affiche le code de boîte à clés masqué ; \"address\" l'adresse + Maps. */\n      kind: \"address\" | \"access\" | \"garage\" | \"ski\" | \"custom\";\n      tip: string | null;\n      substeps: { title: string; detail: string }[];\n      facts: { label: string; value: string }[];\n    }[];\n    departureInstructions: string[];\n    houseRules: string[];\n    /** Équipements ; icon = slug Lucide kebab-case, \"recycle\" = tri des déchets. */\n    practicalCards: { id: string; title: string; description: string; icon: string; phone?: string; photoUrl?: string; videoUrl?: string }[];\n    usefulNumbers: { label: string; number: string }[];\n    trashBins: { type: string }[];\n    trashLocation: string | null;\n    keyBoxCode: string | null;\n    stats: { guests: number | null; bedrooms: number | null; surfaceM2: number | null };\n    /** true si latitude/longitude viennent de l'adresse géocodée (sinon : centre-ville). */\n    locationPrecise: boolean;\n    facilibus: boolean;\n    transportCards: { id: string; title: string; tag: string | null; body: string }[];\n  };\n  onBack: () => void;\n  /** Affiche la ligne « Infos pratiques » quand fourni. */\n  onOpenPractical?: () => void;",
+    "GuideHelpView": "lodging: {\n    id: string; name: string; city: string; tagline: string;\n    /** URL de la photo principale du logement (hero de la page Séjour). */\n    coverImage: string; gallery: string[];\n    latitude: number; longitude: number; addressLabel: string;\n    /** Heures « HH:MM », ex. \"16:00\" / \"10:00\". */\n    checkIn: string; checkOut: string;\n    wifiName: string; wifiPassword: string;\n    /** URL YouTube de la vidéo de présentation (optionnelle). */\n    presentationVideoUrl?: string;\n    arrivalInstructions: {\n      title?: string | null; text: string; videoUrl: string | null;\n      /** 1re photo = image principale de l'étape ; 5 médias max (photos + vidéo). */\n      photos: string[];\n      /** \"access\" affiche le code de boîte à clés masqué ; \"address\" l'adresse + Maps. */\n      kind: \"address\" | \"access\" | \"garage\" | \"ski\" | \"custom\";\n      tip: string | null;\n      substeps: { title: string; detail: string }[];\n      facts: { label: string; value: string }[];\n    }[];\n    departureInstructions: string[];\n    houseRules: string[];\n    /** Équipements ; icon = slug Lucide kebab-case, \"recycle\" = tri des déchets. */\n    practicalCards: { id: string; title: string; description: string; icon: string; phone?: string; photoUrl?: string; videoUrl?: string }[];\n    usefulNumbers: { label: string; number: string }[];\n    trashBins: { type: string }[];\n    trashLocation: string | null;\n    keyBoxCode: string | null;\n    stats: { guests: number | null; bedrooms: number | null; surfaceM2: number | null };\n    /** true si latitude/longitude viennent de l'adresse géocodée (sinon : centre-ville). */\n    locationPrecise: boolean;\n    facilibus: boolean;\n    transportCards: { id: string; title: string; tag: string | null; body: string }[];\n  };\n  /** Bouton « Écrire » de la carte Conciergerie. */\n  onWrite: () => void;\n  /** Démo : numéros et adresse sans liens. */\n  demo?: boolean;",
+    "GuideTransportView": "lodging: { facilibus: boolean; transportCards: { id: string; title: string; tag: string | null; body: string }[] };\n  onBack: () => void;\n  onOpenFacilibus: () => void;",
+    "GuideFavoriteBentoCard": "poi: {\n    id: string; name: string;\n    category: { slug: string; name: string; icon: string; color: string };\n    /** URL de photos ; la 1re sert d'image de carte. */\n    photos: string[];\n    latitude: number; longitude: number;\n    /** Statut d'ouverture ; absent = pas de badge. */\n    isOpenNow?: boolean;\n    /** Libellé de distance/temps affiché en bas de carte, ex. \"6 min\" ou \"350 m\". */\n    distanceLabel?: string;\n    /** Icône du libellé : marcheur, voiture ou repère (vol d'oiseau). */\n    distanceMode?: \"walking\" | \"driving\" | \"crow\";\n    durationLabel?: string;\n    /** Temps MapBox depuis le logement (secondes). */\n    travel?: { walkingSeconds: number | null; drivingSeconds: number | null };\n  };\n  /** \"big\" = pleine largeur (2 colonnes), \"compact\" = carte carrée. */\n  variant: \"big\" | \"compact\";\n  index?: number;\n  onSelectPoi: (poi: {\n    id: string; name: string;\n    category: { slug: string; name: string; icon: string; color: string };\n    /** URL de photos ; la 1re sert d'image de carte. */\n    photos: string[];\n    latitude: number; longitude: number;\n    /** Statut d'ouverture ; absent = pas de badge. */\n    isOpenNow?: boolean;\n    /** Libellé de distance/temps affiché en bas de carte, ex. \"6 min\" ou \"350 m\". */\n    distanceLabel?: string;\n    /** Icône du libellé : marcheur, voiture ou repère (vol d'oiseau). */\n    distanceMode?: \"walking\" | \"driving\" | \"crow\";\n    durationLabel?: string;\n    /** Temps MapBox depuis le logement (secondes). */\n    travel?: { walkingSeconds: number | null; drivingSeconds: number | null };\n  }) => void;\n  onShowOnMap: (poi: {\n    id: string; name: string;\n    category: { slug: string; name: string; icon: string; color: string };\n    /** URL de photos ; la 1re sert d'image de carte. */\n    photos: string[];\n    latitude: number; longitude: number;\n    /** Statut d'ouverture ; absent = pas de badge. */\n    isOpenNow?: boolean;\n    /** Libellé de distance/temps affiché en bas de carte, ex. \"6 min\" ou \"350 m\". */\n    distanceLabel?: string;\n    /** Icône du libellé : marcheur, voiture ou repère (vol d'oiseau). */\n    distanceMode?: \"walking\" | \"driving\" | \"crow\";\n    durationLabel?: string;\n    /** Temps MapBox depuis le logement (secondes). */\n    travel?: { walkingSeconds: number | null; drivingSeconds: number | null };\n  }) => void;",
+    "GuideNavigation": "/** Vue active ; met en surbrillance l'onglet correspondant. */\n  activeView: \"home\" | \"lodging\" | \"arrival\" | \"departure\" | \"practical\" | \"rules\" | \"transport\" | \"facilibus\" | \"favorites\" | \"poi\" | \"map\" | \"help\" | \"contact\";\n  onNavigate: (view: \"home\" | \"favorites\" | \"map\" | \"help\") => void;",
+    "RoutePill": "route: { shortName: string; longName?: string; color: string | null; textColor: string | null };",
+    "FacilibusDepartureRow": "departure: {\n    id: string; headsign: string;\n    /** Instants ISO 8601 ; affichés en Europe/Paris. */\n    scheduledAt: string; estimatedAt: string | null; referenceAt: string;\n    /** Secondes, positif = retard, négatif = avance. */\n    delaySeconds: number | null;\n    realtime: boolean;\n    status: \"scheduled\" | \"approaching\" | \"at_stop\" | \"passed\" | \"cancelled\" | \"skipped\" | \"unknown\";\n    vehicleLocated: boolean;\n    route: { shortName: string; longName?: string; color: string | null; textColor: string | null };\n  };",
+    "StationDistance": "station: {\n    name: string;\n    /** Distance à vol d'oiseau (repli). */\n    distanceMeters: number;\n    /** Temps réels depuis le logement (secondes) ; prioritaire quand présent. */\n    travel: { walkingSeconds: number | null; drivingSeconds: number | null } | null;\n  };",
+    "ChartContainer": "/** Séries : clé → { label, color } ; les couleurs sont exposées en var(--color-<clé>). */\n  config: Record<string, { label?: React.ReactNode; color?: string }>;\n  /** Un graphique Recharts (ex. <BarChart>). */\n  children: React.ReactNode;\n  className?: string;\n  id?: string;"
+  },
+  "overrides": {
+    "AlertDialog": {
+      "cardMode": "single",
+      "viewport": "640x360"
+    },
+    "Card": {
+      "cardMode": "column"
+    },
+    "ChartContainer": {
+      "cardMode": "column"
+    },
+    "Dialog": {
+      "cardMode": "single",
+      "viewport": "640x420"
+    },
+    "GuideArrivalFlow": {
+      "cardMode": "column",
+      "viewport": "420x1500"
+    },
+    "GuideDepartureView": {
+      "cardMode": "column",
+      "viewport": "420x1000"
+    },
+    "GuideFavoriteBentoCard": {
+      "cardMode": "column"
+    },
+    "GuideHelpView": {
+      "cardMode": "column",
+      "viewport": "420x760"
+    },
+    "GuideHouseGuide": {
+      "cardMode": "single",
+      "viewport": "420x1100"
+    },
+    "GuideNavigation": {
+      "cardMode": "column"
+    },
+    "GuideSearchHeader": {
+      "cardMode": "column"
+    },
+    "GuideStayHome": {
+      "cardMode": "single",
+      "viewport": "420x1400"
+    },
+    "GuideStayScreen": {
+      "cardMode": "single",
+      "viewport": "420x420"
+    },
+    "GuideTransportView": {
+      "cardMode": "single",
+      "viewport": "420x900"
+    },
+    "GuideWifiSheet": {
+      "cardMode": "single",
+      "viewport": "420x600"
+    },
+    "MediaLightbox": {
+      "cardMode": "single",
+      "viewport": "420x680"
+    },
+    "Select": {
+      "cardMode": "single",
+      "viewport": "560x360"
+    },
+    "Textarea": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
