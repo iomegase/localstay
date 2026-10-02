@@ -93,6 +93,7 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   lodging_address: 'Adresse du logement',
   wifi_ssid: 'Wi-Fi - nom du réseau',
   wifi_password: 'Wi-Fi - mot de passe',
+  key_box_code: 'Code de la boîte à clés',
   checkout_instructions: 'Consignes de départ',
   trash_info: 'Déchets',
   trash_location: 'Point de tri',
@@ -195,6 +196,7 @@ export function CustomizationForm({
     lodging_address: initialCustomization.lodging_address ?? null,
     wifi_ssid: initialCustomization.wifi_ssid ?? null,
     wifi_password: initialCustomization.wifi_password ?? null,
+    key_box_code: initialCustomization.key_box_code ?? null,
     checkout_instructions: initialCustomization.checkout_instructions ?? null,
     trash_info: initialCustomization.trash_info ?? null,
     trash_location: initialCustomization.trash_location ?? null,
@@ -359,6 +361,7 @@ export function CustomizationForm({
       lodging_address: payload.lodging_address ?? null,
       wifi_ssid: payload.wifi_ssid ?? null,
       wifi_password: payload.wifi_password ?? null,
+      key_box_code: payload.key_box_code ?? null,
       checkout_instructions: payload.checkout_instructions ?? null,
       trash_info: payload.trash_info ?? null,
       trash_location: payload.trash_location ?? null,
@@ -640,6 +643,14 @@ const PRACTICAL_SECTIONS: PracticalSection[] = [
     placeholder: 'mon-mot-de-passe-wifi',
     type: 'input',
     maxLength: 120,
+  },
+  // Spec 054 AC-05-02 : affiché masqué (bouton « Afficher ») dans le guide privé.
+  {
+    key: 'key_box_code',
+    label: 'Code de la boîte à clés',
+    placeholder: '4810',
+    type: 'input',
+    maxLength: 20,
   },
   {
     key: 'trash_location',

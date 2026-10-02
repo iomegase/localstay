@@ -22,6 +22,10 @@ describe('normalizeArrivalInstructions', () => {
         video_url: 'https://youtu.be/abc',
         photos: ['a.jpg', 'b.jpg'],
         sort_order: 0,
+        kind: 'custom',
+        tip: null,
+        substeps: [],
+        facts: [],
       },
     ])
   })
@@ -45,6 +49,10 @@ describe('normalizeArrivalInstructions', () => {
         video_url: null,
         photos: [],
         sort_order: 0,
+        kind: 'custom',
+        tip: null,
+        substeps: [],
+        facts: [],
       },
     ])
   })

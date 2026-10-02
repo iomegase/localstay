@@ -1,5 +1,12 @@
 import type { ArrivalInstructionInput, PracticalBlockInput } from '../types'
 import { isTrashBinType, type TrashBin, type TrashBinInput } from './trash-bins'
+import {
+  parseArrivalFacts,
+  parseArrivalSubsteps,
+  type ArrivalFact,
+  type ArrivalStepKind,
+  type ArrivalSubstep,
+} from '@/features/guide-app/lib/arrival-steps'
 
 const GUIDE_RADIUS_KM = 30
 
@@ -157,6 +164,10 @@ export interface NormalizedArrivalInstruction {
   video_url: string | null
   photos: string[]
   sort_order: number
+  kind: ArrivalStepKind
+  tip: string | null
+  substeps: ArrivalSubstep[]
+  facts: ArrivalFact[]
 }
 
 /**
@@ -189,6 +200,11 @@ export function normalizeArrivalInstructions(
           .map(photo => photo.trim())
           .filter(Boolean),
         sort_order: index,
+        // Spec 054 AC-05-01 : étapes typées (défaut « custom » pour l'existant).
+        kind: instruction.kind ?? 'custom',
+        tip: clean(instruction.tip),
+        substeps: parseArrivalSubsteps(instruction.substeps),
+        facts: parseArrivalFacts(instruction.facts),
       }
     })
 }

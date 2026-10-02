@@ -875,6 +875,7 @@ model Lodging {
   public_profile               LodgingPublicProfile?
   practical_blocks             LodgingPracticalBlock[]
   arrival_instructions         LodgingArrivalInstruction[]
+  stay_events                  LodgingStayEvent[]
 }
 
 // ─── Spec 012 — Guide Customization ─────────────────────────────────────────
@@ -905,6 +906,9 @@ model LodgingCustomization {
   house_rules           String?
   emergency_contacts    String?
   useful_services       String?
+
+  // Spec 054 — code de la boîte à clés (guide privé uniquement)
+  key_box_code          String?
 }
 
 model LodgingFeaturedPoi {
@@ -1424,5 +1428,39 @@ model LodgingArrivalInstruction {
   photos     String[]
   sort_order Int     @default(0)
 
+  // Spec 054 — étape d'arrivée typée
+  kind     ArrivalStepKind @default(custom)
+  tip      String?
+  substeps Json?
+  facts    Json?
+
   @@index([lodging_id, deleted_at])
+}
+
+// ─── Spec 054 — Étapes d'arrivée et événements de séjour ───────────────────
+
+enum ArrivalStepKind {
+  address
+  access
+  garage
+  ski
+  custom
+}
+
+enum StayEventType {
+  arrived
+  departed
+}
+
+model LodgingStayEvent {
+  id         String        @id @default(uuid())
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  deleted_at DateTime?
+
+  lodging_id String
+  lodging    Lodging       @relation(fields: [lodging_id], references: [id])
+  type       StayEventType
+
+  @@index([lodging_id, type, created_at])
 }

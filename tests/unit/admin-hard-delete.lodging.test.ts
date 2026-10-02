@@ -15,6 +15,7 @@ const tx = {
   lodgingFeaturedPoi: del(),
   lodgingPracticalBlock: del(),
   lodgingArrivalInstruction: del(),
+  lodgingStayEvent: del(),
   contactMessage: del(),
   lodging: { delete: jest.fn().mockResolvedValue({ id: 'lodg-1' }) },
 }
@@ -43,6 +44,8 @@ describe('hardDeleteLodging', () => {
     expect(tx.lodgingPhoto.deleteMany).not.toHaveBeenCalled()
     expect(tx.qrCode.deleteMany).toHaveBeenCalledWith({ where: { lodging_id: 'lodg-1' } })
     expect(tx.contactMessage.deleteMany).toHaveBeenCalledWith({ where: { lodging_id: 'lodg-1' } })
+    // Spec 054 : événements de séjour supprimés avant le logement (clé étrangère).
+    expect(tx.lodgingStayEvent.deleteMany).toHaveBeenCalledWith({ where: { lodging_id: 'lodg-1' } })
     expect(tx.lodging.delete).toHaveBeenCalledWith({ where: { id: 'lodg-1' } })
   })
 })

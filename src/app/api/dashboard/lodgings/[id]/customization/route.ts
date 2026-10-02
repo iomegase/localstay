@@ -15,6 +15,12 @@ import {
 import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
 import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { extractYouTubeId } from '@/shared/lib/youtube'
+import {
+  ARRIVAL_STEP_ITEMS_MAX,
+  ARRIVAL_STEP_KINDS,
+  arrivalFactSchema,
+  arrivalSubstepSchema,
+} from '@/features/guide-app/lib/arrival-steps'
 
 const trashBinSchema = z.object({
   type: z.string().trim().refine(isTrashBinType, { message: 'Type de bac inconnu' }),
@@ -105,6 +111,23 @@ const arrivalInstructionSchema = z.object({
   video_url: youtubeUrlSchema,
   photos: z.array(z.string().trim().url()).max(20).default([]),
   sort_order: z.number().int().min(0),
+  // Spec 054 AC-05-01 — étapes typées.
+  kind: z.enum(ARRIVAL_STEP_KINDS).default('custom'),
+  tip: z
+    .string()
+    .trim()
+    .max(300, 'Le conseil doit faire 300 caractères maximum.')
+    .nullable()
+    .optional()
+    .transform(value => (value && value.length > 0 ? value : null)),
+  substeps: z
+    .array(arrivalSubstepSchema.extend({ title: z.string().trim().max(120) }))
+    .max(ARRIVAL_STEP_ITEMS_MAX)
+    .default([]),
+  facts: z
+    .array(arrivalFactSchema.extend({ label: z.string().trim().max(40), value: z.string().trim().max(60) }))
+    .max(ARRIVAL_STEP_ITEMS_MAX)
+    .default([]),
 })
 
 const customizationSchema = z.object({
@@ -123,6 +146,14 @@ const customizationSchema = z.object({
   lodging_address: practicalText(255),
   wifi_ssid: practicalText(120),
   wifi_password: practicalText(120),
+  // Spec 054 AC-05-02 — code de boîte à clés, affiché masqué dans le guide privé.
+  key_box_code: z
+    .string()
+    .trim()
+    .max(20, 'Le code de boîte à clés doit faire 20 caractères maximum.')
+    .nullable()
+    .optional()
+    .transform(value => (value === undefined ? undefined : value && value.length > 0 ? value : null)),
   checkout_instructions: practicalText(4000),
   trash_info: practicalText(2000),
   trash_location: practicalText(500),

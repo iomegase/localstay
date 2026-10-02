@@ -18,7 +18,9 @@ import type {
   NormalizedArrivalInstruction,
   NormalizedPracticalBlock,
 } from '../lib/validation'
+import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/lib/arrival-steps'
 import type {
+  ArrivalInstructionResponse,
   FeaturedPoiInput,
   FeaturedPoiResponse,
   GuideCustomizationErrorCode,
@@ -36,6 +38,7 @@ const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   lodging_address: null,
   wifi_ssid: null,
   wifi_password: null,
+  key_box_code: null,
   checkout_instructions: null,
   trash_info: null,
   trash_location: null,
@@ -45,6 +48,30 @@ const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
 }
 
 const SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS = 20_000
+
+const ARRIVAL_INSTRUCTION_SELECT = {
+  id: true,
+  title: true,
+  text: true,
+  video_url: true,
+  photos: true,
+  sort_order: true,
+  kind: true,
+  tip: true,
+  substeps: true,
+  facts: true,
+} satisfies Prisma.LodgingArrivalInstructionSelect
+
+type ArrivalInstructionRow = Prisma.LodgingArrivalInstructionGetPayload<{ select: typeof ARRIVAL_INSTRUCTION_SELECT }>
+
+// Spec 054 AC-05-01 : le JSON stocké est relu de façon tolérante.
+function toArrivalInstructionResponse(row: ArrivalInstructionRow): ArrivalInstructionResponse {
+  return {
+    ...row,
+    substeps: parseArrivalSubsteps(row.substeps),
+    facts: parseArrivalFacts(row.facts),
+  }
+}
 
 function pickPracticalInfo(source: Partial<PracticalInfoFields> | null | undefined): PracticalInfoFields {
   if (!source) return { ...EMPTY_PRACTICAL_INFO }
@@ -162,7 +189,12 @@ async function syncArrivalInstructions(
   validateChildItemIds(requestedIds, existingIds)
 
   for (const instruction of instructions) {
-    const { id, ...data } = instruction
+    const { id, substeps, facts, ...rest } = instruction
+    const data = {
+      ...rest,
+      substeps: substeps as unknown as Prisma.InputJsonValue,
+      facts: facts as unknown as Prisma.InputJsonValue,
+    }
     if (id) {
       await tx.lodgingArrivalInstruction.update({ where: { id }, data })
     } else {
@@ -343,6 +375,7 @@ export async function getLodgingCustomization(
       lodging_address: true,
       wifi_ssid: true,
       wifi_password: true,
+      key_box_code: true,
       checkout_instructions: true,
       trash_info: true,
       trash_location: true,
@@ -373,7 +406,7 @@ export async function getLodgingCustomization(
   const arrivalInstructions = await prisma.lodgingArrivalInstruction.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, title: true, text: true, video_url: true, photos: true, sort_order: true },
+    select: ARRIVAL_INSTRUCTION_SELECT,
   })
 
   return {
@@ -388,7 +421,7 @@ export async function getLodgingCustomization(
     })),
     ignored_category_slugs: [],
     practical_blocks: practicalBlocks,
-    arrival_instructions: arrivalInstructions,
+    arrival_instructions: arrivalInstructions.map(toArrivalInstructionResponse),
     trash_bins: (customization?.trash_bins as unknown as TrashBin[] | null) ?? [],
     ...pickPracticalInfo(customization),
   }
@@ -504,7 +537,7 @@ export async function saveLodgingCustomization(
   const savedInstructions = await prisma.lodgingArrivalInstruction.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, title: true, text: true, video_url: true, photos: true, sort_order: true },
+    select: ARRIVAL_INSTRUCTION_SELECT,
   })
 
   return {
@@ -514,7 +547,7 @@ export async function saveLodgingCustomization(
     featured_pois: featuredPois,
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
     practical_blocks: savedBlocks,
-    arrival_instructions: savedInstructions,
+    arrival_instructions: savedInstructions.map(toArrivalInstructionResponse),
     trash_bins: trashBins,
     ...practicalInfo,
   }

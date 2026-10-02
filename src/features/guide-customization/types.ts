@@ -1,5 +1,6 @@
 export type { TrashBin, TrashBinInput } from './lib/trash-bins'
 import type { TrashBin, TrashBinInput } from './lib/trash-bins'
+import type { ArrivalFact, ArrivalStepKind, ArrivalSubstep } from '@/features/guide-app/lib/arrival-steps'
 
 export interface FeaturedPoiInput {
   poi_id: string
@@ -50,6 +51,10 @@ export interface ArrivalInstructionInput {
   video_url: string | null
   photos: string[]
   sort_order: number
+  kind?: ArrivalStepKind
+  tip?: string | null
+  substeps?: ArrivalSubstep[]
+  facts?: ArrivalFact[]
 }
 
 export interface ArrivalInstructionResponse {
@@ -59,6 +64,10 @@ export interface ArrivalInstructionResponse {
   video_url: string | null
   photos: string[]
   sort_order: number
+  kind: ArrivalStepKind
+  tip: string | null
+  substeps: ArrivalSubstep[]
+  facts: ArrivalFact[]
 }
 
 export interface PracticalInfoFields {
@@ -67,6 +76,7 @@ export interface PracticalInfoFields {
   lodging_address: string | null
   wifi_ssid: string | null
   wifi_password: string | null
+  key_box_code: string | null
   checkout_instructions: string | null
   trash_info: string | null
   trash_location: string | null
@@ -81,6 +91,7 @@ export const PRACTICAL_INFO_KEYS = [
   'lodging_address',
   'wifi_ssid',
   'wifi_password',
+  'key_box_code',
   'checkout_instructions',
   'trash_info',
   'trash_location',

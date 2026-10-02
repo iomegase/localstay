@@ -25,6 +25,12 @@ import { ImageUpload } from '@/shared/components/ImageUpload'
 import { YouTubeUrlField } from './YouTubeUrlField'
 import { reorderById } from '@/features/guide-customization/lib/validation'
 import type { ArrivalInstructionInput } from '@/features/guide-customization/types'
+import {
+  ARRIVAL_STEP_ITEMS_MAX,
+  ARRIVAL_STEP_KIND_LABELS,
+  ARRIVAL_STEP_KINDS,
+  type ArrivalStepKind,
+} from '@/features/guide-app/lib/arrival-steps'
 
 interface Props {
   value: ArrivalInstructionInput[]
@@ -48,7 +54,18 @@ export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props)
   function addInstruction() {
     onChange([
       ...value,
-      { id: instructionUid(), title: '', text: '', video_url: null, photos: [], sort_order: value.length },
+      {
+        id: instructionUid(),
+        title: '',
+        text: '',
+        video_url: null,
+        photos: [],
+        sort_order: value.length,
+        kind: 'custom',
+        tip: null,
+        substeps: [],
+        facts: [],
+      },
     ])
   }
 
@@ -136,6 +153,11 @@ function SortableInstructionRow({
     id: instruction.id ?? String(index),
   })
   const style = { transform: CSS.Transform.toString(transform), transition }
+  const substeps = instruction.substeps ?? []
+  const facts = instruction.facts ?? []
+  const smallLabelClass = 'block text-[10px] font-semibold uppercase tracking-widest text-gray-400'
+  const addItemClass = 'inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:border-charcoal hover:text-charcoal disabled:opacity-40'
+  const removeItemClass = 'grid h-9 w-9 shrink-0 place-items-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500'
 
   return (
     <div ref={setNodeRef} style={style} className="space-y-3 rounded-2xl border border-gray-200 p-4">
@@ -164,6 +186,23 @@ function SortableInstructionRow({
         </button>
       </div>
 
+      {/* Spec 054 AC-05-01 — type d'étape (onglet du parcours d'arrivée). */}
+      <div className="space-y-2">
+        <Label htmlFor={`instruction-kind-${index}`} className={smallLabelClass}>
+          Type d&apos;étape
+        </Label>
+        <select
+          id={`instruction-kind-${index}`}
+          value={instruction.kind ?? 'custom'}
+          onChange={event => onUpdate(index, { kind: event.target.value as ArrivalStepKind })}
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+        >
+          {ARRIVAL_STEP_KINDS.map(kind => (
+            <option key={kind} value={kind}>{ARRIVAL_STEP_KIND_LABELS[kind]}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor={`instruction-title-${index}`} className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
           Titre de l&apos;étape
@@ -185,6 +224,110 @@ function SortableInstructionRow({
         placeholder="Ex. Ouvrez le portail avec le badge remis à l'entrée."
         onChange={event => onUpdate(index, { text: event.target.value })}
       />
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className={smallLabelClass}>Sous-étapes (optionnelles)</span>
+          <button
+            type="button"
+            className={addItemClass}
+            disabled={substeps.length >= ARRIVAL_STEP_ITEMS_MAX}
+            onClick={() => onUpdate(index, { substeps: [...substeps, { title: '', detail: '' }] })}
+          >
+            <Plus className="h-3.5 w-3.5" /> Ajouter une sous-étape
+          </button>
+        </div>
+        {substeps.map((substep, subIndex) => (
+          <div key={subIndex} className="flex items-start gap-2">
+            <div className="grid flex-1 gap-2">
+              <Input
+                aria-label={`Sous-étape ${subIndex + 1} — titre`}
+                value={substep.title}
+                maxLength={120}
+                placeholder="Ex. Entrez le code"
+                onChange={event => onUpdate(index, {
+                  substeps: substeps.map((item, i) => (i === subIndex ? { ...item, title: event.target.value } : item)),
+                })}
+              />
+              <Textarea
+                aria-label={`Sous-étape ${subIndex + 1} — détail`}
+                value={substep.detail}
+                rows={2}
+                maxLength={600}
+                placeholder="Ex. Tirez le levier vers le bas."
+                onChange={event => onUpdate(index, {
+                  substeps: substeps.map((item, i) => (i === subIndex ? { ...item, detail: event.target.value } : item)),
+                })}
+              />
+            </div>
+            <button
+              type="button"
+              aria-label={`Retirer la sous-étape ${subIndex + 1}`}
+              className={removeItemClass}
+              onClick={() => onUpdate(index, { substeps: substeps.filter((_, i) => i !== subIndex) })}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className={smallLabelClass}>Repères (optionnels)</span>
+          <button
+            type="button"
+            className={addItemClass}
+            disabled={facts.length >= ARRIVAL_STEP_ITEMS_MAX}
+            onClick={() => onUpdate(index, { facts: [...facts, { label: '', value: '' }] })}
+          >
+            <Plus className="h-3.5 w-3.5" /> Ajouter un repère
+          </button>
+        </div>
+        {facts.map((fact, factIndex) => (
+          <div key={factIndex} className="flex items-center gap-2">
+            <Input
+              aria-label={`Repère ${factIndex + 1} — libellé`}
+              value={fact.label}
+              maxLength={40}
+              placeholder="Ex. Niveau"
+              onChange={event => onUpdate(index, {
+                facts: facts.map((item, i) => (i === factIndex ? { ...item, label: event.target.value } : item)),
+              })}
+            />
+            <Input
+              aria-label={`Repère ${factIndex + 1} — valeur`}
+              value={fact.value}
+              maxLength={60}
+              placeholder="Ex. −2"
+              onChange={event => onUpdate(index, {
+                facts: facts.map((item, i) => (i === factIndex ? { ...item, value: event.target.value } : item)),
+              })}
+            />
+            <button
+              type="button"
+              aria-label={`Retirer le repère ${factIndex + 1}`}
+              className={removeItemClass}
+              onClick={() => onUpdate(index, { facts: facts.filter((_, i) => i !== factIndex) })}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={`instruction-tip-${index}`} className={smallLabelClass}>
+          Conseil (optionnel)
+        </Label>
+        <Input
+          id={`instruction-tip-${index}`}
+          value={instruction.tip ?? ''}
+          maxLength={300}
+          placeholder="Ex. Hauteur maximale 1,90 m."
+          onChange={event => onUpdate(index, { tip: event.target.value })}
+        />
+      </div>
 
       <div className="space-y-2">
         <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">

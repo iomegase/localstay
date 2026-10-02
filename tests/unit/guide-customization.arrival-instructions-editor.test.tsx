@@ -23,7 +23,10 @@ describe('ArrivalInstructionsEditor', () => {
     fireEvent.click(screen.getByRole('button', { name: /ajouter une instruction/i }))
 
     expect(onChange).toHaveBeenCalledWith([
-      { id: expect.any(String), title: '', text: '', video_url: null, photos: [], sort_order: 0 },
+      {
+        id: expect.any(String), title: '', text: '', video_url: null, photos: [], sort_order: 0,
+        kind: 'custom', tip: null, substeps: [], facts: [],
+      },
     ])
   })
 
