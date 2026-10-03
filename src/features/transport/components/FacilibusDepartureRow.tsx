@@ -22,7 +22,7 @@ export function FacilibusDepartureRow({ departure }: { departure: PublicDepartur
     <li className="flex items-center gap-3 py-3">
       <RoutePill route={departure.route} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[14px] font-semibold text-[#111111]">{departure.headsign}</span>
+        <span className="block truncate text-[12px] font-semibold text-[#111111]">{departure.headsign}</span>
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#697386]">
           {statusLabel ? <span className="font-semibold text-[#BE185D]">{statusLabel}</span> : null}
           {departure.vehicleLocated ? <span>Navette en circulation</span> : null}
@@ -32,7 +32,7 @@ export function FacilibusDepartureRow({ departure }: { departure: PublicDepartur
         </span>
       </span>
       <span className="shrink-0 text-right">
-        <time dateTime={departure.referenceAt} className="block text-[17px] font-semibold tabular-nums text-[#111111]">
+        <time dateTime={departure.referenceAt} className="block text-[14px] font-semibold tabular-nums text-[#111111]">
           {formatParisTime(departure.referenceAt)}
         </time>
         {showDelay ? (

@@ -317,3 +317,12 @@ Départ, fiche lieu) : entrée `slideIn` 280 ms, bouton retour rond 44 px.
 ## Open Questions
 
 Aucune.
+
+## Amendement approuvé — Statistique voyageurs (2026-10-02)
+
+Sur l'accueil du guide, les statistiques « Voyageurs », « Chambres » et
+« Surface » affichent leurs valeurs sans libellé visible. Pour « Voyageurs » et
+« Chambres », les icônes Lucide React `UsersRound` et `BedDouble` sont alignées
+horizontalement à droite du nombre. La surface affiche uniquement sa valeur.
+Le contenu est centré dans chaque carte. Les libellés restent accessibles aux
+lecteurs d'écran. Décisions explicites du Product Owner.

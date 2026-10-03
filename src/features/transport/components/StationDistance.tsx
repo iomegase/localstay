@@ -15,7 +15,7 @@ export function StationDistance({ station }: { station: NearbyResult['stations']
   const walking = travel.mode === 'walking'
   const Icon = walking ? Footprints : Car
   return (
-    <p className="flex items-center gap-1.5 text-[13px] text-[#697386]">
+    <p className="flex mb-4 items-center gap-1.5 text-[12px] text-[#697386]">
       <span role="img" aria-label={walking ? 'À pied' : 'En voiture'}>
         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       </span>

@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { GuideArrivalFlow } from '@/features/guide-app/components/stay/GuideArrivalFlow'
 import { buildStayLodging } from '../support/guide-stay-lodging'
 
@@ -44,17 +44,25 @@ describe('054 US-02 — guided arrival', () => {
     Object.assign(navigator, { clipboard: { writeText } })
     renderFlow()
 
-    expect(screen.getByRole('link', { name: 'Ouvrir dans Maps' })).toHaveAttribute(
+    const mapsLink = screen.getByRole('link', { name: 'Ouvrir dans Maps' })
+    expect(mapsLink).toHaveAttribute(
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=45.89,6.71',
     )
+    expect(screen.getByRole('tabpanel')).not.toContainElement(mapsLink)
+    expect(screen.queryByRole('button', { name: 'Retour' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Étape suivante' })).not.toBeInTheDocument()
+    const address = screen.getByTestId('arrival-address')
+    expect(within(address).getByText('305 route du Bettex')).toBeInTheDocument()
+    expect(within(address).getByText('74170 Saint-Gervais-les-Bains')).toBeInTheDocument()
+    const copyButton = within(address).getByRole('button', { name: "Copier l'adresse" })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: "Copier l'adresse" }))
+      fireEvent.click(copyButton)
     })
     expect(writeText).toHaveBeenCalledWith('305 route du Bettex, 74170 Saint-Gervais-les-Bains')
-    expect(screen.getByRole('button', { name: 'Copié ✓' })).toBeInTheDocument()
+    expect(within(address).getByRole('button', { name: 'Adresse copiée' })).toBeInTheDocument()
     act(() => { jest.advanceTimersByTime(1600) })
-    expect(screen.getByRole('button', { name: "Copier l'adresse" })).toBeInTheDocument()
+    expect(within(address).getByRole('button', { name: "Copier l'adresse" })).toBeInTheDocument()
     jest.useRealTimers()
   })
 
@@ -76,11 +84,10 @@ describe('054 US-02 — guided arrival', () => {
     expect(screen.queryByText('Code de la boîte à clés')).not.toBeInTheDocument()
   })
 
-  it('AC-02-04 / AC-03-01: navigation buttons and the arrival signal', async () => {
+  it('AC-02-04 / AC-03-01: step tabs and the arrival signal', async () => {
     const props = renderFlow()
 
-    expect(screen.getByRole('button', { name: 'Retour' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Étape suivante' }))
+    fireEvent.click(screen.getAllByRole('tab')[1])
     expect(screen.getByText('Étape 2 sur 3')).toBeInTheDocument()
 
     await act(async () => {
@@ -97,10 +104,11 @@ describe('054 US-02 — guided arrival', () => {
     expect(screen.queryByRole('button', { name: 'Je suis arrivé·e !' })).not.toBeInTheDocument()
   })
 
-  it('AC-02-04: the last step only keeps a full-width « Retour »', () => {
+  it('AC-02-04: the last step has no redundant navigation buttons', () => {
     renderFlow()
     fireEvent.click(screen.getAllByRole('tab')[2])
-    expect(screen.getByRole('button', { name: 'Retour' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Revenir au séjour' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Retour' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Étape suivante' })).not.toBeInTheDocument()
   })
 

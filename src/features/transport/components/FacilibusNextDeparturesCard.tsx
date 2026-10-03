@@ -42,17 +42,19 @@ export function FacilibusNextDeparturesCard({
   return (
     <section
       aria-label="Prochaines navettes"
-      className="rounded-[20px] bg-white p-4 shadow-[0_1px_2px_rgba(17,17,17,0.06)]"
+      className="rounded-[20px] bg-white p-4 shadow-md"
     >
-      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#DB2777]">Prochaines navettes</p>
-      <h2 className="mt-1 text-[16px] font-semibold text-[#111111]">{nearest.name}</h2>
+      <p className="inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">
+        Navettes gratuites
+      </p>
+      <h2 className="mt-4 mb-2 text-[14px] font-semibold text-[#111111]">{nearest.name}</h2>
       <StationDistance station={nearest} />
       {list.length > 0 ? (
         <ul className="mt-1 divide-y divide-[rgba(17,17,17,0.08)]">
           {list.map(departure => <FacilibusDepartureRow key={departure.id} departure={departure} />)}
         </ul>
       ) : (
-        <p className="mt-3 text-[14px] text-[#697386]">Aucun départ dans les prochaines 24 h.</p>
+        <p className="mt-3 text-[12px] text-[#697386]">Aucun départ dans les prochaines 24 h.</p>
       )}
       {departures.envelope.status === 'stale' ? (
         <p className="mt-2 text-[12px] text-[#697386]">Horaires non actualisés.</p>
@@ -60,7 +62,7 @@ export function FacilibusNextDeparturesCard({
       <button
         type="button"
         onClick={onOpen}
-        className="mt-2 flex min-h-11 w-full items-center justify-between text-[14px] font-semibold text-[#DB2777]"
+        className="mt-2 flex min-h-11 w-full items-center justify-end gap-1 text-[12px] font-semibold text-pink-600"
       >
         Tous les transports
         <ChevronRight className="h-4 w-4" aria-hidden="true" />

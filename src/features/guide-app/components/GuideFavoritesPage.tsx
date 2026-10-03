@@ -14,7 +14,6 @@ import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 
 const DISTANCE_SOURCE_LABELS = {
   position: "Distances à vol d'oiseau depuis votre position",
-  travel: 'Temps de trajet estimés depuis le logement',
   lodging: "Distances à vol d'oiseau depuis le logement",
 } as const
 
@@ -79,7 +78,7 @@ export function GuideFavoritesPage({
   const originalPoi = (poi: GuidePoi) => pois.find(candidate => candidate.id === poi.id) ?? poi
 
   return (
-    <div className="min-h-full bg-[#F6F6F4] px-3 pb-[120px] pt-5">
+    <div className="min-h-full bg-white px-3 pb-[120px] pt-5">
       <GuideSearchHeader
         city={city}
         query={query}
@@ -96,7 +95,7 @@ export function GuideFavoritesPage({
       />
 
       <div
-        className="sticky top-0 z-20 -mx-3 mt-3 flex gap-2 overflow-x-auto bg-[#F6F6F4]/95 px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="sticky top-0 z-20 -mx-3 mt-3 flex gap-2 overflow-x-auto bg-white px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-label="Filtrer les catégories"
       >
         <FilterButton
@@ -114,7 +113,7 @@ export function GuideFavoritesPage({
         ))}
       </div>
 
-      {distanceSource ? (
+      {distanceSource && distanceSource !== 'travel' ? (
         <p className="px-2 text-[12px] text-[#697386]">{DISTANCE_SOURCE_LABELS[distanceSource]}</p>
       ) : null}
 

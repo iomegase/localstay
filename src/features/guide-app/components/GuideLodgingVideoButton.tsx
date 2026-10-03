@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowRight, Video, X } from 'lucide-react'
+import { ChevronRight, Video, X } from 'lucide-react'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 
@@ -27,22 +27,22 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-between rounded-[22px] bg-slate-900 px-5 py-4 text-left text-white"
+        className="flex w-full items-center justify-between rounded-[22px] bg-white shadow-md px-5 py-4 text-left text-black"
       >
         <span className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-violet-600">
-            <Video className="h-4 w-4" aria-hidden="true" />
+          <span className="grid h-10 w-10 shrink-0 place-items-center">
+            <Video className="h-8 w-8 text-[#DB2777]" strokeWidth={1.8} aria-hidden="true" />
           </span>
           <span>
             <span className="block text-sm font-semibold">
               Voir la vidéo du logement
             </span>
-            <span className="mt-0.5 block text-[10px] text-white/60">
+            <span className="mt-0.5 block text-[10px] text-black/60">
               Découvrez votre logement en vidéo
             </span>
           </span>
         </span>
-        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </button>
 
       {open && (

@@ -25,7 +25,7 @@ export function GuideSearchHeader({
       <h1 {...headingProps} className="mt-1 text-[30px] font-semibold leading-tight tracking-[-0.03em] text-[#111111]">
         {guideCityTitle(city)}
       </h1>
-      <p className="mt-1 text-[14px] text-[#697386]">Nos coups de cœur pour profiter de votre séjour</p>
+      {/* <p className="mt-1 text-[14px] text-[#697386]">Nos coups de cœur pour profiter de votre séjour</p> */}
       <label className="relative mt-4 block">
         <span className="sr-only">Rechercher un lieu</span>
         <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#697386]" aria-hidden="true" />
@@ -35,7 +35,7 @@ export function GuideSearchHeader({
           onChange={event => onQueryChange(event.target.value)}
           placeholder="Rechercher un lieu"
           aria-label="Rechercher un lieu"
-          className="h-[46px] w-full rounded-[14px] bg-white pl-12 pr-11 text-[15px] text-[#111111] shadow-[0_1px_2px_rgba(17,17,17,0.06)] outline-none placeholder:text-[#9CA3AF] focus:ring-2 focus:ring-[#FCE7F3] [&::-webkit-search-cancel-button]:hidden"
+          className="h-[46px] w-full rounded-[14px] bg-white pl-12 pr-11 text-[12px] text-[#111111] shadow-[0_1px_2px_rgba(17,17,17,0.06)] outline-none placeholder:text-[#9CA3AF] focus:ring-2 focus:ring-[#FCE7F3] [&::-webkit-search-cancel-button]:hidden"
         />
         {query ? (
           <button

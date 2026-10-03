@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Play } from 'lucide-react'
+import { Check, Copy, Map, Play } from 'lucide-react'
 import { ARRIVAL_STEP_KIND_LABELS } from '@/features/guide-app/lib/arrival-steps'
 import type { GuideArrivalInstruction, GuideLodging } from '@/features/guide-app/types'
 import { formatFrenchWelcomeLine } from '@/shared/lib/french-place'
@@ -14,7 +14,6 @@ import {
   lodgingMapsHref,
   STAY_EYEBROW,
   STAY_PRIMARY_BUTTON,
-  STAY_SECONDARY_BUTTON,
 } from './stay-styles'
 import { copyToClipboard, useTemporaryFlag } from './useTemporaryFlag'
 
@@ -55,7 +54,6 @@ export function GuideArrivalFlow({
   const [sending, setSending] = useState(false)
   const [failed, setFailed] = useState(false)
   const step = steps[current]
-  const isLast = current === steps.length - 1
 
   function goTo(index: number) {
     setVisited(previous => new Set(previous).add(current))
@@ -92,8 +90,8 @@ export function GuideArrivalFlow({
               role="tab"
               aria-selected={active}
               onClick={() => goTo(index)}
-              className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[12px] font-semibold ${
-                active ? 'bg-[#111111] text-white' : 'border border-[rgba(17,17,17,0.15)] bg-white text-[#111111]'
+              className={`flex min-h-16 flex-col items-center justify-center gap-1 shadow-md rounded-2xl px-1 text-[12px] font-semibold ${
+                active ? 'bg-[#111111] text-white' : ' bg-white text-[#111111]'
               }`}
             >
               <span
@@ -122,7 +120,7 @@ export function GuideArrivalFlow({
             </div>
           ) : null}
 
-          {step.kind === 'address' && <AddressBlock lodging={lodging} withMapsLink={!demo} />}
+          {step.kind === 'address' && <AddressBlock lodging={lodging} />}
           {step.kind === 'access' && lodging.keyBoxCode && <KeyBoxCode code={lodging.keyBoxCode} />}
 
           {step.facts.length > 0 && (
@@ -139,14 +137,14 @@ export function GuideArrivalFlow({
           {step.substeps.length > 0 && (
             <ol className="mt-5 grid gap-4">
               {step.substeps.map((substep, index) => (
-                <li key={index} className="flex gap-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#FCE7F3] text-[13px] font-semibold text-[#BE185D]">
+                <li key={index} className="flex gap-3 mt-2">
+                  <span className="grid shrink-0 place-items-center text-[35px] font-semibold text-slate-500 [text-shadow:0_2px_4px_rgba(15,23,42,0.3)]">
                     {index + 1}
                   </span>
                   <span>
-                    <span className="block text-[15px] font-semibold text-[#111111]">{substep.title}</span>
+                    <span className="block text-xs font-semibold text-[#111111]">{substep.title}</span>
                     {substep.detail ? (
-                      <span className="mt-0.5 block text-[14px] leading-[1.5] text-[#697386]">{substep.detail}</span>
+                      <span className="mt-0.5 block text-xs leading-[1.5] text-[#697386]">{substep.detail}</span>
                     ) : null}
                   </span>
                 </li>
@@ -155,9 +153,9 @@ export function GuideArrivalFlow({
           )}
 
           {step.tip ? (
-            <aside className="mt-5 rounded-[14px] bg-[#FCE7F3] p-4 text-[14px] leading-[1.5] text-[#111111]">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#BE185D]">Le conseil MyStay</p>
-              <p className="mt-1">{step.tip}</p>
+            <aside className="mt-5 rounded-[14px] border-2 border-pink-600 p-4 text-[14px] leading-[1.5] text-[#111111]">
+              <p className="text-[12px] font-semibold uppercase text-pink-600 tracking-[0.06em] ">Infos  </p>
+              <p className="mt-1 text-xs">{step.tip}</p>
             </aside>
           ) : null}
 
@@ -170,31 +168,29 @@ export function GuideArrivalFlow({
         </div>
       </article>
 
-      <div className={`mt-4 grid gap-2.5 ${isLast ? 'grid-cols-1' : 'grid-cols-[1fr_2fr]'}`}>
+      {step.kind === 'address' && !demo && (
+        <a
+          href={lodgingMapsHref(lodging.latitude, lodging.longitude)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-4 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-900 shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:scale-[0.98]"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
+            <Map className="h-4 w-4" aria-hidden="true" />
+          </span>
+          Ouvrir dans Maps
+        </a>
+      )}
+      {step.kind === 'access' && !arrived && (
         <button
           type="button"
-          onClick={() => (current === 0 ? onBack() : goTo(current - 1))}
-          className={STAY_SECONDARY_BUTTON}
+          disabled={sending}
+          onClick={signalArrival}
+          className={`${STAY_PRIMARY_BUTTON} mt-4 w-full bg-[#DB2777] disabled:opacity-60`}
         >
-          Retour
+          Je suis arrivé·e !
         </button>
-        {!isLast && (
-          step.kind === 'access' && !arrived ? (
-            <button
-              type="button"
-              disabled={sending}
-              onClick={signalArrival}
-              className={`${STAY_PRIMARY_BUTTON} bg-[#DB2777] disabled:opacity-60`}
-            >
-              Je suis arrivé·e !
-            </button>
-          ) : (
-            <button type="button" onClick={() => goTo(current + 1)} className={STAY_PRIMARY_BUTTON}>
-              Étape suivante
-            </button>
-          )
-        )}
-      </div>
+      )}
       {failed && <SignalError />}
     </GuideStayScreen>
   )
@@ -299,8 +295,10 @@ function VideoTile({
   )
 }
 
-function AddressBlock({ lodging, withMapsLink }: { lodging: GuideLodging; withMapsLink: boolean }) {
+function AddressBlock({ lodging }: { lodging: GuideLodging }) {
   const [copied, flagCopied] = useTemporaryFlag(1600)
+  const [street, ...localityParts] = lodging.addressLabel.split(',')
+  const locality = localityParts.join(',').trim()
 
   async function copyAddress() {
     if (await copyToClipboard(lodging.addressLabel)) flagCopied()
@@ -308,26 +306,18 @@ function AddressBlock({ lodging, withMapsLink }: { lodging: GuideLodging; withMa
 
   return (
     <div className="mt-4">
-      <p className="rounded-2xl bg-[#F6F6F4] p-4 text-[15px] font-semibold leading-snug text-[#111111]">
-        {lodging.addressLabel}
-      </p>
-      <div className={`mt-2.5 grid gap-2.5 ${withMapsLink ? 'grid-cols-2' : 'grid-cols-1'}`}>
-        {withMapsLink && (
-          <a
-            href={lodgingMapsHref(lodging.latitude, lodging.longitude)}
-            target="_blank"
-            rel="noreferrer"
-            className={`${STAY_PRIMARY_BUTTON} text-[14px]`}
-          >
-            Ouvrir dans Maps
-          </a>
-        )}
+      <div data-testid="arrival-address" className="flex items-center justify-between gap-3 rounded-2xl shadow-md bg-white p-4 text-slate-600">
+        <address className="min-w-0 break-words text-[12px] tracking-wide leading-snug not-italic">
+          <span className="block">{street.trim()}</span>
+          {locality && <span className="block">{locality}</span>}
+        </address>
         <button
           type="button"
           onClick={copyAddress}
-          className={`${STAY_SECONDARY_BUTTON} text-[14px] ${copied ? 'border-[#DB2777] bg-[#DB2777] text-white' : ''}`}
+          aria-label={copied ? 'Adresse copiée' : "Copier l'adresse"}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#DB2777] transition-colors hover:bg-[#FCE7F3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777]"
         >
-          {copied ? 'Copié ✓' : "Copier l'adresse"}
+          {copied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Copy className="h-5 w-5" aria-hidden="true" />}
         </button>
       </div>
     </div>

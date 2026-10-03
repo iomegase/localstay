@@ -44,19 +44,28 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
       />,
     )
 
-    expect(screen.getByText('Votre guide de séjour')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Bienvenue au 305' })).toBeInTheDocument()
     expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
     const stats = screen.getByTestId('guide-stay-stats')
     expect(within(stats).getByText('4')).toBeInTheDocument()
     expect(within(stats).getByText('Voyageurs')).toBeInTheDocument()
+    for (const label of ['Voyageurs', 'Chambres']) {
+      const description = within(stats).getByText(label)
+      expect(description).toHaveClass('sr-only')
+      expect(description.closest('dt')?.querySelector('svg')).toBeInTheDocument()
+      expect(description.closest('dl > div')).toHaveClass('flex-row-reverse', 'items-center', 'justify-center', 'text-center')
+    }
+    expect(within(stats).getByText('Surface')).toHaveClass('sr-only')
+    expect(within(stats).getByText('Surface').closest('dt')?.querySelector('svg')).toBeNull()
     expect(within(stats).getByText('52 m²')).toBeInTheDocument()
 
-    expect(screen.getByRole('button', { name: /arrivée.*dès 16 h/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /départ.*1 sur 2 faits/i })).toBeInTheDocument()
+    const arrival = screen.getByRole('button', { name: /arrivée.*dès 16 h/i })
+    const departure = screen.getByRole('button', { name: /départ.*1 sur 2 faits/i })
+    expect(arrival.querySelector('svg.lucide-log-in')).toBeInTheDocument()
+    expect(departure.querySelector('svg.lucide-log-out')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /arrivée/i }))
-    fireEvent.click(screen.getByRole('button', { name: /guide logement/i }))
+    fireEvent.click(screen.getByRole('button', { name: /guide.*équipements et règles/i }))
     fireEvent.click(screen.getByRole('button', { name: /départ/i }))
     fireEvent.click(screen.getByRole('button', { name: /wi-fi/i }))
     expect(onNavigate.mock.calls.map(call => call[0])).toEqual(['arrival', 'rules', 'departure'])
@@ -95,7 +104,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
     expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir Le Bettex' }))
     expect(onOpenPoi).toHaveBeenCalledWith(poi)
-    fireEvent.click(screen.getByRole('button', { name: 'Tout voir' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voir tous les coups de cœur' }))
     expect(onNavigate).toHaveBeenCalledWith('favorites')
   })
 
@@ -114,7 +123,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copier le mot de passe' }))
     })
     expect(writeText).toHaveBeenCalledWith('neige-2026')
-    expect(screen.getByRole('button', { name: 'Copié ✓' })).toBeInTheDocument()
+    expect(within(sheet).getByRole('button', { name: 'Mot de passe copié' })).toBeInTheDocument()
     act(() => { jest.advanceTimersByTime(1800) })
     expect(screen.getByRole('button', { name: 'Copier le mot de passe' })).toBeInTheDocument()
 

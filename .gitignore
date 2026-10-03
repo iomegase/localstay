@@ -31,6 +31,9 @@ playwright-report/
 test-results/
 .worktrees/
 
+# local investigation archives and generated files
+artifacts/
+
 # Prisma
 # prisma/migrations/ — tracked in git (removed 009)
 

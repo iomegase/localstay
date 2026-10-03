@@ -37,7 +37,7 @@ describe('057 guide tab travel times', () => {
 
   it('AC-01-01: shows one real travel time per card from the lodging', () => {
     renderPage()
-    expect(screen.getByText('Temps de trajet estimés depuis le logement')).toBeInTheDocument()
+    expect(screen.queryByText('Temps de trajet estimés depuis le logement')).not.toBeInTheDocument()
     const [first, second] = screen.getAllByTestId('favorite-bento-card')
     expect(within(first).getByLabelText('À pied')).toBeInTheDocument()
     expect(within(first).getByText('6 min')).toBeInTheDocument()

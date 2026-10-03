@@ -46,8 +46,10 @@ export function GuideFavoriteBentoCard<P extends BentoPoi>({
     <article
       data-testid="favorite-bento-card"
       data-variant={variant}
-      className={`group relative aspect-square overflow-hidden bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)] ${
-        isBig ? 'col-span-2 rounded-[2rem]' : 'rounded-[1.75rem]'
+      className={`group relative aspect-square overflow-hidden ${
+        isBig
+          ? 'col-span-2 rounded-[2rem] bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)]'
+          : 'rounded-[1.75rem]'
       }`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- image distante chargée directement pour éviter le blocage NAT64 de l'optimiseur Next.js */}

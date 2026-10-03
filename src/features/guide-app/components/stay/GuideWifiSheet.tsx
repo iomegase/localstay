@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, Copy } from 'lucide-react'
 import { copyToClipboard, useTemporaryFlag } from './useTemporaryFlag'
 
 /** Feuille basse Wi-Fi (spec 054 AC-01-04). */
@@ -44,22 +45,23 @@ export function GuideWifiSheet({
             <dt className="text-[12px] text-[#697386]">Réseau</dt>
             <dd className="mt-0.5 text-[16px] font-semibold text-[#111111]">{name || '—'}</dd>
           </div>
-          <div className="rounded-2xl bg-[#F6F6F4] px-4 py-3">
-            <dt className="text-[12px] text-[#697386]">Mot de passe</dt>
-            <dd className="mt-0.5 break-all font-mono text-[16px] font-semibold text-[#111111]">{password || '—'}</dd>
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#F6F6F4] px-4 py-3">
+            <div className="min-w-0">
+              <dt className="text-[12px] text-[#697386]">Mot de passe</dt>
+              <dd className="mt-0.5 break-all font-mono text-[16px] font-semibold text-[#111111]">{password || '—'}</dd>
+            </div>
+            {password && (
+              <button
+                type="button"
+                onClick={copyPassword}
+                aria-label={copied ? 'Mot de passe copié' : 'Copier le mot de passe'}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#DB2777] transition-colors hover:bg-[#FCE7F3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777]"
+              >
+                {copied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Copy className="h-5 w-5" aria-hidden="true" />}
+              </button>
+            )}
           </div>
         </dl>
-        {password ? (
-          <button
-            type="button"
-            onClick={copyPassword}
-            className={`mt-4 flex h-[52px] w-full items-center justify-center rounded-2xl text-[15px] font-semibold text-white transition-colors ${
-              copied ? 'bg-[#DB2777]' : 'bg-[#111111]'
-            }`}
-          >
-            {copied ? 'Copié ✓' : 'Copier le mot de passe'}
-          </button>
-        ) : null}
       </div>
     </div>
   )
