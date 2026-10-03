@@ -154,7 +154,7 @@ export function GuideArrivalFlow({
 
           {step.tip ? (
             <aside className="mt-5 rounded-[14px] border-2 border-pink-600 p-4 text-[14px] leading-[1.5] text-[#111111]">
-              <p className="text-[12px] font-semibold uppercase text-pink-600 tracking-[0.06em] ">Infos  </p>
+              <p className="text-[12px] font-semibold uppercase text-pink-600tracking-[0.06em] ">Infos  </p>
               <p className="mt-1 text-xs">{step.tip}</p>
             </aside>
           ) : null}
