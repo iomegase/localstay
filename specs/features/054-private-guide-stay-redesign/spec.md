@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-02
-updated_at: 2026-10-02
+updated_at: 2026-10-03
 depends_on:
   - 012-guide-customization
   - 024-contact-messages
@@ -42,8 +42,8 @@ Décisions :
 Remplace : l'accueil privé à boutons (034 AC-01-03/04, carte GPS comprise), le
 hub logement et ses onglets Accès / Infos / Équipements / Départ (036, 039, 050
 AC-01-03/08/09) et la vue « Guide logement » de la démo (045 AC-01-07..13). La
-vue « Infos pratiques » (Wi-Fi, numéros utiles, tri) est conservée et ouverte
-depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuiles.
+les contacts « Infos pratiques » sont déplacés dans Aide et le point de tri
+est accessible depuis le Guide logement (amendement PO du 2026-10-03) ; la vidéo de présentation (044) reste sous les tuiles.
 
 ## Glossary References
 
@@ -62,10 +62,14 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
 #### Acceptance Criteria
 
 - **AC-01-01**: Given le guide privé, When il s'affiche, Then une barre basse fixe
-  propose 4 onglets égaux **Séjour · Guide · Carte · Aide** (icône 24 px trait 1,8,
-  libellé 11 px/600 ; actif `#111111`, inactif `#9CA3AF` ; fond blanc 94 % flouté,
-  bordure haute `rgba(17,17,17,.08)`). « Guide » ouvre la liste des lieux
-  (vue coups de cœur), « Carte » la carte existante, inchangée.
+  propose 4 onglets égaux **Séjour · cœur · Carte · Aide** (icônes 24 px, cœur
+  28 px, trait 1,8 ; libellés 11 px/600). Le cœur sans texte visible porte le
+  nom accessible « Coups de cœur » et ouvre la liste des lieux. La barre blanche
+  aux coins supérieurs droits porte une ombre diffuse vers le haut ; une
+  pastille gris clair glisse et s’étire entre les onglets en 350 ms. Toutes les
+  couleurs de la barre sont neutres (aucun rose). Le cœur est rempli lorsqu’il
+  est actif. Les animations sont désactivées avec `prefers-reduced-motion`.
+  « Carte » ouvre la carte existante, inchangée. (Amendement PO 2026-10-03.)
 - **AC-01-02**: Given l'onglet Séjour, When il s'affiche, Then il présente le logo,
   un hero photo (300 px, rayon 28 px, dégradé sombre) avec la pastille rose
   « Votre guide de séjour », « Bienvenue au » + nom du logement en serif
@@ -97,8 +101,9 @@ depuis le Guide logement ; la vidéo de présentation (044) reste sous les tuile
 - **AC-02-01**: Given des étapes d'arrivée, When on ouvre l'écran Arrivée, Then
   des onglets d'étapes (grille, boutons ≥ 64 px, pastille numérotée ou ✓ si
   validée) et une carte d'étape montrent : médias (vidéo 200 px avec bouton
-  lecture, photos), « Étape X sur N », titre, introduction, repères clé/valeur,
-  sous-étapes numérotées et encart « Le conseil MyStay ».
+  lecture, photos), titre, introduction, repères clé/valeur,
+  sous-étapes numérotées et encart « Le conseil MyStay » ; aucun compteur
+  « Étape X sur N » n’est affiché (amendement PO du 2026-10-03).
 - **AC-02-05** *(ajout PO du 2026-10-02)*: Given les médias d'une étape, When
   elle s'affiche, Then la première photo est l'image principale (pleine
   largeur) et les autres photos puis la vidéo sont disposées dessous en grille
@@ -326,3 +331,83 @@ Sur l'accueil du guide, les statistiques « Voyageurs », « Chambres » et
 horizontalement à droite du nombre. La surface affiche uniquement sa valeur.
 Le contenu est centré dans chaque carte. Les libellés restent accessibles aux
 lecteurs d'écran. Décisions explicites du Product Owner.
+
+## Amendement approuvé — Cohérence des cartes Séjour (2026-10-03)
+
+Demande explicite du Product Owner : les textes des cartes Arrivée, Wi-Fi,
+Guide, Départ, vidéo et Se déplacer partagent le tracking `-0.025em`.
+Les cartes utilisent une marge interne horizontale de 12 px, une pastille
+de 44 px et un espace icône/texte de 10 px : « Se déplacer » et « Guide »
+sont alignés à gauche. Les icônes principales mesurent 28 px avec un trait
+de 2,2 ; les chevrons des cartes pleine largeur mesurent 20 px.
+Cette précision complète AC-01-02 et le contrat de l'entrée spec 055 AC-01-01,
+pour le guide privé et la démo qui réutilise ces composants.
+
+Précision PO du 2026-10-03 : la pastille de l’icône vidéo utilise également
+un fond clair `#EEF1F4` et un rayon de 16 px, identiques aux tuiles Séjour.
+
+Précision PO du 2026-10-03 — Navigation basse : hauteur hors zone de sécurité
+réduite de 10 %, de 92 px à 83 px (contenu 55 px, padding haut 10 px, bas 18 px).
+La zone de sécurité iOS reste ajoutée à cette hauteur et les cibles tactiles
+restent supérieures à 44 px.
+
+Précision PO du 2026-10-03 — Navigation basse : nouvelle réduction de 5 %,
+de 83 px à 79 px hors zone de sécurité (arrondi au pixel). Le contenu mesure
+55 px avec des marges verticales symétriques de 12 px. Chaque bouton occupe
+toute la hauteur du contenu et centre verticalement son groupe icône/libellé ;
+le cœur seul est centré sur le même axe.
+
+## Amendement approuvé — Aide et guide logement (2026-10-03)
+
+Demande explicite du Product Owner, captures fournies comme contrat visuel :
+
+- **AC-01-05** : Aide a un fond blanc. Le bloc « Infos pratiques » du guide
+  logement est déplacé dans Aide : une pastille grise de titre, les cartes
+  Urgences 112 et Conciergerie (numéro existant), avec icônes rondes rouge et
+  ardoise et numéro à droite. Le contact « Écrire » est conservé.
+- Le titre « Adresse » devient une pastille grise. L'adresse est une carte
+  blanche arrondie avec ombre, rue puis code postal/ville sur deux lignes,
+  bouton de copie rose à droite, identique à Arrivée. Le bouton indépendant
+  « Ouvrir dans Maps » reprend la capture : pill blanche, icône carte dans
+  un cercle sombre, texte sombre en majuscules.
+- **AC-04-01** : Guide logement ne contient plus le bloc de contacts
+  « Infos pratiques ». Il affiche les contenus pratiques de type `recycle`
+  et un bloc « Point de tri » pour trouver le point de recyclage : lien
+  `trashLocation` si URL HTTP(S), sinon recherche Maps de l'indication
+  renseignée avec la ville, sinon recherche « point de tri <ville> ».
+  Aucune ligne par poubelle. Il affiche aussi l'adresse du logement et le
+  bouton Maps suivant le même contrat que dans Aide.
+- La démo réutilise le rendu mais ne propose aucun lien externe Maps ou tel.
+  La copie d'adresse reste locale, sans persistance. Aucun changement de
+  données, API ou schéma.
+
+## Amendement approuvé — Menu minimal (2026-10-03)
+
+Le PO valide la maquette `exec-b300c7ab-d360-4066-a6c0-404014850718.png`.
+Le menu privé et la démo présentent uniquement « Les logements » (vue lodgings)
+et « Journal » (vue blog). « Nous contacter » est retiré du menu ; l'aide
+reste disponible via la navigation basse. Aucun logo, photo, icône de
+destination, flèche, slogan ou sous-titre visible dans le menu.
+Deux grandes zones se partagent la hauteur restante sous le bouton fermer,
+avec texte aligné à gauche et centré verticalement, séparées par un filet
+slate-200. « Les logements » est sur deux lignes. Texte normal (aucune
+uppercase), 44 px à 375 px, réduit à 36 px sur petits écrans. Fond blanc 98 %.
+Bouton fermer rond 56 px, fond slate-50, croix 24 px trait 1,8.
+Ouverture : fondu et glissement 320 ms ; fermeture inverse 240 ms.
+Croix : rotation de −90° à 0° à l'ouverture, vers 90° à la fermeture.
+Les préférences de mouvement réduit désactivent déplacements et rotations.
+Les destinations, confinement privé/démo et comportements clavier restent
+fonctionnels. Cet amendement remplace les anciens contrats de menu dans
+054 US-01 et 045 AC-01-06 ; il autorise cette modification dans les deux guides.
+
+Précision PO du 2026-10-03 — Cartes Séjour : le trait des icônes principales
+(vidéo, arrivée, Wi-Fi, guide, départ, transport) et des chevrons est réduit
+à 1. Cette décision remplace la valeur 2,2 précédente ; tailles inchangées.
+
+## Amendement approuvé — Retrait du bloc Adresse (2026-10-03)
+
+Le PO demande de retirer la section Adresse illustrée dans sa capture du
+guide : titre, carte copiable et bouton Maps associé disparaissent des vues
+Aide et Guide logement, en privé et en démo. Cet amendement remplace les
+exigences Adresse précédentes de AC-01-05 et AC-04-01. Le parcours Arrivée
+conserve son adresse ; le lien Maps du point de tri est conservé.

@@ -27,22 +27,22 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-between rounded-[22px] bg-white shadow-md px-5 py-4 text-left text-black"
+        className="flex w-full items-center justify-between rounded-[22px] bg-white shadow-md transition-[transform,box-shadow] duration-200 hover:shadow-sm p-3 text-left tracking-[-0.025em] text-black"
       >
-        <span className="flex items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center">
-            <Video className="h-8 w-8 text-[#DB2777]" strokeWidth={1.8} aria-hidden="true" />
+        <span className="flex items-center gap-2.5">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[16px] bg-[#EEF1F4]">
+            <Video className="h-7 w-7 text-black" strokeWidth={1} aria-hidden="true" />
           </span>
           <span>
             <span className="block text-sm font-semibold">
-              Voir la vidéo du logement
+             Vidéo du logement
             </span>
-            <span className="mt-0.5 block text-[10px] text-black/60">
+            {/* <span className="mt-0.5 block text-[10px] text-black/60">
               Découvrez votre logement en vidéo
-            </span>
+            </span> */}
           </span>
         </span>
-        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        <ChevronRight strokeWidth={1} className="h-5 w-5" aria-hidden="true" />
       </button>
 
       {open && (

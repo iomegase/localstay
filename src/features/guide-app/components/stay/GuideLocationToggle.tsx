@@ -18,11 +18,11 @@ export function GuideLocationToggle({
 }) {
   if (active) {
     return (
-      <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[13px] text-[#697386]">
-        <LocateFixed className="h-4 w-4 text-[#DB2777]" aria-hidden="true" />
-        Position utilisée
-        <button type="button" onClick={onClear} className="min-h-11 font-semibold text-[#DB2777]">
-          Ne plus utiliser ma position
+      <p className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-[#697386]">
+        <LocateFixed className="h-4 w-4 text-green-500" aria-hidden="true" />
+        GPS activé
+        <button type="button" onClick={onClear} className="min-h-11 font-semibold text-red-500/60">
+          GPS désactivé
         </button>
       </p>
     )
@@ -33,12 +33,12 @@ export function GuideLocationToggle({
         type="button"
         onClick={onRequest}
         disabled={loading}
-        className="inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold text-[#DB2777] disabled:opacity-60"
+        className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-black disabled:opacity-20"
       >
         <LocateFixed className="h-4 w-4" aria-hidden="true" />
-        {loading ? 'Localisation…' : 'Utiliser ma position'}
+        {loading ? 'Localisation…' : 'GPS désactivé'}
       </button>
-      {denied ? <span className="text-[12px] text-[#697386]">Position non disponible.</span> : null}
+      {denied ? <span className="text-xs text-[#697386]">Position non disponible.</span> : null}
     </div>
   )
 }

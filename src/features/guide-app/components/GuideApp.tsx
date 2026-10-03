@@ -289,7 +289,6 @@ function GuideAppShell({
           <GuideHouseGuide
             lodging={lodging}
             onBack={() => navigate('home')}
-            showPracticalInfo
           />
         )}
         {activeView === 'help' && (

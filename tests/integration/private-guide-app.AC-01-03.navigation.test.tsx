@@ -67,10 +67,10 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
 
-    fireEvent.click(screen.getByRole('button', { name: /^Guide — Équipements et règles/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Guide.*Du logement/ }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/consignes')
 
     fireEvent.click(screen.getByRole('button', { name: /^Arrivée/ }))
@@ -90,7 +90,7 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
 
     expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
     expect(screen.queryByTestId('favorites-bento-grid')).not.toBeInTheDocument()
@@ -134,7 +134,7 @@ describe('034-private-guide-app route-aware shell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
     expect(screen.getByText('Chargement de la carte…')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
     expect(screen.queryByText('Chargement de la carte…')).not.toBeInTheDocument()
   })
 
@@ -162,7 +162,7 @@ describe('034-private-guide-app route-aware shell', () => {
       value: jest.fn(),
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
 
     expect(screen.getByTestId('favorites-bento-grid')).toBe(originalGrid)
     expect(mockPush).not.toHaveBeenCalled()
@@ -204,11 +204,11 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /^Guide — Équipements et règles/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Guide.*Du logement/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('keeps practical contacts inside the house guide', () => {
+  it('keeps practical contacts out of the house guide', () => {
     mockPathname = '/sejour/logement/consignes'
     render(
       <GuideApp
@@ -220,9 +220,9 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    expect(screen.getByRole('heading', { name: 'Infos pratiques' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Urgences 112/ })).toHaveAttribute('href', 'tel:112')
-    expect(screen.getByRole('link', { name: /Conciergerie/ })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Infos pratiques' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Urgences 112/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Conciergerie/ })).not.toBeInTheDocument()
     expect(mockPush).not.toHaveBeenCalledWith('/sejour/logement/informations-pratiques')
   })
 

@@ -95,7 +95,7 @@ describe('035-private-guide-favorites page', () => {
     )
     expect(guide).toHaveAttribute(
       'data-menu-labels',
-      'Tous nos logements,Journal,Nous contacter',
+      'Les logements,Journal',
     )
   })
 

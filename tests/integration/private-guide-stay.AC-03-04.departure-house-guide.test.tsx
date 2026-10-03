@@ -66,7 +66,6 @@ describe('054 US-03/US-04 — departure and house guide', () => {
       <GuideHouseGuide
         lodging={buildStayLodging({ houseRules: [...FIXED_HOUSE_RULES] })}
         onBack={jest.fn()}
-        showPracticalInfo
       />,
     )
 
@@ -84,8 +83,8 @@ describe('054 US-03/US-04 — departure and house guide', () => {
     expect(first).toHaveAttribute('aria-expanded', 'false')
     expect(second).toHaveAttribute('aria-expanded', 'true')
 
-    expect(screen.getByRole('link', { name: /Urgences 112/ })).toHaveAttribute('href', 'tel:112')
-    expect(screen.getByRole('link', { name: /Conciergerie \+33 6 07 85 90 58/ })).toHaveAttribute('href', 'tel:+33607859058')
+    expect(screen.queryByRole('heading', { name: 'Infos pratiques' })).not.toBeInTheDocument()
+    expect(screen.getByText('Trouver le point de recyclage')).toBeInTheDocument()
     expect(screen.queryByText(/tri des déchets/i)).not.toBeInTheDocument()
   })
 })

@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import type { ReactNode, RefObject } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { GuideNavigation } from '@/features/guide-app/components/GuideNavigation'
 import type { DemoGuideView } from '@/features/guide-demo/types'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 
 const menuNavigation = [
-  { view: 'lodgings' as const, label: 'Nos logements' },
+  { view: 'lodgings' as const, label: 'Les logements' },
   { view: 'blog' as const, label: 'Journal' },
-  { view: 'contact' as const, label: 'Nous contacter' },
 ]
 
 type DemoGuideChromeProps = {
@@ -34,6 +34,7 @@ export function DemoGuideChrome({
   onNavigate,
   onOpenMenu,
 }: DemoGuideChromeProps) {
+  const reducedMotion = useReducedMotion()
   const appContentRef = useRef<HTMLDivElement>(null)
   const menuDialogRef = useRef<HTMLDivElement>(null)
   const menuOpenerRef = useRef<HTMLButtonElement>(null)
@@ -190,45 +191,58 @@ export function DemoGuideChrome({
         {!immersive ? <GuideNavigation activeView={activeView} onNavigate={onNavigate} /> : null}
       </div>
 
+      <AnimatePresence>
       {menuOpen ? (
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 20 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
+          exit={{ opacity: 0, y: reducedMotion ? 0 : 16, transition: { duration: reducedMotion ? 0 : 0.24 } }}
           ref={menuDialogRef}
           id="demo-guide-menu"
           role="dialog"
           aria-modal="true"
           aria-labelledby="demo-guide-menu-title"
-          className="absolute inset-0 z-[100] flex flex-col overflow-y-auto overscroll-contain bg-white/90 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] backdrop-blur-xl min-[380px]:px-7"
+          className="absolute inset-0 z-[100] flex flex-col overflow-y-auto overscroll-contain bg-white/[0.98] px-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] backdrop-blur-xl min-[380px]:px-7"
         >
           <h2 id="demo-guide-menu-title" className="sr-only">
             Menu de démonstration
           </h2>
-          <button
+          <motion.button
+            initial={{ rotate: reducedMotion ? 0 : -90 }}
+            animate={{ rotate: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
+            exit={{ rotate: reducedMotion ? 0 : 90, transition: { duration: reducedMotion ? 0 : 0.24 } }}
             ref={menuCloseRef}
             type="button"
             onClick={dismissMenu}
             aria-label="Fermer le menu"
-            className="absolute right-3 top-5 flex h-10 w-10 items-center justify-center text-slate-900"
+            className="ml-auto grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
           >
-            <X className="h-6 w-6" strokeWidth={2} aria-hidden="true" />
-          </button>
+            <X className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
+          </motion.button>
 
-          <nav aria-label="Menu de démonstration" className="mt-12 py-2 min-[380px]:mt-16">
-            <ul className="space-y-2 min-[380px]:space-y-3">
-              {menuNavigation.map(item => (
-                <li key={item.view}>
+          <nav aria-label="Menu de démonstration" className="mt-5 flex min-h-[280px] flex-1 flex-col">
+            <ul className="grid flex-1 auto-rows-fr divide-y divide-slate-200">
+              {menuNavigation.map((item, index) => (
+                <motion.li key={item.view}
+                  initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: reducedMotion ? 0 : index * 0.04, duration: reducedMotion ? 0 : 0.28 }}
+                  className="flex"
+                >
                   <button
                     type="button"
                     onClick={() => navigateFromMenu(item.view)}
-                    className="block w-full py-1.5 text-left text-[clamp(1.15rem,7vw,1.625rem)] font-bold uppercase leading-[1.05] tracking-[-0.01em] text-slate-800 transition-colors hover:text-pink-600 min-[380px]:py-2"
+                    className="flex min-h-24 w-full flex-col justify-center py-8 text-left text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 transition-colors hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-500 min-[375px]:text-[44px]"
                   >
-                    {item.label}
+                    {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
                   </button>
-                </li>
+                </motion.li>
               ))}
             </ul>
           </nav>
-        </div>
+        </motion.div>
       ) : null}
+      </AnimatePresence>
     </div>
   )
 }

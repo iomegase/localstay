@@ -73,7 +73,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       name: 'Voir le guide d’exemple',
     })
     await user.click(trigger)
-    await user.click(screen.getByRole('button', { name: /^Guide logement/ }))
+    await user.click(screen.getByRole('button', { name: /^Guide.*Du logement/ }))
 
     expect(await screen.findByRole('heading', { name: 'Guide logement' })).toBeInTheDocument()
 
@@ -167,7 +167,7 @@ describe('045 AC-02-01/AC-02-05 — autonomous public demo modal isolation', () 
       await user.click(
         screen.getByRole('button', { name: 'Voir le guide d’exemple' }),
       )
-      await user.click(screen.getByRole('button', { name: 'Guide' }))
+      await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
       expect(
         await screen.findByRole('heading', { level: 1, name: 'Saint-Gervais' }),
       ).toBeInTheDocument()

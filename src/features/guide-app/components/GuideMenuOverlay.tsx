@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import Link from 'next/link'
 import type { GuideView } from '@/features/guide-app/types'
@@ -16,12 +16,8 @@ export type GuideMenuItem = {
 
 // Items repris du menu public existant. Ils restent inactifs dans la démo.
 const DEFAULT_MENU_ITEMS: GuideMenuItem[] = [
-  { label: 'Bienvenue' },
-  { label: 'Vos favoris' },
-  { label: 'Tous nos logements' },
-  { label: 'Agenda' },
-  { label: 'Journal' },
-  { label: 'Nous contacter' },
+  { label: 'Les logements', view: 'lodgings' },
+  { label: 'Journal', view: 'blog' },
 ]
 
 export function GuideMenuOverlay({
@@ -38,6 +34,8 @@ export function GuideMenuOverlay({
   lodgingName?: string
   items?: GuideMenuItem[]
 }) {
+  const reducedMotion = useReducedMotion()
+
   useEffect(() => {
     if (!open) return
     const onKey = (event: KeyboardEvent) => {
@@ -52,35 +50,38 @@ export function GuideMenuOverlay({
       {open && (
         <motion.div
           data-testid="guide-menu-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0 z-[100] flex flex-col bg-white/80 px-7 pb-12 pt-5 backdrop-blur-xl"
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 20 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
+          exit={{ opacity: 0, y: reducedMotion ? 0 : 16, transition: { duration: reducedMotion ? 0 : 0.24 } }}
+          className="absolute inset-0 z-[100] flex flex-col overflow-y-auto bg-white/[0.98] px-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] backdrop-blur-xl"
         >
-          <button
+          <motion.button
+            initial={{ rotate: reducedMotion ? 0 : -90 }}
+            animate={{ rotate: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
+            exit={{ rotate: reducedMotion ? 0 : 90, transition: { duration: reducedMotion ? 0 : 0.24 } }}
             type="button"
             onClick={onClose}
             aria-label="Fermer le menu"
-            className="absolute right-3 top-5 flex h-10 w-10 items-center justify-center text-slate-900"
+            className="ml-auto grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
           >
-            <X className="h-6 w-6" strokeWidth={2} />
-          </button>
+            <X className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
+          </motion.button>
 
           <motion.nav
             aria-label="Menu du guide"
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.06, duration: 0.28, ease: 'easeOut' }}
-            className="mt-16"
+            transition={{ duration: reducedMotion ? 0 : 0.32, ease: 'easeOut' }}
+            className="mt-5 flex min-h-[280px] flex-1 flex-col"
           >
-            <ul className="space-y-5">
+            <ul className="grid flex-1 auto-rows-fr divide-y divide-slate-200">
               {items.map((item, index) => (
                 <motion.li
-                  key={`${item.label}-${item.view ?? item.href ?? 'disabled'}`}
-                  initial={{ opacity: 0, y: 8 }}
+                  key={`${item.label === 'Les logements' ? <>Les <br />logements</> : item.label}-${item.view ?? item.href ?? 'disabled'}`}
+                  initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12 + index * 0.05, duration: 0.25, ease: 'easeOut' }}
+                  transition={{ delay: reducedMotion ? 0 : index * 0.04, duration: reducedMotion ? 0 : 0.28, ease: 'easeOut' }}
+                  className="flex"
                 >
                   {item.view ? (
                     <button
@@ -89,24 +90,24 @@ export function GuideMenuOverlay({
                         onNavigate?.(item.view as GuideView)
                         onClose()
                       }}
-                      className="block w-full text-left text-[26px] font-bold uppercase tracking-[-0.01em] text-slate-800 transition-colors hover:text-pink-600"
+                      className="flex min-h-24 w-full flex-col justify-center py-8 text-left text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 transition-colors hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-500 min-[375px]:text-[44px]"
                     >
-                      {item.label}
+                      {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
                     </button>
                   ) : item.href ? (
                     <Link
                       href={item.href}
                       onClick={onClose}
-                      className="block text-[26px] font-bold uppercase tracking-[-0.01em] text-slate-800 transition-colors hover:text-pink-600"
+                      className="flex min-h-24 w-full flex-col justify-center py-8 text-left text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 transition-colors hover:text-slate-600 min-[375px]:text-[44px]"
                     >
-                      {item.label}
+                      {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
                     </Link>
                   ) : (
                     <span
                       aria-disabled="true"
-                      className="block cursor-default select-none text-[26px] font-bold uppercase tracking-[-0.01em] text-slate-800"
+                      className="flex w-full flex-col justify-center py-8 text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 min-[375px]:text-[44px]"
                     >
-                      {item.label}
+                      {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
                     </span>
                   )}
                 </motion.li>

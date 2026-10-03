@@ -457,3 +457,22 @@ Aucune question ouverte. Décisions du Product Owner des 2026-09-01 et
   chargés côté serveur depuis les queries publiques existantes ;
 - le nettoyage supprime uniquement les artefacts de démo devenus orphelins ;
 - les deux tests éditoriaux rouges avant le chantier restent une baseline connue.
+
+## Amendement approuvé — Menu minimal (2026-10-03)
+
+Le PO valide la maquette `exec-b300c7ab-d360-4066-a6c0-404014850718.png`.
+Le menu privé et la démo présentent uniquement « Les logements » (vue lodgings)
+et « Journal » (vue blog). « Nous contacter » est retiré du menu ; l'aide
+reste disponible via la navigation basse. Aucun logo, photo, icône de
+destination, flèche, slogan ou sous-titre visible dans le menu.
+Deux grandes zones se partagent la hauteur restante sous le bouton fermer,
+avec texte aligné à gauche et centré verticalement, séparées par un filet
+slate-200. « Les logements » est sur deux lignes. Texte normal (aucune
+uppercase), 44 px à 375 px, réduit à 36 px sur petits écrans. Fond blanc 98 %.
+Bouton fermer rond 56 px, fond slate-50, croix 24 px trait 1,8.
+Ouverture : fondu et glissement 320 ms ; fermeture inverse 240 ms.
+Croix : rotation de −90° à 0° à l'ouverture, vers 90° à la fermeture.
+Les préférences de mouvement réduit désactivent déplacements et rotations.
+Les destinations, confinement privé/démo et comportements clavier restent
+fonctionnels. Cet amendement remplace les anciens contrats de menu dans
+054 US-01 et 045 AC-01-06 ; il autorise cette modification dans les deux guides.

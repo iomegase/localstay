@@ -48,7 +48,7 @@ export function GuideFavoriteBentoCard<P extends BentoPoi>({
       data-variant={variant}
       className={`group relative aspect-square overflow-hidden ${
         isBig
-          ? 'col-span-2 rounded-[2rem] bg-charcoal shadow-[0_10px_28px_rgba(0,0,0,0.10)]'
+          ? 'col-span-2 rounded-[2rem] bg-charcoal '
           : 'rounded-[1.75rem]'
       }`}
     >
@@ -64,7 +64,7 @@ export function GuideFavoriteBentoCard<P extends BentoPoi>({
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+        className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/5 to-transparent"
       />
 
       {/* Statut d'ouverture (si le lieu a des horaires) */}

@@ -21,7 +21,7 @@ export function GuideSearchHeader({
 }) {
   return (
     <div className="px-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#DB2777]">Le guide</p>
+      {/* <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#DB2777]">Le guide</p> */}
       <h1 {...headingProps} className="mt-1 text-[30px] font-semibold leading-tight tracking-[-0.03em] text-[#111111]">
         {guideCityTitle(city)}
       </h1>

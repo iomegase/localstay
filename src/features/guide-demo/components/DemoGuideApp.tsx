@@ -200,7 +200,7 @@ export function DemoGuideApp({
           onBack={() => navigate('home')}
         />
       ) : activeView === 'rules' ? (
-        <GuideHouseGuide lodging={lodging} onBack={() => navigate('home')} />
+        <GuideHouseGuide lodging={lodging} onBack={() => navigate('home')} demo />
       ) : activeView === 'help' ? (
         <GuideHelpView lodging={lodging} onWrite={() => navigate('contact')} demo />
       ) : activeView === 'favorites' ? (

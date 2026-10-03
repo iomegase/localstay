@@ -1,17 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Phone, Siren } from 'lucide-react'
-import { GuideInfoCard } from '@/features/guide-app/components/GuideCard'
+import { Phone, Recycle } from 'lucide-react'
 import { houseRuleTitle } from '@/features/guide-app/lib/fixed-lodging-content'
 import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
-import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 import type { GuideLodging, GuidePracticalCard } from '@/features/guide-app/types'
-import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
 import { GuideStayScreen } from './GuideStayScreen'
 import { STAY_CARD } from './stay-styles'
+import { GuideMapsButton } from './GuideAddressBlock'
+import { recyclingMapsHref } from '@/features/guide-app/lib/recycling-maps'
 
 const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
@@ -19,18 +18,15 @@ const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 te
 export function GuideHouseGuide({
   lodging,
   onBack,
-  showPracticalInfo = false,
+  demo = false,
 }: {
   lodging: GuideLodging
   onBack: () => void
-  showPracticalInfo?: boolean
+  demo?: boolean
 }) {
   const [openRule, setOpenRule] = useState<number | null>(null)
   const equipment = lodging.practicalCards.filter(card => card.icon !== 'recycle')
-  const hasPracticalInfo = showPracticalInfo
-  const emergency = FRENCH_EMERGENCY_NUMBERS[0]
-  const conciergePhone = lodging.usefulNumbers.find(item => /conciergerie/i.test(item.label))?.number
-    ?? '+33607859058'
+  const recycling = lodging.practicalCards.filter(card => card.icon === 'recycle')
 
   return (
     <GuideStayScreen title="Guide logement" onBack={onBack}>
@@ -78,33 +74,20 @@ export function GuideHouseGuide({
         </section>
       )}
 
-      {hasPracticalInfo && (
-        <section className="mt-[26px]">
-          <h2 className={SECTION_PILL}>
-            Infos pratiques
-          </h2>
-
-          <div id="guide-practical-panel" className="mt-2.5 grid gap-2.5">
-              <GuideInfoCard
-                testId="guide-practical-emergency"
-                href={frenchPhoneHref(emergency.number)}
-                icon={Siren}
-                tone="emergency"
-                title={emergency.label}
-                trailing={emergency.number}
-              />
-              <GuideInfoCard
-                testId="guide-practical-concierge"
-                href={frenchPhoneHref(conciergePhone)}
-                icon={Phone}
-                tone="phone"
-                title="Conciergerie"
-                trailing={formatFrenchPhone(conciergePhone)}
-              />
+      <section className="mt-[26px]">
+        <h2 className={SECTION_PILL}>Point de tri</h2>
+        <div className="mt-3 grid gap-2.5">
+          {recycling.map(card => <EquipmentCard key={card.id} card={card} />)}
+          <div className={`${STAY_CARD} p-4`}>
+            <div className="flex items-center gap-3">
+              <Recycle className="h-5 w-5 shrink-0 text-[#DB2777]" aria-hidden="true" />
+              <p className="text-[14px] font-semibold text-[#111111]">Trouver le point de recyclage</p>
+            </div>
+            {!demo && <GuideMapsButton href={recyclingMapsHref(lodging.trashLocation, lodging.city)} />}
           </div>
+        </div>
+      </section>
 
-        </section>
-      )}
     </GuideStayScreen>
   )
 }

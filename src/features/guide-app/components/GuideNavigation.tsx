@@ -1,11 +1,12 @@
 'use client'
 
-import { BookOpen, House, LifeBuoy, Map } from 'lucide-react'
+import { useState } from 'react'
+import { Heart, House, LifeBuoy, Map } from 'lucide-react'
 import type { GuideView } from '@/features/guide-app/types'
 
 export type GuideTabView = 'home' | 'favorites' | 'map' | 'help'
 
-// Spec 054 AC-01-01 : 4 onglets égaux Séjour · Guide · Carte · Aide.
+// Spec 054 AC-01-01 (PO 2026-10-03) : navigation fluide, palette neutre.
 const items: { view: GuideTabView; label: string; icon: typeof House; matches: string[] }[] = [
   {
     view: 'home',
@@ -13,7 +14,7 @@ const items: { view: GuideTabView; label: string; icon: typeof House; matches: s
     icon: House,
     matches: ['home', 'lodging', 'arrival', 'departure', 'rules', 'transport'],
   },
-  { view: 'favorites', label: 'Guide', icon: BookOpen, matches: ['favorites', 'poi'] },
+  { view: 'favorites', label: 'Coups de cœur', icon: Heart, matches: ['favorites', 'poi'] },
   { view: 'map', label: 'Carte', icon: Map, matches: ['map'] },
   { view: 'help', label: 'Aide', icon: LifeBuoy, matches: ['help', 'contact'] },
 ]
@@ -25,29 +26,59 @@ export function GuideNavigation({
   activeView: GuideView
   onNavigate: (view: GuideTabView) => void
 }) {
+  const activeIndex = items.findIndex(item => item.matches.includes(activeView))
+  const [selection, setSelection] = useState({ view: activeView, index: activeIndex })
+  if (selection.view !== activeView) {
+    setSelection({ view: activeView, index: activeIndex })
+  }
+  const indicatorIndex = selection.view === activeView ? selection.index : activeIndex
+  const positions = ['translate-x-0', 'translate-x-full', 'translate-x-[200%]', 'translate-x-[300%]']
+
   return (
     <nav
       aria-label="Navigation du guide"
-      className="absolute inset-x-0 bottom-0 z-40 border-t border-[rgba(17,17,17,0.08)] bg-white/[0.94] pb-[env(safe-area-inset-bottom)] backdrop-blur-[14px]"
+      className="absolute inset-x-0 bottom-0 z-40 bg-white/[0.96] pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(15,23,42,0.10)] backdrop-blur-[14px]"
     >
-      <div className="grid h-[86px] grid-cols-4 items-start pt-3">
-        {items.map(({ view, label, icon: Icon, matches }) => {
-          const active = matches.includes(activeView)
-          return (
-            <button
-              key={view}
-              type="button"
-              aria-current={active ? 'page' : undefined}
-              onClick={() => onNavigate(view)}
-              className={`flex min-h-[48px] flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors ${
-                active ? 'text-[#111111]' : 'text-[#9CA3AF]'
-              }`}
+      <div className="px-3 py-3">
+        <div className="relative isolate grid h-[55px] grid-cols-4 items-stretch">
+          {indicatorIndex >= 0 && (
+            <div
+              aria-hidden="true"
+              data-testid="guide-navigation-indicator"
+              className={`pointer-events-none absolute inset-y-0 left-0 -z-10 w-1/4 px-1 motion-safe:transition-transform motion-safe:[transition-duration:350ms] motion-safe:[transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${positions[indicatorIndex]}`}
             >
-              <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
-              <span>{label}</span>
-            </button>
-          )
-        })}
+              <div
+                key={indicatorIndex}
+                className="h-full w-full rounded-full bg-slate-100 motion-safe:animate-guide-nav-droplet"
+              />
+            </div>
+          )}
+          {items.map(({ view, label, icon: Icon, matches }, index) => {
+            const active = matches.includes(activeView)
+            return (
+              <button
+                key={view}
+                type="button"
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => {
+                  setSelection({ view: activeView, index })
+                  onNavigate(view)
+                }}
+                className={`flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-1 rounded-full text-[11px] font-semibold tracking-[-0.025em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 ${
+                  active ? 'text-slate-900' : 'text-slate-500'
+                }`}
+              >
+                <Icon
+                  className={`${view === 'favorites' ? 'h-7 w-7' : 'h-6 w-6'} ${active && view === 'favorites' ? 'fill-current' : ''}`}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+                {view !== 'favorites' && <span>{label}</span>}
+              </button>
+            )
+          })}
+        </div>
       </div>
     </nav>
   )

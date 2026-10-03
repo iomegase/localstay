@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import React from 'react'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, waitFor, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DemoGuideApp } from '@/features/guide-demo/components/DemoGuideApp'
 
@@ -69,13 +69,12 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     expect(
       within(guide).getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()
-    expect(within(guide).getByText('Votre guide de séjour')).toBeInTheDocument()
     expect(within(guide).getByRole('button', { name: /^Arrivée/ })).toBeInTheDocument()
     expect(within(guide).getByRole('button', { name: /^Wi-Fi/ })).toBeInTheDocument()
     const tabs = within(
       within(guide).getByRole('navigation', { name: 'Navigation du guide' }),
     ).getAllByRole('button')
-    expect(tabs.map(tab => tab.textContent)).toEqual(['Séjour', 'Guide', 'Carte', 'Aide'])
+    expect(tabs.map(tab => tab.textContent)).toEqual(['Séjour', '', 'Carte', 'Aide'])
     expect(guide.querySelectorAll('a')).toHaveLength(0)
   })
 
@@ -153,9 +152,8 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
   })
 
   it.each([
-    { destination: 'Nos logements', heading: 'Des lieux suivis avec attention.' },
+    { destination: 'Les logements', heading: 'Des lieux suivis avec attention.' },
     { destination: 'Journal', heading: 'Inspirations... et conseils pour vos séjours' },
-    { destination: 'Nous contacter', heading: 'Votre hôte' },
   ])(
     'navigates to $destination from the local menu, closes it and focuses the destination heading',
     async ({ destination, heading }) => {
@@ -174,16 +172,14 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
 
       const viewHeading = screen.getByRole('heading', { name: heading })
       expect(viewHeading).toBeInTheDocument()
-      expect(
-        screen.queryByRole('navigation', { name: 'Menu de démonstration' }),
-      ).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByRole('navigation', { name: 'Menu de démonstration' })).not.toBeInTheDocument())
       expect(window.location.pathname).toBe('/seminaires')
       expect(viewHeading).toHaveFocus()
       expect(opener).not.toHaveFocus()
     },
   )
 
-  it('shows only the three public editorial destinations in the full-screen menu', async () => {
+  it('shows only the two editorial destinations in the full-screen menu', async () => {
     const user = userEvent.setup()
     render(<DemoGuideApp />)
 
@@ -194,7 +190,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
 
     expect(
       within(menu).getAllByRole('button').map(button => button.textContent),
-    ).toEqual(['Nos logements', 'Journal', 'Nous contacter'])
+    ).toEqual(['Les logements', 'Journal'])
     expect(within(menu).queryByRole('button', { name: 'Accueil' })).toBeNull()
     expect(
       within(menu).queryByRole('button', { name: 'Guide du logement' }),
@@ -226,7 +222,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
       name: 'Fermer le menu',
     })
     const lastMenuButton = within(dialog).getByRole('button', {
-      name: 'Nous contacter',
+      name: 'Journal',
     })
     expect(closeButton).toHaveFocus()
 
@@ -238,7 +234,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
 
     await user.tab()
     expect(
-      within(dialog).getByRole('button', { name: 'Nos logements' }),
+      within(dialog).getByRole('button', { name: 'Les logements' }),
     ).toHaveFocus()
   })
 
@@ -255,9 +251,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
       await user.keyboard('{Escape}')
 
       expect(parentEscapeHandler).not.toHaveBeenCalled()
-      expect(
-        screen.queryByRole('dialog', { name: 'Menu de démonstration' }),
-      ).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Menu de démonstration' })).not.toBeInTheDocument())
       expect(opener).toHaveAttribute('aria-expanded', 'false')
       expect(opener).toHaveFocus()
     } finally {
@@ -273,9 +267,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     await user.click(opener)
     await user.click(screen.getByRole('button', { name: 'Fermer le menu' }))
 
-    expect(
-      screen.queryByRole('dialog', { name: 'Menu de démonstration' }),
-    ).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Menu de démonstration' })).not.toBeInTheDocument())
     expect(
       screen.getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()

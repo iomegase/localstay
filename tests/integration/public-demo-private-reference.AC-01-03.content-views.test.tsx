@@ -73,7 +73,7 @@ jest.mock('react-map-gl/mapbox', () => {
 
 function openFavorites() {
   render(<DemoGuideApp />)
-  fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
 }
 
 describe('045-public-demo-private-guide-reference discovery views', () => {
@@ -399,7 +399,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
   it('restores marker focus after closing a favorites-selected preview', async () => {
     const user = userEvent.setup()
     render(<DemoGuideApp />)
-    await user.click(screen.getByRole('button', { name: 'Guide' }))
+    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
     await user.click(
       screen.getByRole('button', {
         name: 'Afficher Rond de Carotte sur la carte',
@@ -475,7 +475,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     const user = userEvent.setup()
     render(<DemoGuideApp />)
 
-    await user.click(screen.getByRole('button', { name: 'Guide' }))
+    await user.click(screen.getByRole('button', { name: 'Coups de cœur' }))
     expect(
       screen.getByRole('heading', { level: 1, name: 'Saint-Gervais' }),
     ).toHaveFocus()
@@ -521,7 +521,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     render(<DemoGuideApp />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Les logements' }))
 
     const lodgingsHeading = screen.getByRole('heading', {
       name: 'Des lieux suivis avec attention.',
@@ -634,8 +634,8 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       ).toHaveFocus(),
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Nous contacter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Écrire' }))
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre hôte' })).toHaveFocus())
     expect(screen.getByText('Camille, hôte fictif')).toBeInTheDocument()
     expect(screen.getByText('Le 305 — démonstration')).toBeInTheDocument()
@@ -671,7 +671,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Les logements' }))
     expect(
       screen.getByRole('button', { name: 'Voir Le vrai chalet publié' }),
     ).toBeInTheDocument()
@@ -749,7 +749,7 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
     render(<DemoGuideApp />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Nos logements' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Les logements' }))
     expect(
       screen.getByRole('heading', { name: 'Des lieux suivis avec attention.' }),
     ).toBeInTheDocument()

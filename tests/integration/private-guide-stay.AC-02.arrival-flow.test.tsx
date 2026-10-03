@@ -24,13 +24,13 @@ describe('054 US-02 — guided arrival', () => {
     expect(screen.getByText('Dès 16 h')).toBeInTheDocument()
     const tabs = screen.getAllByRole('tab')
     expect(tabs.map(tab => tab.textContent)).toEqual(['1Adresse', '2Logement', '3Garage'])
-    expect(screen.getByText('Étape 1 sur 3')).toBeInTheDocument()
+    expect(screen.queryByText(/Étape \d+ sur \d+/)).not.toBeInTheDocument()
 
     fireEvent.click(tabs[1])
-    expect(screen.getByText('Étape 2 sur 3')).toBeInTheDocument()
+    expect(screen.queryByText(/Étape \d+ sur \d+/)).not.toBeInTheDocument()
     expect(screen.getByText('Ouvrez la boîte')).toBeInTheDocument()
     expect(screen.getByText('À gauche de la porte.')).toBeInTheDocument()
-    expect(screen.getByText('Le conseil MyStay')).toBeInTheDocument()
+    expect(screen.getByText('Infos')).toBeInTheDocument()
     expect(screen.getByText('Refermez bien le cache.')).toBeInTheDocument()
 
     fireEvent.click(tabs[2])
@@ -88,7 +88,7 @@ describe('054 US-02 — guided arrival', () => {
     const props = renderFlow()
 
     fireEvent.click(screen.getAllByRole('tab')[1])
-    expect(screen.getByText('Étape 2 sur 3')).toBeInTheDocument()
+    expect(screen.queryByText(/Étape \d+ sur \d+/)).not.toBeInTheDocument()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Je suis arrivé·e !' }))
@@ -114,7 +114,7 @@ describe('054 US-02 — guided arrival', () => {
 
   it('falls back to a single address step without instructions', () => {
     renderFlow({ lodging: buildStayLodging({ arrivalInstructions: [] }) })
-    expect(screen.getByText('Étape 1 sur 1')).toBeInTheDocument()
+    expect(screen.queryByText(/Étape \d+ sur \d+/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ouvrir dans Maps' })).toBeInTheDocument()
   })
 })

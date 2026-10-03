@@ -1,13 +1,14 @@
 /** @jest-environment jsdom */
 
 import { render, screen, within } from '@testing-library/react'
+import { GuideHelpView } from '@/features/guide-app/components/stay/GuideHelpView'
 import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouseGuide'
 import { GUIDE_CARD } from '@/features/guide-app/components/GuideCard'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 
 describe('050 private guide card design', () => {
   it('uses the shared light card design for practical contacts', () => {
-    render(<GuideHouseGuide lodging={demoLodging} onBack={jest.fn()} showPracticalInfo />)
+    render(<GuideHelpView lodging={demoLodging} onWrite={jest.fn()} />)
 
     for (const testId of ['guide-practical-emergency', 'guide-practical-concierge']) {
       const card = screen.getByTestId(testId)

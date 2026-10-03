@@ -213,7 +213,7 @@ export function GuideStayHome<P extends StayPoiCard>({
         <StayTile
           icon={BookOpen}
           title="Guide "
-          subtitle="Équipements et règles"
+          subtitle="Du logement"
           onClick={() => onNavigate("rules")}
         />
         <StayTile
@@ -229,8 +229,8 @@ export function GuideStayHome<P extends StayPoiCard>({
       ) : null}
 
       {featured.length > 0 && (
-        <section aria-labelledby="stay-featured-title" className="mx-5 mt-[26px] p-4">
-          <div className="flex items-center justify-between gap-3">
+        <section aria-labelledby="stay-featured-title" className="mx-4 px-2 py-4">
+          {/* <div className="flex items-center justify-between gap-3">
             <h2 id="stay-featured-title" className="inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">
               Nos coups de cœur
             </h2>
@@ -242,7 +242,7 @@ export function GuideStayHome<P extends StayPoiCard>({
             >
               <Eye className="h-5 w-5" aria-hidden="true" />
             </button>
-          </div>
+          </div> */}
           <div className="no-scrollbar -mr-4 mt-2 flex snap-x gap-3 overflow-x-auto pr-4 pb-1">
             {featured.map(({ poi, display }) => (
               <div key={poi.id} className="w-[160px] shrink-0 snap-start">
@@ -281,7 +281,7 @@ function StayTile({
       type="button"
       onClick={onClick}
       aria-label={`${title} — ${subtitle}`}
-      className={`flex min-h-[112px] w-full items-center gap-2.5 rounded-[22px] p-3 text-left shadow-md transition-[transform,box-shadow] duration-200 hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777] active:scale-[0.98] ${
+      className={`flex h-[76px] w-full items-center gap-2.5 rounded-[22px] p-3 text-left tracking-[-0.025em] shadow-md transition-[transform,box-shadow] duration-200 hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777] active:scale-[0.98] ${
         dark
           ? "bg-[linear-gradient(135deg,#202d3d,#263546)] text-white"
           : "bg-white text-[#202b3a]"
@@ -294,13 +294,13 @@ function StayTile({
       >
         <Icon
           className={`h-7 w-7 ${dark ? "text-[#EC3186]" : "text-[#202b3a]"}`}
-          strokeWidth={2.2}
+          strokeWidth={1}
           aria-hidden="true"
         />
       </span>
 
       <span className="flex min-w-0 flex-col items-start gap-1">
-        <span className="text-[15px] font-bold leading-tight tracking-[-0.025em]">
+        <span className="text-[15px] font-bold leading-tight">
           {title}
         </span>
         <span
