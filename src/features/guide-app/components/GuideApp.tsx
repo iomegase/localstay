@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
-import { GuidePracticalView } from './GuidePracticalView'
 import { GuideLodgingsView } from './GuideLodgingsView'
 import { GuideBlogView } from './GuideBlogView'
 import { GuideLodgingDetailView } from './GuideLodgingDetailView'
@@ -23,7 +22,6 @@ import { GuideStayHome } from './stay/GuideStayHome'
 import { GuideWifiSheet } from './stay/GuideWifiSheet'
 import { useStayProgress } from './stay/useStayProgress'
 import { useTravelTimes } from './stay/useTravelTimes'
-import { GuideFacilibusView } from '@/features/transport/components/GuideFacilibusView'
 import { GuideTransportEntry } from '@/features/transport/components/GuideTransportEntry'
 import { GuideTransportView } from '@/features/transport/components/GuideTransportView'
 import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
@@ -56,6 +54,7 @@ type GuideAppProps = {
   mode: GuideMode
   lodging: GuideLodging
   pois: GuidePoi[]
+  transportPois?: GuidePoi[]
   citySlug?: string
   initialView?: GuideView
   routes?: GuideRouteMap
@@ -103,6 +102,7 @@ function GuideAppShell({
   mode,
   lodging,
   pois,
+  transportPois = [],
   initialView = 'home',
   routes,
   menuItems,
@@ -125,7 +125,7 @@ function GuideAppShell({
     stay.checked.has(index),
   ).length
   // Écrans secondaires plein écran (spec 054) : sans en-tête ni barre d'onglets.
-  const fullScreen = ['poi', 'arrival', 'departure', 'rules', 'practical', 'transport', 'facilibus'].includes(activeView)
+  const fullScreen = ['poi', 'arrival', 'departure', 'rules', 'transport'].includes(activeView)
 
   // Spec 054 US-03 : la démo n'émet aucun événement (AC-06-01).
   async function sendStayEvent(type: 'arrived' | 'departed') {
@@ -176,8 +176,8 @@ function GuideAppShell({
   }
 
   const selectedPoi = useMemo(
-    () => pois.find(poi => poi.id === selectedPoiId) ?? null,
-    [pois, selectedPoiId],
+    () => [...pois, ...transportPois].find(poi => poi.id === selectedPoiId) ?? null,
+    [pois, transportPois, selectedPoiId],
   )
 
   function openPoi(poi: GuidePoi) {
@@ -261,11 +261,11 @@ function GuideAppShell({
           <GuideTransportView
             lodging={lodging}
             onBack={() => navigate('home')}
-            onOpenFacilibus={() => navigate('facilibus')}
+            onOpenPoi={poiId => {
+              const poi = transportPois.find(item => item.id === poiId) ?? pois.find(item => item.id === poiId)
+              if (poi) openPoi(poi)
+            }}
           />
-        )}
-        {activeView === 'facilibus' && (
-          <GuideFacilibusView lodging={lodging} onBack={() => navigate('transport')} />
         )}
         {activeView === 'arrival' && (
           <GuideArrivalFlow
@@ -289,11 +289,8 @@ function GuideAppShell({
           <GuideHouseGuide
             lodging={lodging}
             onBack={() => navigate('home')}
-            onOpenPractical={() => navigate('practical')}
+            showPracticalInfo
           />
-        )}
-        {activeView === 'practical' && (
-          <GuidePracticalView lodging={lodging} onBack={() => navigate('rules')} />
         )}
         {activeView === 'help' && (
           <GuideHelpView lodging={lodging} onWrite={() => navigate('contact')} />
@@ -334,6 +331,7 @@ function GuideAppShell({
             lodging={lodging}
             travel={travelTimes?.[selectedPoi.id]}
             onBack={() => navigate(poiOrigin)}
+            backLabel={poiOrigin === 'transport' ? 'Retour aux transports' : undefined}
             onShowOnMap={showOnMap}
             onStartTrail={onStartTrail}
           />
@@ -341,7 +339,7 @@ function GuideAppShell({
         {activeView === 'map' && (
           <GuideMapView
             lodging={lodging}
-            pois={pois}
+            pois={[...pois, ...transportPois]}
             selectedPoiId={selectedPoiId}
             selectedCategorySlug={selectedCategorySlug}
             onFilter={filterCategory}

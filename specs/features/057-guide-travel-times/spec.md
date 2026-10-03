@@ -58,8 +58,8 @@ l'onglet Guide.
 
 ### US-04 — Accès à l'arrêt de navette *(ajout PO du 2026-10-02)*
 
-- **AC-04-01**: Given un voyageur en séjour, When la carte « Prochaines
-  navettes » ou la page Navette affiche l'arrêt le plus proche, Then le temps
+- **AC-04-01**: Given un voyageur en séjour, When l'accordéon Navette gratuite
+  affiche l'arrêt le plus proche, Then le temps
   réel MapBox jusqu'au quai remplace la distance à vol d'oiseau (à pied si
   ≤ 25 min, sinon en voiture) ; sans séjour ou si MapBox échoue, la distance à
   vol d'oiseau reste affichée. Le calcul n'est jamais déclenché sans séjour

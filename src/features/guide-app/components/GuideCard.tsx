@@ -6,13 +6,13 @@ import type { LucideIcon } from 'lucide-react'
  * en version claire — fond blanc, ombre douce, texte noir (PO 2026-09-29).
  */
 export const GUIDE_CARD =
-  'rounded-[26px] bg-white px-5 py-4 text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.10)]'
+  'rounded-[26px] bg-white px-5 py-4 text-slate-900 shadow-md'
 
 /** Couleurs atténuées des pastilles rondes (identiques à la démo). */
 export const GUIDE_PASTILLE = {
   wifi: 'bg-[#5b7fc4]',
-  emergency: 'bg-[#b4472b]',
-  phone: 'bg-[#5b5bd6]',
+  emergency: 'bg-red-600',
+  phone: 'bg-slate-600',
   location: 'bg-[#3f8f6f]',
   step: 'bg-[#c2457e]',
   equipment: 'bg-[#5b5bd6]',
@@ -62,7 +62,7 @@ export function GuideCardHeading({
           ) : null}
         </span>
       </span>
-      {trailing ? <span className="shrink-0">{trailing}</span> : null}
+      {trailing ? <span className="shrink-0 text-sm">{trailing}</span> : null}
     </div>
   )
 }

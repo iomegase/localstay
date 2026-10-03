@@ -66,14 +66,14 @@ describe('054 US-03/US-04 — departure and house guide', () => {
       <GuideHouseGuide
         lodging={buildStayLodging({ houseRules: [...FIXED_HOUSE_RULES] })}
         onBack={jest.fn()}
-        onOpenPractical={jest.fn()}
+        showPracticalInfo
       />,
     )
 
     expect(screen.getByRole('heading', { level: 1, name: 'Guide logement' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Équipements' })).toBeInTheDocument()
     expect(screen.getByText('Cheminée')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Règles' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Règlement' })).toBeInTheDocument()
 
     const first = screen.getByRole('button', { name: /respect du logement/i })
     const second = screen.getByRole('button', { name: /calme et voisinage/i })
@@ -83,5 +83,9 @@ describe('054 US-03/US-04 — departure and house guide', () => {
     fireEvent.click(second)
     expect(first).toHaveAttribute('aria-expanded', 'false')
     expect(second).toHaveAttribute('aria-expanded', 'true')
+
+    expect(screen.getByRole('link', { name: /Urgences 112/ })).toHaveAttribute('href', 'tel:112')
+    expect(screen.getByRole('link', { name: /Conciergerie \+33 6 07 85 90 58/ })).toHaveAttribute('href', 'tel:+33607859058')
+    expect(screen.queryByText(/tri des déchets/i)).not.toBeInTheDocument()
   })
 })

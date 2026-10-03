@@ -17,7 +17,6 @@ import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouse
 import { GuideStayHome } from '@/features/guide-app/components/stay/GuideStayHome'
 import { GuideWifiSheet } from '@/features/guide-app/components/stay/GuideWifiSheet'
 import { useStayProgress } from '@/features/guide-app/components/stay/useStayProgress'
-import { GuideFacilibusView } from '@/features/transport/components/GuideFacilibusView'
 import { GuideTransportEntry } from '@/features/transport/components/GuideTransportEntry'
 import { GuideTransportView } from '@/features/transport/components/GuideTransportView'
 import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
@@ -164,7 +163,7 @@ export function DemoGuideApp({
       onCloseMenu={() => setMenuOpen(false)}
       onNavigate={navigate}
       onOpenMenu={() => setMenuOpen(true)}
-      immersive={['poi', 'arrival', 'departure', 'rules', 'transport', 'facilibus'].includes(activeView)}
+      immersive={['poi', 'arrival', 'departure', 'rules', 'transport'].includes(activeView)}
     >
       {activeView === 'home' || activeView === 'lodging' ? (
         <GuideStayHome
@@ -182,10 +181,7 @@ export function DemoGuideApp({
         <GuideTransportView
           lodging={lodging}
           onBack={() => navigate('home')}
-          onOpenFacilibus={() => navigate('facilibus')}
         />
-      ) : activeView === 'facilibus' ? (
-        <GuideFacilibusView lodging={lodging} onBack={() => navigate('transport')} />
       ) : activeView === 'arrival' ? (
         <GuideArrivalFlow
           lodging={lodging}

@@ -1479,6 +1479,13 @@ model CityTransportCard {
   title      String
   tag        String?
   body       String
+  details    String?
+  image_url  String?
+  external_url String?
+  cta_label  String?
+  poi_id     String?
+  service_key String?
+  is_free    Boolean   @default(false)
   sort_order Int       @default(0)
 
   @@index([city_id, deleted_at])

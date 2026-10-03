@@ -6,7 +6,6 @@ export type DemoGuideView =
   | 'rules'
   | 'help'
   | 'transport'
-  | 'facilibus'
   | 'favorites'
   | 'map'
   | 'poi'

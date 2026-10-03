@@ -1,6 +1,6 @@
 // Tokens du handoff « Le 305 » (spec 054 UI Behaviour).
 export const STAY_PINK = 'bg-[#DB2777]'
-export const STAY_CARD = 'rounded-[20px] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.06)]'
+export const STAY_CARD = 'rounded-[20px] bg-white shadow-md'
 export const STAY_EYEBROW = 'text-[12px] font-semibold uppercase tracking-[0.08em] text-[#DB2777]'
 export const STAY_SECTION_TITLE = 'text-[19px] font-semibold tracking-[-0.01em] text-[#111111]'
 export const STAY_PRIMARY_BUTTON =

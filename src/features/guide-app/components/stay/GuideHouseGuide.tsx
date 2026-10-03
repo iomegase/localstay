@@ -1,42 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, Phone, Play } from 'lucide-react'
+import { Phone, Siren } from 'lucide-react'
+import { GuideInfoCard } from '@/features/guide-app/components/GuideCard'
 import { houseRuleTitle } from '@/features/guide-app/lib/fixed-lodging-content'
 import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
+import { FRENCH_EMERGENCY_NUMBERS } from '@/features/guide-app/lib/emergency-numbers'
 import type { GuideLodging, GuidePracticalCard } from '@/features/guide-app/types'
+import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
-import { MediaLightbox, type LightboxContent } from '../MediaLightbox'
 import { GuideStayScreen } from './GuideStayScreen'
-import { STAY_CARD, STAY_SECTION_TITLE } from './stay-styles'
+import { STAY_CARD } from './stay-styles'
+
+const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
 /** Guide logement : équipements + règles en accordéon (spec 054 AC-04-01). */
 export function GuideHouseGuide({
   lodging,
   onBack,
-  onOpenPractical,
+  showPracticalInfo = false,
 }: {
   lodging: GuideLodging
   onBack: () => void
-  /** Absent dans la démo, qui n'a pas d'écran « Infos pratiques ». */
-  onOpenPractical?: () => void
+  showPracticalInfo?: boolean
 }) {
   const [openRule, setOpenRule] = useState<number | null>(null)
-  // Le tri des déchets reste dans « Infos pratiques » (comme avant la refonte).
   const equipment = lodging.practicalCards.filter(card => card.icon !== 'recycle')
-  const hasPracticalInfo =
-    Boolean(onOpenPractical) &&
-    (lodging.usefulNumbers.length > 0 ||
-    lodging.trashBins.length > 0 ||
-    Boolean(lodging.trashLocation) ||
-    lodging.practicalCards.some(card => card.icon === 'recycle'))
+  const hasPracticalInfo = showPracticalInfo
+  const emergency = FRENCH_EMERGENCY_NUMBERS[0]
+  const conciergePhone = lodging.usefulNumbers.find(item => /conciergerie/i.test(item.label))?.number
+    ?? '+33607859058'
 
   return (
     <GuideStayScreen title="Guide logement" onBack={onBack}>
       {equipment.length > 0 && (
         <section>
-          <h2 className={STAY_SECTION_TITLE}>Équipements</h2>
+          <h2 className={SECTION_PILL}>Équipements</h2>
           <div className="mt-3 grid gap-2.5">
             {equipment.map(card => (
               <EquipmentCard key={card.id} card={card} />
@@ -47,7 +47,7 @@ export function GuideHouseGuide({
 
       {lodging.houseRules.length > 0 && (
         <section className="mt-[26px]">
-          <h2 className={STAY_SECTION_TITLE}>Règles</h2>
+          <h2 className={SECTION_PILL}>Règlement</h2>
           <div className={`${STAY_CARD} mt-3 divide-y divide-[rgba(17,17,17,0.08)]`}>
             {lodging.houseRules.map((rule, index) => {
               const open = openRule === index
@@ -59,7 +59,7 @@ export function GuideHouseGuide({
                     aria-expanded={open}
                     aria-controls={panelId}
                     onClick={() => setOpenRule(open ? null : index)}
-                    className="flex min-h-14 w-full items-center justify-between gap-3 px-4 text-left text-[15px] font-semibold text-[#111111]"
+                    className="flex min-h-14 w-full items-center justify-between gap-3 px-4 text-left text-sm font-semibold text-[#111111]"
                   >
                     {houseRuleTitle(rule, index)}
                     <span aria-hidden="true" className="text-[20px] font-medium leading-none text-[#DB2777]">
@@ -67,7 +67,7 @@ export function GuideHouseGuide({
                     </span>
                   </button>
                   {open && (
-                    <p id={panelId} className="px-4 pb-4 text-[14px] leading-[1.5] text-[#374151]">
+                    <p id={panelId} className="px-4 pb-4 text-xs leading-[1.5] text-[#374151]">
                       {inlineMarkdown(rule)}
                     </p>
                   )}
@@ -79,57 +79,52 @@ export function GuideHouseGuide({
       )}
 
       {hasPracticalInfo && (
-        <button
-          type="button"
-          onClick={onOpenPractical}
-          className={`${STAY_CARD} mt-[26px] flex min-h-14 w-full items-center justify-between gap-3 px-4 text-left`}
-        >
-          <span>
-            <span className="block text-[15px] font-semibold text-[#111111]">Infos pratiques</span>
-            <span className="block text-[13px] text-[#697386]">Numéros utiles, tri des déchets</span>
-          </span>
-          <ChevronRight className="h-5 w-5 text-[#DB2777]" aria-hidden="true" />
-        </button>
+        <section className="mt-[26px]">
+          <h2 className={SECTION_PILL}>
+            Infos pratiques
+          </h2>
+
+          <div id="guide-practical-panel" className="mt-2.5 grid gap-2.5">
+              <GuideInfoCard
+                testId="guide-practical-emergency"
+                href={frenchPhoneHref(emergency.number)}
+                icon={Siren}
+                tone="emergency"
+                title={emergency.label}
+                trailing={emergency.number}
+              />
+              <GuideInfoCard
+                testId="guide-practical-concierge"
+                href={frenchPhoneHref(conciergePhone)}
+                icon={Phone}
+                tone="phone"
+                title="Conciergerie"
+                trailing={formatFrenchPhone(conciergePhone)}
+              />
+          </div>
+
+        </section>
       )}
     </GuideStayScreen>
   )
 }
 
-/** Équipement : vignette 76 px (photo ou vidéo → lightbox), texte, appel éventuel. */
+/** Équipement : vignette 76 px non interactive, texte, appel éventuel. */
 function EquipmentCard({ card }: { card: GuidePracticalCard }) {
-  const [lightbox, setLightbox] = useState<LightboxContent | null>(null)
   const videoId = card.videoUrl ? extractYouTubeId(card.videoUrl) : null
   const thumbnail = card.photoUrl ?? (videoId ? youTubeThumbnailUrl(videoId) : null)
-  const media: LightboxContent | null = card.photoUrl
-    ? { kind: 'photos', photos: [card.photoUrl], startIndex: 0 }
-    : card.videoUrl && videoId
-      ? { kind: 'video', url: card.videoUrl }
-      : null
 
   return (
     <article data-testid="guide-equipment" className={`${STAY_CARD} grid grid-cols-[88px_1fr] gap-3 p-1.5 pr-4`}>
-      <button
-        type="button"
-        disabled={!media}
-        aria-label={media ? `Voir — ${card.title}` : undefined}
-        onClick={() => media && setLightbox(media)}
-        className="relative h-[76px] w-[76px] self-start justify-self-center overflow-hidden rounded-xl bg-[#EFEDE9] disabled:cursor-default"
-      >
+      <div className="h-[76px] w-[76px] self-center justify-self-center overflow-hidden rounded-xl bg-white">
         {thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumbnail} alt="" className="h-full w-full object-cover" />
         ) : null}
-        {!card.photoUrl && videoId ? (
-          <span className="absolute inset-0 grid place-items-center bg-black/20">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-[#111111]">
-              <Play className="h-3 w-3 translate-x-px fill-current" aria-hidden="true" />
-            </span>
-          </span>
-        ) : null}
-      </button>
+      </div>
       <div className="min-w-0 py-2">
         <h3 className="text-[15px] font-semibold text-[#111111]">{card.title}</h3>
-        <div className="mt-0.5 text-[13px] leading-[1.45] text-[#697386]">
+        <div className="mt-0.5 text-[13px] leading-[1] text-[#697386]">
           <GuideDarkMarkdown source={card.description} />
         </div>
         {card.phone ? (
@@ -142,7 +137,6 @@ function EquipmentCard({ card }: { card: GuidePracticalCard }) {
           </a>
         ) : null}
       </div>
-      {lightbox && <MediaLightbox title={card.title} content={lightbox} onClose={() => setLightbox(null)} />}
     </article>
   )
 }

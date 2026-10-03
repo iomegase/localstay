@@ -1,9 +1,8 @@
 /** @jest-environment jsdom */
 
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { FacilibusNextDeparturesCard } from '@/features/transport/components/FacilibusNextDeparturesCard'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { GuideTransportEntry } from '@/features/transport/components/GuideTransportEntry'
 import { GuideTransportView } from '@/features/transport/components/GuideTransportView'
-import { GuideFacilibusView } from '@/features/transport/components/GuideFacilibusView'
 import { buildStayLodging } from '../support/guide-stay-lodging'
 
 const meta = { fetchedAt: '2026-10-02T08:00:00.000Z', sourceUpdatedAt: null, freshness: 'unknown' as const }
@@ -34,70 +33,81 @@ function mockApi(routes: Record<string, unknown>) {
   return fetchMock
 }
 
-const fallback = <button type="button">Se déplacer</button>
-
-describe('055 US-01 — next shuttles on the stay home', () => {
-  it('AC-01-01: replaces the transport row with the nearest station departures', async () => {
-    mockApi({
-      '/api/transport/facilibus/nearby': { status: 'available', data: { stations: [station], maxDistanceMeters: 800 }, meta },
-      '/api/transport/facilibus/departures': {
-        status: 'available', meta,
-        data: { station: { id: 'dmc', name: station.name }, departures: [
-          departure(),
-          departure({ id: 'b', headsign: 'Les Pratz -Sporting Club', referenceAt: '2026-10-02T10:00:00.000Z', scheduledAt: '2026-10-02T09:58:00.000Z', estimatedAt: '2026-10-02T10:00:00.000Z', delaySeconds: 120, realtime: true, route: { shortName: '2', color: '#e72438', textColor: '#ffffff' } }),
-        ] },
-      },
-    })
+describe('055 US-01 — transport entry on the stay home', () => {
+  it('AC-01-01: shows only Se déplacer without preloading shuttle data', () => {
+    const fetchMock = mockApi({})
     const onOpen = jest.fn()
-    render(<FacilibusNextDeparturesCard latitude={45.8915} longitude={6.7085} onOpen={onOpen} fallback={fallback} />)
+    render(<GuideTransportEntry lodging={buildStayLodging()} onOpen={onOpen} />)
 
-    const card = await screen.findByRole('region', { name: 'Prochaines navettes' })
-    expect(within(card).getByText(station.name)).toBeInTheDocument()
-    expect(within(card).getByText("105 m à vol d'oiseau")).toBeInTheDocument()
-    expect(within(card).getByText('11:50')).toBeInTheDocument()
-    expect(within(card).getByText('Saint Nicolas de Véroce')).toBeInTheDocument()
-    expect(within(card).getByText('+2 min')).toBeInTheDocument()
-    expect(within(card).getByText('Temps réel')).toBeInTheDocument()
-    expect(within(card).queryByText(/min à pied/)).not.toBeInTheDocument()
-    fireEvent.click(within(card).getByRole('button', { name: 'Tous les transports' }))
+    fireEvent.click(screen.getByRole('button', { name: /Se déplacer/ }))
     expect(onOpen).toHaveBeenCalled()
+    expect(screen.queryByRole('region', { name: 'Prochaines navettes' })).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('AC-01-02: keeps the transport row outside coverage or when schedules are unavailable', async () => {
-    const fetchMock = mockApi({
-      '/api/transport/facilibus/nearby': { status: 'outside_coverage', data: { stations: [], maxDistanceMeters: 800 }, meta },
-    })
-    render(<FacilibusNextDeparturesCard latitude={48.85} longitude={2.35} onOpen={jest.fn()} fallback={fallback} />)
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    expect(screen.getByRole('button', { name: 'Se déplacer' })).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Prochaines navettes' })).not.toBeInTheDocument()
+  it('AC-01-02: shows no entry when the city has no transport', () => {
+    render(<GuideTransportEntry lodging={buildStayLodging({ facilibus: false, transportCards: [] })} onOpen={jest.fn()} />)
+    expect(screen.queryByRole('button', { name: /Se déplacer/ })).not.toBeInTheDocument()
   })
 })
 
 describe('055 US-03 — Se déplacer', () => {
   it('AC-03-01: lists the shuttle card then the city cards', () => {
-    const onOpenFacilibus = jest.fn()
-    render(<GuideTransportView lodging={buildStayLodging()} onBack={jest.fn()} onOpenFacilibus={onOpenFacilibus} />)
+    mockApi({})
+    render(<GuideTransportView lodging={buildStayLodging()} onBack={jest.fn()} />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Se déplacer' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /Navette gratuite/ }))
-    expect(onOpenFacilibus).toHaveBeenCalled()
-    expect(screen.getByRole('heading', { name: 'Taxi' })).toBeInTheDocument()
+    const shuttle = screen.getByRole('button', { name: /Navette gratuite/ })
+    expect(within(shuttle).getByText('Gratuit')).toHaveClass('bg-[#FF6B00]')
+    expect(within(shuttle).queryByText('Facilibus')).not.toBeInTheDocument()
+    expect(shuttle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(shuttle)
+    expect(shuttle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: /Choisir un arrêt/ })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: 'Voir les horaires' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Taxi/ })).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByText('Sur réservation')).toBeInTheDocument()
   })
 
   it('hides the shuttle card outside the Facilibus cities', () => {
-    render(<GuideTransportView lodging={buildStayLodging({ facilibus: false })} onBack={jest.fn()} onOpenFacilibus={jest.fn()} />)
+    render(<GuideTransportView lodging={buildStayLodging({ facilibus: false })} onBack={jest.fn()} />)
     expect(screen.queryByRole('button', { name: /Navette gratuite/ })).not.toBeInTheDocument()
+  })
+
+  it('opens city card details and an internal destination without leaving the guide', () => {
+    const onOpenPoi = jest.fn()
+    render(<GuideTransportView
+      lodging={buildStayLodging({ facilibus: false, transportCards: [{
+        id: 'tram', title: 'Tramway', tag: 'Sur réservation', body: 'Le tram traverse la vallée.', is_free: true,
+        details: 'Arrêt à la gare.\nBillet requis.', image_url: 'https://example.com/tram.webp',
+        poi_id: 'poi-1', external_url: 'https://example.com/horaires', cta_label: 'Voir les horaires',
+      }] })}
+      onBack={jest.fn()} onOpenPoi={onOpenPoi}
+    />)
+
+    const trigger = screen.getByRole('button', { name: /Tramway/ })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(within(trigger).getByText('Gratuit')).toBeInTheDocument()
+    expect(within(trigger).getByText('Sur réservation')).toBeInTheDocument()
+    expect(trigger.querySelector('img')).toHaveAttribute('src', 'https://example.com/tram.webp')
+    fireEvent.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText(/Billet requis/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Voir la destination' }))
+    expect(onOpenPoi).toHaveBeenCalledWith('poi-1')
+    expect(screen.getByRole('link', { name: 'Voir les horaires' })).toHaveAttribute('href', 'https://example.com/horaires')
+    fireEvent.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
   })
 })
 
-describe('055 US-02 — Facilibus page', () => {
-  it('AC-02-01: shows the nearest station, alternatives and the station picker', async () => {
+describe('055 US-02 — Facilibus accordion', () => {
+  it('AC-02-01/06: keeps one compact selector below the map and reveals nearby and other stops', async () => {
     const other = { ...station, id: 'comtesse', name: 'La Comtesse', distanceMeters: 640 }
+    const far = { ...station, id: 'gare', name: 'Gare SNCF', distanceMeters: 1200 }
     const fetchMock = mockApi({
       '/api/transport/facilibus/nearby': { status: 'available', data: { stations: [station, other], maxDistanceMeters: 800 }, meta },
-      '/api/transport/facilibus/stops': { status: 'available', data: [station, other], meta },
+      '/api/transport/facilibus/stops': { status: 'available', data: [station, other, far], meta },
       '/api/transport/facilibus/departures?stationId=dmc': {
         status: 'available', meta: { ...meta, coverage: { from: meta.fetchedAt, to: '2026-10-03T08:00:00.000Z', partial: false } },
         data: { station: { id: 'dmc', name: station.name }, departures: [departure({ vehicleLocated: true, status: 'approaching' })] },
@@ -107,13 +117,15 @@ describe('055 US-02 — Facilibus page', () => {
         data: { station: { id: 'comtesse', name: 'La Comtesse' }, departures: [] },
       },
     })
-    render(<GuideFacilibusView lodging={buildStayLodging()} onBack={jest.fn()} />)
+    render(<GuideTransportView lodging={buildStayLodging()} onBack={jest.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Navette gratuite/ }))
 
-    expect(await screen.findByText("105 m à vol d'oiseau")).toBeInTheDocument()
+    expect((await screen.findAllByText("105 m à vol d'oiseau")).length).toBeGreaterThan(0)
     expect(await screen.findByText('En approche')).toBeInTheDocument()
 
     // Légende des couleurs : une ligne par numéro, nom officiel du réseau.
     const legend = screen.getByRole('region', { name: 'Lignes' })
+    expect(within(legend).getByText('Votre logement')).toBeInTheDocument()
     expect(within(legend).getAllByText(/↔/).map(node => node.textContent)).toEqual([
       'Télécabines / Le Châtelet ↔ Saint Nicolas de Véroce',
       'Télécabines / Le Châtelet ↔ Les Pratz / Sporting Club',
@@ -121,16 +133,27 @@ describe('055 US-02 — Facilibus page', () => {
     expect(within(legend).getByLabelText('Ligne 1')).toBeInTheDocument()
     expect(screen.getByText('Navette en circulation')).toBeInTheDocument()
 
+    const selector = screen.getByRole('button', { name: /Arrêt sélectionné/ })
+    expect(selector).toHaveAttribute('aria-expanded', 'false')
+    expect(selector).toHaveTextContent(station.name)
+    expect(screen.queryByRole('region', { name: 'Arrêts proches' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Arrêt' })).not.toBeInTheDocument()
+
+    fireEvent.click(selector)
+    expect(selector).toHaveAttribute('aria-expanded', 'true')
+    const nearbyList = screen.getByRole('region', { name: 'Arrêts proches' })
+    expect(within(nearbyList).getByRole('button', { name: /La Comtesse/ })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Tous les arrêts' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tous les arrêts' }))
+    expect(within(screen.getByRole('region', { name: 'Tous les arrêts' })).getByRole('button', { name: 'Gare SNCF' })).toBeInTheDocument()
+
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /La Comtesse/ }))
+      fireEvent.click(within(nearbyList).getByRole('button', { name: /La Comtesse/ }))
     })
     expect(await screen.findByText('Aucun départ dans les prochaines 24 h.')).toBeInTheDocument()
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('stationId=comtesse'))).toBe(true)
-
-    const picker = screen.getByRole('combobox', { name: 'Arrêt' })
-    expect(within(picker).getAllByRole('option').map(option => option.textContent)).toEqual(
-      expect.arrayContaining([station.name, 'La Comtesse']),
-    )
+    expect(selector).toHaveAttribute('aria-expanded', 'false')
+    expect(selector).toHaveTextContent('La Comtesse')
   })
 
   it('reports partial coverage and outages without inventing an absence of service', async () => {
@@ -141,12 +164,13 @@ describe('055 US-02 — Facilibus page', () => {
         data: { station: { id: 'dmc', name: station.name }, departures: [] },
       },
     })
-    render(<GuideFacilibusView lodging={buildStayLodging({ locationPrecise: false })} onBack={jest.fn()} />)
+    render(<GuideTransportView lodging={buildStayLodging({ locationPrecise: false })} onBack={jest.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Navette gratuite/ }))
     // Sans coordonnées précises : aucun arrêt imposé, le voyageur choisit.
-    const picker = await screen.findByRole('combobox', { name: 'Arrêt' })
-    await screen.findByRole('option', { name: station.name })
+    const picker = await screen.findByRole('button', { name: /Choisir un arrêt/ })
     expect(screen.queryByRole('region', { name: 'Prochains départs' })).not.toBeInTheDocument()
-    fireEvent.change(picker, { target: { value: 'dmc' } })
+    fireEvent.click(picker)
+    fireEvent.click(within(screen.getByRole('region', { name: 'Tous les arrêts' })).getByRole('button', { name: station.name }))
     expect(await screen.findByText(/Horaires publiés jusqu’au 18\/12/)).toBeInTheDocument()
     expect(screen.queryByText("105 m à vol d'oiseau")).not.toBeInTheDocument()
   })
@@ -156,9 +180,10 @@ describe('055 US-02 — Facilibus page', () => {
       '/api/transport/facilibus/stops': { status: 'available', data: [station], meta },
       '/api/transport/facilibus/departures': { status: 'unavailable', meta, data: { station: null, departures: [] } },
     })
-    render(<GuideFacilibusView lodging={buildStayLodging({ locationPrecise: false })} onBack={jest.fn()} />)
-    await screen.findByRole('option', { name: station.name })
-    fireEvent.change(screen.getByRole('combobox', { name: 'Arrêt' }), { target: { value: 'dmc' } })
+    render(<GuideTransportView lodging={buildStayLodging({ locationPrecise: false })} onBack={jest.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Navette gratuite/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Choisir un arrêt/ }))
+    fireEvent.click(within(screen.getByRole('region', { name: 'Tous les arrêts' })).getByRole('button', { name: station.name }))
     expect(await screen.findByText('Horaires momentanément indisponibles.')).toBeInTheDocument()
   })
 })
@@ -174,11 +199,12 @@ describe('057 — walking time to the station', () => {
         status: 'available', meta, data: { station: { id: 'dmc', name: station.name }, departures: [departure()] },
       },
     })
-    render(<FacilibusNextDeparturesCard latitude={45.8915} longitude={6.7085} onOpen={jest.fn()} fallback={fallback} />)
+    render(<GuideTransportView lodging={buildStayLodging()} onBack={jest.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Navette gratuite/ }))
 
-    const card = await screen.findByRole('region', { name: 'Prochaines navettes' })
-    expect(within(card).getByLabelText('À pied')).toBeInTheDocument()
-    expect(within(card).getByText('3 min')).toBeInTheDocument()
-    expect(within(card).queryByText(/vol d'oiseau/)).not.toBeInTheDocument()
+    const departures = await screen.findByRole('region', { name: 'Prochains départs' })
+    expect(within(departures).getByLabelText('À pied')).toBeInTheDocument()
+    expect(within(departures).getByText('3 min')).toBeInTheDocument()
+    expect(within(departures).queryByText(/vol d'oiseau/)).not.toBeInTheDocument()
   })
 })

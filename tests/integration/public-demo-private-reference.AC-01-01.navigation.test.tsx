@@ -138,7 +138,7 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
       render(<DemoGuideApp />)
       expect(screen.queryByRole('region', { name: 'Prochaines navettes' })).not.toBeInTheDocument()
       fireEvent.click(screen.getByRole('button', { name: /Se déplacer/ }))
-      expect(screen.getByRole('heading', { name: 'Tramway du Mont-Blanc' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Tramway du Mont-Blanc/ })).toBeInTheDocument()
       expect(fetchSpy).not.toHaveBeenCalled()
 
       await act(async () => {

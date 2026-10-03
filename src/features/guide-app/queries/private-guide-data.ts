@@ -36,7 +36,7 @@ export async function getPrivateGuideData(
           transport_cards: {
             where: { deleted_at: null },
             orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
-            select: { id: true, title: true, tag: true, body: true },
+            select: { id: true, title: true, tag: true, body: true, details: true, image_url: true, external_url: true, cta_label: true, poi_id: true, service_key: true, is_free: true },
           },
         },
       },
@@ -138,6 +138,31 @@ export async function getPrivateGuideData(
     },
   })
 
+  const featuredIds = new Set(featuredRows.map(row => row.poi.id))
+  const linkedPoiIds = [...new Set((lodging.city.transport_cards ?? []).flatMap(card => card.poi_id ? [card.poi_id] : []))]
+    .filter(id => !featuredIds.has(id))
+  const linkedPoiRows = linkedPoiIds.length > 0
+    ? await prisma.pointOfInterest.findMany({
+        where: { id: { in: linkedPoiIds }, city: { slug: lodging.city.slug }, is_active: true, deleted_at: null, discovery_status: 'PUBLISHED' },
+        select: {
+          id: true, name: true, slug: true, description: true, address: true,
+          latitude: true, longitude: true, phone: true, website: true,
+          rating: true, rating_count: true, is_open_now: true, hours: true, photos: true,
+          city: { select: { slug: true } },
+          category: { select: { slug: true, name: true, icon: true } },
+          trail_detail: {
+            where: { deleted_at: null, is_active: true },
+            select: {
+              difficulty: true, distance_km: true, elevation_gain_m: true,
+              estimated_duration_min: true, start_label: true, start_latitude: true,
+              start_longitude: true, geometry_geojson: true, data_quality_status: true,
+              kids_friendly: true,
+            },
+          },
+        },
+      })
+    : []
+
   const customization = lodging.customization
   const profile = lodging.public_profile?.deleted_at ? null : lodging.public_profile
   const coverImage = customization?.cover_photo_url?.trim()
@@ -195,9 +220,14 @@ export async function getPrivateGuideData(
       locationPrecise:
         customization?.lodging_latitude != null && customization?.lodging_longitude != null,
       facilibus: isFacilibusCity(lodging.city.slug),
-      transportCards: lodging.city.transport_cards ?? [],
+      transportCards: (lodging.city.transport_cards ?? []).map(card => ({
+        ...card,
+        poi_id: card.poi_id && (featuredIds.has(card.poi_id) || linkedPoiRows.some(poi => poi.id === card.poi_id))
+          ? card.poi_id : null,
+      })),
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
+    transportPois: linkedPoiRows.map(poi => mapPrivateGuidePoi({ poi, owner_note: null })),
   }
 }
 

@@ -69,7 +69,7 @@ export function GuideStayHome<P extends StayPoiCard>({
   onShowPoiOnMap?: (poi: P) => void;
   /** Temps MapBox depuis le logement (spec 057) ; sinon `poi.travel` (démo). */
   travelTimes?: Record<string, TravelTimeValues> | null;
-  /** Spec 055 : ligne « Se déplacer » ou carte « Prochaines navettes ». */
+  /** Spec 055 : ligne « Se déplacer » vers les transports du guide. */
   transportEntry?: React.ReactNode;
 }) {
   const welcome = splitWelcome(lodging.name);

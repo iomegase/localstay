@@ -18,6 +18,7 @@ export function GuidePoiDetails({
   poi,
   lodging,
   onBack,
+  backLabel = 'Retour aux coups de cœur',
   onShowOnMap,
   onStartTrail,
   travel,
@@ -28,6 +29,7 @@ export function GuidePoiDetails({
   /** Temps MapBox depuis le logement (spec 057 AC-01-02). */
   travel?: TravelTimeValues
   onBack: () => void
+  backLabel?: string
   onShowOnMap: (poi: GuidePoi) => void
   onStartTrail?: (poi: GuidePoi) => void
 }) {
@@ -58,7 +60,7 @@ export function GuidePoiDetails({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Retour aux coups de cœur"
+          aria-label={backLabel}
           className="absolute left-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur active:scale-95"
         >
           <ArrowLeft className="h-4 w-4" />

@@ -1,5 +1,5 @@
-import { PrivateGuidePage } from '@/features/guide-app/components/PrivateGuidePage'
+import { redirect } from 'next/navigation'
 
-export default async function PrivatePracticalInfoPage() {
-  return PrivateGuidePage({ initialView: 'practical' })
+export default function PrivatePracticalInfoPage() {
+  redirect('/sejour/logement/consignes')
 }

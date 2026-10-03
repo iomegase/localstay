@@ -15,7 +15,7 @@ depends_on:
   - 045-public-demo-private-guide-reference
   - 054-private-guide-stay-redesign
 bounded_context: guide-app
-implementation_gate: "Décisions du Product Owner du 2026-10-02 : autorisation d'usage des données Facilibus/Pysae obtenue (A) ; écran « Se déplacer » du handoff, carte navette → page horaires, prochains départs sur la page Séjour à la place de la ligne « Se déplacer » quand le logement est localisé (B) ; démo avec données réelles ; cartes transports éditables par ville."
+implementation_gate: "Décisions du Product Owner : usage des données Facilibus/Pysae autorisé ; la page Séjour affiche uniquement l'entrée « Se déplacer » ; les horaires se chargent dans l'accordéon Navette gratuite ; la carte native est éditable dans l'admin de chaque ville desservie."
 ```
 
 ## Context
@@ -48,21 +48,16 @@ Limites constatées : calendrier publié jusqu'au 2026-12-18 ; `eta` et
 
 #### Acceptance Criteria
 
-- **AC-01-01**: Given un logement aux coordonnées précises (adresse géocodée,
-  spec 012) dont une station Facilibus est à moins de 800 m à vol d'oiseau,
-  When la page Séjour s'affiche, Then une carte « Prochaines navettes » remplace
-  la ligne « Se déplacer » : nom de la station, « N m à vol d'oiseau », jusqu'à
-  3 prochains départs (ligne, direction, heure Europe/Paris) et le lien « Tous
-  les transports ».
-- **AC-01-02**: Given un logement sans coordonnées précises, hors périmètre ou
-  sans données exploitables, When la page Séjour s'affiche, Then la ligne
-  « Se déplacer » est affichée (si la ville a des transports) et aucune donnée
-  n'est inventée.
+- **AC-01-01**: Given un logement dans une ville ayant des transports, When la
+  page Séjour s'affiche, Then seule la ligne « Se déplacer » apparaît ; aucun
+  horaire n'est préchargé avant l'ouverture de l'accordéon Navette gratuite.
+- **AC-01-02**: Given une ville sans navette ni carte transport, When la page
+  Séjour s'affiche, Then aucune entrée transport n'apparaît.
 
 ### US-02 — Consulter les horaires Facilibus
 
 - **AC-02-01**: Given l'écran « Se déplacer » d'une ville desservie, When on
-  touche « Navette gratuite », Then la page Facilibus présente la station la
+  ouvre l'accordéon « Navette gratuite », Then celui-ci présente la station la
   plus proche (si le logement est localisé), jusqu'à 2 alternatives à moins de
   800 m, et un choix parmi toutes les stations. Une légende rappelle chaque
   ligne (pastille aux couleurs GTFS + nom officiel, ex. « Télécabines / Le
@@ -82,6 +77,13 @@ Limites constatées : calendrier publié jusqu'au 2026-12-18 ; `eta` et
   dont la course correspond au passage (course + date de service), When le
   passage s'affiche, Then « Navette en circulation » est indiqué ; aucune durée
   d'arrivée n'est calculée à partir d'une distance.
+- **AC-02-06**: Given la carte des navettes dans l'accordéon, When les arrêts
+  sont affichés, Then un seul sélecteur compact chevauche le bas de la carte et
+  indique l'arrêt choisi et son accès depuis le logement si connu. Son ouverture
+  montre les arrêts proches puis donne accès aux autres arrêts, sans second
+  menu déroulant ni rangée de pastilles. Choisir un arrêt dans cette liste ou
+  sur la carte synchronise la sélection et les prochains départs. Sans
+  logement localisé, le sélecteur invite à choisir parmi tous les arrêts.
 
 ### US-03 — Transports de la ville
 
@@ -90,7 +92,26 @@ Limites constatées : calendrier publié jusqu'au 2026-12-18 ; `eta` et
   cartes saisies par l'admin pour la ville (titre, étiquette, texte).
 - **AC-03-02**: Given l'admin, When il édite les transports d'une ville, Then il
   peut ajouter, modifier, réordonner et supprimer (soft delete) des cartes
-  (titre 1–80, étiquette ≤ 24, texte 1–400, 12 cartes max).
+  (titre 1–80, étiquette ≤ 24, description courte facultative ≤ 400, 12 cartes max).
+  Chaque carte possède une option « Gratuit » indépendante de l'étiquette libre.
+  Quand elle est activée, un badge orange vif « Gratuit » apparaît sur la carte.
+  La navette native est gratuite par défaut et n'affiche pas « Facilibus » comme
+  étiquette dans le guide ; l'admin peut modifier cette option.
+  Dans une ville desservie, la carte navette native est toujours proposée en
+  premier dans l'admin, même avant son premier enregistrement. Elle peut être
+  modifiée puis enregistrée, sans créer de doublon ; elle ne peut pas être
+  supprimée depuis cette liste.
+- **AC-03-03**: Given l'écran « Se déplacer », When une carte est ouverte, Then
+  son image, ses détails et ses actions apparaissent sans navigation immédiate.
+  Un seul accordéon est ouvert à la fois ; la navette affiche directement ses
+  lignes, sa carte, ses arrêts et ses prochains horaires, sans page séparée.
+- **AC-03-04**: Given l'admin, When il édite une carte, Then il peut téléverser
+  une image, saisir des détails (≤ 3000 caractères), une URL HTTP(S), un libellé
+  de CTA et choisir un POI actif de la même ville. Le CTA POI ouvre la fiche
+  à l'intérieur du guide ; le lien externe est facultatif, explicite et ne
+  peut contenir deux URL collées. Une
+  carte de ville peut personnaliser la navette Facilibus (une seule par ville
+  desservie) avec image et détails, sans créer de doublon dans le guide.
 
 ### US-04 — API et robustesse
 
@@ -110,8 +131,8 @@ Limites constatées : calendrier publié jusqu'au 2026-12-18 ; `eta` et
 
 - **AC-05-01**: Given la démo publique, When elle s'ouvre, Then la page Séjour
   affiche la ligne « Se déplacer » sans aucun appel réseau ; l'écran « Se
-  déplacer » utilise des cartes de démonstration statiques ; la page Facilibus,
-  ouverte par le visiteur, appelle uniquement `/api/transport/facilibus/*`
+  déplacer » utilise des cartes de démonstration statiques ; l'accordéon Facilibus,
+  ouvert par le visiteur, appelle uniquement `/api/transport/facilibus/*`
   (ressource publique autorisée, amende 045 AC-02-04 / BR-07).
 
 ## Business Rules
@@ -141,6 +162,13 @@ model CityTransportCard {
   title      String
   tag        String?
   body       String
+  details    String?
+  image_url  String?
+  external_url String?
+  cta_label  String?
+  poi_id     String?
+  service_key String?
+  is_free    Boolean   @default(false)
   sort_order Int       @default(0)
 
   @@index([city_id, deleted_at])
@@ -162,7 +190,9 @@ model CityTransportCard {
   get: { responses: { 200: TransportEnvelope<Vehicle[]> } }
 /api/admin/cities/{slug}/transport-cards:
   get: { responses: { 200, 401, 403, 404 } }
-  put: { body: { cards: [{ id?, title, tag, body }] }, responses: { 200, 400, 401, 403, 404 } }
+  put: { body: { cards: [{ id?, title, tag, body, details?, image_url?, external_url?, cta_label?, poi_id?, service_key? }] }, responses: { 200, 400, 401, 403, 404 } }
+/api/admin/cities/{slug}/transport-cards/image:
+  post: { body: multipart(file), responses: { 201: { url }, 400, 401, 403 } }
 ```
 
 Cache : arrêts / GTFS 1 h, passages 30 s, véhicules 15 s (mémoire par instance,
@@ -171,12 +201,23 @@ client 30 s, suspendu onglet masqué, recul exponentiel après erreur.
 
 ## UI Behaviour
 
-Tokens et écrans secondaires de la spec 054. Carte « Prochaines navettes » :
-pastille de ligne aux couleurs GTFS, heure en gras, direction, badge
-« Temps réel » / retard. Page Facilibus : sélecteur de station, liste
+Tokens et écrans secondaires de la spec 054. La page Séjour affiche la seule
+ligne « Se déplacer ». L'accordéon Navette gratuite utilise les pastilles de
+ligne aux couleurs GTFS, l'heure en gras, la direction et le badge
+« Temps réel » / retard. Il contient le sélecteur de station et la liste
 chronologique, état vide « Aucun départ dans les prochaines 24 h » (ou
 « Horaires disponibles jusqu'au … » si couverture partielle), état panne
 « Horaires momentanément indisponibles ».
+
+Le sélecteur de station est une barre blanche compacte au pied de la carte.
+Une pression ouvre une liste intégrée sur fond gris clair : arrêts proches
+d'abord, puis « Tous les arrêts » pour le reste du réseau. Les noms longs
+reviennent à la ligne ; l'arrêt choisi reste visible dans la barre fermée.
+
+L'écran « Se déplacer » reprend les cartes compactes « Équipements » : image,
+titre, description courte si renseignée et chevron. Le panneau s'ouvre en douceur et montre
+les détails et les CTA. Les destinations POI utilisent la fiche interne au guide.
+Une URL externe ne s'ouvre que sur action explicite.
 
 ## Acceptance Criteria
 
@@ -185,8 +226,9 @@ chronologique, état vide « Aucun départ dans les prochaines 24 h » (ou
 | AC-01-01, AC-01-02 | integration |
 | AC-02-01 | integration |
 | AC-02-02, AC-02-03, AC-02-04, AC-02-05 | unit + contract |
-| AC-03-01 | integration |
-| AC-03-02 | contract |
+| AC-02-06 | integration |
+| AC-03-01, AC-03-03 | integration |
+| AC-03-02, AC-03-04 | contract + integration |
 | AC-04-01 … AC-04-04 | unit + contract |
 | AC-05-01 | integration |
 

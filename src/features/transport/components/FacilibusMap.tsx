@@ -6,7 +6,8 @@ import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import type { PublicLine, PublicStation, PublicVehicle } from '../types'
 
 const LABEL_MIN_ZOOM = 14
-const INITIAL_ZOOM = 13.5
+const INITIAL_ZOOM = 15.3
+const INITIAL_PITCH = 58
 
 type Point = { latitude: number; longitude: number }
 
@@ -21,6 +22,7 @@ export function FacilibusMap({
   vehicles,
   selectedId,
   origin,
+  focusSelected = false,
   onSelect,
 }: {
   stations: PublicStation[]
@@ -28,13 +30,14 @@ export function FacilibusMap({
   vehicles: PublicVehicle[]
   selectedId: string | null
   origin: Point | null
+  focusSelected?: boolean
   onSelect: (stationId: string) => void
 }) {
   const mapRef = useRef<MapRef>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [fullscreen, setFullscreen] = useState(false)
   const selected = stations.find(station => station.id === selectedId) ?? null
-  const center = selected ?? origin ?? stations[0] ?? null
+  const center = origin ?? selected ?? stations[0] ?? null
 
   const lineFeatures = useMemo(() => ({
     type: 'FeatureCollection' as const,
@@ -50,8 +53,30 @@ export function FacilibusMap({
   const liveVehicles = vehicles.filter(vehicle => vehicle.freshness === 'fresh')
 
   useEffect(() => {
-    if (selected) mapRef.current?.flyTo({ center: [selected.longitude, selected.latitude], duration: 600 })
-  }, [selected])
+    if (focusSelected && selected) mapRef.current?.flyTo({ center: [selected.longitude, selected.latitude], duration: 600 })
+  }, [focusSelected, selected])
+
+  function handleMapLoad() {
+    const map = mapRef.current?.getMap()
+    if (!map || map.getLayer('facilibus-3d-buildings')) return
+    const labelLayerId = map.getStyle()?.layers?.find(
+      layer => layer.type === 'symbol' && (layer.layout as { 'text-field'?: unknown } | undefined)?.['text-field'],
+    )?.id
+    map.addLayer({
+      id: 'facilibus-3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 14,
+      paint: {
+        'fill-extrusion-color': '#d9d9de',
+        'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 14, 0, 15.5, ['get', 'height']],
+        'fill-extrusion-base': ['get', 'min_height'],
+        'fill-extrusion-opacity': 0.85,
+      },
+    } as Parameters<typeof map.addLayer>[0], labelLayerId)
+  }
 
   // Le conteneur change de taille : MapBox doit recalculer son canevas.
   useEffect(() => {
@@ -93,7 +118,9 @@ export function FacilibusMap({
         ref={mapRef}
         style={{ width: '100%', height: '100%' }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        initialViewState={{ latitude: center.latitude, longitude: center.longitude, zoom: INITIAL_ZOOM }}
+        initialViewState={{ latitude: center.latitude, longitude: center.longitude, zoom: INITIAL_ZOOM, pitch: INITIAL_PITCH, bearing: -18 }}
+        maxPitch={70}
+        onLoad={handleMapLoad}
         onZoom={event => setZoom(event.viewState.zoom)}
         mapStyle="mapbox://styles/mapbox/light-v11"
       >
@@ -105,18 +132,6 @@ export function FacilibusMap({
             paint={{ 'line-color': ['get', 'color'], 'line-width': 4, 'line-opacity': 0.85 }}
           />
         </Source>
-
-        {origin ? (
-          <Marker longitude={origin.longitude} latitude={origin.latitude} anchor="bottom">
-            <span
-              aria-label="Votre logement"
-              role="img"
-              className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-[#DB2777] text-white shadow-[0_2px_8px_rgba(17,17,17,0.25)]"
-            >
-              <House className="h-4 w-4" aria-hidden="true" />
-            </span>
-          </Marker>
-        ) : null}
 
         {stations.map(station => {
           const isSelected = station.id === selectedId
@@ -182,6 +197,18 @@ export function FacilibusMap({
             </Marker>
           )
         })}
+
+        {origin ? (
+          <Marker longitude={origin.longitude} latitude={origin.latitude} anchor="bottom">
+            <span
+              aria-label="Votre logement"
+              role="img"
+              className="grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#DB2777] text-white shadow-[0_2px_8px_rgba(17,17,17,0.25)]"
+            >
+              <House className="h-5 w-5" aria-hidden="true" />
+            </span>
+          </Marker>
+        ) : null}
       </Map>
     </div>
   )

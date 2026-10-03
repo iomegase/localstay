@@ -20,7 +20,6 @@ export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   favorites: '/sejour/coups-de-coeur',
   lodging: '/sejour/logement',
   arrival: '/sejour/logement/arrivee',
-  practical: '/sejour/logement/informations-pratiques',
   rules: '/sejour/logement/consignes',
   departure: '/sejour/logement/depart',
 }
@@ -91,6 +90,7 @@ export async function PrivateGuidePage({
         mode="private"
         lodging={guideData.lodging}
         pois={guideData.pois}
+        transportPois={guideData.transportPois}
         citySlug={lodgingContext.citySlug}
         initialView={initialView}
         routes={PRIVATE_GUIDE_ROUTES}

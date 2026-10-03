@@ -70,7 +70,7 @@ describe('034-private-guide-app route-aware shell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guide' }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
 
-    fireEvent.click(screen.getByRole('button', { name: /^Guide logement/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Guide — Équipements et règles/ }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/consignes')
 
     fireEvent.click(screen.getByRole('button', { name: /^Arrivée/ }))
@@ -204,11 +204,11 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    expect(screen.getByText('Votre guide de séjour')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Guide — Équipements et règles/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('opens the canonical practical information page from the house guide', () => {
+  it('keeps practical contacts inside the house guide', () => {
     mockPathname = '/sejour/logement/consignes'
     render(
       <GuideApp
@@ -220,8 +220,31 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /Infos pratiques/i }))
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/informations-pratiques')
+    expect(screen.getByRole('heading', { name: 'Infos pratiques' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Urgences 112/ })).toHaveAttribute('href', 'tel:112')
+    expect(screen.getByRole('link', { name: /Conciergerie/ })).toBeInTheDocument()
+    expect(mockPush).not.toHaveBeenCalledWith('/sejour/logement/informations-pratiques')
+  })
+
+  it('opens a transport destination inside the guide and returns to transport', () => {
+    const poi = demoPois[0]
+    render(<GuideApp
+      mode="private"
+      lodging={{ ...demoLodging, facilibus: false, transportCards: [{
+        id: 'transport-1', title: 'Tramway', tag: null, body: 'Départ à la gare.', poi_id: poi.id,
+      }] }}
+      pois={[]}
+      transportPois={[poi]}
+      initialView="transport"
+      routes={PRIVATE_GUIDE_ROUTES}
+    />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Tramway/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voir la destination' }))
+    expect(mockGuidePoiDetailsProps.mock.lastCall?.[0].poi.id).toBe(poi.id)
+    expect(screen.getByRole('button', { name: 'Retour aux transports' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Retour aux transports' }))
+    expect(screen.getByRole('heading', { name: 'Se déplacer' })).toBeInTheDocument()
   })
 
   it('054 AC-01-05: opens the help tab locally and writes to the concierge', () => {

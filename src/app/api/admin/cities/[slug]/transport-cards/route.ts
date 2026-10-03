@@ -7,6 +7,7 @@ import { cityTransportCardsSchema } from '@/features/transport/schemas'
 import {
   CityTransportCardsError,
   getCityTransportCards,
+  getCityTransportPoiOptions,
   saveCityTransportCards,
 } from '@/features/transport/queries/city-transport-cards'
 
@@ -28,7 +29,11 @@ export async function GET(_request: NextRequest, context: Context): Promise<Next
   if (!slug.success) return validationError({ slug: ['Identifiant de ville invalide.'] })
 
   try {
-    return NextResponse.json({ data: await getCityTransportCards(slug.data) })
+    const [data, poiOptions] = await Promise.all([
+      getCityTransportCards(slug.data),
+      getCityTransportPoiOptions(slug.data),
+    ])
+    return NextResponse.json({ data, poiOptions })
   } catch (error) {
     return handleError(error)
   }

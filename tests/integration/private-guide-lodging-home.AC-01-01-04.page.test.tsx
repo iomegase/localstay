@@ -53,7 +53,6 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
       data-initial-view={initialView}
       data-lodging-route={routes.lodging}
       data-arrival-route={routes.arrival}
-      data-practical-route={routes.practical}
       data-departure-route={routes.departure}
       data-menu-labels={menuItems?.map(item => item.label).join(',')}
       data-check-in={lodging.checkIn}
@@ -106,10 +105,6 @@ describe('036-private-guide-lodging-home page', () => {
     expect(guide).toHaveAttribute(
       'data-arrival-route',
       '/sejour/logement/arrivee',
-    )
-    expect(guide).toHaveAttribute(
-      'data-practical-route',
-      '/sejour/logement/informations-pratiques',
     )
     expect(guide).toHaveAttribute(
       'data-departure-route',

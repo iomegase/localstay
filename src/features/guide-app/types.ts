@@ -8,7 +8,6 @@ export type GuideView =
   | 'lodging'
   | 'arrival'
   | 'departure'
-  | 'practical'
   | 'rules'
   | 'favorites'
   | 'map'
@@ -20,7 +19,6 @@ export type GuideView =
   | 'contact'
   | 'help'
   | 'transport'
-  | 'facilibus'
 
 /** Carte logement affichée dans l'app (données injectées, aucun lien sortant). */
 export type GuideLodgingCard = {
@@ -217,9 +215,17 @@ export type GuideTransportCard = {
   title: string
   tag: string | null
   body: string
+  details?: string | null
+  image_url?: string | null
+  external_url?: string | null
+  cta_label?: string | null
+  poi_id?: string | null
+  service_key?: string | null
+  is_free?: boolean
 }
 
 export type PrivateGuideData = {
   lodging: GuideLodging
   pois: GuidePoi[]
+  transportPois?: GuidePoi[]
 }

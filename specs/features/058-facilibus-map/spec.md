@@ -30,7 +30,7 @@ souhaite les voir sur une carte, avec les lignes et les navettes en circulation.
 
 ### US-01 — Voir le réseau sur une carte
 
-- **AC-01-01**: Given la page Navette, When elle s'affiche, Then une carte MapBox
+- **AC-01-01**: Given l'accordéon « Navette gratuite », When il s'ouvre, Then une carte MapBox
   (style du guide, 260 px) montre un pin par station physique, le pin du
   logement s'il est localisé, et le tracé des lignes dans leurs couleurs
   officielles (GTFS `shapes`).
@@ -48,6 +48,11 @@ souhaite les voir sur une carte, avec les lignes et les navettes en circulation.
 - **AC-01-05** *(ajout PO du 2026-10-02)*: Given la carte, When on touche
   « Afficher la carte en plein écran », Then elle occupe tout l'écran du guide ;
   « Quitter le plein écran » ou Échap la remet en place.
+- **AC-01-06**: Given un logement localisé, When la carte s'ouvre, Then la vue
+  initiale est centrée sur le logement, zoomée et inclinée vers l'avant ; les
+  bâtiments disponibles dans le fond Mapbox sont extrudés en 3D. Le choix
+  explicite d'un arrêt recentre ensuite la carte sur cet arrêt. La légende
+  affiche l'icône maison rose et « Votre logement ».
 
 ## Business Rules
 
@@ -74,6 +79,7 @@ Aucun changement.
 Pins arrêts : point blanc bordé ; sélection : pastille `#111111`. Étiquettes
 11 px / 600 sur fond blanc. Navettes : pastille à la couleur de la ligne avec
 une icône bus et son numéro (ajout PO du 2026-10-02), halo pulsé. Logement : pin rose `#DB2777`.
+Vue initiale : zoom 15,3, inclinaison 58°, cap -18° ; bâtiments Mapbox 3D à partir du zoom 14.
 
 ## Acceptance Criteria
 
@@ -82,6 +88,7 @@ une icône bus et son numéro (ajout PO du 2026-10-02), halo pulsé. Logement : 
 | AC-01-01 | unit + contract + integration |
 | AC-01-02, AC-01-03 | integration |
 | AC-01-04 | integration |
+| AC-01-05, AC-01-06 | integration |
 
 ## Out of Scope
 
