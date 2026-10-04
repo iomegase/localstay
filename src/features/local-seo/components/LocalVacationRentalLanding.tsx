@@ -2,6 +2,7 @@ import { faqPageSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
+import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 import type {
   MarketingLodgingCard,
 } from '@/features/lodging-showcase/queries/public-lodgings'
@@ -148,16 +149,12 @@ export function LocalVacationRentalLanding({
         </section>
 
         {content.highlights.length > 0 && (
-          <section className={`${marketingContainerClass} py-16 sm:py-24`}>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6">
-              {content.highlights.map((highlight, index) => (
-                <article key={highlight.title} className="border-t-2 border-slate-900 pt-5">
-                  <span className="text-[12px] font-bold text-pink-600">{String(index + 1).padStart(2, '0')}</span>
-                  <h3 className="mt-2 text-[19px] font-bold leading-snug tracking-[-0.03em] text-slate-900">{highlight.title}</h3>
-                  <p className="mt-3 text-[15px] leading-7 text-slate-500">{highlight.copy}</p>
-                </article>
-              ))}
-            </div>
+          <section className={`${marketingContainerClass} pt-16 sm:pt-24`}>
+            <MarketingEyebrow>Pourquoi MyStay</MarketingEyebrow>
+            <h2 className="max-w-[720px] text-[30px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[40px]">
+              Séjourner avec MyStay à {landing.city.name}
+            </h2>
+            <MarketingHighlightCards items={content.highlights} className="mt-8" />
           </section>
         )}
 
@@ -169,11 +166,11 @@ export function LocalVacationRentalLanding({
 
         <section className={`${marketingContainerClass} pb-16 sm:pb-24`}>
           <div className="flex flex-col gap-6 rounded-[28px] bg-slate-900 px-6 py-9 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10">
-            <p className="max-w-[560px] text-[22px] font-bold leading-snug ">
+            <p className="max-w-[560px] text-[22px] font-semibold leading-snug ">
               {landing.city.name} vous attend.
             </p>
             <Link
-              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-[14px] font-bold text-slate-900 transition-colors hover:bg-pink-50"
+              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-[14px] font-bold text-slate-900 transition-colors hover:bg-pink-600 hover:text-white "
               href={content.cta_href}
             >
               {content.cta_label}

@@ -428,6 +428,7 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
   (`id="destination"`) : à gauche « Sur place », `local_title`, `local_copy` et le lien
   `Découvrir [City]` vers le guide public de la commune ; à droite, si des étapes existent,
   « Notre fonctionnement », `process_title` et les étapes numérotées `01`, `02`… Suivent les
-  highlights numérotés (section claire, 2 colonnes dès md), la FAQ (`id="faq"`, composant partagé
+  highlights (« Pourquoi MyStay », titre `Séjourner avec MyStay à [City]`, composant partagé
+  `MarketingHighlightCards` comme la conciergerie), la FAQ (`id="faq"`, composant partagé
   `MarketingFaqSection` en 2 colonnes comme la conciergerie, titre « Bon à savoir avant de réserver ») puis le CTA final `cta_label` → `cta_href`. Tailles de texte et justification de `local_copy` arbitrées par le
   Product Owner (2026-10-04). L'état vide (AC-03-02) conserve son contenu et ses liens.
