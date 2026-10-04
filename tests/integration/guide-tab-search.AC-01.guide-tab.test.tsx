@@ -53,7 +53,8 @@ describe('056 guide tab', () => {
 
   it('AC-01-04: shows crow-fly distances only for a precisely located lodging', () => {
     renderPage({ latitude: 45.8915, longitude: 6.7085 })
-    expect(screen.getByText("Distances à vol d'oiseau depuis le logement")).toBeInTheDocument()
+    // Amendement 057 du 2026-10-04 : la mention de source n'est plus affichée.
+    expect(screen.queryByText(/vol d'oiseau/)).not.toBeInTheDocument()
     const cards = screen.getAllByTestId('favorite-bento-card')
     expect(within(cards[0]).getByText('230 m')).toBeInTheDocument()
   })

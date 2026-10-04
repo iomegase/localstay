@@ -1,8 +1,13 @@
 'use client'
 
+import { useId } from 'react'
 import { LocateFixed } from 'lucide-react'
+import { Switch } from '@/shared/components/ui/switch'
 
-/** « Utiliser ma position » (spec 057 AC-02-01, règle 003 BR-01a) — position gardée sur l'appareil. */
+/**
+ * Interrupteur GPS sous la recherche (spec 057 AC-02-01, amendement PO
+ * 2026-10-04 : même contrôle que « Réglages et infos ») — position gardée sur l'appareil.
+ */
 export function GuideLocationToggle({
   active,
   loading,
@@ -16,29 +21,28 @@ export function GuideLocationToggle({
   onRequest: () => void
   onClear: () => void
 }) {
-  if (active) {
-    return (
-      <p className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-[#697386]">
-        <LocateFixed className="h-4 w-4 text-green-500" aria-hidden="true" />
-        GPS activé
-        <button type="button" onClick={onClear} className="min-h-11 font-semibold text-red-500/60">
-          GPS désactivé
-        </button>
-      </p>
-    )
-  }
+  const switchId = useId()
+  const descriptionId = `${switchId}-description`
+
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3">
-      <button
-        type="button"
-        onClick={onRequest}
+    <div className="mt-2 flex min-h-11 items-center gap-2">
+      <LocateFixed className="h-4 w-4 shrink-0 text-slate-800" strokeWidth={1} aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <label htmlFor={switchId} className="block text-xs font-semibold text-slate-900">
+          {loading ? 'Localisation…' : 'GPS'}
+        </label>
+        {denied ? (
+          <p id={descriptionId} className="text-xs text-[#697386]" aria-live="polite">Position non disponible.</p>
+        ) : null}
+      </div>
+      <Switch
+        id={switchId}
+        aria-describedby={denied ? descriptionId : undefined}
+        checked={active}
         disabled={loading}
-        className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-black disabled:opacity-20"
-      >
-        <LocateFixed className="h-4 w-4" aria-hidden="true" />
-        {loading ? 'Localisation…' : 'GPS désactivé'}
-      </button>
-      {denied ? <span className="text-xs text-[#697386]">Position non disponible.</span> : null}
+        onCheckedChange={enabled => (enabled ? onRequest() : onClear())}
+        className="data-[state=checked]:bg-slate-900 data-[state=unchecked]:bg-slate-200"
+      />
     </div>
   )
 }

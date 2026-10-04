@@ -47,22 +47,26 @@ describe('057 guide tab travel times', () => {
 
   it('AC-01-03: falls back to crow-fly distances when travel times are unavailable', () => {
     renderPage(null)
-    expect(screen.getByText("Distances à vol d'oiseau depuis le logement")).toBeInTheDocument()
+    // Amendement PO 2026-10-04 : plus de mention « Distances à vol d'oiseau… ».
+    expect(screen.queryByText(/vol d'oiseau/)).not.toBeInTheDocument()
     expect(within(screen.getAllByTestId('favorite-bento-card')[0]).getByText('230 m')).toBeInTheDocument()
   })
 
-  it('AC-02-01: offers « Utiliser ma position » and then shows distances from the traveller', () => {
+  it('AC-02-01: offers the GPS switch and then shows distances from the traveller', () => {
     renderPage()
-    fireEvent.click(screen.getByRole('button', { name: 'Utiliser ma position' }))
+    const gpsSwitch = screen.getByRole('switch', { name: 'GPS' })
+    expect(gpsSwitch).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(gpsSwitch)
     expect(mockLocation.requestLocation).toHaveBeenCalled()
     cleanup()
 
     mockLocation.location = { latitude: 45.8915, longitude: 6.7085 }
     mockLocation.status = 'ready'
     renderPage()
-    expect(screen.getByText("Distances à vol d'oiseau depuis votre position")).toBeInTheDocument()
-    expect(within(screen.getAllByTestId('favorite-bento-card')[0]).getByText('230 m de vous')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Ne plus utiliser ma position' }))
+    expect(screen.queryByText(/vol d'oiseau/)).not.toBeInTheDocument()
+    expect(within(screen.getAllByTestId('favorite-bento-card')[0]).getByText('230 m de votre position')).toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: 'GPS' })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(screen.getByRole('switch', { name: 'GPS' }))
     expect(mockLocation.clearLocation).toHaveBeenCalled()
   })
 })
@@ -101,5 +105,17 @@ describe('057 AC-01-02 — POI detail', () => {
     )
     expect(screen.queryByTestId('poi-detail-distance')).not.toBeInTheDocument()
     expect(screen.queryByTestId('poi-detail-travel')).not.toBeInTheDocument()
+  })
+
+  it('amendement PO 2026-10-04: distance GPS « de votre position »', async () => {
+    const { GuidePoiDetails } = await import('@/features/guide-app/components/GuidePoiDetails')
+    const { buildStayLodging } = await import('../support/guide-stay-lodging')
+    mockLocation.location = { latitude: 45.8915, longitude: 6.7085 }
+    render(
+      <GuidePoiDetails mode="private" poi={pois[0]} lodging={buildStayLodging()} onBack={jest.fn()} onShowOnMap={jest.fn()} />,
+    )
+    expect(screen.getByText(/^À \d+(,\d)? k?m de votre position$/)).toBeInTheDocument()
+    expect(screen.queryByText(/de vous$/)).not.toBeInTheDocument()
+    mockLocation.location = null
   })
 })

@@ -260,8 +260,8 @@ function lodgingDistanceLabel(distanceKm: number): string {
 }
 
 function userDistanceLabel(distanceKm: number): string {
-  if (distanceKm < 1) return `À ${Math.round(distanceKm * 1000)} m de vous`
-  return `À ${distanceKm.toFixed(1).replace('.', ',')} km de vous`
+  if (distanceKm < 1) return `À ${Math.round(distanceKm * 1000)} m de votre position`
+  return `À ${distanceKm.toFixed(1).replace('.', ',')} km de votre position`
 }
 
 function getWebsiteHost(website: string | null | undefined): string | null {

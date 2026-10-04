@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-02
-updated_at: 2026-10-02
+updated_at: 2026-10-04
 depends_on:
   - 003-poi-list
   - 004-poi-detail
@@ -120,3 +120,33 @@ Bouton « Utiliser ma position » (icône `LocateFixed`) sous la recherche.
 ## Open Questions
 
 Aucune.
+
+## Correction approuvée — Libellés GPS (2026-10-04)
+
+Correction de l’incohérence signalée par le PO, AC-02-01 : lorsque la position
+est active, l’état « GPS activé » est suivi de l’action « Désactiver le GPS »,
+jamais d’un état « GPS désactivé ». Sans position, le bouton propose
+« Activer le GPS ». En cours de demande, il affiche « Localisation… » et
+reste désactivé. Le refus conserve le message « Position non disponible. ».
+Les callbacks et le stockage de position existants restent inchangés.
+
+## Amendement approuvé — Interrupteur GPS et mention de distance (PO 2026-10-04)
+
+Décisions du PO (remplacent la correction « Libellés GPS » ci-dessus pour
+l'affichage, les callbacks et le stockage restent inchangés) :
+
+- **AC-02-01 (affichage)** : sous la recherche, le contrôle GPS est un
+  interrupteur identique à celui de « Réglages et infos » (spec 054 AC-01-07) :
+  icône `LocateFixed` trait 1, libellé unique « GPS », interrupteur ardoise
+  (activé = position active). Activer appelle la demande de position, désactiver
+  l'efface. Pendant la demande : libellé « Localisation… », interrupteur
+  désactivé. Refus ou indisponibilité : interrupteur désactivé (off) et texte
+  « Position non disponible. » sous le libellé. Plus aucun texte « GPS activé »,
+  « Activer le GPS » ni « Désactiver le GPS ».
+- **Mention de distance supprimée** : les mentions « Distances à vol d'oiseau
+  depuis votre position » et « Distances à vol d'oiseau depuis le logement »
+  ne sont plus affichées (remplace aussi la mention de spec 056 AC-01). Les
+  distances et temps des cartes restent inchangés.
+- **Libellé de distance GPS** : « 350 m de vous » / « À 4,7 km de vous »
+  deviennent « 350 m de votre position » / « À 4,7 km de votre position »
+  (cartes du Guide et fiche lieu).

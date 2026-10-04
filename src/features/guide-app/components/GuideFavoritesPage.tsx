@@ -12,11 +12,6 @@ import { GuideLocationToggle } from './stay/GuideLocationToggle'
 import { filterPoisByQuery, formatDistanceMeters, primaryTravel, type TravelTimeValues } from './stay/poi-search'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 
-const DISTANCE_SOURCE_LABELS = {
-  position: "Distances à vol d'oiseau depuis votre position",
-  lodging: "Distances à vol d'oiseau depuis le logement",
-} as const
-
 export function GuideFavoritesPage({
   pois,
   city,
@@ -51,13 +46,11 @@ export function GuideFavoritesPage({
   const hasTravel = Boolean(travelTimes && Object.keys(travelTimes).length > 0)
   // Priorité (spec 057 / 003 BR-01a) : position GPS, puis temps depuis le logement,
   // puis vol d'oiseau depuis le logement ; rien sans origine fiable.
-  const distanceSource: 'position' | 'travel' | 'lodging' | null =
-    position ? 'position' : hasTravel ? 'travel' : origin ? 'lodging' : null
   const located = useMemo(
     () => pois.map((poi): GuidePoi => {
       if (position) {
         const meters = haversineMeters(position.latitude, position.longitude, poi.latitude, poi.longitude)
-        return { ...poi, distanceLabel: `${formatDistanceMeters(meters)} de vous`, distanceMode: 'crow' }
+        return { ...poi, distanceLabel: `${formatDistanceMeters(meters)} de votre position`, distanceMode: 'crow' }
       }
       if (hasTravel) {
         const travel = primaryTravel(travelTimes?.[poi.id])
@@ -112,10 +105,6 @@ export function GuideFavoritesPage({
           />
         ))}
       </div>
-
-      {distanceSource && distanceSource !== 'travel' ? (
-        <p className="px-2 text-[12px] text-[#697386]">{DISTANCE_SOURCE_LABELS[distanceSource]}</p>
-      ) : null}
 
       {visiblePois.length > 0 ? (
         <div data-testid="favorites-bento-grid" className="mt-3 grid grid-cols-2 gap-3">
