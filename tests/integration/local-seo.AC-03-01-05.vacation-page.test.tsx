@@ -52,7 +52,8 @@ describe('046 local vacation rental pages', () => {
     jest.mocked(getPublishedLocalLanding).mockResolvedValue(vacationLanding)
   })
 
-  it('renders published lodging links and a verified secure Airbnb CTA', async () => {
+  // AC-03-04 superseded le 2026-10-04 (AC-03-07) : aucun CTA Airbnb sur la landing.
+  it('renders published lodging links without Airbnb CTA even for a verified link', async () => {
     jest.mocked(listPublishedMarketingLodgingsForCity).mockResolvedValue([airbnbLodging])
     const params = Promise.resolve({ 'city-slug': 'saint-gervais-les-bains' })
 
@@ -71,15 +72,7 @@ describe('046 local vacation rental pages', () => {
       'href',
       '/logements/chalet-hygge',
     )
-    expect(screen.getByRole('link', { name: 'Voir sur Airbnb' })).toHaveAttribute(
-      'href',
-      'https://www.airbnb.fr/rooms/123',
-    )
-    expect(screen.getByRole('link', { name: 'Voir sur Airbnb' })).toHaveAttribute('target', '_blank')
-    expect(screen.getByRole('link', { name: 'Voir sur Airbnb' })).toHaveAttribute(
-      'rel',
-      'noopener noreferrer',
-    )
+    expect(screen.queryByRole('link', { name: 'Voir sur Airbnb' })).not.toBeInTheDocument()
 
     const metadata = await generateMetadata({ params })
     expect(metadata.robots).toEqual({ index: true, follow: true })

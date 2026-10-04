@@ -139,6 +139,7 @@ de réservation configurée
 - **AC-03-04**: Given un logement doté d'un External Booking Link Airbnb HTTPS
   validé, When sa carte locale est rendue, Then un CTA `Voir sur Airbnb` ouvre
   cette URL dans un nouvel onglet avec `rel="noopener noreferrer"`.
+  *Superseded le 2026-10-04 (AC-03-07) : la landing n'affiche plus aucun CTA Airbnb.*
 - **AC-03-05**: Given un logement sans External Booking Link Airbnb validé, When
   sa carte locale est rendue, Then aucun CTA Airbnb n'est affiché et la fiche
   MyStay reste accessible.
@@ -341,7 +342,7 @@ statique approuvé.
 | AC-03-01 | Page locations indexable avec profils publiés | unit + integration |
 | AC-03-02 | Page locations vide en 200 noindex follow | unit + integration |
 | AC-03-03 | Destination locations inconnue en 404 | integration |
-| AC-03-04 | CTA Airbnb validé et sécurisé | unit + integration |
+| AC-03-04 | CTA Airbnb validé et sécurisé — superseded 2026-10-04 (aucun CTA sur la landing) | unit + integration |
 | AC-03-05 | Aucun faux CTA Airbnb | unit + integration |
 | AC-04-01 | Metadata locales uniques | unit |
 | AC-04-02 | Breadcrumb et JSON-LD visibles/factuels | unit + integration |
@@ -412,19 +413,19 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
 - **AC-03-06** : le hero typographique (eyebrow, H1, `hero_copy`) affiche, s'il y a au moins
   un logement, une ligne de faits dérivée uniquement des logements publiés :
   `N logement(s)` puis `jusqu'à X voyageurs` (capacité identique) ou `de X à Y voyageurs`.
-  Il propose des ancres `#logements`, `#destination` et, si la FAQ n'est pas vide, `#faq`.
-  Aucune ligne de faits sans logement.
+  Aucune ligne de faits sans logement. Pas d'ancres de navigation interne (retirées par le
+  Product Owner le 2026-10-04).
 - **AC-03-07** : chaque logement est rendu par une carte locale dédiée reprenant le style de
   `MarketingPropertyCard` (amendé le 2026-10-04 à la demande du Product Owner) : photo 4:3,
   eyebrow rose `property_type`, titre, description limitée à 3 lignes, grille 2×2 de
   caractéristiques avec tuiles d'icônes (Surface, Voyageurs, Chambres, Salles de bain ; `—` si
-  inconnue) et pied de carte aligné. Le lien principal `Découvrir [titre]` mène à
-  `/logements/[slug]` et couvre la carte ; le CTA `Voir sur Airbnb` (AC-03-04/05) est un lien
-  secondaire du pied de carte. Le nom de la commune n'est pas répété sur les cartes. Grille
-  1 colonne (mobile) / 3 colonnes (tablette md et desktop), cartes de même hauteur, titre de
-  section accompagné du nombre de logements.
-- **AC-03-08** : le contenu local est rendu en sections éditoriales distinctes, sans
-  `text-justify` et avec un corps de texte ≥ 15 px : « La destination » (`local_title` /
-  `local_copy`, `id="destination"`), highlights numérotés, étapes, FAQ (`id="faq"`, accordéon
-  `details`) puis CTA final `cta_label` → `cta_href`. L'état vide (AC-03-02) conserve son
-  contenu et ses liens.
+  inconnue). Le lien principal `Découvrir [titre]` mène à `/logements/[slug]` et couvre la
+  carte. Aucun CTA de réservation ni pied de carte : le CTA `Voir sur Airbnb` est retiré de la
+  landing par le Product Owner (2026-10-04), ce qui remplace AC-03-04/05 pour cette page.
+  Le nom de la commune n'est pas répété sur les cartes. Grille 1 colonne (mobile) / 3 colonnes
+  (tablette md et desktop), cartes de même hauteur, sans compteur à côté du titre de section.
+- **AC-03-08** : le contenu local est rendu en sections éditoriales distinctes :
+  « La destination » (`local_title` / `local_copy`, `id="destination"`), highlights numérotés
+  (2 colonnes dès md), étapes, FAQ (`id="faq"`, accordéon `details`) puis CTA final
+  `cta_label` → `cta_href`. Tailles de texte et justification de `local_copy` arbitrées par le
+  Product Owner (2026-10-04). L'état vide (AC-03-02) conserve son contenu et ses liens.

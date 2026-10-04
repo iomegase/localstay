@@ -12,7 +12,3 @@ export function vacationFacts(lodgings: Pick<MarketingLodgingCard, 'max_guests'>
 
   return `${count} · ${guests}`
 }
-
-export function lodgingCountLabel(count: number): string {
-  return `${count} ${count > 1 ? 'logements' : 'logement'}`
-}

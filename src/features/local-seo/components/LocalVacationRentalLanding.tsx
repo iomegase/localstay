@@ -1,7 +1,7 @@
 import { faqPageSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
-import { ArrowRight, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import type {
   MarketingLodgingCard,
 } from '@/features/lodging-showcase/queries/public-lodgings'
@@ -11,7 +11,7 @@ import {
   marketingContainerClass,
   marketingDarkButtonClass,
 } from '@/features/marketing/components/MarketingShell'
-import { lodgingCountLabel, vacationFacts } from '../lib/vacation-facts'
+import { vacationFacts } from '../lib/vacation-facts'
 import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { LocalRentalCard } from './LocalRentalCard'
 
@@ -28,11 +28,6 @@ export function LocalVacationRentalLanding({
   const listingTitle = content.section_title !== content.h1
     ? content.section_title
     : `Nos logements à ${landing.city.name}`
-  const anchors = [
-    { href: '#logements', label: 'Logements' },
-    { href: '#destination', label: 'La destination' },
-    ...(content.faq.length > 0 ? [{ href: '#faq', label: 'Questions fréquentes' }] : []),
-  ]
 
   return (
     <MarketingShell localNavigation={{ city: landing.city, publication: landing.publication }}>
@@ -48,31 +43,21 @@ export function LocalVacationRentalLanding({
               {content.hero_title}
             </p>
           )}
-          <p className="mt-5 max-w-[680px] text-[17px] leading-8 text-slate-600">
+          <p className="mt-5 max-w-[680px] text-[14px] leading-8 text-slate-600">
             {content.hero_copy}
           </p>
           {content.reassurance && (
             <p className="mt-3 text-[13px] font-semibold text-slate-500">{content.reassurance}</p>
           )}
 
-          <div className="mt-9 flex flex-col gap-5 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-9 flex flex-col gap-5  pt-6 sm:flex-row sm:items-center sm:justify-between">
             {facts && (
-              <p data-testid="vacation-facts" className="text-[14px] font-bold text-slate-900">
+              <p data-testid="vacation-facts" className="text-xs font-semibold text-slate-900">
                 <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 rounded-full bg-pink-600" />
                 {facts}
               </p>
             )}
-            <nav aria-label="Sur cette page" className="flex flex-wrap gap-2">
-              {anchors.map(anchor => (
-                <a
-                  key={anchor.href}
-                  href={anchor.href}
-                  className="inline-flex min-h-10 items-center rounded-full border border-slate-200 px-4 text-[13px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
-                >
-                  {anchor.label}
-                </a>
-              ))}
-            </nav>
+
           </div>
         </section>
 
@@ -93,7 +78,7 @@ export function LocalVacationRentalLanding({
                       <p className="mt-3 max-w-[640px] text-[15px] leading-7 text-slate-500">{content.section_copy}</p>
                     )}
                   </div>
-                  <p className="shrink-0 text-[13px] font-semibold text-slate-500">{lodgingCountLabel(lodgings.length)}</p>
+
                 </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-5">
                   {lodgings.map((lodging, index) => (
@@ -130,13 +115,13 @@ export function LocalVacationRentalLanding({
                 {content.local_title}
               </h2>
             </div>
-            <p className="text-[17px] leading-8 text-slate-600 lg:pt-9">
+            <p className="text-[13px] md:text-[14px] leading-7 text-justify text-slate-600 lg:pt-9">
               {content.local_copy}
             </p>
           </div>
 
           {content.highlights.length > 0 && (
-            <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
+            <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6">
               {content.highlights.map((highlight, index) => (
                 <article key={highlight.title} className="border-t-2 border-slate-900 pt-5">
                   <span className="text-[12px] font-bold text-pink-600">{String(index + 1).padStart(2, '0')}</span>
@@ -196,7 +181,7 @@ export function LocalVacationRentalLanding({
 
         <section className={`${marketingContainerClass} pb-16 sm:pb-24`}>
           <div className="flex flex-col gap-6 rounded-[28px] bg-slate-900 px-6 py-9 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10">
-            <p className="max-w-[560px] text-[22px] font-bold leading-snug tracking-[-0.035em]">
+            <p className="max-w-[560px] text-[22px] font-bold leading-snug ">
               {landing.city.name} vous attend.
             </p>
             <Link
@@ -204,7 +189,6 @@ export function LocalVacationRentalLanding({
               href={content.cta_href}
             >
               {content.cta_label}
-              <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
             </Link>
           </div>
         </section>

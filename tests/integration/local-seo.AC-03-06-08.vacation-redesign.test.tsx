@@ -47,15 +47,12 @@ const apartment: MarketingLodgingCard = {
   external_booking_platform: null,
 }
 
-describe('046 AC-03-06 — hero facts line and anchors', () => {
+describe('046 AC-03-06 — hero facts line', () => {
   it('derives the facts line from published lodgings only', () => {
     render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
 
     expect(screen.getByTestId('vacation-facts')).toHaveTextContent('2 logements · de 4 à 6 voyageurs')
-    const anchors = screen.getByRole('navigation', { name: 'Sur cette page' })
-    expect(within(anchors).getByRole('link', { name: 'Logements' })).toHaveAttribute('href', '#logements')
-    expect(within(anchors).getByRole('link', { name: 'La destination' })).toHaveAttribute('href', '#destination')
-    expect(within(anchors).getByRole('link', { name: 'Questions fréquentes' })).toHaveAttribute('href', '#faq')
+    expect(screen.queryByRole('navigation', { name: 'Sur cette page' })).not.toBeInTheDocument()
   })
 
   it('uses a single capacity wording and singular for one lodging', () => {
@@ -63,27 +60,27 @@ describe('046 AC-03-06 — hero facts line and anchors', () => {
     expect(screen.getByTestId('vacation-facts')).toHaveTextContent('1 logement · jusqu’à 6 voyageurs')
   })
 
-  it('renders no facts line and no FAQ anchor without lodging or FAQ', () => {
-    render(<LocalVacationRentalLanding landing={{ ...landing, page: { ...landing.page, faq: [] } }} lodgings={[]} />)
+  it('renders no facts line without lodging', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[]} />)
     expect(screen.queryByTestId('vacation-facts')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Questions fréquentes' })).not.toBeInTheDocument()
   })
 })
 
 describe('046 AC-03-07 — dedicated local lodging card', () => {
-  it('renders eyebrow type, 2x2 stats grid, main link and secondary Airbnb CTA without repeating the city', () => {
+  it('renders eyebrow type, 2x2 stats grid and main link, without booking CTA or repeated city', () => {
     render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
 
     const section = screen.getByRole('region', { name: /Notre accompagnement/ })
     expect(section).toHaveAttribute('id', 'logements')
-    expect(within(section).getByText('2 logements')).toBeInTheDocument()
+    expect(within(section).queryByText('2 logements')).not.toBeInTheDocument()
 
     const cards = within(section).getAllByRole('article')
     expect(cards).toHaveLength(2)
     const chalet = cards[0]
     expect(within(chalet).getByText('Chalet')).toBeInTheDocument()
     expect(within(chalet).getByRole('link', { name: 'Découvrir Le Chalet Hygge' })).toHaveAttribute('href', '/logements/chalet-hygge')
-    expect(within(chalet).getByRole('link', { name: 'Voir sur Airbnb' })).toHaveAttribute('href', 'https://www.airbnb.fr/rooms/123')
+    expect(within(chalet).queryByRole('link', { name: 'Voir sur Airbnb' })).not.toBeInTheDocument()
+    expect(within(chalet).getAllByRole('link')).toHaveLength(1)
     const stat = (card: HTMLElement, label: string) =>
       within(card).getByText(label, { selector: 'dt' }).nextElementSibling
     expect(stat(chalet, 'Surface')).toHaveTextContent('110 m²')
@@ -100,7 +97,7 @@ describe('046 AC-03-07 — dedicated local lodging card', () => {
 })
 
 describe('046 AC-03-08 — editorial sections', () => {
-  it('renders destination, highlights, steps, FAQ and final CTA without justified text', () => {
+  it('renders destination, highlights, steps, FAQ and final CTA', () => {
     const { container } = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
 
     const destination = container.querySelector('#destination')
@@ -110,7 +107,6 @@ describe('046 AC-03-08 — editorial sections', () => {
     expect(screen.getByRole('heading', { name: landing.page.steps[0].title })).toBeInTheDocument()
     expect(container.querySelector('#faq details summary')).toHaveTextContent(landing.page.faq[0].question)
     expect(screen.getByRole('link', { name: landing.page.cta_label })).toHaveAttribute('href', landing.page.cta_href)
-    expect(container.querySelector('.text-justify')).toBeNull()
   })
 
   it('keeps the empty state content and links', () => {
