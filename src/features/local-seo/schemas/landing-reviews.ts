@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { LANDING_REVIEW_SOURCES } from '../types/landing-reviews'
+import { LANDING_REVIEW_SOURCES, STORED_LANDING_REVIEW_SOURCES } from '../types/landing-reviews'
 import type { LandingReviewDto } from '../types/landing-reviews'
 
 const destinationSlugSchema = z.string().trim().min(1).max(200)
@@ -24,7 +24,7 @@ export const LandingReviewResponseSchema: z.ZodType<LandingReviewDto> = z.object
   author: z.string(),
   quote: z.string(),
   stay_date: z.string().nullable(),
-  source: z.enum(LANDING_REVIEW_SOURCES),
+  source: z.enum(STORED_LANDING_REVIEW_SOURCES),
   rating: z.number().int().min(1).max(5).nullable(),
   sort_order: z.number().int(),
   is_active: z.boolean(),

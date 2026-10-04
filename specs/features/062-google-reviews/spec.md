@@ -214,11 +214,11 @@ paths:
         '502': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
 
-  /api/admin/google-reviews/{googleReviewId}/publications:
+  /api/admin/google-reviews/{id}/publications:
     put:
       summary: Définit l'ensemble des destinations où l'avis est publié
       parameters:
-        - { name: googleReviewId, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
       requestBody:
         content:
           application/json:
@@ -270,6 +270,9 @@ components:
                   details: { type: object }
 ```
 
+`{id}` = identifiant interne `GoogleBusinessReview.id` : l'identifiant Google
+(`accounts/…/reviews/…`) contient des `/` et ne peut pas être un segment d'URL.
+
 Entrées validées par Zod. La liste admin est rendue côté serveur (Server Component +
 query), sans route GET publique.
 
@@ -289,8 +292,8 @@ query), sans route GET publique.
 - **Cron** : ajout dans `vercel.json` de `{ "path": "/api/internal/google-reviews/sync",
   "schedule": "45 5 * * *" }`.
 - **Prérequis côté Google (PO)** : projet Google Cloud, demande d'accès à l'API Business
-  Profile approuvée, APIs « My Business Account Management » et « Google My Business »
-  activées, client OAuth de type application de bureau.
+  Profile approuvée, APIs « My Business Account Management », « My Business Business Information » (liste des
+  établissements par le script) et « Google My Business » activées, client OAuth de type application de bureau.
 
 ---
 
@@ -299,13 +302,14 @@ query), sans route GET publique.
 ### `/admin/google-reviews` (Shadcn/ui, dashboard admin)
 
 - En-tête : titre « Avis Google », date de la dernière synchronisation, bouton
-  « Synchroniser maintenant » (état chargement, puis toast avec le résumé ou l'erreur).
+  « Synchroniser maintenant » (état chargement, puis message d'état `role="status"` — convention de l'admin existant — avec le
+  résumé ou l'erreur).
 - Filtre par note : Toutes / 5★ / 4★ / 3★ et moins.
 - Une carte par avis : auteur (+ photo si disponible), étoiles, date, texte, réponse du
   propriétaire repliable, puis une case par destination de landing
   (« Publié sur Saint-Gervais-les-Bains »…). Chaque changement de case appelle
   `PUT …/publications` avec l'ensemble des destinations cochées ; échec → case remise
-  dans son état précédent + toast d'erreur.
+  dans son état précédent + message d'état d'erreur.
 - État vide : « Aucun avis importé. Lancez une synchronisation. »
 - Configuration absente : bandeau « Connexion Google non configurée » renvoyant aux
   variables d'environnement attendues ; bouton de synchronisation désactivé.

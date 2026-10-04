@@ -3,6 +3,6 @@ export type GuestReview = {
   quote: string
   author: string
   stayDate?: string
-  source?: 'AIRBNB' | 'DIRECT'
+  source?: 'AIRBNB' | 'DIRECT' | 'GOOGLE'
   rating?: number
 }

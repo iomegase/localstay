@@ -19,7 +19,7 @@ function toDto(review: {
   author: string
   quote: string
   stay_date: string | null
-  source: 'AIRBNB' | 'DIRECT'
+  source: 'AIRBNB' | 'DIRECT' | 'GOOGLE'
   rating: number | null
   sort_order: number
   is_active: boolean

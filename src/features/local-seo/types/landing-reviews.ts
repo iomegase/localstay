@@ -2,6 +2,11 @@ export const LANDING_REVIEW_SOURCES = ['AIRBNB', 'DIRECT'] as const
 
 export type LandingReviewSource = (typeof LANDING_REVIEW_SOURCES)[number]
 
+/** Sources lisibles en base : la saisie manuelle reste AIRBNB / DIRECT, GOOGLE vient de la spec 062. */
+export const STORED_LANDING_REVIEW_SOURCES = [...LANDING_REVIEW_SOURCES, 'GOOGLE'] as const
+
+export type StoredLandingReviewSource = (typeof STORED_LANDING_REVIEW_SOURCES)[number]
+
 export type LandingReviewDto = {
   id: string
   destination_id: string
@@ -9,7 +14,7 @@ export type LandingReviewDto = {
   author: string
   quote: string
   stay_date: string | null
-  source: LandingReviewSource
+  source: StoredLandingReviewSource
   rating: number | null
   sort_order: number
   is_active: boolean

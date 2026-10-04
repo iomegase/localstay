@@ -21,6 +21,7 @@ export function GuestReviews({ reviews }: { reviews: GuestReview[] }) {
             <figcaption className="mt-5 text-xs font-bold text-slate-900">
               {review.author}{review.stayDate ? ` · ${review.stayDate}` : ''}
               {review.source === 'AIRBNB' && <span className="mt-1 block font-normal text-slate-500">Avis voyageur reçu via Airbnb</span>}
+              {review.source === 'GOOGLE' && <span className="mt-1 block font-normal text-slate-500">Avis Google</span>}
             </figcaption>
           </figure>
         ))}

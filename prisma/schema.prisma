@@ -103,6 +103,7 @@ enum PoiAuditActorType {
 enum LocalLandingReviewSource {
   AIRBNB
   DIRECT
+  GOOGLE
 }
 
 // Spec 048 — Admin Local Landing Management
@@ -179,7 +180,35 @@ model LocalLandingReview {
   destination_id String
   destination    LocalLandingDestination @relation(fields: [destination_id], references: [id])
 
+  // Spec 062 — publication d'un avis Google Business Profile
+  google_review_id String?
+  google_review    GoogleBusinessReview? @relation(fields: [google_review_id], references: [google_review_id])
+
+  @@unique([destination_id, google_review_id])
+
   @@index([destination_slug, deleted_at, is_active, sort_order, created_at])
+}
+
+// Spec 062 — copie brute des avis de la fiche Google Business Profile MyStay
+model GoogleBusinessReview {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  google_review_id  String   @unique
+  author            String
+  author_photo_url  String?
+  rating            Int
+  comment           String?
+  owner_reply       String?
+  google_created_at DateTime
+  google_updated_at DateTime
+  last_synced_at    DateTime
+
+  publications LocalLandingReview[]
+
+  @@index([deleted_at, google_created_at])
 }
 
 model PointOfInterest {
