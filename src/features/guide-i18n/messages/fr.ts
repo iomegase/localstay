@@ -233,6 +233,7 @@ export const fr = {
     onFoot: (duration: string) => `À pied ${duration}`,
     open: 'Ouvert',
     ownerNote: 'Le mot de votre hôte',
+    reviews: (count: number) => `${count} avis`,
     photosCredit: (host: string) => `Photos : ${host}`,
     trail: {
       demoNoGps: 'Suivi GPS indisponible dans le guide de démonstration.',

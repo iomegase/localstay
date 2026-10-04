@@ -230,6 +230,7 @@ export const en: GuideMessages = {
     onFoot: (duration: string) => `On foot ${duration}`,
     open: 'Open',
     ownerNote: 'A word from your host',
+    reviews: (count: number) => `${count} review${count > 1 ? 's' : ''}`,
     photosCredit: (host: string) => `Photos: ${host}`,
     trail: {
       demoNoGps: 'GPS tracking is not available in the demo guide.',

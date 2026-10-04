@@ -94,7 +94,7 @@ export function GuidePoiDetails({
               </span>
               {poi.reviewCount != null && poi.reviewCount > 0 && (
                 <span className="ml-3 mt-1 text-[10px] text-charcoal/40" data-testid="poi-detail-rating-count">
-                  {poi.reviewCount} avis
+                  {m.poi.reviews(poi.reviewCount)}
                 </span>
               )}
             </div>

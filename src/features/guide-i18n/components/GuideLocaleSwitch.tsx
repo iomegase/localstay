@@ -37,7 +37,7 @@ export function GuideLocaleSwitch() {
       onKeyDown={onKeyDown}
       onTouchStart={event => { touchStartX.current = event.touches[0]?.clientX ?? null }}
       onTouchEnd={onTouchEnd}
-      className="relative grid h-8 w-[72px] shrink-0 grid-cols-2 rounded-full border border-slate-200 bg-slate-100 p-0.5"
+      className="relative grid h-8 w-[72px] shrink-0 grid-cols-2 rounded-full bg-slate-100 p-0.5 ring-1 ring-inset ring-slate-200"
     >
       <span
         aria-hidden="true"
@@ -52,7 +52,7 @@ export function GuideLocaleSwitch() {
           aria-label={LABELS[option].name}
           tabIndex={locale === option ? 0 : -1}
           onClick={() => { if (option !== locale) setLocale(option) }}
-          className={`relative z-10 min-h-11 -my-1.5 text-[11px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 ${locale === option ? 'text-slate-900' : 'text-slate-500'}`}
+          className={`relative z-10 flex h-full items-center justify-center text-[11px] font-semibold leading-none after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 ${locale === option ? 'text-slate-900' : 'text-slate-500'}`}
         >
           {LABELS[option].short}
         </button>
