@@ -1,7 +1,7 @@
 import { faqPageSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import type {
   MarketingLodgingCard,
 } from '@/features/lodging-showcase/queries/public-lodgings'
@@ -162,27 +162,9 @@ export function LocalVacationRentalLanding({
         )}
 
         {content.faq.length > 0 && (
-          <section id="faq" className={`${marketingContainerClass} scroll-mt-6 py-16 sm:py-24`}>
-            <div className="grid gap-8 lg:grid-cols-[4fr_8fr] lg:gap-16">
-              <div className="lg:sticky lg:top-8 lg:self-start">
-                <MarketingEyebrow>Questions fréquentes</MarketingEyebrow>
-                <h2 className="text-[28px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[34px]">
-                  Bon à savoir avant de réserver
-                </h2>
-              </div>
-              <div className="divide-y divide-slate-200 border-y border-slate-200">
-                {content.faq.map(item => (
-                  <details key={item.question} className="group py-5">
-                    <summary className="flex cursor-pointer list-none items-start justify-between gap-5 text-[16px] font-bold leading-snug text-slate-900 [&::-webkit-details-marker]:hidden">
-                      {item.question}
-                      <Plus aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" />
-                    </summary>
-                    <p className="max-w-[720px] pt-4 text-[15px] leading-7 text-slate-600">{item.answer}</p>
-                  </details>
-                ))}
-              </div>
-            </div>
-          </section>
+          <div id="faq" className="scroll-mt-6">
+            <MarketingFaqSection items={content.faq} title="Bon à savoir avant de réserver" columns={2} />
+          </div>
         )}
 
         <section className={`${marketingContainerClass} pb-16 sm:pb-24`}>
