@@ -5,7 +5,7 @@
 ```yaml
 id: 062-google-reviews
 title: "Importer tous les avis Google de la fiche MyStay et les publier, au choix, sur les landings"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-05
@@ -14,7 +14,7 @@ depends_on:
   - 046-local-seo-city-cluster
   - 048-admin-local-landing-management
 bounded_context: marketing-seo
-implementation_gate: "Design validé en conversation par le PO le 2026-10-05 (approche A : table d'import + publication vers LocalLandingReview). Code autorisé uniquement après passage de cette spec en `approved`."
+implementation_gate: "Design validé par le PO le 2026-10-05 (approche A : table d’import + publication vers LocalLandingReview) ; spec approuvée par le PO le 2026-10-05 (« ok validé »)."
 ```
 
 ---
