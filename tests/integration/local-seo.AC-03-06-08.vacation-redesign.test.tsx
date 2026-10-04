@@ -4,6 +4,7 @@ import { render, screen, within } from '@testing-library/react'
 import { publicLocalLanding } from '../fixtures/public-local-landing'
 import { LocalVacationRentalLanding } from '@/features/local-seo/components/LocalVacationRentalLanding'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
+import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/locations-vacances/saint-gervais-les-bains',
@@ -100,11 +101,18 @@ describe('046 AC-03-08 — editorial sections', () => {
   it('renders destination, highlights, steps, FAQ and final CTA', () => {
     const { container } = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
 
-    const destination = container.querySelector('#destination')
+    const destination = container.querySelector<HTMLElement>('#destination')!
+    expect(destination).toHaveTextContent('Sur place')
     expect(destination).toHaveTextContent(landing.page.local_title)
     expect(destination).toHaveTextContent(landing.page.local_copy)
+    expect(within(destination).getByRole('link', { name: 'Découvrir Saint-Gervais-les-Bains' }))
+      .toHaveAttribute('href', publicDiscoveryCityPath('saint-gervais-les-bains'))
+    expect(destination).toHaveTextContent('Notre fonctionnement')
+    expect(within(destination).getByRole('heading', { name: landing.page.process_title! })).toBeInTheDocument()
+    expect(within(destination).getByRole('heading', { name: landing.page.steps[0].title })).toBeInTheDocument()
+    expect(within(destination).getByText('01')).toBeInTheDocument()
+    expect(within(destination).queryByRole('heading', { name: landing.page.highlights[0].title })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: landing.page.highlights[0].title })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: landing.page.steps[0].title })).toBeInTheDocument()
     expect(container.querySelector('#faq details summary')).toHaveTextContent(landing.page.faq[0].question)
     expect(screen.getByRole('link', { name: landing.page.cta_label })).toHaveAttribute('href', landing.page.cta_href)
   })

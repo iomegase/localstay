@@ -424,8 +424,10 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
   landing par le Product Owner (2026-10-04), ce qui remplace AC-03-04/05 pour cette page.
   Le nom de la commune n'est pas répété sur les cartes. Grille 1 colonne (mobile) / 3 colonnes
   (tablette md et desktop), cartes de même hauteur, sans compteur à côté du titre de section.
-- **AC-03-08** : le contenu local est rendu en sections éditoriales distinctes :
-  « La destination » (`local_title` / `local_copy`, `id="destination"`), highlights numérotés
-  (2 colonnes dès md), étapes, FAQ (`id="faq"`, accordéon `details`) puis CTA final
-  `cta_label` → `cta_href`. Tailles de texte et justification de `local_copy` arbitrées par le
+- **AC-03-08** : le contenu local reprend la section sombre de la landing conciergerie
+  (`id="destination"`) : à gauche « Sur place », `local_title`, `local_copy` et le lien
+  `Découvrir [City]` vers le guide public de la commune ; à droite, si des étapes existent,
+  « Notre fonctionnement », `process_title` et les étapes numérotées `01`, `02`… Suivent les
+  highlights numérotés (section claire, 2 colonnes dès md), la FAQ (`id="faq"`, accordéon
+  `details`) puis le CTA final `cta_label` → `cta_href`. Tailles de texte et justification de `local_copy` arbitrées par le
   Product Owner (2026-10-04). L'état vide (AC-03-02) conserve son contenu et ses liens.

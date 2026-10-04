@@ -11,6 +11,7 @@ import {
   marketingContainerClass,
   marketingDarkButtonClass,
 } from '@/features/marketing/components/MarketingShell'
+import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
 import { vacationFacts } from '../lib/vacation-facts'
 import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { LocalRentalCard } from './LocalRentalCard'
@@ -107,21 +108,48 @@ export function LocalVacationRentalLanding({
           </div>
         </section>
 
-        <section id="destination" className={`${marketingContainerClass} scroll-mt-6 py-16 sm:py-24`}>
-          <div className="grid gap-6 lg:grid-cols-[5fr_7fr] lg:gap-16">
-            <div>
-              <MarketingEyebrow>La destination</MarketingEyebrow>
-              <h2 className="text-balance text-[30px] font-bold leading-[1.1] tracking-[-0.045em] text-slate-900 sm:text-[40px]">
+        <section
+          id="destination"
+          className="scroll-mt-6 bg-[radial-gradient(circle_at_10%_105%,rgba(219,39,119,0.14),transparent_31%)] bg-slate-800 py-16 text-white sm:py-24"
+        >
+          <div className={`${marketingContainerClass} grid gap-12 lg:grid-cols-2 lg:items-center`}>
+            <div className="flex flex-col justify-center">
+              <MarketingEyebrow light>Sur place</MarketingEyebrow>
+              <h2 className="text-[32px] font-bold tracking-[-0.04em] text-white sm:text-[40px]">
                 {content.local_title}
               </h2>
+              <p className="mt-6 text-[13px] text-justify leading-7 text-slate-300">{content.local_copy}</p>
+              <Link className="mt-6 inline-flex text-xs font-bold text-pink-300 hover:text-white" href={publicDiscoveryCityPath(landing.city.slug)}>
+                Découvrir {landing.city.name}
+              </Link>
             </div>
-            <p className="text-[13px] md:text-[14px] leading-7 text-justify text-slate-600 lg:pt-9">
-              {content.local_copy}
-            </p>
+            {content.steps.length > 0 && (
+              <div className="flex flex-col justify-center">
+                <MarketingEyebrow light>Notre fonctionnement</MarketingEyebrow>
+                {content.process_title && (
+                  <h2 className="text-[30px] font-bold tracking-[-0.04em] text-white">
+                    {content.process_title}
+                  </h2>
+                )}
+                <ol className="mt-6 divide-y divide-white/15 border-y border-white/15">
+                  {content.steps.map(({ title, copy }, index) => (
+                    <li key={title} className="grid grid-cols-[32px_1fr] gap-4 py-5">
+                      <span className="text-xs font-bold text-pink-400">{String(index + 1).padStart(2, '0')}</span>
+                      <div>
+                        <h3 className="font-bold text-white">{title}</h3>
+                        <p className="mt-2 text-[13px] text-justify leading-6 text-slate-400">{copy}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
           </div>
+        </section>
 
-          {content.highlights.length > 0 && (
-            <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6">
+        {content.highlights.length > 0 && (
+          <section className={`${marketingContainerClass} py-16 sm:py-24`}>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6">
               {content.highlights.map((highlight, index) => (
                 <article key={highlight.title} className="border-t-2 border-slate-900 pt-5">
                   <span className="text-[12px] font-bold text-pink-600">{String(index + 1).padStart(2, '0')}</span>
@@ -129,28 +157,6 @@ export function LocalVacationRentalLanding({
                   <p className="mt-3 text-[15px] leading-7 text-slate-500">{highlight.copy}</p>
                 </article>
               ))}
-            </div>
-          )}
-        </section>
-
-        {content.steps.length > 0 && (
-          <section className="bg-slate-50 py-16 sm:py-20">
-            <div className={marketingContainerClass}>
-              {content.process_title && (
-                <h2 className="max-w-[720px] text-balance text-[28px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[36px]">
-                  {content.process_title}
-                </h2>
-              )}
-              <ol className="mt-10 grid grid-cols-1 gap-8 md:auto-cols-fr md:grid-flow-col md:gap-6">
-                {content.steps.map((step, index) => (
-                  <li key={step.title} className="relative border-l border-slate-300 pl-6 md:border-l-0 md:border-t md:pl-0 md:pt-6">
-                    <span aria-hidden="true" className="absolute -left-[5px] top-1 h-2.5 w-2.5 rounded-full bg-pink-600 md:-top-[5px] md:left-0" />
-                    <span className="text-[12px] font-bold text-pink-600">Étape {index + 1}</span>
-                    <h3 className="mt-1 text-[18px] font-bold tracking-[-0.025em] text-slate-900">{step.title}</h3>
-                    <p className="mt-2 text-[15px] leading-7 text-slate-500">{step.copy}</p>
-                  </li>
-                ))}
-              </ol>
             </div>
           </section>
         )}
