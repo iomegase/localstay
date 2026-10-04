@@ -323,6 +323,16 @@ Départ, fiche lieu) : entrée `slideIn` 280 ms, bouton retour rond 44 px.
 
 Aucune.
 
+## Amendement approuvé — Carte recyclage (2026-10-04)
+
+Demande explicite du Product Owner : la carte « Trouver le point de recyclage »
+reprend la présentation horizontale de « Se déplacer » (pastille d'icône à
+gauche, texte central, action à droite). Le bouton visible « Ouvrir dans Maps »
+est remplacé par une icône Lucide `Eye` à droite, à la position du chevron de
+la carte transport. Le lien conserve sa destination Maps et son nom accessible
+« Ouvrir dans Maps ». La démo conserve l'absence de lien externe.
+Cette précision complète AC-04-01, sans modification des données.
+
 ## Amendement approuvé — Statistique voyageurs (2026-10-02)
 
 Sur l'accueil du guide, les statistiques « Voyageurs », « Chambres » et
@@ -457,3 +467,25 @@ vérification des oublis. Les quatre premières consignes restent dans leur
 ordre. Le sous-titre horaire « Avant [heure] » est retiré de la page Départ.
 Privé et démo utilisent quatre points ; compteurs et progression ignorent
 les anciens indices cochés au-delà de la liste restante. AC-04-02 amendé.
+
+## Amendement approuvé — Navigation sans rechargement (2026-10-04)
+
+Correction demandée par le PO : supprimer la latence des onglets et les retours
+inattendus vers Accueil après sélection des réglages. Tous les écrans dont les
+données sont déjà injectées dans GuideApp changent immédiatement côté client,
+sans router.push ni nouvelle résolution serveur du guide. Les routes privées
+existantes restent accessibles directement et leurs URLs sont conservées dans
+l’historique natif Next.js. Carte et Réglages, sans route dédiée, utilisent
+respectivement #carte et #reglages sur la route privée courante. Retour/avance
+navigateur et réouverture avec ces fragments restaurent la bonne vue. Les taps
+répétés ne créent pas d’entrée d’historique supplémentaire ; une navigation
+rapide conserve toujours la dernière vue choisie. Le changement de vue remet
+le scroll interne en haut. Les navigations randonnée restent App Router.
+Le module JS de la carte est préchargé après hydration à temps perdu ; aucun
+Mapbox/WebGL ni demande GPS n’est lancé avant son affichage.
+AC-01-09 : premier clic Coups de cœur immédiat, sans navigation serveur.
+AC-01-10 : séquence rapide entre onglets stable, sans remonter le guide ni
+relancer ses requêtes partagées ; compteur et état séjour conservés.
+AC-01-11 : historique retour/avance, fragments et retaps restent cohérents.
+AC-01-12 : préchargement du module carte sans montage anticipé.
+Aucun changement d’accès privé, données, API, persistance métier ou design.

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Phone, Recycle } from 'lucide-react'
+import { Eye, Phone, Recycle } from 'lucide-react'
 import { houseRuleTitle } from '@/features/guide-app/lib/fixed-lodging-content'
 import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
 import type { GuideLodging, GuidePracticalCard } from '@/features/guide-app/types'
@@ -9,7 +9,6 @@ import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
 import { GuideStayScreen } from './GuideStayScreen'
 import { STAY_CARD } from './stay-styles'
-import { GuideMapsButton } from './GuideAddressBlock'
 import { recyclingMapsHref } from '@/features/guide-app/lib/recycling-maps'
 
 const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
@@ -78,12 +77,22 @@ export function GuideHouseGuide({
         <h2 className={SECTION_PILL}>Point de tri</h2>
         <div className="mt-3 grid gap-2.5">
           {recycling.map(card => <EquipmentCard key={card.id} card={card} />)}
-          <div className={`${STAY_CARD} p-4`}>
-            <div className="flex items-center gap-3">
-              <Recycle className="h-5 w-5 shrink-0 text-[#DB2777]" aria-hidden="true" />
-              <p className="text-[14px] font-semibold text-[#111111]">Trouver le point de recyclage</p>
-            </div>
-            {!demo && <GuideMapsButton href={recyclingMapsHref(lodging.trashLocation, lodging.city)} />}
+          <div className="flex min-h-[76px] w-full items-center gap-2.5 rounded-[20px] bg-white p-3 text-left tracking-[-0.025em] shadow-md transition-[transform,box-shadow] duration-200 hover:shadow-sm">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-slate-100 text-black">
+              <Recycle className="h-7 w-7 stroke-1" strokeWidth={1} aria-hidden="true" />
+            </span>
+            <p className="min-w-0 flex-1 text-[15px] font-semibold text-[#111111]">Trouver le point de recyclage</p>
+            {!demo && (
+              <a
+                href={recyclingMapsHref(lodging.trashLocation, lodging.city)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Ouvrir dans Maps"
+                className="-mr-3 grid h-11 w-11 shrink-0 place-items-center rounded-full text-[#BE185D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BE185D]"
+              >
+                <Eye strokeWidth={1} className="h-5 w-5 stroke-1" aria-hidden="true" />
+              </a>
+            )}
           </div>
         </div>
       </section>

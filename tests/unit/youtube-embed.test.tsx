@@ -11,6 +11,7 @@ describe('YouTubeEmbed', () => {
 
     const button = screen.getByRole('button', { name: /visite du logement/i })
     expect(button).toBeInTheDocument()
+    expect(button.parentElement).toHaveClass('aspect-video')
     const thumb = document.querySelector('img')
     expect(thumb).toHaveAttribute('src', 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg')
     expect(document.querySelector('iframe')).toBeNull()

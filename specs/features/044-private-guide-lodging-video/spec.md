@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-31
-updated_at: 2026-08-31
+updated_at: 2026-10-04
 depends_on:
   - 012-guide-customization
   - 034-private-guide-app
@@ -61,6 +61,11 @@ lecteur concurrent.
 - **AC-01-05**: Given la vidéo disponible, When la home privée s'affiche sans
   interaction, Then aucun iframe YouTube n'est chargé ; le lecteur sans cookies
   existant n'est activé qu'après une action explicite du Tourist.
+
+- **AC-01-06**: Given la fenêtre vidéo ouverte, Then le lecteur et sa miniature
+  sont affichés dans un cadre portrait 9:16 adapté à la hauteur du viewport,
+  sans bandeau blanc et avec le bouton Fermer superposé. Le format reste
+  portrait après activation du lecteur.
 
 ## Business Rules
 
@@ -132,6 +137,16 @@ un Server Component privé et utilise la query existante
 - Fermeture par bouton, clic sur l'arrière-plan ou touche Échap.
 - Un clic dans le contenu du dialogue ne ferme pas la fenêtre.
 
+### Format portrait — demande Product Owner du 2026-10-04
+
+- Référence visuelle : second screenshot fourni par le Product Owner.
+- Le dialogue affiche un lecteur 9:16, sans cadre blanc ni bandeau séparé.
+- Le lecteur est centré, arrondi et limité à la hauteur disponible du viewport,
+  sur mobile comme sur desktop ; la miniature remplit le cadre portrait.
+- Une croix visible est superposée en haut à droite, avec le nom accessible
+  `Fermer`. Le titre `Vidéo du logement` reste accessible au lecteur d’écran.
+- Le composant partagé conserve le format 16:9 par défaut pour ses autres usages.
+
 ### États
 
 - URL valide : bouton visible, fenêtre fermée par défaut.
@@ -144,6 +159,7 @@ un Server Component privé et utilise la query existante
 |---|---|
 | AC-01-01 | unit + integration |
 | AC-01-02 | integration |
+| AC-01-06 | integration |
 | AC-01-03 | integration |
 | AC-01-04 | unit + integration |
 | AC-01-05 | integration |

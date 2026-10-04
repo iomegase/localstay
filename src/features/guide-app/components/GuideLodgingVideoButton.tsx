@@ -48,7 +48,7 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
       {open && (
         <div
           data-testid="lodging-video-backdrop"
-          className="absolute inset-0 z-[100] flex items-center justify-center bg-black/70 p-5 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-5 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         >
           <section
@@ -56,26 +56,21 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
             aria-modal="true"
             aria-label="Vidéo du logement"
             onClick={event => event.stopPropagation()}
-            className="w-full max-w-[390px] overflow-hidden rounded-[24px] bg-white p-3 shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+            className="relative w-[min(390px,calc((100dvh-40px)*9/16))] overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
           >
-            <div className="mb-3 flex items-center justify-between gap-3 px-1">
-              <h2 className="text-base font-semibold text-slate-900">
-                Vidéo du logement
-              </h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Fermer"
-                className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-                Fermer
-              </button>
-            </div>
+            <h2 className="sr-only">Vidéo du logement</h2>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Fermer"
+              className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
             <YouTubeEmbed
               url={url}
               title="Vidéo du logement"
-              className="rounded-[16px]"
+              aspectRatio="portrait"
             />
           </section>
         </div>

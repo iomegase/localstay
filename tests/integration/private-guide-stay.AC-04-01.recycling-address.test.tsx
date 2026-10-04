@@ -17,6 +17,8 @@ it.each([
   expect(screen.queryByText('Conciergerie')).not.toBeInTheDocument()
   const recycling = screen.getByRole('heading', { name: 'Point de tri' }).parentElement!
   expect(within(recycling).getByRole('link', { name: 'Ouvrir dans Maps' })).toHaveAttribute('href', href)
+  expect(within(recycling).queryByText('Ouvrir dans Maps')).not.toBeInTheDocument()
+  expect(within(recycling).getByRole('link', { name: 'Ouvrir dans Maps' }).querySelector('.lucide-eye')).not.toBeNull()
   expect(screen.queryByTestId('arrival-address')).not.toBeInTheDocument()
   expect(screen.getAllByRole('link', { name: 'Ouvrir dans Maps' })).toHaveLength(1)
 })

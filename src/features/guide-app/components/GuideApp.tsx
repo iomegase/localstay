@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { GuideFavoritesPage } from './GuideFavoritesPage'
 import { GuideHeader } from './GuideHeader'
 import { GuideLodgingsView } from './GuideLodgingsView'
@@ -37,10 +37,13 @@ import type {
   GuideRouteMap,
   GuideView,
 } from '@/features/guide-app/types'
+import { useGuideViewNavigation } from '../hooks/useGuideViewNavigation'
 import { isGuideMenuEnabled } from '@/features/guide-app/lib/guide-menu-visibility'
 
+const loadGuideMapView = () => import('./GuideMapView').then(module => module.GuideMapView)
+
 const GuideMapView = dynamic(
-  () => import('./GuideMapView').then(module => module.GuideMapView),
+  loadGuideMapView,
   {
     ssr: false,
     loading: () => (
@@ -77,7 +80,6 @@ export function GuideApp(props: GuideAppProps) {
 function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
   routes: GuideRouteMap
 }) {
-  const pathname = usePathname()
   const router = useRouter()
   const citySlug = props.mode === 'private' ? props.citySlug : undefined
 
@@ -85,11 +87,6 @@ function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
     <GuideAppShell
       {...props}
       routes={routes}
-      onOpenRoute={href => {
-        if (href === pathname) return false
-        router.push(href)
-        return true
-      }}
       onStartTrail={citySlug
         ? poi => router.push(
             `/guide/${poi.citySlug ?? citySlug}/rando/${poi.slug}/start`,
@@ -111,14 +108,27 @@ function GuideAppShell({
   blogPosts,
   contact,
   menuEnabled = isGuideMenuEnabled(),
-  onOpenRoute,
   onStartTrail,
 }: GuideAppProps & {
-  onOpenRoute?: (href: string) => boolean
   onStartTrail?: (poi: GuidePoi) => void
 }) {
-  const [activeView, setActiveView] = useState<GuideView>(initialView)
+  const { activeView, setActiveView, navigate: navigateView } = useGuideViewNavigation(initialView, routes)
   const scrollRef = useRef<HTMLElement>(null)
+  // Spec 054 AC-01-12 : charger le JS en avance, sans monter la carte.
+  useEffect(() => {
+    const preload = () => { void loadGuideMapView().catch(() => undefined) }
+    if (typeof window.requestIdleCallback === 'function') {
+      const idle = window.requestIdleCallback(preload, { timeout: 1000 })
+      return () => window.cancelIdleCallback(idle)
+    }
+    const timer = window.setTimeout(preload, 200)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+  }, [activeView])
+
   const [wifiOpen, setWifiOpen] = useState(false)
   const stay = useStayProgress(lodging.id, { persist: mode === 'private' })
   const travelTimes = useTravelTimes(mode === 'private' && lodging.locationPrecise && pois.length > 0)
@@ -200,17 +210,10 @@ function GuideAppShell({
   }
 
   function navigate(view: GuideView) {
-    // Les écrans du logement utilisent les données déjà présentes : ils
-    // s'affichent immédiatement pendant le chargement de leur route serveur.
-    // Les autres destinations routées attendent leur transition App Router.
-    const href = view === 'poi' ? undefined : routes?.[view]
-    const immediateView = ['home', 'arrival', 'rules', 'departure'].includes(view)
-    if (href && onOpenRoute?.(href) && !immediateView) return
-
     if (view !== 'poi' && view !== 'map') {
       setSelectedPoiId(null)
     }
-    setActiveView(view)
+    navigateView(view)
   }
 
   // Depuis la barre du bas : ouvrir la carte réinitialise sur la catégorie « Tous ».

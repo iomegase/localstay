@@ -32,13 +32,13 @@ const lodging: GuideLodging = {
 }
 
 describe('044-private-guide-lodging-video home module', () => {
-  it('renders the video action after the stay tiles (spec 054) and loads no iframe', () => {
+  it('renders the video action on the stay home and loads no iframe', () => {
     render(<GuideStayHome lodging={lodging} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />)
 
-    const video = screen.getByRole('button', { name: /^Voir la vidéo du logement/i })
-    const guide = screen.getByRole('button', { name: /Guide logement/i })
+    const video = screen.getByRole('button', { name: /^Vidéo du logement/i })
+    const guide = screen.getByRole('button', { name: /Guide.*logement/i })
     expect(
-      video.compareDocumentPosition(guide) & Node.DOCUMENT_POSITION_PRECEDING,
+      video.compareDocumentPosition(guide) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
     expect(screen.queryByRole('dialog', { name: 'Vidéo du logement' })).toBeNull()
     expect(document.querySelector('iframe')).toBeNull()
@@ -48,12 +48,20 @@ describe('044-private-guide-lodging-video home module', () => {
     const user = userEvent.setup()
     render(<GuideStayHome lodging={lodging} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />)
 
-    const opener = screen.getByRole('button', { name: /^Voir la vidéo du logement/i })
+    const opener = screen.getByRole('button', { name: /^Vidéo du logement/i })
     await user.click(opener)
     expect(
       screen.getByRole('dialog', { name: 'Vidéo du logement' }),
     ).toBeInTheDocument()
     expect(document.querySelector('iframe')).toBeNull()
+    const dialog = screen.getByRole('dialog', { name: 'Vidéo du logement' })
+    const player = screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' }).parentElement
+    expect(player).toHaveClass('aspect-[9/16]')
+    expect(player).not.toHaveClass('aspect-video')
+    expect(dialog).toHaveClass('bg-black', 'relative')
+    expect(dialog).not.toHaveClass('bg-white', 'p-3')
+    expect(screen.getByRole('button', { name: 'Fermer' })).toHaveClass('absolute', 'right-3', 'top-3')
+    expect(dialog).toHaveClass('w-[min(390px,calc((100dvh-40px)*9/16))]')
 
     await user.click(
       screen.getByRole('button', {
@@ -64,6 +72,8 @@ describe('044-private-guide-lodging-video home module', () => {
       'src',
       'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1',
     )
+
+    expect(document.querySelector('iframe')?.parentElement).toHaveClass('aspect-[9/16]')
 
     await user.click(screen.getByRole('button', { name: 'Fermer' }))
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -86,7 +96,7 @@ describe('044-private-guide-lodging-video home module', () => {
 
       expect(
         screen.queryByRole('button', {
-          name: /^Voir la vidéo du logement/i,
+          name: /^Vidéo du logement/i,
         }),
       ).toBeNull()
     },

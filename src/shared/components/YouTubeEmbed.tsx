@@ -8,6 +8,7 @@ type Props = {
   url: string
   title: string
   className?: string
+  aspectRatio?: 'landscape' | 'portrait'
   /** Masque l'habillage YouTube (contrôles, roue, volume, CC, titre/chaîne, branding). */
   chromeless?: boolean
   /** Démarre la vidéo sans le son. */
@@ -18,7 +19,7 @@ type Props = {
  * Lecteur YouTube « click-to-load » : affiche d'abord la miniature (aucun cookie
  * ni JS YouTube chargé), puis remplace par l'iframe sans cookie au clic.
  */
-export function YouTubeEmbed({ url, title, className, chromeless = false, muted = false }: Props) {
+export function YouTubeEmbed({ url, title, className, chromeless = false, muted = false, aspectRatio = 'landscape' }: Props) {
   const [playing, setPlaying] = useState(false)
   const videoId = extractYouTubeId(url)
 
@@ -33,7 +34,7 @@ export function YouTubeEmbed({ url, title, className, chromeless = false, muted 
     .join('&')
 
   return (
-    <div className={`relative aspect-video w-full overflow-hidden bg-black ${className ?? ''}`}>
+    <div className={`relative ${aspectRatio === 'portrait' ? 'aspect-[9/16]' : 'aspect-video'} w-full overflow-hidden bg-black ${className ?? ''}`}>
       {playing ? (
         <iframe
           className="absolute inset-0 h-full w-full"

@@ -1,13 +1,14 @@
 /** @jest-environment jsdom */
 
 import type { ComponentProps } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { GuideApp } from '@/features/guide-app/components/GuideApp'
 import { PRIVATE_GUIDE_ROUTES } from '@/features/guide-app/components/PrivateGuidePage'
 import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 import { demoPois } from '@/features/guide-demo/demo-pois'
 
 const mockPush = jest.fn()
+const mockMapModuleLoaded = jest.fn()
 const mockGuidePoiDetailsProps = jest.fn()
 let mockPathname = '/sejour'
 
@@ -16,6 +17,11 @@ jest.mock('next/navigation', () => ({
   usePathname: () => mockPathname,
   useRouter: () => ({ push: mockPush }),
 }))
+jest.mock('@/features/guide-app/components/GuideMapView', () => {
+  mockMapModuleLoaded()
+  return { GuideMapView: () => <div>Carte chargée</div> }
+})
+
 jest.mock('next/dynamic', () => () => {
   function DynamicGuideMapStub() {
     return <div>Chargement de la carte…</div>
@@ -55,6 +61,37 @@ describe('034-private-guide-app route-aware shell', () => {
     mockPush.mockClear()
     mockGuidePoiDetailsProps.mockClear()
     mockPathname = '/sejour'
+    window.history.replaceState(null, '', '/sejour')
+  })
+
+  it('054 AC-01-12: preloads map code after hydration without mounting it', async () => {
+    jest.useFakeTimers()
+    try {
+      render(<GuideApp mode="private" lodging={demoLodging} pois={[]} routes={PRIVATE_GUIDE_ROUTES} />)
+      expect(mockMapModuleLoaded).not.toHaveBeenCalled()
+      await act(async () => { jest.advanceTimersByTime(200) })
+      expect(mockMapModuleLoaded).toHaveBeenCalledTimes(1)
+      expect(screen.queryByText('Carte chargée')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('054 AC-01-10: fetches shared travel times once across tab changes', async () => {
+    const originalFetch = globalThis.fetch
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ status: 'available', data: {} }) })
+    globalThis.fetch = fetchMock
+    try {
+      render(<GuideApp mode="private" lodging={{ ...demoLodging, locationPrecise: true }} pois={demoPois} routes={PRIVATE_GUIDE_ROUTES} />)
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/guide/travel-times', expect.any(Object)))
+      for (const label of ['Coups de cœur', 'Réglages et infos', 'Accueil', 'Carte', 'Réglages et infos']) {
+        fireEvent.click(screen.getByRole('button', { name: label, exact: true }))
+      }
+      expect(fetchMock.mock.calls.filter(([url]) => url === '/api/guide/travel-times')).toHaveLength(1)
+    } finally {
+      globalThis.fetch = originalFetch
+    }
   })
 
   it('054 AC-01-01/02: uses private routes from the stay home tiles and tabs', () => {
@@ -68,20 +105,21 @@ describe('034-private-guide-app route-aware shell', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
-    expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
+    expect(window.location.pathname).toBe('/sejour/coups-de-coeur')
+    fireEvent.click(screen.getByRole('button', { name: 'Accueil' }))
 
     fireEvent.click(screen.getByRole('button', { name: /^Guide.*Du logement/ }))
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/consignes')
+    expect(window.location.pathname).toBe('/sejour/logement/consignes')
     expect(screen.getByRole('heading', { name: 'Guide logement' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
 
     fireEvent.click(screen.getByRole('button', { name: /^Arrivée/ }))
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/arrivee')
+    expect(window.location.pathname).toBe('/sejour/logement/arrivee')
     expect(screen.getByRole('heading', { name: 'Arrivée' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
 
     fireEvent.click(screen.getByRole('button', { name: /^Départ/ }))
-    expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
+    expect(window.location.pathname).toBe('/sejour/logement/depart')
     expect(screen.getByRole('heading', { name: 'Départ' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
 
@@ -91,20 +129,54 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(mockPush).not.toHaveBeenCalled()
   })
 
-  it('does not render a routed destination before its App Router transition completes', () => {
-    render(
-      <GuideApp
-        mode="private"
-        lodging={demoLodging}
-        pois={demoPois}
-        routes={PRIVATE_GUIDE_ROUTES}
-      />,
-    )
+  it('054 AC-01-09: renders favorites on the first click without a server transition', () => {
+    render(<GuideApp mode="private" lodging={demoLodging} pois={demoPois} routes={PRIVATE_GUIDE_ROUTES} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
 
-    expect(mockPush).toHaveBeenCalledWith('/sejour/coups-de-coeur')
-    expect(screen.queryByTestId('favorites-bento-grid')).not.toBeInTheDocument()
+    expect(screen.getByTestId('favorites-bento-grid')).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/sejour/coups-de-coeur')
+    expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  it('054 AC-01-10: keeps the latest tab during rapid navigation without refetching stay data', () => {
+    render(<GuideApp mode="private" lodging={demoLodging} pois={demoPois} routes={PRIVATE_GUIDE_ROUTES} />)
+    const originalNav = screen.getByRole('navigation', { name: 'Navigation du guide' })
+    for (let i = 0; i < 3; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: 'Coups de cœur' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Accueil' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Carte' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
+    }
+    expect(screen.getByRole('heading', { name: 'Réglages et infos' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Navigation du guide' })).toBe(originalNav)
+    expect(window.location.hash).toBe('#reglages')
+    expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  it('054 AC-01-11: restores the view from back/forward URLs and does not duplicate a repeated tab', () => {
+    render(<GuideApp mode="private" lodging={demoLodging} pois={demoPois} routes={PRIVATE_GUIDE_ROUTES} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
+    const historyLength = window.history.length
+    fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
+    expect(window.history.length).toBe(historyLength)
+    act(() => {
+      window.history.replaceState(null, '', '/sejour/coups-de-coeur')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(screen.getByTestId('favorites-bento-grid')).toBeInTheDocument()
+    act(() => {
+      window.history.replaceState(null, '', '/sejour#reglages')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(screen.getByRole('heading', { name: 'Réglages et infos' })).toBeInTheDocument()
+  })
+
+  it('054 AC-01-11: opens settings directly from its fragment', () => {
+    window.history.replaceState(null, '', '/sejour#reglages')
+    render(<GuideApp mode="private" lodging={demoLodging} pois={[]} routes={PRIVATE_GUIDE_ROUTES} />)
+    expect(screen.getByRole('heading', { name: 'Réglages et infos' })).toBeInTheDocument()
   })
 
   it('040 AC-01: opens the shared map view inside the private guide frame', () => {
@@ -219,7 +291,7 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('054 AC-04-01: returns from the house guide immediately while the home route is pending', () => {
+  it('054 AC-04-01: returns from the house guide immediately without a server transition', () => {
     mockPathname = '/sejour/logement/consignes'
     render(
       <GuideApp
@@ -233,7 +305,7 @@ describe('034-private-guide-app route-aware shell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
 
-    expect(mockPush).toHaveBeenCalledWith('/sejour')
+    expect(window.location.pathname).toBe('/sejour')
     expect(screen.queryByRole('heading', { name: 'Guide logement' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^Guide.*Du logement/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
