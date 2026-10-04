@@ -196,7 +196,7 @@ export const localSeoDestinations = [
         metaDescription:
           'Découvrez les locations de vacances publiées par MyStay à Saint-Gervais-les-Bains et accédez à leur fiche détaillée.',
         intro:
-          'Retrouvez les logements actuellement publiés par MyStay à Saint-Gervais-les-Bains, avec leurs équipements, leurs espaces et leur lien de réservation lorsqu’il est configuré.',
+          'Chalets et appartements à Saint-Gervais-les-Bains, du village thermal aux pistes du Bettex, face au Mont-Blanc. Des logements sélectionnés et entretenus par MyStay, votre conciergerie locale, pour un séjour sans souci été comme hiver.',
         localTitle: 'Séjourner à Saint-Gervais-les-Bains',
         localCopy:
           'La commune relie le village, les thermes, Le Fayet et les secteurs d’altitude. Chaque fiche précise le secteur public du logement pour vous aider à choisir votre point de départ.',
