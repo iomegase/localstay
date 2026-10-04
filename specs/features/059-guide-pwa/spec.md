@@ -175,9 +175,10 @@ autre contenu ni navigation.
 
 Page hors-ligne (`/sejour/hors-ligne`) : texte AC-02-03, bouton « Voir mon logement ».
 
-## Amendement A1 — Navigateurs autres que Safari (EN REVUE, 2026-10-04)
+## Amendement A1 — Navigateurs autres que Safari (APPROUVÉ, 2026-10-04)
 
-> Statut de l'amendement : **review** — ne pas implémenter avant validation PO.
+> Statut de l'amendement : **approved** (PO, 2026-10-04).
+> Hors mobile (ordinateur sans invite native), le message AC-01-05 reste affiché.
 
 Constat PO : les voyageurs n'utilisent pas tous Safari (ex. Brave sur iPhone).
 Sur iPhone, aucune installation directe n'est possible (pas d'API Apple), mais

@@ -8,10 +8,15 @@ import { buildStayLodging } from '../support/guide-stay-lodging'
 
 const IPHONE_SAFARI = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
 const IPHONE_INSTAGRAM = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0'
+const IPHONE_CHROME = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0 Mobile/15E148 Safari/604.1'
+const IPHONE_EDGE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 EdgiOS/130.0 Mobile/15E148 Safari/605.1.15'
+const IPHONE_FIREFOX = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/130.0 Mobile/15E148 Safari/605.1.15'
+const ANDROID_FIREFOX = 'Mozilla/5.0 (Android 14; Mobile; rv:130.0) Gecko/130.0 Firefox/130.0'
 const ANDROID_CHROME = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36'
 
-function setEnvironment({ userAgent, standalone = false }: { userAgent: string; standalone?: boolean }) {
+function setEnvironment({ userAgent, standalone = false, brave = false }: { userAgent: string; standalone?: boolean; brave?: boolean }) {
   Object.defineProperty(window.navigator, 'userAgent', { configurable: true, value: userAgent })
+  Object.defineProperty(window.navigator, 'brave', { configurable: true, value: brave ? { isBrave: async () => true } : undefined })
   Object.defineProperty(window.navigator, 'maxTouchPoints', { configurable: true, value: 5 })
   window.matchMedia = jest.fn((query: string) => ({
     matches: standalone && query.includes('standalone'),
@@ -79,13 +84,38 @@ it('AC-01-04: explique les 3 étapes iOS dans un modal accessible', async () => 
   const dialog = screen.getByRole('dialog', { name: 'Installer le guide' })
   const steps = dialog.querySelectorAll('ol > li')
   expect(steps).toHaveLength(3)
-  expect(steps[0]).toHaveTextContent('Partager')
+  expect(steps[0]).toHaveTextContent('Touchez « Partager » (dans Safari : barre du bas ; dans Brave : menu « ⋯ »)')
   expect(steps[1]).toHaveTextContent('Sur l’écran d’accueil')
   expect(steps[2]).toHaveTextContent('Ajouter')
+  expect(dialog).toHaveTextContent('Fonctionne avec Safari, Brave, Chrome, Edge et Firefox.')
   expect(dialog).toHaveTextContent('Le guide reste disponible 7 jours, même sans réseau.')
   await user.click(screen.getByRole('button', { name: 'J’ai compris' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   expect(trigger).toHaveFocus()
+})
+
+it.each([
+  ['Brave', IPHONE_SAFARI, true, 'Touchez le menu « ⋯ », puis « Partager »'],
+  ['Chrome', IPHONE_CHROME, false, 'Touchez « Partager » dans la barre d’adresse'],
+  ['Edge', IPHONE_EDGE, false, 'Touchez le menu « ⋯ », puis « Partager »'],
+  ['Firefox', IPHONE_FIREFOX, false, 'Touchez le menu « ☰ », puis « Partager »'],
+])('A1 AC-01-04: première étape adaptée à %s sur iPhone', async (_name, userAgent, brave, firstStep) => {
+  setEnvironment({ userAgent, brave })
+  const user = userEvent.setup()
+  renderPrivateHelp()
+  await user.click(screen.getByRole('button', { name: 'Installer le guide' }))
+  const steps = screen.getByRole('dialog', { name: 'Installer le guide' }).querySelectorAll('ol > li')
+  expect(steps[0]).toHaveTextContent(firstStep)
+  expect(steps[1]).toHaveTextContent('Sur l’écran d’accueil')
+})
+
+it('A1 AC-01-07: Android sans invite native → menu « ⋮ »', async () => {
+  setEnvironment({ userAgent: ANDROID_FIREFOX })
+  const user = userEvent.setup()
+  renderPrivateHelp()
+  await user.click(screen.getByRole('button', { name: 'Installer le guide' }))
+  expect(screen.getByRole('dialog', { name: 'Installer le guide' }))
+    .toHaveTextContent('Ouvrez le menu « ⋮ » de votre navigateur, puis « Installer » ou « Ajouter à l’écran d’accueil ».')
 })
 
 it('AC-01-05: invite à ouvrir Safari ou Chrome depuis un navigateur intégré', async () => {

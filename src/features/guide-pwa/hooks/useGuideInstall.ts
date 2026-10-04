@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
-import { detectInstallPlatform, type InstallPlatform } from '../lib/install-platform'
+import { detectInstallPlatform, detectIosBrowser, type InstallPlatform, type IosBrowser } from '../lib/install-platform'
 import { installEndsAt, readInstallRecord } from '../lib/install-expiry'
 
 /** Événement Chromium non typé par lib.dom. */
@@ -76,16 +76,18 @@ const SERVER_SNAPSHOT: InstallSnapshot = { hasPrompt: false, installed: false }
 /** Spec 059 AC-01-03 à AC-01-06 : état de la carte « Installer le guide ». */
 export function useGuideInstall(lodgingId: string): {
   platform: InstallPlatform | null
+  iosBrowser: IosBrowser
   endsAt: Date | null
   promptInstall: () => Promise<void>
 } {
   const { hasPrompt, installed } = useSyncExternalStore(subscribe, getSnapshot, () => SERVER_SNAPSHOT)
-  const [environment, setEnvironment] = useState<{ standalone: boolean; endsAt: Date | null } | null>(null)
+  const [environment, setEnvironment] = useState<{ standalone: boolean; isBrave: boolean; endsAt: Date | null } | null>(null)
 
   useEffect(() => {
     const standalone = isStandaloneDisplay()
     const record = standalone ? readInstallRecord(lodgingId) : null
-    setEnvironment({ standalone, endsAt: record ? installEndsAt(record) : null })
+    const isBrave = Boolean((window.navigator as Navigator & { brave?: unknown }).brave)
+    setEnvironment({ standalone, isBrave, endsAt: record ? installEndsAt(record) : null })
   }, [lodgingId])
 
   const promptInstall = useCallback(async () => {
@@ -109,5 +111,7 @@ export function useGuideInstall(lodgingId: string): {
         maxTouchPoints: window.navigator.maxTouchPoints ?? 0,
       })
 
-  return { platform, endsAt: environment?.endsAt ?? null, promptInstall }
+  const iosBrowser = environment ? detectIosBrowser(window.navigator.userAgent, environment.isBrave) : 'safari-or-unknown'
+
+  return { platform, iosBrowser, endsAt: environment?.endsAt ?? null, promptInstall }
 }
