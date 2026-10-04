@@ -175,6 +175,35 @@ autre contenu ni navigation.
 
 Page hors-ligne (`/sejour/hors-ligne`) : texte AC-02-03, bouton « Voir mon logement ».
 
+## Amendement A1 — Navigateurs autres que Safari (EN REVUE, 2026-10-04)
+
+> Statut de l'amendement : **review** — ne pas implémenter avant validation PO.
+
+Constat PO : les voyageurs n'utilisent pas tous Safari (ex. Brave sur iPhone).
+Sur iPhone, aucune installation directe n'est possible (pas d'API Apple), mais
+depuis iOS 16.4 tous les navigateurs proposent « Sur l'écran d'accueil » via leur
+menu Partager. Le guide installé s'ouvre ensuite seul, sans le navigateur.
+
+- **AC-01-04 (remplace)**: Given un iPhone/iPad sans invite native, When le
+  voyageur touche la carte, Then le modal affiche 3 étapes adaptées au navigateur :
+  | Navigateur (détection) | Étape 1 |
+  |---|---|
+  | Brave (`navigator.brave` présent) | Touchez le menu « ⋯ », puis « Partager » |
+  | Chrome (`CriOS`) | Touchez « Partager » dans la barre d'adresse |
+  | Edge (`EdgiOS`) | Touchez le menu « ⋯ », puis « Partager » |
+  | Firefox (`FxiOS`) | Touchez le menu « ☰ », puis « Partager » |
+  | Safari ou navigateur non reconnu | Touchez « Partager » (dans Safari : barre du bas ; dans Brave : menu « ⋯ ») |
+  Étapes 2 et 3 inchangées : « Sur l'écran d'accueil », puis « Ajouter ».
+  Phrase ajoutée : « Fonctionne avec Safari, Brave, Chrome, Edge et Firefox. »
+- **AC-01-07 (nouveau)**: Given Android sans invite native (ex. Firefox), When
+  il touche la carte, Then le modal indique : « Ouvrez le menu « ⋮ » de votre
+  navigateur, puis « Installer » ou « Ajouter à l'écran d'accueil ». »
+- **AC-01-05 (restreint)**: le message « Ouvrez le guide dans Safari (iPhone) ou
+  Chrome (Android) » est réservé aux navigateurs intégrés des apps (Instagram,
+  Facebook, lecteurs QR…), qui ne savent pas installer.
+
+Tests : unit (détection navigateur) + integration (contenu du modal).
+
 ## Acceptance Criteria
 
 | Criterion | Test type |
