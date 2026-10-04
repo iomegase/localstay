@@ -64,17 +64,15 @@ export function GuideMenuOverlay({
         >
           {/* Spec 054 AC-01-14 : même rangée que l'en-tête, la croix remplace l'icône menu au même endroit. */}
           <div className="flex h-[68px] shrink-0 items-center justify-end pr-[10px]">
-          <motion.button
-            initial={{ rotate: reducedMotion ? 0 : -90 }}
-            animate={{ rotate: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
-            exit={{ rotate: reducedMotion ? 0 : 90, transition: { duration: reducedMotion ? 0 : 0.24 } }}
+          {/* PO 2026-10-04 : croix fixe, sans rotation ni fond. */}
+          <button
             type="button"
             onClick={onClose}
             aria-label={m.menu.close}
-            className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-full text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
           >
             <X className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
-          </motion.button>
+          </button>
           </div>
 
           <motion.nav

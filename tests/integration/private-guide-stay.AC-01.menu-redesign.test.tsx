@@ -14,7 +14,9 @@ it('054 menu: shows the two text destinations and a large close control', () => 
   expect(menu.querySelector('svg, img')).toBeNull()
   expect(screen.queryByText('Nous contacter')).not.toBeInTheDocument()
   const close = screen.getByRole('button', { name: 'Fermer le menu' })
-  expect(close).toHaveClass('h-14', 'w-14', 'bg-slate-50')
+  // 054 AC-01-15 (PO 2026-10-04) : sans fond.
+  expect(close).toHaveClass('h-14', 'w-14')
+  expect(close.className).not.toMatch(/\bbg-/)
   fireEvent.click(buttons[0])
   expect(onNavigate).toHaveBeenCalledWith('lodgings')
   fireEvent.click(buttons[1])

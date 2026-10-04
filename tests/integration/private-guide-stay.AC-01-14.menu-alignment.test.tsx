@@ -16,7 +16,10 @@ it('AC-01-14: bouton menu en icône AlignRight (TextAlignEnd), centré sur la li
 it('AC-01-14: bouton fermer dans une rangée de 68 px, centré au même point que le bouton menu', () => {
   render(<GuideMenuOverlay open onClose={jest.fn()} onNavigate={jest.fn()} />)
   const close = screen.getByRole('button', { name: 'Fermer le menu' })
-  expect(close).toHaveClass('h-14', 'w-14', 'bg-slate-50')
+  expect(close).toHaveClass('h-14', 'w-14')
+  // AC-01-15 : ni fond ni rotation (élément HTML simple, pas de transform animé).
+  expect(close.className).not.toMatch(/\bbg-/)
+  expect(close.getAttribute('style') ?? '').not.toContain('rotate')
   // Centre du bouton menu : px-4 (16 px) + 22 px = 38 px du bord droit ; 56 px centrés à 38 px → marge 10 px.
   expect(close.parentElement).toHaveClass('h-[68px]', 'items-center', 'justify-end', 'pr-[10px]')
 })

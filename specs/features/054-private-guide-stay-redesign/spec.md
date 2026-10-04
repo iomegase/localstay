@@ -513,3 +513,12 @@ même point que le bouton menu : il apparaît exactement à la place de l'icône
 qu'il remplace.
 AC-01-14 : bouton menu aligné, icône `AlignRight` ; bouton fermer au même
 emplacement que le bouton menu.
+
+## Amendement approuvé — Bouton fermer du menu sans animation (PO 2026-10-04)
+
+Le bouton fermer du menu ne tourne plus à l'ouverture ni à la fermeture (fin de
+la rotation de la croix à 90°) et n'a plus de fond (slate-50 retiré) : croix
+24 px trait 1,8 seule, zone tactile 56 px et emplacement AC-01-14 inchangés.
+Le fondu du menu lui-même est conservé.
+AC-01-15 : bouton fermer sans fond ni animation.
+
