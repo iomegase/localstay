@@ -176,8 +176,7 @@ dans le guide privé :
 | `CityTransportCard` | `title`, `body`, `cta_label` |
 
 Toujours exclus (027 BR-11/12) : noms de lieux et de logement, adresses, Wi-Fi,
-code de boîte à clés, téléphones, URLs, horaires. Les sous-étapes et repères
-structurés des étapes d'arrivée (JSON) restent en français dans cette version.
+code de boîte à clés, téléphones, URLs, horaires.
 
 - **AC-02-01 (précisé)**: les traductions manquantes ou obsolètes sont produites
   (a) par la tâche planifiée `/api/internal/translations/sync` (cron quotidien
@@ -216,6 +215,27 @@ Migration additive uniquement.
 Tests : unit (hash, sélection des champs à traduire, client DeepL simulé),
 contract (route de synchronisation), integration (guide en anglais avec
 traduction à jour / obsolète / absente).
+
+
+## Amendement A2 — Sous-étapes d'arrivée et masquage des codes (APPROUVÉ, PO 2026-10-04)
+
+Demande du PO : traduire aussi les sous-étapes détaillées des étapes d'arrivée.
+
+- **Périmètre** : `LodgingArrivalInstruction.substeps` (chaque `title` et
+  `detail`) et `facts` (chaque `label` et `value`), avec `field_name` =
+  `substeps.<index>.title`, `substeps.<index>.detail`, `facts.<index>.label`,
+  `facts.<index>.value`.
+- **BR-10 (sécurité)** : avant tout envoi à DeepL, chaque suite contenant au
+  moins 4 chiffres (digicodes, codes de boîte, numéros) est remplacée par une
+  balise neutre, conservée par DeepL (`tag_handling: xml`) puis restaurée
+  localement : ces codes ne quittent jamais le serveur. Raison : l'offre DeepL
+  Free peut conserver les textes envoyés.
+- **AC-02-06** : Given une sous-étape « Le digicode est à droite — code 225536 »,
+  When elle est traduite, Then la requête DeepL ne contient pas « 225536 » et la
+  traduction affichée le contient.
+- **AC-02-07** : Given le guide en anglais, When une étape d'arrivée a des
+  sous-étapes ou repères traduits à jour, Then ils s'affichent en anglais ;
+  sinon en français.
 
 ## Acceptance Criteria
 

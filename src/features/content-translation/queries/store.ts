@@ -1,6 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import { hashSourceText, PUBLISHABLE_STATUSES, translationKey, type TranslationSource } from '../lib/sources'
 import type { TranslationStore } from '../services/translate-sources'
+import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/lib/arrival-steps'
 
 const EN = 'en' as const
 
@@ -83,7 +84,7 @@ export async function collectAllTranslationSources(): Promise<TranslationSource[
   const activeLodging = { deleted_at: null, is_active: true }
   const [customizations, arrivals, blocks, featured, pois, categories, cards] = await Promise.all([
     prisma.lodgingCustomization.findMany({ where: { lodging: activeLodging }, select: { id: true, welcome_message: true, trash_location: true } }),
-    prisma.lodgingArrivalInstruction.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, text: true, tip: true } }),
+    prisma.lodgingArrivalInstruction.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, text: true, tip: true, substeps: true, facts: true } }),
     prisma.lodgingPracticalBlock.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, body: true } }),
     prisma.lodgingFeaturedPoi.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, owner_note: true } }),
     prisma.pointOfInterest.findMany({ where: { deleted_at: null, is_active: true }, select: { id: true, description: true } }),
@@ -97,7 +98,20 @@ export async function collectAllTranslationSources(): Promise<TranslationSource[
   }
   // Contenu des logements d'abord : c'est ce que le voyageur lit en premier.
   for (const row of customizations) { add('LodgingCustomization', row.id, 'welcome_message', row.welcome_message); add('LodgingCustomization', row.id, 'trash_location', row.trash_location) }
-  for (const row of arrivals) { add('LodgingArrivalInstruction', row.id, 'title', row.title); add('LodgingArrivalInstruction', row.id, 'text', row.text); add('LodgingArrivalInstruction', row.id, 'tip', row.tip) }
+  for (const row of arrivals) {
+    add('LodgingArrivalInstruction', row.id, 'title', row.title)
+    add('LodgingArrivalInstruction', row.id, 'text', row.text)
+    add('LodgingArrivalInstruction', row.id, 'tip', row.tip)
+    // Spec 061 A2 : sous-étapes et repères, un champ par texte.
+    parseArrivalSubsteps(row.substeps).forEach((substep, position) => {
+      add('LodgingArrivalInstruction', row.id, `substeps.${position}.title`, substep.title)
+      add('LodgingArrivalInstruction', row.id, `substeps.${position}.detail`, substep.detail)
+    })
+    parseArrivalFacts(row.facts).forEach((fact, position) => {
+      add('LodgingArrivalInstruction', row.id, `facts.${position}.label`, fact.label)
+      add('LodgingArrivalInstruction', row.id, `facts.${position}.value`, fact.value)
+    })
+  }
   for (const row of blocks) { add('LodgingPracticalBlock', row.id, 'title', row.title); add('LodgingPracticalBlock', row.id, 'body', row.body) }
   for (const row of featured) add('LodgingFeaturedPoi', row.id, 'owner_note', row.owner_note)
   for (const row of categories) add('Category', row.id, 'name', row.name)

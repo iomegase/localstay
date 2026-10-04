@@ -279,6 +279,15 @@ async function localizeToEnglish(
     field('LodgingArrivalInstruction', id, 'title', step.title, value => { step.title = value })
     field('LodgingArrivalInstruction', id, 'text', step.text, value => { step.text = value })
     field('LodgingArrivalInstruction', id, 'tip', step.tip, value => { step.tip = value })
+    // Spec 061 A2 : sous-étapes et repères (JSON), un champ par texte.
+    step.substeps.forEach((substep, position) => {
+      field('LodgingArrivalInstruction', id, `substeps.${position}.title`, substep.title, value => { substep.title = value })
+      field('LodgingArrivalInstruction', id, `substeps.${position}.detail`, substep.detail, value => { substep.detail = value })
+    })
+    step.facts.forEach((fact, position) => {
+      field('LodgingArrivalInstruction', id, `facts.${position}.label`, fact.label, value => { fact.label = value })
+      field('LodgingArrivalInstruction', id, `facts.${position}.value`, fact.value, value => { fact.value = value })
+    })
   })
   lodging.practicalCards.forEach(card => {
     field('LodgingPracticalBlock', card.id, 'title', card.title, value => { card.title = value })

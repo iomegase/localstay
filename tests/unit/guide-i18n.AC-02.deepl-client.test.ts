@@ -20,6 +20,7 @@ describe('061 A1 BR-09 — client DeepL', () => {
       source_lang: 'FR',
       target_lang: 'EN-GB',
       preserve_formatting: true,
+      tag_handling: 'xml',
     })
   })
 

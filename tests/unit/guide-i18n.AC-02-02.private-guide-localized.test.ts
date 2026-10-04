@@ -29,7 +29,7 @@ beforeEach(() => {
       { id: 'block-dryer', title: 'Sèche cheveux', body: 'Dans le tiroir.', icon: 'hair', photo_url: null, video_url: null },
     ],
     arrival_instructions: [
-      { id: 'arrival-1', title: 'Accès', text: 'Prenez l’ascenseur.', tip: null, video_url: null, photos: [], kind: 'access', substeps: null, facts: null },
+      { id: 'arrival-1', title: 'Accès', text: 'Prenez l’ascenseur.', tip: null, video_url: null, photos: [], kind: 'access', substeps: [{ title: 'Digicode', detail: 'À droite de la porte — code 225536' }, { title: 'Ascenseur', detail: '' }], facts: [{ label: 'Étage', value: '2e' }] },
     ],
   })
   ;(prisma.lodgingFeaturedPoi.findMany as jest.Mock).mockResolvedValue([
@@ -53,6 +53,9 @@ beforeEach(() => {
     { entity_type: 'LodgingFeaturedPoi', entity_id: 'featured-1', field_name: 'owner_note', source_text_hash: hash('Notre table préférée'), translated_text: 'Our favourite table' },
     { entity_type: 'Category', entity_id: 'cat-1', field_name: 'name', source_text_hash: hash('Restaurant'), translated_text: 'Restaurant' },
     { entity_type: 'LodgingArrivalInstruction', entity_id: 'arrival-1', field_name: 'text', source_text_hash: hash('Prenez l’ascenseur.'), translated_text: 'Take the lift.' },
+    { entity_type: 'LodgingArrivalInstruction', entity_id: 'arrival-1', field_name: 'substeps.0.title', source_text_hash: hash('Digicode'), translated_text: 'Keypad' },
+    { entity_type: 'LodgingArrivalInstruction', entity_id: 'arrival-1', field_name: 'substeps.0.detail', source_text_hash: hash('À droite de la porte — code 225536'), translated_text: 'To the right of the door — code 225536' },
+    { entity_type: 'LodgingArrivalInstruction', entity_id: 'arrival-1', field_name: 'facts.0.label', source_text_hash: hash('Étage'), translated_text: 'Floor' },
     { entity_type: 'LodgingCustomization', entity_id: 'custom-1', field_name: 'trash_location', source_text_hash: hash('Local poubelles au sous-sol'), translated_text: 'Bin room in the basement' },
   ])
 })
@@ -74,6 +77,16 @@ describe('061 A1 AC-02-02 — contenu traduit dans le guide privé', () => {
     expect(data!.pois[0].name).toBe('La Ferme de Cupelin')
     expect(data!.lodging.arrivalInstructions[0]).toMatchObject({ title: 'Accès', text: 'Take the lift.' })
     expect(data!.lodging.trashLocation).toBe('Bin room in the basement')
+  })
+
+  it('AC-02-07: sous-étapes et repères traduits ; non traduits en français', async () => {
+    const data = await getPrivateGuideData('lodging-1', 'en')
+    const step = data!.lodging.arrivalInstructions[0]
+    expect(step.substeps).toEqual([
+      { title: 'Keypad', detail: 'To the right of the door — code 225536' },
+      { title: 'Ascenseur', detail: '' },
+    ])
+    expect(step.facts).toEqual([{ label: 'Floor', value: '2e' }])
   })
 
   it('ne lit que les traductions anglaises publiables', async () => {
