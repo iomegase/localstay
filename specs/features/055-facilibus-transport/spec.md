@@ -241,3 +241,9 @@ Une URL externe ne s'ouvre que sur action explicite.
 ## Open Questions
 
 Aucune.
+
+Précision PO du 2026-10-04 : le titre « Se déplacer » est placé à droite
+du bouton retour, suivant l’en-tête partagé 054 AC-01-13. Le sous-titre reste
+sous le titre dans ce bloc.
+
+Précision PO du 2026-10-04 (AC-03-01) : le sous-titre « Laissez la voiture de côté, la vallée se découvre facilement en transports en commun. » utilise la classe Tailwind `text-xs`.

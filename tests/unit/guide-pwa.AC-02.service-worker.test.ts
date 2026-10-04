@@ -178,3 +178,28 @@ describe('clearGuide — AC-03-02 : vider le cache à l’expiration', () => {
     expect(await caches.keys()).not.toContain(sw.PAGE_CACHE)
   })
 })
+
+ describe('AC-02-02: développement sans anciennes ressources en cache', () => {
+  const originalLocation = Object.getOwnPropertyDescriptor(globalThis, 'location')
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: ORIGIN, search: '?development=1' } })
+  })
+  afterEach(() => {
+    if (originalLocation) Object.defineProperty(globalThis, 'location', originalLocation)
+    else Reflect.deleteProperty(globalThis, 'location')
+  })
+  it('laisse les scripts et pages au réseau', () => {
+    expect(sw.classifyRequest(new Request(`${ORIGIN}/_next/static/chunks/app.js`))).toBe('network')
+    expect(sw.classifyRequest(navigation('/sejour/logement/consignes'))).toBe('network')
+  })
+  it('ne précharge aucune ancienne ressource en développement', async () => {
+    const caches = new FakeCaches()
+    const fetch = jest.fn()
+    await sw.precacheGuide(LODGING_ID, { caches, fetch })
+    expect(fetch).not.toHaveBeenCalled()
+    expect(await caches.keys()).toEqual([])
+  })
+  it('utilise une nouvelle version du cache statique', () => {
+    expect(sw.STATIC_CACHE).toBe('mystay-static-v2')
+  })
+})

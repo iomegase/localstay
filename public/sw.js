@@ -12,7 +12,11 @@
  */
 
 const PAGE_CACHE = 'mystay-guide-v1'
-const STATIC_CACHE = 'mystay-static-v1'
+const STATIC_CACHE = 'mystay-static-v2'
+
+function isDevelopment() {
+  return typeof location !== 'undefined' && new URLSearchParams(location.search).get('development') === '1'
+}
 const OFFLINE_URL = '/sejour/hors-ligne'
 // En-tête posé par le proxy sur les pages /sejour servies avec un séjour actif.
 const LODGING_HEADER = 'x-mystay-guide-lodging'
@@ -29,6 +33,7 @@ const STATIC_ASSET = /^\/(?:_next\/static\/|mystay-logo-approved\/)|\.(?:woff2?|
 const NEXT_STATIC_URL = /\/_next\/static\/[^"'\s)\\]+/g
 
 function classifyRequest(request) {
+  if (isDevelopment()) return 'network'
   if (request.method !== 'GET') return 'network'
   const url = new URL(request.url)
   if (typeof location !== 'undefined' && url.origin !== location.origin) return 'network'
@@ -84,6 +89,7 @@ async function handleStatic(request, deps) {
 }
 
 async function precacheGuide(lodgingId, deps) {
+  if (isDevelopment()) return
   const assets = new Set()
   for (const path of [...GUIDE_PAGES, OFFLINE_URL]) {
     try {

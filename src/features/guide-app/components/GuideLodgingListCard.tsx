@@ -40,7 +40,7 @@ export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard })
   const amenityBadges = matchedAmenities(lodging.amenities)
 
   return (
-    <article className="relative w-full rounded-[2rem] bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+    <article className="relative w-full rounded-[2rem] bg-white p-2 shadow-md">
       <div className="relative aspect-square w-full overflow-hidden rounded-[1.6rem] bg-zinc-900">
         {lodging.coverPhotoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- image distante (parité guide)
@@ -52,7 +52,7 @@ export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard })
         ) : (
           <div className="absolute inset-0 bg-zinc-800" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/15 to-transparent" />
 
         <span className="absolute left-4 top-4 rounded-full bg-white/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
           {lodging.propertyType}

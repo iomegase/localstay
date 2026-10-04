@@ -226,3 +226,12 @@ Tests : unit (détection navigateur) + integration (contenu du modal).
 ## Open Questions
 
 Aucune.
+
+## Correction technique — Hydratation en développement (2026-10-04)
+
+Le journal PO montre un HTML serveur à jour et un ancien composant client.
+Pour conserver la cohérence du rendu (AC-02-02), le service worker est
+enregistré avec `?development=1` sous `next dev` : dans ce mode, aucune
+requête ni pré-cache n’est intercepté. Le cache statique passe à
+`mystay-static-v2` afin que l’activation purge les anciennes ressources.
+Le cache et le fonctionnement hors-ligne de production sont conservés.

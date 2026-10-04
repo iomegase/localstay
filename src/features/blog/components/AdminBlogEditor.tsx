@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
-import type { BlogArticleCategory, BlogArticleStatus } from '../types'
+import { BLOG_ARTICLE_CATEGORIES, type BlogArticleCategory, type BlogArticleStatus } from '../types'
 import { blogCategoryLabel } from '../lib/category-label'
 import { normalizeBlogMarkdown } from '../lib/markdown'
 
@@ -581,7 +581,7 @@ export function AdminBlogEditor({
               className={inputClassName(fieldErrors.category)}
               aria-invalid={fieldErrors.category?.length > 0}
             >
-              {(['local_guide', 'lodging', 'restaurants', 'activities', 'travel_tips'] as BlogArticleCategory[]).map(category => (
+              {BLOG_ARTICLE_CATEGORIES.map(category => (
                 <option key={category} value={category}>{blogCategoryLabel(category)}</option>
               ))}
             </select>

@@ -158,7 +158,7 @@ Cette spec introduit :
 - **BR-09**: Les photos de galerie sont optionnelles, ordonnees par `sort_order asc`, puis `created_at asc`.
 - **BR-10**: Les photos blog sont televersees par l'Admin. Gemini ne recupere, ne genere et ne telecharge pas d'images.
 - **BR-11**: Les images sont validees cote serveur, limitees a 5 Mo, et stockees via le service d'upload existant dans le bucket `guide-photos`.
-- **BR-12**: La categorie est obligatoire et limitee aux valeurs `local_guide`, `lodging`, `restaurants`, `activities`, `travel_tips`.
+- **BR-12**: La categorie est obligatoire et limitee aux valeurs `local_guide`, `lodging`, `restaurants`, `activities`, `travel_tips`, `concierge`.
 - **BR-13**: Les tags sont optionnels, normalises en minuscules, dedoublonnes et limites a 10 tags de 40 caracteres maximum.
 - **BR-14**: Les champs texte editoriaux complets sont valides avec Zod : `title` 5-90 caracteres, `excerpt` 40-220, `content_markdown` 300-20000, `seo_title` 30-70, `seo_description` 80-180.
 - **BR-14a**: Un article `draft` peut etre cree et enregistre avec des champs editoriaux vides ou incomplets tant qu'aucune transition de publication n'est demandee.
@@ -195,6 +195,7 @@ enum BlogArticleCategory {
   restaurants
   activities
   travel_tips
+  concierge
 }
 
 enum BlogArticlePhotoKind {
@@ -324,7 +325,7 @@ paths:
         - name: category
           in: query
           required: false
-          schema: { type: string, enum: [local_guide, lodging, restaurants, activities, travel_tips] }
+          schema: { type: string, enum: [local_guide, lodging, restaurants, activities, travel_tips, concierge] }
         - name: city
           in: query
           required: false
@@ -544,7 +545,7 @@ components:
         slug: { type: string, minLength: 3, maxLength: 120 }
         excerpt: { type: string, minLength: 40, maxLength: 220 }
         content_markdown: { type: string, minLength: 0, maxLength: 20000 }
-        category: { type: string, enum: [local_guide, lodging, restaurants, activities, travel_tips] }
+        category: { type: string, enum: [local_guide, lodging, restaurants, activities, travel_tips, concierge] }
         tags:
           type: array
           maxItems: 10
@@ -761,3 +762,12 @@ Demande du Product Owner : harmoniser tous les noms, liens et fils d'Ariane en �
 - **AC-07-02** : `/blog` et `/blog/[slug]` redirigent définitivement (308) vers les URL Journal correspondantes en conservant les paramètres.
 - **AC-07-03** : tous les libellés d'interface de cette rubrique (navigation, footer, pages, guide, démo, administration) utilisent Journal. Les noms techniques internes, routes admin/API, schéma et données éditoriales existantes restent inchangés.
 Ces règles remplacent les anciens noms publics de cette spec et des specs 031/042. Aucun nouveau modèle ou contrat API.
+
+## Amendement approuvé — Catégorie Conciergerie (2026-10-04)
+
+Demande explicite du Product Owner : ajouter « Conciergerie » au sélecteur de catégorie de l’éditeur Journal.
+- **AC-08-01** : l’éditeur et le filtre admin proposent « Conciergerie », valeur technique `concierge`, après les catégories existantes. Le libellé public est identique.
+- **AC-08-02** : les contrats de création, modification et filtrage acceptent `concierge` via Zod ; les valeurs inconnues restent refusées.
+- **AC-08-03** : l’enum Prisma `BlogArticleCategory` inclut `concierge`. Une migration additive PostgreSQL ajoute uniquement cette valeur, sans modifier les articles existants. Le SQL généré par Prisma pour cette migration est autorisé.
+
+Aucune question ouverte pour cet amendement.

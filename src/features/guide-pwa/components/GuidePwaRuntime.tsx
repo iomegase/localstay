@@ -26,7 +26,7 @@ export function GuidePwaRuntime({ lodgingId, children }: { lodgingId: string; ch
   useEffect(() => {
     startInstallPromptCapture()
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => undefined)
+      navigator.serviceWorker.register(process.env.NODE_ENV === 'development' ? '/sw.js?development=1' : '/sw.js', { scope: '/' }).catch(() => undefined)
     }
 
     const params = new URLSearchParams(window.location.search)

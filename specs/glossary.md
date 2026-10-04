@@ -89,7 +89,7 @@ Trace d'une synchronisation entre StayLocal et une source analytics externe ou i
 Contenu éditorial public géré par un Admin. Peut être global ou rattaché à une City optionnelle. Il possède un statut de publication, une catégorie, des tags, une photo de couverture, un contenu Markdown et des champs SEO.
 
 ### Blog Category (Catégorie blog)
-Catégorie simple obligatoire utilisée pour organiser un Blog Article, par exemple guide local, hébergement, restaurants, activités ou conseils voyage.
+Catégorie simple obligatoire utilisée pour organiser un Blog Article, par exemple guide local, hébergement, restaurants, activités, conseils voyage ou conciergerie.
 
 ### Blog Photo (Photo blog)
 Image associée à un Blog Article. Une photo de couverture est obligatoire avant publication ; les photos de galerie sont optionnelles.

@@ -4,6 +4,7 @@ export const BLOG_ARTICLE_CATEGORIES = [
   'restaurants',
   'activities',
   'travel_tips',
+  'concierge',
 ] as const
 
 export const BLOG_ARTICLE_STATUSES = ['draft', 'review', 'published', 'archived'] as const

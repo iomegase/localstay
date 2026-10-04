@@ -6,6 +6,7 @@ const CATEGORY_LABELS: Record<BlogArticleCategory, string> = {
   restaurants: 'Restaurants',
   activities: 'Activités',
   travel_tips: 'Conseils voyage',
+  concierge: 'Conciergerie',
 }
 
 export function blogCategoryLabel(category: BlogArticleCategory): string {

@@ -469,6 +469,7 @@ enum BlogArticleCategory {
   restaurants
   activities
   travel_tips
+  concierge
 }
 
 enum BlogArticlePhotoKind {

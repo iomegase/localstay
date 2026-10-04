@@ -570,3 +570,51 @@ vide. Tous les traits Lucide sont de largeur 1, comme Réglages. Les noms
 accessibles localisés, les destinations, la hauteur compacte et le cœur
 `pink-600` sans remplissage restent conservés. Cette règle remplace les
 emplacements libellés AC-01-18. Privé et démo partagent ce rendu.
+
+
+## Amendement approuvé — Journal du guide (PO 2026-10-05)
+
+Le PO valide la refonte de la liste et de la lecture, dans la direction des
+cartes logement, avec de nouveaux composants propres au guide.
+
+- **AC-07-01** : la liste utilise `GuideBlogCard` : photo 4/3, coque blanche
+  arrondie 32 px avec padding 8 px, catégorie sur la photo, titre et court
+  extrait dessous, ville optionnelle. Chaque carte ouvre le détail dans le guide
+  au clic et au clavier ; état vide localisé conservé. Sans photo, fond neutre
+  avec icône Journal. Aucun lien marketing ajouté.
+- **AC-07-02** : le détail utilise `GuideBlogArticle` : grande photo 4/3
+  arrondie, catégorie, titre, ville optionnelle et corps Markdown avec texte
+  14 px, interligne 28 px, paragraphes justifiés et titres hiérarchisés. Le bouton
+  retour présente une cible de 44 px ; chargement localisé conservé.
+- **AC-07-03** : `GuideBlogMarkdown` est dédié au guide, normalise le Markdown
+  existant, ignore le HTML brut et conserve la protection des URL de
+  react-markdown. Les listes, liens et titres sont rendus sans modifier le
+  composant du blog public.
+
+Tests : intégration pour AC-07-01/02/03. Données, contrats API, sélection des
+articles, tri et traductions existants conservés. Pas de migration ni de
+nouvelle fonctionnalité éditoriale. Aucune question ouverte pour cet amendement.
+
+
+### Précision approuvée — Graisse des titres du Journal (PO 2026-10-05)
+
+AC-07-03 : à la demande du PO (« ils sont trop fins »), les titres du corps
+Markdown du guide utilisent une graisse bold (700), pour tous les niveaux
+rendus h2 à h6. La taille et les espacements existants sont conservés.
+
+
+### Correction approuvée — Tableaux Markdown du Journal (PO 2026-10-05)
+
+AC-07-04 : les tableaux Markdown GFM sont rendus en tableaux HTML avec
+en-têtes, bordures, cellules espacées et défilement horizontal interne
+si nécessaire sur mobile. Utiliser remark-gfm dans le lecteur dédié ;
+HTML brut et URL dangereuses restent filtrés. Test de rendu réel du moteur.
+
+
+### Précision approuvée — Paragraphes et sources (PO 2026-10-05)
+
+AC-07-05 : le corps des articles du guide privé utilise 14 px et les
+paragraphes sont justifiés. Le contenu des sections Markdown « Sources » ou
+« Références » utilise 12 px jusqu’au prochain titre de niveau égal ou
+supérieur ; leurs titres conservent la hiérarchie existante. Le lecteur public
+reste inchangé. Demande explicite du PO ; aucune question ouverte.

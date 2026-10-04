@@ -12,6 +12,7 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     // react-markdown@10 est ESM pur (non transformé par next/jest) → stub en test.
+    '^remark-gfm$': '<rootDir>/tests/__mocks__/remark-gfm.ts',
     '^react-markdown$': '<rootDir>/tests/__mocks__/react-markdown.tsx',
   },
   testMatch: [
