@@ -12,14 +12,15 @@ import {
 } from 'lucide-react'
 import { capitalizeFirst } from '@/shared/lib/utils'
 import type { GuideLodgingCard } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Équipements « valorisés » affichés en icône s'ils sont présents. */
-const AMENITY_BADGES: Array<{ terms: string[]; icon: LucideIcon; label: string }> = [
-  { terms: ['piscine'], icon: WavesLadder, label: 'Piscine' },
-  { terms: ['borne', 'recharge'], icon: PlugZap, label: 'Borne de recharge' },
-  { terms: ['jacuzzi', 'bain à remous', 'remous', 'spa'], icon: Waves, label: 'Jacuzzi' },
-  { terms: ['hammam'], icon: Droplets, label: 'Hammam' },
-  { terms: ['sauna'], icon: Flame, label: 'Sauna' },
+const AMENITY_BADGES: Array<{ terms: string[]; icon: LucideIcon; key: 'pool' | 'charger' | 'jacuzzi' | 'hammam' | 'sauna' }> = [
+  { terms: ['piscine'], icon: WavesLadder, key: 'pool' },
+  { terms: ['borne', 'recharge'], icon: PlugZap, key: 'charger' },
+  { terms: ['jacuzzi', 'bain à remous', 'remous', 'spa'], icon: Waves, key: 'jacuzzi' },
+  { terms: ['hammam'], icon: Droplets, key: 'hammam' },
+  { terms: ['sauna'], icon: Flame, key: 'sauna' },
 ]
 
 function matchedAmenities(amenities: string[]) {
@@ -35,6 +36,7 @@ function matchedAmenities(amenities: string[]) {
  * le clic est géré par le bouton parent (aucun lien sortant).
  */
 export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard }) {
+  const m = useGuideMessages()
   const amenityBadges = matchedAmenities(lodging.amenities)
 
   return (
@@ -74,8 +76,8 @@ export function GuideLodgingListCard({ lodging }: { lodging: GuideLodgingCard })
             )}
             {amenityBadges.map(badge => (
               <badge.icon
-                key={badge.label}
-                aria-label={badge.label}
+                key={badge.key}
+                aria-label={m.lodgings.amenities[badge.key]}
                 className="h-[15px] w-[15px] text-white"
                 strokeWidth={1.5}
               />

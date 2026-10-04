@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bus, House, Maximize2, Minimize2 } from 'lucide-react'
 import Map, { Layer, Marker, Source, type MapRef } from 'react-map-gl/mapbox'
 import type { PublicLine, PublicStation, PublicVehicle } from '../types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 const LABEL_MIN_ZOOM = 14
 const INITIAL_ZOOM = 15.3
@@ -33,6 +34,7 @@ export function FacilibusMap({
   focusSelected?: boolean
   onSelect: (stationId: string) => void
 }) {
+  const m = useGuideMessages()
   const mapRef = useRef<MapRef>(null)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [fullscreen, setFullscreen] = useState(false)
@@ -96,7 +98,7 @@ export function FacilibusMap({
       data-testid="facilibus-map"
       role={fullscreen ? 'dialog' : undefined}
       aria-modal={fullscreen ? true : undefined}
-      aria-label={fullscreen ? 'Carte des navettes' : undefined}
+      aria-label={fullscreen ? m.transport.mapLabel : undefined}
       // Plein écran = tout le cadre du guide (premier ancêtre positionné), pas la fenêtre.
       className={
         fullscreen
@@ -107,7 +109,7 @@ export function FacilibusMap({
       <button
         type="button"
         onClick={() => setFullscreen(value => !value)}
-        aria-label={fullscreen ? 'Quitter le plein écran' : 'Afficher la carte en plein écran'}
+        aria-label={fullscreen ? m.transport.exitFullscreen : m.transport.enterFullscreen}
         className={`absolute right-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-[#111111] shadow-[0_2px_8px_rgba(17,17,17,0.15)] ${
           fullscreen ? 'top-[calc(12px+env(safe-area-inset-top))]' : 'top-3'
         }`}
@@ -140,7 +142,7 @@ export function FacilibusMap({
             <Marker key={station.id} longitude={station.longitude} latitude={station.latitude} anchor="center">
               <button
                 type="button"
-                aria-label={`Arrêt ${station.name}`}
+                aria-label={m.transport.stopMarker(station.name)}
                 aria-pressed={isSelected}
                 onClick={event => {
                   event.stopPropagation()
@@ -182,7 +184,7 @@ export function FacilibusMap({
             >
               <span
                 role="img"
-                aria-label={`Navette ligne ${line?.shortName ?? ''}`.trim()}
+                aria-label={m.transport.shuttleMarker(line?.shortName ?? '')}
                 className="relative flex h-8 items-center gap-1 rounded-full border-2 border-white px-2 text-[13px] font-bold shadow-[0_2px_8px_rgba(17,17,17,0.3)]"
                 style={{ backgroundColor: line?.color ?? '#111111', color: line?.textColor ?? '#ffffff' }}
               >
@@ -201,7 +203,7 @@ export function FacilibusMap({
         {origin ? (
           <Marker longitude={origin.longitude} latitude={origin.latitude} anchor="bottom">
             <span
-              aria-label="Votre logement"
+              aria-label={m.transport.yourLodging}
               role="img"
               className="grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#DB2777] text-white shadow-[0_2px_8px_rgba(17,17,17,0.25)]"
             >

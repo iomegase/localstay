@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { Check, Play } from 'lucide-react'
-import { ARRIVAL_STEP_KIND_LABELS } from '@/features/guide-app/lib/arrival-steps'
 import type { GuideArrivalInstruction, GuideLodging } from '@/features/guide-app/types'
-import { formatFrenchWelcomeLine } from '@/shared/lib/french-place'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
 import { MediaLightbox, type LightboxContent } from '../MediaLightbox'
@@ -15,6 +13,7 @@ import {
   STAY_PRIMARY_BUTTON,
 } from './stay-styles'
 import { GuideAddressBlock, GuideMapsButton } from './GuideAddressBlock'
+import { useGuideI18n, useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 // Sans étape saisie, l'adresse reste le minimum utile (spec 054 AC-02-02).
 const FALLBACK_STEP: GuideArrivalInstruction = {
@@ -28,8 +27,8 @@ const FALLBACK_STEP: GuideArrivalInstruction = {
   facts: [],
 }
 
-function stepLabel(step: GuideArrivalInstruction): string {
-  return step.title?.trim() || ARRIVAL_STEP_KIND_LABELS[step.kind]
+function stepLabel(step: GuideArrivalInstruction, kinds: Record<GuideArrivalInstruction['kind'], string>): string {
+  return step.title?.trim() || kinds[step.kind]
 }
 
 /** Parcours d'arrivée étape par étape (spec 054 US-02). */
@@ -47,6 +46,7 @@ export function GuideArrivalFlow({
   /** Démo (spec 045) : pas de lien externe vers Maps. */
   demo?: boolean
 }) {
+  const { locale, messages: m } = useGuideI18n()
   const steps = lodging.arrivalInstructions.length > 0 ? lodging.arrivalInstructions : [FALLBACK_STEP]
   const [current, setCurrent] = useState(0)
   const [visited, setVisited] = useState<Set<number>>(() => new Set())
@@ -72,10 +72,10 @@ export function GuideArrivalFlow({
   }
 
   return (
-    <GuideStayScreen title="Arrivée" subtitle={`Dès ${formatGuideHour(lodging.checkIn)}`} onBack={onBack}>
+    <GuideStayScreen title={m.arrival.title} subtitle={m.home.arrivalFrom(formatGuideHour(lodging.checkIn, locale))} onBack={onBack}>
       <div
         role="tablist"
-        aria-label="Étapes d'arrivée"
+        aria-label={m.arrival.steps}
         className="grid gap-1.5"
         style={{ gridTemplateColumns: `repeat(${Math.min(steps.length, 4)}, minmax(0, 1fr))` }}
       >
@@ -98,9 +98,9 @@ export function GuideArrivalFlow({
                   active || done ? 'bg-[#DB2777] text-white' : 'bg-[#FCE7F3] text-[#BE185D]'
                 }`}
               >
-                {done ? <Check className="h-3 w-3" aria-label="Validée" /> : index + 1}
+                {done ? <Check className="h-3 w-3" aria-label={m.arrival.stepDone} /> : index + 1}
               </span>
-              <span className="max-w-full truncate">{stepLabel(item)}</span>
+              <span className="max-w-full truncate">{stepLabel(item, m.arrival.kinds)}</span>
             </button>
           )
         })}
@@ -109,7 +109,7 @@ export function GuideArrivalFlow({
       <article key={current} role="tabpanel" className="mt-3 overflow-hidden rounded-3xl bg-white">
         <StepMedia step={step} />
         <div className="p-5">
-          <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.02em] text-[#111111]">{stepLabel(step)}</h2>
+          <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.02em] text-[#111111]">{stepLabel(step, m.arrival.kinds)}</h2>
           {step.text ? (
             <div className="mt-2 text-[14px] leading-[1.5] text-[#697386]">
               <GuideDarkMarkdown source={step.text} />
@@ -150,15 +150,15 @@ export function GuideArrivalFlow({
 
           {step.tip ? (
             <aside className="mt-5 rounded-[14px] border-2 border-pink-600 p-4 text-[14px] leading-[1.5] text-[#111111]">
-              <p className="text-[12px] font-semibold uppercase text-pink-600tracking-[0.06em] ">Infos  </p>
+              <p className="text-[12px] font-semibold uppercase text-pink-600tracking-[0.06em] ">{m.arrival.tip}</p>
               <p className="mt-1 text-xs">{step.tip}</p>
             </aside>
           ) : null}
 
           {step.kind === 'access' && arrived && (
             <div className="mt-5 rounded-[22px] bg-[#111111] p-5 text-white" role="status">
-              <p className="text-[20px] font-semibold">{formatFrenchWelcomeLine(lodging.name)} !</p>
-              <p className="mt-1 text-[14px] text-[#FBCFE8]">La conciergerie a été prévenue de votre arrivée.</p>
+              <p className="text-[20px] font-semibold">{m.arrival.welcomeLine(lodging.name)}</p>
+              <p className="mt-1 text-[14px] text-[#FBCFE8]">{m.arrival.conciergeNotified}</p>
             </div>
           )}
         </div>
@@ -174,7 +174,7 @@ export function GuideArrivalFlow({
           onClick={signalArrival}
           className={`${STAY_PRIMARY_BUTTON} mt-4 w-full bg-[#DB2777] disabled:opacity-60`}
         >
-          Je suis arrivé·e !
+          {m.arrival.imArrived}
         </button>
       )}
       {failed && <SignalError />}
@@ -188,6 +188,7 @@ export function GuideArrivalFlow({
  * devient l'image principale.
  */
 function StepMedia({ step }: { step: GuideArrivalInstruction }) {
+  const m = useGuideMessages()
   const [lightbox, setLightbox] = useState<LightboxContent | null>(null)
   const videoId = step.videoUrl ? extractYouTubeId(step.videoUrl) : null
   const video = videoId && step.videoUrl ? { id: videoId, url: step.videoUrl } : null
@@ -205,7 +206,7 @@ function StepMedia({ step }: { step: GuideArrivalInstruction }) {
         {heroIsPhoto ? (
           <button
             type="button"
-            aria-label="Photo 1"
+            aria-label={m.media.photo(1)}
             onClick={() => openPhoto(0)}
             className="block h-[210px] w-full overflow-hidden rounded-[18px] bg-[#E8E6E2]"
           >
@@ -227,7 +228,7 @@ function StepMedia({ step }: { step: GuideArrivalInstruction }) {
             <button
               key={index}
               type="button"
-              aria-label={`Photo ${index + 2}`}
+              aria-label={m.media.photo(index + 2)}
               onClick={() => openPhoto(index + 1)}
               className="aspect-square overflow-hidden rounded-[14px] bg-[#E8E6E2]"
             >
@@ -242,7 +243,7 @@ function StepMedia({ step }: { step: GuideArrivalInstruction }) {
       ) : null}
 
       {lightbox && (
-        <MediaLightbox title={stepLabel(step)} content={lightbox} onClose={() => setLightbox(null)} />
+        <MediaLightbox title={stepLabel(step, m.arrival.kinds)} content={lightbox} onClose={() => setLightbox(null)} />
       )}
     </div>
   )
@@ -259,10 +260,11 @@ function VideoTile({
   className: string
   large?: boolean
 }) {
+  const m = useGuideMessages()
   return (
     <button
       type="button"
-      aria-label="Lire la vidéo"
+      aria-label={m.media.playVideo}
       onClick={onOpen}
       className={`relative overflow-hidden bg-[#E8E6E2] ${className}`}
     >
@@ -284,10 +286,11 @@ function VideoTile({
 
 function KeyBoxCode({ code }: { code: string }) {
   const [shown, setShown] = useState(false)
+  const m = useGuideMessages()
 
   return (
     <div className="mt-4 rounded-[22px] bg-[#111111] p-5 text-white">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F9A8D4]">Code de la boîte à clés</p>
+      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F9A8D4]">{m.arrival.keyBoxCode}</p>
       <div className="mt-2 flex items-center justify-between gap-3">
         <span data-testid="guide-key-box-code" className="font-mono text-[32px] font-semibold tracking-[0.3em]">
           {shown ? code : '••••'}
@@ -297,7 +300,7 @@ function KeyBoxCode({ code }: { code: string }) {
           onClick={() => setShown(value => !value)}
           className="flex h-11 shrink-0 items-center rounded-full bg-[#DB2777] px-4 text-[14px] font-semibold"
         >
-          {shown ? 'Masquer' : 'Afficher le code'}
+          {shown ? m.arrival.hideCode : m.arrival.showCode}
         </button>
       </div>
     </div>
@@ -305,9 +308,10 @@ function KeyBoxCode({ code }: { code: string }) {
 }
 
 export function SignalError() {
+  const m = useGuideMessages()
   return (
     <p role="alert" className="mt-3 text-center text-[13px] text-[#B3261E]">
-      Le signal n&apos;a pas pu être envoyé. Vérifiez votre connexion et réessayez.
+      {m.arrival.signalError}
     </p>
   )
 }

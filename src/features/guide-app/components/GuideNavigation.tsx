@@ -3,20 +3,20 @@
 import { useState } from 'react'
 import { Heart, House, Settings, Map } from 'lucide-react'
 import type { GuideView } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export type GuideTabView = 'home' | 'favorites' | 'map' | 'help'
 
 // Spec 054 AC-01-01 (PO 2026-10-03) : navigation fluide, palette neutre.
-const items: { view: GuideTabView; label: string; icon: typeof House; matches: string[] }[] = [
+const items: { view: GuideTabView; icon: typeof House; matches: string[] }[] = [
   {
     view: 'home',
-    label: 'Accueil',
     icon: House,
     matches: ['home', 'lodging', 'arrival', 'departure', 'rules', 'transport'],
   },
-  { view: 'favorites', label: 'Coups de cœur', icon: Heart, matches: ['favorites', 'poi'] },
-  { view: 'map', label: 'Carte', icon: Map, matches: ['map'] },
-  { view: 'help', label: 'Réglages et infos', icon: Settings, matches: ['help', 'contact'] },
+  { view: 'favorites', icon: Heart, matches: ['favorites', 'poi'] },
+  { view: 'map', icon: Map, matches: ['map'] },
+  { view: 'help', icon: Settings, matches: ['help', 'contact'] },
 ]
 
 export function GuideNavigation({
@@ -26,6 +26,7 @@ export function GuideNavigation({
   activeView: GuideView
   onNavigate: (view: GuideTabView) => void
 }) {
+  const m = useGuideMessages()
   const activeIndex = items.findIndex(item => item.matches.includes(activeView))
   const [selection, setSelection] = useState({ view: activeView, index: activeIndex })
   if (selection.view !== activeView) {
@@ -36,7 +37,7 @@ export function GuideNavigation({
 
   return (
     <nav
-      aria-label="Navigation du guide"
+      aria-label={m.nav.label}
       className="absolute inset-x-0 bottom-0 z-40 bg-white/[0.96] pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(15,23,42,0.10)] backdrop-blur-[14px]"
     >
       <div className="px-3 py-3">
@@ -53,7 +54,8 @@ export function GuideNavigation({
               />
             </div>
           )}
-          {items.map(({ view, label, icon: Icon, matches }, index) => {
+          {items.map(({ view, icon: Icon, matches }, index) => {
+            const label = m.nav[view]
             const active = matches.includes(activeView)
             return (
               <button

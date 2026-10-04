@@ -74,6 +74,7 @@ Points vérifiés **sans problème** : Markdown rendu avec `skipHtml` (pas de HT
 | E3 | 🟡 | 11 suites de tests rouges (16 tests), toutes liées à des libellés/écrans modifiés sans mise à jour des tests : `guide-tab-search.AC-01`, `le-logement.practical-blocks`, `private-guide-app.AC-03-04.demo-isolation`, `private-guide-stay.AC-01.stay-home`, `guide-app.practical-card-markdown`, `public-demo-private-reference.AC-02-02-03` (data, security), `public-discovery.AC-06` / `AC-01-05`, `seo.sitemap`, `poi-description-assistance.AC-05-07` (intermittent). |
 | E4 | 🟡 | Champ `emergency_contacts` (personnalisation logement) saisi mais **jamais affiché** dans le guide. |
 | E5 | 🟡 | Spec 027 (multilingue) `approved` mais non implémentée : tests de dérive associés. |
+| E6 | 🟡 | Vue « Contact » du guide privé (`GuideContactView` + `ContactMessageForm`) **inaccessible** : plus aucun bouton n'y mène depuis le retrait du bloc « Écrire » de l'écran Réglages. Non traduite (spec 061). À supprimer ou à rebrancher. |
 
 Typecheck : 0 erreur. Lint : 0 erreur (quelques avertissements `react-hooks`). Parcours Playwright des 8 pages : aucun message d'erreur console.
 

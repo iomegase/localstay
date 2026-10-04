@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { Check } from 'lucide-react'
-import { departureTasks } from '@/features/guide-app/lib/fixed-lodging-content'
+import { departureTasks, translateFixedDeparture } from '@/features/guide-app/lib/fixed-lodging-content'
 import type { GuideLodging } from '@/features/guide-app/types'
-import { formatFrenchPlaceReference } from '@/shared/lib/french-place'
 import { SignalError } from './GuideArrivalFlow'
 import { GuideStayScreen } from './GuideStayScreen'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Écran Départ : progression, checklist et « Je suis parti·e » (spec 054 AC-03-02, AC-04-02). */
 export function GuideDepartureView({
@@ -24,6 +24,7 @@ export function GuideDepartureView({
   onDeparted: () => Promise<void>
   onBack: () => void
 }) {
+  const m = useGuideMessages()
   const tasks = departureTasks(lodging.departureInstructions)
   const done = tasks.filter((_, index) => checked.has(index)).length
   const remaining = tasks.length - done
@@ -44,10 +45,10 @@ export function GuideDepartureView({
   }
 
   return (
-    <GuideStayScreen title="Départ" onBack={onBack}>
+    <GuideStayScreen title={m.departure.title} onBack={onBack}>
       <div
         role="progressbar"
-        aria-label="Progression de la checklist de départ"
+        aria-label={m.departure.progress}
         aria-valuemin={0}
         aria-valuemax={tasks.length}
         aria-valuenow={done}
@@ -59,7 +60,7 @@ export function GuideDepartureView({
         />
       </div>
       <p className="mt-2 text-[13px] font-semibold text-[#BE185D]" aria-live="polite">
-        {done} sur {tasks.length} faits
+        {m.home.departureProgress(done, tasks.length)}
       </p>
 
       <ul className="mt-4 grid gap-2">
@@ -83,7 +84,7 @@ export function GuideDepartureView({
                   <Check className="h-4 w-4" />
                 </span>
                 <span className={`text-[14px] leading-snug ${isChecked ? 'text-[#697386] line-through' : 'text-[#111111]'}`}>
-                  {task}
+                  {translateFixedDeparture(task, m.fixed)}
                 </span>
               </label>
             </li>
@@ -98,9 +99,9 @@ export function GuideDepartureView({
               <Check className="h-5 w-5" aria-hidden="true" />
             </span>
             <p className="mt-3 text-[22px] font-semibold tracking-[-0.02em]">
-              Merci d&apos;avoir séjourné {formatFrenchPlaceReference(lodging.name)} !
+              {m.departure.thanks(lodging.name)}
             </p>
-            <p className="mt-1 text-[14px] text-[#FBCFE8]">La conciergerie a été prévenue de votre départ.</p>
+            <p className="mt-1 text-[14px] text-[#FBCFE8]">{m.departure.conciergeNotified}</p>
           </div>
         ) : (
           <>
@@ -112,12 +113,12 @@ export function GuideDepartureView({
                 complete ? 'bg-[#DB2777]' : 'bg-[#111111]'
               }`}
             >
-              Je suis parti·e
+              {m.departure.imLeaving}
             </button>
             <p className="mt-2 text-center text-[12px] text-[#697386]">
               {complete
-                ? 'La conciergerie sera prévenue'
-                : `Encore ${remaining} tâche${remaining > 1 ? 's' : ''} — vous pouvez quand même partir`}
+                ? m.departure.willNotify
+                : m.departure.remaining(remaining)}
             </p>
             {failed && <SignalError />}
           </>

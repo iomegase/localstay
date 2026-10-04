@@ -20,11 +20,11 @@ export function filterPoisByQuery<P extends SearchablePoi>(pois: readonly P[], q
 }
 
 /** Distance à vol d'oiseau lisible : « 350 m », « 1,2 km », « 15 km » (spec 056 AC-01-04). */
-export function formatDistanceMeters(meters: number): string {
+export function formatDistanceMeters(meters: number, locale: 'fr' | 'en' = 'fr'): string {
   if (meters < 1000) return `${Math.max(10, Math.round(meters / 10) * 10)} m`
   const kilometers = meters / 1000
   return kilometers < 10
-    ? `${kilometers.toLocaleString('fr-FR', { maximumFractionDigits: 1, minimumFractionDigits: 1 })} km`
+    ? `${kilometers.toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-GB', { maximumFractionDigits: 1, minimumFractionDigits: 1 })} km`
     : `${Math.round(kilometers)} km`
 }
 

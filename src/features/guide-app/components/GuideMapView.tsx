@@ -11,6 +11,7 @@ import type {
   GuideLodging,
   GuidePoi,
 } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 // Palette de teintes distinctes ; une couleur par catégorie, assignée par index
 // (voir `categoryColorBySlug`) → jamais deux catégories différentes de la même couleur.
@@ -114,6 +115,7 @@ export function GuideMapView({
   onDeselectPoi: () => void
   onOpenPoi: (poi: GuidePoi) => void
 }) {
+  const m = useGuideMessages()
   const mapRef = useRef<MapRef | null>(null)
   const [drawnCoords, setDrawnCoords] = useState<LngLat[] | null>(null)
   const [peeked, setPeeked] = useState(false)
@@ -402,7 +404,7 @@ export function GuideMapView({
         >
           <span
             className="grid h-9 w-9 place-items-center rounded-full border-[3px] border-white bg-slate-900 text-white shadow-lg"
-            aria-label={`Position du logement ${lodging.name}`}
+            aria-label={m.map.lodgingPosition(lodging.name)}
           >
             <Home className="h-4 w-4" aria-hidden="true" />
           </span>
@@ -420,7 +422,7 @@ export function GuideMapView({
           >
             <button
               type="button"
-              aria-label={`Sélectionner ${poi.name}`}
+              aria-label={m.map.selectPoi(poi.name)}
               onClick={() => handleMarkerSelect(poi)}
               className={`grid h-8 w-8 place-items-center rounded-full border-[3px] border-white text-white shadow-md transition ${
                 categoryColorBySlug.get(poi.category.slug) ?? 'bg-slate-600'
@@ -443,7 +445,7 @@ export function GuideMapView({
       <div className="absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-white via-white/95 to-transparent px-3 pb-5 pt-3">
         <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
           <MapFilter
-            label="Tous"
+            label={m.favorites.all}
             active={selectedCategorySlug === null}
             onClick={() => onFilter(null)}
           />
@@ -461,7 +463,7 @@ export function GuideMapView({
       <div className="absolute right-3 top-[68px] z-10 flex flex-col divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100 bg-white/95 shadow-md backdrop-blur">
         <button
           type="button"
-          aria-label="Zoomer"
+          aria-label={m.map.zoomIn}
           onClick={() => zoomBy(1)}
           className="grid h-8 w-8 place-items-center text-slate-700 active:bg-slate-50"
         >
@@ -469,7 +471,7 @@ export function GuideMapView({
         </button>
         <button
           type="button"
-          aria-label="Dézoomer"
+          aria-label={m.map.zoomOut}
           onClick={() => zoomBy(-1)}
           className="grid h-8 w-8 place-items-center text-slate-700 active:bg-slate-50"
         >
@@ -491,7 +493,7 @@ export function GuideMapView({
               <button
                 type="button"
                 onClick={restoreCard}
-                aria-label="Afficher la fiche"
+                aria-label={m.map.showCard}
                 className="absolute inset-y-0 right-0 z-20 flex w-5 items-center justify-center"
               >
                 <span className="h-6 w-1 rounded-full bg-slate-300" />
@@ -504,7 +506,7 @@ export function GuideMapView({
               <button
                 type="button"
                 onClick={() => onOpenPoi(selectedPoi)}
-                aria-label={`Ouvrir la fiche ${selectedPoi.name}`}
+                aria-label={m.map.openCard(selectedPoi.name)}
                 className="absolute inset-0 z-[5]"
               />
             )}
@@ -554,7 +556,7 @@ export function GuideMapView({
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EF5148] text-white">
                       <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
-                    <span className="text-[#EF5148]">Itinéraire</span>
+                    <span className="text-[#EF5148]">{m.map.directions}</span>
                   </a>
                 </div>
               </div>

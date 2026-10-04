@@ -9,9 +9,11 @@ export const STAY_SECONDARY_BUTTON =
   'flex h-[52px] items-center justify-center rounded-2xl border border-[rgba(17,17,17,0.15)] bg-white px-4 text-[15px] font-semibold text-[#111111] transition-transform active:scale-[0.99]'
 
 /** « 16:00 » → « 16 h », « 10:30 » → « 10 h 30 ». */
-export function formatGuideHour(value: string): string {
+export function formatGuideHour(value: string, locale: 'fr' | 'en' = 'fr'): string {
   const match = value.match(/^(\d{1,2}):(\d{2})$/)
   if (!match) return value
+  // Spec 061 : « 16 h » en français, « 16:00 » en anglais.
+  if (locale === 'en') return `${match[1].padStart(2, '0')}:${match[2]}`
   const hours = String(Number(match[1]))
   return match[2] === '00' ? `${hours} h` : `${hours} h ${match[2]}`
 }

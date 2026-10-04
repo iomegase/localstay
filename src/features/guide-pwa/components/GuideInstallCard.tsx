@@ -6,32 +6,34 @@ import { Check, Download, Share, SquarePlus } from 'lucide-react'
 import { GUIDE_CARD } from '@/features/guide-app/components/GuideCard'
 import { useGuideInstall } from '../hooks/useGuideInstall'
 import type { IosBrowser } from '../lib/install-platform'
+import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
+import type { GuideMessages } from '@/features/guide-i18n/messages'
 
-const END_DATE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' })
 
 const ICON_TILE = 'grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-800'
 const FOCUS_RING = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500'
 
 // Amendement A1 : l'étape « Partager » dépend du navigateur iOS.
-const IOS_SHARE_STEP: Record<IosBrowser, string> = {
-  brave: 'Touchez le menu « ⋯ », puis « Partager »',
-  chrome: 'Touchez « Partager » dans la barre d’adresse',
-  edge: 'Touchez le menu « ⋯ », puis « Partager »',
-  firefox: 'Touchez le menu « ☰ », puis « Partager »',
-  'safari-or-unknown': 'Touchez « Partager » (dans Safari : barre du bas ; dans Brave : menu « ⋯ »)',
+const IOS_SHARE_KEY: Record<IosBrowser, keyof GuideMessages['install']['share']> = {
+  brave: 'brave',
+  chrome: 'chrome',
+  edge: 'edge',
+  firefox: 'firefox',
+  'safari-or-unknown': 'safariOrUnknown',
 }
 
-function iosSteps(browser: IosBrowser) {
+function iosSteps(browser: IosBrowser, m: GuideMessages) {
   return [
-    { icon: Share, label: IOS_SHARE_STEP[browser] },
-    { icon: SquarePlus, label: 'Choisissez « Sur l’écran d’accueil »' },
-    { icon: Check, label: 'Touchez « Ajouter »' },
+    { icon: Share, label: m.install.share[IOS_SHARE_KEY[browser]] },
+    { icon: SquarePlus, label: m.install.addToHomeScreen },
+    { icon: Check, label: m.install.add },
   ]
 }
 
 /** Carte « Installer le guide » de l'écran Réglages et infos (spec 059 US-01). */
 export function GuideInstallCard({ lodgingId }: { lodgingId: string }) {
   const { platform, iosBrowser, endsAt, promptInstall } = useGuideInstall(lodgingId)
+  const { intlLocale, messages: m } = useGuideI18n()
   const [open, setOpen] = useState(false)
 
   if (platform === 'installed') {
@@ -41,9 +43,9 @@ export function GuideInstallCard({ lodgingId }: { lodgingId: string }) {
           <Check className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[15px] font-semibold tracking-[-0.025em]">Guide installé</p>
+          <p className="text-[15px] font-semibold tracking-[-0.025em]">{m.install.installed}</p>
           {endsAt && (
-            <p className="mt-1 text-xs text-slate-500">Disponible jusqu’au {END_DATE.format(endsAt)}</p>
+            <p className="mt-1 text-xs text-slate-500">{m.install.availableUntil(new Intl.DateTimeFormat(intlLocale, { day: 'numeric', month: 'long' }).format(endsAt))}</p>
           )}
         </div>
       </div>
@@ -55,7 +57,7 @@ export function GuideInstallCard({ lodgingId }: { lodgingId: string }) {
       <span className={ICON_TILE}>
         <Download className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
       </span>
-      <span className="text-[15px] font-semibold tracking-[-0.025em]">Installer le guide</span>
+      <span className="text-[15px] font-semibold tracking-[-0.025em]">{m.install.title}</span>
     </button>
   )
 
@@ -68,12 +70,12 @@ export function GuideInstallCard({ lodgingId }: { lodgingId: string }) {
       <Dialog.Trigger asChild>{trigger()}</Dialog.Trigger>
       <Dialog.Overlay className="absolute inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm" />
       <Dialog.Content className="absolute inset-x-5 top-1/2 z-[111] -translate-y-1/2 rounded-[26px] bg-white p-6 text-slate-900 shadow-xl focus:outline-none">
-        <Dialog.Title className="text-xl font-semibold tracking-[-0.025em]">Installer le guide</Dialog.Title>
+        <Dialog.Title className="text-xl font-semibold tracking-[-0.025em]">{m.install.title}</Dialog.Title>
         {platform === 'ios' ? (
           <>
-            <Dialog.Description className="sr-only">Étapes pour ajouter le guide à l’écran d’accueil</Dialog.Description>
+            <Dialog.Description className="sr-only">{m.install.stepsDescription}</Dialog.Description>
             <ol className="mt-4 grid gap-3">
-              {iosSteps(iosBrowser).map(({ icon: Icon, label }, index) => (
+              {iosSteps(iosBrowser, m).map(({ icon: Icon, label }, index) => (
                 <li key={label} className="flex items-center gap-3 text-sm text-slate-700">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-800">
                     <Icon className="h-5 w-5" strokeWidth={1} aria-hidden="true" />
@@ -83,20 +85,20 @@ export function GuideInstallCard({ lodgingId }: { lodgingId: string }) {
               ))}
             </ol>
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
-              Fonctionne avec Safari, Brave, Chrome, Edge et Firefox. Le guide reste disponible 7 jours, même sans réseau.
+              {m.install.iosFootnote}
             </p>
           </>
         ) : platform === 'android-menu' ? (
           <Dialog.Description className="mt-3 text-sm leading-relaxed text-slate-600">
-            Ouvrez le menu « ⋮ » de votre navigateur, puis « Installer » ou « Ajouter à l’écran d’accueil ».
+            {m.install.androidMenu}
           </Dialog.Description>
         ) : (
           <Dialog.Description className="mt-3 text-sm leading-relaxed text-slate-600">
-            Ouvrez le guide dans Safari (iPhone) ou Chrome (Android) pour l’installer.
+            {m.install.unsupported}
           </Dialog.Description>
         )}
         <Dialog.Close asChild>
-          <button type="button" className={`mt-5 min-h-11 w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white ${FOCUS_RING}`}>J’ai compris</button>
+          <button type="button" className={`mt-5 min-h-11 w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white ${FOCUS_RING}`}>{m.common.understood}</button>
         </Dialog.Close>
       </Dialog.Content>
     </Dialog.Root>

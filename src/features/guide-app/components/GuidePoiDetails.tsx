@@ -13,13 +13,14 @@ import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPre
 import type { GuideLodging, GuideMode, GuidePoi } from '@/features/guide-app/types'
 import { formatTravelDuration, type TravelTimeValues } from './stay/poi-search'
 import { usePoiSheetGestures } from '../hooks/usePoiSheetGestures'
+import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export function GuidePoiDetails({
   mode,
   poi,
   lodging,
   onBack,
-  backLabel = 'Retour aux coups de cœur',
+  backLabel,
   onShowOnMap,
   onStartTrail,
   travel,
@@ -34,6 +35,7 @@ export function GuidePoiDetails({
   onShowOnMap: (poi: GuidePoi) => void
   onStartTrail?: (poi: GuidePoi) => void
 }) {
+  const { locale, messages: m } = useGuideI18n()
   const heroPhotos = poi.photos.length > 0
     ? poi.photos
     : [getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: [] })]
@@ -58,7 +60,7 @@ export function GuidePoiDetails({
           {poi.isOpenNow === true && (
             <div className="absolute bottom-8 left-6 z-10 pb-4">
               <span className="inline-flex rounded-full border border-green-200 bg-green-50/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 shadow-sm backdrop-blur">
-                Ouvert
+                {m.poi.open}
               </span>
             </div>
           )}
@@ -66,7 +68,7 @@ export function GuidePoiDetails({
         <button
           type="button"
           onClick={onBack}
-          aria-label={backLabel}
+          aria-label={backLabel ?? m.poi.backToFavorites}
           className="absolute left-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur active:scale-95"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -106,28 +108,28 @@ export function GuidePoiDetails({
               {travel.walkingSeconds !== null ? (
                 <span className="inline-flex items-center gap-1.5">
                   <Footprints className="h-3 w-3" aria-hidden="true" />
-                  À pied {formatTravelDuration(travel.walkingSeconds)}
+                  {m.poi.onFoot(formatTravelDuration(travel.walkingSeconds))}
                 </span>
               ) : null}
               {travel.drivingSeconds !== null ? (
                 <span className="inline-flex items-center gap-1.5">
                   <Car className="h-3 w-3" aria-hidden="true" />
-                  En voiture {formatTravelDuration(travel.drivingSeconds)}
+                  {m.poi.byCar(formatTravelDuration(travel.drivingSeconds))}
                 </span>
               ) : null}
-              <span className="font-normal text-charcoal/60">depuis le logement</span>
+              <span className="font-normal text-charcoal/60">{m.poi.fromLodging}</span>
             </span>
           ) : lodging.locationPrecise ? (
             <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
               <MapPin className="h-3 w-3" />
-              <span data-testid="poi-detail-distance">{lodgingDistanceLabel(distanceKm)}</span>
+              <span data-testid="poi-detail-distance">{m.poi.lodgingDistance(formatKm(distanceKm, locale))}</span>
             </span>
           ) : null}
           {userDistanceKm !== null && (
             <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-pink-600">
               <Navigation className="h-3 w-3" />
               <span data-testid="poi-detail-user-distance">
-                {userDistanceLabel(userDistanceKm)}
+                {m.poi.userDistance(formatKm(userDistanceKm, locale))}
               </span>
             </span>
           )}
@@ -139,12 +141,12 @@ export function GuidePoiDetails({
         )}
 
         {/* Le mot de votre hôte */}
-        <OwnerRecommendationNote note={poi.ownerNote ?? null} />
+        <OwnerRecommendationNote note={poi.ownerNote ?? null} title={m.poi.ownerNote} />
 
         {/* Hours */}
         {poi.hours && (
           <div className="px-6 pb-2">
-            <HoursBlock is_open_now={poi.isOpenNow ?? null} hours={poi.hours} showOpenBadge={false} />
+            <HoursBlock is_open_now={poi.isOpenNow ?? null} hours={poi.hours} showOpenBadge={false} labels={{ ...m.hours, days: (['0', '1', '2', '3', '4', '5', '6'] as const).map(day => m.hours.days[day]) }} />
           </div>
         )}
 
@@ -158,7 +160,7 @@ export function GuidePoiDetails({
               data-testid="photo-attribution"
               className="text-[11px] text-charcoal/45 underline underline-offset-2"
             >
-              Photos : {attributionHost}
+              {m.poi.photosCredit(attributionHost)}
             </a>
           </div>
         )}
@@ -172,23 +174,23 @@ export function GuidePoiDetails({
               </span>
               <div>
                 <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-emerald-700">
-                  Randonnée {formatDifficulty(poi.trail.difficulty)}
+                  {m.poi.trail.kind(poi.trail.difficulty === 'unknown' ? '' : m.poi.trail.difficulty[poi.trail.difficulty])}
                 </p>
-                <h2 className="text-sm font-semibold text-slate-900">Les informations du parcours</h2>
+                <h2 className="text-sm font-semibold text-slate-900">{m.poi.trail.info}</h2>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2">
               <Metric
                 icon={Route}
                 value={poi.trail.distanceKm === null ? '—' : `${String(poi.trail.distanceKm).replace('.', ',')} km`}
-                label="Distance"
+                label={m.poi.trail.distance}
               />
               <Metric
                 icon={TrendingUp}
                 value={poi.trail.elevationGainM === null ? '—' : `${poi.trail.elevationGainM} m`}
-                label="Dénivelé"
+                label={m.poi.trail.elevation}
               />
-              <Metric icon={Mountain} value={poi.durationLabel ?? '—'} label="Durée" />
+              <Metric icon={Mountain} value={poi.durationLabel ?? '—'} label={m.poi.trail.duration} />
             </div>
             {mode === 'demo' && poi.trail.geometry != null && (
               <div className="mt-4 overflow-hidden rounded-[18px]">
@@ -206,7 +208,7 @@ export function GuidePoiDetails({
             {mode === 'demo' && poi.trail.geometry != null && (
               <>
                 <p className="mt-2 text-center text-[8px] text-slate-400">
-                  Tracé OSM · données altimétriques IGN
+                  {m.poi.trail.sources}
                 </p>
                 <button
                   type="button"
@@ -215,7 +217,7 @@ export function GuidePoiDetails({
                   className="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-emerald-700/35 px-4 py-3 text-xs font-bold text-white"
                 >
                   <Play className="h-4 w-4 fill-current" aria-hidden="true" />
-                  Commencer la randonnée
+                  {m.poi.trail.startDemo}
                 </button>
               </>
             )}
@@ -223,15 +225,15 @@ export function GuidePoiDetails({
               <button
                 type="button"
                 onClick={() => onStartTrail(poi)}
-                aria-label="Démarrer la randonnée"
+                aria-label={m.poi.trail.startLabel}
                 className="mt-4 w-full rounded-full bg-emerald-700 px-4 py-3 text-xs font-bold text-white"
               >
-                Démarrer
+                {m.poi.trail.start}
               </button>
             )}
             {mode === 'demo' && (
               <p className="mt-4 rounded-xl bg-slate-50 p-3 text-[9px] leading-4 text-slate-500">
-                Suivi GPS indisponible dans le guide de démonstration.
+                {m.poi.trail.demoNoGps}
               </p>
             )}
           </section>
@@ -254,14 +256,11 @@ export function GuidePoiDetails({
   )
 }
 
-function lodgingDistanceLabel(distanceKm: number): string {
-  if (distanceKm < 1) return `Situé à ${Math.round(distanceKm * 1000)} m du logement`
-  return `Situé à ${distanceKm.toFixed(1).replace('.', ',')} km du logement`
-}
-
-function userDistanceLabel(distanceKm: number): string {
-  if (distanceKm < 1) return `À ${Math.round(distanceKm * 1000)} m de votre position`
-  return `À ${distanceKm.toFixed(1).replace('.', ',')} km de votre position`
+/** « 350 m », « 4,7 km » (fr) / « 4.7 km » (en). */
+function formatKm(distanceKm: number, locale: 'fr' | 'en'): string {
+  if (distanceKm < 1) return `${Math.round(distanceKm * 1000)} m`
+  const value = distanceKm.toFixed(1)
+  return `${locale === 'fr' ? value.replace('.', ',') : value} km`
 }
 
 function getWebsiteHost(website: string | null | undefined): string | null {
@@ -289,15 +288,4 @@ function Metric({
       <span className="mt-1 block text-[8px] text-slate-400">{label}</span>
     </div>
   )
-}
-
-function formatDifficulty(difficulty: NonNullable<GuidePoi['trail']>['difficulty']) {
-  const labels = {
-    easy: 'facile',
-    medium: 'modérée',
-    hard: 'difficile',
-    expert: 'expert',
-    unknown: '',
-  }
-  return labels[difficulty]
 }

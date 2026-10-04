@@ -3,6 +3,7 @@ import { capitalizeFirst } from '@/shared/lib/utils'
 import { SwipeCarousel } from '@/features/guide-app/components/SwipeCarousel'
 import { featureIconFor } from '@/features/lodging-showcase/lib/feature-icon'
 import type { GuideLodgingDetail } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 type DetailPhoto = GuideLodgingDetail['photos'][number]
 
@@ -34,6 +35,7 @@ export function GuideLodgingDetailView({
   detail: GuideLodgingDetail | null
   onBack: () => void
 }) {
+  const m = useGuideMessages()
   const rooms = detail ? groupByRoom(detail.photos) : []
 
   return (
@@ -44,11 +46,11 @@ export function GuideLodgingDetailView({
         className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-pink-600"
       >
         <ArrowLeft className="h-4 w-4" />
-        retour
+        {m.lodgings.back}
       </button>
 
       {!detail ? (
-        <p className="mt-10 text-center text-sm text-slate-400">Chargement…</p>
+        <p className="mt-10 text-center text-sm text-slate-400">{m.common.loading}</p>
       ) : (
         <article className="mt-4 space-y-5">
           {/* Header : une seule zone photo swipeable regroupant toute la galerie */}
@@ -67,9 +69,9 @@ export function GuideLodgingDetailView({
           </header>
 
           <div className="grid grid-cols-4 gap-2 rounded-[20px] bg-slate-50 p-4 text-center">
-            <Fact icon={Users} value={detail.maxGuests} label="Voyageurs" />
-            <Fact icon={BedDouble} value={detail.bedroomCount ?? '—'} label="Chambres" />
-            <Fact icon={Bath} value={detail.bathroomCount ?? '—'} label="SdB" />
+            <Fact icon={Users} value={detail.maxGuests} label={m.lodgings.guests} />
+            <Fact icon={BedDouble} value={detail.bedroomCount ?? '—'} label={m.lodgings.bedrooms} />
+            <Fact icon={Bath} value={detail.bathroomCount ?? '—'} label={m.lodgings.bathrooms} />
             <Fact icon={Maximize} value={detail.surfaceM2 ? `${detail.surfaceM2}` : '—'} label="m²" />
           </div>
 
@@ -81,8 +83,8 @@ export function GuideLodgingDetailView({
 
           {(detail.amenitiesIncluded.length > 0 || detail.amenitiesOnRequest.length > 0) && (
             <div className="grid grid-cols-2 items-stretch gap-3">
-              <AmenityCard title="Équipements " items={detail.amenitiesIncluded} />
-              <AmenityCard title="Sur demande" items={detail.amenitiesOnRequest} />
+              <AmenityCard title={m.lodgings.included} items={detail.amenitiesIncluded} />
+              <AmenityCard title={m.lodgings.onRequest} items={detail.amenitiesOnRequest} />
             </div>
           )}
 

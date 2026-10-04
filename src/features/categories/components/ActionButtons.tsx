@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Phone, Navigation, Globe, Map } from 'lucide-react'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter' | 'guide'
 
@@ -43,6 +44,7 @@ interface Props {
 }
 
 export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default', onShowOnMap }: Props) {
+  const m = useGuideMessages()
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
   const phoneLabel = phone?.trim() || null
@@ -65,8 +67,8 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             testId="btn-call"
             tone="call"
             icon={<Phone className="h-3.5 w-3.5" />}
-            label="Appeler"
-            ariaLabel={`Appeler ${phoneLabel}`}
+            label={m.actions.call}
+            ariaLabel={m.actions.callNumber(phoneLabel)}
             pinColumn={false}
           />
         )}
@@ -76,7 +78,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             testId="btn-site"
             tone="website"
             icon={<Globe className="h-3.5 w-3.5" />}
-            label="Site web"
+            label={m.actions.website}
             external
             pinColumn={false}
           />
@@ -87,7 +89,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             testId="btn-map"
             tone="map"
             icon={<Map className="h-3.5 w-3.5" />}
-            label="Carte"
+            label={m.actions.map}
             pinColumn={false}
           />
         )}
@@ -96,7 +98,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
           testId="btn-directions"
           tone="directions"
           icon={<Navigation className="h-3.5 w-3.5" />}
-          label="Itinéraire"
+          label={m.actions.directions}
           external
           pinColumn={false}
         />
@@ -114,8 +116,8 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
           testId="btn-call"
           tone="call"
           icon={<Phone className="h-3.5 w-3.5" />}
-          label="Appeler"
-          ariaLabel={`Appeler ${phoneLabel}`}
+          label={m.actions.call}
+          ariaLabel={m.actions.callNumber(phoneLabel)}
           compact={compact}
         />
       )}
@@ -125,7 +127,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
         testId="btn-directions"
         tone="directions"
         icon={<Navigation className="h-3.5 w-3.5" />}
-        label="Itinéraire"
+        label={m.actions.directions}
         external
         compact={compact}
       />
@@ -136,7 +138,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
           testId="btn-site"
           tone="website"
           icon={<Globe className="h-3.5 w-3.5" />}
-          label="Site web"
+          label={m.actions.website}
           external
           compact={compact}
         />
@@ -215,6 +217,7 @@ function ModalFooterActions({
   website: string | null
   directionsUrl: string
 }) {
+  const m = useGuideMessages()
   const [isScrolling, setIsScrolling] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const scrollIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -266,8 +269,8 @@ function ModalFooterActions({
           tone="call"
           testId="btn-call"
           icon={<Phone className="h-3.5 w-3.5" />}
-          label="Appeler"
-          ariaLabel="Appeler"
+          label={m.actions.call}
+          ariaLabel={m.actions.call}
         />
       )}
 
@@ -277,7 +280,7 @@ function ModalFooterActions({
           tone="website"
           testId="btn-site"
           icon={<Globe className="h-3.5 w-3.5" />}
-          label="Site web"
+          label={m.actions.website}
           external
         />
       )}
@@ -287,7 +290,7 @@ function ModalFooterActions({
         tone="directions"
         testId="btn-directions"
         icon={<Navigation className="h-3.5 w-3.5" />}
-        label="Itinéraire"
+        label={m.actions.directions}
         external
       />
     </div>

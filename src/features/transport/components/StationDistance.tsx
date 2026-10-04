@@ -1,6 +1,7 @@
 import { Car, Footprints } from 'lucide-react'
 import { primaryTravel } from '@/features/guide-app/components/stay/poi-search'
 import type { NearbyResult } from '../types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /**
  * Accès à l'arrêt depuis le logement : temps réel MapBox (à pied si ≤ 25 min,
@@ -8,6 +9,7 @@ import type { NearbyResult } from '../types'
  * distance à vol d'oiseau.
  */
 export function StationDistance({ station }: { station: NearbyResult['stations'][number] }) {
+  const m = useGuideMessages()
   const travel = primaryTravel(station.travel ?? undefined)
   if (!travel) {
     return <p className="text-[13px] text-[#697386]">{station.distanceMeters} m à vol d&apos;oiseau</p>
@@ -16,7 +18,7 @@ export function StationDistance({ station }: { station: NearbyResult['stations']
   const Icon = walking ? Footprints : Car
   return (
     <p className="flex mb-4 items-center gap-1.5 text-[12px] text-[#697386]">
-      <span role="img" aria-label={walking ? 'À pied' : 'En voiture'}>
+      <span role="img" aria-label={walking ? m.transport.walking : m.transport.driving}>
         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       </span>
       <span>{travel.label}</span>

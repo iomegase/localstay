@@ -11,6 +11,7 @@ import { GuideSearchEmpty, GuideSearchHeader } from './stay/GuideSearchHeader'
 import { GuideLocationToggle } from './stay/GuideLocationToggle'
 import { filterPoisByQuery, formatDistanceMeters, primaryTravel, type TravelTimeValues } from './stay/poi-search'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
+import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export function GuideFavoritesPage({
   pois,
@@ -35,6 +36,7 @@ export function GuideFavoritesPage({
   onSelectPoi: (poi: GuidePoi) => void
   onShowOnMap: (poi: GuidePoi) => void
 }) {
+  const { locale, messages: m } = useGuideI18n()
   const categories = Array.from(
     new globalThis.Map(
       pois.map(poi => [poi.category.slug, poi.category]),
@@ -50,7 +52,7 @@ export function GuideFavoritesPage({
     () => pois.map((poi): GuidePoi => {
       if (position) {
         const meters = haversineMeters(position.latitude, position.longitude, poi.latitude, poi.longitude)
-        return { ...poi, distanceLabel: `${formatDistanceMeters(meters)} de votre position`, distanceMode: 'crow' }
+        return { ...poi, distanceLabel: m.favorites.fromYou(formatDistanceMeters(meters, locale)), distanceMode: 'crow' }
       }
       if (hasTravel) {
         const travel = primaryTravel(travelTimes?.[poi.id])
@@ -58,11 +60,11 @@ export function GuideFavoritesPage({
       }
       if (origin) {
         const meters = haversineMeters(origin.latitude, origin.longitude, poi.latitude, poi.longitude)
-        return { ...poi, distanceLabel: formatDistanceMeters(meters), distanceMode: 'crow' }
+        return { ...poi, distanceLabel: formatDistanceMeters(meters, locale), distanceMode: 'crow' }
       }
       return poi
     }),
-    [pois, origin, position, hasTravel, travelTimes],
+    [pois, origin, position, hasTravel, travelTimes, locale, m],
   )
   const inCategory = selectedCategorySlug
     ? located.filter(poi => poi.category.slug === selectedCategorySlug)
@@ -89,10 +91,10 @@ export function GuideFavoritesPage({
 
       <div
         className="sticky top-0 z-20 -mx-3 mt-3 flex gap-2 overflow-x-auto bg-white px-4 py-3 backdrop-blur-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        aria-label="Filtrer les catégories"
+        aria-label={m.favorites.filter}
       >
         <FilterButton
-          label="Tous"
+          label={m.favorites.all}
           active={selectedCategorySlug === null}
           onClick={() => onFilter(null)}
         />

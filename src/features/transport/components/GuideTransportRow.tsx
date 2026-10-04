@@ -1,7 +1,9 @@
 import { ChevronRight, TramFront } from 'lucide-react'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Ligne « Se déplacer » de la page Séjour (handoff « Le 305 »). */
 export function GuideTransportRow({ onOpen }: { onOpen: () => void }) {
+  const m = useGuideMessages()
   return (
     <button
       type="button"
@@ -12,8 +14,8 @@ export function GuideTransportRow({ onOpen }: { onOpen: () => void }) {
         <TramFront className="h-7 w-7 stroke-1" strokeWidth={1} aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-semibold text-[#111111]">Se déplacer</span>
-        <span className="block text-[13px] text-[#697386]">Navettes, Vélos ...</span>
+        <span className="block text-[15px] font-semibold text-[#111111]">{m.transport.title}</span>
+        <span className="block text-[13px] text-[#697386]">{m.transport.rowSubtitle}</span>
       </span>
       <ChevronRight strokeWidth={1} className="h-5 w-5 stroke-1 text-[#BE185D]" aria-hidden="true" />
     </button>

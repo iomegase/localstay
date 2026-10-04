@@ -9,6 +9,7 @@ import { formatFrenchPhone, frenchPhoneHref } from '@/shared/lib/french-phone'
 import { GUIDE_CARD, GuideInfoCard } from '../GuideCard'
 import { Switch } from '@/shared/components/ui/switch'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /**
  * Onglet Aide (spec 054 AC-01-05) : conciergerie et urgences (BR-05).
@@ -25,6 +26,7 @@ export function GuideHelpView({
   demo?: boolean
   installCard?: ReactNode
 }) {
+  const m = useGuideMessages()
   const gps = useUserLocation()
   const emergency = FRENCH_EMERGENCY_NUMBERS[0]
   const conciergePhone = lodging.usefulNumbers.find(item => /conciergerie/i.test(item.label))?.number
@@ -32,18 +34,18 @@ export function GuideHelpView({
 
   return (
     <div className="min-h-full bg-white px-5 pb-[120px] pt-6">
-      <h1 className="text-[30px] font-semibold tracking-[-0.03em] text-[#111111]">Réglages et infos</h1>
+      <h1 className="text-[30px] font-semibold tracking-[-0.03em] text-[#111111]">{m.help.title}</h1>
 
 
-      <section aria-label="Réglages du guide" className="mt-6 grid gap-3">
+      <section aria-label={m.help.settings} className="mt-6 grid gap-3">
         <div className={`${GUIDE_CARD} flex items-center gap-3`}>
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-800">
             <LocateFixed className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
-            <label htmlFor="guide-gps-switch" className="block text-[15px] font-semibold tracking-[-0.025em]">Activer votre GPS</label>
+            <label htmlFor="guide-gps-switch" className="block text-[15px] font-semibold tracking-[-0.025em]">{m.help.gps}</label>
             <p id="guide-gps-description" className="mt-1 text-xs text-slate-500" aria-live="polite">
-              {gps.status === 'loading' ? 'Recherche de votre position…' : gps.status === 'ready' ? 'Votre position est activée' : gps.status === 'denied' ? 'Accès refusé. Autorisez la localisation dans votre navigateur.' : gps.status === 'unavailable' ? 'Géolocalisation indisponible sur cet appareil.' : 'Pour vous repérer autour de vous'}
+              {gps.status === 'loading' ? m.help.gpsLoading : gps.status === 'ready' ? m.help.gpsReady : gps.status === 'denied' ? m.help.gpsDenied : gps.status === 'unavailable' ? m.help.gpsUnavailable : m.help.gpsIdle}
             </p>
           </div>
           <Switch
@@ -59,14 +61,14 @@ export function GuideHelpView({
       </section>
 
       <section className="mt-6">
-        <h2 className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">Infos pratiques</h2>
+        <h2 className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">{m.help.practical}</h2>
         <div id="guide-practical-panel" className="mt-3 grid gap-2.5">
           <GuideInfoCard
             testId="guide-practical-emergency"
             href={demo ? undefined : frenchPhoneHref(emergency.number)}
             icon={Siren}
             tone="emergency"
-            title={emergency.label}
+            title={m.help.emergency}
             trailing={emergency.number}
           />
           <GuideInfoCard
@@ -74,7 +76,7 @@ export function GuideHelpView({
             href={demo ? undefined : frenchPhoneHref(conciergePhone)}
             icon={Phone}
             tone="phone"
-            title="Conciergerie"
+            title={m.help.concierge}
             trailing={formatFrenchPhone(conciergePhone)}
           />
         </div>
@@ -86,6 +88,7 @@ export function GuideHelpView({
 
 /** Spec 054 AC-01-08 / 059 BR-06 : modal informatif, aucune installation. */
 function InformationalInstallCard() {
+  const m = useGuideMessages()
   const [installOpen, setInstallOpen] = useState(false)
 
   return (
@@ -95,17 +98,17 @@ function InformationalInstallCard() {
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-800">
             <Download className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
           </span>
-          <span className="text-[15px] font-semibold tracking-[-0.025em]">Installer le guide</span>
+          <span className="text-[15px] font-semibold tracking-[-0.025em]">{m.install.title}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Overlay className="absolute inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm" />
       <Dialog.Content className="absolute inset-x-5 top-1/2 z-[111] -translate-y-1/2 rounded-[26px] bg-white p-6 text-slate-900 shadow-xl focus:outline-none">
-        <Dialog.Title className="text-xl font-semibold tracking-[-0.025em]">Installer le guide</Dialog.Title>
+        <Dialog.Title className="text-xl font-semibold tracking-[-0.025em]">{m.install.title}</Dialog.Title>
         <Dialog.Description className="mt-3 text-sm leading-relaxed text-slate-600">
-          Votre position reste sur votre appareil. L’installation est à venir, avec une désactivation prévue après 7 jours.
+          {m.install.demoNotice}
         </Dialog.Description>
         <Dialog.Close asChild>
-          <button type="button" className="mt-5 min-h-11 w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500">J’ai compris</button>
+          <button type="button" className="mt-5 min-h-11 w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500">{m.common.understood}</button>
         </Dialog.Close>
       </Dialog.Content>
     </Dialog.Root>

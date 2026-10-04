@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { ShortVideoPlayer } from './ShortVideoPlayer'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export type LightboxContent =
   | { kind: 'photos'; photos: string[]; startIndex: number }
@@ -25,6 +26,7 @@ export function MediaLightbox({
   content: LightboxContent
   onClose: () => void
 }) {
+  const m = useGuideMessages()
   const scrollRef = useRef<HTMLDivElement>(null)
   const photoCount = content.kind === 'photos' ? content.photos.length : 0
   const [index, setIndex] = useState(
@@ -114,7 +116,7 @@ export function MediaLightbox({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={m.common.close}
           className="absolute right-2 top-2 z-20 grid h-9 w-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
         >
           <X className="h-4 w-4" />
@@ -141,7 +143,7 @@ export function MediaLightbox({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={src}
-                    alt={`${title} — photo ${i + 1}`}
+                    alt={m.media.photoOf(title, i + 1)}
                     draggable={false}
                     className="max-h-[70vh] w-full object-contain"
                   />
@@ -154,7 +156,7 @@ export function MediaLightbox({
                 <button
                   type="button"
                   onClick={() => goTo(index - 1)}
-                  aria-label="Photo précédente"
+                  aria-label={m.media.previous}
                   className="absolute left-2 top-1/2 z-10 hidden [@media(pointer:fine)]:grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
                 >
                   <ChevronLeft className="h-5 w-5" />
@@ -162,7 +164,7 @@ export function MediaLightbox({
                 <button
                   type="button"
                   onClick={() => goTo(index + 1)}
-                  aria-label="Photo suivante"
+                  aria-label={m.media.next}
                   className="absolute right-2 top-1/2 z-10 hidden [@media(pointer:fine)]:grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
                 >
                   <ChevronRight className="h-5 w-5" />

@@ -39,6 +39,7 @@ import type {
 } from '@/features/guide-app/types'
 import { useGuideViewNavigation } from '../hooks/useGuideViewNavigation'
 import { isGuideMenuEnabled } from '@/features/guide-app/lib/guide-menu-visibility'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 const loadGuideMapView = () => import('./GuideMapView').then(module => module.GuideMapView)
 
@@ -130,6 +131,7 @@ function GuideAppShell({
   }, [activeView])
 
   const [wifiOpen, setWifiOpen] = useState(false)
+  const m = useGuideMessages()
   const stay = useStayProgress(lodging.id, { persist: mode === 'private' })
   const travelTimes = useTravelTimes(mode === 'private' && lodging.locationPrecise && pois.length > 0)
   const departureDone = departureTasks(lodging.departureInstructions).filter((_, index) =>
@@ -242,6 +244,7 @@ function GuideAppShell({
           onOpenHome={() => navigate('home')}
           onOpenMenu={() => setMenuOpen(true)}
           menuEnabled={menuEnabled}
+          localeSwitch={mode === 'private'}
         />
       )}
 
@@ -338,7 +341,7 @@ function GuideAppShell({
             lodging={lodging}
             travel={travelTimes?.[selectedPoi.id]}
             onBack={() => navigate(poiOrigin)}
-            backLabel={poiOrigin === 'transport' ? 'Retour aux transports' : undefined}
+            backLabel={poiOrigin === 'transport' ? m.poi.backToTransport : undefined}
             onShowOnMap={showOnMap}
             onStartTrail={onStartTrail}
           />

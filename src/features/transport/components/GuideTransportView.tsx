@@ -6,6 +6,7 @@ import { GuideStayScreen } from '@/features/guide-app/components/stay/GuideStayS
 import { STAY_CARD } from '@/features/guide-app/components/stay/stay-styles'
 import type { GuideLodging, GuideTransportCard } from '@/features/guide-app/types'
 import { FacilibusDetails } from './FacilibusDetails'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 const FALLBACK_IMAGES: [RegExp, string][] = [
   [/tramway/i, '/fallback/fallback-tramway.png'],
@@ -22,6 +23,7 @@ function TransportAccordionCard({ id, title, body, tag, isFree, image, open, onT
   id: string; title: string; body: string; tag?: string | null; isFree?: boolean; image: string | null
   open: boolean; onToggle: () => void; children: ReactNode
 }) {
+  const m = useGuideMessages()
   const panelId = `transport-panel-${id}`
   return (
     <article className={`${STAY_CARD} overflow-hidden`}>
@@ -37,7 +39,7 @@ function TransportAccordionCard({ id, title, body, tag, isFree, image, open, onT
           <span className="flex flex-wrap items-center gap-1.5">
             <span className="text-[15px] font-semibold leading-tight text-[#111111]">{title}</span>
             {tag ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{tag}</span> : null}
-            {isFree ? <span className="rounded-full bg-[#FF6B00] px-2 py-0.5 text-[10px] font-bold text-white">Gratuit</span> : null}
+            {isFree ? <span className="rounded-full bg-[#FF6B00] px-2 py-0.5 text-[10px] font-bold text-white">{m.transport.free}</span> : null}
           </span>
           {body.trim() ? <span className="mt-1 line-clamp-2 block text-[13px] leading-[1.4] text-[#697386]">{body}</span> : null}
         </span>
@@ -59,19 +61,20 @@ export function GuideTransportView({ lodging, onBack, onOpenPoi }: {
   onBack: () => void
   onOpenPoi?: (poiId: string) => void
 }) {
+  const m = useGuideMessages()
   const [openId, setOpenId] = useState<string | null>(null)
   const [facilibusLoaded, setFacilibusLoaded] = useState(false)
   const shuttleCard = lodging.transportCards.find(card => card.service_key === 'facilibus')
   return (
-    <GuideStayScreen title="Se déplacer"
-      subtitle="Laissez la voiture de côté, la vallée se découvre facilement en transports en commun."
+    <GuideStayScreen title={m.transport.title}
+      subtitle={<span className="text-xs">{m.transport.intro}</span>}
       onBack={onBack}>
       <div className="grid gap-2.5">
         {lodging.facilibus ? (
-          <TransportAccordionCard id="facilibus" title={shuttleCard?.title || 'Navette gratuite'}
+          <TransportAccordionCard id="facilibus" title={shuttleCard?.title || m.transport.freeShuttle}
             tag={shuttleCard?.tag?.toLowerCase() === 'facilibus' ? null : shuttleCard?.tag}
             isFree={shuttleCard ? shuttleCard.is_free : true}
-            body={shuttleCard ? shuttleCard.body : 'Saint-Gervais ↔ Saint-Nicolas-de-Véroce · horaires et prochains passages'}
+            body={shuttleCard ? shuttleCard.body : m.transport.freeShuttleBody}
             image={shuttleCard?.image_url || '/fallback/fallback-bus.png'} open={openId === 'facilibus'}
             onToggle={() => {
               setFacilibusLoaded(true)
@@ -87,7 +90,7 @@ export function GuideTransportView({ lodging, onBack, onOpenPoi }: {
               ) : null}
               {shuttleCard?.external_url ? (
                 <a href={shuttleCard.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-slate-200 px-4 text-[12px] font-semibold text-slate-800">
-                  <ExternalLink className="h-4 w-4" aria-hidden="true" /> {shuttleCard.cta_label || 'En savoir plus'}
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" /> {shuttleCard.cta_label || m.transport.learnMore}
                 </a>
               ) : null}
             </div> : null}
@@ -107,7 +110,7 @@ export function GuideTransportView({ lodging, onBack, onOpenPoi }: {
                 ) : null}
                 {card.external_url ? (
                   <a href={card.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-[12px] font-semibold text-slate-800">
-                    <ExternalLink className="h-4 w-4" aria-hidden="true" /> {card.cta_label || 'En savoir plus'}
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" /> {card.cta_label || m.transport.learnMore}
                   </a>
                 ) : null}
               </div>

@@ -5,6 +5,7 @@ import { useRef, useState, type ReactNode, type TouchEvent } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
 import { gestureOutcome, resolveGestureIntent, type GestureIntent } from '@/shared/lib/touch-gesture'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 interface Props {
   photos: string[]
@@ -29,6 +30,7 @@ export function PoiDetailHeroCarousel({
   swipeable = false,
   children,
 }: Props) {
+  const m = useGuideMessages()
   const [photoIndex, setPhotoIndex] = useState(0)
   const swipeRef = useRef<{ x: number; y: number; startOffsetX: number; intent: GestureIntent | null } | null>(null)
   const [deadPhotos, setDeadPhotos] = useState<Set<string>>(new Set())
@@ -138,7 +140,7 @@ export function PoiDetailHeroCarousel({
           <button
             type="button"
             onClick={showPrevPhoto}
-            aria-label="Photo précédente"
+            aria-label={m.media.previous}
             className={`absolute left-4 top-1/2 z-10 ${arrowDisplay} h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60 ${controlReveal}`.trim()}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -146,7 +148,7 @@ export function PoiDetailHeroCarousel({
           <button
             type="button"
             onClick={showNextPhoto}
-            aria-label="Photo suivante"
+            aria-label={m.media.next}
             className={`absolute right-4 top-1/2 z-10 ${arrowDisplay} h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-gray-800 shadow-lg backdrop-blur-sm transition-colors hover:text-white/60 ${controlReveal}`.trim()}
           >
             <ChevronRight className="h-5 w-5" />
@@ -155,7 +157,7 @@ export function PoiDetailHeroCarousel({
             {galleryPhotos.map((_, index) => (
               <span
                 key={index}
-                aria-label={`Photo ${index + 1} sur ${galleryPhotos.length}`}
+                aria-label={m.media.photoPosition(index + 1, galleryPhotos.length)}
                 aria-current={index === photoIndex ? 'true' : undefined}
                 className={`h-1.5 rounded-full transition-all ${
                   index === photoIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/60'

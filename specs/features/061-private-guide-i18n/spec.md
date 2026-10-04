@@ -5,7 +5,7 @@
 ```yaml
 id: 061-private-guide-i18n
 title: "Guide privé en français et en anglais, sélecteur FR / GB dans l'en-tête"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-04
@@ -55,10 +55,12 @@ geste, pour comprendre les informations de mon séjour.
   cookie de 027 AC-01-01) est écrit.
 - **AC-01-03**: Given une première visite sans cookie, When le guide est servi,
   Then la langue est déduite de l'en-tête `Accept-Language` : `fr` si la langue
-  préférée commence par `fr`, sinon `en`.
+  préférée commence par `fr`, sinon `en` ; sans en-tête, `fr` (langue source).
 - **AC-01-04**: Given le cookie `staylocal_locale`, When une page du guide est
   servie, Then elle est rendue côté serveur directement dans cette langue (pas
-  de clignotement), avec `<html lang>` correspondant.
+  de clignotement) ; le conteneur du guide porte l'attribut `lang` dès le rendu
+  serveur et `<html lang>` est synchronisé côté client (le layout racine reste
+  statique pour le site public).
 - **AC-01-05**: Given la langue `en`, When l'interface s'affiche, Then tous les
   libellés fixes du guide (navigation, titres d'écran, boutons, états vides,
   modales, PWA, numéros d'urgence, consignes de départ fixes, dates et heures)

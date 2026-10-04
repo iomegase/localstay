@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { extractYouTubeId } from '@/shared/lib/youtube'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 type YTPlayer = {
   getCurrentTime: () => number
@@ -50,6 +51,7 @@ function loadYouTubeApi(): Promise<void> {
  * (avec scrub) — la seule commande exposée, sans réactiver le son.
  */
 export function ShortVideoPlayer({ url }: { url: string }) {
+  const m = useGuideMessages()
   const videoId = extractYouTubeId(url)
   const hostRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<YTPlayer | null>(null)
@@ -125,7 +127,7 @@ export function ShortVideoPlayer({ url }: { url: string }) {
 
       <div
         role="slider"
-        aria-label="Progression de la vidéo"
+        aria-label={m.video.progress}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress * 100)}

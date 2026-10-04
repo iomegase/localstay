@@ -2,6 +2,7 @@
 
 import { Check, Copy } from 'lucide-react'
 import { copyToClipboard, useTemporaryFlag } from './useTemporaryFlag'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Feuille basse Wi-Fi (spec 054 AC-01-04). */
 export function GuideWifiSheet({
@@ -15,6 +16,7 @@ export function GuideWifiSheet({
   password: string
   onClose: () => void
 }) {
+  const m = useGuideMessages()
   const [copied, flagCopied] = useTemporaryFlag(1800)
   if (!open) return null
 
@@ -38,23 +40,23 @@ export function GuideWifiSheet({
       >
         <span className="mx-auto block h-1 w-10 rounded-full bg-[rgba(17,17,17,0.15)]" aria-hidden="true" />
         <h2 id="guide-wifi-sheet-title" className="mt-4 text-[22px] font-semibold tracking-[-0.02em] text-[#111111]">
-          Wi-Fi
+          {m.wifi.title}
         </h2>
         <dl className="mt-4 grid gap-2.5">
           <div className="rounded-2xl bg-[#F6F6F4] px-4 py-3">
-            <dt className="text-[12px] text-[#697386]">Réseau</dt>
+            <dt className="text-[12px] text-[#697386]">{m.wifi.network}</dt>
             <dd className="mt-0.5 text-[16px] font-semibold text-[#111111]">{name || '—'}</dd>
           </div>
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#F6F6F4] px-4 py-3">
             <div className="min-w-0">
-              <dt className="text-[12px] text-[#697386]">Mot de passe</dt>
+              <dt className="text-[12px] text-[#697386]">{m.wifi.password}</dt>
               <dd className="mt-0.5 break-all font-mono text-[16px] font-semibold text-[#111111]">{password || '—'}</dd>
             </div>
             {password && (
               <button
                 type="button"
                 onClick={copyPassword}
-                aria-label={copied ? 'Mot de passe copié' : 'Copier le mot de passe'}
+                aria-label={copied ? m.wifi.copied : m.wifi.copy}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#DB2777] transition-colors hover:bg-[#FCE7F3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777]"
               >
                 {copied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Copy className="h-5 w-5" aria-hidden="true" />}

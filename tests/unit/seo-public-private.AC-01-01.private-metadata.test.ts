@@ -9,6 +9,7 @@ jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
 
 import SejourLayout, { generateMetadata as generateSejourMetadata } from '@/app/(public)/sejour/layout'
 import { GuidePwaRuntime } from '@/features/guide-pwa/components/GuidePwaRuntime'
+import { GuideI18nProvider } from '@/features/guide-i18n/components/GuideI18nProvider'
 import GuideLayout, { metadata as guideMetadata } from '@/app/(public)/guide/[city-slug]/layout'
 
 const expectedRobots = {
@@ -53,9 +54,13 @@ describe('042 SEO private metadata — AC-01-01', () => {
     const metadata = await generateSejourMetadata()
     expect(metadata).toEqual({ ...privatePageMetadata('Votre séjour'), manifest: `/api/guide/manifest?lodging=${lodgingId}` })
 
-    const layout = (await SejourLayout({ children: child })) as React.ReactElement<{ lodgingId: string; children: React.ReactNode }>
-    expect(layout.type).toBe(GuidePwaRuntime)
-    expect(layout.props.lodgingId).toBe(lodgingId)
-    expect(layout.props.children).toBe(child)
+    // 061 : la langue englobe le runtime PWA.
+    const layout = (await SejourLayout({ children: child })) as React.ReactElement<{ initialLocale: string; children: React.ReactElement<{ lodgingId: string; children: React.ReactNode }> }>
+    expect(layout.type).toBe(GuideI18nProvider)
+    expect(layout.props.initialLocale).toBe('fr')
+    const runtime = layout.props.children
+    expect(runtime.type).toBe(GuidePwaRuntime)
+    expect(runtime.props.lodgingId).toBe(lodgingId)
+    expect(runtime.props.children).toBe(child)
   })
 })

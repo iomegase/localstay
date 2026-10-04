@@ -6,6 +6,7 @@ import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import { capitalizeFirst } from '@/shared/lib/utils'
 import type { FavoriteBentoVariant } from '@/features/guide-app/lib/favorite-bento'
 import type { GuidePoi } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Champs affichés par la carte (lieux privés ou de démonstration). */
 export type BentoPoi = Pick<
@@ -34,6 +35,7 @@ export function GuideFavoriteBentoCard<P extends BentoPoi>({
   onSelectPoi,
   onShowOnMap,
 }: Props<P>) {
+  const m = useGuideMessages()
   const heroSrc = getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: poi.photos })
   const fallbackSrc = getGuidePoiHeroImage({ categorySlug: poi.category.slug, photos: [] })
   const [src, setSrc] = useState(heroSrc)
@@ -75,14 +77,14 @@ export function GuideFavoriteBentoCard<P extends BentoPoi>({
             poi.isOpenNow ? 'bg-green-500' : 'bg-red-500'
           }`}
         >
-          {poi.isOpenNow ? 'Ouvert' : 'Fermé'}
+          {poi.isOpenNow ? m.poi.open : m.poi.closed}
         </span>
       )}
 
       {/* Action principale : couvre toute la carte, sous le contenu et l'action Carte */}
       <button
         type="button"
-        aria-label={`Ouvrir ${poi.name}`}
+        aria-label={m.card.open(poi.name)}
         onClick={() => onSelectPoi(poi)}
         className="absolute inset-0 z-0 h-full w-full"
       />
@@ -118,7 +120,7 @@ export function GuideFavoriteBentoCard<P extends BentoPoi>({
       {/* Action Carte distincte (icône seule), au-dessus de l'action principale */}
       <button
         type="button"
-        aria-label={`Voir ${poi.name} sur la carte`}
+        aria-label={m.card.showOnMap(poi.name)}
         onClick={() => onShowOnMap(poi)}
         className="absolute right-3 top-3 z-10 inline-flex items-center justify-center rounded-full bg-black/55 p-2 text-white backdrop-blur transition hover:bg-black/75"
       >

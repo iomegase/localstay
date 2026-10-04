@@ -30,6 +30,7 @@ import {
 } from "./poi-search";
 import { formatFrenchPlaceReference } from "@/shared/lib/french-place";
 import { formatGuideHour } from "./stay-styles";
+import { useGuideI18n } from "@/features/guide-i18n/components/GuideI18nContext";
 
 /** « Le 305 » → { lead: « Bienvenue au », name: « 305 » } (spec 054 AC-01-02). */
 export function splitWelcome(name: string): { lead: string; name: string } {
@@ -72,7 +73,9 @@ export function GuideStayHome<P extends StayPoiCard>({
   /** Spec 055 : ligne « Se déplacer » vers les transports du guide. */
   transportEntry?: React.ReactNode;
 }) {
-  const welcome = splitWelcome(lodging.name);
+  const { locale, messages: m } = useGuideI18n();
+  // Spec 061 : « Bienvenue au 305 » (grammaire française) / « Welcome to Le 305 ».
+  const welcome = locale === "fr" ? splitWelcome(lodging.name) : { lead: m.home.welcomeLead, name: lodging.name };
   // Carrousel : sans urgences ni mobilité, avec un temps réel ou à défaut une
   // distance à vol d'oiseau depuis un logement localisé (specs 054 / 057).
   const featured = pois
@@ -99,7 +102,7 @@ export function GuideStayHome<P extends StayPoiCard>({
           poi,
           display: {
             ...poi,
-            distanceLabel: formatDistanceMeters(meters),
+            distanceLabel: formatDistanceMeters(meters, locale),
             distanceMode: "crow" as const,
           },
         };
@@ -111,19 +114,19 @@ export function GuideStayHome<P extends StayPoiCard>({
     lodging.stats.guests !== null
       ? {
           value: String(lodging.stats.guests),
-          label: "Voyageurs",
+          label: m.home.stats.guests,
           icon: UsersRound,
         }
       : null,
     lodging.stats.bedrooms !== null
       ? {
           value: String(lodging.stats.bedrooms),
-          label: "Chambres",
+          label: m.home.stats.bedrooms,
           icon: BedDouble,
         }
       : null,
     lodging.stats.surfaceM2 !== null
-      ? { value: `${lodging.stats.surfaceM2} m²`, label: "Surface", icon: null }
+      ? { value: `${lodging.stats.surfaceM2} m²`, label: m.home.stats.surface, icon: null }
       : null,
   ].filter(
     (stat): stat is { value: string; label: string; icon: LucideIcon | null } =>
@@ -195,31 +198,31 @@ export function GuideStayHome<P extends StayPoiCard>({
 
       <section
         className="mx-5 mt-3.5 grid grid-cols-2 gap-2.5"
-        aria-label="Informations sur votre séjour"
+        aria-label={m.home.stayInfo}
       >
         <StayTile
           icon={LogIn}
-          title="Arrivée"
-          subtitle={`Dès ${formatGuideHour(lodging.checkIn)}`}
+          title={m.home.arrival}
+          subtitle={m.home.arrivalFrom(formatGuideHour(lodging.checkIn, locale))}
           dark
           onClick={() => onNavigate("arrival")}
         />
         <StayTile
           icon={Wifi}
-          title="Wi-Fi"
-          subtitle="Mot de passe"
+          title={m.home.wifi}
+          subtitle={m.home.wifiPassword}
           onClick={onOpenWifi}
         />
         <StayTile
           icon={BookOpen}
-          title="Guide "
-          subtitle="Du logement"
+          title={m.home.houseGuide}
+          subtitle={m.home.houseGuideSubtitle}
           onClick={() => onNavigate("rules")}
         />
         <StayTile
           icon={LogOut}
-          title="Départ"
-          subtitle={`${departureDone} sur ${departureTotal} faits`}
+          title={m.home.departure}
+          subtitle={m.home.departureProgress(departureDone, departureTotal)}
           onClick={() => onNavigate("departure")}
         />
       </section>

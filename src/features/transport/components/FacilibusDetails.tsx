@@ -25,14 +25,14 @@ import { RoutePill } from './RoutePill'
 import { StationDistance } from './StationDistance'
 import { primaryTravel } from '@/features/guide-app/components/stay/poi-search'
 import { Car, ChevronDown, ChevronRight, Footprints, House, MapPin } from 'lucide-react'
+import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
 
 const DEPARTURES_REFRESH_MS = 30_000
 
-const dateFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit' })
 
 /** Dernier jour couvert : la fin de couverture est exclusive. */
-function coverageEndLabel(iso: string): string {
-  return dateFormatter.format(new Date(Date.parse(iso) - 1000))
+function coverageEndLabel(iso: string, intlLocale: string): string {
+  return new Intl.DateTimeFormat(intlLocale, { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit' }).format(new Date(Date.parse(iso) - 1000))
 }
 
 /** « Télécabines/Le Châtelet - Saint Nicolas » → « Télécabines / Le Châtelet ↔ Saint Nicolas ». */
@@ -51,6 +51,7 @@ function networkRoutes(stations: PublicStation[]): PublicRoute[] {
 export function FacilibusDetails({ lodging }: {
   lodging: Pick<GuideLodging, 'latitude' | 'longitude' | 'locationPrecise'>
 }) {
+  const { intlLocale, messages: m } = useGuideI18n()
   const nearby = useTransportResource<NearbyResult>(
     lodging.locationPrecise
       ? `/api/transport/facilibus/nearby?lat=${lodging.latitude}&lng=${lodging.longitude}`
@@ -78,8 +79,8 @@ export function FacilibusDetails({ lodging }: {
 
   function accessLabel(station: NearbyResult['stations'][number]): string {
     const travel = primaryTravel(station.travel ?? undefined)
-    if (!travel) return `${station.distanceMeters} m à vol d'oiseau`
-    return `${travel.label} ${travel.mode === 'walking' ? 'à pied' : 'en voiture'}`
+    if (!travel) return m.transport.crowDistance(station.distanceMeters)
+    return `${travel.label} ${travel.mode === 'walking' ? m.transport.onFoot : m.transport.byCar}`
   }
 
   const lines = useTransportResource<LinesResult>('/api/transport/facilibus/lines')
@@ -96,11 +97,11 @@ export function FacilibusDetails({ lodging }: {
   return (
     <div className="min-w-0">
       {routes.length > 0 || lodging.locationPrecise ? (
-        <section aria-label="Lignes" className="mb-5 grid gap-2">
+        <section aria-label={m.transport.lines} className="mb-5 grid gap-2">
           {routes.map(route => (
             <p key={route.shortName} className="flex items-center gap-3 text-xs text-[#111111]">
               <RoutePill route={route} />
-              <span>{route.longName ? formatRouteName(route.longName) : `Ligne ${route.shortName}`}</span>
+              <span>{route.longName ? formatRouteName(route.longName) : m.transport.line(route.shortName)}</span>
             </p>
           ))}
           {lodging.locationPrecise ? (
@@ -108,7 +109,7 @@ export function FacilibusDetails({ lodging }: {
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#DB2777] text-white">
                 <House className="h-4 w-4" aria-hidden="true" />
               </span>
-              <span>Votre logement</span>
+              <span>{m.transport.yourLodging}</span>
             </p>
           ) : null}
         </section>
@@ -140,8 +141,8 @@ export function FacilibusDetails({ lodging }: {
             <MapPin className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-semibold text-[#697386]">{selectedId ? 'Arrêt sélectionné' : 'Arrêt'}</span>
-            <span className="block text-[14px] font-semibold leading-5 text-[#111827]">{selectedName ?? 'Choisir un arrêt'}</span>
+            <span className="block text-[11px] font-semibold text-[#697386]">{selectedId ? m.transport.selectedStop : m.transport.stop}</span>
+            <span className="block text-[14px] font-semibold leading-5 text-[#111827]">{selectedName ?? m.transport.chooseStop}</span>
             {selectedNearby ? <span className="mt-0.5 block text-[12px] text-[#DB2777]">{accessLabel(selectedNearby)}</span> : null}
           </span>
           <ChevronDown className={`h-5 w-5 shrink-0 text-[#111827] transition-transform duration-200 ${pickerOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -150,8 +151,8 @@ export function FacilibusDetails({ lodging }: {
         {pickerOpen ? (
           <div id={pickerId} className="mt-2 rounded-[20px] bg-[#F3F4F6] p-3 shadow-[0_2px_8px_rgba(17,17,17,0.04)]">
             {nearbyStations.length > 0 ? (
-              <section aria-label="Arrêts proches" className="overflow-hidden rounded-[16px] bg-white">
-                <h3 className="px-4 pt-4 pb-1 text-[13px] font-semibold text-[#111827]">Arrêts proches</h3>
+              <section aria-label={m.transport.nearbyStops} className="overflow-hidden rounded-[16px] bg-white">
+                <h3 className="px-4 pt-4 pb-1 text-[13px] font-semibold text-[#111827]">{m.transport.nearbyStops}</h3>
                 {nearbyStations.map(station => (
                   <button
                     key={station.id}
@@ -183,10 +184,10 @@ export function FacilibusDetails({ lodging }: {
               <div className={nearbyStations.length > 0 ? 'mt-2' : ''}>
                 {nearbyStations.length > 0 && !showOtherStations ? (
                   <button type="button" onClick={() => setShowAllStops(true)} className="flex min-h-11 w-full items-center justify-center gap-1 text-[13px] font-semibold text-[#DB2777]">
-                    Tous les arrêts <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                    {m.transport.allStops} <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </button>
                 ) : (
-                  <section aria-label="Tous les arrêts" className="max-h-64 overflow-y-auto rounded-[16px] bg-white">
+                  <section aria-label={m.transport.allStops} className="max-h-64 overflow-y-auto rounded-[16px] bg-white">
                     {otherStations.map(station => (
                       <button
                         key={station.id}
@@ -210,29 +211,29 @@ export function FacilibusDetails({ lodging }: {
       </div>
 
       {selectedId ? (
-        <section aria-label="Prochains départs" className="mt-5 rounded-[20px] bg-white p-2 shadow-[0_1px_2px_rgba(17,17,17,0.06)]">
-          <h2 className="text-[16px] font-semibold text-[#111111]">{selectedName ?? 'Prochains départs'}</h2>
+        <section aria-label={m.transport.nextDepartures} className="mt-5 rounded-[20px] bg-white p-2 shadow-[0_1px_2px_rgba(17,17,17,0.06)]">
+          <h2 className="text-[16px] font-semibold text-[#111111]">{selectedName ?? m.transport.nextDepartures}</h2>
           {selectedNearby ? <StationDistance station={selectedNearby} /> : null}
 
           {outage ? (
-            <p role="status" className="mt-3 text-[14px] text-[#697386]">Horaires momentanément indisponibles.</p>
+            <p role="status" className="mt-3 text-[14px] text-[#697386]">{m.transport.unavailable}</p>
           ) : !envelope ? (
-            <p className="mt-3 text-[14px] text-[#697386]">Chargement des horaires…</p>
+            <p className="mt-3 text-[14px] text-[#697386]">{m.transport.loading}</p>
           ) : envelope.data.departures.length > 0 ? (
             <ul className="mt-1 divide-y divide-[rgba(17,17,17,0.08)]">
               {envelope.data.departures.map(departure => <FacilibusDepartureRow key={departure.id} departure={departure} />)}
             </ul>
           ) : envelope.meta.coverage?.partial ? (
             <p className="mt-3 text-[14px] text-[#697386]">
-              Horaires publiés jusqu’au {coverageEndLabel(envelope.meta.coverage.to)} : aucun départ connu au-delà.
+              {m.transport.coverage(coverageEndLabel(envelope.meta.coverage.to, intlLocale))}
             </p>
           ) : (
-            <p className="mt-3 text-[14px] text-[#697386]">Aucun départ dans les prochaines 24 h.</p>
+            <p className="mt-3 text-[14px] text-[#697386]">{m.transport.none}</p>
           )}
 
           {envelope && !outage ? (
             <p className="mt-3 text-[12px] text-[#9CA3AF]">
-              {envelope.status === 'stale' ? 'Horaires non actualisés' : 'Horaires'} · mis à jour à {formatParisTime(envelope.meta.fetchedAt)}
+              {m.transport.updated(envelope.status === 'stale', formatParisTime(envelope.meta.fetchedAt))}
             </p>
           ) : null}
         </section>

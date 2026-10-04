@@ -3,6 +3,7 @@
 import { useId } from 'react'
 import { LocateFixed } from 'lucide-react'
 import { Switch } from '@/shared/components/ui/switch'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /**
  * Interrupteur GPS sous la recherche (spec 057 AC-02-01, amendement PO
@@ -21,6 +22,7 @@ export function GuideLocationToggle({
   onRequest: () => void
   onClear: () => void
 }) {
+  const m = useGuideMessages()
   const switchId = useId()
   const descriptionId = `${switchId}-description`
 
@@ -29,10 +31,10 @@ export function GuideLocationToggle({
       <LocateFixed className="h-4 w-4 shrink-0 text-slate-800" strokeWidth={1} aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <label htmlFor={switchId} className="block text-xs font-semibold text-slate-900">
-          {loading ? 'Localisation…' : 'GPS'}
+          {loading ? m.gps.locating : m.gps.label}
         </label>
         {denied ? (
-          <p id={descriptionId} className="text-xs text-[#697386]" aria-live="polite">Position non disponible.</p>
+          <p id={descriptionId} className="text-xs text-[#697386]" aria-live="polite">{m.gps.unavailable}</p>
         ) : null}
       </div>
       <Switch

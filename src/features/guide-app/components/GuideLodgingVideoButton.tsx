@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { ChevronRight, Video, X } from 'lucide-react'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 import { extractYouTubeId } from '@/shared/lib/youtube'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export function GuideLodgingVideoButton({ url }: { url?: string }) {
+  const m = useGuideMessages()
   const [open, setOpen] = useState(false)
   const videoId = url ? extractYouTubeId(url) : null
 
@@ -35,7 +37,7 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
           </span>
           <span>
             <span className="block text-sm font-semibold">
-             Vidéo du logement
+             {m.video.title}
             </span>
             {/* <span className="mt-0.5 block text-[10px] text-black/60">
               Découvrez votre logement en vidéo
@@ -54,22 +56,22 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
           <section
             role="dialog"
             aria-modal="true"
-            aria-label="Vidéo du logement"
+            aria-label={m.video.title}
             onClick={event => event.stopPropagation()}
             className="relative w-[min(390px,calc((100dvh-40px)*9/16))] overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
           >
-            <h2 className="sr-only">Vidéo du logement</h2>
+            <h2 className="sr-only">{m.video.title}</h2>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Fermer"
+              aria-label={m.common.close}
               className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
             <YouTubeEmbed
               url={url}
-              title="Vidéo du logement"
+              title={m.video.title}
               aspectRatio="portrait"
             />
           </section>

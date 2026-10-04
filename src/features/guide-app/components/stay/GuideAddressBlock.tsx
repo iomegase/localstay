@@ -3,9 +3,11 @@
 import { Check, Copy, Map } from 'lucide-react'
 import type { GuideLodging } from '@/features/guide-app/types'
 import { copyToClipboard, useTemporaryFlag } from './useTemporaryFlag'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Adresse et bouton Maps des captures PO (spec 054 AC-01-05 / AC-04-01). */
 export function GuideAddressBlock({ lodging }: { lodging: GuideLodging }) {
+  const m = useGuideMessages()
   const [copied, flagCopied] = useTemporaryFlag(1600)
   const [street, ...localityParts] = lodging.addressLabel.split(',')
   const locality = localityParts.join(',').trim()
@@ -24,7 +26,7 @@ export function GuideAddressBlock({ lodging }: { lodging: GuideLodging }) {
         <button
           type="button"
           onClick={copyAddress}
-          aria-label={copied ? 'Adresse copiée' : "Copier l'adresse"}
+          aria-label={copied ? m.address.copied : m.address.copy}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#DB2777] transition-colors hover:bg-[#FCE7F3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777]"
         >
           {copied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Copy className="h-5 w-5" aria-hidden="true" />}
@@ -35,6 +37,7 @@ export function GuideAddressBlock({ lodging }: { lodging: GuideLodging }) {
 }
 
 export function GuideMapsButton({ href }: { href: string }) {
+  const m = useGuideMessages()
   return (
     <a
       href={href}
@@ -45,7 +48,7 @@ export function GuideMapsButton({ href }: { href: string }) {
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
         <Map className="h-4 w-4" aria-hidden="true" />
       </span>
-      Ouvrir dans Maps
+      {m.address.openMaps}
     </a>
   )
 }

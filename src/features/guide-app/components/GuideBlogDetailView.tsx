@@ -1,6 +1,7 @@
 import { ArrowLeft, MapPin } from 'lucide-react'
 import { BlogMarkdown } from '@/features/blog/components/BlogMarkdown'
 import type { GuideBlogDetail } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /**
  * Vue lecteur d'un article, DANS l'app (guest confiné). Le contenu est chargé à
@@ -14,6 +15,7 @@ export function GuideBlogDetailView({
   detail: GuideBlogDetail | null
   onBack: () => void
 }) {
+  const m = useGuideMessages()
   return (
     <div className="px-4 pb-24 pt-4">
       <button
@@ -22,11 +24,11 @@ export function GuideBlogDetailView({
         className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500"
       >
         <ArrowLeft className="h-4 w-4" />
-        Journal
+        {m.blog.back}
       </button>
 
       {!detail ? (
-        <p className="mt-10 text-center text-sm text-slate-400">Chargement…</p>
+        <p className="mt-10 text-center text-sm text-slate-400">{m.common.loading}</p>
       ) : (
         <article className="mt-4">
           {detail.coverUrl && (

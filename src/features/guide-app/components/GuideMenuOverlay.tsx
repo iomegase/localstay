@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import Link from 'next/link'
 import type { GuideView } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export type GuideMenuItem = {
   label: string
@@ -35,6 +36,12 @@ export function GuideMenuOverlay({
   items?: GuideMenuItem[]
 }) {
   const reducedMotion = useReducedMotion()
+  const m = useGuideMessages()
+  // Spec 061 : libellés des vues internes traduits ; « Les logements » sur deux lignes.
+  const labelOf = (item: GuideMenuItem) =>
+    item.view === 'lodgings' ? <>{m.menu.lodgingsFirstLine} <br />{m.menu.lodgingsSecondLine}</>
+      : item.view === 'blog' ? m.menu.blog
+        : item.label
 
   useEffect(() => {
     if (!open) return
@@ -61,14 +68,14 @@ export function GuideMenuOverlay({
             exit={{ rotate: reducedMotion ? 0 : 90, transition: { duration: reducedMotion ? 0 : 0.24 } }}
             type="button"
             onClick={onClose}
-            aria-label="Fermer le menu"
+            aria-label={m.menu.close}
             className="ml-auto grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
           >
             <X className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
           </motion.button>
 
           <motion.nav
-            aria-label="Menu du guide"
+            aria-label={m.menu.label}
             initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reducedMotion ? 0 : 0.32, ease: 'easeOut' }}
@@ -77,7 +84,7 @@ export function GuideMenuOverlay({
             <ul className="grid flex-1 auto-rows-fr divide-y divide-slate-200">
               {items.map((item, index) => (
                 <motion.li
-                  key={`${item.label === 'Les logements' ? <>Les <br />logements</> : item.label}-${item.view ?? item.href ?? 'disabled'}`}
+                  key={item.view ?? item.href ?? item.label}
                   initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: reducedMotion ? 0 : index * 0.04, duration: reducedMotion ? 0 : 0.28, ease: 'easeOut' }}
@@ -92,7 +99,7 @@ export function GuideMenuOverlay({
                       }}
                       className="flex min-h-24 w-full flex-col justify-center py-8 text-left text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 transition-colors hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-500 min-[375px]:text-[44px]"
                     >
-                      {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
+                      {labelOf(item)}
                     </button>
                   ) : item.href ? (
                     <Link
@@ -100,14 +107,14 @@ export function GuideMenuOverlay({
                       onClick={onClose}
                       className="flex min-h-24 w-full flex-col justify-center py-8 text-left text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 transition-colors hover:text-slate-600 min-[375px]:text-[44px]"
                     >
-                      {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
+                      {labelOf(item)}
                     </Link>
                   ) : (
                     <span
                       aria-disabled="true"
                       className="flex w-full flex-col justify-center py-8 text-[36px] font-medium leading-[1.08] tracking-[-0.04em] text-slate-900 min-[375px]:text-[44px]"
                     >
-                      {item.label === 'Les logements' ? <>Les <br />logements</> : item.label}
+                      {labelOf(item)}
                     </span>
                   )}
                 </motion.li>
