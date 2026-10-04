@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu } from 'lucide-react'
+import { TextAlignEnd } from 'lucide-react'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 import { GuideLocaleSwitch } from '@/features/guide-i18n/components/GuideLocaleSwitch'
@@ -43,9 +43,9 @@ export function GuideHeader({
           onClick={onOpenMenu}
           aria-label={m.header.openMenu}
           data-testid="guide-menu-icon"
-          className="translate-x-1 translate-y-1.5 p-2 text-slate-800"
+          className="grid h-11 w-11 place-items-center text-slate-800"
         >
-          <Menu className="h-6 w-6" strokeWidth={2} />
+          <TextAlignEnd className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
         </button>
       ) : null}
       </div>

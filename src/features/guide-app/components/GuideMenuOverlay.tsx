@@ -60,8 +60,10 @@ export function GuideMenuOverlay({
           initial={{ opacity: 0, y: reducedMotion ? 0 : 20 }}
           animate={{ opacity: 1, y: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
           exit={{ opacity: 0, y: reducedMotion ? 0 : 16, transition: { duration: reducedMotion ? 0 : 0.24 } }}
-          className="absolute inset-0 z-[100] flex flex-col overflow-y-auto bg-white/[0.98] px-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] backdrop-blur-xl"
+          className="absolute inset-0 z-[100] flex flex-col overflow-y-auto bg-white/[0.98] pb-[max(1.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl"
         >
+          {/* Spec 054 AC-01-14 : même rangée que l'en-tête, la croix remplace l'icône menu au même endroit. */}
+          <div className="flex h-[68px] shrink-0 items-center justify-end pr-[10px]">
           <motion.button
             initial={{ rotate: reducedMotion ? 0 : -90 }}
             animate={{ rotate: 0, transition: { duration: reducedMotion ? 0 : 0.32 } }}
@@ -69,17 +71,18 @@ export function GuideMenuOverlay({
             type="button"
             onClick={onClose}
             aria-label={m.menu.close}
-            className="ml-auto grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-500"
           >
             <X className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
           </motion.button>
+          </div>
 
           <motion.nav
             aria-label={m.menu.label}
             initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reducedMotion ? 0 : 0.32, ease: 'easeOut' }}
-            className="mt-5 flex min-h-[280px] flex-1 flex-col"
+            className="mt-5 flex min-h-[280px] flex-1 flex-col px-7"
           >
             <ul className="grid flex-1 auto-rows-fr divide-y divide-slate-200">
               {items.map((item, index) => (

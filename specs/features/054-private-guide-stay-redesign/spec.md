@@ -489,3 +489,27 @@ relancer ses requêtes partagées ; compteur et état séjour conservés.
 AC-01-11 : historique retour/avance, fragments et retaps restent cohérents.
 AC-01-12 : préchargement du module carte sans montage anticipé.
 Aucun changement d’accès privé, données, API, persistance métier ou design.
+
+## Amendement approuvé — Titres à droite du retour (2026-10-04)
+
+Demande explicite du PO : sur Arrivée, Départ, Guide logement et Se déplacer
+(spec 055), le bouton retour rond de 44 px et le bloc titre sont disposés
+sur une même ligne, bouton à gauche et titre à droite, centrés verticalement
+avec un espace de 12 px. Le sous-titre éventuel reste sous le titre dans ce
+bloc. Les titres conservent leur typographie de 28 px et peuvent revenir à
+la ligne ; le bouton ne rétrécit pas. Le contenu commence sous cet en-tête.
+Privé et démo partagent ce rendu. Les actions retour restent inchangées.
+AC-01-13 : les quatre titres sont à droite du bouton retour et les sous-titres
+éventuels restent sous leur titre.
+
+## Amendement approuvé — Alignement en-tête et menu (PO 2026-10-04)
+
+Décisions du PO : dans l'en-tête du guide (68 px), le bouton menu est centré
+verticalement sur la même ligne que le sélecteur FR | GB (spec 061), sans
+décalage ; son icône devient Lucide `AlignRight` (nom actuel `TextAlignEnd`, trait 1,8, 24 px) au lieu de
+`Menu`. Dans le menu ouvert, le bouton fermer (rond 56 px, fond slate-50,
+inchangé) est placé dans une rangée de 68 px identique à l'en-tête, centré au
+même point que le bouton menu : il apparaît exactement à la place de l'icône
+qu'il remplace.
+AC-01-14 : bouton menu aligné, icône `AlignRight` ; bouton fermer au même
+emplacement que le bouton menu.
