@@ -82,7 +82,7 @@ export async function applyEnglishTranslations(fields: LocalizableField[]): Prom
 /** Tous les champs traduisibles du guide privé (tâche planifiée, 061 A1 AC-02-04). */
 export async function collectAllTranslationSources(): Promise<TranslationSource[]> {
   const activeLodging = { deleted_at: null, is_active: true }
-  const [customizations, arrivals, blocks, featured, pois, categories, cards] = await Promise.all([
+  const [customizations, arrivals, blocks, featured, pois, categories, cards, profiles, amenities, photos] = await Promise.all([
     prisma.lodgingCustomization.findMany({ where: { lodging: activeLodging }, select: { id: true, welcome_message: true, trash_location: true } }),
     prisma.lodgingArrivalInstruction.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, text: true, tip: true, substeps: true, facts: true } }),
     prisma.lodgingPracticalBlock.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, body: true } }),
@@ -90,6 +90,10 @@ export async function collectAllTranslationSources(): Promise<TranslationSource[
     prisma.pointOfInterest.findMany({ where: { deleted_at: null, is_active: true }, select: { id: true, description: true } }),
     prisma.category.findMany({ where: { deleted_at: null }, select: { id: true, name: true } }),
     prisma.cityTransportCard.findMany({ where: { deleted_at: null }, select: { id: true, title: true, body: true, cta_label: true } }),
+    // Spec 061 A3 : vitrine des logements consultée depuis le guide.
+    prisma.lodgingPublicProfile.findMany({ where: { deleted_at: null }, select: { id: true, description: true, short_description: true, property_type: true } }),
+    prisma.lodgingAmenity.findMany({ where: { deleted_at: null, profile: { deleted_at: null } }, select: { id: true, label: true } }),
+    prisma.lodgingPhoto.findMany({ where: { deleted_at: null, room_label: { not: null }, profile: { deleted_at: null } }, select: { id: true, room_label: true } }),
   ])
 
   const sources: TranslationSource[] = []
@@ -116,6 +120,13 @@ export async function collectAllTranslationSources(): Promise<TranslationSource[
   for (const row of featured) add('LodgingFeaturedPoi', row.id, 'owner_note', row.owner_note)
   for (const row of categories) add('Category', row.id, 'name', row.name)
   for (const row of cards) { add('CityTransportCard', row.id, 'title', row.title); add('CityTransportCard', row.id, 'body', row.body); add('CityTransportCard', row.id, 'cta_label', row.cta_label) }
+  for (const row of profiles) {
+    add('LodgingPublicProfile', row.id, 'property_type', row.property_type)
+    add('LodgingPublicProfile', row.id, 'short_description', row.short_description)
+    add('LodgingPublicProfile', row.id, 'description', row.description)
+  }
+  for (const row of amenities) add('LodgingAmenity', row.id, 'label', row.label)
+  for (const row of photos) add('LodgingPhoto', row.id, 'room_label', row.room_label)
   for (const row of pois) add('PointOfInterest', row.id, 'description', row.description)
   return sources
 }

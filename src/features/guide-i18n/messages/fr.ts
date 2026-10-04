@@ -38,6 +38,8 @@ export const fr = {
     welcomeLine: (name: string) => `${formatFrenchWelcomeLine(name)} !`,
   },
   blog: {
+    title: 'Journal',
+    empty: 'Aucun article pour le moment.',
     back: 'Journal',
   },
   card: {
@@ -168,6 +170,8 @@ export const fr = {
     unsupported: 'Ouvrez le guide dans Safari (iPhone) ou Chrome (Android) pour l’installer.',
   },
   lodgings: {
+    title: 'Nos logements',
+    empty: 'Aucun logement public n’est disponible pour le moment.',
     amenities: {
       charger: 'Borne de recharge',
       hammam: 'Hammam',
@@ -183,6 +187,7 @@ export const fr = {
     onRequest: 'Sur demande',
   },
   map: {
+    loading: 'Chargement de la carte…',
     directions: 'Itinéraire',
     lodgingPosition: (name: string) => `Position du logement ${name}`,
     openCard: (name: string) => `Ouvrir la fiche ${name}`,

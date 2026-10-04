@@ -35,6 +35,8 @@ export const en: GuideMessages = {
     welcomeLine: (name: string) => `Welcome to ${name}!`,
   },
   blog: {
+    title: 'Journal',
+    empty: 'No articles yet.',
     back: 'Journal',
   },
   card: {
@@ -165,6 +167,8 @@ export const en: GuideMessages = {
     unsupported: 'Open the guide in Safari (iPhone) or Chrome (Android) to install it.',
   },
   lodgings: {
+    title: 'Our homes',
+    empty: 'No homes are available at the moment.',
     amenities: {
       charger: 'EV charger',
       hammam: 'Steam room',
@@ -180,6 +184,7 @@ export const en: GuideMessages = {
     onRequest: 'On request',
   },
   map: {
+    loading: 'Loading the map…',
     directions: 'Directions',
     lodgingPosition: (name: string) => `Location of ${name}`,
     openCard: (name: string) => `Open details for ${name}`,

@@ -1,5 +1,6 @@
 import { GuideLodgingListCard } from '@/features/guide-app/components/GuideLodgingListCard'
 import type { GuideLodgingCard } from '@/features/guide-app/types'
+import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /**
  * Vue « Tous nos logements » rendue DANS l'app (guest confiné). Cartes carrées
@@ -13,10 +14,11 @@ export function GuideLodgingsView({
   lodgings: GuideLodgingCard[]
   onOpen: (lodging: GuideLodgingCard) => void
 }) {
+  const m = useGuideMessages()
   return (
     <div className="px-3 pb-24 pt-5">
       <h1 className="px-2 text-[30px] font-semibold leading-none tracking-[-0.045em] text-slate-900">
-        Nos logements
+        {m.lodgings.title}
       </h1>
 
       {lodgings.length > 0 ? (
@@ -35,7 +37,7 @@ export function GuideLodgingsView({
         </div>
       ) : (
         <p className="mt-10 px-2 text-sm leading-6 text-slate-500">
-          Aucun logement public n’est disponible pour le moment.
+          {m.lodgings.empty}
         </p>
       )}
     </div>

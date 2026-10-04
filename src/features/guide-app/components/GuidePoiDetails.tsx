@@ -14,6 +14,7 @@ import type { GuideLodging, GuideMode, GuidePoi } from '@/features/guide-app/typ
 import { formatTravelDuration, type TravelTimeValues } from './stay/poi-search'
 import { usePoiSheetGestures } from '../hooks/usePoiSheetGestures'
 import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 
 export function GuidePoiDetails({
   mode,
@@ -137,7 +138,11 @@ export function GuidePoiDetails({
 
         {/* Description */}
         {poi.description && (
-          <p className="whitespace-pre-line px-6 text-[12px] leading-[1.9] text-justify text-charcoal/70">{poi.description}</p>
+          <MarkdownText
+            source={poi.description}
+            breaks
+            className="px-6 text-[12px] leading-[1.9] text-charcoal/70 [&_p]:text-[12px] [&_p]:leading-[1.9] [&_p]:text-charcoal/70"
+          />
         )}
 
         {/* Le mot de votre hôte */}

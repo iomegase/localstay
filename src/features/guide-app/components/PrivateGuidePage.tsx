@@ -15,6 +15,7 @@ import { GuideApp } from './GuideApp'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { PrivateGuideFrame } from './PrivateGuideFrame'
 import { getGuideLocale } from '@/features/guide-i18n/lib/server-locale'
+import { localizeLodgingCards } from '@/features/content-translation/queries/lodging-showcase'
 
 export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   home: '/sejour',
@@ -38,7 +39,8 @@ export async function PrivateGuidePage({
   if (!lodgingContext) redirect('/acces-reserve')
 
   // Spec 061 A1 : contenus de l'hôte et des lieux dans la langue du guide.
-  const guideData = await getPrivateGuideData(lodgingContext.lodgingId, await getGuideLocale())
+  const locale = await getGuideLocale()
+  const guideData = await getPrivateGuideData(lodgingContext.lodgingId, locale)
   if (!guideData) redirect('/acces-reserve')
 
   if (qrLodgingId !== undefined) {
@@ -53,7 +55,7 @@ export async function PrivateGuidePage({
     getPublishedBlogArticles(lodgingContext.citySlug),
   ])
 
-  const lodgings: GuideLodgingCard[] = lodgingsData.map(item => ({
+  const frenchLodgings: GuideLodgingCard[] = lodgingsData.map(item => ({
     id: item.id,
     slug: item.slug,
     citySlug: item.city_slug,
@@ -68,6 +70,8 @@ export async function PrivateGuidePage({
     publicAreaLabel: item.public_area_label,
     amenities: item.amenities,
   }))
+  // Spec 061 A3 : type de bien et accroche en anglais si le guide est en anglais.
+  const lodgings = locale === 'en' ? await localizeLodgingCards(frenchLodgings) : frenchLodgings
 
   const blogPosts: GuideBlogPost[] = (blogData?.items ?? []).map(article => ({
     id: article.id,

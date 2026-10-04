@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
 import { getPublishedLodgingDetail } from '@/features/lodging-showcase/queries/public-lodgings'
 import type { GuideLodgingDetail } from '@/features/guide-app/types'
+import { getGuideLocale } from '@/features/guide-i18n/lib/server-locale'
+import { localizeLodgingDetail } from '@/features/content-translation/queries/lodging-showcase'
 
 /**
  * Détail d'un logement pour la vue interne du guide. Réservé aux guests en séjour
@@ -28,7 +30,7 @@ export async function GET(
     return NextResponse.json({ error: 'not-found' }, { status: 404 })
   }
 
-  const detail: GuideLodgingDetail = {
+  const detail = {
     title: lodging.title,
     cityName: lodging.city_name,
     propertyType: lodging.property_type,
@@ -38,6 +40,7 @@ export async function GET(
     bathroomCount: lodging.bathroom_count,
     surfaceM2: lodging.surface_m2,
     photos: lodging.photos.map(photo => ({
+      id: photo.id,
       url: photo.url,
       alt: photo.alt,
       roomType: photo.room_type,
@@ -46,5 +49,9 @@ export async function GET(
     amenitiesIncluded: lodging.amenities_included,
     amenitiesOnRequest: lodging.amenities_on_request,
   }
-  return NextResponse.json(detail)
+  // Spec 061 A3 : fiche en anglais si le guide est en anglais (traductions à jour).
+  const localized: GuideLodgingDetail = (await getGuideLocale()) === 'en'
+    ? await localizeLodgingDetail(lodging.id, detail)
+    : { ...detail, photos: detail.photos.map(({ id: _id, ...photo }) => photo) }
+  return NextResponse.json(localized)
 }

@@ -47,13 +47,18 @@ const GuideMapView = dynamic(
   loadGuideMapView,
   {
     ssr: false,
-    loading: () => (
-      <div className="grid h-full min-h-[460px] place-items-center bg-slate-100 text-xs text-slate-500">
-        Chargement de la carte…
-      </div>
-    ),
+    loading: () => <GuideMapLoading />,
   },
 )
+
+function GuideMapLoading() {
+  const m = useGuideMessages()
+  return (
+    <div className="grid h-full min-h-[460px] place-items-center bg-slate-100 text-xs text-slate-500">
+      {m.map.loading}
+    </div>
+  )
+}
 
 type GuideAppProps = {
   mode: GuideMode

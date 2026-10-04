@@ -4,6 +4,7 @@ import { SwipeCarousel } from '@/features/guide-app/components/SwipeCarousel'
 import { featureIconFor } from '@/features/lodging-showcase/lib/feature-icon'
 import type { GuideLodgingDetail } from '@/features/guide-app/types'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 
 type DetailPhoto = GuideLodgingDetail['photos'][number]
 
@@ -76,9 +77,12 @@ export function GuideLodgingDetailView({
           </div>
 
           {detail.description && (
-            <p className="whitespace-pre-line p-4 text-justify text-[12px] leading-6 text-slate-600">
-              {detail.description}
-            </p>
+            // Markdown de la description (titres, gras, listes) ; HTML brut ignoré.
+            <MarkdownText
+              source={detail.description}
+              breaks
+              className="p-4 text-[12px] leading-6 text-slate-600 [&_p]:text-[12px] [&_p]:leading-6 [&_p]:text-slate-600"
+            />
           )}
 
           {(detail.amenitiesIncluded.length > 0 || detail.amenitiesOnRequest.length > 0) && (

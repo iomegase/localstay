@@ -237,6 +237,28 @@ Demande du PO : traduire aussi les sous-étapes détaillées des étapes d'arriv
   sous-étapes ou repères traduits à jour, Then ils s'affichent en anglais ;
   sinon en français.
 
+
+## Amendement A3 — Logements (vitrine) dans le guide privé (APPROUVÉ, PO 2026-10-04)
+
+Demande du PO : traduire aussi les logements consultés depuis le guide privé
+(menu « Les logements » : liste et fiche).
+
+| entity_type | Champs |
+|---|---|
+| `LodgingPublicProfile` | `description`, `short_description`, `property_type` |
+| `LodgingAmenity` | `label` |
+| `LodgingPhoto` | `room_label` |
+
+Le titre du logement et la ville restent des noms propres (027 BR-12). Les
+libellés d'équipements servant à choisir les icônes de la liste restent en
+français en interne (correspondance par mots-clés), seuls les textes affichés
+sont traduits. Site public `/logements` : hors périmètre.
+
+- **AC-02-08** : Given le guide en anglais, When le voyageur ouvre la liste des
+  logements ou une fiche, Then type de bien, accroche, description, équipements
+  et noms de pièces s'affichent en anglais quand une traduction à jour existe ;
+  sinon en français. Les traductions manquantes sont lancées après la réponse.
+
 ## Acceptance Criteria
 
 | Criterion | Test type |
