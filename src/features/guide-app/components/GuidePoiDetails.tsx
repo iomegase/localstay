@@ -12,6 +12,7 @@ import { canStartTrail } from '@/features/guide-app/lib/trail-access'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
 import type { GuideLodging, GuideMode, GuidePoi } from '@/features/guide-app/types'
 import { formatTravelDuration, type TravelTimeValues } from './stay/poi-search'
+import { usePoiSheetGestures } from '../hooks/usePoiSheetGestures'
 
 export function GuidePoiDetails({
   mode,
@@ -43,12 +44,17 @@ export function GuidePoiDetails({
   const userDistanceKm = location
     ? haversineKm(location.latitude, location.longitude, poi.latitude, poi.longitude)
     : null
+  const { ref: sheetRef, handlers: sheetGestures } = usePoiSheetGestures<HTMLElement>(onBack)
 
   return (
-    <article className="min-h-full bg-slate-50">
+    <article
+      ref={sheetRef}
+      {...sheetGestures}
+      className="min-h-full bg-slate-50 motion-safe:transition-transform motion-safe:duration-200"
+    >
       {/* Hero carousel */}
       <div className="relative">
-        <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name}>
+        <PoiDetailHeroCarousel photos={heroPhotos} name={poi.name} swipeable>
           {poi.isOpenNow === true && (
             <div className="absolute bottom-8 left-6 z-10 pb-4">
               <span className="inline-flex rounded-full border border-green-200 bg-green-50/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 shadow-sm backdrop-blur">
