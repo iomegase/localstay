@@ -131,9 +131,9 @@ export function LocalVacationRentalLanding({
                     {content.process_title}
                   </h2>
                 )}
-                <ol className="mt-6 divide-y divide-white/15 border-y border-white/15">
+                <ol className="mt-6 divide-y divide-white/15">
                   {content.steps.map(({ title, copy }, index) => (
-                    <li key={title} className="grid grid-cols-[32px_1fr] gap-4 py-5">
+                    <li key={title} className="grid grid-cols-[32px_1fr] items-center gap-4 py-5">
                       <span className="text-xs font-bold text-pink-400">{String(index + 1).padStart(2, '0')}</span>
                       <div>
                         <h3 className="font-bold text-white">{title}</h3>
