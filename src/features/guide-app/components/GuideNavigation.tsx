@@ -38,10 +38,10 @@ export function GuideNavigation({
   return (
     <nav
       aria-label={m.nav.label}
-      className="absolute inset-x-0 bottom-0 z-40 bg-white/[0.96] pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(15,23,42,0.10)] backdrop-blur-[14px]"
+      className="absolute inset-x-0 bottom-0 z-40 bg-white/[0.96] pb-[max(4px,env(safe-area-inset-bottom))] shadow-[0_-8px_28px_rgba(15,23,42,0.10)] backdrop-blur-[14px]"
     >
-      <div className="px-3 py-3">
-        <div className="relative isolate grid h-[55px] grid-cols-4 items-stretch">
+      <div className="px-3 pt-1">
+        <div className="relative isolate grid h-12 grid-cols-4 items-stretch">
           {indicatorIndex >= 0 && (
             <div
               aria-hidden="true"
@@ -67,7 +67,7 @@ export function GuideNavigation({
                   setSelection({ view: activeView, index })
                   onNavigate(view)
                 }}
-                className={`flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-1 rounded-full text-[11px] font-semibold tracking-[-0.025em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 ${
+                className={`flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold tracking-[-0.025em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 ${
                   active ? 'text-slate-900' : 'text-slate-500'
                 }`}
               >

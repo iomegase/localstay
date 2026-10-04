@@ -531,3 +531,15 @@ le statut `published`, l’absence de suppression et le tri par publication
 décroissante, et ajoute le filtre de catégorie `local_guide`. Sans article
 correspondant, l’état vide existant est conservé. La liste publique et la
 démo conservent leur sélection actuelle. Aucune modification API ou Prisma.
+
+## Amendement approuvé — Navigation basse compacte sur mobile installé (PO 2026-10-04)
+
+Demande du PO, capture iPhone fournie : réduire la hauteur du menu bas et
+centrer son contenu verticalement. AC-01-17 : la barre partagée privé/démo
+mesure 56 px sans zone de sécurité (rangée 48 px, marge haute et basse 4 px).
+Sur iPhone, la marge basse devient `max(4px, env(safe-area-inset-bottom))`
+au lieu de cumuler une marge fixe et la zone de sécurité. Les quatre boutons
+occupent les 48 px de la rangée et centrent icône/libellé avec un espace de
+2 px. Icônes, libellés, destinations et indicateur restent inchangés.
+Cette règle remplace la hauteur de 79 px de AC-01-01. Aucune nouvelle donnée
+ou API ; le geste système reste protégé en mode installé et navigateur.
