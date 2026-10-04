@@ -422,6 +422,7 @@ model User {
   owned_contact_messages            ContactMessage[]          @relation("ContactMessageOwner")
   authored_blog_articles            BlogArticle[]             @relation("BlogArticleAuthor")
   blog_generation_drafts            BlogGenerationDraft[]     @relation("BlogGenerationDraftAdmin")
+  content_translation_reviews       ContentTranslation[]      @relation("ContentTranslationReviewedBy")
 }
 
 // ─── Spec 029 — Blog Editorial ─────────────────────────────────────────────
@@ -1489,4 +1490,60 @@ model CityTransportCard {
   sort_order Int       @default(0)
 
   @@index([city_id, deleted_at])
+}
+
+// ─── Spec 027 / 061 — Traductions de contenu (DeepL) ─────────────────────────
+
+enum SupportedLocale {
+  fr
+  en
+  it
+  es
+  nl
+}
+
+enum TranslationStatus {
+  queued
+  auto_translated
+  needs_review
+  approved
+  stale
+  rejected
+  failed
+}
+
+model ContentTranslation {
+  id                  String            @id @default(uuid())
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  deleted_at          DateTime?
+
+  entity_type         String
+  entity_id           String
+  field_name          String
+  source_locale       SupportedLocale   @default(fr)
+  target_locale       SupportedLocale
+  source_text_hash    String
+  source_updated_at   DateTime
+
+  translated_text     String
+  status              TranslationStatus @default(queued)
+
+  provider            String?
+  provider_request_id String?
+  generated_at        DateTime?
+
+  reviewed_by         String?
+  reviewer            User?             @relation("ContentTranslationReviewedBy", fields: [reviewed_by], references: [id])
+  reviewed_at         DateTime?
+  review_note         String?
+
+  error_code          String?
+  error_message       String?
+
+  @@unique([entity_type, entity_id, field_name, target_locale])
+  @@index([target_locale, status])
+  @@index([entity_type, entity_id])
+  @@index([source_text_hash])
+  @@index([deleted_at])
 }

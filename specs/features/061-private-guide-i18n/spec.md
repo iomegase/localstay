@@ -155,6 +155,68 @@ Sélecteur dans `GuideHeader`, entre le logo et le menu burger :
   contenu serveur (textes de l'hôte) est rafraîchi.
 - Démo (spec 045) : sélecteur absent (hors périmètre).
 
+
+## Amendement A1 — Phase 2 : contenu traduit par DeepL (APPROUVÉ, PO 2026-10-04)
+
+Décisions du PO : traduire aussi les descriptions de lieux ; offre **DeepL API
+Free** (≈ 34 000 caractères à traduire pour 500 000 gratuits par mois), clé
+`DEEPL_API_KEY` renseignée par le PO dans Vercel. Résout OQ-01.
+
+**Périmètre (remplace BR-04 et BR-08 pour le guide privé)** — champs affichés
+dans le guide privé :
+
+| entity_type | Champs |
+|---|---|
+| `LodgingCustomization` | `welcome_message`, `trash_location` |
+| `LodgingArrivalInstruction` | `title`, `text`, `tip` |
+| `LodgingPracticalBlock` | `title`, `body` (cartes d'équipement) |
+| `LodgingFeaturedPoi` | `owner_note` (« Le mot de votre hôte ») |
+| `PointOfInterest` | `description` |
+| `Category` | `name` |
+| `CityTransportCard` | `title`, `body`, `cta_label` |
+
+Toujours exclus (027 BR-11/12) : noms de lieux et de logement, adresses, Wi-Fi,
+code de boîte à clés, téléphones, URLs, horaires. Les sous-étapes et repères
+structurés des étapes d'arrivée (JSON) restent en français dans cette version.
+
+- **AC-02-01 (précisé)**: les traductions manquantes ou obsolètes sont produites
+  (a) par la tâche planifiée `/api/internal/translations/sync` (cron quotidien
+  dans `vercel.json`, par lots, avec un plafond par exécution) et (b) à la
+  demande : quand le guide est affiché en anglais et qu'un texte n'a pas de
+  traduction à jour, la page s'affiche en français et la traduction est lancée
+  après la réponse (`after()`), sans bloquer le rendu.
+- **AC-02-02 (précisé)**: une traduction n'est affichée que si son
+  `source_text_hash` (SHA-256 du texte français courant) correspond ; sinon le
+  français est affiché (027 BR-16 / BR-18, policy `auto_publish`).
+- **AC-02-05 (nouveau)**: sans `DEEPL_API_KEY`, aucune requête n'est envoyée,
+  le guide reste en français pour ces contenus et la tâche planifiée répond
+  `200` avec `{ "translated": 0, "skipped": "NO_PROVIDER_KEY" }`.
+- **BR-09 (nouveau)**: clé Free (suffixe `:fx`) → `https://api-free.deepl.com`,
+  sinon `https://api.deepl.com` ; `DEEPL_API_BASE_URL` force l'adresse. Langue
+  cible `EN-GB`, mise en forme préservée.
+
+**Data Model (remplace la phase 2)** : uniquement `ContentTranslation` et les
+enums `SupportedLocale` / `TranslationStatus` tels que définis par la spec 027
+(champs identiques). `TranslationJob`, `TranslationFieldPolicy` et
+`TranslationAuditLog` ne sont pas créés : pas d'interface de relecture, les
+policies (`auto_publish`, `fallback_source`) sont des constantes du code.
+Migration additive uniquement.
+
+**API Contract (phase 2)** :
+
+```yaml
+/api/internal/translations/sync:
+  get:
+    security: [{ bearer: INTERNAL_API_SECRET }]
+    responses:
+      '200': { content: { application/json: { schema: { translated: integer, failed: integer, remaining: integer, skipped?: NO_PROVIDER_KEY } } } }
+      '401': { error: { code: UNAUTHORIZED } }
+```
+
+Tests : unit (hash, sélection des champs à traduire, client DeepL simulé),
+contract (route de synchronisation), integration (guide en anglais avec
+traduction à jour / obsolète / absente).
+
 ## Acceptance Criteria
 
 | Criterion | Test type |
@@ -175,4 +237,4 @@ Sélecteur dans `GuideHeader`, entre le logo et le menu burger :
 
 | ID | Question | Statut |
 |---|---|---|
-| OQ-01 | Phase 2 : budget DeepL API Pro et création de la clé `DEEPL_API_KEY` sur Vercel. | pending — bloque la phase 2 uniquement |
+| OQ-01 | Phase 2 : budget DeepL et clé `DEEPL_API_KEY`. | Résolu (PO 2026-10-04) — DeepL API Free, clé fournie par le PO (amendement A1). |

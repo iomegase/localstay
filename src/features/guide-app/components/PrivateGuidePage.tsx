@@ -14,6 +14,7 @@ import { blogCategoryLabel } from '@/features/blog/lib/category-label'
 import { GuideApp } from './GuideApp'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { PrivateGuideFrame } from './PrivateGuideFrame'
+import { getGuideLocale } from '@/features/guide-i18n/lib/server-locale'
 
 export const PRIVATE_GUIDE_ROUTES: GuideRouteMap = {
   home: '/sejour',
@@ -36,7 +37,8 @@ export async function PrivateGuidePage({
   const lodgingContext = await getActiveLodgingContext()
   if (!lodgingContext) redirect('/acces-reserve')
 
-  const guideData = await getPrivateGuideData(lodgingContext.lodgingId)
+  // Spec 061 A1 : contenus de l'hôte et des lieux dans la langue du guide.
+  const guideData = await getPrivateGuideData(lodgingContext.lodgingId, await getGuideLocale())
   if (!guideData) redirect('/acces-reserve')
 
   if (qrLodgingId !== undefined) {

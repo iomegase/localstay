@@ -18,9 +18,16 @@ import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/li
 import { isFacilibusCity } from '@/features/transport/facilibus'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiHours } from '@/features/categories/types'
+import { after } from 'next/server'
+import type { GuideLocale } from '@/features/guide-i18n/lib/locale'
+import { applyEnglishTranslations, prismaTranslationStore, type LocalizableField } from '@/features/content-translation/queries/store'
+import { translateSources } from '@/features/content-translation/services/translate-sources'
+import { deeplConfigFromEnv } from '@/shared/lib/deepl'
 
 export async function getPrivateGuideData(
   lodgingId: string,
+  /** Spec 061 A1 : en anglais, contenus remplacés par leur traduction à jour. */
+  locale: GuideLocale = 'fr',
 ): Promise<PrivateGuideData | null> {
   const lodging = await prisma.lodging.findFirst({
     where: { id: lodgingId, deleted_at: null, is_active: true },
@@ -42,6 +49,7 @@ export async function getPrivateGuideData(
       },
       customization: {
         select: {
+          id: true,
           welcome_message: true,
           cover_photo_url: true,
           lodging_address: true,
@@ -76,6 +84,7 @@ export async function getPrivateGuideData(
         where: { deleted_at: null },
         orderBy: { sort_order: 'asc' },
         select: {
+          id: true,
           title: true,
           text: true,
           video_url: true,
@@ -99,6 +108,7 @@ export async function getPrivateGuideData(
     },
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
+      id: true,
       owner_note: true,
       poi: {
         select: {
@@ -117,7 +127,7 @@ export async function getPrivateGuideData(
           hours: true,
           photos: true,
           city: { select: { slug: true } },
-          category: { select: { slug: true, name: true, icon: true } },
+          category: { select: { id: true, slug: true, name: true, icon: true } },
           trail_detail: {
             where: { deleted_at: null, is_active: true },
             select: {
@@ -149,7 +159,7 @@ export async function getPrivateGuideData(
           latitude: true, longitude: true, phone: true, website: true,
           rating: true, rating_count: true, is_open_now: true, hours: true, photos: true,
           city: { select: { slug: true } },
-          category: { select: { slug: true, name: true, icon: true } },
+          category: { select: { id: true, slug: true, name: true, icon: true } },
           trail_detail: {
             where: { deleted_at: null, is_active: true },
             select: {
@@ -167,7 +177,7 @@ export async function getPrivateGuideData(
   const profile = lodging.public_profile?.deleted_at ? null : lodging.public_profile
   const coverImage = customization?.cover_photo_url?.trim()
 
-  return {
+  const data: PrivateGuideData = {
     lodging: {
       id: lodging.id,
       name: lodging.name,
@@ -228,6 +238,76 @@ export async function getPrivateGuideData(
     },
     pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
     transportPois: linkedPoiRows.map(poi => mapPrivateGuidePoi({ poi, owner_note: null })),
+  }
+
+  if (locale === 'en') {
+    await localizeToEnglish(data, {
+      customizationId: customization?.id ?? null,
+      welcomeMessage: customization?.welcome_message?.trim() || null,
+      arrivalIds: lodging.arrival_instructions.map(instruction => instruction.id),
+      featuredRows,
+      linkedPoiRows,
+    })
+  }
+  return data
+}
+
+/**
+ * Spec 061 A1 : remplace les contenus du guide par leur traduction anglaise à
+ * jour (AC-02-02) et lance, après la réponse, la traduction des autres (AC-02-01).
+ */
+async function localizeToEnglish(
+  data: PrivateGuideData,
+  refs: {
+    customizationId: string | null
+    welcomeMessage: string | null
+    arrivalIds: string[]
+    featuredRows: Array<{ id: string; owner_note: string | null; poi: { id: string; category: { id: string } } }>
+    linkedPoiRows: Array<{ id: string; category: { id: string } }>
+  },
+) {
+  const fields: LocalizableField[] = []
+  const field = (entityType: string, entityId: string | null | undefined, name: string, text: string | null | undefined, apply: (value: string) => void) => {
+    if (entityId && text?.trim()) fields.push({ entityType, entityId, field: name, text, apply })
+  }
+  const { lodging } = data
+
+  if (refs.welcomeMessage) field('LodgingCustomization', refs.customizationId, 'welcome_message', refs.welcomeMessage, value => { lodging.tagline = value })
+  field('LodgingCustomization', refs.customizationId, 'trash_location', lodging.trashLocation, value => { lodging.trashLocation = value })
+  lodging.arrivalInstructions.forEach((step, index) => {
+    const id = refs.arrivalIds[index]
+    field('LodgingArrivalInstruction', id, 'title', step.title, value => { step.title = value })
+    field('LodgingArrivalInstruction', id, 'text', step.text, value => { step.text = value })
+    field('LodgingArrivalInstruction', id, 'tip', step.tip, value => { step.tip = value })
+  })
+  lodging.practicalCards.forEach(card => {
+    field('LodgingPracticalBlock', card.id, 'title', card.title, value => { card.title = value })
+    field('LodgingPracticalBlock', card.id, 'body', card.description, value => { card.description = value })
+  })
+  lodging.transportCards.forEach(card => {
+    field('CityTransportCard', card.id, 'title', card.title, value => { card.title = value })
+    field('CityTransportCard', card.id, 'body', card.body, value => { card.body = value })
+    field('CityTransportCard', card.id, 'cta_label', card.cta_label, value => { card.cta_label = value })
+  })
+  const poiRefs = [
+    ...data.pois.map((poi, index) => ({ poi, featured: refs.featuredRows[index] as (typeof refs.featuredRows)[number] | undefined, categoryId: refs.featuredRows[index]?.poi.category.id })),
+    ...(data.transportPois ?? []).map((poi, index) => ({ poi, featured: undefined, categoryId: refs.linkedPoiRows[index]?.category.id })),
+  ]
+  for (const { poi, featured, categoryId } of poiRefs) {
+    if (featured?.owner_note?.trim()) field('LodgingFeaturedPoi', featured.id, 'owner_note', featured.owner_note, value => { poi.ownerNote = value })
+    field('PointOfInterest', poi.id, 'description', poi.description !== poi.name ? poi.description : null, value => {
+      poi.description = value
+      poi.shortDescription = shortDescription(value, poi.name)
+    })
+    field('Category', categoryId, 'name', poi.category.name, value => { poi.category = { ...poi.category, name: value } })
+  }
+
+  const missing = await applyEnglishTranslations(fields)
+  if (missing.length === 0) return
+  try {
+    after(() => translateSources(missing, { config: deeplConfigFromEnv(), store: prismaTranslationStore, limit: 100 }))
+  } catch {
+    // Hors requête (tests, scripts) : la tâche planifiée s'en chargera.
   }
 }
 
