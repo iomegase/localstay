@@ -771,3 +771,11 @@ Demande explicite du Product Owner : ajouter « Conciergerie » au sélecteur de
 - **AC-08-03** : l’enum Prisma `BlogArticleCategory` inclut `concierge`. Une migration additive PostgreSQL ajoute uniquement cette valeur, sans modifier les articles existants. Le SQL généré par Prisma pour cette migration est autorisé.
 
 Aucune question ouverte pour cet amendement.
+
+
+## Correction approuvée — Tableaux du lecteur public (PO 2026-10-05)
+
+AC-02-06 : les tableaux GFM des articles publics sont rendus en tableaux
+HTML, avec en-têtes, cellules espacées et défilement horizontal interne
+sur mobile. Cette correction complète le rendu Markdown AC-02-01 suite
+à la capture du PO. Le HTML brut et les liens dangereux restent filtrés.

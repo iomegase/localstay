@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type Props = {
   source: string | null | undefined
@@ -8,9 +9,15 @@ type Props = {
    * (comportement GitHub). Par défaut false → comportement CommonMark inchangé.
    */
   breaks?: boolean
+  gfm?: boolean
 }
 
 const MARKDOWN_COMPONENTS = {
+  table: (props: { children?: React.ReactNode }) => (
+    <div className="my-6 max-w-full overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[320px] border-collapse text-left text-[13px] leading-6">{props.children}</table></div>
+  ),
+  th: (props: { children?: React.ReactNode }) => <th scope="col" className="border-b border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-900">{props.children}</th>,
+  td: (props: { children?: React.ReactNode }) => <td className="border-b border-slate-100 px-4 py-3 align-top">{props.children}</td>,
   p: (props: { children?: React.ReactNode }) => (
     <p className="mb-3 text-justify text-[11px] text-color-slate-800 leading-6 last:mb-0">{props.children}</p>
   ),
@@ -57,7 +64,7 @@ const MARKDOWN_COMPONENTS = {
   hr: () => <hr className="my-4 border-slate-200" />,
 }
 
-export function MarkdownText({ source, className, breaks = false }: Props) {
+export function MarkdownText({ source, className, breaks = false, gfm = false }: Props) {
   if (!source || source.trim() === '') return null
   // CommonMark fusionne les retours à la ligne simples. Pour la description on convertit
   // chaque `\n` isolé (hors paragraphes `\n\n`) en saut de ligne dur (deux espaces + \n),
@@ -67,6 +74,7 @@ export function MarkdownText({ source, className, breaks = false }: Props) {
     <div className={className}>
       <ReactMarkdown
         components={MARKDOWN_COMPONENTS}
+        remarkPlugins={gfm ? [remarkGfm] : []}
         // react-markdown 10 désactive le HTML brut par défaut — pas de sanitization nécessaire
         skipHtml
       >
