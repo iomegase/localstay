@@ -401,3 +401,28 @@ Demande Product Owner : remplacer le lien de navigation « Nos services » par �
 
 Demande explicite du Product Owner : baliser les FAQ des landings.
 **AC-04-09** : chaque landing conciergerie, séminaire ou locations de vacances émet exactement un `FAQPage` côté serveur lorsque sa FAQ contient des entrées. `mainEntity` reprend toutes les questions et réponses affichées, dans le même ordre, depuis `landing.page.faq`. Aucun balisage FAQ si cette liste est vide. Réutiliser `faqPageSchema` et la sérialisation sûre `JsonLd`. Aucun changement d'API, données, contenu éditorial ou apparence. Ce balisage Schema.org ne promet pas de résultats enrichis Google : cette fonctionnalité a été retirée en mai 2026 (https://developers.google.com/search/updates).
+
+### Amendement approuvé — Refonte éditoriale de la landing locations (2026-10-04)
+
+Validation explicite du Product Owner : « c'est parfait ». Objectif : SEO et image de marque.
+Aucun changement d'API, de données, de query, de metadata ni de JSON-LD. Hero sans image.
+Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Behaviour ;
+`MarketingPropertyCard` (home, `/logements`) reste inchangée.
+
+- **AC-03-06** : le hero typographique (eyebrow, H1, `hero_copy`) affiche, s'il y a au moins
+  un logement, une ligne de faits dérivée uniquement des logements publiés :
+  `N logement(s)` puis `jusqu'à X voyageurs` (capacité identique) ou `de X à Y voyageurs`.
+  Il propose des ancres `#logements`, `#destination` et, si la FAQ n'est pas vide, `#faq`.
+  Aucune ligne de faits sans logement.
+- **AC-03-07** : chaque logement est rendu par une carte locale dédiée : photo 4:3 avec badge
+  `property_type`, titre, description limitée à 3 lignes, caractéristiques en ligne
+  (surface, voyageurs, chambres, salles de bain, chacune omise si inconnue) et pied de carte
+  aligné. Le lien principal `Découvrir [titre]` mène à `/logements/[slug]` et couvre la carte ;
+  le CTA `Voir sur Airbnb` (AC-03-04/05) est un lien secondaire du pied de carte. Le nom de la
+  commune n'est pas répété sur les cartes. Grille 1 / 2 (md) / 3 (xl) colonnes, cartes de même
+  hauteur, titre de section accompagné du nombre de logements.
+- **AC-03-08** : le contenu local est rendu en sections éditoriales distinctes, sans
+  `text-justify` et avec un corps de texte ≥ 15 px : « La destination » (`local_title` /
+  `local_copy`, `id="destination"`), highlights numérotés, étapes, FAQ (`id="faq"`, accordéon
+  `details`) puis CTA final `cta_label` → `cta_href`. L'état vide (AC-03-02) conserve son
+  contenu et ses liens.
