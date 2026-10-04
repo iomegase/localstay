@@ -522,3 +522,12 @@ la rotation de la croix à 90°) et n'a plus de fond (slate-50 retiré) : croix
 Le fondu du menu lui-même est conservé.
 AC-01-15 : bouton fermer sans fond ni animation.
 
+## Amendement approuvé — Journal limité aux guides locaux (PO 2026-10-04)
+
+Demande explicite du PO : dans la section Journal du guide privé, afficher
+uniquement les articles de catégorie `local_guide` (« Guide local »).
+AC-01-16 : la requête serveur conserve le filtre sur la ville du séjour,
+le statut `published`, l’absence de suppression et le tri par publication
+décroissante, et ajoute le filtre de catégorie `local_guide`. Sans article
+correspondant, l’état vide existant est conservé. La liste publique et la
+démo conservent leur sélection actuelle. Aucune modification API ou Prisma.

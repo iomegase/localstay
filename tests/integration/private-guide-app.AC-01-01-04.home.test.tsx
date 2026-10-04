@@ -9,6 +9,13 @@ const mockRedirect = jest.fn((destination: string) => {
 })
 const mockRecordQrScanIfPresent = jest.fn()
 
+jest.mock('@/features/guide-i18n/lib/server-locale', () => ({
+  getGuideLocale: jest.fn(async () => 'fr'),
+}))
+jest.mock('@/features/content-translation/queries/lodging-showcase', () => ({
+  localizeLodgingCards: jest.fn(),
+}))
+
 jest.mock('next/navigation', () => ({
   redirect: (destination: string) => mockRedirect(destination),
 }))
@@ -58,6 +65,7 @@ jest.mock('@/features/guide-app/components/GuideApp', () => ({
 }))
 
 import SejourPage from '@/app/(public)/sejour/page'
+import { getPublishedBlogArticles } from '@/features/blog/queries/public-blog'
 
 const privateData = {
   lodging: {
@@ -108,6 +116,7 @@ describe('034-private-guide-app /sejour home', () => {
     expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
     expect(guide).not.toHaveAttribute('data-map-route')
     expect(mockRecordQrScanIfPresent).toHaveBeenCalledWith('lodging-1')
+    expect(getPublishedBlogArticles).toHaveBeenCalledWith('saint-gervais-les-bains', 'local_guide')
   })
 
   it('does not load private guide data without an active stay', async () => {

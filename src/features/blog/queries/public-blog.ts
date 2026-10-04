@@ -2,7 +2,7 @@ import { prisma } from '@/shared/lib/prisma'
 import { blogCategoryLabel } from '../lib/category-label'
 import { getBlogSlugCandidates } from '../lib/slug'
 import { normalizeBlogMarkdown } from '../lib/markdown'
-import type { PublicBlogArticle, PublicBlogListResult } from '../types'
+import type { BlogArticleCategory, PublicBlogArticle, PublicBlogListResult } from '../types'
 
 const PUBLISHED_WHERE = {
   status: 'published' as const,
@@ -10,7 +10,7 @@ const PUBLISHED_WHERE = {
   NOT: { published_at: null },
 }
 
-export async function getPublishedBlogArticles(citySlug?: string): Promise<PublicBlogListResult | null> {
+export async function getPublishedBlogArticles(citySlug?: string, category?: BlogArticleCategory): Promise<PublicBlogListResult | null> {
   const city = citySlug
     ? await prisma.city.findFirst({
         where: { slug: citySlug, is_active: true, deleted_at: null },
@@ -24,6 +24,7 @@ export async function getPublishedBlogArticles(citySlug?: string): Promise<Publi
     where: {
       ...PUBLISHED_WHERE,
       ...(city ? { city_id: city.id } : {}),
+      ...(category ? { category } : {}),
     },
     orderBy: { published_at: 'desc' },
     select: {
