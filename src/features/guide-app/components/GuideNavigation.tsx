@@ -71,12 +71,13 @@ export function GuideNavigation({
                   active ? 'text-slate-900' : 'text-slate-500'
                 }`}
               >
-                <Icon
-                  className={`${view === 'favorites' ? 'h-7 w-7' : 'h-6 w-6'} ${active && view === 'favorites' ? 'fill-current' : ''}`}
-                  strokeWidth={view === 'help' ? 1 : 1.8}
-                  aria-hidden="true"
-                />
-                {view !== 'favorites' && view !== 'help' && <span>{label}</span>}
+                <span className="flex h-7 shrink-0 items-center justify-center" aria-hidden="true">
+                  <Icon
+                    className={`${view === 'favorites' ? 'h-7 w-7 fill-none text-pink-600' : 'h-6 w-6'}`}
+                    strokeWidth={1}
+                    aria-hidden="true"
+                  />
+                </span>
               </button>
             )
           })}

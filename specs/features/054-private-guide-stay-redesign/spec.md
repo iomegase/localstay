@@ -543,3 +543,30 @@ occupent les 48 px de la rangée et centrent icône/libellé avec un espace de
 2 px. Icônes, libellés, destinations et indicateur restent inchangés.
 Cette règle remplace la hauteur de 79 px de AC-01-01. Aucune nouvelle donnée
 ou API ; le geste système reste protégé en mode installé et navigateur.
+
+## Précision approuvée — Alignement vertical des icônes (PO 2026-10-04)
+
+AC-01-18 : les quatre icônes de navigation ont le même centre vertical,
+y compris cœur et réglages sans texte visible. Chaque bouton centre un groupe
+identique : emplacement icône de 28 px, espacement 2 px, emplacement libellé
+de 14 px. L’emplacement libellé est vide et aria-hidden pour cœur et réglages ;
+leurs noms accessibles restent ceux des boutons. Hauteur et zone de sécurité
+de AC-01-17 conservées. Privé et démo partagent la correction.
+
+## Précision approuvée — Cœur centré en contour rose (PO 2026-10-04)
+
+AC-01-19 : le cœur sans libellé est centré horizontalement et verticalement
+dans les 48 px du bouton, sans emplacement de texte vide. Il utilise
+`text-pink-600 fill-none` dans les états actif et inactif, sans remplissage
+noir. L’indicateur gris et le nom accessible « Coups de cœur » restent présents.
+Cette demande remplace pour le cœur le remplissage actif AC-01-01 et
+l’emplacement libellé AC-01-18. Les autres onglets restent inchangés.
+
+## Précision approuvée — Navigation par icônes seules (PO 2026-10-04)
+
+AC-01-20 : retirer les libellés visibles Accueil/Home et Carte/Map. Les quatre
+boutons affichent uniquement leur icône centrée, sans emplacement de libellé
+vide. Tous les traits Lucide sont de largeur 1, comme Réglages. Les noms
+accessibles localisés, les destinations, la hauteur compacte et le cœur
+`pink-600` sans remplissage restent conservés. Cette règle remplace les
+emplacements libellés AC-01-18. Privé et démo partagent ce rendu.

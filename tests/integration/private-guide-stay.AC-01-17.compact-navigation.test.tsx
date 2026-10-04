@@ -19,3 +19,30 @@ it('AC-01-17: keeps compact centered touch targets and reserves the system gestu
   }
   expect(navigate.mock.calls.map(call => call[0])).toEqual(['home', 'favorites', 'map', 'help'])
 })
+
+it('AC-01-20: renders four centered icons with the settings stroke and accessible names', () => {
+  render(<GuideNavigation activeView="home" onNavigate={jest.fn()} />)
+  const buttons = within(screen.getByRole('navigation')).getAllByRole('button')
+  expect(buttons.map(button => button.getAttribute('aria-label'))).toEqual([
+    'Accueil', 'Coups de cœur', 'Carte', 'Réglages et infos',
+  ])
+  for (const button of buttons) {
+    expect(button).toHaveClass('items-center', 'justify-center')
+    expect(button.textContent).toBe('')
+    expect(button.children).toHaveLength(1)
+    expect(button.querySelector('svg')?.parentElement).toHaveClass('h-7', 'items-center', 'justify-center')
+    expect(button.querySelector('svg')).toHaveAttribute('stroke-width', '1')
+  }
+})
+
+it('AC-01-19: centers the unfilled pink heart in its button in both states', () => {
+  const { rerender } = render(<GuideNavigation activeView="home" onNavigate={jest.fn()} />)
+  for (const view of ['home', 'favorites'] as const) {
+    rerender(<GuideNavigation activeView={view} onNavigate={jest.fn()} />)
+    const button = screen.getByRole('button', { name: 'Coups de cœur' })
+    expect(button).toHaveClass('items-center', 'justify-center')
+    expect(button.children).toHaveLength(1)
+    expect(button.querySelector('svg')).toHaveClass('text-pink-600', 'fill-none')
+    expect(button.querySelector('svg')).not.toHaveClass('fill-current')
+  }
+})

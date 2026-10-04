@@ -15,7 +15,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
 
     const nav = screen.getByRole('navigation', { name: /navigation du guide/i })
     const tabs = within(nav).getAllByRole('button')
-    expect(tabs.map(tab => tab.textContent)).toEqual(['Accueil', '', 'Carte', ''])
+    expect(tabs.map(tab => tab.textContent)).toEqual(['', '', '', ''])
     expect(tabs[0]).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(tabs[1])
@@ -30,7 +30,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
     const heart = screen.getByRole('button', { name: 'Coups de cœur' })
     expect(heart.textContent).toBe('')
     expect(heart.querySelector('svg.lucide-heart')).toBeInTheDocument()
-    expect(heart.querySelector('svg')).not.toHaveClass('fill-current')
+    expect(heart.querySelector('svg')).toHaveClass('fill-none', 'text-pink-600')
     expect(screen.getByTestId('guide-navigation-indicator')).toHaveClass('translate-x-0')
     fireEvent.click(heart)
     expect(onNavigate).toHaveBeenCalledWith('favorites')
@@ -42,7 +42,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
     }
     rerender(<GuideNavigation activeView="favorites" onNavigate={onNavigate} />)
     expect(screen.getByRole('button', { name: 'Coups de cœur' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('button', { name: 'Coups de cœur' }).querySelector('svg')).toHaveClass('fill-current')
+    expect(screen.getByRole('button', { name: 'Coups de cœur' }).querySelector('svg')).toHaveClass('fill-none', 'text-pink-600')
     const indicator = screen.getByTestId('guide-navigation-indicator')
     expect(indicator).toHaveAttribute('aria-hidden', 'true')
     expect(indicator).toHaveClass('motion-safe:transition-transform', 'motion-safe:[transition-duration:350ms]')

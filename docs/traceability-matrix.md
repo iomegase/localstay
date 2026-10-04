@@ -1522,3 +1522,9 @@ Validation 051 : TypeScript, ESLint ciblé et Prisma validate réussis. Suite é
 | 054 | Journal privé — Guide local | US-01 | AC-01-16 | `src/features/guide-app/components/PrivateGuidePage.tsx`, `src/features/blog/queries/public-blog.ts` | `tests/unit/blog.AC-01-16.private-guide-category.test.ts`, `tests/integration/private-guide-app.AC-01-01-04.home.test.tsx` | Implémenté |
 
 | 054-private-guide-stay-redesign | Navigation basse compacte | US-01 | AC-01-17 | `src/features/guide-app/components/GuideNavigation.tsx` | `tests/integration/private-guide-stay.AC-01-17.compact-navigation.test.tsx` | Implémenté |
+
+| 054-private-guide-stay-redesign | Alignement icônes navigation | US-01 | AC-01-18 | `src/features/guide-app/components/GuideNavigation.tsx` | `tests/integration/private-guide-stay.AC-01-17.compact-navigation.test.tsx` | Implémenté |
+
+| 054-private-guide-stay-redesign | Cœur centré contour rose | US-01 | AC-01-19 | `src/features/guide-app/components/GuideNavigation.tsx` | `tests/integration/private-guide-stay.AC-01-17.compact-navigation.test.tsx`, `tests/integration/private-guide-stay.AC-01.stay-home.test.tsx` | Implémenté |
+
+| 054-private-guide-stay-redesign | Navigation icônes seules et trait fin | US-01 | AC-01-20 | `src/features/guide-app/components/GuideNavigation.tsx` | `tests/integration/private-guide-stay.AC-01-17.compact-navigation.test.tsx`, `tests/integration/private-guide-stay.AC-01.stay-home.test.tsx` | Implémenté |
