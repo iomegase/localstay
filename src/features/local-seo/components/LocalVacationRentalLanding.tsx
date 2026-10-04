@@ -95,7 +95,7 @@ export function LocalVacationRentalLanding({
                   </div>
                   <p className="shrink-0 text-[13px] font-semibold text-slate-500">{lodgingCountLabel(lodgings.length)}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-5">
                   {lodgings.map((lodging, index) => (
                     <LocalRentalCard key={lodging.id} lodging={lodging} priority={index === 0} />
                   ))}

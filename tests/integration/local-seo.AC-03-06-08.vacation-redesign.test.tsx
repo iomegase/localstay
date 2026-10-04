@@ -71,7 +71,7 @@ describe('046 AC-03-06 — hero facts line and anchors', () => {
 })
 
 describe('046 AC-03-07 — dedicated local lodging card', () => {
-  it('renders badge, inline specs, main link and secondary Airbnb CTA without repeating the city', () => {
+  it('renders eyebrow type, 2x2 stats grid, main link and secondary Airbnb CTA without repeating the city', () => {
     render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
 
     const section = screen.getByRole('region', { name: /Notre accompagnement/ })
@@ -84,16 +84,18 @@ describe('046 AC-03-07 — dedicated local lodging card', () => {
     expect(within(chalet).getByText('Chalet')).toBeInTheDocument()
     expect(within(chalet).getByRole('link', { name: 'Découvrir Le Chalet Hygge' })).toHaveAttribute('href', '/logements/chalet-hygge')
     expect(within(chalet).getByRole('link', { name: 'Voir sur Airbnb' })).toHaveAttribute('href', 'https://www.airbnb.fr/rooms/123')
-    expect(within(chalet).getByText('110 m²')).toBeInTheDocument()
-    expect(within(chalet).getByText('6 voyageurs')).toBeInTheDocument()
-    expect(within(chalet).getByText('3 ch.')).toBeInTheDocument()
-    expect(within(chalet).getByText('2 sdb')).toBeInTheDocument()
+    const stat = (card: HTMLElement, label: string) =>
+      within(card).getByText(label, { selector: 'dt' }).nextElementSibling
+    expect(stat(chalet, 'Surface')).toHaveTextContent('110 m²')
+    expect(stat(chalet, 'Voyageurs')).toHaveTextContent('6')
+    expect(stat(chalet, 'Chambres')).toHaveTextContent('3')
+    expect(stat(chalet, 'Salles de bain')).toHaveTextContent('2')
     expect(within(chalet).queryByText('Saint-Gervais-les-Bains')).not.toBeInTheDocument()
 
     const flat = cards[1]
     expect(within(flat).queryByRole('link', { name: 'Voir sur Airbnb' })).not.toBeInTheDocument()
-    expect(within(flat).queryByText(/m²/)).not.toBeInTheDocument()
-    expect(within(flat).queryByText(/sdb/)).not.toBeInTheDocument()
+    expect(stat(flat, 'Surface')).toHaveTextContent('—')
+    expect(stat(flat, 'Salles de bain')).toHaveTextContent('—')
   })
 })
 

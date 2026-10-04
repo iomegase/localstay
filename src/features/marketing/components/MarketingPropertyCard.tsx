@@ -98,18 +98,21 @@ export function MarketingPropertyCard({
   )
 }
 
-function PropertyStat({
+export function PropertyStat({
   icon: Icon,
   label,
   value,
   borderLeft = false,
   borderTop = false,
+  dense = false,
 }: {
   icon: typeof Scan
   label: string
   value: string
   borderLeft?: boolean
   borderTop?: boolean
+  // Grilles étroites (3 colonnes tablette) : tuile d'icône masquée entre md et lg.
+  dense?: boolean
 }) {
   return (
     <div
@@ -117,12 +120,12 @@ function PropertyStat({
         borderTop ? 'border-t border-slate-200' : ''
       }`}
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-50">
+      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-50 ${dense ? 'md:max-lg:hidden' : ''}`}>
         <Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
       </span>
       <div>
         <dt className="text-[8px] text-slate-500">{label}</dt>
-        <dd className="text-xs font-bold">{value}</dd>
+        <dd className={`text-xs font-bold ${dense ? 'whitespace-nowrap' : ''}`}>{value}</dd>
       </div>
     </div>
   )

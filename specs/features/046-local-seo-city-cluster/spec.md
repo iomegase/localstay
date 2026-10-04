@@ -414,13 +414,15 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
   `N logement(s)` puis `jusqu'à X voyageurs` (capacité identique) ou `de X à Y voyageurs`.
   Il propose des ancres `#logements`, `#destination` et, si la FAQ n'est pas vide, `#faq`.
   Aucune ligne de faits sans logement.
-- **AC-03-07** : chaque logement est rendu par une carte locale dédiée : photo 4:3 avec badge
-  `property_type`, titre, description limitée à 3 lignes, caractéristiques en ligne
-  (surface, voyageurs, chambres, salles de bain, chacune omise si inconnue) et pied de carte
-  aligné. Le lien principal `Découvrir [titre]` mène à `/logements/[slug]` et couvre la carte ;
-  le CTA `Voir sur Airbnb` (AC-03-04/05) est un lien secondaire du pied de carte. Le nom de la
-  commune n'est pas répété sur les cartes. Grille 1 / 2 (md) colonnes (surface marketing limitée à 1184 px), cartes de même
-  hauteur, titre de section accompagné du nombre de logements.
+- **AC-03-07** : chaque logement est rendu par une carte locale dédiée reprenant le style de
+  `MarketingPropertyCard` (amendé le 2026-10-04 à la demande du Product Owner) : photo 4:3,
+  eyebrow rose `property_type`, titre, description limitée à 3 lignes, grille 2×2 de
+  caractéristiques avec tuiles d'icônes (Surface, Voyageurs, Chambres, Salles de bain ; `—` si
+  inconnue) et pied de carte aligné. Le lien principal `Découvrir [titre]` mène à
+  `/logements/[slug]` et couvre la carte ; le CTA `Voir sur Airbnb` (AC-03-04/05) est un lien
+  secondaire du pied de carte. Le nom de la commune n'est pas répété sur les cartes. Grille
+  1 colonne (mobile) / 3 colonnes (tablette md et desktop), cartes de même hauteur, titre de
+  section accompagné du nombre de logements.
 - **AC-03-08** : le contenu local est rendu en sections éditoriales distinctes, sans
   `text-justify` et avec un corps de texte ≥ 15 px : « La destination » (`local_title` /
   `local_copy`, `id="destination"`), highlights numérotés, étapes, FAQ (`id="faq"`, accordéon
