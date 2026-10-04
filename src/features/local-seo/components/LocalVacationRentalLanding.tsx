@@ -93,6 +93,9 @@ export function LocalVacationRentalLanding({
                 <h2 id="logements-title" className="text-[26px] font-bold leading-[1.15] tracking-[-0.04em] text-slate-900 sm:text-[32px]">
                   {content.section_title}
                 </h2>
+                {content.section_copy !== content.hero_copy && (
+                  <p className="mx-auto mt-5 max-w-[620px] text-[15px] leading-7 text-slate-500">{content.section_copy}</p>
+                )}
                 <p className="mx-auto mt-5 max-w-[620px] text-[15px] leading-7 text-slate-500">
                   {content.empty_copy}
                 </p>
