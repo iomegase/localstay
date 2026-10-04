@@ -419,7 +419,7 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
   (surface, voyageurs, chambres, salles de bain, chacune omise si inconnue) et pied de carte
   aligné. Le lien principal `Découvrir [titre]` mène à `/logements/[slug]` et couvre la carte ;
   le CTA `Voir sur Airbnb` (AC-03-04/05) est un lien secondaire du pied de carte. Le nom de la
-  commune n'est pas répété sur les cartes. Grille 1 / 2 (md) / 3 (xl) colonnes, cartes de même
+  commune n'est pas répété sur les cartes. Grille 1 / 2 (md) colonnes (surface marketing limitée à 1184 px), cartes de même
   hauteur, titre de section accompagné du nombre de logements.
 - **AC-03-08** : le contenu local est rendu en sections éditoriales distinctes, sans
   `text-justify` et avec un corps de texte ≥ 15 px : « La destination » (`local_title` /

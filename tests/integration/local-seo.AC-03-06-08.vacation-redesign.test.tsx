@@ -1,0 +1,119 @@
+/** @jest-environment jsdom */
+
+import { render, screen, within } from '@testing-library/react'
+import { publicLocalLanding } from '../fixtures/public-local-landing'
+import { LocalVacationRentalLanding } from '@/features/local-seo/components/LocalVacationRentalLanding'
+import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
+
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/locations-vacances/saint-gervais-les-bains',
+}))
+
+const landing = publicLocalLanding('VACATION_RENTAL', {
+  id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains',
+})
+
+const lodging: MarketingLodgingCard = {
+  id: 'profile-1',
+  slug: 'chalet-hygge',
+  city_slug: 'saint-gervais-les-bains',
+  city_name: 'Saint-Gervais-les-Bains',
+  title: 'Le Chalet Hygge',
+  cover_photo_url: 'https://images.example/chalet.webp',
+  short_description: 'Un chalet chaleureux face aux montagnes.',
+  property_type: 'Chalet',
+  max_guests: 6,
+  bedroom_count: 3,
+  bathroom_count: 2,
+  surface_m2: 110,
+  public_area_label: 'Saint-Gervais-les-Bains',
+  amenities: ['Wi-Fi'],
+  href: '/logements/chalet-hygge',
+  external_booking_url: 'https://www.airbnb.fr/rooms/123',
+  external_booking_platform: 'airbnb',
+}
+
+const apartment: MarketingLodgingCard = {
+  ...lodging,
+  id: 'profile-2',
+  slug: 'hauts-saint-gervais',
+  title: 'Les Hauts de Saint-Gervais',
+  property_type: 'Appartement',
+  max_guests: 4,
+  surface_m2: null,
+  bathroom_count: null,
+  href: '/logements/hauts-saint-gervais',
+  external_booking_url: null,
+  external_booking_platform: null,
+}
+
+describe('046 AC-03-06 — hero facts line and anchors', () => {
+  it('derives the facts line from published lodgings only', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
+
+    expect(screen.getByTestId('vacation-facts')).toHaveTextContent('2 logements · de 4 à 6 voyageurs')
+    const anchors = screen.getByRole('navigation', { name: 'Sur cette page' })
+    expect(within(anchors).getByRole('link', { name: 'Logements' })).toHaveAttribute('href', '#logements')
+    expect(within(anchors).getByRole('link', { name: 'La destination' })).toHaveAttribute('href', '#destination')
+    expect(within(anchors).getByRole('link', { name: 'Questions fréquentes' })).toHaveAttribute('href', '#faq')
+  })
+
+  it('uses a single capacity wording and singular for one lodging', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
+    expect(screen.getByTestId('vacation-facts')).toHaveTextContent('1 logement · jusqu’à 6 voyageurs')
+  })
+
+  it('renders no facts line and no FAQ anchor without lodging or FAQ', () => {
+    render(<LocalVacationRentalLanding landing={{ ...landing, page: { ...landing.page, faq: [] } }} lodgings={[]} />)
+    expect(screen.queryByTestId('vacation-facts')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Questions fréquentes' })).not.toBeInTheDocument()
+  })
+})
+
+describe('046 AC-03-07 — dedicated local lodging card', () => {
+  it('renders badge, inline specs, main link and secondary Airbnb CTA without repeating the city', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
+
+    const section = screen.getByRole('region', { name: /Notre accompagnement/ })
+    expect(section).toHaveAttribute('id', 'logements')
+    expect(within(section).getByText('2 logements')).toBeInTheDocument()
+
+    const cards = within(section).getAllByRole('article')
+    expect(cards).toHaveLength(2)
+    const chalet = cards[0]
+    expect(within(chalet).getByText('Chalet')).toBeInTheDocument()
+    expect(within(chalet).getByRole('link', { name: 'Découvrir Le Chalet Hygge' })).toHaveAttribute('href', '/logements/chalet-hygge')
+    expect(within(chalet).getByRole('link', { name: 'Voir sur Airbnb' })).toHaveAttribute('href', 'https://www.airbnb.fr/rooms/123')
+    expect(within(chalet).getByText('110 m²')).toBeInTheDocument()
+    expect(within(chalet).getByText('6 voyageurs')).toBeInTheDocument()
+    expect(within(chalet).getByText('3 ch.')).toBeInTheDocument()
+    expect(within(chalet).getByText('2 sdb')).toBeInTheDocument()
+    expect(within(chalet).queryByText('Saint-Gervais-les-Bains')).not.toBeInTheDocument()
+
+    const flat = cards[1]
+    expect(within(flat).queryByRole('link', { name: 'Voir sur Airbnb' })).not.toBeInTheDocument()
+    expect(within(flat).queryByText(/m²/)).not.toBeInTheDocument()
+    expect(within(flat).queryByText(/sdb/)).not.toBeInTheDocument()
+  })
+})
+
+describe('046 AC-03-08 — editorial sections', () => {
+  it('renders destination, highlights, steps, FAQ and final CTA without justified text', () => {
+    const { container } = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
+
+    const destination = container.querySelector('#destination')
+    expect(destination).toHaveTextContent(landing.page.local_title)
+    expect(destination).toHaveTextContent(landing.page.local_copy)
+    expect(screen.getByRole('heading', { name: landing.page.highlights[0].title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: landing.page.steps[0].title })).toBeInTheDocument()
+    expect(container.querySelector('#faq details summary')).toHaveTextContent(landing.page.faq[0].question)
+    expect(screen.getByRole('link', { name: landing.page.cta_label })).toHaveAttribute('href', landing.page.cta_href)
+    expect(container.querySelector('.text-justify')).toBeNull()
+  })
+
+  it('keeps the empty state content and links', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[]} />)
+    expect(screen.getByText(landing.page.empty_copy!)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Découvrir la région' })).toHaveAttribute('href', '/decouvrir')
+  })
+})
