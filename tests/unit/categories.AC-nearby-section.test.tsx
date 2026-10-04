@@ -7,11 +7,6 @@ import { CategoryViewWrapper } from '@/features/categories/components/CategoryVi
 import { storeLocation } from '@/features/geolocation/lib/user-location'
 import type { PoiCard } from '@/features/categories/types'
 
-// FullMap uses dynamic import + Mapbox — mock it
-jest.mock('@/features/categories/components/FullMap', () => ({
-  FullMap: () => <div data-testid="full-map" />,
-}))
-
 jest.mock('@/shared/components/MarkdownText', () => ({
   MarkdownText: ({ source }: { source?: string | null }) => <div>{source}</div>,
 }))

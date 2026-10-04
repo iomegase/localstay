@@ -47,10 +47,6 @@ jest.mock('@/shared/components/MarkdownText', () => ({
   ),
 }))
 
-jest.mock('@/features/public-menu/components/LeaveStayButton', () => ({
-  LeaveStayButton: () => <button type="button">Quitter le séjour</button>,
-}))
-
 describe('024 contextual public contact page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
