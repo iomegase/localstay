@@ -72,12 +72,23 @@ describe('034-private-guide-app route-aware shell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Guide.*Du logement/ }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/consignes')
+    expect(screen.getByRole('heading', { name: 'Guide logement' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
 
     fireEvent.click(screen.getByRole('button', { name: /^Arrivée/ }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/arrivee')
+    expect(screen.getByRole('heading', { name: 'Arrivée' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
 
     fireEvent.click(screen.getByRole('button', { name: /^Départ/ }))
     expect(mockPush).toHaveBeenCalledWith('/sejour/logement/depart')
+    expect(screen.getByRole('heading', { name: 'Départ' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
+
+    mockPush.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: /^Wi-Fi/ }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(mockPush).not.toHaveBeenCalled()
   })
 
   it('does not render a routed destination before its App Router transition completes', () => {
@@ -205,7 +216,27 @@ describe('034-private-guide-app route-aware shell', () => {
     )
 
     expect(screen.getByRole('button', { name: /^Guide.*Du logement/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('054 AC-04-01: returns from the house guide immediately while the home route is pending', () => {
+    mockPathname = '/sejour/logement/consignes'
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={[]}
+        initialView="rules"
+        routes={PRIVATE_GUIDE_ROUTES}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir au séjour' }))
+
+    expect(mockPush).toHaveBeenCalledWith('/sejour')
+    expect(screen.queryByRole('heading', { name: 'Guide logement' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Guide.*Du logement/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('keeps practical contacts out of the house guide', () => {
@@ -258,13 +289,12 @@ describe('034-private-guide-app route-aware shell', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
     expect(mockPush).not.toHaveBeenCalled()
-    expect(screen.getByRole('heading', { level: 1, name: 'Aide' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Réglages et infos' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Écrire' }))
-    expect(screen.getByRole('heading', { name: 'Votre hôte' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Aide' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('button', { name: 'Écrire' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Réglages et infos' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('021 AC-02-02 + 012 BR-03/BR-08: opens a cross-city private trail from its actual city', () => {

@@ -293,7 +293,7 @@ function StayTile({
         }`}
       >
         <Icon
-          className={`h-7 w-7 ${dark ? "text-[#EC3186]" : "text-[#202b3a]"}`}
+          className={`h-7 w-7 stroke-1 ${dark ? "text-[#EC3186]" : "text-[#202b3a]"}`}
           strokeWidth={1}
           aria-hidden="true"
         />

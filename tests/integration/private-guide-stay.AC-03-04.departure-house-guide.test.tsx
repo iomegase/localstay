@@ -3,7 +3,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { GuideDepartureView } from '@/features/guide-app/components/stay/GuideDepartureView'
 import { GuideHouseGuide } from '@/features/guide-app/components/stay/GuideHouseGuide'
-import { FIXED_HOUSE_RULES } from '@/features/guide-app/lib/fixed-lodging-content'
+import { FIXED_DEPARTURE_INSTRUCTIONS, FIXED_HOUSE_RULES } from '@/features/guide-app/lib/fixed-lodging-content'
 import { buildStayLodging } from '../support/guide-stay-lodging'
 
 describe('054 US-03/US-04 — departure and house guide', () => {
@@ -22,7 +22,7 @@ describe('054 US-03/US-04 — departure and house guide', () => {
     )
 
     expect(screen.getByRole('heading', { level: 1, name: 'Départ' })).toBeInTheDocument()
-    expect(screen.getByText('Avant 10 h')).toBeInTheDocument()
+    expect(screen.queryByText(/^Avant /)).not.toBeInTheDocument()
     expect(screen.getByText('1 sur 2 faits')).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
     expect(screen.getByRole('checkbox', { name: 'Fermer les fenêtres' })).toBeChecked()
@@ -59,6 +59,23 @@ describe('054 US-03/US-04 — departure and house guide', () => {
     )
     expect(screen.getByText("Merci d'avoir séjourné au 305 !")).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Je suis parti·e' })).not.toBeInTheDocument()
+  })
+
+  it('AC-04-02: shows four remaining tasks and ignores obsolete checked indices', () => {
+    render(<GuideDepartureView
+      lodging={buildStayLodging({ departureInstructions: [...FIXED_DEPARTURE_INSTRUCTIONS] })}
+      checked={new Set([0, 4, 5, 6, 7, 8])}
+      onToggle={jest.fn()}
+      departed={false}
+      onDeparted={jest.fn()}
+      onBack={jest.fn()}
+    />)
+    expect(screen.getAllByRole('checkbox')).toHaveLength(4)
+    expect(screen.getByText('1 sur 4 faits')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '4')
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+    expect(screen.queryByText(/^Avant /)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Remettre les meubles|Velux|chauffage|rien oublié/)).not.toBeInTheDocument()
   })
 
   it('AC-04-01: lists equipment and shows rules as a single-open accordion', () => {

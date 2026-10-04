@@ -8,7 +8,7 @@ import { demoLodging } from '@/features/guide-demo/demo-guide-data'
 
 describe('050 private guide card design', () => {
   it('uses the shared light card design for practical contacts', () => {
-    render(<GuideHelpView lodging={demoLodging} onWrite={jest.fn()} />)
+    render(<GuideHelpView lodging={demoLodging} />)
 
     for (const testId of ['guide-practical-emergency', 'guide-practical-concierge']) {
       const card = screen.getByTestId(testId)

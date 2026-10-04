@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, House, LifeBuoy, Map } from 'lucide-react'
+import { Heart, House, Settings, Map } from 'lucide-react'
 import type { GuideView } from '@/features/guide-app/types'
 
 export type GuideTabView = 'home' | 'favorites' | 'map' | 'help'
@@ -10,13 +10,13 @@ export type GuideTabView = 'home' | 'favorites' | 'map' | 'help'
 const items: { view: GuideTabView; label: string; icon: typeof House; matches: string[] }[] = [
   {
     view: 'home',
-    label: 'Séjour',
+    label: 'Accueil',
     icon: House,
     matches: ['home', 'lodging', 'arrival', 'departure', 'rules', 'transport'],
   },
   { view: 'favorites', label: 'Coups de cœur', icon: Heart, matches: ['favorites', 'poi'] },
   { view: 'map', label: 'Carte', icon: Map, matches: ['map'] },
-  { view: 'help', label: 'Aide', icon: LifeBuoy, matches: ['help', 'contact'] },
+  { view: 'help', label: 'Réglages et infos', icon: Settings, matches: ['help', 'contact'] },
 ]
 
 export function GuideNavigation({
@@ -71,10 +71,10 @@ export function GuideNavigation({
               >
                 <Icon
                   className={`${view === 'favorites' ? 'h-7 w-7' : 'h-6 w-6'} ${active && view === 'favorites' ? 'fill-current' : ''}`}
-                  strokeWidth={1.8}
+                  strokeWidth={view === 'help' ? 1 : 1.8}
                   aria-hidden="true"
                 />
-                {view !== 'favorites' && <span>{label}</span>}
+                {view !== 'favorites' && view !== 'help' && <span>{label}</span>}
               </button>
             )
           })}

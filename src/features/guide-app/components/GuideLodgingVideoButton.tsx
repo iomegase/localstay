@@ -31,7 +31,7 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
       >
         <span className="flex items-center gap-2.5">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[16px] bg-[#EEF1F4]">
-            <Video className="h-7 w-7 text-black" strokeWidth={1} aria-hidden="true" />
+            <Video className="h-7 w-7 stroke-1 text-black" strokeWidth={1} aria-hidden="true" />
           </span>
           <span>
             <span className="block text-sm font-semibold">
@@ -42,7 +42,7 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
             </span> */}
           </span>
         </span>
-        <ChevronRight strokeWidth={1} className="h-5 w-5" aria-hidden="true" />
+        <ChevronRight strokeWidth={1} className="h-5 w-5 stroke-1" aria-hidden="true" />
       </button>
 
       {open && (

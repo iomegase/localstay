@@ -411,3 +411,49 @@ guide : titre, carte copiable et bouton Maps associé disparaissent des vues
 Aide et Guide logement, en privé et en démo. Cet amendement remplace les
 exigences Adresse précédentes de AC-01-05 et AC-04-01. Le parcours Arrivée
 conserve son adresse ; le lien Maps du point de tri est conservé.
+
+## Amendement approuvé — Accueil et Aide (2026-10-03)
+
+Le PO demande un trait encore plus fin : les icônes des cartes Accueil
+et leurs chevrons utilisent un trait de 0,75 (attribut SVG et utilitaire
+Tailwind). L’onglet Séjour est renommé Accueil, destination home inchangée.
+Le bloc Conciergerie MyStay (pastille MS, texte et bouton Écrire) est retiré
+d’Aide en privé et en démo. Les cartes de numéros utiles restent affichées.
+
+Précision PO du 2026-10-04 : le trait des icônes principales et chevrons
+des cartes Accueil revient à 1, remplaçant la valeur 0,75 précédente.
+
+## Amendement approuvé — Réglages et infos (2026-10-04)
+
+Décisions du PO : l’onglet Aide devient une icône Lucide Settings de 24 px,
+trait 1, sans libellé visible, nom accessible « Réglages et infos ».
+La destination interne help reste inchangée. Titre page « Réglages et infos ».
+Deux cartes blanches arrondies avec ombre s’ajoutent avant Infos pratiques :
+« Activer votre GPS » (icône LocateFixed, switch) et « Installer le guide »
+(icône Download, bouton ouvrant un modal). Traits 1, palette ardoise.
+Le switch réutilise useUserLocation : autorisation navigateur uniquement
+après activation explicite, position partagée localement entre les écrans,
+switch activé uniquement après succès, désactivation effaçant la position
+locale, refus/indisponibilité affichés. Demande en cours : switch désactivé.
+Cette interaction est autorisée également dans la démo après action explicite,
+y compris le stockage existant sur l’appareil ; aucune persistance serveur
+ni nouvelle requête réseau. Aucun suivi GPS en arrière-plan.
+Le modal affiche dès maintenant le texte validé par le PO : « Votre position
+reste sur votre appareil. L’installation est à venir, avec une désactivation
+prévue après 7 jours. » Bouton « J’ai compris », fermeture Escape et voile,
+focus contenu puis restauré au déclencheur. Aucune installation, service worker,
+fonction standalone ou expiration effective n’est implémentée.
+AC-01-07 : GPS opt-in, succès, désactivation et erreurs testés.
+AC-01-08 : modal informatif sans installation, accessible et fermable.
+Cet amendement complète 054 US-01 et 045 AC-01-06 / BR-08, autorise le
+réemploi du hook géolocalisation client dans la démo et remplace son
+interdiction de persistance locale uniquement pour cette position consentie.
+
+## Amendement approuvé — Départ simplifié (2026-10-04)
+
+Le PO retire les cinq dernières consignes fixes : remise en place des meubles,
+fermeture des fenêtres/Velux, extinction des lumières/appareils, chauffage,
+vérification des oublis. Les quatre premières consignes restent dans leur
+ordre. Le sous-titre horaire « Avant [heure] » est retiré de la page Départ.
+Privé et démo utilisent quatre points ; compteurs et progression ignorent
+les anciens indices cochés au-delà de la liste restante. AC-04-02 amendé.

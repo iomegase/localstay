@@ -634,17 +634,8 @@ describe('045-public-demo-private-guide-reference discovery views', () => {
       ).toHaveFocus(),
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aide' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Écrire' }))
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre hôte' })).toHaveFocus())
-    expect(screen.getByText('Camille, hôte fictif')).toBeInTheDocument()
-    expect(screen.getByText('Le 305 — démonstration')).toBeInTheDocument()
-    expect(screen.getByText('Saint-Gervais-les-Bains')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Envoyer un message' }),
-    ).toBeDisabled()
-    expect(screen.getByTestId('autonomous-demo-guide').querySelector('form')).toBeNull()
-    expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
+    expect(screen.queryByRole('button', { name: 'Écrire' })).not.toBeInTheDocument()
     expect(window.location.pathname).toBe('/seminaires')
   })
 

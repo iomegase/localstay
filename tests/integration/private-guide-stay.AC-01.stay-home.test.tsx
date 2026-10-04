@@ -15,7 +15,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
 
     const nav = screen.getByRole('navigation', { name: /navigation du guide/i })
     const tabs = within(nav).getAllByRole('button')
-    expect(tabs.map(tab => tab.textContent)).toEqual(['Séjour', '', 'Carte', 'Aide'])
+    expect(tabs.map(tab => tab.textContent)).toEqual(['Accueil', '', 'Carte', ''])
     expect(tabs[0]).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(tabs[1])
@@ -51,9 +51,9 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
 
   it('AC-01-01: highlights Séjour on stay screens and Aide on the contact view', () => {
     const { rerender } = render(<GuideNavigation activeView="arrival" onNavigate={jest.fn()} />)
-    expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
     rerender(<GuideNavigation activeView="contact" onNavigate={jest.fn()} />)
-    expect(screen.getByRole('button', { name: 'Aide' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('button', { name: 'Réglages et infos' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('AC-01-02: renders the hero, stats and the four tiles', () => {
@@ -187,13 +187,11 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
   })
 
   it('AC-01-05: the help tab shows the concierge and emergency without an address block', () => {
-    const onWrite = jest.fn()
-    render(<GuideHelpView lodging={buildStayLodging()} onWrite={onWrite} />)
+    render(<GuideHelpView lodging={buildStayLodging()} />)
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Aide' })).toBeInTheDocument()
-    expect(screen.getByText('Conciergerie MyStay')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Écrire' }))
-    expect(onWrite).toHaveBeenCalled()
+    expect(screen.getByRole('heading', { level: 1, name: 'Réglages et infos' })).toBeInTheDocument()
+    expect(screen.queryByText('Conciergerie MyStay')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Écrire' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /appeler/i })).not.toBeInTheDocument()
 
     expect(screen.getByRole('link', { name: /112/ })).toHaveAttribute('href', 'tel:112')

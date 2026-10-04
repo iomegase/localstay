@@ -5,7 +5,7 @@
 ```yaml
 id: 059-guide-pwa
 title: "Installer le guide de séjour comme application (PWA), hors-ligne, 7 jours"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-04
@@ -46,14 +46,17 @@ rouvrir directement sur mon séjour.
 
 - **AC-01-01**: Given un séjour actif sur `/sejour/*`, When la page est servie,
   Then elle déclare un manifest propre au logement dont `id` et `start_url`
-  valent `/sejour?lodging=<lodgingId>&source=pwa`, `scope` `/`, `display`
+  valent `/sejour?lodging=<lodgingId>&source=pwa`, `scope` `/`, servi par
+  `GET /api/guide/manifest?lodging=<lodgingId>`, `display`
   `standalone`, nom « <SITE.name> — <nom du logement> », nom court SITE.name,
   icônes et couleurs du manifest racine. Hors `/sejour/*`, le manifest racine
   est inchangé.
-- **AC-01-02**: Given une requête `/sejour?lodging=<uuid valide>`, When le proxy
-  la traite, Then il pose le cookie logement et redirige vers `/sejour` sans le
-  paramètre `lodging` (le paramètre `source` est conservé). Un `lodging`
-  invalide est ignoré (comportement actuel : écran d'accès).
+- **AC-01-02**: Given une requête `/sejour?lodging=<uuid valide>` sans cookie
+  logement égal, When le proxy la traite, Then il pose le cookie logement et
+  redirige vers la même URL (paramètres conservés, l'enregistrement du scan QR
+  de la page reste possible) ; si le cookie est déjà égal, la requête passe.
+  Un `lodging` invalide est ignoré (comportement actuel : écran d'accès).
+  Une ouverture `source=pwa` n'est pas comptée comme scan QR.
 - **AC-01-03**: Given Android / Chrome (événement `beforeinstallprompt` reçu),
   When le voyageur touche « Installer le guide », Then l'invite native
   d'installation s'ouvre directement.
@@ -129,7 +132,7 @@ Stockage appareil (`localStorage`, clé `mystay:pwa:<lodgingId>`) :
 ## API Contract
 
 ```yaml
-/sejour/manifest.webmanifest:
+/api/guide/manifest:
   get:
     parameters:
       - { name: lodging, in: query, required: true, schema: { type: string, format: uuid } }
@@ -170,7 +173,7 @@ palette ardoise) :
 Écran « Séjour terminé » : plein écran, logo MyStay, texte AC-03-02, aucun
 autre contenu ni navigation.
 
-Page hors-ligne : texte AC-02-03, bouton « Voir mon logement ».
+Page hors-ligne (`/sejour/hors-ligne`) : texte AC-02-03, bouton « Voir mon logement ».
 
 ## Acceptance Criteria
 

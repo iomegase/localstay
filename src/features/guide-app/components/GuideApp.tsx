@@ -17,6 +17,7 @@ import { GuidePoiDetails } from './GuidePoiDetails'
 import { GuideArrivalFlow } from './stay/GuideArrivalFlow'
 import { GuideDepartureView } from './stay/GuideDepartureView'
 import { GuideHelpView } from './stay/GuideHelpView'
+import { GuideInstallCard } from '@/features/guide-pwa/components/GuideInstallCard'
 import { GuideHouseGuide } from './stay/GuideHouseGuide'
 import { GuideStayHome } from './stay/GuideStayHome'
 import { GuideWifiSheet } from './stay/GuideWifiSheet'
@@ -199,11 +200,12 @@ function GuideAppShell({
   }
 
   function navigate(view: GuideView) {
-    // Une nouvelle route laisse l'App Router monter la vue cible une seule fois.
-    // Si l'URL est déjà courante (ex. retour carte → favoris) ou si la vue n'a
-    // pas de route, la navigation reste locale dans le GuideApp.
+    // Les écrans du logement utilisent les données déjà présentes : ils
+    // s'affichent immédiatement pendant le chargement de leur route serveur.
+    // Les autres destinations routées attendent leur transition App Router.
     const href = view === 'poi' ? undefined : routes?.[view]
-    if (href && onOpenRoute?.(href)) return
+    const immediateView = ['home', 'arrival', 'rules', 'departure'].includes(view)
+    if (href && onOpenRoute?.(href) && !immediateView) return
 
     if (view !== 'poi' && view !== 'map') {
       setSelectedPoiId(null)
@@ -292,7 +294,10 @@ function GuideAppShell({
           />
         )}
         {activeView === 'help' && (
-          <GuideHelpView lodging={lodging} onWrite={() => navigate('contact')} />
+          <GuideHelpView
+            lodging={lodging}
+            installCard={mode === 'private' ? <GuideInstallCard lodgingId={lodging.id} /> : undefined}
+          />
         )}
         {activeView === 'lodgings' && (
           <GuideLodgingsView lodgings={lodgings ?? []} onOpen={openLodgingDetail} />

@@ -7,7 +7,6 @@ import type { GuideLodging } from '@/features/guide-app/types'
 import { formatFrenchPlaceReference } from '@/shared/lib/french-place'
 import { SignalError } from './GuideArrivalFlow'
 import { GuideStayScreen } from './GuideStayScreen'
-import { formatGuideHour } from './stay-styles'
 
 /** Écran Départ : progression, checklist et « Je suis parti·e » (spec 054 AC-03-02, AC-04-02). */
 export function GuideDepartureView({
@@ -45,7 +44,7 @@ export function GuideDepartureView({
   }
 
   return (
-    <GuideStayScreen title="Départ" subtitle={`Avant ${formatGuideHour(lodging.checkOut)}`} onBack={onBack}>
+    <GuideStayScreen title="Départ" onBack={onBack}>
       <div
         role="progressbar"
         aria-label="Progression de la checklist de départ"

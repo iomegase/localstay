@@ -30,6 +30,8 @@ const APPROVED_SHARED_DEMO_MODULE =
 const APPROVED_DEMO_API_ROUTE = /^\/api\/transport\/facilibus\//
 const APPROVED_RUNTIME_USES: Record<string, string[]> = {
   'features/transport/hooks/useTransportResource': ['fetch()'],
+  // Position GPS locale consentie, approuvée par le PO le 2026-10-04.
+  'features/geolocation/lib/user-location': ['window.localStorage'],
   // Persistance désactivée dans la démo (`persist: false`, spec 054 AC-06-01).
   'features/guide-app/components/stay/useStayProgress': ['window.localStorage'],
 }

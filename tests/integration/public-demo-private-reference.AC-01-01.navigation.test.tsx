@@ -74,25 +74,25 @@ describe('045-public-demo-private-guide-reference autonomous navigation', () => 
     const tabs = within(
       within(guide).getByRole('navigation', { name: 'Navigation du guide' }),
     ).getAllByRole('button')
-    expect(tabs.map(tab => tab.textContent)).toEqual(['Séjour', '', 'Carte', 'Aide'])
+    expect(tabs.map(tab => tab.textContent)).toEqual(['Accueil', '', 'Carte', ''])
     expect(guide.querySelectorAll('a')).toHaveLength(0)
   })
 
   it('switches bottom-navigation views locally without changing the URL', () => {
     render(<DemoGuideApp />)
 
-    expect(screen.getByRole('button', { name: 'Séjour' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute(
       'aria-current',
       'page',
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Aide' }))
-    expect(screen.getByRole('heading', { level: 1, name: 'Aide' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Aide' })).toHaveAttribute('aria-current', 'page')
+    fireEvent.click(screen.getByRole('button', { name: 'Réglages et infos' }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Réglages et infos' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Réglages et infos' })).toHaveAttribute('aria-current', 'page')
     // Spec 045 AC-01-08 : aucun lien tel: ni lien externe dans la démo.
     expect(screen.getByTestId('autonomous-demo-guide').querySelectorAll('a')).toHaveLength(0)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Séjour' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Accueil' }))
     expect(
       screen.getByRole('heading', { name: 'Bienvenue au 305' }),
     ).toBeInTheDocument()

@@ -17,6 +17,8 @@ import {
 
 // Écran de blocage affiché quand on accède au site sans séjour actif.
 const GATE_PATH = '/acces-reserve'
+// Doit rester égal à LODGING_HEADER dans public/sw.js.
+const GUIDE_LODGING_HEADER = 'x-mystay-guide-lodging'
 // Préfixes accessibles sans séjour actif (espace hôte + écran de blocage lui-même).
 const BYPASS_PREFIXES = ['/auth', GATE_PATH]
 const ANONYMOUS_MARKETING_EXACT_PATHS = new Set([
@@ -86,6 +88,19 @@ export async function proxy(request: NextRequest) {
   // === Espace hôte (auth) + écran de blocage : toujours accessibles ===
   if (BYPASS_PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`))) {
     return response
+  }
+
+  // === Entrée directe /sejour?lodging= (start_url du guide installé, spec 059 AC-01-02) ===
+  // On pose le cookie puis on recharge la même URL : la page lit ainsi le cookie
+  // et garde le paramètre (comptage QR, réinitialisation des 7 jours).
+  if (isGuideAppRoute) {
+    const lodgingFromQuery = request.nextUrl.searchParams.get('lodging')
+    const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
+    if (isValidLodgingId(lodgingFromQuery) && !hasValidLodgingCookie(lodgingCookie, lodgingFromQuery)) {
+      const redirect = NextResponse.redirect(request.nextUrl)
+      redirect.cookies.set(lodgingBearerCookie(lodgingFromQuery))
+      return redirect
+    }
   }
 
   // === Compatibilité /guide : l'entrée QR gagne toujours sur les redirects SEO ===
@@ -201,6 +216,12 @@ export async function proxy(request: NextRequest) {
   const hasActiveLodging = hasValidLodgingCookie(lodgingCookie)
   if (!hasActiveLodging) {
     return NextResponse.rewrite(new URL(GATE_PATH, request.url))
+  }
+
+  // Spec 059 BR-03 : le service worker ne met en cache que les pages du guide
+  // servies pour un séjour, et sait de quel logement elles proviennent.
+  if (isGuideAppRoute && lodgingCookie) {
+    response.headers.set(GUIDE_LODGING_HEADER, lodgingCookie)
   }
 
   return response

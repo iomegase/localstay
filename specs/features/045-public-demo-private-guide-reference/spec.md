@@ -476,3 +476,29 @@ Les préférences de mouvement réduit désactivent déplacements et rotations.
 Les destinations, confinement privé/démo et comportements clavier restent
 fonctionnels. Cet amendement remplace les anciens contrats de menu dans
 054 US-01 et 045 AC-01-06 ; il autorise cette modification dans les deux guides.
+
+## Amendement approuvé — Réglages et infos (2026-10-04)
+
+Décisions du PO : l’onglet Aide devient une icône Lucide Settings de 24 px,
+trait 1, sans libellé visible, nom accessible « Réglages et infos ».
+La destination interne help reste inchangée. Titre page « Réglages et infos ».
+Deux cartes blanches arrondies avec ombre s’ajoutent avant Infos pratiques :
+« Activer votre GPS » (icône LocateFixed, switch) et « Installer le guide »
+(icône Download, bouton ouvrant un modal). Traits 1, palette ardoise.
+Le switch réutilise useUserLocation : autorisation navigateur uniquement
+après activation explicite, position partagée localement entre les écrans,
+switch activé uniquement après succès, désactivation effaçant la position
+locale, refus/indisponibilité affichés. Demande en cours : switch désactivé.
+Cette interaction est autorisée également dans la démo après action explicite,
+y compris le stockage existant sur l’appareil ; aucune persistance serveur
+ni nouvelle requête réseau. Aucun suivi GPS en arrière-plan.
+Le modal affiche dès maintenant le texte validé par le PO : « Votre position
+reste sur votre appareil. L’installation est à venir, avec une désactivation
+prévue après 7 jours. » Bouton « J’ai compris », fermeture Escape et voile,
+focus contenu puis restauré au déclencheur. Aucune installation, service worker,
+fonction standalone ou expiration effective n’est implémentée.
+AC-01-07 : GPS opt-in, succès, désactivation et erreurs testés.
+AC-01-08 : modal informatif sans installation, accessible et fermable.
+Cet amendement complète 054 US-01 et 045 AC-01-06 / BR-08, autorise le
+réemploi du hook géolocalisation client dans la démo et remplace son
+interdiction de persistance locale uniquement pour cette position consentie.

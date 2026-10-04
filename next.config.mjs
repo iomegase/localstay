@@ -1,6 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['192.0.0.2'],
+  // Spec 059 : le service worker doit toujours être revalidé.
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache' },
+          { key: 'Service-Worker-Allowed', value: '/' },
+        ],
+      },
+    ]
+  },
   async redirects() {
     return [
       { source: '/blog/:path*', destination: '/journal/:path*', permanent: true },
