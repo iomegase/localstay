@@ -5,7 +5,7 @@
 ```yaml
 id: 063-poi-photo-mirroring
 title: "Copier les photos des POI publiés dans le stockage MyStay pour les servir optimisées"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-05
@@ -14,7 +14,7 @@ depends_on:
   - 041-public-local-discovery
   - 022-admin-poi-management
 bounded_context: public-discovery
-implementation_gate: "Design validé par le PO le 2026-10-05 (approche A : table de correspondance PoiPhotoMirror, copie à la publication + tâche quotidienne, crédit dans le texte de présentation). Spec en attente d'approbation."
+implementation_gate: "Design validé par le PO le 2026-10-05 (approche A : table de correspondance PoiPhotoMirror, copie à la publication + tâche quotidienne, crédit dans le texte de présentation). Spec approuvée par le PO le 2026-10-05 (« oui c ok »)."
 ```
 
 ---
