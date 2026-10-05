@@ -1567,3 +1567,6 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | 054 | Tableaux Journal privé | US-01 | AC-07-04 | `src/features/guide-app/components/GuideBlogMarkdown.tsx` | `tests/integration/private-guide-stay.AC-07-04.markdown-table.test.ts` | Implémenté |
 
 | 054 | Paragraphes justifiés 14 px, sources 12 px | US-01 | AC-07-05 | `src/features/guide-app/components/GuideBlogMarkdown.tsx` | `tests/integration/private-guide-stay.AC-07-04.markdown-table.test.ts` | Implémenté — demande PO 2026-10-05 |
+
+| 029 | Tableaux Journal public | US-02 | AC-02-06 | `src/features/blog/components/BlogMarkdown.tsx`, `src/shared/components/MarkdownText.tsx` | `tests/integration/blog.AC-02-06.markdown-table.test.ts` | Implémenté |
+| 029 | Filtre catégories Journal public | US-01 | AC-01-17 | `src/app/(public)/journal/page.tsx` | `tests/integration/blog.AC-01-17.public-category-filter.test.tsx` | Implémenté |

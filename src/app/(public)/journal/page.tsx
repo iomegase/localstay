@@ -2,11 +2,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { z } from 'zod'
 import { Newspaper, MapPin } from 'lucide-react'
 import { getPublishedBlogArticles } from '@/features/blog/queries/public-blog'
 import { blogListMetadata } from '@/features/blog/lib/metadata'
 import { blogCategoryLabel } from '@/features/blog/lib/category-label'
 import { buildBlogArticlePath } from '@/features/blog/lib/slug'
+import { BLOG_ARTICLE_CATEGORIES, type BlogArticleCategory } from '@/features/blog/types'
 import {
   MarketingEyebrow,
   MarketingShell,
@@ -14,8 +16,23 @@ import {
 } from '@/features/marketing/components/MarketingShell'
 
 type PageProps = {
-  searchParams: Promise<{ city?: string }>
+  searchParams: Promise<{ city?: string; category?: string }>
 }
+
+const categoryParamSchema = z.enum(BLOG_ARTICLE_CATEGORIES)
+
+function buildJournalListPath(city: string | undefined, category: BlogArticleCategory | null): string {
+  const query = new URLSearchParams()
+  if (city) query.set('city', city)
+  if (category) query.set('category', category)
+  const search = query.toString()
+  return search ? `/journal?${search}` : '/journal'
+}
+
+const activePillClass =
+  'inline-flex items-center rounded-full bg-slate-800 px-5 py-2.5 text-[10px] font-bold uppercase tracking-wide text-white'
+const inactivePillClass =
+  'inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-800'
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const params = await searchParams
@@ -33,8 +50,11 @@ export default async function BlogListPage({ searchParams }: PageProps) {
   }
 
   const title = result?.city ? `Journal ${result.city.name}` : 'Inspirations... et conseils pour vos séjours'
-  const items = result?.items ?? []
-  const categories = [...new Set(items.map(article => blogCategoryLabel(article.category)))]
+  const allItems = result?.items ?? []
+  const parsedCategory = categoryParamSchema.safeParse(params.category)
+  const activeCategory = parsedCategory.success ? parsedCategory.data : null
+  const categories = [...new Set(allItems.map(article => article.category))]
+  const items = activeCategory ? allItems.filter(article => article.category === activeCategory) : allItems
 
   return (
     <MarketingShell>
@@ -59,19 +79,25 @@ export default async function BlogListPage({ searchParams }: PageProps) {
       </section>
 
       <section className={`${marketingContainerClass} py-16 sm:py-24`}>
-        <div className="flex flex-wrap gap-2.5" aria-label="Catégories du journal">
-          <span className="inline-flex items-center rounded-full bg-slate-800 px-5 py-2.5 text-[10px] font-bold uppercase tracking-wide text-white">
+        <nav className="flex flex-wrap gap-2.5" aria-label="Catégories du journal">
+          <Link
+            href={buildJournalListPath(params.city, null)}
+            aria-current={activeCategory === null ? 'page' : undefined}
+            className={activeCategory === null ? activePillClass : inactivePillClass}
+          >
             Toutes
-          </span>
+          </Link>
           {categories.map(category => (
-            <span
+            <Link
               key={category}
-              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+              href={buildJournalListPath(params.city, category)}
+              aria-current={activeCategory === category ? 'page' : undefined}
+              className={activeCategory === category ? activePillClass : inactivePillClass}
             >
-              {category}
-            </span>
+              {blogCategoryLabel(category)}
+            </Link>
           ))}
-        </div>
+        </nav>
 
         {items.length === 0 ? (
           <div className="mt-10 flex flex-col items-center justify-center gap-4 rounded-[28px] border border-dashed border-slate-300 bg-slate-50 px-8 py-20 text-center">

@@ -779,3 +779,11 @@ AC-02-06 : les tableaux GFM des articles publics sont rendus en tableaux
 HTML, avec en-têtes, cellules espacées et défilement horizontal interne
 sur mobile. Cette correction complète le rendu Markdown AC-02-01 suite
 à la capture du PO. Le HTML brut et les liens dangereux restent filtrés.
+
+## Correction approuvée — Filtre catégories du Journal public (PO 2026-10-05)
+
+AC-01-17 : sur `/journal`, les pastilles « Toutes » et catégories sont des
+liens actifs. Une pastille filtre la liste via `?category=<valeur>` (validée
+par Zod, valeur inconnue ignorée), en conservant `?city=`. Toutes les
+catégories des articles publiés restent affichées ; la pastille active porte
+`aria-current="page"`. Correction suite à la capture du PO (boutons inactifs).

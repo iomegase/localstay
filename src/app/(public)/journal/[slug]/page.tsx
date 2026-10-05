@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowUpRight } from 'lucide-react'
+import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
 import { BlogMarkdown } from '@/features/blog/components/BlogMarkdown'
@@ -214,7 +214,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
         </div>
 
         <aside
-          className={`${marketingContainerClass} mt-20 flex flex-col items-start gap-10 rounded-[26px] px-6 bg-slate-800  py-9 text-white sm:px-12 sm:py-12 min-[701px]:mt-28 min-[701px]:flex-row min-[701px]:items-end min-[701px]:justify-between min-[701px]:px-[58px] min-[701px]:py-[52px]`}
+          className={`${marketingContainerClass} mt-20 flex flex-col items-start gap-10 rounded-none bg-slate-800 min-[701px]:rounded-[26px] px-6 py-9 text-white sm:px-12 sm:py-12 min-[701px]:mt-28 min-[701px]:flex-row min-[701px]:items-end min-[701px]:justify-between min-[701px]:px-[58px] min-[701px]:py-[52px]`}
         >
           <div>
             <MarketingEyebrow light>Votre logement</MarketingEyebrow>
@@ -223,10 +223,10 @@ export default async function BlogArticlePage({ params }: PageProps) {
             </h2>
           </div>
           <Link
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-white px-5 text-xs font-bold text-slate-800 shadow-[0_12px_28px_rgba(219,39,119,0.22)] transition-colors hover:bg-pink-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-pink-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(219,39,119,0.22)] transition-colors hover:bg-white hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
             href="/confier-mon-logement"
           >
-            Parler de mon projet
+            Nous contacter
           </Link>
         </aside>
 
@@ -265,7 +265,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
                       {related.title}
                     </strong>
                   </span>
-                  <ArrowUpRight aria-hidden="true" className="h-[19px] w-[19px]" strokeWidth={1.7} />
+                  <ChevronRight aria-hidden="true" className="h-[19px] w-[19px] text-pink-600" strokeWidth={1.7} />
                 </Link>
               ))}
             </div>
