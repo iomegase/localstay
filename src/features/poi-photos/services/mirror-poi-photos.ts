@@ -8,12 +8,32 @@ import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/
 
 const BUCKET = 'guide-photos'
 const MAX_WIDTH = 1600
+// Au-delà, le décodage peut saturer la mémoire (≈ 160 Mo en RGBA) : l'image est refusée.
+const MAX_INPUT_PIXELS = 40_000_000
+// La tâche quotidienne s'arrête avant la durée maximale de la fonction (300 s).
+const DEFAULT_TIME_BUDGET_MS = 240_000
 
 export type MirrorReport = { mirrored: number; skipped: number; failed: number }
 export type MirrorDeps = {
   download: typeof downloadImageSafely
   upload: (path: string, body: Buffer) => Promise<string | null>
   revalidate: (poiId: string) => void
+  /** Ordre de passage des POI dans la tâche quotidienne (aléatoire par défaut). */
+  shuffle?: <T>(items: T[]) => T[]
+}
+
+/** Seules les photos tierces en https peuvent être copiées (http échoue toujours). */
+function isMirrorableUrl(url: string): boolean {
+  return isThirdPartyPhotoUrl(url) && url.startsWith('https://')
+}
+
+function randomShuffle<T>(items: T[]): T[] {
+  const copy = [...items]
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1))
+    ;[copy[index], copy[swap]] = [copy[swap], copy[index]]
+  }
+  return copy
 }
 
 async function uploadToGuidePhotos(path: string, body: Buffer): Promise<string | null> {
@@ -43,7 +63,9 @@ async function revalidatePoi(poiId: string): Promise<void> {
 const defaultDeps: MirrorDeps = {
   download: downloadImageSafely,
   upload: uploadToGuidePhotos,
-  revalidate: poiId => { void revalidatePoi(poiId) },
+  revalidate: poiId => {
+    revalidatePoi(poiId).catch(error => console.error('POI_PHOTO_MIRROR_REVALIDATION_FAILED', { poiId, error }))
+  },
 }
 
 function photoHash(sourceUrl: string): string {
@@ -57,7 +79,7 @@ async function mirrorOne(poiId: string, sourceUrl: string, deps: MirrorDeps): Pr
     return false
   }
   try {
-    const { data, info } = await sharp(download.body)
+    const { data, info } = await sharp(download.body, { limitInputPixels: MAX_INPUT_PIXELS, sequentialRead: true })
       .rotate()
       .resize({ width: MAX_WIDTH, withoutEnlargement: true })
       .webp({ quality: 82 })
@@ -80,7 +102,12 @@ async function mirrorOne(poiId: string, sourceUrl: string, deps: MirrorDeps): Pr
 }
 
 /** Spec 063 AC-01-01..03 — copie les photos tierces d'un POI publié qui n'ont pas encore de copie. */
-export async function mirrorPoiPhotos(poiId: string, deps: MirrorDeps = defaultDeps, budget = Number.POSITIVE_INFINITY): Promise<MirrorReport> {
+export async function mirrorPoiPhotos(
+  poiId: string,
+  deps: MirrorDeps = defaultDeps,
+  budget = Number.POSITIVE_INFINITY,
+  deadline = Number.POSITIVE_INFINITY,
+): Promise<MirrorReport> {
   const report: MirrorReport = { mirrored: 0, skipped: 0, failed: 0 }
   const poi = await prisma.pointOfInterest.findFirst({
     where: { id: poiId, discovery_status: 'PUBLISHED', deleted_at: null },
@@ -95,11 +122,11 @@ export async function mirrorPoiPhotos(poiId: string, deps: MirrorDeps = defaultD
   const mirroredUrls = new Set(existing.map(row => row.source_url))
 
   for (const sourceUrl of poi.photos) {
-    if (!isThirdPartyPhotoUrl(sourceUrl) || mirroredUrls.has(sourceUrl)) {
+    if (!isMirrorableUrl(sourceUrl) || mirroredUrls.has(sourceUrl)) {
       report.skipped += 1
       continue
     }
-    if (report.mirrored + report.failed >= budget) break
+    if (report.mirrored + report.failed >= budget || Date.now() >= deadline) break
     if (await mirrorOne(poiId, sourceUrl, deps)) {
       report.mirrored += 1
       mirroredUrls.add(sourceUrl)
@@ -112,8 +139,16 @@ export async function mirrorPoiPhotos(poiId: string, deps: MirrorDeps = defaultD
   return report
 }
 
-/** Spec 063 AC-01-04 / BR-06 — tâche quotidienne : au plus `limit` copies tentées. */
-export async function mirrorPendingPoiPhotos(limit: number, deps: MirrorDeps = defaultDeps): Promise<MirrorReport> {
+/**
+ * Spec 063 AC-01-04 / BR-06 — tâche quotidienne : au plus `limit` copies tentées,
+ * dans un ordre qui tourne d'une exécution à l'autre et avant l'échéance.
+ */
+export async function mirrorPendingPoiPhotos(
+  limit: number,
+  deps: MirrorDeps = defaultDeps,
+  options: { deadline?: number } = {},
+): Promise<MirrorReport> {
+  const deadline = options.deadline ?? Date.now() + DEFAULT_TIME_BUDGET_MS
   const total: MirrorReport = { mirrored: 0, skipped: 0, failed: 0 }
   const pois = await prisma.pointOfInterest.findMany({
     where: { discovery_status: 'PUBLISHED', deleted_at: null },
@@ -121,13 +156,16 @@ export async function mirrorPendingPoiPhotos(limit: number, deps: MirrorDeps = d
     select: { id: true, photos: true, photo_mirrors: { where: { deleted_at: null }, select: { source_url: true } } },
   })
 
-  for (const poi of pois) {
-    const remaining = limit - total.mirrored - total.failed
-    if (remaining <= 0) break
+  const pending = pois.filter(poi => {
     const mirrored = new Set(poi.photo_mirrors.map(row => row.source_url))
-    if (!poi.photos.some(url => isThirdPartyPhotoUrl(url) && !mirrored.has(url))) continue
+    return poi.photos.some(url => isMirrorableUrl(url) && !mirrored.has(url))
+  })
 
-    const report = await mirrorPoiPhotos(poi.id, deps, remaining)
+  for (const poi of (deps.shuffle ?? randomShuffle)(pending)) {
+    const remaining = limit - total.mirrored - total.failed
+    if (remaining <= 0 || Date.now() >= deadline) break
+
+    const report = await mirrorPoiPhotos(poi.id, deps, remaining, deadline)
     total.mirrored += report.mirrored
     total.skipped += report.skipped
     total.failed += report.failed

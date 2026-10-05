@@ -137,4 +137,60 @@ describe('063 — mirrorPendingPoiPhotos', () => {
       orderBy: { discovery_published_at: 'asc' },
     }))
   })
+
+  // Revue finale (point 2) : les échecs permanents ne doivent pas bloquer la file.
+  it('ne tente pas les photos en http (échec certain), sans les compter en échec', async () => {
+    mockPoiFindMany.mockResolvedValue([
+      { id: 'poi-1', photos: ['http://site.fr/old.jpg'], photo_mirrors: [] },
+    ])
+    mockPoiFindFirst.mockResolvedValue({ id: 'poi-1', photos: ['http://site.fr/old.jpg'] })
+    const deps = makeDeps(await jpeg(10, 10))
+
+    const report = await mirrorPendingPoiPhotos(40, deps)
+
+    expect(deps.download).not.toHaveBeenCalled()
+    expect(report.failed).toBe(0)
+  })
+
+  it('s’arrête à l’échéance de temps', async () => {
+    mockPoiFindMany.mockResolvedValue([
+      { id: 'poi-1', photos: ['https://site.fr/1.jpg'], photo_mirrors: [] },
+    ])
+    mockPoiFindFirst.mockResolvedValue({ id: 'poi-1', photos: ['https://site.fr/1.jpg'] })
+    const deps = makeDeps(await jpeg(10, 10))
+
+    const report = await mirrorPendingPoiPhotos(40, deps, { deadline: Date.now() - 1 })
+
+    expect(deps.download).not.toHaveBeenCalled()
+    expect(report).toEqual({ mirrored: 0, skipped: 0, failed: 0 })
+  })
+
+  it('fait tourner l’ordre des POI pour que les mêmes échecs ne passent pas toujours devant', async () => {
+    mockPoiFindMany.mockResolvedValue([
+      { id: 'poi-1', photos: ['https://site.fr/1.jpg'], photo_mirrors: [] },
+      { id: 'poi-2', photos: ['https://site.fr/2.jpg'], photo_mirrors: [] },
+    ])
+    mockPoiFindFirst.mockImplementation(async ({ where }: { where: { id: string } }) =>
+      ({ id: where.id, photos: [where.id === 'poi-1' ? 'https://site.fr/1.jpg' : 'https://site.fr/2.jpg'] }))
+    const deps = makeDeps(await jpeg(10, 10))
+    const shuffle = jest.fn(<T,>(items: T[]) => [...items].reverse())
+
+    await mirrorPendingPoiPhotos(1, { ...deps, shuffle })
+
+    expect(shuffle).toHaveBeenCalled()
+    expect(deps.download).toHaveBeenCalledWith('https://site.fr/2.jpg')
+  })
+})
+
+describe('063 — protection mémoire au décodage', () => {
+  it('refuse une image de plus de 40 millions de pixels sans rien enregistrer (revue finale, point 3)', async () => {
+    mockPoiFindFirst.mockResolvedValue({ id: 'poi-1', photos: ['https://site.fr/geante.png'] })
+    const huge = await sharp({ create: { width: 7000, height: 6000, channels: 3, background: '#ffffff' } }).png().toBuffer()
+    const deps = makeDeps(huge)
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    await expect(mirrorPoiPhotos('poi-1', deps)).resolves.toEqual({ mirrored: 0, skipped: 0, failed: 1 })
+    expect(deps.upload).not.toHaveBeenCalled()
+    expect(mockMirrorUpsert).not.toHaveBeenCalled()
+  })
 })
