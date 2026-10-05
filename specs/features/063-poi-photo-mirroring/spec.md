@@ -280,6 +280,17 @@ Next.js) quand le statut devient `PUBLISHED`.
 
 ---
 
+## Amendements
+
+- **2026-10-05 (Product Owner) — extension à tous les POI actifs** : remplace la
+  restriction aux POI publiés de BR-01, AC-01-04 et AC-01-05. Le guide privé affiche
+  aussi des POI actifs non publiés sur `/decouvrir` (75 lieux, 178 photos tierces au
+  2026-10-05, dont 9 mis en avant par un logement). Toutes les photos tierces des POI
+  **actifs et non supprimés** sont désormais copiées, avec la même hypothèse d'accord
+  des établissements. La tâche quotidienne et le script de reprise parcourent tous les
+  POI actifs ; la copie lancée à la publication (AC-01-01) reste inchangée. Le crédit
+  (US-04) ne concerne toujours que la fiche publique `/decouvrir`.
+
 ## Out of Scope
 
 - Suivi des autorisations des établissements dans l'outil (case, date, preuve).

@@ -101,7 +101,7 @@ async function mirrorOne(poiId: string, sourceUrl: string, deps: MirrorDeps): Pr
   }
 }
 
-/** Spec 063 AC-01-01..03 — copie les photos tierces d'un POI publié qui n'ont pas encore de copie. */
+/** Spec 063 AC-01-01..03 — copie les photos tierces d'un POI actif qui n'ont pas encore de copie. */
 export async function mirrorPoiPhotos(
   poiId: string,
   deps: MirrorDeps = defaultDeps,
@@ -110,7 +110,8 @@ export async function mirrorPoiPhotos(
 ): Promise<MirrorReport> {
   const report: MirrorReport = { mirrored: 0, skipped: 0, failed: 0 }
   const poi = await prisma.pointOfInterest.findFirst({
-    where: { id: poiId, discovery_status: 'PUBLISHED', deleted_at: null },
+    // Amendement 063 du 2026-10-05 : tous les POI actifs (le guide privé affiche aussi les non publiés).
+    where: { id: poiId, is_active: true, deleted_at: null },
     select: { id: true, photos: true },
   })
   if (!poi) return report
@@ -151,8 +152,7 @@ export async function mirrorPendingPoiPhotos(
   const deadline = options.deadline ?? Date.now() + DEFAULT_TIME_BUDGET_MS
   const total: MirrorReport = { mirrored: 0, skipped: 0, failed: 0 }
   const pois = await prisma.pointOfInterest.findMany({
-    where: { discovery_status: 'PUBLISHED', deleted_at: null },
-    orderBy: { discovery_published_at: 'asc' },
+    where: { is_active: true, deleted_at: null },
     select: { id: true, photos: true, photo_mirrors: { where: { deleted_at: null }, select: { source_url: true } } },
   })
 

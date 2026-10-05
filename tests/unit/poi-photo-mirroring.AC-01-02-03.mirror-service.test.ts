@@ -133,8 +133,8 @@ describe('063 — mirrorPendingPoiPhotos', () => {
     expect(report.mirrored).toBe(2)
     expect(deps.download).toHaveBeenCalledTimes(2)
     expect(mockPoiFindMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ discovery_status: 'PUBLISHED', deleted_at: null }),
-      orderBy: { discovery_published_at: 'asc' },
+      // Amendement 063 du 2026-10-05 : tous les POI actifs, publiés ou non.
+      where: { is_active: true, deleted_at: null },
     }))
   })
 
@@ -192,5 +192,15 @@ describe('063 — protection mémoire au décodage', () => {
     await expect(mirrorPoiPhotos('poi-1', deps)).resolves.toEqual({ mirrored: 0, skipped: 0, failed: 1 })
     expect(deps.upload).not.toHaveBeenCalled()
     expect(mockMirrorUpsert).not.toHaveBeenCalled()
+  })
+
+  it('amendement 2026-10-05 : copie aussi un POI actif non publié sur /decouvrir', async () => {
+    mockPoiFindFirst.mockResolvedValue({ id: 'poi-draft', photos: ['https://site.fr/a.jpg'] })
+    const deps = makeDeps(await jpeg(10, 10))
+
+    await expect(mirrorPoiPhotos('poi-draft', deps)).resolves.toMatchObject({ mirrored: 1 })
+    expect(mockPoiFindFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'poi-draft', is_active: true, deleted_at: null },
+    }))
   })
 })

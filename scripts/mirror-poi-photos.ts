@@ -1,6 +1,6 @@
 /**
- * Spec 063 AC-01-05 — reprise initiale : copie toutes les photos tierces des POI
- * publiés, par lots, jusqu'à ce qu'il n'en reste plus.
+ * Spec 063 AC-01-05 — reprise : copie toutes les photos tierces des POI actifs
+ * (amendement du 2026-10-05), par lots, jusqu'à ce qu'il n'en reste plus.
  * Usage : npx tsx --env-file=.env.local scripts/mirror-poi-photos.ts
  */
 import { mirrorPendingPoiPhotos } from '@/features/poi-photos/services/mirror-poi-photos'
