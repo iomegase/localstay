@@ -7,7 +7,8 @@ jest.mock('@/shared/lib/prisma', () => ({
     subCategory: { findFirst: jest.fn() },
     lodging: { findFirst: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
-    pointOfInterest: { findMany: jest.fn() },
+    pointOfInterest: { findMany: jest.fn(), findFirst: jest.fn() },
+    lodgingPublicProfile: { findFirst: jest.fn() },
   },
 }))
 
@@ -25,6 +26,8 @@ import { getPoiCards } from '@/features/categories/queries/poi-cards'
 import { getAllPoiCards } from '@/features/categories/queries/all-poi-cards'
 import { searchGuide } from '@/features/city-guide/queries/cities'
 import { getPrivateGuideData } from '@/features/guide-app/queries/private-guide-data'
+import { getPoiDetail } from '@/features/categories/queries/poi-detail'
+import { getPublishedLodgingDetailBySlug } from '@/features/lodging-showcase/queries/public-lodgings'
 import { prisma } from '@/shared/lib/prisma'
 
 function poiRow() {
@@ -76,5 +79,36 @@ describe('063 AC-03-01 — le guide sert les copies', () => {
     const data = await getPrivateGuideData('lodging-1')
     expect(data!.pois[0].photos).toContain(COPY)
     expect(data!.pois[0].photos.some(photo => photo === ORIGINAL)).toBe(false)
+  })
+
+  // Revue finale (point 4) : surfaces oubliées.
+  it('fiche POI du guide : galerie servie depuis les copies', async () => {
+    jest.mocked(prisma.city.findFirst).mockResolvedValue({
+      id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains',
+      region: 'Auvergne-Rhône-Alpes', postal_code: '74170', latitude: 45.89, longitude: 6.71,
+    } as never)
+    jest.mocked(prisma.pointOfInterest.findFirst).mockResolvedValue({
+      ...poiRow(), category: { id: 'cat-1', name: 'Restaurants', slug: 'diner', icon: 'utensils' },
+      subcategory: null, hiking_detail: null, trail_detail: null, merchant_offers: [],
+    } as never)
+    const detail = await getPoiDetail('saint-gervais-les-bains', 'diner', 'brasserie')
+    expect(detail!.photos).toEqual([LOGO_COPY, COPY])
+  })
+
+  it('page logement : photo des lieux mis en avant servie depuis la copie, logo écarté', async () => {
+    jest.mocked(prisma.lodgingPublicProfile.findFirst).mockResolvedValue({
+      id: 'profile-1', slug: 'chalet', title: 'Chalet', short_description: 'Court', description: 'Long',
+      property_type: 'chalet', max_guests: 4, bedroom_count: 2, bathroom_count: 1, bed_count: 2, surface_m2: 80,
+      public_area_label: null, photos: [], amenities: [], faq_items: [],
+      external_booking_url: null, external_booking_platform: null, public_contact_enabled: true,
+      precise_location_public: false, public_latitude: null, public_longitude: null,
+      city: { slug: 'saint-gervais-les-bains', name: 'Saint-Gervais-les-Bains', region: null },
+      lodging: { featured_pois: [{ owner_note: null, poi: {
+        id: 'poi-1', name: 'Brasserie', slug: 'brasserie', photos: [LOGO, ORIGINAL],
+        category: { slug: 'diner' }, city: { slug: 'saint-gervais-les-bains', name: 'Saint-Gervais-les-Bains' },
+      } }] },
+    } as never)
+    const detail = await getPublishedLodgingDetailBySlug('chalet')
+    expect(detail!.owner_recommendations[0].photo_url).toBe(COPY)
   })
 })

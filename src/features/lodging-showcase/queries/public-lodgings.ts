@@ -2,6 +2,7 @@ import { lodgingPhotoAlt } from '../lib/detail-view'
 import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import { selectPrimaryPoiPhoto } from '@/features/categories/lib/photo-url'
+import { getPoiPhotoMirrorMap, resolvePoiPhotoUrl } from '@/features/poi-photos/queries/photo-mirror-map'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import type { PublicOwnerRecommendationDto } from '@/features/lodging-showcase/types'
 
@@ -407,6 +408,7 @@ async function getPublishedLodgingDetailWhere(
   if (!row) return null
 
   const card = toCardApi(row)
+  const mirrorMap = await getPoiPhotoMirrorMap()
   return {
     ...card,
     city_name: row.city.name,
@@ -427,7 +429,11 @@ async function getPublishedLodgingDetailWhere(
       city_slug: featuredPoi.poi.city.slug,
       city_name: featuredPoi.poi.city.name,
       owner_note: featuredPoi.owner_note,
-      photo_url: selectPrimaryPoiPhoto(featuredPoi.poi.photos),
+      // Spec 063 : sélection sur l'URL d'origine (filtre logos), puis copie MyStay.
+      photo_url: (() => {
+        const photo = selectPrimaryPoiPhoto(featuredPoi.poi.photos)
+        return photo ? resolvePoiPhotoUrl(photo, mirrorMap) : null
+      })(),
     })),
     precise_location_public: row.precise_location_public,
     public_latitude: row.public_latitude,

@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
+import { getPoiPhotoMirrorMap, resolvePoiPhotoList } from '@/features/poi-photos/queries/photo-mirror-map'
 import type { PoiDetail, PoiHours, HikingDetailData, TrailDetailData } from '../types'
 import { computeIsOpenNow } from '../lib/is-open-now'
 import { getLodgingDistanceOrigin } from './lodging-distance-origin'
@@ -124,6 +125,7 @@ async function getPoiDetailUncached(
       }
     : null
   const lodgingOrigin = await getLodgingDistanceOrigin(city.id, lodgingId)
+  const mirrorMap = await getPoiPhotoMirrorMap()
   const cityDistanceKm = haversineKm(city.latitude, city.longitude, row.latitude, row.longitude)
   const displayDistanceKm = lodgingOrigin
     ? haversineKm(lodgingOrigin.latitude, lodgingOrigin.longitude, row.latitude, row.longitude)
@@ -143,7 +145,8 @@ async function getPoiDetailUncached(
     rating_count: row.rating_count,
     is_open_now: computeIsOpenNow(row.hours as PoiHours | null) ?? row.is_open_now,
     hours: row.hours as PoiHours | null,
-    photos: row.photos,
+    // Spec 063 : copies MyStay à la place des URL tierces.
+    photos: resolvePoiPhotoList(row.photos, mirrorMap),
     distance_km: displayDistanceKm,
     distance_source: lodgingOrigin ? 'lodging' : 'city_center',
     city: { name: city.name, slug: city.slug, region: city.region, postal_code: city.postal_code },
