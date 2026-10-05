@@ -113,18 +113,20 @@ export function PropertyStat({
   dense?: boolean
 }) {
   return (
+    // Groupe <dt>/<dd> uniquement (arbre d'accessibilité valide) : l'icône est dans le <dt>,
+    // positionnée à gauche comme avant (tuile 36 px + 12 px d'écart).
     <div
-      className={`flex min-h-[74px] items-center gap-3 py-3 ${borderLeft ? 'border-l border-slate-200 pl-4' : 'pr-3'} ${
-        borderTop ? 'border-t border-slate-200' : ''
-      }`}
+      className={`relative flex min-h-[74px] flex-col justify-center py-3 ${borderLeft ? 'border-l border-slate-200 pl-16' : 'pl-12 pr-3'} ${
+        dense ? (borderLeft ? 'md:max-lg:pl-4' : 'md:max-lg:pl-0') : ''
+      } ${borderTop ? 'border-t border-slate-200' : ''}`}
     >
-      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-50 ${dense ? 'md:max-lg:hidden' : ''}`}>
-        <Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
-      </span>
-      <div>
-        <dt className="text-[8px] text-slate-500">{label}</dt>
-        <dd className={`text-xs font-bold ${dense ? 'whitespace-nowrap' : ''}`}>{value}</dd>
-      </div>
+      <dt className="text-[8px] text-slate-500">
+        <span className={`absolute top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl bg-slate-50 ${borderLeft ? 'left-4' : 'left-0'} ${dense ? 'md:max-lg:hidden' : ''}`}>
+          <Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
+        </span>
+        {label}
+      </dt>
+      <dd className={`text-xs font-bold ${dense ? 'whitespace-nowrap' : ''}`}>{value}</dd>
     </div>
   )
 }

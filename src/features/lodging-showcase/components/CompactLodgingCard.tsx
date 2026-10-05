@@ -24,23 +24,24 @@ export function CompactLodgingCard({ lodging }: { lodging: CompactLodgingCardDat
           <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600">{lodging.cityName}</p>
           <h3 className="mb-4 mt-2 break-words text-xl font-bold leading-[1.3] tracking-[-0.035em] text-slate-800">{lodging.title}</h3>
           <dl className="mt-auto grid grid-cols-2 border-t border-slate-200 text-slate-800">
-            <div className="flex min-w-0 items-center gap-2 py-3 pr-2">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-50">
-                <Scan aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
-              </span>
-              <div>
-                <dt className="text-[10px] text-slate-500">Surface</dt>
-                <dd className="text-sm font-bold">{lodging.surfaceM2 == null ? '—' : `${lodging.surfaceM2} m²`}</dd>
-              </div>
+            {/* Groupes <dt>/<dd> uniquement (arbre d'accessibilité valide) : l'icône est dans le <dt>. */}
+            <div className="relative flex min-h-[60px] min-w-0 flex-col justify-center py-3 pl-11 pr-2">
+              <dt className="text-[10px] text-slate-500">
+                <span className="absolute left-0 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl bg-slate-50">
+                  <Scan aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
+                </span>
+                Surface
+              </dt>
+              <dd className="text-sm font-bold">{lodging.surfaceM2 == null ? '—' : `${lodging.surfaceM2} m²`}</dd>
             </div>
-            <div className="flex min-w-0 items-center gap-2 border-l border-slate-200 py-3 pl-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-50">
-                <Users aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
-              </span>
-              <div>
-                <dt className="text-[10px] text-slate-500">Voyageurs</dt>
-                <dd className="text-sm font-bold">{lodging.maxGuests}</dd>
-              </div>
+            <div className="relative flex min-h-[60px] min-w-0 flex-col justify-center border-l border-slate-200 py-3 pl-14">
+              <dt className="text-[10px] text-slate-500">
+                <span className="absolute left-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl bg-slate-50">
+                  <Users aria-hidden="true" className="h-4 w-4" strokeWidth={1.6} />
+                </span>
+                Voyageurs
+              </dt>
+              <dd className="text-sm font-bold">{lodging.maxGuests}</dd>
             </div>
           </dl>
         </div>

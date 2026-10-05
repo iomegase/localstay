@@ -93,12 +93,11 @@ export function LodgingEssentials({
                 ? 'flex min-h-[64px] flex-col items-center justify-center gap-1 border-b border-r border-slate-100 px-3 py-2 text-center even:border-r-0 last:border-b-0'
                 : 'flex min-h-[64px] flex-col items-center justify-center gap-1 border-b border-r border-slate-100 px-3 py-2 text-center even:border-r-0 last:border-b-0 md:min-h-[82px] md:gap-1.5 md:border-b-0 md:border-r-0 md:px-4 md:py-2.5'}
             >
-              <div className="flex items-center gap-1.5">
+              {/* L'icône est dans le <dt> : le groupe ne contient que <dt>/<dd>. */}
+              <dt className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
                 <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-pink-600" strokeWidth={1.8} />
-                <dt className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
-                  {label}
-                </dt>
-              </div>
+                {label}
+              </dt>
               <dd className="w-full text-center text-[14px] font-bold tracking-[-0.02em] text-slate-800">
                 {value}
               </dd>
