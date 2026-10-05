@@ -17,8 +17,6 @@ const poiInput = {
   longitude: 6.7085,
   phone: '+33450000000',
   website: 'https://musee.example.com',
-  rating: 4.7,
-  ratingCount: 32,
   hours: null,
   photos: ['https://images.example.com/musee.jpg'],
   cityName: 'Saint-Gervais-les-Bains',

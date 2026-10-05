@@ -312,6 +312,8 @@ Format de chaque constat : gravité, périmètre, preuve, fichier, conséquence,
 
 ### C-11 — `aggregateRating` des POI issu de Google — **Moyenne**
 
+> **Corrigé le 2026-10-05** : `aggregateRating` retiré de `localBusinessSchema` et `discoveryPoiSchema` ; la note reste affichée.
+
 - **[Dépôt]** `structured-data.ts:444-458` et `678-693` émettent `aggregateRating` à partir de `rating` et `rating_count`, alimentés par Google Places (`src/features/poi-acquisition/lib/google-places.ts`).
 - **[Prod]** `/decouvrir/saint-gervais-les-bains/diner/le-royal` : « Note 4 / 5 · 659 avis » visible et balisé.
 - **Conséquence :** les règles Google sur les extraits d'avis interdisent de baliser des notes agrégées depuis d'autres sites. Risque d'action manuelle sur les données structurées, en plus d'une absence d'attribution visible.

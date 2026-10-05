@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
-updated_at: 2026-10-01
+updated_at: 2026-10-05
 depends_on:
   - 001-city-guide
   - 002-categories
@@ -678,6 +678,14 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
 | AC-06-06 | Invalidation du hub après changement d'appartenance | contract + integration |
 
 ---
+
+## Amendements
+
+- **2026-10-05 (audit SEO/GEO, constat C-11)** : le JSON-LD des POI
+  (`/decouvrir` et guide privé) n'émet plus `aggregateRating`. Les notes
+  proviennent de Google Places ; les règles Google sur les extraits d'avis
+  interdisent de baliser des notes agrégées depuis d'autres sites. La note
+  peut rester affichée sur la page, mais n'est jamais balisée.
 
 ## Out of Scope
 

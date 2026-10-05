@@ -63,8 +63,6 @@ export default async function PoiDetailPage({ params }: Props) {
     longitude: poi.longitude,
     phone: poi.phone,
     website: poi.website,
-    rating: poi.rating,
-    ratingCount: poi.rating_count,
     hours: poi.hours,
     photos: poi.photos,
     cityName: poi.city.name,

@@ -223,8 +223,10 @@ describe('041 public discovery pages', () => {
         addressLocality: poi.city.name,
       },
       geo: { latitude: poi.latitude, longitude: poi.longitude },
-      aggregateRating: { ratingValue: poi.rating, ratingCount: poi.rating_count },
     })
+    // Audit C-11 (2026-10-05) : la note Google reste affichée mais n'est pas balisée.
+    expect(poi.rating).not.toBeNull()
+    expect(poiSchema).not.toHaveProperty('aggregateRating')
     expect(screen.getByTestId('mini-map')).toHaveAttribute(
       'src',
       expect.stringContaining(`${poi.longitude},${poi.latitude}`),

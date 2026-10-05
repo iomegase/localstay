@@ -17,8 +17,6 @@ const poiInput = {
   longitude: 6.71,
   phone: '+33450000000',
   website: 'https://jannett.example.com',
-  rating: 4.6,
-  ratingCount: 32,
   hours: { '1': { open: '09:00', close: '18:00' } },
   photos: ['https://img/a.jpg'],
   cityName: 'Saint-Gervais-les-Bains',
@@ -105,7 +103,7 @@ describe('structured-data', () => {
     expect(s.itemListElement[1]).toMatchObject({ position: 2, item: `${BASE}/guide/saint-gervais-les-bains` })
   })
 
-  it('localBusinessSchema maps address, geo, telephone, rating and opening hours', () => {
+  it('localBusinessSchema maps address, geo, telephone and opening hours, without rating', () => {
     const s = localBusinessSchema(poiInput)
     expect(s['@type']).toBe('LocalBusiness')
     expect(s.url).toBe(`${BASE}${poiInput.path}`)
@@ -119,16 +117,16 @@ describe('structured-data', () => {
     })
     expect(s.geo).toMatchObject({ '@type': 'GeoCoordinates', latitude: 45.85, longitude: 6.71 })
     expect(s.telephone).toBe('+33450000000')
-    expect(s.aggregateRating).toMatchObject({ '@type': 'AggregateRating', ratingValue: 4.6, ratingCount: 32 })
+    // Audit C-11 (2026-10-05) : notes issues de Google, jamais balisées.
+    expect(s).not.toHaveProperty('aggregateRating')
     expect(s.openingHoursSpecification).toEqual([
       expect.objectContaining({ '@type': 'OpeningHoursSpecification', opens: '09:00', closes: '18:00' }),
     ])
     expect((s.openingHoursSpecification as Array<{ dayOfWeek: string }>)[0].dayOfWeek).toContain('Monday')
   })
 
-  it('localBusinessSchema omits rating and telephone when absent', () => {
-    const s = localBusinessSchema({ ...poiInput, rating: null, ratingCount: 0, phone: null })
-    expect(s.aggregateRating).toBeUndefined()
+  it('localBusinessSchema omits telephone when absent', () => {
+    const s = localBusinessSchema({ ...poiInput, phone: null })
     expect(s.telephone).toBeUndefined()
   })
 

@@ -57,8 +57,6 @@ export type PoiSchemaInput = {
   longitude: number
   phone: string | null
   website: string | null
-  rating: number | null
-  ratingCount: number
   hours: Record<
     string,
     {
@@ -374,6 +372,9 @@ function poiUrl(path: string): string {
  * Attention :
  * ce LocalBusiness décrit le POI référencé
  * par MyStay, pas MyStay lui-même.
+ *
+ * Pas d'aggregateRating : les notes proviennent de Google Places, et Google
+ * interdit de baliser des notes agrégées depuis d'autres sites (audit C-11).
  */
 export function localBusinessSchema(
   poi: PoiSchemaInput,
@@ -440,22 +441,6 @@ export function localBusinessSchema(
 
       longitude: poi.longitude,
     },
-
-    ...(poi.rating != null &&
-    poi.ratingCount > 0
-      ? {
-          aggregateRating: {
-            '@type':
-              'AggregateRating',
-
-            ratingValue:
-              poi.rating,
-
-            ratingCount:
-              poi.ratingCount,
-          },
-        }
-      : {}),
 
     ...(hoursSpec
       ? {
@@ -674,23 +659,6 @@ export function discoveryPoiSchema(
       longitude:
         poi.longitude,
     },
-
-    ...(poi.rating !== null &&
-    poi.rating_count !== null &&
-    poi.rating_count > 0
-      ? {
-          aggregateRating: {
-            '@type':
-              'AggregateRating',
-
-            ratingValue:
-              poi.rating,
-
-            ratingCount:
-              poi.rating_count,
-          },
-        }
-      : {}),
 
     ...(hoursSpec
       ? {
