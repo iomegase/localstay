@@ -1,12 +1,10 @@
 import { createHash } from 'node:crypto'
 import sharp from 'sharp'
-import { revalidateTag } from 'next/cache'
 import { prisma } from '@/shared/lib/prisma'
 import { createSupabaseServer } from '@/shared/lib/supabase'
 import { isThirdPartyPhotoUrl } from '../lib/storage-url'
 import { downloadImageSafely } from './safe-image-download'
 import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
-import { POI_PHOTO_MIRROR_TAG } from '../lib/mirror-cache-tag'
 
 const BUCKET = 'guide-photos'
 const MAX_WIDTH = 1600
@@ -29,11 +27,6 @@ async function uploadToGuidePhotos(path: string, body: Buffer): Promise<string |
 }
 
 async function revalidatePoi(poiId: string): Promise<void> {
-  try {
-    revalidateTag(POI_PHOTO_MIRROR_TAG, 'max')
-  } catch (error) {
-    console.error('POI_PHOTO_MIRROR_REVALIDATION_FAILED', { poiId, error })
-  }
   const poi = await prisma.pointOfInterest.findFirst({
     where: { id: poiId },
     select: { slug: true, city: { select: { slug: true } }, category: { select: { slug: true } } },

@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 import { fireEvent, render, screen } from '@testing-library/react'
 
-jest.mock('next/cache', () => ({ unstable_cache: (fn: () => unknown) => fn }))
 const mockFindMany = jest.fn()
 jest.mock('@/shared/lib/prisma', () => ({ prisma: { poiPhotoMirror: { findMany: (...a: unknown[]) => mockFindMany(...a) } } }))
 

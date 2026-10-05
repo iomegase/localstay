@@ -1,26 +1,19 @@
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
 import { prisma } from '@/shared/lib/prisma'
-import { POI_PHOTO_MIRROR_TAG } from '../lib/mirror-cache-tag'
 
 export type PoiPhotoMirrorMap = ReadonlyMap<string, string>
 
-const loadMirrorPairs = unstable_cache(
-  async (): Promise<Array<[string, string]>> => {
+/**
+ * Spec 063 — correspondance URL d'origine → copie MyStay, lue une fois par requête
+ * (une centaine de lignes). Pas de cache inter-requêtes : aucune invalidation à gérer.
+ */
+export const getPoiPhotoMirrorMap = cache(async (): Promise<PoiPhotoMirrorMap> => {
+  try {
     const rows = await prisma.poiPhotoMirror.findMany({
       where: { deleted_at: null },
       select: { source_url: true, storage_url: true },
     })
-    return rows.map(row => [row.source_url, row.storage_url])
-  },
-  ['poi-photo-mirror-map'],
-  { tags: [POI_PHOTO_MIRROR_TAG], revalidate: 86_400 },
-)
-
-/** Spec 063 — correspondance URL d'origine → copie MyStay, une lecture par requête. */
-export const getPoiPhotoMirrorMap = cache(async (): Promise<PoiPhotoMirrorMap> => {
-  try {
-    return new Map(await loadMirrorPairs())
+    return new Map(rows.map(row => [row.source_url, row.storage_url]))
   } catch (error) {
     console.error('POI_PHOTO_MIRROR_MAP_UNAVAILABLE', error)
     return new Map()
