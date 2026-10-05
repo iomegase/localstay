@@ -7,6 +7,11 @@ export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter' | 'guid
 
 const SCROLL_IDLE_MS = 180
 const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[42px] min-w-0 w-full rounded-full bg-white py-1 pl-1 pr-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
+// Variante guide : pastilles rondes sur une ligne. Au survol / focus clavier, la
+// pastille s'étire en pilule de sa couleur (effet goutte, léger rebond) et révèle
+// le libellé. Le libellé reste dans le DOM pour les lecteurs d'écran.
+const GUIDE_ACTION_BUTTON_CLASS = 'group flex shrink-0 items-center rounded-full text-white shadow-[0_7px_16px_rgba(17,24,39,0.10)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 focus-visible:ring-offset-2 active:scale-[0.96]'
+const GUIDE_ACTION_LABEL_CLASS = 'max-w-0 overflow-hidden whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] opacity-0 transition-[max-width,opacity,padding] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:max-w-[120px] group-hover:pr-4 group-hover:opacity-100 group-focus-visible:max-w-[120px] group-focus-visible:pr-4 group-focus-visible:opacity-100 motion-reduce:transition-none'
 const COMPACT_ACTION_BUTTON_CLASS = 'min-h-[32px] min-w-0 w-full rounded-full bg-white py-0.5 pl-0.5 pr-2 flex items-center justify-center gap-1 whitespace-nowrap text-[8px] font-bold uppercase tracking-[0.08em] shadow-[0_5px_14px_rgba(17,24,39,0.06)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_7px_16px_rgba(17,24,39,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
 const DETAIL_ACTION_COLUMNS = {
   call: 'col-start-1',
@@ -56,11 +61,11 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
     )
   }
 
-  // Guide POI details : mêmes pilules, mais sur 2 colonnes. Avec les 4 actions on
-  // obtient un 2×2 (Appeler / Site web puis Carte / Itinéraire).
+  // Guide POI details : les actions en pastilles icônes sur une seule ligne
+  // (Appeler / Site web / Carte / Itinéraire).
   if (variant === 'guide') {
     return (
-      <div className="grid w-full grid-cols-2 gap-2 px-1 pt-2 pb-3">
+      <div className="flex w-full items-center justify-center gap-4 px-1 pt-2 pb-3">
         {telHref && phoneLabel && (
           <DetailActionButton
             href={telHref}
@@ -69,6 +74,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             icon={<Phone className="h-3.5 w-3.5" />}
             label={m.actions.call}
             ariaLabel={m.actions.callNumber(phoneLabel)}
+            guide
             pinColumn={false}
           />
         )}
@@ -80,6 +86,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             icon={<Globe className="h-3.5 w-3.5" />}
             label={m.actions.website}
             external
+            guide
             pinColumn={false}
           />
         )}
@@ -90,6 +97,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             tone="map"
             icon={<Map className="h-3.5 w-3.5" />}
             label={m.actions.map}
+            guide
             pinColumn={false}
           />
         )}
@@ -100,7 +108,8 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
           icon={<Navigation className="h-3.5 w-3.5" />}
           label={m.actions.directions}
           external
-          pinColumn={false}
+          guide
+            pinColumn={false}
         />
       </div>
     )
@@ -157,6 +166,7 @@ function DetailActionButton({
   external = false,
   ariaLabel,
   compact = false,
+  guide = false,
   pinColumn = true,
 }: {
   href?: string
@@ -168,11 +178,20 @@ function DetailActionButton({
   external?: boolean
   ariaLabel?: string
   compact?: boolean
+  guide?: boolean
   pinColumn?: boolean
 }) {
   const toneClasses = DETAIL_ACTION_TONES[tone]
-  const buttonClass = compact ? COMPACT_ACTION_BUTTON_CLASS : DETAIL_ACTION_BUTTON_CLASS
-  const bubbleClass = compact ? 'h-6 w-6 [&_svg]:h-3 [&_svg]:w-3' : 'h-8 w-8'
+  const buttonClass = compact
+    ? COMPACT_ACTION_BUTTON_CLASS
+    : guide
+      ? GUIDE_ACTION_BUTTON_CLASS
+      : DETAIL_ACTION_BUTTON_CLASS
+  const bubbleClass = compact
+    ? 'h-6 w-6 [&_svg]:h-3 [&_svg]:w-3'
+    : guide
+      ? 'h-11 w-11 [&_svg]:h-[18px] [&_svg]:w-[18px]'
+      : 'h-8 w-8'
   const columnClass = pinColumn ? DETAIL_ACTION_COLUMNS[tone as keyof typeof DETAIL_ACTION_COLUMNS] ?? '' : ''
 
   const inner = (
@@ -180,11 +199,11 @@ function DetailActionButton({
       <span className={`flex ${bubbleClass} shrink-0 items-center justify-center rounded-full text-white ${toneClasses.bubble}`}>
         {icon}
       </span>
-      <span className={`shrink-0 ${toneClasses.label}`}>{label}</span>
+      <span className={guide ? GUIDE_ACTION_LABEL_CLASS : `shrink-0 ${toneClasses.label}`}>{label}</span>
     </>
   )
 
-  const className = `${buttonClass} ${columnClass}`
+  const className = `${buttonClass} ${columnClass} ${guide ? toneClasses.bubble : ''}`
 
   if (onClick) {
     return (
