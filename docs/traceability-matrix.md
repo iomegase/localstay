@@ -1591,3 +1591,17 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | 042-seo-public-private-architecture | Audit SEO C-08, upload et validation alt | US-05 | AC-08-04 | `src/features/lodging-showcase/lib/upload-photos.ts`, `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx`, `src/features/lodging-showcase/schemas.ts`, `src/features/blog/schemas.ts`, routes upload photo admin/dashboard | `tests/unit/seo-public-private.AC-08.photo-upload.test.ts`, `tests/unit/seo-public-private.AC-08.metadata-and-alt.test.ts`, `tests/integration/lodging-showcase.AC-05-13-15.photo-editor.test.tsx`, tests contrat upload blog | Nom de fichier jamais utilisé par défaut ; alt technique refusé et corrigeable |
 
 | 042-seo-public-private-architecture | Sélecteurs CSS Markdown valides | US-05 | AC-08-02 | `src/features/blog/components/BlogMarkdown.tsx` | `tests/unit/seo-public-private.AC-08.markdown-css.test.ts` | Valeur d'attribut numérique citée ; génération Tailwind vérifiée |
+
+## 063 — Copie et optimisation des photos des POI
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Copie lancée en arrière-plan à la publication, sans jamais faire échouer la publication | `src/app/api/admin/pois/[id]/discovery-publication/route.ts` | `tests/integration/poi-photo-mirroring.AC-01-01.publication-trigger.test.ts` | ✅ done |
+| AC-01-02 / AC-01-03 | WebP ≤ 1600 px + PoiPhotoMirror, idempotent | `src/features/poi-photos/services/mirror-poi-photos.ts`<br>`prisma/migrations/20261005150000_poi_photo_mirror/migration.sql` | `tests/unit/poi-photo-mirroring.AC-01-02-03.mirror-service.test.ts` | ✅ done |
+| AC-01-04 | Tâche quotidienne (40 max, 04:15) | `src/app/api/internal/poi-photo-mirrors/sync/route.ts`<br>`vercel.json` | `tests/contract/poi-photo-mirroring.AC-01-04.sync-route.test.ts` | ✅ done |
+| AC-01-05 | Script de reprise | `scripts/mirror-poi-photos.ts` | — (exécution manuelle à la mise en service) | ✅ done |
+| AC-02-01..04 | Téléchargement sécurisé (https, hôtes internes, redirections, type, 8 Mo, 10 s), échec retenté | `src/features/poi-photos/services/safe-image-download.ts`<br>`src/features/poi-photos/lib/storage-url.ts` | `tests/unit/poi-photo-mirroring.AC-02-01-03.safe-download.test.ts` | ✅ done |
+| AC-03-01..03 | Copies utilisées sur /decouvrir et dans le guide, retour à l'original, next/image pour les copies | `src/features/poi-photos/queries/photo-mirror-map.ts`<br>`src/features/public-discovery/queries/public-discovery.ts`<br>`src/features/public-discovery/components/RemotePoiImage.tsx`<br>`src/features/categories/queries/poi-cards.ts`<br>`src/features/categories/queries/all-poi-cards.ts`<br>`src/features/city-guide/queries/cities.ts`<br>`src/features/guide-app/queries/private-guide-data.ts` | `tests/unit/poi-photo-mirroring.AC-03-02-03.resolution.test.tsx`<br>`tests/unit/poi-photo-mirroring.AC-03-01.guide-surfaces.test.ts`<br>`tests/integration/poi-photo-mirroring.AC-03-01-AC-04.surfaces-and-credit.test.tsx` | ✅ done |
+| AC-03-04 | Revalidation des pages après copie | `src/features/poi-photos/services/mirror-poi-photos.ts` | `tests/unit/poi-photo-mirroring.AC-01-02-03.mirror-service.test.ts` | ✅ done |
+| AC-04-01..03 | Crédit « Photos : <nom> » dans le texte de présentation | `src/features/public-discovery/components/DiscoveryPoiView.tsx`<br>`src/features/public-discovery/types.ts` | `tests/integration/poi-photo-mirroring.AC-03-01-AC-04.surfaces-and-credit.test.tsx` | ✅ done |
+
