@@ -171,22 +171,22 @@ describe('041 AC-06 public discovery index page', () => {
     const { metadata } = await import('@/app/(public)/decouvrir/page')
 
     expect(metadata.title).toEqual({
-      absolute: 'Découvrir les bonnes adresses locales — MyStay',
+      absolute: 'Découvrir le Pays du Mont-Blanc — Sélection MyStay',
     })
     expect(metadata.description).toBe(
-      'Découvrez les adresses locales sélectionnées par MyStay, dans les villes où elles sont actuellement publiées.',
+      'Découvrez les bonnes adresses, restaurants, commerces, activités et lieux sélectionnés par MyStay autour de Saint-Gervais-les-Bains et du Mont-Blanc.',
     )
     expect(metadata.alternates?.canonical).toBe('/decouvrir')
     expect(metadata.openGraph).toMatchObject({
       type: 'website',
       url: '/decouvrir',
-      title: 'Découvrir les bonnes adresses locales — MyStay',
+      title: 'Découvrir le Pays du Mont-Blanc — Sélection MyStay',
       description: metadata.description,
       images: ['/og-mystay.png'],
     })
     expect(metadata.twitter).toMatchObject({
       card: 'summary_large_image',
-      title: 'Découvrir les bonnes adresses locales — MyStay',
+      title: 'Découvrir le Pays du Mont-Blanc — Sélection MyStay',
       description: metadata.description,
       images: ['/og-mystay.png'],
     })

@@ -232,7 +232,7 @@ export function GuideStayHome<P extends StayPoiCard>({
       ) : null}
 
       {featured.length > 0 && (
-        <section aria-labelledby="stay-featured-title" className="mx-4 px-2 py-4">
+        <section aria-label={m.nav.favorites} className="mx-4 px-2 py-4">
           {/* <div className="flex items-center justify-between gap-3">
             <h2 id="stay-featured-title" className="inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">
               Nos coups de cœur

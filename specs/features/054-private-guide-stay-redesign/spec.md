@@ -80,7 +80,9 @@ est accessible depuis le Guide logement (amendement PO du 2026-10-03) ; la vidé
   carrousel « Nos coups de cœur » (cartes 160 px, réduites de 20 % le 2026-10-02) affiche les lieux sélectionnés
   et « Tout voir » ouvre l'onglet Guide. *(Amendé par le PO le 2026-10-02 :
   cartes photo de l'onglet Guide — statut d'ouverture, bouton carte, temps de
-  trajet spec 057 — et catégories Urgences et Mobilité exclues du carrousel.)*
+  trajet spec 057 — et catégories Urgences et Mobilité exclues du carrousel.)* *(Écart PO du
+  2026-10-03, commit 3de3996d : titre visible « Nos coups de cœur » et bouton
+  « Tout voir » retirés ; la section garde le nom accessible « Coups de cœur ».)*
 - **AC-01-04**: Given la tuile Wi‑Fi, When on la touche, Then une feuille basse
   (rayon haut 28 px, voile `rgba(17,17,17,.4)`) montre le réseau et le mot de
   passe ; « Copier le mot de passe » copie la valeur et affiche « Copié ✓ » sur

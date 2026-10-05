@@ -3,6 +3,12 @@
 import { render, screen } from '@testing-library/react'
 import { PrivateGuideFrame } from '@/features/guide-app/components/PrivateGuideFrame'
 
+// next/server (after) exige Request, absent de jsdom : traduction neutre en français.
+jest.mock('@/features/content-translation/queries/lodging-showcase', () => ({
+  localizeLodgingCards: jest.fn(async (cards: unknown) => cards),
+  localizeLodgingDetail: jest.fn(async (_id: string, detail: unknown) => detail),
+}))
+
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }))
 jest.mock('@/features/public-menu/lib/lodging-mode', () => ({
   getActiveLodgingContext: jest.fn(async () => ({

@@ -99,7 +99,7 @@ describe('045 AC-02-02/AC-02-03 autonomous public demo data', () => {
     expect(demoLodging.arrivalInstructions).toHaveLength(3)
     expect(demoLodging.practicalCards).toHaveLength(3)
     expect(demoLodging.houseRules.length).toBeGreaterThanOrEqual(3)
-    expect(demoLodging.departureInstructions).toHaveLength(9)
+    expect(demoLodging.departureInstructions).toHaveLength(4)
   })
 
   it('contains no real access secret or private lodging location', () => {

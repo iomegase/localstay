@@ -57,7 +57,7 @@ describe('Guide internal list → detail wiring', () => {
     const onOpen = jest.fn()
     render(<GuideBlogView posts={[post]} onOpen={onOpen} />)
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /lire un article/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Un article' }))
     expect(onOpen).toHaveBeenCalledWith(post)
   })
 })

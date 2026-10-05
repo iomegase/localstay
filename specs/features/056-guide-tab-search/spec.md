@@ -37,7 +37,9 @@ localisé.
   présente l'eyebrow « LE GUIDE », la ville en titre (sans le suffixe
   « -les-Bains ») et « Nos coups de cœur pour profiter de votre séjour », puis
   un champ « Rechercher un lieu », les filtres de catégories existants et la
-  grille photo existante.
+  grille photo existante. *(Écart PO du 2026-10-03, commit 3de3996d : eyebrow
+  « LE GUIDE » et sous-titre retirés ; restent le titre ville, la recherche,
+  les filtres et la grille.)*
 - **AC-01-02**: Given une saisie, When elle change, Then la grille ne garde que
   les lieux dont le nom, la catégorie ou la description contient le texte
   (insensible à la casse et aux accents), combinée au filtre de catégorie.

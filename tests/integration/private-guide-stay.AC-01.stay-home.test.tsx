@@ -140,7 +140,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
     expect(screen.queryByTestId('guide-stay-stats')).not.toBeInTheDocument()
   })
 
-  it('AC-01-03: shows the featured places carousel and « Tout voir » opens the Guide tab', () => {
+  it('AC-01-03: shows the featured places carousel (title and « Tout voir » removed by the PO, 3de3996d)', () => {
     const onNavigate = jest.fn()
     const onOpenPoi = jest.fn()
     const poi = buildStayPoi()
@@ -155,11 +155,10 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
       />,
     )
 
-    expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Coups de cœur' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Voir tous les coups de cœur' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir Le Bettex' }))
     expect(onOpenPoi).toHaveBeenCalledWith(poi)
-    fireEvent.click(screen.getByRole('button', { name: 'Voir tous les coups de cœur' }))
-    expect(onNavigate).toHaveBeenCalledWith('favorites')
   })
 
   it('AC-01-04: the Wi-Fi sheet copies the password and closes on the backdrop', async () => {
@@ -217,7 +216,7 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
       />,
     )
 
-    const carousel = screen.getByRole('region', { name: 'Nos coups de cœur' })
+    const carousel = screen.getByRole('region', { name: 'Coups de cœur' })
     const cards = within(carousel).getAllByTestId('favorite-bento-card')
     expect(cards).toHaveLength(1)
     expect(within(cards[0]).getByText('Ouvert')).toBeInTheDocument()

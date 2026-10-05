@@ -152,7 +152,7 @@ describe('buildSitemapEntries', () => {
     expect(namespaceUrls).not.toContain(`${base}/guide/legacy`)
     expect(namespaceUrls).not.toContain(`${base}/api/private`)
     expect(namespaceUrls).toContain(`${base}/logements/contact`)
-    expect(namespaceUrls).toContain(`${base}/blog/map`)
+    expect(namespaceUrls).toContain(`${base}/journal/map`)
     expect(namespaceUrls).toContain(`${base}/decouvrir/annecy/restaurants/contact`)
   })
 
@@ -200,7 +200,7 @@ describe('buildSitemapEntries', () => {
     expect(encodedUrls).not.toContain(`${base}/logements/${encodedUuid}`)
     expect(encodedUrls).not.toContain(`${base}/logements/%E0%A4%A`)
     expect(encodedUrls).toContain(`${base}/logements/c%6Fntact`)
-    expect(encodedUrls).toContain(`${base}/blog/%6Dap`)
+    expect(encodedUrls).toContain(`${base}/journal/%6Dap`)
   })
 
   it('rejects private, historical, API, query-string, and UUID URLs defensively', () => {
@@ -251,7 +251,7 @@ describe('buildSitemapEntries', () => {
     expect(result.find(entry => entry.url === `${base}/logements/chalet-hygge`)).toEqual(expect.objectContaining({
       lastModified: d2, changeFrequency: 'weekly', priority: 0.65,
     }))
-    expect(result.find(entry => entry.url === `${base}/blog/adresses-locales`)).toEqual(expect.objectContaining({
+    expect(result.find(entry => entry.url === `${base}/journal/adresses-locales`)).toEqual(expect.objectContaining({
       lastModified: d2, changeFrequency: 'weekly', priority: 0.65,
     }))
   })
@@ -269,8 +269,8 @@ describe('buildSitemapEntries', () => {
       `${base}/decouvrir/saint-gervais-les-bains/rando/col-de-voza`,
       `${base}/logements/appartement-soleil`,
       `${base}/logements/chalet-hygge`,
-      `${base}/blog/adresses-locales`,
-      `${base}/blog/week-end-alpin`,
+      `${base}/journal/adresses-locales`,
+      `${base}/journal/week-end-alpin`,
     ])
   })
 })

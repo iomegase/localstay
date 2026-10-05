@@ -12,6 +12,12 @@ const mockMapModuleLoaded = jest.fn()
 const mockGuidePoiDetailsProps = jest.fn()
 let mockPathname = '/sejour'
 
+// next/server (after) exige Request, absent de jsdom : traduction neutre en français.
+jest.mock('@/features/content-translation/queries/lodging-showcase', () => ({
+  localizeLodgingCards: jest.fn(async (cards: unknown) => cards),
+  localizeLodgingDetail: jest.fn(async (_id: string, detail: unknown) => detail),
+}))
+
 jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
   usePathname: () => mockPathname,

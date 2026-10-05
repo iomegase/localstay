@@ -155,7 +155,7 @@ describe('045 private active stay render isolation', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Bienvenue au Chalet Horizon' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Nos coups de cœur' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Coups de cœur' })).toBeInTheDocument()
     expect(screen.queryByText(/démonstration|guide d['’]exemple/i)).toBeNull()
     expect(container.innerHTML).not.toMatch(/demo-[a-z0-9-]+/i)
 

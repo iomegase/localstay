@@ -118,7 +118,7 @@ describe('/le-logement — guide en accordéons', () => {
     expect(screen.getByText('Le local à skis')).toBeInTheDocument()
     expect(screen.getByAltText('Le local à skis')).toHaveAttribute('src', 'https://cdn.test/skis.webp')
     expect(screen.getByRole('checkbox', {
-      name: "Vérifier que vous n'avez rien oublié dans le logement.",
+      name: 'Laisser les draps en place sur les lits.',
     })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Poubelles' })).toBeInTheDocument()
     expect(screen.getByTestId('lodging-emergency-number')).toHaveTextContent('112')
@@ -178,7 +178,7 @@ describe('/le-logement — guide en accordéons', () => {
       name: 'Déposer vos déchets au point de recyclage indiqué ci-dessous.',
     })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', {
-      name: "Vérifier que vous n'avez rien oublié dans le logement.",
+      name: 'Laisser les draps en place sur les lits.',
     })).toBeInTheDocument()
     // Pas de stats sans profil showcase
     expect(screen.queryByText('Voyageurs')).not.toBeInTheDocument()

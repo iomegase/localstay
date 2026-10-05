@@ -29,9 +29,10 @@ function renderPage(origin: { latitude: number; longitude: number } | null = nul
 describe('056 guide tab', () => {
   it('AC-01-01: shows the guide header, search field and keeps the photo grid', () => {
     renderPage()
-    expect(screen.getByText('Le guide')).toBeInTheDocument()
+    // Eyebrow « LE GUIDE » et sous-titre retirés par le PO (3de3996d, 2026-10-03).
+    expect(screen.queryByText('Le guide')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Saint-Gervais' })).toBeInTheDocument()
-    expect(screen.getByText('Nos coups de cœur pour profiter de votre séjour')).toBeInTheDocument()
+    expect(screen.queryByText('Nos coups de cœur pour profiter de votre séjour')).not.toBeInTheDocument()
     expect(screen.getByRole('searchbox', { name: 'Rechercher un lieu' })).toBeInTheDocument()
     expect(screen.getAllByTestId('favorite-bento-card')).toHaveLength(2)
   })

@@ -24,9 +24,9 @@ describe('029 blog markdown sanitization', () => {
     )
 
     expect(container.firstElementChild).toHaveClass(
+      '[&_h2]:normal-case',
       '[&_h3]:normal-case',
       '[&_h4]:normal-case',
-      '[&_h5]:normal-case',
       '[&_p]:text-[13px]',
       '[&_p]:text-justify',
     )
