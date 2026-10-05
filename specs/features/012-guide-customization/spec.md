@@ -88,6 +88,10 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
   sauvegardés, When l'Owner modifie puis sauvegarde la liste, Then les éléments
   conservés gardent leur UUID, les nouveaux éléments seuls sont créés et les
   éléments réellement retirés seuls sont soft-deleted.
+- **AC-04-07** *(amendement 2026-10-05, audit SEO/GEO C-13)*: Given une image
+  PNG, JPEG, WebP ou AVIF importée par un Owner ou un Admin, When le serveur la
+  stocke, Then le fichier stocké est un WebP dont le plus grand côté ne dépasse
+  pas 2560 px (sans agrandissement des images plus petites).
 
 ---
 
@@ -134,6 +138,13 @@ Un Owner peut personnaliser l'expérience affichée aux Tourists de son logement
   inconnu, archivé, dupliqué ou rattaché à un autre Lodging invalide toute la
   sauvegarde. Les identifiants d'interface préfixés `tmp-` représentent des
   créations et ne sont jamais persistés comme identifiants métier.
+- **BR-26** *(amendement 2026-10-05, audit SEO/GEO C-13)*: Toute image importée
+  (Owner ou Admin, tous formats acceptés y compris WebP et AVIF) est réencodée en
+  WebP qualité 82, plus grand côté limité à 2560 px, orientation EXIF appliquée.
+  Motif : l'optimiseur d'images de Vercel renvoie les sources AVIF sans les
+  redimensionner. Les photos AVIF déjà stockées sont converties une fois par le
+  script `scripts/convert-avif-photos-to-webp.ts` (nouveau fichier WebP, URL mise
+  à jour en base, ancien fichier conservé dans le bucket).
 
 ---
 
@@ -523,6 +534,7 @@ components:
 | AC-04-03 / BR-16 / BR-17 | Adresse logement géocodée via Mapbox et distance POI affichée depuis appartement puis GPS | unit + integration |
 | AC-04-04 / BR-18 / BR-19 | `/le-logement` vertical, navigation d'ancrage et menu mobile contextuel limité à cette route, horaires constants et palette colorée | unit + integration |
 | AC-04-05 | Orientation EXIF appliquée avant conversion WebP | unit |
+| AC-04-07 / BR-26 | Toute image importée stockée en WebP ≤ 2560 px, AVIF compris | unit |
 | AC-04-06 / BR-25 | UUID enfants stables, créations et archivages ciblés, rejet des UUID étrangers ou dupliqués | unit + contract |
 | BR-20 | Message de bienvenue conservé côté données mais absent du rendu de `/le-logement` | integration |
 | BR-21 | Récapitulatif limité aux horaires ; Wi-Fi rendu uniquement dans sa carte détaillée | integration |

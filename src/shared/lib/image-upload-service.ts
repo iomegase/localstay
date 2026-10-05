@@ -8,9 +8,21 @@ export type UploadImageResult =
   | { ok: true; url: string }
   | { ok: false; code: 'INVALID_TYPE' | 'TOO_LARGE' | 'UPLOAD_FAILED' }
 
+/** Plus grand côté d'une image stockée (spec 012 BR-26). */
+export const MAX_STORED_IMAGE_SIDE = 2560
+
+/** Réencode une image en WebP q82, orientation EXIF appliquée, ≤ 2560 px, sans agrandissement. */
+export function encodeStoredWebp(input: Buffer): Promise<Buffer> {
+  return sharp(input)
+    .rotate()
+    .resize({ width: MAX_STORED_IMAGE_SIDE, height: MAX_STORED_IMAGE_SIDE, fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer()
+}
+
 /**
- * Convertit (png/jpeg/jpg → webp) si nécessaire puis téléverse l'image dans le bucket
- * `guide-photos` et renvoie son URL publique. webp/avif sont conservés tels quels.
+ * Réencode l'image en WebP (tous formats acceptés, AVIF compris) puis la téléverse
+ * dans le bucket `guide-photos` et renvoie son URL publique.
  */
 export async function uploadGuideImage(file: File, pathPrefix: string): Promise<UploadImageResult> {
   const format = resolveUploadFormat(file.type)
@@ -18,9 +30,7 @@ export async function uploadGuideImage(file: File, pathPrefix: string): Promise<
   if (file.size > MAX_IMAGE_UPLOAD_BYTES) return { ok: false, code: 'TOO_LARGE' }
 
   const input = Buffer.from(await file.arrayBuffer())
-  const body = format.convert
-    ? await sharp(input).rotate().webp({ quality: 82 }).toBuffer()
-    : input
+  const body = await encodeStoredWebp(input)
 
   const supabase = createSupabaseServer()
   const path = `${pathPrefix}/${Date.now()}.${format.extension}`

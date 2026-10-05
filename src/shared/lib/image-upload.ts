@@ -11,27 +11,25 @@ export const ACCEPTED_IMAGE_UPLOAD_MIMES = [
 ] as const
 
 export interface UploadFormat {
-  /** true → convertir en webp (sharp) avant stockage. */
-  convert: boolean
-  contentType: 'image/webp' | 'image/avif'
-  extension: 'webp' | 'avif'
+  /** true → réencoder en webp (sharp) avant stockage. */
+  convert: true
+  contentType: 'image/webp'
+  extension: 'webp'
 }
 
 /**
  * Résout le format de stockage pour un type MIME d'image.
- * png / jpeg / jpg → converti en webp ; webp & avif conservés tels quels ;
- * tout autre type → null (refusé).
+ * png / jpeg / jpg / webp / avif → réencodé en webp (spec 012 BR-26 : l'optimiseur
+ * Vercel ne redimensionne pas les sources AVIF) ; tout autre type → null (refusé).
  */
 export function resolveUploadFormat(mimeType: string): UploadFormat | null {
   switch (mimeType) {
     case 'image/png':
     case 'image/jpeg':
     case 'image/jpg':
-      return { convert: true, contentType: 'image/webp', extension: 'webp' }
     case 'image/webp':
-      return { convert: false, contentType: 'image/webp', extension: 'webp' }
     case 'image/avif':
-      return { convert: false, contentType: 'image/avif', extension: 'avif' }
+      return { convert: true, contentType: 'image/webp', extension: 'webp' }
     default:
       return null
   }

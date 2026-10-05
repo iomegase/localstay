@@ -7,9 +7,9 @@ describe('resolveUploadFormat — formats d’upload image owner/admin', () => {
     expect(resolveUploadFormat('image/jpg')).toEqual({ convert: true, contentType: 'image/webp', extension: 'webp' })
   })
 
-  it('keeps webp and avif as-is', () => {
-    expect(resolveUploadFormat('image/webp')).toEqual({ convert: false, contentType: 'image/webp', extension: 'webp' })
-    expect(resolveUploadFormat('image/avif')).toEqual({ convert: false, contentType: 'image/avif', extension: 'avif' })
+  it('re-encodes webp and avif to webp too (spec 012 BR-26)', () => {
+    expect(resolveUploadFormat('image/webp')).toEqual({ convert: true, contentType: 'image/webp', extension: 'webp' })
+    expect(resolveUploadFormat('image/avif')).toEqual({ convert: true, contentType: 'image/webp', extension: 'webp' })
   })
 
   it('rejects unsupported types', () => {
