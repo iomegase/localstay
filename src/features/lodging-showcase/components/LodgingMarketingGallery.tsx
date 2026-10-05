@@ -47,8 +47,8 @@ export function LodgingMarketingGallery({
           src={mainPhoto.url}
           alt={mainPhoto.alt}
           fill
-          priority
-          unoptimized
+          loading="eager"
+          fetchPriority="high"
           sizes="(min-width: 1280px) 630px, (min-width: 768px) 66vw, 100vw"
           className="object-cover"
         />
@@ -63,7 +63,6 @@ export function LodgingMarketingGallery({
             src={photo.url}
             alt={photo.alt}
             fill
-            unoptimized
             sizes="(min-width: 768px) 32vw, 50vw"
             className="object-cover"
           />
@@ -76,7 +75,6 @@ export function LodgingMarketingGallery({
             src={mainPhoto.url}
             alt=""
             fill
-            unoptimized
             sizes="50vw"
             className="object-cover"
           />

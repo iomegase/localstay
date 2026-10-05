@@ -251,7 +251,6 @@ export default async function BlogArticlePage({ params }: PageProps) {
                         fill
                         sizes="92px"
                         src={related.cover.url}
-                        unoptimized
                       />
                     </span>
                   ) : (

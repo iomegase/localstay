@@ -22,8 +22,7 @@ export function LocalRentalCard({
             src={lodging.cover_photo_url}
             alt={`${lodging.title} — ${lodging.city_name}`}
             fill
-            priority={priority}
-            unoptimized
+            loading={priority ? 'eager' : 'lazy'}
             className="object-cover transition-opacity group-hover:opacity-90"
             sizes="(max-width: 767px) 100vw, 360px"
           />

@@ -210,7 +210,11 @@ describe('lodging showcase public pages', () => {
     expect(listSuggestedLodgings).toHaveBeenCalledWith(detailResult.id, detailResult.city_slug)
     expect(screen.getByRole('region', { name: 'D’autres adresses pour votre prochain séjour.' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Découvrir Chalet des Cimes' })).toHaveAttribute('href', '/logements/chalet-des-cimes')
-    expect(screen.getByRole('img', { name: 'Chalet des Cimes' })).toHaveAttribute('src', 'https://images.unsplash.com/chalet.jpg')
+    // Audit C-13 : la photo passe par l'optimiseur d'images Next.
+    expect(screen.getByRole('img', { name: 'Chalet des Cimes' })).toHaveAttribute(
+      'src',
+      expect.stringContaining(`/_next/image?url=${encodeURIComponent('https://images.unsplash.com/chalet.jpg')}`),
+    )
     // Même carte compacte que les pages séminaires.
     expect(screen.getByRole('img', { name: 'Chalet des Cimes' }).parentElement).toHaveClass('aspect-[4/3]')
     expect(screen.getByText('Combloux')).toHaveClass('text-pink-600')

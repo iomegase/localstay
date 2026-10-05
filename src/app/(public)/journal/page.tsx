@@ -123,7 +123,6 @@ export default async function BlogListPage({ searchParams }: PageProps) {
                         src={article.cover.url}
                         alt={article.cover.alt}
                         fill
-                        unoptimized
                         sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
                         className="object-cover transition-opacity group-hover:opacity-90"
                       />

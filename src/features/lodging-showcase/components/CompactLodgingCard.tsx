@@ -17,7 +17,7 @@ export function CompactLodgingCard({ lodging }: { lodging: CompactLodgingCardDat
       <Link href={lodging.href} aria-label={`Découvrir ${lodging.title}`} className="group flex h-full flex-col rounded-[26px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600">
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           {lodging.photo && (
-            <Image src={lodging.photo.url} alt={lodging.photo.alt} fill unoptimized sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition-opacity group-hover:opacity-90" />
+            <Image src={lodging.photo.url} alt={lodging.photo.alt} fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition-opacity group-hover:opacity-90" />
           )}
         </div>
         <div className="flex flex-1 flex-col px-5 pb-4 pt-5">

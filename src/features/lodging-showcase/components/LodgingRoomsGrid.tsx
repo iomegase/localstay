@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRef, useState } from 'react'
 import type { RoomPhotoGroup } from '../lib/detail-view'
 import { ROOM_CATEGORIES, categorizeRoomGroups, type RoomCategoryId } from '../lib/room-categories'
@@ -58,7 +59,7 @@ export function LodgingRoomsGrid({ photos, compact = false }: { photos: Photo[];
       )}
       <div className={compact ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
         {visible.map(group => (
-          <RoomGroupCard key={group.label} group={group} />
+          <RoomGroupCard key={group.label} group={group} compact={compact} />
         ))}
       </div>
     </section>
@@ -74,7 +75,7 @@ function dotWindow(total: number, active: number): number[] {
   return Array.from({ length: size }, (_, i) => start + i)
 }
 
-function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
+function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boolean }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const multiple = group.photos.length > 1
@@ -99,13 +100,16 @@ function RoomGroupCard({ group }: { group: RoomPhotoGroup }) {
         className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {group.photos.map(photo => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={photo.id}
-            src={photo.url}
-            alt={photo.alt}
-            className="h-full w-full shrink-0 snap-center object-cover"
-          />
+          <div key={photo.id} className="relative h-full w-full shrink-0 snap-center">
+            <Image
+              src={photo.url}
+              alt={photo.alt}
+              fill
+              loading="lazy"
+              sizes={compact ? '50vw' : '(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw'}
+              className="object-cover"
+            />
+          </div>
         ))}
       </div>
 

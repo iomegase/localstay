@@ -34,8 +34,7 @@ export function MarketingPropertyCard({
                 src={lodging.cover_photo_url}
                 alt={photoAlt}
                 fill
-                priority={priority}
-                unoptimized
+                loading={priority ? 'eager' : 'lazy'}
                 className="object-cover transition-opacity group-hover:opacity-90"
                 sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 340px"
               />
@@ -65,8 +64,7 @@ export function MarketingPropertyCard({
               src={lodging.cover_photo_url}
               alt={photoAlt}
               fill
-              priority={priority}
-              unoptimized
+              loading={priority ? 'eager' : 'lazy'}
               className="object-cover transition-opacity group-hover:opacity-90"
               sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 360px"
             />

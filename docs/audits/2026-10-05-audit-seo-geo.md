@@ -336,6 +336,8 @@ Format de chaque constat : gravité, périmètre, preuve, fichier, conséquence,
 
 ### C-13 — Images non optimisées et préchargements excessifs — **Moyenne**
 
+> **Corrigé le 2026-10-05** : optimiseur d’images Next sur les photos publiques, une seule image prioritaire par galerie, grille des pièces en `next/image` différé. Reste : images de POI chargées depuis des sites tiers (copie dans le stockage MyStay à prévoir).
+
 - **[Dépôt]** `unoptimized` sur les galeries et cartes de logement : `LodgingMarketingGallery.tsx:51,66,79`, `CompactLodgingCard.tsx:20`, `LocalRentalCard.tsx:26`, `MarketingPropertyCard.tsx:38`, `journal/page.tsx:126`, `journal/[slug]/page.tsx:254`.
 - **[Prod]**
   - Les photos servies sont les originaux Supabase (AVIF de 200 à 360 Ko, non redimensionnés pour mobile).
