@@ -15,6 +15,37 @@ type Props = {
   headingLevel?: 2 | 3
 }
 
+const SITE_HOSTS = new Set(['mystay.city', 'www.mystay.city'])
+
+/** Lien vers MyStay (chemin, ancre ou URL absolue du site), par opposition à un site externe. */
+function isInternalHref(href: string | undefined): boolean {
+  if (!href) return true
+  if (href.startsWith('#') || href.startsWith('?')) return true
+  if (href.startsWith('/')) return !href.startsWith('//')
+  try {
+    const url = new URL(href)
+    if (url.protocol === 'mailto:' || url.protocol === 'tel:') return true
+    const base = process.env.NEXT_PUBLIC_BASE_URL
+    return SITE_HOSTS.has(url.hostname) || (Boolean(base) && url.hostname === new URL(base as string).hostname)
+  } catch {
+    return true
+  }
+}
+
+/** Décision PO du 2026-10-05 : seuls les liens externes s'ouvrent dans un nouvel onglet. */
+export function MarkdownLink(props: { href?: string; children?: React.ReactNode }) {
+  const external = !isInternalHref(props.href)
+  return (
+    <a
+      href={props.href}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className="text-indigo-600 underline underline-offset-2 hover:text-indigo-700"
+    >
+      {props.children}
+    </a>
+  )
+}
+
 const MARKDOWN_COMPONENTS = {
   table: (props: { children?: React.ReactNode }) => (
     <div className="my-6 max-w-full overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[320px] border-collapse text-left text-[13px] leading-6">{props.children}</table></div>
@@ -42,16 +73,7 @@ const MARKDOWN_COMPONENTS = {
   li: (props: { children?: React.ReactNode }) => (
     <li className="leading-relaxed">{props.children}</li>
   ),
-  a: (props: { href?: string; children?: React.ReactNode }) => (
-    <a
-      href={props.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-indigo-600 underline underline-offset-2 hover:text-indigo-700"
-    >
-      {props.children}
-    </a>
-  ),
+  a: MarkdownLink,
   strong: (props: { children?: React.ReactNode }) => (
     <strong className="font-semibold text-slate-900">{props.children}</strong>
   ),
