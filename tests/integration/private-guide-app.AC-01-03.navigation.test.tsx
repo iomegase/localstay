@@ -448,6 +448,23 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(screen.getByRole('button', { name: 'Démarrer la randonnée' })).toBeInTheDocument()
   })
 
+  it('021 AC-02-07: ignores a remembered trail that is not in this guide (no blank screen)', async () => {
+    window.sessionStorage.setItem('mystay:guide-trail-return', 'poi-absent-du-guide')
+    render(
+      <GuideApp
+        mode="private"
+        lodging={demoLodging}
+        pois={demoPois}
+        citySlug="saint-gervais-les-bains"
+        initialView="favorites"
+        routes={{ home: '/sejour', favorites: '/sejour/coups-de-coeur' }}
+      />,
+    )
+    await act(async () => {})
+    expect(mockGuidePoiDetailsProps).not.toHaveBeenCalled()
+    expect(screen.getByRole('navigation', { name: 'Navigation du guide' })).toBeInTheDocument()
+  })
+
   it('021 AC-02-07: a later plain visit of the guide does not reopen the trail', async () => {
     const porchereyPoi = demoPois.find(poi => poi.id === 'demo-poi-porcherey')
     if (!porchereyPoi?.trail) throw new Error('Expected the Porcherey demo trail fixture')

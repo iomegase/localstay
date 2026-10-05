@@ -203,7 +203,8 @@ function GuideAppShell({
   // Retour du guidage rando : rouvre la fiche de la randonnée (spec 021 AC-02-07).
   useEffect(() => {
     const poiId = takeTrailReturn()
-    if (!poiId) return
+    // Fiche absente de ce guide (autre séjour, lieu retiré) : on reste sur la vue initiale.
+    if (!poiId || ![...pois, ...transportPois].some(poi => poi.id === poiId)) return
     // Lecture unique de sessionStorage au montage (absent au rendu serveur).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedPoiId(poiId)
