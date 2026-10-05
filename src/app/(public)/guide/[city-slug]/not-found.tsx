@@ -1,7 +1,10 @@
 import Link from 'next/link'
-import { t } from '@/shared/lib/i18n'
 
-export default function CityNotFound() {
+/**
+ * 404 unique du guide privé (ville, catégorie, fiche, agenda…), qui remplace
+ * depuis le 2026-10-05 les deux 404 historiques des specs 001 et 002.
+ */
+export default function GuideNotFound() {
   return (
     <div className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 overflow-hidden">
       {/* Élément décoratif en arrière-plan (Cercle subtil) */}
@@ -29,27 +32,27 @@ export default function CityNotFound() {
 
         {/* Texte Principal */}
         <div className="space-y-4">
-          <h2 className="text-3xl md:text-4xl font-light italic font-serif text-charcoal tracking-tight">
-            {t('guide.city_not_found')}
-          </h2>
+          <h1 className="text-3xl md:text-4xl font-light italic font-serif text-charcoal tracking-tight">
+            Cette page du guide est introuvable.
+          </h1>
           
           <div className="flex justify-center">
             <div className="h-[1px] w-12 bg-pink-600/50" />
           </div>
 
           <p className="text-base text-gray-500 font-light max-w-[280px] mx-auto leading-relaxed">
-            Le guide de cette ville est encore en cours d&apos;exploration par nos équipes.
+            Le lien est peut-être incomplet, ou cette adresse n&apos;est plus proposée dans le guide.
           </p>
         </div>
 
         {/* Bouton Call to Action */}
         <div className="pt-4">
           <Link
-            href="/"
+            href="/sejour"
             className="group relative inline-flex flex-col items-center gap-2 transition-all duration-300"
           >
             <span className="text-xs font-bold uppercase tracking-[0.3em] text-pink-600 group-hover:text-charcoal transition-colors">
-              {t('guide.back_home')}
+              Retour au guide
             </span>
             {/* Ligne animée sous le lien */}
             <span className="h-[1px] w-full bg-pink-600/30 overflow-hidden">

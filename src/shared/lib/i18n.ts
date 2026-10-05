@@ -10,7 +10,6 @@ const fr = {
     'MyStay réunit les meilleures adresses, randonnées et activités locales, ville par ville : restaurants, commerces, sentiers et bons plans sélectionnés sur place. Choisissez votre destination pour explorer le guide.',
   'guide.empty_state': 'Aucun contenu disponible pour cette ville pour le moment',
   'guide.error': 'Une erreur est survenue. Veuillez réessayer.',
-  'guide.city_not_found': 'Ville introuvable',
   'guide.back_home': "Retour à l'accueil",
   'guide.subtitle': 'Sélection exclusive de votre hôte',
   'nav.explore': 'Bienvenue',
