@@ -450,3 +450,16 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
 
 Remplace la sélection globale commune aux landings (AC-06-01). Données, API,
 publication et design des cartes inchangés. Tests de sélection, query et rendu.
+
+## Décision PO — C-12 maillage interne (2026-10-05)
+
+Le PO maintient le retrait des blocs communaux sur les hubs et l'accueil
+(AC-04-04) et va plus loin : « trop de liens perturbent l'utilisateur ».
+Les seuls liens de maillage éditorial autorisés partent d'un article de blog
+vers un logement (`/logements/...`) ou un POI (`/decouvrir/...`), écrits dans
+le contenu de l'article. Aucun lien contextuel vers les landings communales
+(conciergerie, séminaires, locations de vacances) depuis les hubs, les
+articles ou `/decouvrir` : ces landings restent reliées par le footer
+(AC-04-06). Cette décision remplace la proposition de liens discrets
+(« Où dormir à [ville] », lien de fin d'article vers une landing), qui n'est
+pas implémentée. Modèle et API inchangés.

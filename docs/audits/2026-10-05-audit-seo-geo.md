@@ -748,3 +748,14 @@ fraîche n’a été exécutée. Un nouvel import pourra actualiser la fiche dep
 
 Les décisions factuelles précédemment demandées sont résolues. La migration des
 slugs reste coordonnée avec le déploiement décrit ci-dessus.
+
+
+### Suivi C-12 — décision PO du 2026-10-05
+
+Recommandation C-12 non retenue. Le PO juge qu'un excès de liens perturbe
+l'utilisateur : pas de blocs « Par commune » sur l'accueil ou les hubs, pas de
+lien « Où dormir à [ville] » sur Découvrir, pas de lien de fin d'article vers
+une landing communale. Seuls les liens rédigés dans un article de blog vers un
+logement ou un POI sont autorisés ; les landings communales restent reliées par
+le footer. Les liens internes de ces articles s'ouvrent dans le même onglet
+(commit ed13b697).

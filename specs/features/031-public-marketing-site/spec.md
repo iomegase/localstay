@@ -683,3 +683,24 @@ prétend pas que l'automatisation existe. Pas d'action sur des données personne
 
 Aucune pour la création des pages suivant les décisions fournies. Les conditions
 contractuelles des prestataires restent consultables via leurs liens officiels.
+
+
+## Amendement approuvé — Présentation David Devillers (PO 2026-10-05)
+
+AC-07-01 : sur `/confier-mon-logement`, remplacer les trois étapes
+numérotées par un encart « Derrière MyStay », ancre
+`derriere-mystay`, titre « Un accompagnement local, une relation directe. ».
+Texte approuvé : David Devillers est à l'origine de MyStay, accompagne les
+propriétaires à Saint-Gervais-les-Bains et à Saint-Nicolas-de-Véroce ; MyStay
+réunit accompagnement sur place et guide digital ; le Journal partage des
+repères sur la location saisonnière et la vie locale. Signature
+« David Devillers · MyStay ». Encadré clair, arrondi, textes 14 px, sans photo
+inventée ni ancienneté, diplôme ou titre d'expert ajouté. L'encart précède le
+formulaire sur mobile. Aucun nouveau lien communal, page auteur ou changement
+aux signatures et JSON-LD des articles dans cette demande.
+Refonte approuvée par le PO : une seule colonne, largeur maximale 768 px,
+ordre titre et introduction → encart → formulaire sur mobile et desktop.
+Fond de page blanc (demande PO du 2026-10-05).
+Formulaire, H1 et metadata conservés. Modèle/API inchangés.
+Validation : test d'intégration existant des hubs vérifie l'encart et le retrait
+des étapes ; contrôle ESLint. Aucune question ouverte.

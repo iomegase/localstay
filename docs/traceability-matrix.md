@@ -1619,3 +1619,6 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | AC-04-01..03 | Crédit « Photos : <nom> » dans le texte de présentation | `src/features/public-discovery/components/DiscoveryPoiView.tsx`<br>`src/features/public-discovery/types.ts` | `tests/integration/poi-photo-mirroring.AC-03-01-AC-04.surfaces-and-credit.test.tsx` | ✅ done |
 | Amendement 2026-10-05 | Copie étendue à tous les POI actifs (guide privé), plus seulement les publiés | `src/features/poi-photos/services/mirror-poi-photos.ts`<br>`scripts/mirror-poi-photos.ts` | `tests/unit/poi-photo-mirroring.AC-01-02-03.mirror-service.test.ts` | ✅ done |
 
+
+
+| 031 | Présentation et contact propriétaire | US-07 | AC-07-01 | `src/app/(public)/confier-mon-logement/page.tsx` | `tests/integration/local-seo.AC-04-04.hub-links.test.tsx` | Implémenté : titre, encart David Devillers, formulaire en une colonne |

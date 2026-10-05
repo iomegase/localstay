@@ -20,6 +20,21 @@ import OwnerContactPage from '@/app/(public)/confier-mon-logement/page'
 describe('046 AC-04-04 — hubs without in-content local landing links', () => {
   beforeEach(() => jest.clearAllMocks())
 
+  it('031 AC-07-01 presents the title, David inset and owner form in order', async () => {
+    const { container } = render(await OwnerContactPage())
+    const title = screen.getByRole('heading', { level: 1 })
+    const inset = screen.getByRole('region', { name: 'Un accompagnement local, une relation directe.' })
+    const formTitle = screen.getByRole('heading', { name: 'Confier mon logement à MyStay' })
+
+    expect(inset).toHaveTextContent('Je suis David Devillers')
+    expect(title.compareDocumentPosition(inset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(inset.compareDocumentPosition(formTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(container.querySelector('form')).toBeInTheDocument()
+    expect(screen.queryByText('Nous découvrons votre logement')).not.toBeInTheDocument()
+    expect(screen.queryByText('Nous définissons vos priorités')).not.toBeInTheDocument()
+    expect(screen.queryByText('Nous organisons la mise en gestion')).not.toBeInTheDocument()
+  })
+
   it.each([
     ['/logements', LodgingsPage],
     ['/seminaires', SeminarsPage],
