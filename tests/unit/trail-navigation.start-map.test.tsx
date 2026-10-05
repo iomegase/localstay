@@ -440,6 +440,34 @@ describe('021 trail navigation start mode', () => {
     expect(Object.prototype.hasOwnProperty.call(autoFollowOptions, 'zoom')).toBe(false)
   })
 
+  it('shows the far-from-trail actions side by side in MyStay button style', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      gpsSuccess = success
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+    const onClose = jest.fn()
+    render(<TrailNavigationMap trail={trail} onClose={onClose} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => {
+      gpsSuccess?.(makePosition({ latitude: 45.92, longitude: 6.673, timestamp: Date.now() }))
+    })
+
+    const actions = await screen.findByTestId('trail-prestart-actions')
+    expect(actions).toHaveClass('grid', 'grid-cols-2')
+    const join = within(actions).getByRole('link', { name: /Rejoindre le départ/ })
+    expect(join).toHaveClass('rounded-full', 'bg-pink-600')
+    const close = within(actions).getByRole('button', { name: 'Fermer' })
+    expect(close).toHaveClass('rounded-full', 'bg-slate-800')
+    await userEvent.click(close)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
   it('AC-05-06/BR-19: never renders a straight-line approach layer', async () => {
     let gpsSuccess: PositionCallback | null = null
     const startedAt = Date.now()

@@ -11,6 +11,7 @@ import type { TrailCoordinate, TrailGpsHealth, TrailNavigationData, TrailSession
 import { getLineEndpoints, getPositionProgress, getTrailDistanceMeters, haversineMeters, isValidTrailGeometry, shouldAutoFollowCamera, smoothTrack } from '../lib/geo'
 import { SESSION_START_MAX_DISTANCE_M } from '../lib/session-stats'
 import { useTrailNavigationSession } from '../hooks/useTrailNavigationSession'
+import { marketingDarkButtonClass, marketingPrimaryButtonClass } from '@/features/marketing/components/marketing-styles'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { NavigationHud } from './NavigationHud'
 import { TrailSessionSummaryModal } from './TrailSessionSummaryModal'
@@ -601,22 +602,22 @@ function TrailNavigationSessionMap({
               Rapprochez-vous à {SESSION_START_MAX_DISTANCE_M} m ou moins pour démarrer le guidage — vous pourrez démarrer
               <strong> en n&apos;importe quel point</strong> du tracé, pas obligatoirement au début.
             </p>
-            <div className="mt-3 flex flex-col gap-2">
+            <div data-testid="trail-prestart-actions" className="mt-3 grid grid-cols-2 gap-2">
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${trail.start_latitude},${trail.start_longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 border-b-black border  bg-gray-200 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-black/70 shadow-sm active:scale-[0.98] transition-transform"
+                className={`${marketingPrimaryButtonClass} gap-1.5 px-3`}
               >
-                <Navigation className="h-4 w-4" />
-              Rejoindre point de départ
+                <Navigation className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Rejoindre le départ
               </a>
               {onClose ? (
-                <button type="button" onClick={onClose} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
+                <button type="button" onClick={onClose} className={`${marketingDarkButtonClass} px-3`}>
                   Fermer
                 </button>
               ) : (
-                <Link href={backHref} className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60">
+                <Link href={backHref} className={`${marketingDarkButtonClass} px-3`}>
                   Fermer
                 </Link>
               )}

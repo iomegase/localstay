@@ -358,6 +358,10 @@ external_services:
 
 ## UI Behaviour
 
+- *(Amendement PO du 2026-10-05)* Panneau « hors du tracé » (`pre_start`) : « Rejoindre le
+  départ » (bouton principal rose MyStay, Google Maps) et « Fermer » (bouton sombre MyStay)
+  côte à côte sur deux colonnes.
+
 ### Fiche randonnée
 
 La fiche randonnée suit le mockup `docs/DAT/diagrams/mockups/004-poi-detail/rando_details.html`.

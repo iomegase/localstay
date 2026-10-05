@@ -3,7 +3,6 @@
 import {
   BedDouble,
   BookOpen,
-  Eye,
   LogIn,
   LogOut,
   UsersRound,
@@ -233,19 +232,6 @@ export function GuideStayHome<P extends StayPoiCard>({
 
       {featured.length > 0 && (
         <section aria-label={m.nav.favorites} className="mx-4 px-2 py-4">
-          {/* <div className="flex items-center justify-between gap-3">
-            <h2 id="stay-featured-title" className="inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">
-              Nos coups de cœur
-            </h2>
-            <button
-              type="button"
-              onClick={() => onNavigate("favorites")}
-              aria-label="Voir tous les coups de cœur"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DB2777]"
-            >
-              <Eye className="h-5 w-5" aria-hidden="true" />
-            </button>
-          </div> */}
           <div className="no-scrollbar -mr-4 mt-2 flex snap-x gap-3 overflow-x-auto pr-4 pb-1">
             {featured.map(({ poi, display }) => (
               <div key={poi.id} className="w-[160px] shrink-0 snap-start">
