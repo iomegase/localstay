@@ -497,7 +497,7 @@ export default async function SeminarsPage() {
             </div>
 
             <div className="min-w-0">
-              <ol className="m-0 list-none border-t border-white/15 p-0">
+              <ol className="m-0 list-none p-0">
                 {placePrinciples.map(principle => (
                   <li
                     key={principle.number}
@@ -508,6 +508,7 @@ export default async function SeminarsPage() {
                       border-b
                       border-white/15
                       py-5
+                      last:border-b-0
 
                       min-[761px]:grid-cols-[54px_1fr]
                       min-[761px]:gap-[18px]
@@ -759,7 +760,7 @@ export default async function SeminarsPage() {
               </p>
             </div>
 
-            <ol className="m-0 list-none border-t border-white/15 p-0">
+            <ol className="m-0 list-none p-0">
               {steps.map(step => (
                 <li
                   key={step.number}
@@ -770,6 +771,7 @@ export default async function SeminarsPage() {
                     border-b
                     border-white/15
                     py-5
+                    last:border-b-0
 
                     min-[761px]:grid-cols-[54px_1fr]
                     min-[761px]:gap-[18px]
