@@ -6,6 +6,8 @@ export const en: GuideMessages = {
     call: 'Call',
     callNumber: (phone: string) => `Call ${phone}`,
     directions: 'Directions',
+    googleMaps: 'Google Maps',
+    guideMap: 'On the map',
     map: 'Map',
     website: 'Website',
   },

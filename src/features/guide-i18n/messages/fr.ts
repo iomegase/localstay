@@ -9,6 +9,8 @@ export const fr = {
     call: 'Appeler',
     callNumber: (phone: string) => `Appeler ${phone}`,
     directions: 'Itinéraire',
+    googleMaps: 'Google Maps',
+    guideMap: 'Sur le plan',
     map: 'Carte',
     website: 'Site web',
   },

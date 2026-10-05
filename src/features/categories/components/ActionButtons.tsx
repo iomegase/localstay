@@ -1,17 +1,16 @@
 'use client'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Phone, Navigation, Globe, Map } from 'lucide-react'
+import { Phone, Navigation, Globe, Map, MapPin } from 'lucide-react'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter' | 'guide'
 
 const SCROLL_IDLE_MS = 180
 const DETAIL_ACTION_BUTTON_CLASS = 'min-h-[42px] min-w-0 w-full rounded-full bg-white py-1 pl-1 pr-2 flex items-center justify-center gap-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
-// Variante guide : pastilles rondes sur une ligne. Au survol / focus clavier, la
-// pastille s'étire en pilule de sa couleur (effet goutte, léger rebond) et révèle
-// le libellé. Le libellé reste dans le DOM pour les lecteurs d'écran.
-const GUIDE_ACTION_BUTTON_CLASS = 'group flex shrink-0 items-center rounded-full text-white shadow-[0_7px_16px_rgba(17,24,39,0.10)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_9px_20px_rgba(17,24,39,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 focus-visible:ring-offset-2 active:scale-[0.96]'
-const GUIDE_ACTION_LABEL_CLASS = 'max-w-0 overflow-hidden whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] opacity-0 transition-[max-width,opacity,padding] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:max-w-[120px] group-hover:pr-4 group-hover:opacity-100 group-focus-visible:max-w-[120px] group-focus-visible:pr-4 group-focus-visible:opacity-100 motion-reduce:transition-none'
+// Variante guide : 4 actions sur une ligne, pastille ronde + libellé toujours
+// visible dessous (les icônes seules ne suffisent pas : Carte vs Itinéraire).
+const GUIDE_ACTION_BUTTON_CLASS = 'group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-2xl py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.96] transition-transform duration-200'
+const GUIDE_ACTION_LABEL_CLASS = 'max-w-full truncate text-[10px] font-semibold leading-tight'
 const COMPACT_ACTION_BUTTON_CLASS = 'min-h-[32px] min-w-0 w-full rounded-full bg-white py-0.5 pl-0.5 pr-2 flex items-center justify-center gap-1 whitespace-nowrap text-[8px] font-bold uppercase tracking-[0.08em] shadow-[0_5px_14px_rgba(17,24,39,0.06)] transition-[transform,box-shadow] duration-200 hover:shadow-[0_7px_16px_rgba(17,24,39,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal/20 active:scale-[0.98]'
 const DETAIL_ACTION_COLUMNS = {
   call: 'col-start-1',
@@ -61,11 +60,11 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
     )
   }
 
-  // Guide POI details : les actions en pastilles icônes sur une seule ligne
+  // Guide POI details : les actions sur une seule ligne, pastille + libellé
   // (Appeler / Site web / Carte / Itinéraire).
   if (variant === 'guide') {
     return (
-      <div className="flex w-full items-center justify-center gap-4 px-1 pt-2 pb-3">
+      <div className="flex w-full items-start justify-between gap-2 px-1 pt-2 pb-3">
         {telHref && phoneLabel && (
           <DetailActionButton
             href={telHref}
@@ -95,8 +94,8 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
             onClick={onShowOnMap}
             testId="btn-map"
             tone="map"
-            icon={<Map className="h-3.5 w-3.5" />}
-            label={m.actions.map}
+            icon={<MapPin className="h-3.5 w-3.5" />}
+            label={m.actions.guideMap}
             guide
             pinColumn={false}
           />
@@ -106,7 +105,7 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
           testId="btn-directions"
           tone="directions"
           icon={<Navigation className="h-3.5 w-3.5" />}
-          label={m.actions.directions}
+          label={m.actions.googleMaps}
           external
           guide
             pinColumn={false}
@@ -190,7 +189,7 @@ function DetailActionButton({
   const bubbleClass = compact
     ? 'h-6 w-6 [&_svg]:h-3 [&_svg]:w-3'
     : guide
-      ? 'h-11 w-11 [&_svg]:h-[18px] [&_svg]:w-[18px]'
+      ? 'h-11 w-11 shadow-[0_7px_16px_rgba(17,24,39,0.10)] transition-shadow duration-200 group-hover:shadow-[0_9px_20px_rgba(17,24,39,0.16)] [&_svg]:h-[18px] [&_svg]:w-[18px]'
       : 'h-8 w-8'
   const columnClass = pinColumn ? DETAIL_ACTION_COLUMNS[tone as keyof typeof DETAIL_ACTION_COLUMNS] ?? '' : ''
 
@@ -199,11 +198,11 @@ function DetailActionButton({
       <span className={`flex ${bubbleClass} shrink-0 items-center justify-center rounded-full text-white ${toneClasses.bubble}`}>
         {icon}
       </span>
-      <span className={guide ? GUIDE_ACTION_LABEL_CLASS : `shrink-0 ${toneClasses.label}`}>{label}</span>
+      <span className={guide ? `${GUIDE_ACTION_LABEL_CLASS} ${toneClasses.label}` : `shrink-0 ${toneClasses.label}`}>{label}</span>
     </>
   )
 
-  const className = `${buttonClass} ${columnClass} ${guide ? toneClasses.bubble : ''}`
+  const className = `${buttonClass} ${columnClass}`
 
   if (onClick) {
     return (
