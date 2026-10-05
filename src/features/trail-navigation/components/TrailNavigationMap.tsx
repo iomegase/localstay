@@ -2,7 +2,6 @@
 
 import { AlertTriangle, ChevronDown, Compass, Flag, FlagTriangleRight, LocateFixed, Navigation, Route, RotateCcw, Square, Timer, TrendingUp, Unlock, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, NavigationControl, Source } from 'react-map-gl/mapbox'
@@ -255,8 +254,10 @@ function TrailNavigationSessionMap({
       onClose()
       return
     }
-    router.back()
-  }, [onClose, router])
+    // Ouvert sans historique (app installée, lien direct) : back() ne mènerait nulle part.
+    if (window.history.length > 1) router.back()
+    else router.replace(backHref)
+  }, [backHref, onClose, router])
 
   if (!geometry || !endpoints) {
     return (
@@ -612,15 +613,9 @@ function TrailNavigationSessionMap({
                 <Navigation className="h-4 w-4 shrink-0" aria-hidden="true" />
                 Rejoindre le départ
               </a>
-              {onClose ? (
-                <button type="button" onClick={onClose} className={`${marketingDarkButtonClass} px-3`}>
-                  Fermer
-                </button>
-              ) : (
-                <Link href={backHref} className={`${marketingDarkButtonClass} px-3`}>
-                  Fermer
-                </Link>
-              )}
+              <button type="button" onClick={closeNavigation} className={`${marketingDarkButtonClass} px-3`}>
+                Fermer
+              </button>
             </div>
           </div>
         )}

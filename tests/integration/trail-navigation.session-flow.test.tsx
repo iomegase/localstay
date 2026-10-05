@@ -9,7 +9,7 @@ import { haversineMeters } from '@/features/trail-navigation/lib/geo'
 const mockRouterBack = jest.fn()
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ back: mockRouterBack }),
+  useRouter: () => ({ back: mockRouterBack, replace: jest.fn() }),
 }))
 
 const mockEaseTo = jest.fn()
@@ -107,6 +107,8 @@ const positionUnavailable: GeolocationPositionError = {
 
 describe('021 trail navigation session flow', () => {
   beforeEach(() => {
+    // Ouvert depuis le guide : une entrée d'historique précède l'écran de guidage.
+    window.history.pushState(null, '', '/guide/ville/rando/boucle/start')
     jest.restoreAllMocks()
     mockRouterBack.mockClear()
     mockEaseTo.mockClear()

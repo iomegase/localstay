@@ -13,6 +13,7 @@ import { GuideContactView, type GuideContactInfo } from './GuideContactView'
 import { GuideMenuOverlay } from './GuideMenuOverlay'
 import type { GuideMenuItem } from './GuideMenuOverlay'
 import { GuideNavigation } from './GuideNavigation'
+import { rememberTrailReturn, takeTrailReturn } from '../lib/trail-return'
 import { GuidePoiDetails } from './GuidePoiDetails'
 import { GuideArrivalFlow } from './stay/GuideArrivalFlow'
 import { GuideDepartureView } from './stay/GuideDepartureView'
@@ -94,9 +95,10 @@ function RoutedGuideApp({ routes, ...props }: GuideAppProps & {
       {...props}
       routes={routes}
       onStartTrail={citySlug
-        ? poi => router.push(
-            `/guide/${poi.citySlug ?? citySlug}/rando/${poi.slug}/start`,
-          )
+        ? poi => {
+            rememberTrailReturn(poi.id)
+            router.push(`/guide/${poi.citySlug ?? citySlug}/rando/${poi.slug}/start`)
+          }
         : undefined}
     />
   )
@@ -197,6 +199,17 @@ function GuideAppShell({
     () => [...pois, ...transportPois].find(poi => poi.id === selectedPoiId) ?? null,
     [pois, transportPois, selectedPoiId],
   )
+
+  // Retour du guidage rando : rouvre la fiche de la randonnée (spec 021 AC-02-07).
+  useEffect(() => {
+    const poiId = takeTrailReturn()
+    if (!poiId) return
+    // Lecture unique de sessionStorage au montage (absent au rendu serveur).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedPoiId(poiId)
+    setActiveView('poi')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lecture unique au montage
+  }, [])
 
   function openPoi(poi: GuidePoi) {
     // Mémorise la vue d'origine pour y revenir en fermant la fiche (carte ou favoris).

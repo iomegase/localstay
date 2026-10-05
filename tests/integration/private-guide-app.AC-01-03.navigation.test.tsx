@@ -68,6 +68,7 @@ describe('034-private-guide-app route-aware shell', () => {
     mockGuidePoiDetailsProps.mockClear()
     mockPathname = '/sejour'
     window.history.replaceState(null, '', '/sejour')
+    window.sessionStorage.clear()
   })
 
   it('054 AC-01-12: preloads map code after hydration without mounting it', async () => {
@@ -416,6 +417,60 @@ describe('034-private-guide-app route-aware shell', () => {
     expect(mockPush).toHaveBeenLastCalledWith(
       '/guide/les-contamines-montjoie/rando/l-alpage-de-porcherey/start',
     )
+  })
+
+  it('021 AC-02-07 (PO 2026-10-05): reopens the trail details after closing the navigation', async () => {
+    const porchereyPoi = demoPois.find(poi => poi.id === 'demo-poi-porcherey')
+    if (!porchereyPoi?.trail) throw new Error('Expected the Porcherey demo trail fixture')
+    const privateTrailPoi = {
+      ...porchereyPoi,
+      slug: 'l-alpage-de-porcherey',
+      citySlug: 'les-contamines-montjoie',
+      trail: { ...porchereyPoi.trail, trackingEnabled: true },
+    }
+    const props = {
+      mode: 'private' as const,
+      lodging: demoLodging,
+      pois: [privateTrailPoi],
+      citySlug: 'saint-gervais-les-bains',
+      initialView: 'favorites' as const,
+      routes: { home: '/sejour', favorites: '/sejour/coups-de-coeur' },
+    }
+
+    const first = render(<GuideApp {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: /ouvrir l’alpage de porcherey/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Démarrer la randonnée' }))
+    first.unmount()
+
+    // Retour depuis l'écran de guidage : le guide est remonté et rouvre la fiche.
+    render(<GuideApp {...props} />)
+    await waitFor(() => expect(mockGuidePoiDetailsProps.mock.lastCall?.[0]?.poi?.id).toBe('demo-poi-porcherey'))
+    expect(screen.getByRole('button', { name: 'Démarrer la randonnée' })).toBeInTheDocument()
+  })
+
+  it('021 AC-02-07: a later plain visit of the guide does not reopen the trail', async () => {
+    const porchereyPoi = demoPois.find(poi => poi.id === 'demo-poi-porcherey')
+    if (!porchereyPoi?.trail) throw new Error('Expected the Porcherey demo trail fixture')
+    const props = {
+      mode: 'private' as const,
+      lodging: demoLodging,
+      pois: [{ ...porchereyPoi, slug: 'l-alpage-de-porcherey', citySlug: 'les-contamines-montjoie', trail: { ...porchereyPoi.trail, trackingEnabled: true } }],
+      citySlug: 'saint-gervais-les-bains',
+      initialView: 'favorites' as const,
+      routes: { home: '/sejour', favorites: '/sejour/coups-de-coeur' },
+    }
+    const first = render(<GuideApp {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: /ouvrir l’alpage de porcherey/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Démarrer la randonnée' }))
+    first.unmount()
+    const second = render(<GuideApp {...props} />)
+    await waitFor(() => expect(mockGuidePoiDetailsProps).toHaveBeenCalled())
+    second.unmount()
+    mockGuidePoiDetailsProps.mockClear()
+
+    render(<GuideApp {...props} />)
+    await act(async () => {})
+    expect(mockGuidePoiDetailsProps).not.toHaveBeenCalled()
   })
 
   it('021 BR-04: does not provide trail start navigation to a routed demo guide', () => {

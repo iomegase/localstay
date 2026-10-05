@@ -11,9 +11,10 @@ import {
 import { haversineMeters } from '@/features/trail-navigation/lib/geo'
 
 const mockRouterBack = jest.fn()
+const mockRouterReplace = jest.fn()
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ back: mockRouterBack }),
+  useRouter: () => ({ back: mockRouterBack, replace: mockRouterReplace }),
 }))
 
 const mockEaseTo = jest.fn()
@@ -170,6 +171,7 @@ describe('021 trail navigation start mode', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
     mockRouterBack.mockClear()
+    mockRouterReplace.mockClear()
     mockEaseTo.mockClear()
     mockFlyTo.mockClear()
     mockDragRotateDisable.mockClear()
@@ -295,6 +297,7 @@ describe('021 trail navigation start mode', () => {
   })
 
   it('AC-02-07/BR-29: keeps the Close control above Mapbox and returns to the previous screen', async () => {
+    window.history.pushState(null, '', '/guide/ville/rando/boucle/start')
     render(<TrailNavigationMap trail={trail} />)
 
     const controls = screen.getByTestId('trail-top-controls')
@@ -308,6 +311,17 @@ describe('021 trail navigation start mode', () => {
     await userEvent.click(close)
 
     expect(mockRouterBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('AC-02-07 (PO 2026-10-05): without history (installed app, direct link) Close goes to the fallback page', async () => {
+    const historyLength = jest.spyOn(window.history, 'length', 'get').mockReturnValue(1)
+    render(<TrailNavigationMap trail={trail} backHref="/sejour" />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }))
+
+    expect(mockRouterBack).not.toHaveBeenCalled()
+    expect(mockRouterReplace).toHaveBeenCalledWith('/sejour')
+    historyLength.mockRestore()
   })
 
   it('AC-02-07: uses the modal close callback instead of router history when provided', async () => {

@@ -367,6 +367,10 @@ external_services:
 - *(Amendement PO du 2026-10-05)* Écrans rando : panneau de guidage blanc opaque (plus de
   fond crème ni de flou), cartes et encarts en ombre `shadow-md`. Message GPS faible :
   « Précision GPS faible (N m). Guidage indicatif. »
+- *(Amendement PO du 2026-10-05, AC-02-07)* Fermer le guidage revient à l'écran précédent :
+  depuis le guide, la fiche de la randonnée est rouverte (mémorisée pour l'onglet courant) ;
+  sans historique (app installée, lien direct), Fermer mène à `/sejour` au lieu de ne rien faire.
+  Le bouton « Fermer » du panneau hors du tracé suit la même règle.
 
 ### Fiche randonnée
 

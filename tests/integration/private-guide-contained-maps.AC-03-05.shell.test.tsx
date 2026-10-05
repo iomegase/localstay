@@ -107,7 +107,7 @@ describe('040-private-guide contained hiking maps', () => {
     expect(mockTrailNavigationProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
         contained: true,
-        backHref: '/guide/saint-gervais-les-bains/rando',
+        backHref: '/sejour',
       }),
     )
   })

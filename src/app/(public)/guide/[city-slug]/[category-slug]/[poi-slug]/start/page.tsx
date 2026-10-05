@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * route interceptée `@modal/(.)[poi-slug]/start` qui s'affiche en overlay à la place.
  */
 export default async function TrailNavigationStartPage({ params }: Props) {
-  const { 'city-slug': citySlug, 'category-slug': categorySlug, 'poi-slug': poiSlug } = await params
+  const { 'city-slug': citySlug, 'poi-slug': poiSlug } = await params
   await requireActiveLodgingContext(citySlug)
   const trail = await getPublishedTrail(citySlug, poiSlug)
   if (!trail) {
@@ -37,7 +37,7 @@ export default async function TrailNavigationStartPage({ params }: Props) {
     <PrivateGuideFrame>
       <TrailNavigationMap
         trail={trail as TrailNavigationData}
-        backHref={`/guide/${citySlug}/${categorySlug}`}
+        backHref="/sejour"
         contained
       />
     </PrivateGuideFrame>
