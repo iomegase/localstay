@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Phone, Navigation, Globe, Map, MapPin } from 'lucide-react'
+import { Phone, Navigation, Globe, Map, MapPin, Play } from 'lucide-react'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter' | 'guide'
@@ -34,6 +34,10 @@ const DETAIL_ACTION_TONES = {
     bubble: 'bg-slate-900',
     label: 'text-slate-900',
   },
+  start: {
+    bubble: 'bg-emerald-700',
+    label: 'text-emerald-700',
+  },
 } as const
 
 interface Props {
@@ -45,9 +49,11 @@ interface Props {
   variant?: ActionButtonsVariant
   /** Guide variant only: adds a "Carte" pill that triggers internal map navigation. */
   onShowOnMap?: (() => void) | null
+  /** Guide variant only: « Démarrer » la randonnée, en tête de la ligne d'actions (spec 021). */
+  startAction?: { label: string; ariaLabel: string; onClick: () => void } | null
 }
 
-export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default', onShowOnMap }: Props) {
+export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default', onShowOnMap, startAction }: Props) {
   const m = useGuideMessages()
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
@@ -65,6 +71,18 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
   if (variant === 'guide') {
     return (
       <div className="flex w-full items-start justify-between gap-2 px-1 pt-2 pb-3">
+        {startAction && (
+          <DetailActionButton
+            onClick={startAction.onClick}
+            testId="btn-start"
+            tone="start"
+            icon={<Play className="h-3.5 w-3.5 fill-current" />}
+            label={startAction.label}
+            ariaLabel={startAction.ariaLabel}
+            guide
+            pinColumn={false}
+          />
+        )}
         {telHref && phoneLabel && (
           <DetailActionButton
             href={telHref}

@@ -155,3 +155,32 @@ describe('ActionButtons — AC-01-02 (phone) + AC-01-03 (website)', () => {
     jest.useRealTimers()
   })
 })
+
+describe('ActionButtons — guide trail start in the action row (spec 021, PO 2026-10-05)', () => {
+  it('puts a green Start action with an icon first on the same row as map and Google Maps', () => {
+    const onStart = jest.fn()
+    render(
+      <ActionButtons
+        {...base}
+        phone={null}
+        website={null}
+        variant="guide"
+        onShowOnMap={jest.fn()}
+        startAction={{ label: 'Démarrer', ariaLabel: 'Démarrer la randonnée', onClick: onStart }}
+      />,
+    )
+
+    const start = screen.getByRole('button', { name: 'Démarrer la randonnée' })
+    expect(start).toHaveAttribute('data-testid', 'btn-start')
+    expect(start.querySelector('svg')).not.toBeNull()
+    expect(start.firstElementChild).toHaveClass('bg-emerald-700')
+    const row = start.parentElement as HTMLElement
+    expect(Array.from(row.children).map(child => child.getAttribute('data-testid'))).toEqual([
+      'btn-start',
+      'btn-map',
+      'btn-directions',
+    ])
+    fireEvent.click(start)
+    expect(onStart).toHaveBeenCalledTimes(1)
+  })
+})

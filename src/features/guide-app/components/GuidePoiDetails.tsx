@@ -226,16 +226,6 @@ export function GuidePoiDetails({
                 </button>
               </>
             )}
-            {canStartTrail(mode, poi.trail) && onStartTrail && (
-              <button
-                type="button"
-                onClick={() => onStartTrail(poi)}
-                aria-label={m.poi.trail.startLabel}
-                className="mt-4 w-full rounded-full bg-emerald-700 px-4 py-3 text-xs font-bold text-white"
-              >
-                {m.poi.trail.start}
-              </button>
-            )}
             {mode === 'demo' && (
               <p className="mt-4 rounded-xl bg-slate-50 p-3 text-[9px] leading-4 text-slate-500">
                 {m.poi.trail.demoNoGps}
@@ -254,6 +244,9 @@ export function GuidePoiDetails({
             address={poi.address}
             variant="guide"
             onShowOnMap={() => onShowOnMap(poi)}
+            startAction={poi.trail && canStartTrail(mode, poi.trail) && onStartTrail
+              ? { label: m.poi.trail.start, ariaLabel: m.poi.trail.startLabel, onClick: () => onStartTrail(poi) }
+              : null}
           />
         </div>
       </main>

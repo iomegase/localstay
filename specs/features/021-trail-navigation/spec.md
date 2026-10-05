@@ -361,6 +361,9 @@ external_services:
 - *(Amendement PO du 2026-10-05)* Panneau « hors du tracé » (`pre_start`) : « Rejoindre le
   départ » (bouton principal rose MyStay, Google Maps) et « Fermer » (bouton sombre MyStay)
   côte à côte sur deux colonnes.
+- *(Amendement PO du 2026-10-05)* Guide privé, fiche randonnée : « Démarrer » n'est plus un
+  bouton pleine largeur ; c'est une action ronde verte avec icône, en tête de la ligne
+  « Sur le plan » / « Google Maps », au même format.
 
 ### Fiche randonnée
 
