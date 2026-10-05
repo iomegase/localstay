@@ -27,7 +27,7 @@ export function MarketingPropertyCard({
         >
           <div
             data-testid="home-property-image"
-            className="relative aspect-[4/3] overflow-hidden rounded-[26px] bg-slate-100 bg-[url('/marketing/guide-interior.png')] bg-cover bg-center shadow-[0_18px_45px_rgba(30,41,59,0.08)] xl:h-[344px] xl:aspect-auto xl:rounded-[26px]"
+            className="relative aspect-[4/3] overflow-hidden rounded-[26px] bg-slate-100 shadow-[0_18px_45px_rgba(30,41,59,0.08)] xl:h-[344px] xl:aspect-auto xl:rounded-[26px]"
           >
             {lodging.cover_photo_url && (
               <Image
@@ -58,7 +58,7 @@ export function MarketingPropertyCard({
         className="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
         aria-label={`Découvrir ${lodging.title}`}
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 bg-[url('/marketing/guide-interior.png')] bg-cover bg-center">
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           {lodging.cover_photo_url && (
             <Image
               src={lodging.cover_photo_url}

@@ -16,7 +16,7 @@ export function LocalRentalCard({
 }) {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-[26px] bg-white shadow-[0_22px_58px_rgba(15,23,42,0.10)]">
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 bg-[url('/marketing/guide-interior.png')] bg-cover bg-center">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {lodging.cover_photo_url && (
           <Image
             src={lodging.cover_photo_url}

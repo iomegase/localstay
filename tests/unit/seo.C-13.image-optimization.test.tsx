@@ -29,6 +29,14 @@ describe('C-13 — optimisation des images publiques', () => {
     expect(read(path)).not.toMatch(/^\s*priority(=\{|\s*$)/m)
   })
 
+  // Audit de reprise N-2 : PNG de 2,5 Mo téléchargé en fond derrière chaque carte logement.
+  it.each([
+    'src/features/marketing/components/MarketingPropertyCard.tsx',
+    'src/features/local-seo/components/LocalRentalCard.tsx',
+  ])('%s ne charge plus d’image de fond derrière la photo', path => {
+    expect(read(path)).not.toContain('guide-interior.png')
+  })
+
   it('la galerie marque uniquement sa photo principale en haute priorité', () => {
     const source = read('src/features/lodging-showcase/components/LodgingMarketingGallery.tsx')
     expect(source.match(/fetchPriority="high"/g)).toHaveLength(1)
