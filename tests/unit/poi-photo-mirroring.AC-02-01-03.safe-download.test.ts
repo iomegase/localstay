@@ -1,4 +1,5 @@
 import {
+  createPinnedLookup,
   downloadImageSafely,
   type DownloadDeps,
 } from '@/features/poi-photos/services/safe-image-download'
@@ -90,5 +91,61 @@ describe('063 — téléchargement sécurisé', () => {
     const abortError = Object.assign(new Error('aborted'), { name: 'AbortError' })
     const d = deps({ fetch: jest.fn(async () => { throw abortError }) as unknown as typeof fetch })
     await expect(downloadImageSafely('https://site.fr/a.jpg', d)).resolves.toEqual({ ok: false, reason: 'TIMEOUT' })
+  })
+
+  // Revue finale (point 1) : formes IPv6 qui encodent une adresse IPv4 interne,
+  // et plages réservées manquantes.
+  it.each([
+    'https://[::ffff:a9fe:a9fe]/latest',
+    'https://[::7f00:1]/',
+    'https://[fe90::1]/',
+    'https://[64:ff9b::a9fe:a9fe]/',
+    'https://[2002:a9fe:a9fe::1]/',
+    'https://[ff02::1]/',
+    'https://198.18.0.1/',
+    'https://192.0.0.8/',
+  ])('AC-02-02: refuse une redirection vers %s', async target => {
+    const fetchMock = jest.fn(async () => new Response(null, { status: 302, headers: { location: target } }))
+    const d = deps({ fetch: fetchMock as unknown as typeof fetch })
+    await expect(downloadImageSafely('https://site.fr/a.jpg', d)).resolves.toEqual({ ok: false, reason: 'PRIVATE_HOST' })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  // Revue finale (point 3) : seuls les formats matriciels attendus sont acceptés.
+  it.each(['image/svg+xml', 'image/x-icon', 'image/tiff'])('AC-02-03: refuse le type %s', async type => {
+    const d = deps({ fetch: jest.fn(async () => imageResponse(new Uint8Array([1]), { 'content-type': type })) as unknown as typeof fetch })
+    await expect(downloadImageSafely('https://site.fr/a.svg', d)).resolves.toEqual({ ok: false, reason: 'NOT_IMAGE' })
+  })
+})
+
+// Revue finale (point 1, rebond DNS) : la résolution utilisée pour la connexion est
+// elle-même filtrée, si bien qu'une seconde résolution vers une adresse interne échoue.
+describe('063 — résolution épinglée à la connexion', () => {
+  it('refuse une résolution privée au moment de la connexion', done => {
+    const lookup = createPinnedLookup(async () => [{ address: '10.0.0.7', family: 4 }])
+    lookup('piege.example', {}, (error, address) => {
+      expect(error).toMatchObject({ code: 'PRIVATE_HOST' })
+      expect(address).toBeUndefined()
+      done()
+    })
+  })
+
+  it('transmet une résolution publique', done => {
+    const lookup = createPinnedLookup(async () => [{ address: '93.184.216.34', family: 4 }])
+    lookup('site.example', {}, (error, address, family) => {
+      expect(error).toBeNull()
+      expect(address).toBe('93.184.216.34')
+      expect(family).toBe(4)
+      done()
+    })
+  })
+
+  it('renvoie la liste des adresses quand Node demande { all: true } (autoSelectFamily)', done => {
+    const lookup = createPinnedLookup(async () => [{ address: '93.184.216.34', family: 4 }])
+    lookup('site.example', { all: true }, (error, addresses) => {
+      expect(error).toBeNull()
+      expect(addresses).toEqual([{ address: '93.184.216.34', family: 4 }])
+      done()
+    })
   })
 })
