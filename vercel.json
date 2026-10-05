@@ -6,6 +6,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/internal/poi-photo-mirrors/sync",
+      "schedule": "15 4 * * *"
+    },
+    {
       "path": "/api/internal/check-subscriptions",
       "schedule": "0 9 * * *"
     },
