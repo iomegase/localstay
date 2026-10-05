@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
-import { GuideDemoLauncher } from '@/features/guide-demo/components/GuideDemoLauncher'
 import { GuidePhoneShowcase } from './GuidePhoneShowcase'
 
 import { MarketingPropertyCard } from './MarketingPropertyCard'
@@ -598,13 +597,8 @@ export function MarketingHome({
           </ul>
         </div>
 
-        {/* Le visuel du guide ouvre la démo (spec 031 AC-01-12 (2)). */}
-        <GuideDemoLauncher
-          ariaLabel="Ouvrir le guide d’exemple"
-          className="block w-full cursor-pointer rounded-[34px] text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-600"
-        >
-          <GuidePhoneShowcase className="flex" alt="" />
-        </GuideDemoLauncher>
+        {/* Capture du guide (spec 045 dépréciée le 2026-10-05 : plus de démo interactive). */}
+        <GuidePhoneShowcase className="flex" />
       </section>
 
       {/* =========================================================

@@ -5,10 +5,6 @@ import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/p
 
 const mockPathname = jest.fn<string | null, []>(() => '/')
 jest.mock('next/navigation', () => ({ usePathname: () => mockPathname() }))
-jest.mock('@/features/guide-demo/components/GuideDemoPhoneButton', () => ({
-  GuideDemoPhoneButton: () => null,
-}))
-
 import { MarketingHome } from '@/features/marketing/components/MarketingHome'
 import { MarketingHeader } from '@/features/marketing/components/MarketingHeader'
 import { MarketingFooter } from '@/features/marketing/components/MarketingFooter'

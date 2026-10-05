@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ArrowRight, UserRound, X } from 'lucide-react'
 
-import { GuideDemoPhoneButton } from '@/features/guide-demo/components/GuideDemoPhoneButton'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { marketingNavigationFor } from './marketing-navigation'
 
@@ -224,33 +223,6 @@ export function MarketingMobileMenu({ localNavigation }: { localNavigation?: Loc
                 </Link>
               </Dialog.Close>
 
-              <GuideDemoPhoneButton
-                label="Guide démo"
-                className="
-                  inline-flex
-                  min-h-12
-                  w-full
-                  items-center
-                  justify-center
-                  gap-3
-                  rounded-full
-                  border
-                  border-slate-200
-                  bg-white/70
-                  px-5
-                  text-sm
-                  font-bold
-                  text-slate-800
-                  transition-colors
-                  hover:border-pink-200
-                  hover:bg-white
-                  hover:text-pink-600
-                  focus-visible:outline
-                  focus-visible:outline-2
-                  focus-visible:outline-offset-2
-                  focus-visible:outline-pink-600
-                "
-              />
 
               <Dialog.Close asChild>
                 <Link

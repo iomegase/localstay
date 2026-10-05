@@ -12,7 +12,7 @@ describe('031 AC-01-12 — home polish', () => {
     expect(within(hero).getAllByRole('link').map(link => link.textContent)).toEqual(['Nous contacter'])
   })
 
-  it('(2) shows two guide pills and opens the demo from the phone visual, without a separate button', () => {
+  it('(2) shows two guide pills and a static guide screenshot, without any demo trigger', () => {
     render(<MarketingHome lodgings={[]} />)
 
     const section = screen.getByRole('heading', { level: 2, name: 'Moins de questions, plus de bons avis.' }).closest('section')!
@@ -22,8 +22,10 @@ describe('031 AC-01-12 — home polish', () => {
     expect(within(section).queryByTestId('home-guide-benefit')).not.toBeInTheDocument()
     expect(within(section).queryByRole('button', { name: /Voir le guide d’exemple/ })).not.toBeInTheDocument()
 
-    const visualButton = within(section).getByRole('button', { name: 'Ouvrir le guide d’exemple' })
-    expect(within(visualButton).getByTestId('guide-phone-showcase')).toBeInTheDocument()
+    // Spec 045 dépréciée (2026-10-05) : la démo interactive est remplacée par une capture.
+    expect(within(section).queryByRole('button', { name: 'Ouvrir le guide d’exemple' })).not.toBeInTheDocument()
+    const showcase = within(section).getByTestId('guide-phone-showcase')
+    expect(within(showcase).getByRole('img', { name: 'Guide digital MyStay affiché sur un smartphone' })).toBeInTheDocument()
   })
 
   it('(3) vertically centres the one-column FAQ title', () => {

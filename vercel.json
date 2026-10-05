@@ -1,5 +1,5 @@
 {
-  "regions": ["arn1"],
+  "regions": ["dub1"],
   "crons": [
     {
       "path": "/api/internal/geocode-pois",

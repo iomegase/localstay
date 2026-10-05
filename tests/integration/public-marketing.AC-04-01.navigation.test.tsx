@@ -38,7 +38,8 @@ describe('031-public-marketing-site navigation', () => {
       'Connexion',
       'Nous contacter',
     ])
-    expect(within(mobileNavigation).getByText('Guide démo')).toBeInTheDocument()
+    // Spec 045 dépréciée (2026-10-05) : plus de bouton « Guide démo ».
+    expect(within(mobileNavigation).queryByText('Guide démo')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
     const loginLink = within(mobileNavigation).getByRole('link', { name: 'Connexion' })
     expect(loginLink).toHaveAttribute('href', '/auth/login')

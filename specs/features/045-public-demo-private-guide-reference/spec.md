@@ -5,11 +5,11 @@
 ```yaml
 id: 045-public-demo-private-guide-reference
 title: "Démo publique fidèle au guide privé complet"
-status: approved
+status: deprecated
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-01
-updated_at: 2026-09-29
+updated_at: 2026-10-05
 depends_on:
   - 031-public-marketing-site
   - 034-private-guide-app
@@ -244,6 +244,14 @@ contrôle d'accès ni route du guide privé.
 
 ## Amendements
 
+- **2026-10-05 (Product Owner) — spec dépréciée** : la démo interactive est
+  retirée du site public. Son chargement serveur (BR-07 : catalogues logement
+  et blog chargés dans le layout marketing) ajoutait ~6 s de TTFB à toutes les
+  pages marketing (audit `docs/audits/2026-10-05-audit-seo-geo.md`, C-02). Le
+  visuel de la home redevient une capture statique (`GuidePhoneShowcase`), le
+  bouton téléphone du header et l'action « Guide démo » du menu mobile sont
+  supprimés. Les modules de données `src/features/guide-demo/demo-*.ts` et
+  `types.ts` sont conservés uniquement comme jeux de test du guide privé.
 - **2026-10-02 (specs 054 AC-06-01 et 055 AC-05-01)** : la démo réutilise les
   écrans de séjour partagés (`guide-app/components/stay`, `GuideNavigation`,
   libs de présentation) et les composants `transport`, sans query, cookie ni

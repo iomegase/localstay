@@ -13,10 +13,6 @@ jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
 jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
   getDiscoveryIndex: (...args: unknown[]) => mockGetDiscoveryIndex(...args),
 }))
-jest.mock('@/features/guide-demo/components/GuideDemoPhoneButton', () => ({
-  GuideDemoPhoneButton: () => null,
-}))
-
 import HomePage from '@/app/(public)/page'
 import { MarketingHome } from '@/features/marketing/components/MarketingHome'
 import { MarketingHeader } from '@/features/marketing/components/MarketingHeader'

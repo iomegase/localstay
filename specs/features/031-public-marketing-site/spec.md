@@ -147,6 +147,10 @@ routes privées, l'authentification et les API existantes restent inchangées.
   colonne (home, landings conciergerie), le titre est centré verticalement
   face aux questions à partir de `lg` ; (4) le bloc final s'intitule
   « Parlons de votre projet. ».
+  *Amendement 2026-10-05 (Product Owner, spec 045 dépréciée)* : le visuel
+  téléphone n'ouvre plus de démo ; c'est une capture statique avec un texte
+  alternatif descriptif. Le header ne propose plus de bouton « guide
+  d'exemple » et le menu mobile plus d'action « Guide démo ».
 
 ### US-02 — Préserver le guide voyageur privé
 

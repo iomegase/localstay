@@ -6,10 +6,6 @@ const mockListSeminarLodgings = jest.fn()
 jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({
   listSeminarLodgings: (...args: unknown[]) => mockListSeminarLodgings(...args),
 }))
-jest.mock('@/features/guide-demo/components/GuideDemoPhoneButton', () => ({
-  GuideDemoPhoneButton: () => null,
-}))
-
 import SeminarsPage, { metadata } from '@/app/(public)/seminaires/page'
 
 const chalet = {
