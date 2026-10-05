@@ -46,7 +46,7 @@ function formatDuration(durationSeconds: number): string {
 
 function SummaryMetric({ icon, label, value }: SummaryMetricProps) {
   return (
-    <div className="flex min-w-0 flex-col items-center gap-2 rounded-2xl bg-white px-2 py-4 text-center shadow-sm">
+    <div className="flex min-w-0 flex-col items-center gap-2 rounded-2xl bg-white px-2 py-4 text-center shadow-md">
       <span className="text-[#315C45]" aria-hidden="true">
         {icon}
       </span>
@@ -84,7 +84,7 @@ export function TrailSessionSummaryModal({
           }}
           onEscapeKeyDown={(event) => event.preventDefault()}
           onPointerDownOutside={(event) => event.preventDefault()}
-          className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-[2rem] bg-[#FAF9F6] p-6 shadow-2xl"
+          className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-[398px] -translate-x-1/2 rounded-[2rem] bg-white p-6 shadow-2xl"
         >
         <div className="mb-6 flex flex-col items-center text-center">
           <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-[#315C45] text-white">

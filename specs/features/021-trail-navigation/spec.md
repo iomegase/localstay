@@ -364,6 +364,9 @@ external_services:
 - *(Amendement PO du 2026-10-05)* Guide privé, fiche randonnée : « Démarrer » n'est plus un
   bouton pleine largeur ; c'est une action ronde verte avec icône, en tête de la ligne
   « Sur le plan » / « Google Maps », au même format.
+- *(Amendement PO du 2026-10-05)* Écrans rando : panneau de guidage blanc opaque (plus de
+  fond crème ni de flou), cartes et encarts en ombre `shadow-md`. Message GPS faible :
+  « Précision GPS faible (N m). Guidage indicatif. »
 
 ### Fiche randonnée
 

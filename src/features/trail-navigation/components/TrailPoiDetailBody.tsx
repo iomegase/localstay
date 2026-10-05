@@ -200,7 +200,7 @@ export function TrailPoiDetailBody({
 
 function TrailStat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="flex flex-1 flex-col rounded-md items-center justify-center  p-4 text-center shadow-sm">
+    <div className="flex flex-1 flex-col rounded-md items-center justify-center bg-white p-4 text-center shadow-md">
       {icon}
       <span className="mt-2 text-sm font-semibold">{value}</span>
       <span className="mt-0.5 text-[9px] uppercase tracking-widest text-gray-400">{label}</span>
@@ -210,7 +210,7 @@ function TrailStat({ icon, label, value }: { icon: ReactNode; label: string; val
 
 function InfoCard({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <article className="flex gap-4 rounded-md  bg-white p-5 shadow-sm">
+    <article className="flex gap-4 rounded-md bg-white p-5 shadow-md">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#455E4C] text-white">{icon}</div>
       <div>
         <h3 className="text-sm font-bold">{title}</h3>

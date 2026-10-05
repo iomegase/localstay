@@ -261,13 +261,13 @@ function TrailNavigationSessionMap({
   if (!geometry || !endpoints) {
     return (
       <main
-        className={`mx-auto w-full max-w-[430px] overflow-y-auto bg-[#FAF9F6] px-6 py-10 ${
+        className={`mx-auto w-full max-w-[430px] overflow-y-auto bg-white px-6 py-10 ${
           contained ? 'h-full min-h-0' : 'min-h-screen'
         }`}
       >
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#db2777]">Randonnée</p>
         <h1 className="mt-4 font-serif text-4xl italic leading-tight text-[#121212]">{trail.name}</h1>
-        <div data-testid="missing_geometry" className="mt-8 rounded-[2rem] border border-amber-200 bg-white p-5 text-sm text-charcoal/70 shadow-sm">
+        <div data-testid="missing_geometry" className="mt-8 rounded-[2rem] border border-amber-200 bg-white p-5 text-sm text-charcoal/70 shadow-md">
           <p className="font-semibold text-charcoal">Tracé indisponible</p>
           <p className="mt-2">Le mode guidage ne peut pas démarrer sans géométrie fiable validée.</p>
         </div>
@@ -523,7 +523,7 @@ function TrailNavigationSessionMap({
       )}
 
       <section
-        className={`absolute inset-x-3 bottom-3 rounded-[28px] bg-white/95 p-6 shadow-[0_-6px_44px_-8px_rgba(18,18,18,0.28)] backdrop-blur transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`absolute inset-x-3 bottom-3 rounded-[28px] bg-white p-6 shadow-[0_-6px_44px_-8px_rgba(18,18,18,0.28)] transition-opacity ${isHudExpanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         data-testid="trail-navigation-panel"
         aria-hidden={!isHudExpanded}
       >
@@ -574,7 +574,7 @@ function TrailNavigationSessionMap({
         )}
 
         {session.phase === 'ready_to_join' && session.canStart && (
-          <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-5 text-charcoal/75">
+          <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-5 text-charcoal/75 shadow-md">
             <p className="font-semibold text-charcoal">
               Vous êtes à {session.distanceToTrailM !== null ? Math.round(session.distanceToTrailM) : '?'} m du tracé.
             </p>
@@ -594,7 +594,7 @@ function TrailNavigationSessionMap({
         )}
 
         {session.phase === 'pre_start' && (
-          <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65">
+          <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-xs leading-5 text-charcoal/65 shadow-md">
             <p className="font-semibold text-red-600">
               Vous êtes à {session.distanceToTrailM !== null ? Math.round(session.distanceToTrailM) : '?'} m du tracé.
             </p>
@@ -626,7 +626,7 @@ function TrailNavigationSessionMap({
         )}
 
         {session.phase === 'approaching' && (
-          <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-5 text-charcoal/75">
+          <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-5 text-charcoal/75 shadow-md">
             <p className="font-semibold text-charcoal flex items-center gap-2">
               <Navigation className="h-4 w-4 text-emerald-600" />
               En route vers le tracé.
@@ -638,16 +638,16 @@ function TrailNavigationSessionMap({
         )}
 
         {session.isOffTrack && (
-          <div className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <div className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow-md">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             Vous semblez vous éloigner du tracé.
           </div>
         )}
 
         {session.gpsHealth === 'low_accuracy' && (
-          <div className="mt-3 flex items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-charcoal/65">
+          <div className="mt-3 flex items-start gap-2 rounded-2xl bg-white px-3 py-2 text-xs text-charcoal/65 shadow-md">
             <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-[#db2777]" />
-            Précision GPS faible{accuracy ? ` (${Math.round(accuracy)} m)` : ''}. Le guidage reste indicatif.
+            Précision GPS faible{accuracy ? ` (${Math.round(accuracy)} m)` : ''}. Guidage indicatif.
           </div>
         )}
 
@@ -671,7 +671,7 @@ function TrailNavigationSessionMap({
 
 function Metric({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-gray-50 px-3 py-4 text-center shadow-[0_2px_10px_-4px_rgba(18,18,18,0.12)]">
+    <div className="rounded-2xl bg-white px-3 py-4 text-center shadow-md">
       <Icon className="mx-auto h-5 w-5 text-emerald-600" strokeWidth={1.75} />
       <p className="mt-2 text-[15px] font-semibold text-charcoal">{value}</p>
       <p className="mt-0.5 text-[11px] text-charcoal/45">{label}</p>

@@ -468,6 +468,35 @@ describe('021 trail navigation start mode', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('renders an opaque white panel, shadow-md trail cards and the short low-accuracy notice', async () => {
+    let gpsSuccess: PositionCallback | null = null
+    const watchPosition = jest.fn((success: PositionCallback) => {
+      gpsSuccess = success
+      return 42
+    })
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { watchPosition, clearWatch: jest.fn() },
+    })
+    render(<TrailNavigationMap trail={trail} />)
+
+    const panel = screen.getByTestId('trail-navigation-panel')
+    expect(panel).toHaveClass('bg-white')
+    expect(panel).not.toHaveClass('bg-white/95')
+    for (const label of ['Distance', 'Durée', 'Dénivelé']) {
+      expect(within(panel).getByText(label).parentElement).toHaveClass('bg-white', 'shadow-md')
+    }
+
+    await userEvent.click(screen.getByRole('button', { name: /activer le suivi gps/i }))
+    act(() => {
+      gpsSuccess?.(makePosition({ latitude: 45.8731, longitude: 6.673, accuracy: 178, timestamp: Date.now() }))
+    })
+
+    const notice = await screen.findByText(/Précision GPS faible \(178 m\)\. Guidage indicatif\./)
+    expect(notice).toHaveClass('shadow-md')
+    expect(screen.queryByText(/reste indicatif/)).not.toBeInTheDocument()
+  })
+
   it('AC-05-06/BR-19: never renders a straight-line approach layer', async () => {
     let gpsSuccess: PositionCallback | null = null
     const startedAt = Date.now()

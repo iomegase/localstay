@@ -155,7 +155,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
       )}
 
       {/* {(trail.primary_source_type || attribution) && (
-        <div className="rounded-[28px] border border-charcoal/5 bg-white p-5 shadow-sm">
+        <div className="rounded-[28px] border border-charcoal/5 bg-white p-5 shadow-md">
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#db2777]">Randonnée</p>
           <p className="mt-3 text-xs leading-5 text-charcoal/60">
             Source principale&nbsp;: {trail.primary_source_type}
@@ -170,7 +170,7 @@ export function TrailCardDetails({ citySlug, categorySlug, poiSlug, poiName, add
 
 function InfoCard({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <article className="flex gap-4 rounded-[1.8rem] border border-gray-100 bg-white p-5 shadow-sm">
+    <article className="flex gap-4 rounded-[1.8rem] border border-gray-100 bg-white p-5 shadow-md">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#455E4C] text-white">{icon}</div>
       <div>
         <h4 className="text-sm font-bold">{title}</h4>
