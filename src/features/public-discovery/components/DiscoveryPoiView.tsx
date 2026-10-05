@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { MarkdownText } from '@/shared/components/MarkdownText'
 import { ArrowLeft, ChevronRight, Clock3, ExternalLink, MapPin, Navigation, Phone, Star } from 'lucide-react'
 import { MiniMap } from '@/features/categories/components/MiniMap'
 import {
@@ -53,7 +54,12 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
           <div className="min-w-0">
             <MarketingEyebrow>{poi.subcategory?.name ?? poi.category.name}</MarketingEyebrow>
             <h1 className="text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-900 sm:text-6xl">{poi.name}</h1>
-            <p className="mt-7 text-base leading-8 text-slate-600">{poi.description}</p>
+            <MarkdownText
+              source={poi.description}
+              breaks
+              headingLevel={2}
+              className="mt-7 text-base leading-8 text-slate-600 [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:normal-case [&_h2]:tracking-[-0.02em] [&_h2]:text-slate-900 [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:normal-case [&_h3]:text-slate-900 [&_p]:mb-4 [&_p]:text-base [&_p]:leading-8 [&_p]:text-slate-600"
+            />
             {poi.photo_credit ? (
               <p data-testid="poi-photo-credit" className="mt-3 text-xs leading-6 text-slate-500">
                 Photos :{' '}

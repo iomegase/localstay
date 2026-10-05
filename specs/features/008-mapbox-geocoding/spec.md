@@ -73,6 +73,7 @@ Ce spec couvre l'enrichissement automatique des coordonnées de chaque POI via l
 - **BR-07**: Le endpoint est protégé par `INTERNAL_API_SECRET` (même mécanisme que `/api/internal/gemini-fetch`)
 - **BR-08**: Le endpoint est relançable par cron sans effet de bord (idempotent)
 - **BR-09**: L'architecture est compatible avec une future queue (Inngest, Trigger.dev, BullMQ) sans changer l'interface
+- **BR-10** *(2026-10-05)*: Un POI supprimé entre la sélection du lot et sa mise à jour (Prisma P2025) est compté `skipped` ; le lot continue et répond 200. Les autres erreurs de persistance restent remontées.
 
 ---
 

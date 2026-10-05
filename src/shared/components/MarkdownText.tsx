@@ -94,7 +94,10 @@ export function MarkdownText({ source, className, breaks = false, gfm = false, h
   // CommonMark fusionne les retours à la ligne simples. Pour la description on convertit
   // chaque `\n` isolé (hors paragraphes `\n\n`) en saut de ligne dur (deux espaces + \n),
   // sans dépendance supplémentaire. Les titres/listes restent valides.
-  const content = breaks ? source.replace(/([^\n])\n(?!\n)/g, '$1  \n') : source
+  // Spec 042 AC-08-05 : « ##Retour » saisi sans espace reste un titre (2 à 6 dièses ;
+  // un « #mot » isolé est laissé tel quel, ce peut être un hashtag).
+  const headed = source.replace(/^([ \t]{0,3}#{2,6})(?=[^\s#])/gm, '$1 ')
+  const content = breaks ? headed.replace(/([^\n])\n(?!\n)/g, '$1  \n') : headed
   return (
     <div className={className}>
       <ReactMarkdown

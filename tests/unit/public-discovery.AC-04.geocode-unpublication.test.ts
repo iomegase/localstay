@@ -102,6 +102,21 @@ describe('041 AC-04-05 geocoding mutation guard', () => {
     expect(mockRevalidate).toHaveBeenCalledTimes(1)
   })
 
+  it('skips a POI deleted during the batch (Prisma P2025) and keeps processing the next one', async () => {
+    mockPoiFindMany.mockResolvedValue([batchPoi, { ...batchPoi, id: 'poi-2' }])
+    mockGeocodeAddress.mockResolvedValue(null)
+    mockPoiFindFirst.mockResolvedValue(null)
+    const notFound = Object.assign(new Error('Record to update not found.'), { code: 'P2025' })
+    mockPoiUpdate
+      .mockRejectedValueOnce(notFound)
+      .mockResolvedValueOnce({ id: 'poi-2' })
+
+    await expect(runGeocodeBatch({ limit: 2 })).resolves.toEqual({
+      geocoded: 0, failed: 1, rejected: 0, skipped: 1,
+    })
+    expect(mockPoiUpdate).toHaveBeenCalledTimes(2)
+  })
+
   it('does not audit or revalidate a DRAFT failure', async () => {
     mockGeocodeAddress.mockResolvedValue(null)
     mockPoiFindFirst.mockResolvedValue(null)

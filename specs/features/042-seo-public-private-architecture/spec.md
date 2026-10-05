@@ -537,6 +537,11 @@ Markdown publique et des textes alternatifs UUID. Complète les specs 028/029/03
   et les alt existants du logement restent corrigeables dans l’éditeur photo,
   avec les erreurs structurées existantes. Les alt d'articles constitués de
   mots-clés ne sont pas automatiquement réécrits sans inspection des images.
+- AC-08-05 (US-05, amendement PO du 2026-10-05) : un titre saisi sans espace
+  après les dièses (« ##Retour », 2 à 6 dièses en début de ligne) est rendu comme
+  un titre par MarkdownText ; un « #mot » isolé reste du texte. La fiche publique
+  /decouvrir rend la description en Markdown (titres H2 sous le H1 du lieu), comme
+  le guide privé. Aucun texte en base n'est réécrit.
 
 Data model : inchangé. API contract : mêmes routes et DTO ; alt technique invalide
 répond 400 VALIDATION_ERROR. UI : niveaux sémantiques corrigés, présentation

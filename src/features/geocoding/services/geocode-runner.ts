@@ -62,9 +62,20 @@ export async function runGeocodeBatch(params: {
         collectDiscoveryPaths(await markSuccess(poi.id, geocoded))
         result.geocoded++
       } catch (err) {
+        if (isRecordNotFound(err)) {
+          console.warn(`[Geocoding] POI ${poi.id} supprimé pendant le lot, ignoré`)
+          result.skipped++
+          continue
+        }
         const message = err instanceof Error ? err.message : String(err)
         console.error(`[Geocoding] Error for POI ${poi.id}:`, message)
-        collectDiscoveryPaths(await markFailed(poi.id, message))
+        try {
+          collectDiscoveryPaths(await markFailed(poi.id, message))
+        } catch (markError) {
+          if (!isRecordNotFound(markError)) throw markError
+          result.skipped++
+          continue
+        }
         result.failed++
       }
     }
@@ -74,6 +85,11 @@ export async function runGeocodeBatch(params: {
       safelyRevalidateDiscoveryPaths([...discoveryRevalidationPaths])
     }
   }
+}
+
+/** Prisma P2025 : la fiche a disparu entre la sélection du lot et sa mise à jour. */
+function isRecordNotFound(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'P2025'
 }
 
 async function markSuccess(id: string, result: GeocodeResult): Promise<string[]> {
