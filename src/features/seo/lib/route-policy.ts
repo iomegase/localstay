@@ -7,6 +7,23 @@ const PRIVATE_GUIDE_ROOT_SEGMENTS = new Set([
   'mes-favoris',
 ])
 
+// Routes invitées réservées à un séjour actif (cookie de séjour). Sans séjour,
+// seules ces routes affichent l'écran « Accès par lien » ; toute autre URL
+// inconnue atteint le 404 de Next (audit SEO/GEO 2026-10-05, C-03).
+const PRIVATE_GUEST_ROOT_PATHS = [
+  '/sejour',
+  '/le-logement',
+  '/map',
+  '/mes-favoris',
+  '/nos-recommandations',
+  '/services-prives',
+  '/contact',
+] as const
+
+export function isPrivateGuestPath(pathname: string): boolean {
+  return PRIVATE_GUEST_ROOT_PATHS.some(root => pathname === root || pathname.startsWith(`${root}/`))
+}
+
 function guideSegments(pathname: string): string[] {
   return pathname.split('/').filter(Boolean)
 }

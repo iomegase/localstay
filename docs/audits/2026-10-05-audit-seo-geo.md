@@ -208,6 +208,8 @@ Format de chaque constat : gravité, périmètre, preuve, fichier, conséquence,
 
 ### C-03 — Soft 404 sur toutes les URL inconnues — **Élevée**
 
+> **Corrigé le 2026-10-05** : liste fermée des routes invitées (`isPrivateGuestPath`) dans `src/proxy.ts` ; les URL inconnues renvoient 404.
+
 - **Périmètre :** toute URL hors des préfixes marketing, guide et auth (par exemple `/page-inexistante-audit`, `/mentions-legales`).
 - **Preuve [Dépôt] :** `src/proxy.ts:212-219` : toute route non reconnue sans cookie de séjour est réécrite (`NextResponse.rewrite`) vers `/acces-reserve`, ce qui donne un **200**.
 - **Preuve [Prod] :** `/page-inexistante-audit` renvoie 200 « Accès par lien | MyStay » avec `noindex, nofollow, noarchive`.

@@ -11,6 +11,7 @@ import {
   isGuideCityLanding,
   isGuidePath,
   isLegacyDiscoveryGuidePath,
+  isPrivateGuestPath,
   isPrivateGuideCompatibilityPath,
   isValidLodgingId,
 } from '@/features/seo/lib/route-policy'
@@ -211,11 +212,14 @@ export async function proxy(request: NextRequest) {
 
   // === Pages invité (le-logement, recommandations, map…) ===
   // Accès réservé : il faut un séjour actif (cookie lodging valide), sinon on
-  // affiche l'écran « accès par lien » sans changer l'URL.
+  // affiche l'écran « accès par lien » sans changer l'URL. Les autres URL
+  // inconnues atteignent le 404 de Next au lieu d'un soft 404 en 200.
   const lodgingCookie = request.cookies.get(LODGING_COOKIE_NAME)?.value
   const hasActiveLodging = hasValidLodgingCookie(lodgingCookie)
   if (!hasActiveLodging) {
-    return NextResponse.rewrite(new URL(GATE_PATH, request.url))
+    return isPrivateGuestPath(path)
+      ? NextResponse.rewrite(new URL(GATE_PATH, request.url))
+      : response
   }
 
   // Spec 059 BR-03 : le service worker ne met en cache que les pages du guide

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-28
-updated_at: 2026-10-01
+updated_at: 2026-10-05
 depends_on:
   - 006-qr-code
   - 028-lodging-showcase-seo
@@ -450,6 +450,17 @@ Aucune nouvelle route API n'est introduite.
 | AC-07-02 | Zoom Mapbox préservé | e2e |
 | AC-07-03 | Polices inutiles ou preload superflu supprimés | unit + build inspection |
 | AC-07-04 | Rendu typographique existant préservé | integration + e2e |
+
+## Amendements
+
+- **2026-10-05 (audit SEO/GEO, constat C-03)** : sans séjour actif, le proxy
+  ne réécrit plus toute URL inconnue vers `/acces-reserve` (soft 404 en 200).
+  Seules les routes invitées listées dans `isPrivateGuestPath`
+  (`/sejour`, `/le-logement`, `/map`, `/mes-favoris`, `/nos-recommandations`,
+  `/services-prives`, `/contact`, et leurs descendants) gardent l'écran
+  « Accès par lien » ; les autres URL atteignent le 404 de Next. Un test
+  impose que chaque route de premier niveau de `(public)` soit classée
+  marketing ou privée.
 
 ## Out of Scope
 
