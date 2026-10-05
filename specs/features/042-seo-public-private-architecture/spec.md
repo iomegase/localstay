@@ -511,3 +511,35 @@ Référence : https://developers.google.com/search/docs/appearance/structured-da
 ### Coordonnée validée — 2026-10-02
 
 Le Product Owner fournit le téléphone public +33 6 07 85 90 58. AC-05-02 : émettre `telephone: +33607859058` sur Organization et son ContactPoint ; afficher le même numéro cliquable dans le footer marketing afin de maintenir la cohérence avec les coordonnées visibles. Aucun avis ou profil social n'est ajouté sans source vérifiée.
+
+## Amendement approuvé — Audit C-06 à C-08 (PO 2026-10-05)
+
+Demande du PO : corriger les défauts systématiques des metadata, de la hiérarchie
+Markdown publique et des textes alternatifs UUID. Complète les specs 028/029/031.
+
+- AC-08-01 (US-05) : les titres publics calculés laissent le template racine
+  ajouter MyStay une seule fois. Les titres absolus existants restent absolus.
+  Un titre éditorial qui contient déjà la marque utilise une valeur absolue
+  pour éviter une répétition par le template. Canonical et autres metadata restent
+  identiques ; aucun texte éditorial en base n'est modifié.
+- AC-08-02 (US-05) : dans les articles publics, Markdown # et ## deviennent H2,
+  ### devient H3, niveaux suivants H4..H6. Les descriptions de logement sous
+  « Le logement » H2 commencent à H3, puis H4..H6. Les classes conservent le
+  rendu visuel. Les autres consommateurs de MarkdownText gardent leur mapping.
+- AC-08-03 (US-05) : les photos publiques de logement dont l'alt est vide, un
+  UUID (tirets, espaces ou forme compacte), une URL ou un nom de fichier image
+  utilisent un repli fondé sur room_label/room_type et le titre du logement ;
+  sans pièce connue : « Photo du logement — [titre] ». Les descriptions valides
+  sont conservées. Aucun fait visuel n'est inventé, aucune donnée en base réécrite.
+- AC-08-04 (US-05) : l'upload logement ne dérive plus l'alt du fichier : en
+  l'absence de saisie, catégorie + titre du logement. Les mutations photo
+  Owner/Admin et blog rejettent les UUID/noms de fichiers via validation Zod,
+  et les alt existants du logement restent corrigeables dans l’éditeur photo,
+  avec les erreurs structurées existantes. Les alt d'articles constitués de
+  mots-clés ne sont pas automatiquement réécrits sans inspection des images.
+
+Data model : inchangé. API contract : mêmes routes et DTO ; alt technique invalide
+répond 400 VALIDATION_ERROR. UI : niveaux sémantiques corrigés, présentation
+conservée, aide de saisie photo descriptive. Tests unitaires de metadata/alt,
+intégration du vrai Markdown et tests de validation. Pas de migration, nouvelle
+route, génération d'image ou modification du guide privé. Aucune question ouverte.

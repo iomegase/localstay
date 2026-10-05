@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { SITE } from '@/features/seo/lib/site'
-import { truncate } from '@/features/seo/lib/metadata'
+import { singleBrandTitle, truncate } from '@/features/seo/lib/metadata'
 import { buildBlogArticlePath } from './slug'
 
 function openGraph(input: {
@@ -25,14 +25,14 @@ export function blogListMetadata(input: {
   city: { name: string; slug: string } | null
 }): Metadata {
   const title = input.city
-    ? `Journal ${input.city.name} — Guides locaux MyStay`
-    : 'Journal MyStay — Guides locaux et conseils de séjour'
+    ? `Journal ${input.city.name} — Guides locaux`
+    : 'Journal — Guides locaux et conseils de séjour'
   const description = input.city
     ? truncate(`Découvrez nos articles, conseils et guides locaux pour préparer un séjour à ${input.city.name} avec MyStay.`)
     : truncate('Découvrez le journal MyStay : guides locaux, conseils de séjour et inspirations éditoriales pour voyager plus simplement.')
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
     alternates: { canonical: '/journal' },
     openGraph: openGraph({ title, description, path: '/journal' }),
@@ -54,7 +54,7 @@ export function blogArticleMetadata(input: {
   const images = input.coverUrl ? [input.coverUrl] : undefined
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
     alternates: { canonical: path },
     robots: { index: true, follow: true },

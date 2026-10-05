@@ -1,3 +1,4 @@
+import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
 import { z } from 'zod'
 import { detectExternalListingSource } from './lib/source-url'
 
@@ -45,6 +46,8 @@ export const LodgingFaqItemSchema = z.object({
   answer: z.string().trim().min(10).max(2000),
   sort_order: z.number().int().min(0).default(0),
 })
+
+export const LodgingPhotoAltInputSchema = z.string().trim().min(5).max(160).refine(value => !isTechnicalImageAlt(value), { message: 'Décrivez la photo plutôt que son nom de fichier ou son identifiant.' })
 
 export const LodgingPhotoItemSchema = z.object({
   id: z.string().uuid().optional(),
@@ -98,7 +101,7 @@ export const LodgingPublicProfileInputSchema = z.object({
   }).nullable().optional(),
   public_contact_enabled: z.boolean(),
   amenities: z.array(LodgingAmenityItemSchema).max(100),
-  photos: z.array(LodgingPhotoItemSchema).max(100),
+  photos: z.array(LodgingPhotoItemSchema.extend({ alt: LodgingPhotoAltInputSchema })).max(100),
   faq: z.array(LodgingFaqItemSchema).max(20).default([]),
   content_rights_confirmed: z.boolean().optional(),
 })

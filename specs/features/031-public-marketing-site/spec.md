@@ -623,3 +623,63 @@ Décision Product Owner : nom public « Journal », routes `/journal` et `/journ
 ### Amendement approuvé — Accueil toujours visible (2026-10-01)
 
 Demande Product Owner : remplacer le lien de navigation « Nos services » par « Accueil », supprimer l'ancre `#services` et l'afficher aussi sur `/`. Header desktop/mobile et footer pointent vers `/` ; sur les landings locales, le menu conserve le lien conciergerie publié de la commune avec `/` comme repli (046 AC-04-07). La section de présentation des services garde son contenu. Remplace 031 AC-01-10 (6).
+
+## Amendement approuvé — Pages légales (PO 2026-10-05)
+
+### Contexte et validation
+
+Demande explicite du PO : créer les trois pages du footer dans le style MyStay.
+Identité fournie : David Devillers, 1094 route de la Croix, 74170
+Saint-Gervais-les-Bains, France. Il exploite le site à titre personnel, est
+éditeur, directeur de publication et responsable du traitement des formulaires.
+MyStay est le nom du site, pas une société inventée. Jump n'est pas présenté
+comme éditeur ou responsable du traitement. Aucun SIRET ou capital inventé.
+Site informatif sans vente, réservation ni paiement en ligne. Durée validée
+par le PO : traitement de la demande puis 12 mois maximum après le dernier
+échange, sauf obligation légale ou litige.
+
+### User story US-06 — Lire les informations légales
+
+Le visiteur peut identifier l'éditeur, comprendre les données traitées et
+connaître les conditions d'utilisation depuis le footer.
+
+- **AC-06-01** : `/mentions-legales`, `/confidentialite`, `/cgu` sont accessibles
+  sans cookie séjour et conservent MarketingShell, y compris avec un cookie.
+- **AC-06-02** : Mentions légales identifie David Devillers, adresse, contact
+  existant et hébergeur Vercel Inc. (coordonnées officielles vérifiées), puis
+  droits sur les contenus. Aucun identifiant commercial inventé.
+- **AC-06-03** : Confidentialité détaille formulaires (nom, e-mail, téléphone
+  facultatif, objet, message), finalités, bases légales, destinataires,
+  Supabase/Resend/Vercel, outils d'audience, cookies et droits/CNIL. Elle annonce
+  la durée validée sans prétendre qu'une purge automatique existe. Les demandes
+  de prestation relèvent des mesures précontractuelles à la demande du visiteur,
+  les autres messages de l'intérêt légitime à répondre ; GA4 du consentement.
+  Les services techniques et leur intérêt légitime de fonctionnement sont
+  décrits sans promettre leur exemption de consentement ni un stockage 100 % UE.
+- **AC-06-04** : CGU précise information, accès privé, formulaires sans commande,
+  usage raisonnable, contenus, liens externes, disponibilité et responsabilités
+  sans exclusion générale de responsabilité ni tribunal imposé.
+- **AC-06-05** : pages Server Components, un H1, date de mise à jour, sommaire
+  accessible par ancres, texte 14 px/interligne 28 px, titres et accents MyStay,
+  liens entre pages, metadata/canonical propres, chemins dans le sitemap.
+
+### Règles, données et contrat
+
+Pas de mutation, nouvelle API, migration ou nouvelle donnée persistée.
+API Contract : aucun contrat ajouté ; GET des trois pages rend du HTML public.
+UI : fond blanc, header/footer partagés ; intro puis sommaire et colonne de
+lecture, sans débordement à 375 px ; aucun mockup légal dédié existant.
+Tests : intégration des trois pages et contenus AC-06-01..05, contrat du proxy
+et du sitemap. Tracer les fichiers dans la matrice.
+
+### Hors périmètre
+
+Vente en ligne, CGV, modification des traitements existants et purge automatisée.
+La mise en œuvre opérationnelle de l'effacement (base et copies mail) doit être
+suivie séparément ; la suppression logique seule ne suffit pas. La page ne
+prétend pas que l'automatisation existe. Pas d'action sur des données personnelles.
+
+### Questions ouvertes
+
+Aucune pour la création des pages suivant les décisions fournies. Les conditions
+contractuelles des prestataires restent consultables via leurs liens officiels.

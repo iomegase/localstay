@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -10,6 +11,8 @@ type Props = {
    */
   breaks?: boolean
   gfm?: boolean
+  /** Premier niveau de section public ; absent : mapping historique. */
+  headingLevel?: 2 | 3
 }
 
 const MARKDOWN_COMPONENTS = {
@@ -64,7 +67,7 @@ const MARKDOWN_COMPONENTS = {
   hr: () => <hr className="my-4 border-slate-200" />,
 }
 
-export function MarkdownText({ source, className, breaks = false, gfm = false }: Props) {
+export function MarkdownText({ source, className, breaks = false, gfm = false, headingLevel }: Props) {
   if (!source || source.trim() === '') return null
   // CommonMark fusionne les retours à la ligne simples. Pour la description on convertit
   // chaque `\n` isolé (hors paragraphes `\n\n`) en saut de ligne dur (deux espaces + \n),
@@ -73,7 +76,19 @@ export function MarkdownText({ source, className, breaks = false, gfm = false }:
   return (
     <div className={className}>
       <ReactMarkdown
-        components={MARKDOWN_COMPONENTS}
+        components={headingLevel ? {
+          ...MARKDOWN_COMPONENTS,
+          ...Object.fromEntries([1, 2, 3, 4, 5, 6].map(level => [
+            `h${level}`,
+            (props: { children?: React.ReactNode }) => createElement(
+              `h${Math.min(6, headingLevel + Math.max(0, level - 2))}`,
+              { 'data-markdown-depth': level, className: level <= 2
+                ? 'mb-1.5 mt-3 text-sm font-thin uppercase tracking-wide text-slate-900'
+                : 'mb-1 mt-3 text-[13px] font-thin uppercase tracking-wide text-slate-800' },
+              props.children,
+            ),
+          ])),
+        } : MARKDOWN_COMPONENTS}
         remarkPlugins={gfm ? [remarkGfm] : []}
         // react-markdown 10 désactive le HTML brut par défaut — pas de sanitization nécessaire
         skipHtml

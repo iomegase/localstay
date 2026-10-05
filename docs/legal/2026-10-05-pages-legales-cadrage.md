@@ -83,3 +83,22 @@ sont absentes des éléments inspectés et ne peuvent pas être déduites du nom
 
 La spec approuvée 031 prévoit les liens du footer ; le contenu juridique des
 pages devra être consigné dans une spec validée après résolution de ces points.
+
+## Décisions reçues et mise en œuvre — 5 octobre 2026
+
+Les informations manquantes ont été fournies par le PO dans la conversation :
+David Devillers, 1094 route de la Croix, 74170 Saint-Gervais-les-Bains, France.
+Éditeur/directeur de publication et responsable des formulaires : David Devillers.
+Durée validée : traitement de la demande puis 12 mois après le dernier échange,
+sauf obligation légale ou litige. Jump n'est pas présenté comme responsable du site.
+Les trois pages et leur présentation sont désormais couvertes par l'amendement
+US-06 de la spec 031 et implémentées. Coordonnées Vercel vérifiées sur
+https://vercel.com/legal/privacy-notice (1 juin 2026) : Vercel Inc., 440 N Barranca
+Avenue #4133, Covina, CA 91723, États-Unis. Le centre d'aide officiel est lié.
+
+Suivi opérationnel distinct : effacement réel des données des messages arrivés
+à échéance en base et dans les copies mail ; aucun effacement automatique ajouté.
+Le classement supprimé/archivé ne réalise pas à lui seul cet effacement. La
+configuration contractuelle des transferts prestataires et le choix d'audience
+Vercel doivent être suivis lors de la revue des traitements ; les pages décrivent
+l'intégration présente sans certification de conformité ou exemption inventée.

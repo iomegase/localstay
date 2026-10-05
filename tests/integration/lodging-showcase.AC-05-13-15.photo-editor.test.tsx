@@ -200,3 +200,10 @@ it('AC-05-16: keeps the dropped position visible while saving and rolls back on 
   await act(async () => finish({ ok: false }))
   expect(screen.getAllByRole('img').map(img => img.getAttribute('alt'))).toEqual([photo.alt, second.alt])
 })
+
+it('042 AC-08-04 allows correcting a legacy UUID alt before saving', () => {
+  render(<LodgingShowcaseForm mode="admin" lodgingId="lodging-1" initialProfile={{ ...baseProfile, photos: [{ ...photo, alt: '45bd1b02 d2a0 42f2 ad5b d93a2e753b9d' }] }} />)
+  const input = screen.getByLabelText('Description de la photo')
+  fireEvent.change(input, { target: { value: 'Salon du Chalet Hygge avec canapé' } })
+  expect(input).toHaveValue('Salon du Chalet Hygge avec canapé')
+})

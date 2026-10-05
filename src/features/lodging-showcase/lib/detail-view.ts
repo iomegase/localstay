@@ -1,3 +1,5 @@
+import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
+
 type Photo = {
   id: string
   url: string
@@ -72,4 +74,11 @@ export function groupRoomPhotos(photos: Photo[]): RoomPhotoGroup[] {
 
 export function mapsDirectionUrl(latitude: number, longitude: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
+}
+
+/** Spec 042 AC-08-03 : repli fondé uniquement sur les données de la pièce. */
+export function lodgingPhotoAlt(photo: { alt: string; room_type: string | null; room_label?: string | null }, title: string): string {
+  if (!isTechnicalImageAlt(photo.alt)) return photo.alt.trim()
+  const room = photo.room_label?.trim() || (photo.room_type && photo.room_type !== 'other' ? ROOM_TYPE_LABELS[photo.room_type] : null)
+  return `${room || 'Photo du logement'} — ${title}`
 }

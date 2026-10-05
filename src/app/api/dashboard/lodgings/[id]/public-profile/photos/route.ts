@@ -5,7 +5,7 @@ import { resolveUploadFormat } from '@/shared/lib/image-upload'
 import { uploadGuideImage } from '@/shared/lib/image-upload-service'
 import { getSessionOwner } from '@/features/dashboard-owner/lib/get-session-owner'
 import { apiError } from '@/features/lodging-showcase/lib/http'
-import { LodgingPhotoRoomTypeSchema } from '@/features/lodging-showcase/schemas'
+import { LodgingPhotoAltInputSchema, LodgingPhotoRoomTypeSchema } from '@/features/lodging-showcase/schemas'
 import { createLodgingPhoto } from '@/features/lodging-showcase/queries/owner-public-profile'
 
 export async function POST(
@@ -26,7 +26,7 @@ export async function POST(
     return apiError('VALIDATION_ERROR', 'Fichier manquant', 400)
   }
 
-  if (alt.length < 5 || alt.length > 160) {
+  if (!LodgingPhotoAltInputSchema.safeParse(alt).success) {
     return apiError('VALIDATION_ERROR', 'Texte alternatif invalide', 400)
   }
 

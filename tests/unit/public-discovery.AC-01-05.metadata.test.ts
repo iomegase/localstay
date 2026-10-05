@@ -84,7 +84,7 @@ describe('041 AC-01-05 discovery metadata', () => {
   it('builds city metadata on the self-referencing /decouvrir URL', () => {
     const metadata = discoveryCityMetadata(city)
 
-    expect(metadata.title).toBe('Découvrir Saint-Gervais-les-Bains — Sélection locale MyStay')
+    expect(metadata.title).toBe('Découvrir Saint-Gervais-les-Bains — Sélection locale')
     expect(metadata.alternates?.canonical).toBe('/decouvrir/saint-gervais-les-bains')
     expect(metadata.openGraph).toMatchObject({
       title: metadata.title,
@@ -106,7 +106,7 @@ describe('041 AC-01-05 discovery metadata', () => {
     const metadata = discoveryCityMetadata({ ...city, department: null, region: null })
 
     expect(metadata.description).toBe(
-      'Découvrez la sélection locale MyStay à Saint-Gervais-les-Bains : adresses et lieux validés pour préparer votre séjour.',
+      'Découvrez la sélection locale MyStay à Saint-Gervais-les-Bains : bonnes adresses, restaurants, commerces et lieux recommandés pour votre séjour.',
     )
     expect(metadata.openGraph?.images).toEqual([poiCard.photo_url])
     expect(JSON.stringify(metadata)).not.toContain('null')
@@ -115,7 +115,7 @@ describe('041 AC-01-05 discovery metadata', () => {
   it('builds category metadata from visible category and city facts', () => {
     const metadata = discoveryCategoryMetadata(category)
 
-    expect(metadata.title).toBe('Culture à Saint-Gervais-les-Bains — Adresses MyStay')
+    expect(metadata.title).toBe('Culture à Saint-Gervais-les-Bains')
     expect(metadata.alternates?.canonical).toBe(
       '/decouvrir/saint-gervais-les-bains/culture',
     )
@@ -132,7 +132,7 @@ describe('041 AC-01-05 discovery metadata', () => {
   it('builds POI metadata from its visible description and hero photo', () => {
     const metadata = discoveryPoiMetadata(poi)
 
-    expect(metadata.title).toBe('Le Musée Alpin à Saint-Gervais-les-Bains — MyStay')
+    expect(metadata.title).toBe('Le Musée Alpin à Saint-Gervais-les-Bains')
     expect(metadata.description).toBe(poi.description)
     expect(metadata.alternates?.canonical).toBe(
       '/decouvrir/saint-gervais-les-bains/culture/le-musee-alpin',

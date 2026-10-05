@@ -6,7 +6,7 @@ describe('029 blog city metadata', () => {
       city: { name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains' },
     })
 
-    expect(metadata.title).toBe('Journal Saint-Gervais-les-Bains — Guides locaux MyStay')
+    expect(metadata.title).toBe('Journal Saint-Gervais-les-Bains — Guides locaux')
     expect(metadata.alternates?.canonical).toBe('/journal')
   })
 })

@@ -1,3 +1,4 @@
+import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
 import { z } from 'zod'
 import { normalizeBlogSlug } from './lib/slug'
 import { normalizeBlogMarkdown } from './lib/markdown'
@@ -103,7 +104,8 @@ export const BlogPhotoUploadSchema = z.object({
   alt: z.string({ required_error: 'Le texte alternatif est requis.' })
     .trim()
     .min(3, 'Le texte alternatif doit contenir au moins 3 caractères.')
-    .max(180, 'Le texte alternatif doit contenir au maximum 180 caractères.'),
+    .max(180, 'Le texte alternatif doit contenir au maximum 180 caractères.')
+    .refine(value => !isTechnicalImageAlt(value), 'Décrivez la photo plutôt que son nom de fichier ou son identifiant.'),
   sort_order: z.coerce.number({ invalid_type_error: 'L’ordre de tri doit être numérique.' })
     .int('L’ordre de tri doit être un entier.')
     .min(0, 'L’ordre de tri doit être positif ou nul.')

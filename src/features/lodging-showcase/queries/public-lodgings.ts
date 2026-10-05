@@ -1,3 +1,4 @@
+import { lodgingPhotoAlt } from '../lib/detail-view'
 import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import { selectPrimaryPoiPhoto } from '@/features/categories/lib/photo-url'
@@ -411,7 +412,7 @@ async function getPublishedLodgingDetailWhere(
     city_name: row.city.name,
     city_region: row.city.region,
     description: row.description,
-    photos: row.photos,
+    photos: row.photos.map(photo => ({ ...photo, alt: lodgingPhotoAlt(photo, row.title) })),
     bathroom_count: row.bathroom_count,
     bed_count: row.bed_count,
     surface_m2: row.surface_m2,

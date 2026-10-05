@@ -21,6 +21,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '/confier-mon-logement',
       '/logements',
       '/journal',
+      '/mentions-legales',
+      '/confidentialite',
+      '/cgu',
       ...localLandingPaths,
     ],
   })

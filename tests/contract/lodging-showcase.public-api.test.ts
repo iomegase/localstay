@@ -235,3 +235,13 @@ describe('getPublishedLodgingDetailBySlug', () => {
     }))
   })
 })
+
+it('042 AC-08-03 normalizes technical photo alt in the actual public detail query', async () => {
+  mockFindFirstProfile.mockResolvedValue({
+    ...publishedProfile,
+    photos: [{ ...publishedProfile.photos[0], alt: '45bd1b02 d2a0 42f2 ad5b d93a2e753b9d', room_label: 'Salon' }],
+  })
+  const detail = await getPublishedLodgingDetailBySlug('chalet-hygge')
+  expect(detail?.photos[0].alt).toBe('Salon — Chalet Hygge')
+  expect(publishedProfile.photos[0].alt).toBe('Salon')
+})

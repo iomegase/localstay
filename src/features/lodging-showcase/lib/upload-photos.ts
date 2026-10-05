@@ -6,6 +6,7 @@ export async function uploadPhotos(options: {
   apiBase: string
   files: File[]
   alt: string
+  title: string
   category: PhotoCategoryOption
   onUploaded: (photo: OwnerLodgingPublicProfileDto['photos'][number]) => void
   onProgress: (completed: number) => void
@@ -13,8 +14,7 @@ export async function uploadPhotos(options: {
   const failures: Array<{ file: File; message: string }> = []
   for (const [index, file] of options.files.entries()) {
     try {
-      const filename = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim()
-      const alt = options.alt.trim() || (filename.length >= 5 ? filename : `Photo ${filename}`)
+      const alt = options.alt.trim() || `${options.category.label} — ${options.title}`
       const body = new FormData()
       body.set('file', file)
       body.set('alt', alt.slice(0, 160))

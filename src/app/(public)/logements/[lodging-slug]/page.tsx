@@ -155,15 +155,17 @@ export default async function LodgingDetailPage({ params }: Props) {
             className={`${marketingContainerClass} grid gap-12 py-16 md:grid-cols-[1.08fr_0.92fr] md:items-start md:gap-14 md:py-20 xl:gap-[84px] xl:py-24`}
           >
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+              <h2 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
                 Le logement
-              </span>
+              </h2>
               <MarkdownText
+                headingLevel={3}
                 source={detail.short_description}
                 breaks
                 className="mt-4 break-words text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800 [&_p]:text-[16px] [&_p]:leading-[1.7]"
               />
               <MarkdownText
+                headingLevel={3}
                 source={detail.description}
                 breaks
                 className="mt-7 break-words text-[13px] leading-[1.85] text-slate-500 [&_p]:mb-5 [&_p]:text-[13px] [&_p]:leading-[1.85]"

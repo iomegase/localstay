@@ -144,7 +144,7 @@ export function poiMetadata(input: {
     : undefined
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -186,7 +186,7 @@ export function cityMetadata(input: {
     : ''
 
   const title =
-    `${input.name}${regionPart} — Guide local MyStay`
+    `${input.name}${regionPart} — Guide local`
 
   const description = truncate(
     `Découvrez le guide local MyStay de ${input.name}${
@@ -199,7 +199,7 @@ export function cityMetadata(input: {
   const path = `/guide/${input.slug}`
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -230,7 +230,7 @@ export function categoryMetadata(input: {
   categorySlug: string
 }): Metadata {
   const title =
-    `${input.categoryName} à ${input.cityName} — MyStay`
+    `${input.categoryName} à ${input.cityName}`
 
   const description = truncate(
     `Découvrez les meilleures adresses « ${input.categoryName} » à ${input.cityName}, sélectionnées par MyStay pour accompagner votre séjour.`,
@@ -240,7 +240,7 @@ export function categoryMetadata(input: {
     `/guide/${input.citySlug}/${input.categorySlug}`
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -321,7 +321,7 @@ export function discoveryCityMetadata(
   city: DiscoveryCity,
 ): Metadata {
   const title =
-    `Découvrir ${city.name} — Sélection locale MyStay`
+    `Découvrir ${city.name} — Sélection locale`
 
   const location = [
     city.department,
@@ -351,7 +351,7 @@ export function discoveryCityMetadata(
     discoverySocialImages(photo)
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -386,7 +386,7 @@ export function discoveryCategoryMetadata(
   category: DiscoveryCategory,
 ): Metadata {
   const title =
-    `${category.name} à ${category.city.name} — MyStay`
+    `${category.name} à ${category.city.name}`
 
   const description = truncate(
     `Découvrez les adresses « ${category.name} » sélectionnées par MyStay à ${category.city.name} pour préparer et profiter de votre séjour.`,
@@ -401,7 +401,7 @@ export function discoveryCategoryMetadata(
     )
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -436,7 +436,7 @@ export function discoveryPoiMetadata(
   poi: DiscoveryPoiDetail,
 ): Metadata {
   const title =
-    `${poi.name} à ${poi.city.name} — MyStay`
+    `${poi.name} à ${poi.city.name}`
 
   const description =
     truncate(poi.description)
@@ -450,7 +450,7 @@ export function discoveryPoiMetadata(
     )
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -532,7 +532,7 @@ export function lodgingDetailMetadata(input: {
   coverPhoto: string | null
 }): Metadata {
   const title =
-    `${input.title} — Séjour MyStay`
+    `${input.title} — Séjour`
 
   const description =
     truncate(shortDescriptionText(input.shortDescription))
@@ -548,7 +548,7 @@ export function lodgingDetailMetadata(input: {
       : undefined
 
   return {
-    title,
+    title: singleBrandTitle(title),
     description,
 
     alternates: {
@@ -575,4 +575,9 @@ export function lodgingDetailMetadata(input: {
         : {}),
     },
   }
+}
+/** Spec 042 AC-08-01 : le template ne répète pas une marque éditoriale existante. */
+export function singleBrandTitle(title: string): Metadata['title'] {
+  const clean = title.trim().replace(/(?:\s*[|—–-]\s*MyStay)+\s*$/i, '').trim()
+  return /\bMyStay\b/i.test(clean) ? { absolute: clean } : clean
 }

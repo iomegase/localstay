@@ -674,3 +674,22 @@ Protocole proposé :
 8. **Corriger la double marque des titles et la hiérarchie Hn des articles** → C-06, C-07.
 9. **Créer un maillage contextuel vers les pages communales et faire de `/confier-mon-logement` le hub conciergerie** → C-12, C-16.
 10. **Optimiser les images des logements (redimensionnement, une seule priorité LCP, alt descriptifs)** → C-13, C-08.
+
+## Corrections locales C-06 à C-08 — 5 octobre 2026
+
+- C-06 : les générateurs de titres Découvrir, catégories, POI, logements et
+  Journal laissent le template ajouter la marque. Les titres éditoriaux portant
+  déjà MyStay sont absolus ; les suffixes de marque répétés sont normalisés.
+  Les titres absolus de home, hub et liste logement restent conservés.
+- C-07 : rendu sémantique paramétrable dans MarkdownText ; articles ## → H2,
+  ### → H3, logement sous « Le logement » H2 : ## → H3, ### → H4. Les autres
+  consommateurs gardent leur mapping historique, la protection HTML/URL et GFM.
+- C-08 : alts UUID/noms de fichiers/URLs détectés, fallback public depuis les
+  données connues de pièce et titre ; upload sans reprise du nom de fichier ;
+  validation Zod des mutations photo et correction des alt dans l'éditeur.
+
+Aucune réécriture des données en base. Les alt d'articles constitués de mots-clés
+nécessitent une revue visuelle des images pour être rédigés fidèlement ; aucune
+scène n'est déduite du titre SEO. Aucun crawl post-déploiement ou Lighthouse de
+production n'a été exécuté dans ce correctif. Les relevés de production ci-dessus
+restent les preuves historiques, pas un état après déploiement.

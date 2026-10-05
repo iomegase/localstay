@@ -225,6 +225,7 @@ export function LodgingShowcaseForm(props: {
       apiBase,
       files: photoFiles,
       alt: photoAlt,
+      title: profile.title,
       category,
       onUploaded: photo => setProfile(current => ({ ...current, photos: [...current.photos, photo] })),
       onProgress: completed => setUploadProgress({ completed, total: photoFiles.length }),
@@ -841,7 +842,14 @@ export function LodgingShowcaseForm(props: {
                         </div>
                       </div>
                       <div className="space-y-1 p-3 text-xs text-gray-500">
-                        <p className="font-medium text-charcoal">{photo.alt}</p>
+                        <Label htmlFor={`photo-alt-${photo.id ?? photoIndex}`}>Description de la photo</Label>
+                        <Input
+                          id={`photo-alt-${photo.id ?? photoIndex}`}
+                          value={photo.alt}
+                          maxLength={160}
+                          disabled={photosBusy}
+                          onChange={event => setField('photos', profile.photos.map((item, index) => index === photoIndex ? { ...item, alt: event.target.value } : item))}
+                        />
                         <p>{photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type ?? 'other'] ?? 'Autre'}</p>
                       </div>
                       {photo.id && (
