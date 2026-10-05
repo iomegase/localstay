@@ -455,9 +455,9 @@ publication et design des cartes inchangés. Tests de sélection, query et rendu
 
 Le PO maintient le retrait des blocs communaux sur les hubs et l'accueil
 (AC-04-04) et va plus loin : « trop de liens perturbent l'utilisateur ».
-Les seuls liens de maillage éditorial autorisés partent d'un article de blog
-vers un logement (`/logements/...`) ou un POI (`/decouvrir/...`), écrits dans
-le contenu de l'article. Aucun lien contextuel vers les landings communales
+Les seuls liens de maillage autorisés sont ceux qu'un article de blog contient
+dans son contenu rédigé, vers une page du site ou un logement, lorsqu'ils sont
+utiles au lecteur. Aucun lien ajouté mécaniquement pour le référencement. Aucun lien contextuel vers les landings communales
 (conciergerie, séminaires, locations de vacances) depuis les hubs, les
 articles ou `/decouvrir` : ces landings restent reliées par le footer
 (AC-04-06). Cette décision remplace la proposition de liens discrets

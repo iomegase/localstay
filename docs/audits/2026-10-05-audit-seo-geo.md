@@ -755,7 +755,7 @@ slugs reste coordonnée avec le déploiement décrit ci-dessus.
 Recommandation C-12 non retenue. Le PO juge qu'un excès de liens perturbe
 l'utilisateur : pas de blocs « Par commune » sur l'accueil ou les hubs, pas de
 lien « Où dormir à [ville] » sur Découvrir, pas de lien de fin d'article vers
-une landing communale. Seuls les liens rédigés dans un article de blog vers un
-logement ou un POI sont autorisés ; les landings communales restent reliées par
+une landing communale. Seuls les liens rédigés dans un article de blog, vers une
+page du site ou un logement et utiles au lecteur, sont autorisés ; les landings communales restent reliées par
 le footer. Les liens internes de ces articles s'ouvrent dans le même onglet
 (commit ed13b697).
