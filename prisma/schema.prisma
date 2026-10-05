@@ -267,6 +267,7 @@ model PointOfInterest {
   acquisition_candidates_published PoiAcquisitionCandidate[]
   missing_poi_requests_linked      MissingPoiRequest[]
   trail_candidates_published       TrailCandidate[]          @relation("TrailCandidatePublishedPoi")
+  photo_mirrors                    PoiPhotoMirror[]
 
   @@unique([city_id, slug])
   @@index([city_id, deleted_at, is_active, updated_at])
@@ -1576,4 +1577,23 @@ model ContentTranslation {
   @@index([entity_type, entity_id])
   @@index([source_text_hash])
   @@index([deleted_at])
+}
+
+// Spec 063 — copie des photos tierces des POI publiés dans le stockage MyStay.
+// `PointOfInterest.photos` reste la source ; cette table ne fait que la correspondance.
+model PoiPhotoMirror {
+  id          String    @id @default(uuid())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  poi_id      String
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+  source_url  String
+  storage_url String
+  width       Int
+  bytes       Int
+
+  @@unique([poi_id, source_url])
+  @@index([source_url])
 }

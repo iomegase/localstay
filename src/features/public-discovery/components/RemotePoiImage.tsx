@@ -1,7 +1,9 @@
 'use client'
 
 /* eslint-disable @next/next/no-img-element -- Spec 041 BR-26 preserves arbitrary remote http(s) images from spec 022. */
+import Image from 'next/image'
 import { useState } from 'react'
+import { isMyStayStorageUrl } from '@/features/poi-photos/lib/storage-url'
 
 const MYSTAY_IMAGE_FALLBACK = '/og-mystay.png'
 
@@ -27,7 +29,26 @@ export function RemotePoiImage({
   className,
 }: RemotePoiImageProps) {
   const [failedSource, setFailedSource] = useState<string | null>(null)
-  const renderedSource = failedSource === src ? MYSTAY_IMAGE_FALLBACK : src
+  const failed = failedSource === src
+  const renderedSource = failed ? MYSTAY_IMAGE_FALLBACK : src
+
+  // Spec 063 AC-03-03 : une copie MyStay passe par l'optimiseur next/image.
+  if (!failed && isMyStayStorageUrl(src)) {
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        decoding={decoding}
+        sizes={`(max-width: 768px) 100vw, ${width}px`}
+        className={className}
+        onError={() => setFailedSource(src)}
+      />
+    )
+  }
 
   return (
     <img

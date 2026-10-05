@@ -76,5 +76,7 @@ export type DiscoveryPoiDetail = Omit<DiscoveryPoiCard, 'photo_url'> & {
   hours: PoiHours | null
   photos: string[]
   hero_photo_url: string
+  /** Spec 063 US-04 : origine tierce des photos affichées, ou null si photos MyStay uniquement. */
+  photo_credit: { name: string; website: string | null } | null
   city: DiscoveryCitySummary
 }

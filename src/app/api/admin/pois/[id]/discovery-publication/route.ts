@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
 import { parsedOrValidationError, readJson, responseFromPoiAcquisitionError } from '@/features/poi-acquisition/lib/api'
@@ -6,6 +6,7 @@ import { updatePoiDiscoveryPublication } from '@/features/public-discovery/queri
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
 import { apiError } from '@/features/merchant/lib/responses'
 import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
+import { mirrorPoiPhotos } from '@/features/poi-photos/services/mirror-poi-photos'
 
 const PoiDiscoveryPublicationPatchSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED']),
@@ -34,6 +35,22 @@ export async function PATCH(req: NextRequest, context: RouteContext): Promise<Ne
     const result = await updatePoiDiscoveryPublication(params, parsed.status, session.user.id)
     const invalidationPaths = result.invalidation_paths ?? pathsFromPublicUrl(result.public_url)
     safelyRevalidateDiscoveryPaths(invalidationPaths)
+
+    // Spec 063 AC-01-01 : copie des photos en arrière-plan, sans retarder la réponse.
+    // La programmation elle-même ne doit jamais faire échouer la publication.
+    if (result.discovery_status === 'PUBLISHED') {
+      try {
+        after(async () => {
+          try {
+            await mirrorPoiPhotos(result.id)
+          } catch (error) {
+            console.error('POI_PHOTO_MIRROR_FAILED', { poiId: result.id, error })
+          }
+        })
+      } catch (error) {
+        console.error('POI_PHOTO_MIRROR_SCHEDULE_FAILED', { poiId: result.id, error })
+      }
+    }
 
     return NextResponse.json({
       data: {

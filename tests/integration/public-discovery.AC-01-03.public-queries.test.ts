@@ -175,7 +175,7 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
   const categoryKeys = ['city', 'icon', 'name', 'pois', 'slug', 'sort_order', 'subcategories']
   const detailKeys = [
     'address', 'category', 'city', 'description', 'distance_km', 'hero_photo_url',
-    'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photos',
+    'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photos',
     'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
   ]
   const exact = (candidate: unknown, keys: string[]) => {

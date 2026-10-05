@@ -1,3 +1,4 @@
+import { getPoiPhotoMirrorMap, resolvePoiPhotoUrl } from '@/features/poi-photos/queries/photo-mirror-map'
 import { prisma } from '@/shared/lib/prisma'
 import type { CitySearchResult, CityGuide, CategorySummary } from '../types'
 import {
@@ -127,7 +128,7 @@ export async function searchGuide(citySlug: string, q: string): Promise<GuideSea
   const term = q.trim()
   if (term.length < 2) return { pois: [], categories: [] }
 
-  const [pois, categories] = await Promise.all([
+  const [pois, categories, mirrorMap] = await Promise.all([
     prisma.pointOfInterest.findMany({
       where: {
         is_active: true,
@@ -167,6 +168,7 @@ export async function searchGuide(citySlug: string, q: string): Promise<GuideSea
       take: 4,
       select: { name: true, slug: true },
     }),
+    getPoiPhotoMirrorMap(),
   ])
 
   return {
@@ -176,7 +178,7 @@ export async function searchGuide(citySlug: string, q: string): Promise<GuideSea
       slug: poi.slug,
       category_slug: poi.category.slug,
       subcategory_name: poi.subcategory?.name ?? null,
-      photo: poi.photos[0] ?? null,
+      photo: poi.photos[0] ? resolvePoiPhotoUrl(poi.photos[0], mirrorMap) : null,
     })),
     categories: categories.map(category => ({ name: category.name, slug: category.slug })),
   }
