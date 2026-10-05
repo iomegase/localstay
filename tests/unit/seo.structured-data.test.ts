@@ -62,7 +62,8 @@ describe('structured-data', () => {
       email: 'bonjour@mystay.city',
       url: `${BASE}/confier-mon-logement`,
     })
-    expect(s.sameAs).toBeUndefined()
+    // Audit C-15 : fiche Google Business Profile réelle de MyStay (fournie par le PO).
+    expect(s.sameAs).toEqual(['https://g.page/r/CUUUzl3I0E7GEBM'])
   })
 
   it('references the stable Organization as the WebSite publisher', () => {

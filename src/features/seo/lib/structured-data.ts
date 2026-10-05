@@ -131,6 +131,9 @@ export function organizationSchema(): JsonLdObject {
       },
     ],
 
+    // Profils externes réels de MyStay (fiche Google Business Profile fournie par le PO).
+    sameAs: ['https://g.page/r/CUUUzl3I0E7GEBM'],
+
     knowsAbout: [
       'Conciergerie',
       'Accueil voyageurs',
