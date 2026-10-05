@@ -461,6 +461,13 @@ Aucune nouvelle route API n'est introduite.
   « Accès par lien » ; les autres URL atteignent le 404 de Next. Un test
   impose que chaque route de premier niveau de `(public)` soit classée
   marketing ou privée.
+- **2026-10-05 (Product Owner) — page 404 du site** : `src/app/not-found.tsx`
+  remplace la 404 anglaise par défaut de Next pour les URL inconnues et les
+  `notFound()` hors du guide. Message en français, logo, liens vers Accueil,
+  Nos logements, Découvrir, Journal et contact ; titre « Page introuvable »,
+  statut 404 et `noindex` posés par Next. Volontairement légère (ni en-tête ni
+  footer complets, aucune requête) car Next la pré-rend dans le payload de
+  chaque page.
 
 ## Out of Scope
 
