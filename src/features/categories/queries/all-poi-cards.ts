@@ -1,3 +1,4 @@
+import { getPoiPhotoMirrorMap, resolvePoiPhotoList, resolvePoiPhotoUrl } from '@/features/poi-photos/queries/photo-mirror-map'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiHours } from '../types'
 import { computeIsOpenNow, getTodayCloseLabel, getNextOpenLabel } from '../lib/is-open-now'
@@ -33,10 +34,16 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
  * infini de la home (« Tous »). Liste plate : proches d'abord (tri distance) ou par note.
  * En mode logement, le guide reste complet et ne se réduit pas aux recommandations Owner.
  */
+function resolvePrimaryPhoto(photos: string[], mirrorMap: Awaited<ReturnType<typeof getPoiPhotoMirrorMap>>): string | null {
+  const photo = selectPrimaryPoiPhoto(photos)
+  return photo ? resolvePoiPhotoUrl(photo, mirrorMap) : null
+}
+
 export async function getAllPoiCards(
   citySlug: string,
   options: { sort?: 'distance' | 'rating'; page?: number; limit?: number; lodgingId?: string | null } = {},
 ): Promise<AllPoisResult | null> {
+  const mirrorMap = await getPoiPhotoMirrorMap()
   const sort = options.sort === 'rating' ? 'rating' : 'distance'
   const page = Math.max(1, Math.floor(options.page ?? 1))
   const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(options.limit ?? DEFAULT_LIMIT)))
@@ -108,8 +115,9 @@ export async function getAllPoiCards(
         is_open_now: computeIsOpenNow(p.hours as PoiHours | null) ?? p.is_open_now,
         distance_km: displayDistanceKm,
         distance_source: lodgingOrigin ? 'lodging' : 'city_center',
-        photo_url: selectPrimaryPoiPhoto(p.photos),
-        photos: p.photos,
+        // Spec 063 : sélection sur les URL d'origine (filtre logos), puis copie MyStay.
+        photo_url: resolvePrimaryPhoto(p.photos, mirrorMap),
+        photos: resolvePoiPhotoList(p.photos, mirrorMap),
         phone: p.phone,
         website: p.website,
         description: p.description,

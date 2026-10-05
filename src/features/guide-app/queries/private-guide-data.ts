@@ -1,3 +1,4 @@
+import { getPoiPhotoMirrorMap, resolvePoiPhotoList, type PoiPhotoMirrorMap } from '@/features/poi-photos/queries/photo-mirror-map'
 import type { Prisma } from '@prisma/client'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
@@ -148,6 +149,7 @@ export async function getPrivateGuideData(
     },
   })
 
+  const mirrorMap = await getPoiPhotoMirrorMap()
   const featuredIds = new Set(featuredRows.map(row => row.poi.id))
   const linkedPoiIds = [...new Set((lodging.city.transport_cards ?? []).flatMap(card => card.poi_id ? [card.poi_id] : []))]
     .filter(id => !featuredIds.has(id))
@@ -236,8 +238,8 @@ export async function getPrivateGuideData(
           ? card.poi_id : null,
       })),
     },
-    pois: featuredRows.map(row => mapPrivateGuidePoi(row)),
-    transportPois: linkedPoiRows.map(poi => mapPrivateGuidePoi({ poi, owner_note: null })),
+    pois: featuredRows.map(row => mapPrivateGuidePoi(row, mirrorMap)),
+    transportPois: linkedPoiRows.map(poi => mapPrivateGuidePoi({ poi, owner_note: null }, mirrorMap)),
   }
 
   if (locale === 'en') {
@@ -354,7 +356,7 @@ type PrivateGuidePoiRow = {
   }
 }
 
-function mapPrivateGuidePoi(row: PrivateGuidePoiRow): GuidePoi {
+function mapPrivateGuidePoi(row: PrivateGuidePoiRow, mirrorMap: PoiPhotoMirrorMap): GuidePoi {
   const { poi } = row
   const hours = isPoiHours(poi.hours) ? poi.hours : undefined
   const photo = getGuidePoiHeroImage({
@@ -375,7 +377,8 @@ function mapPrivateGuidePoi(row: PrivateGuidePoiRow): GuidePoi {
     },
     description: poi.description?.trim() || poi.name,
     shortDescription: shortDescription(poi.description, poi.name),
-    photos: [photo, ...poi.photos.filter(candidate => candidate !== photo)],
+    // Spec 063 : choix de la photo sur les URL d'origine, puis copies MyStay.
+    photos: resolvePoiPhotoList([photo, ...poi.photos.filter(candidate => candidate !== photo)], mirrorMap),
     latitude: poi.latitude,
     longitude: poi.longitude,
     address: poi.address,

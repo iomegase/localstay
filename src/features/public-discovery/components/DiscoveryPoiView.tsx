@@ -54,6 +54,21 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
             <MarketingEyebrow>{poi.subcategory?.name ?? poi.category.name}</MarketingEyebrow>
             <h1 className="text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-900 sm:text-6xl">{poi.name}</h1>
             <p className="mt-7 text-base leading-8 text-slate-600">{poi.description}</p>
+            {poi.photo_credit ? (
+              <p data-testid="poi-photo-credit" className="mt-3 text-xs leading-6 text-slate-500">
+                Photos :{' '}
+                {poi.photo_credit.website ? (
+                  <a
+                    href={poi.photo_credit.website}
+                    target="_blank"
+                    rel="nofollow noopener"
+                    className="underline decoration-slate-300 underline-offset-2 hover:text-pink-600"
+                  >
+                    {poi.photo_credit.name}
+                  </a>
+                ) : poi.photo_credit.name}
+              </p>
+            ) : null}
 
             <div className="mt-8 flex flex-wrap gap-3">
               {poi.phone ? (

@@ -1,4 +1,6 @@
 import 'server-only'
+import { getPoiPhotoMirrorMap, resolvePoiPhotoList, resolvePoiPhotoUrl, type PoiPhotoMirrorMap } from '@/features/poi-photos/queries/photo-mirror-map'
+import { isThirdPartyPhotoUrl } from '@/features/poi-photos/lib/storage-url'
 
 import type { Prisma } from '@prisma/client'
 import { cache } from 'react'
@@ -213,6 +215,11 @@ function stableNameCompare(
     || left.slug.localeCompare(right.slug)
 }
 
+/** Spec 063 : la carte affiche la copie MyStay de sa photo quand elle existe. */
+function withMirroredPhoto(card: DiscoveryPoiCard, mirrorMap: PoiPhotoMirrorMap): DiscoveryPoiCard {
+  return { ...card, photo_url: resolvePoiPhotoUrl(card.photo_url, mirrorMap) }
+}
+
 function matchesRoute(row: DiscoveryPoiRow, route: DiscoveryRoute): boolean {
   return (!route.citySlug || row.city.slug === route.citySlug)
     && (!route.categorySlug || row.category.slug === route.categorySlug)
@@ -276,6 +283,7 @@ function sortedMappedPois(rows: DiscoveryPoiRow[], route: DiscoveryRoute): Mappe
 
 export const getDiscoveryIndex: () => Promise<DiscoveryIndexCity[]> = cache(
   async (): Promise<DiscoveryIndexCity[]> => {
+    const mirrorMap = await getPoiPhotoMirrorMap()
     const mapped = sortedMappedPois(
       await findDiscoveryRows({}, { select: discoveryPoiListSelect }),
       {},
@@ -291,7 +299,7 @@ export const getDiscoveryIndex: () => Promise<DiscoveryIndexCity[]> = cache(
     return [...cityGroups.values()]
       .map(group => ({
         ...toCitySummary(group[0]!.row),
-        pois: group.slice(0, 5).map(poi => poi.card),
+        pois: group.slice(0, 5).map(poi => withMirroredPhoto(poi.card, mirrorMap)),
       }))
       .sort(stableNameCompare)
   },
@@ -299,6 +307,7 @@ export const getDiscoveryIndex: () => Promise<DiscoveryIndexCity[]> = cache(
 
 export const getDiscoveryCity: (citySlug: string) => Promise<DiscoveryCity | null> = cache(
   async (citySlug: string): Promise<DiscoveryCity | null> => {
+    const mirrorMap = await getPoiPhotoMirrorMap()
     const normalizedCitySlug = normalizeRouteSlug(citySlug)
     if (!normalizedCitySlug) return null
 
@@ -325,7 +334,7 @@ export const getDiscoveryCity: (citySlug: string) => Promise<DiscoveryCity | nul
           icon: category.icon,
           sort_order: category.sort_order,
           poi_count: group.length,
-          pois: group.map(poi => poi.card),
+          pois: group.map(poi => withMirroredPhoto(poi.card, mirrorMap)),
         }
       })
       .sort((left, right) => left.sort_order - right.sort_order || stableNameCompare(left, right))
@@ -339,6 +348,7 @@ export const getDiscoveryCategory: (
   categorySlug: string,
 ) => Promise<DiscoveryCategory | null> = cache(
   async (citySlug: string, categorySlug: string): Promise<DiscoveryCategory | null> => {
+    const mirrorMap = await getPoiPhotoMirrorMap()
     const normalizedCitySlug = normalizeRouteSlug(citySlug)
     const normalizedCategorySlug = normalizeRouteSlug(categorySlug)
     if (!normalizedCitySlug || !normalizedCategorySlug) return null
@@ -368,7 +378,7 @@ export const getDiscoveryCategory: (
       subcategories: [...subcategories.values()]
         .sort((left, right) => left.sort_order - right.sort_order || stableNameCompare(left, right))
         .map(toTaxonomy),
-      pois: mapped.map(poi => poi.card),
+      pois: mapped.map(poi => withMirroredPhoto(poi.card, mirrorMap)),
     }
   },
 )
@@ -402,16 +412,22 @@ export const getDiscoveryPoi: (
 
     const { photo_url: heroPhotoUrl, ...detailCard } = mapped.card
     const hours = toPublicHours(rows[0]?.hours ?? null)
+    const mirrorMap = await getPoiPhotoMirrorMap()
+    const website = sanitizeWebsite(mapped.row.website)
 
     return {
       ...detailCard,
       is_open_now: computeIsOpenNow(hours) ?? detailCard.is_open_now,
       description: mapped.row.description!.trim(),
       phone: mapped.row.phone?.trim() || null,
-      website: sanitizeWebsite(mapped.row.website),
+      website,
       hours,
-      photos: mapped.photos,
-      hero_photo_url: heroPhotoUrl,
+      // Spec 063 : copies MyStay à la place des URL tierces ; crédit calculé sur l'origine.
+      photos: resolvePoiPhotoList(mapped.photos, mirrorMap),
+      hero_photo_url: resolvePoiPhotoUrl(heroPhotoUrl, mirrorMap),
+      photo_credit: mapped.photos.some(isThirdPartyPhotoUrl)
+        ? { name: detailCard.name, website }
+        : null,
       city: toCitySummary(mapped.row),
     }
   },
