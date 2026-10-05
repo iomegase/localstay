@@ -43,6 +43,7 @@ export type PublicBlogArticle = {
   category: BlogArticleCategory
   tags: string[]
   published_at: Date
+  updated_at: Date
   seo_title: string | null
   seo_description: string | null
   city: { name: string; slug: string } | null

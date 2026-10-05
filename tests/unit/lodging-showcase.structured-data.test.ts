@@ -46,7 +46,8 @@ describe('lodging showcase structured data', () => {
     const schema = lodgingPlaceSchema(input)
     expect(schema['@type']).toBe('LodgingBusiness')
     expect(schema.url).toBe(`${BASE}/logements/chalet-hygge`)
-    expect(schema.provider).toEqual({ '@id': `${BASE}/#organization` })
+    // Audit C-15 : `provider` n'est pas une propriété valide de LodgingBusiness.
+    expect(schema).not.toHaveProperty('provider')
   })
 
   it('uses the same stable provider and short URL for an eligible VacationRental', () => {
@@ -67,7 +68,7 @@ describe('lodging showcase structured data', () => {
 
     expect(schema).not.toBeNull()
     expect(schema?.url).toBe(`${BASE}/logements/chalet-hygge`)
-    expect(schema?.provider).toEqual({ '@id': `${BASE}/#organization` })
+    expect(schema).not.toHaveProperty('provider')
     expect(schema?.image).toEqual(eligibleInput.photos.map(photo => photo.url))
   })
 
@@ -105,7 +106,7 @@ describe('lodging showcase structured data', () => {
     const schema = lodgingPlaceSchema(input)
 
     expect(schema.url).toBe('https://preview.mystay.vercel.app/logements/chalet-hygge')
-    expect(schema.provider).toEqual({ '@id': 'https://www.mystay.city/#organization' })
+    expect(schema).not.toHaveProperty('provider')
   })
 
   it('does not emit VacationRental without public coordinates and enough classified photos', () => {

@@ -276,7 +276,6 @@ describe('lodging showcase public pages', () => {
       name: detailResult.title,
       description: detailResult.short_description,
       url: 'https://www.mystay.city/logements/chalet-hygge',
-      provider: { '@id': 'https://www.mystay.city/#organization' },
       image: [
         'https://img.test/cover.webp',
         'https://img.test/bedroom.webp',

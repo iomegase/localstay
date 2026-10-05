@@ -150,6 +150,14 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
     expect(touristAttractionSchema(poiInput).url).toBe(`${BASE}${discoveryPath}`)
   })
 
+  // Audit C-15 : identifiant stable de l'entité lieu, dérivé de son URL canonique.
+  it('gives every POI schema a stable @id derived from its canonical URL', () => {
+    expect(localBusinessSchema(poiInput)['@id']).toBe(`${BASE}${discoveryPath}#place`)
+    expect(touristAttractionSchema(poiInput)['@id']).toBe(`${BASE}${discoveryPath}#place`)
+    const schema = discoveryPoiSchema(discoveryPoi)
+    expect(schema['@id']).toBe(`${schema.url}#place`)
+  })
+
   it.each([
     ['restaurant', 'Restaurant'],
     ['boulangerie', 'Bakery'],

@@ -6,6 +6,7 @@ export function blogPostingSchema(input: {
   title: string
   excerpt: string
   publishedAt: Date
+  updatedAt: Date
   coverUrl: string | null
   coverAlt: string | null
   cityName: string | null
@@ -16,6 +17,8 @@ export function blogPostingSchema(input: {
     headline: input.title,
     description: input.excerpt,
     datePublished: input.publishedAt.toISOString(),
+    // Audit C-15 : date réelle de dernière modification de l'article.
+    dateModified: input.updatedAt.toISOString(),
     mainEntityOfPage: `${siteBaseUrl()}${buildBlogArticlePath(input.slug)}`,
     ...(input.coverUrl ? { image: [input.coverUrl] } : {}),
     author: { '@id': organizationId() },

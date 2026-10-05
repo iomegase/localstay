@@ -63,6 +63,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
     title: article.title,
     excerpt: article.excerpt,
     publishedAt: article.published_at,
+    updatedAt: article.updated_at,
     coverUrl: article.cover?.url ?? null,
     coverAlt: article.cover?.alt ?? null,
     cityName: article.city?.name ?? null,

@@ -169,6 +169,17 @@ describe('043 lodging text and JSON-LD audit', () => {
     )
   })
 
+  // Audit SEO/GEO C-15 (2026-10-05) : `provider` est invalide sur LodgingBusiness,
+  // sa présence est signalée même lorsqu'il désigne MyStay.
+  it('flags any provider on a lodging schema, including the MyStay organization', () => {
+    const row = lodging()
+    const schema = { '@type': 'LodgingBusiness', url: `https://www.mystay.city${row.publicUrl}`, provider: { '@id': 'https://www.mystay.city/#organization' } }
+
+    const evidence = auditLodgingJsonLd(row, schema).flatMap((finding) => finding.evidence).join(' ')
+
+    expect(evidence).toContain('provider')
+  })
+
   it('reports injected occupancy, room, bed, bathroom, floor, amenity, location, URL and provider facts', () => {
     const row = lodging()
     const schema = {

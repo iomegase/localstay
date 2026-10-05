@@ -3,7 +3,7 @@ import {
   vacationRentalSchema,
   type JsonLdObject,
 } from '@/features/seo/lib/structured-data'
-import { organizationId, siteBaseUrl } from '@/features/seo/lib/site'
+import { siteBaseUrl } from '@/features/seo/lib/site'
 import { selectVisibleLodgingPhotos } from '@/features/lodging-showcase/lib/detail-view'
 import type { PublicLodgingAuditRow } from '../queries/audit-data'
 import type { SeoContentAuditFinding } from '../types'
@@ -205,8 +205,10 @@ export function auditLodgingJsonLd(
   const expectedUrl = `${siteBaseUrl()}${row.publicUrl}`
   if (schema.url !== expectedUrl) conflict('url', schema.url, expectedUrl)
 
-  const provider = isRecord(schema.provider) ? schema.provider['@id'] : null
-  if (provider !== organizationId()) conflict('provider', provider, organizationId())
+  // Audit SEO/GEO C-15 : `provider` est invalide sur LodgingBusiness, il ne doit plus être émis.
+  if ('provider' in schema) {
+    conflict('provider', isRecord(schema.provider) ? schema.provider['@id'] : schema.provider, null)
+  }
 
   if (isRecord(schema.occupancy)) {
     const occupancy = numericValue(schema.occupancy.maxValue)

@@ -22,6 +22,7 @@ describe('029 blog BlogPosting json-ld', () => {
       title: 'Week-end à Saint-Gervais',
       excerpt: 'Préparez un week-end local avec une sélection utile et lisible.',
       publishedAt: new Date('2026-06-15T10:00:00Z'),
+      updatedAt: new Date('2026-07-02T08:30:00Z'),
       coverUrl: 'https://img.test/cover.jpg',
       coverAlt: 'Saint-Gervais en été',
       cityName: 'Saint-Gervais-les-Bains',
@@ -29,6 +30,8 @@ describe('029 blog BlogPosting json-ld', () => {
 
     expect(schema['@type']).toBe('BlogPosting')
     expect(schema.headline).toBe('Week-end à Saint-Gervais')
+    // Audit C-15 : date de mise à jour réelle de l'article.
+    expect(schema.dateModified).toBe('2026-07-02T08:30:00.000Z')
     expect(schema).not.toHaveProperty('alternativeHeadline')
     expect(schema.image).toEqual(['https://img.test/cover.jpg'])
     expect(schema.mainEntityOfPage).toBe('https://www.mystay.city/journal/week-end-saint-gervais')
@@ -44,6 +47,7 @@ describe('029 blog BlogPosting json-ld', () => {
       title: 'Article preview',
       excerpt: 'Extrait visible.',
       publishedAt: new Date('2026-06-15T10:00:00Z'),
+      updatedAt: new Date('2026-06-15T10:00:00Z'),
       coverUrl: null,
       coverAlt: null,
       cityName: null,

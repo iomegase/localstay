@@ -19,6 +19,7 @@ jest.mock('@/features/blog/queries/public-blog', () => ({
     category: 'local_guide',
     tags: ['sejour', 'alpes'],
     published_at: new Date('2026-06-15T10:00:00Z'),
+    updated_at: new Date('2026-06-20T09:00:00Z'),
     seo_title: 'Week-end à Saint-Gervais — Guide local MyStay',
     seo_description:
       'Préparez un week-end à Saint-Gervais avec un angle éditorial local, des repères utiles et un parcours clair.',

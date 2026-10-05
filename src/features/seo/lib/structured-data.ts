@@ -159,6 +159,8 @@ export function websiteSchema(): JsonLdObject {
 
     '@type': 'WebSite',
 
+    '@id': 'https://www.mystay.city/#website',
+
     name: SITE.name,
 
     url: base,
@@ -387,6 +389,8 @@ export function localBusinessSchema(
 
     '@type': 'LocalBusiness',
 
+    '@id': `${poiUrl(poi.path)}#place`,
+
     name: poi.name,
 
     ...(poi.description
@@ -461,6 +465,8 @@ export function touristAttractionSchema(
     '@context': SCHEMA,
 
     '@type': 'TouristAttraction',
+
+    '@id': `${poiUrl(poi.path)}#place`,
 
     name: poi.name,
 
@@ -612,6 +618,8 @@ export function discoveryPoiSchema(
     '@type':
       discoveryPoiType(poi),
 
+    '@id': `${poiUrl(path)}#place`,
+
     name: poi.name,
 
     description:
@@ -754,15 +762,7 @@ function lodgingPlaceSchemaWithVisiblePhotos(
     url:
       `${siteBaseUrl()}${path}`,
 
-    /**
-     * MyStay est ici déclaré comme
-     * provider de la présentation / expérience,
-     * sans qualifier MyStay d'agence immobilière.
-     */
-    provider: {
-      '@id':
-        organizationId(),
-    },
+    // Pas de `provider` : propriété invalide pour LodgingBusiness (audit C-15).
 
     image:
       visiblePhotos.map(

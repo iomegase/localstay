@@ -70,6 +70,8 @@ describe('structured-data', () => {
     expect(s['@type']).toBe('WebSite')
     expect(s.url).toBe(BASE)
     expect(s.publisher).toEqual({ '@id': 'https://www.mystay.city/#organization' })
+    // Audit C-15 : identifiant stable du site.
+    expect(s['@id']).toBe('https://www.mystay.city/#website')
   })
 
   it('keeps the production identity while page and asset URLs follow a preview base', () => {
