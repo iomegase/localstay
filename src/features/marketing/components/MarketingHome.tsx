@@ -685,14 +685,16 @@ export function MarketingHome({
               xl:pt-[64px]
             "
           >
-            {lodgings.map((lodging, index) => (
+            {lodgings.map(lodging => (
               <div
                 key={lodging.id}
                 className="w-[280px] shrink-0 snap-start lg:w-auto"
               >
+                {/* Cartes en bas de page : chargement différé, 280 px de large jusqu'à lg
+                    puis 2 colonnes (PageSpeed mobile, LCP retardé par ces photos). */}
                 <MarketingPropertyCard
                   lodging={lodging}
-                  priority={index < 2}
+                  sizes="(max-width: 1023px) 280px, 460px"
                 />
               </div>
             ))}

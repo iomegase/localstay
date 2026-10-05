@@ -8,10 +8,13 @@ export function MarketingPropertyCard({
   lodging,
   priority = false,
   compact = false,
+  // Par défaut : grille de /logements (1, 2 puis 3 colonnes). L'accueil passe sa propre valeur.
+  sizes = '(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 360px',
 }: {
   lodging: MarketingLodgingCard
   priority?: boolean
   compact?: boolean
+  sizes?: string
 }) {
   // Commune avec tirets plutôt que la zone libre saisie (spec 031 AC-01-10 (5)).
   const location = lodging.city_name
@@ -66,7 +69,7 @@ export function MarketingPropertyCard({
               fill
               loading={priority ? 'eager' : 'lazy'}
               className="object-cover transition-opacity group-hover:opacity-90"
-              sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 360px"
+              sizes={sizes}
             />
           )}
         </div>

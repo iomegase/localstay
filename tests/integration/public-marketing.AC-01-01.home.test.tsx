@@ -63,12 +63,14 @@ describe('031-public-marketing-site home', () => {
     )
   })
 
-  it('eagerly loads lodging photos shown on the home page', () => {
+  // PageSpeed mobile (2026-10-05) : les logements sont en bas de page ; les charger tout de
+  // suite retardait l'affichage du titre (LCP). Ils sont désormais chargés en différé.
+  it('lazily loads lodging photos shown at the bottom of the home page', () => {
     const { container } = render(<MarketingHome lodgings={[lodging]} />)
     const lodgingImage = container.querySelector(
       'a[aria-label="Découvrir Le Chalet Hygge"] img'
     )
 
-    expect(lodgingImage).not.toHaveAttribute('loading', 'lazy')
+    expect(lodgingImage).toHaveAttribute('loading', 'lazy')
   })
 })
