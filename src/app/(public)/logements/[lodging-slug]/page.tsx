@@ -226,7 +226,7 @@ export default async function LodgingDetailPage({ params }: Props) {
                     Réserver ce logement
                   </span>
                   <h2 className="mt-3 max-w-[600px] text-[30px] font-semibold leading-[1.2] tracking-[-0.04em] md:text-[38px]">
-                    Envie de séjourner au {detail.title} ?
+                    Envie de séjourner dans ce logement ?
                   </h2>
                   <p className="mt-4 max-w-[560px] text-[14px] leading-relaxed text-slate-300">
                     Consultez la plateforme de réservation ou contactez directement l&apos;équipe MyStay.

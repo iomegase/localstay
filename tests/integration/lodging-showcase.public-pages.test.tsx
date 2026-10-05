@@ -204,6 +204,12 @@ describe('lodging showcase public pages', () => {
     ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue(detailResult)
   })
 
+  it.each(['La pieuca', 'Les Hauts de Saint-Gervais'])('AC-09-01: uses a grammatical CTA for %s', async title => {
+    ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue({ ...detailResult, title })
+    render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': detailResult.slug }) }))
+    expect(screen.getByRole('heading', { name: 'Envie de séjourner dans ce logement ?' })).toBeInTheDocument()
+  })
+
   it('AC-02-08: shows compact MyStay suggestion cards linking to public lodging pages', async () => {
     ;(listSuggestedLodgings as jest.Mock).mockResolvedValue([{ id: 'other', title: 'Chalet des Cimes', href: '/logements/chalet-des-cimes', coverPhotoUrl: 'https://images.unsplash.com/chalet.jpg', location: 'Combloux', surfaceM2: 65, maxGuests: 4 }])
     render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))

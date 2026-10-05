@@ -543,3 +543,39 @@ répond 400 VALIDATION_ERROR. UI : niveaux sémantiques corrigés, présentation
 conservée, aide de saisie photo descriptive. Tests unitaires de metadata/alt,
 intégration du vrai Markdown et tests de validation. Pas de migration, nouvelle
 route, génération d'image ou modification du guide privé. Aucune question ouverte.
+
+## Amendement approuvé — Audit C-14 (demande PO 2026-10-05)
+
+- AC-09-01 : le CTA logement utilise « Envie de séjourner dans ce logement ? »,
+  indépendant de l'article grammatical de son titre.
+- AC-09-02 : chaque article public émet un BreadcrumbList correspondant au fil
+  d'Ariane rendu, avec l'URL canonique de l'article pour le dernier élément.
+  BlogPosting n'utilise plus l'alt de couverture comme alternativeHeadline.
+- AC-09-03 : la validation Admin/Owner réduit les espaces des titres logement
+  et libellés géographiques. Les graphies connues Saint-Gervais-les-Bains,
+  Saint-Nicolas-de-Véroce, Haute-Savoie et Auvergne-Rhône-Alpes sont normalisées
+  depuis leurs variantes sans accents/tirets ; les autres libellés conservent
+  leurs accents et reçoivent une initiale majuscule, sans accent inventé.
+- AC-09-04 : les slugs signalés deviennent
+  `appartement-vue-mont-blanc-6-p` et
+  `restaurants-altitude-saint-nicolas-de-veroce`, avec redirections 308 depuis
+  leurs anciennes URL Journal/Blog ou logement. La mutation des slugs doit
+  être coordonnée avec la mise en ligne des redirections ; aucune autre URL
+  n'est renommée automatiquement.
+  Durant cette transition, les deux nouvelles URL savent lire les anciens
+  enregistrements pour éviter une 404 entre déploiement et mutation des slugs.
+
+Complète 028/029/043 : les corrections orthographiques déterministes des données
+publiques sont autorisées. Les surfaces et horaires contradictoires restent
+inchangés jusqu'à validation factuelle du PO. Aucun nouveau modèle, route API,
+champ ou changement visuel ; erreurs et contrats existants conservés.
+Tests : validation unitaire, JSON-LD article en intégration, redirections.
+
+## Correction approuvée — Images en développement NAT64 (PO 2026-10-05)
+
+AC-10-01 : en `NODE_ENV=development`, Next Image charge directement les images
+originales (`images.unoptimized = true`) pour éviter le rejet des adresses DNS64
+`64:ff9b::/96` par l'optimiseur Next 16.2.6. En production et en test,
+`unoptimized = false` : optimisation responsive inchangée. Ne pas activer
+`dangerouslyAllowLocalIP`, ne pas modifier le DNS système ni les dépendances.
+Modèle, contenu et composants inchangés ; redémarrage du serveur dev requis.

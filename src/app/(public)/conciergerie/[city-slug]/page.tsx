@@ -6,7 +6,7 @@ import {
 } from '@/features/local-seo/queries/landing-pages'
 import { LocalConciergeLanding } from '@/features/local-seo/components/LocalConciergeLanding'
 import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
-import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
+import { listConciergeLodgings } from '@/features/local-seo/queries/concierge-lodgings'
 import { localSeoMetadata } from '@/features/local-seo/lib/metadata'
 import { localSeoPath } from '@/features/local-seo/lib/paths'
 import { localServiceSchema } from '@/features/local-seo/lib/structured-data'
@@ -49,7 +49,7 @@ export default async function ConciergeCityPage({ params }: PageProps) {
   ])
   const service = localServiceSchema(landing, 'concierge')
   const [lodgings, reviews] = await Promise.all([
-    listPublishedLodgings({ limit: 3 }),
+    listConciergeLodgings(landing.city.slug),
     listPublicLandingReviews(landing.city.slug),
   ])
 

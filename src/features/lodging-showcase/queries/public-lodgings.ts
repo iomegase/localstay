@@ -201,14 +201,16 @@ function toCardApi(row: {
 
 export async function listPublishedLodgings({
   limit,
+  citySlugs,
 }: {
   limit?: number
+  citySlugs?: string[]
 } = {}): Promise<MarketingLodgingCard[]> {
   const rows = await prisma.lodgingPublicProfile.findMany({
     where: {
       publication_status: 'published',
       deleted_at: null,
-      city: { is_active: true, deleted_at: null },
+      city: { is_active: true, deleted_at: null, ...(citySlugs ? { slug: { in: citySlugs } } : {}) },
       lodging: { is_active: true, deleted_at: null },
     },
     orderBy: [{ is_featured: 'desc' }, { published_at: 'desc' }, { created_at: 'desc' }],
@@ -337,6 +339,10 @@ async function getPublishedLodgingDetailWhere(
   const row = await prisma.lodgingPublicProfile.findFirst({
     where: {
       ...identity,
+      // Spec 042 AC-09-04 : nouvelle URL accessible avant la migration du slug.
+      slug: identity.slug === 'appartement-vue-mont-blanc-6-p'
+        ? { in: [identity.slug, 'appart-luxe-vue-mont-blanc-6-p'] }
+        : identity.slug,
       publication_status: 'published',
       deleted_at: null,
       city: {

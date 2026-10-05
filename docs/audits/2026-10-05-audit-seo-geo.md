@@ -693,3 +693,58 @@ nécessitent une revue visuelle des images pour être rédigés fidèlement ; au
 scène n'est déduite du titre SEO. Aucun crawl post-déploiement ou Lighthouse de
 production n'a été exécuté dans ce correctif. Les relevés de production ci-dessus
 restent les preuves historiques, pas un état après déploiement.
+
+
+### Suivi C-14 — 2026-10-05
+
+Corrections code locales : CTA « Envie de séjourner dans ce logement ? »,
+BreadcrumbList article construit depuis le même fil d’Ariane que le rendu,
+retrait de alternativeHeadline dérivé de l’alt, validation déterministe des
+espaces et noms géographiques connus aux entrées Admin/Owner.
+
+Base configurée par `.env.local` : normalisation enregistrée pour les cinq
+communes (Haute-Savoie / Auvergne-Rhône-Alpes), quatre zones logement
+(Saint-Gervais-les-Bains et Saint-Nicolas-de-Véroce), et doubles espaces des
+titres Appartement Vue Mont Blanc - 6 p et La ferme des Places.
+Aucune surface, description ni plage horaire n’a été arbitrée.
+
+Renommages préparés :
+- `/logements/appart-luxe-vue-mont-blanc-6-p` → `/logements/appartement-vue-mont-blanc-6-p` ;
+- `/journal/article-f7e6dcbc` (et ancienne URL `/blog/article-f7e6dcbc`) → `/journal/restaurants-altitude-saint-nicolas-de-veroce`.
+
+Les nouvelles routes savent lire les anciens slugs durant la transition.
+Après déploiement, exécuter `npx tsx scripts/correct-editorial-c14.ts --apply --rename-slugs`.
+Le script exige les redirections 308 réellement déployées, vérifie les collisions
+et applique les mutations en transaction. Sans arguments, simulation uniquement.
+Puis contrôler les deux destinations 200, anciens liens 308, sitemap et canonical.
+Les slugs ne sont pas encore modifiés en base ; ne pas clore ce point avant ces contrôles.
+
+Décisions factuelles toujours requises : La Pieuca 160 m² structurés / 170 m²
+textuels ; Le Royal 12:00–22:00 sept jours / description mardi à dimanche midi.
+Divergence supplémentaire observée : La ferme des Places 180 m² structurés / 185 m²
+textuels. Ne pas retenir la valeur la plus répétée sans confirmation du propriétaire.
+
+Validation locale : build Next 16.2.6 réussi (143 pages), TypeScript et ESLint
+passent, 9 suites ciblées / 61 tests réussis. Une nouvelle simulation du script
+ne trouve plus de correction orthographique à appliquer. Le crawl de production
+et la mutation des deux slugs restent à effectuer après déploiement.
+
+
+### Résolution factuelle C-14 — confirmation PO du 2026-10-05
+
+Le Product Owner confirme 160 m² pour La Pieuca et 180 m² pour La ferme des
+Places. Les champs structurés étaient déjà exacts. Le script ciblé
+`scripts/correct-editorial-c14-facts.ts --apply` aligne la description courte
+et principale de La Pieuca (170 → 160 m²) et la description de La ferme des
+Places (185 m2 → 180 m²), sans modifier les sources brutes.
+
+Le Royal : la provenance `PoiAcquisitionCandidate` montre un import
+`google_places`, revu le 2026-09-29, dont le payload contient effectivement
+12:00–22:00 pour les sept jours, identique aux heures de la fiche publique.
+Ces horaires importés sont conservés. Seule la phrase descriptive contradictoire
+« Le restaurant est ouvert du mardi au dimanche midi. » est retirée. Les horaires
+ne sont ni inventés ni déclarés vérifiés en temps réel ; aucune requête Google
+fraîche n’a été exécutée. Un nouvel import pourra actualiser la fiche depuis GBP.
+
+Les décisions factuelles précédemment demandées sont résolues. La migration des
+slugs reste coordonnée avec le déploiement décrit ci-dessus.

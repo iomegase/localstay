@@ -28,6 +28,8 @@ export function getBlogSlugCandidates(rawSlug: string): string[] {
       encodeURIComponent(decoded),
       normalizeBlogSlug(rawSlug),
       normalizeBlogSlug(decoded),
+      ...(normalizeBlogSlug(decoded) === 'restaurants-altitude-saint-nicolas-de-veroce'
+        ? ['article-f7e6dcbc'] : []),
     ].filter(candidate => candidate.length > 0)),
   )
 }

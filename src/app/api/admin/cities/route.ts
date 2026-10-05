@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { normalizeGeographicLabel } from '@/shared/lib/editorial-label'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { getSessionAdmin } from '@/features/merchant/lib/session'
@@ -9,10 +10,10 @@ import { geocodeAddress } from '@/features/geocoding/services/mapbox-client'
 const POSTAL_CODE_REGEX = /^\d{5}$/
 
 const CityCreateSchema = z.object({
-  name: z.string().trim().min(2).max(120),
+  name: z.string().transform(normalizeGeographicLabel).pipe(z.string().min(2).max(120)),
   postal_code: z.string().trim().regex(POSTAL_CODE_REGEX, 'Code postal invalide (5 chiffres)'),
-  department: z.string().trim().max(120).optional().or(z.literal('').transform(() => undefined)),
-  region: z.string().trim().max(120).optional().or(z.literal('').transform(() => undefined)),
+  department: z.string().transform(normalizeGeographicLabel).pipe(z.string().max(120)).optional().or(z.literal('').transform(() => undefined)),
+  region: z.string().transform(normalizeGeographicLabel).pipe(z.string().max(120)).optional().or(z.literal('').transform(() => undefined)),
 })
 
 const FRANCE_CENTER = { latitude: 46.2276, longitude: 2.2137 }

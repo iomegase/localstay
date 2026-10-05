@@ -10,6 +10,8 @@ import { buildBlogArticleBreadcrumb } from '@/features/blog/lib/breadcrumbs'
 import { blogCategoryLabel } from '@/features/blog/lib/category-label'
 import { blogArticleMetadata } from '@/features/blog/lib/metadata'
 import { blogPostingSchema } from '@/features/blog/lib/structured-data'
+import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
+import { buildBlogArticlePath } from '@/features/blog/lib/slug'
 import {
   getPublishedBlogArticleBySlug,
   getPublishedBlogArticles,
@@ -66,6 +68,10 @@ export default async function BlogArticlePage({ params }: PageProps) {
     cityName: article.city?.name ?? null,
   })
   const backHref = [...breadcrumbs].reverse().find(item => item.href)?.href ?? '/journal'
+  const breadcrumbJsonLd = breadcrumbSchema(breadcrumbs.map(item => ({
+    name: item.label,
+    path: item.href ?? buildBlogArticlePath(article.slug),
+  })))
   const heroPhotos = [article.cover?.url, ...article.gallery.map(photo => photo.url)].filter(
     (url): url is string => Boolean(url),
   )
@@ -274,6 +280,10 @@ export default async function BlogArticlePage({ params }: PageProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
         />
       </article>
     </MarketingShell>

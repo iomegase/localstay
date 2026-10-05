@@ -432,3 +432,21 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
   `MarketingHighlightCards` comme la conciergerie), la FAQ (`id="faq"`, composant partagé
   `MarketingFaqSection` en 2 colonnes comme la conciergerie, titre « Bon à savoir avant de réserver ») puis le CTA final `cta_label` → `cta_href`. Tailles de texte et justification de `local_copy` arbitrées par le
   Product Owner (2026-10-04). L'état vide (AC-03-02) conserve son contenu et ses liens.
+
+## Amendement approuvé — Logements locaux prioritaires (PO 2026-10-05)
+
+- AC-06-05 : la landing conciergerie affiche au plus trois logements publiés,
+  actifs, non supprimés, avec priorité aux profils rattachés à la City de la
+  landing. Leur ordre public existant est conservé à l'intérieur de chaque groupe.
+  Si moins de trois logements locaux existent, compléter avec les communes du
+  Pays du Mont-Blanc : Saint-Gervais-les-Bains, Saint-Nicolas-de-Véroce,
+  Les Contamines-Montjoie, Megève et Combloux. Aucun doublon ni logement d'une
+  autre destination. Sans logement éligible, masquer le bloc.
+- AC-06-06 : chaque carte d'une autre commune porte « À proximité » dans une
+  pill blanche translucide, arrondie, en haut à gauche sur la photo, en position
+  absolue pour aligner le haut et le bas des cartes sur une même rangée
+  (ajustement PO du 2026-10-05). Conserver son véritable nom de commune et son URL. Les cartes
+  locales ne portent pas ce libellé. Aucun calcul ni affirmation de distance.
+
+Remplace la sélection globale commune aux landings (AC-06-01). Données, API,
+publication et design des cartes inchangés. Tests de sélection, query et rendu.

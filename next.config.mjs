@@ -15,6 +15,10 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Spec 042 AC-09-04 : déployer avant le script de renommage des données.
+      { source: '/journal/article-f7e6dcbc', destination: '/journal/restaurants-altitude-saint-nicolas-de-veroce', permanent: true },
+      { source: '/blog/article-f7e6dcbc', destination: '/journal/restaurants-altitude-saint-nicolas-de-veroce', permanent: true },
+      { source: '/logements/appart-luxe-vue-mont-blanc-6-p', destination: '/logements/appartement-vue-mont-blanc-6-p', permanent: true },
       { source: '/blog/:path*', destination: '/journal/:path*', permanent: true },
       // Slug renommé par le Product Owner le 2026-10-01 (audit home) : l'ancienne URL reste valide en 301.
       {
@@ -25,6 +29,8 @@ const nextConfig = {
     ]
   },
   images: {
+    // Spec 042 AC-10-01 : DNS64 local rejeté par l'optimiseur Next 16.2.6.
+    unoptimized: process.env.NODE_ENV === 'development',
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
       {

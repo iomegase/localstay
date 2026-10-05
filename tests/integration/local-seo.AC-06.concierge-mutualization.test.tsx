@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 
+import { conciergeLodgingCitySlugs } from '@/features/local-seo/lib/concierge-lodgings'
 import { render, screen } from '@testing-library/react'
 import { listPublishedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { listPublicLandingReviews } from '@/features/local-seo/queries/landing-reviews'
@@ -76,6 +77,8 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     })
     const { container } = render(page)
 
+    if (slug === 'saint-nicolas-de-veroce') expect(screen.getByText('À proximité')).toBeInTheDocument()
+    else expect(screen.queryByText('À proximité')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', {
       level: 1,
       name: `Conciergerie à ${city}`,
@@ -117,7 +120,7 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     const serifElements = container.querySelectorAll('.font-serif')
     expect(serifElements).toHaveLength(1)
     expect(serifElements[0].closest('h1')).not.toBeNull()
-    expect(mockedListPublishedLodgings).toHaveBeenLastCalledWith({ limit: 3 })
+    expect(mockedListPublishedLodgings).toHaveBeenLastCalledWith({ citySlugs: conciergeLodgingCitySlugs })
     expect(mockedListPublicLandingReviews).toHaveBeenLastCalledWith(slug)
   })
 })

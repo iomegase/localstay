@@ -27,6 +27,13 @@ jest.mock('react', () => {
 import { getPublishedLodgingDetailBySlug } from '@/features/lodging-showcase/queries/public-lodgings'
 
 describe('short lodging detail request cache', () => {
+  beforeEach(() => mockFindFirstProfile.mockClear())
+  it('resolves the renamed lodging before its data migration', async () => {
+    mockFindFirstProfile.mockResolvedValue(null)
+    await getPublishedLodgingDetailBySlug('appartement-vue-mont-blanc-6-p')
+    expect(mockFindFirstProfile).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ slug: { in: ['appartement-vue-mont-blanc-6-p', 'appart-luxe-vue-mont-blanc-6-p'] } }) }))
+    mockFindFirstProfile.mockClear()
+  })
   it('shares one Prisma read between metadata and page consumers for the same slug', async () => {
     mockFindFirstProfile.mockResolvedValue(null)
 

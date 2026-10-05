@@ -112,7 +112,12 @@ export function LocalConciergeLanding({
             {/* Cartes compactes de la page séminaires (spec 046 AC-01-04 / spec 051). */}
             <ul className="mt-9 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {lodgings.slice(0, 3).map(lodging => (
-                <li key={lodging.id} className="min-w-0">
+                <li key={lodging.id} className="relative min-w-0">
+                  {lodging.city_slug !== city.slug && (
+                    <span className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center rounded-full border border-white/70 bg-white/95 px-3 py-1.5 text-[10px] font-semibold tracking-wide text-slate-700 shadow-sm backdrop-blur-sm">
+                      À proximité
+                    </span>
+                  )}
                   <CompactLodgingCard
                     lodging={{
                       title: lodging.title,

@@ -305,3 +305,21 @@ versionné sous `docs/audits/`.
 Aucune question ouverte. Toute contradiction logement et toute proposition de
 nouveau champ éditorial découverte pendant l'audit devient une décision métier
 distincte avant modification.
+
+## Résolution approuvée — C-14, Product Owner 2026-10-05
+
+- AC-06-01 : La Pieuca conserve `surface_m2 = 160` ; ses descriptions
+  publiques courte et principale remplacent uniquement « 170 m² » par « 160 m² ».
+- AC-06-02 : La ferme des Places conserve `surface_m2 = 180` ; sa description
+  publique remplace uniquement « 185 m2 » par « 180 m² ».
+- AC-06-03 : aucun horaire n'est inventé pour Le Royal. Le payload de provenance
+  Google Places validé le 2026-09-29 contient les mêmes heures 12:00–22:00 pour
+  les sept jours : conserver ces champs importés et retirer uniquement la phrase
+  contradictoire « Le restaurant est ouvert du mardi au dimanche midi. » de la
+  description publique. Cette provenance n'est pas une vérification en temps réel.
+
+Ces mutations ciblées, distinctes du runner d'audit en lecture seule, sont
+autorisées par la décision du PO ; elles ne modifient ni source brute, ni statut
+de publication, ni autre caractéristique. Vérification : relecture des champs
+en base et contrôle de l'absence d'horaires dans le JSON-LD existant.
+Schéma et API inchangés, aucune réécriture automatique générale.

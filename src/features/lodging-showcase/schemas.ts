@@ -1,4 +1,5 @@
 import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
+import { normalizeEditorialWhitespace, normalizeGeographicLabel } from '@/shared/lib/editorial-label'
 import { z } from 'zod'
 import { detectExternalListingSource } from './lib/source-url'
 
@@ -71,7 +72,7 @@ export const LodgingPhotoCategoryInputSchema = z.object({
 export type LodgingPhotoCategoryInput = z.infer<typeof LodgingPhotoCategoryInputSchema>
 
 export const LodgingPublicProfileInputSchema = z.object({
-  title: trimmedString(5, 90, 'Le titre doit contenir entre 5 et 90 caracteres.'),
+  title: z.string().transform(normalizeEditorialWhitespace).pipe(trimmedString(5, 90, 'Le titre doit contenir entre 5 et 90 caracteres.')),
   short_description: z.string().trim().min(1, 'La description courte est obligatoire.'),
   description: trimmedString(80, 4000, 'La description principale doit contenir entre 80 et 4000 caracteres.'),
   property_type: trimmedString(1, 80, 'Le type de logement est obligatoire.'),
@@ -80,9 +81,9 @@ export const LodgingPublicProfileInputSchema = z.object({
   bathroom_count: z.number().min(0).max(100).nullable().optional(),
   bed_count: z.number().int().min(0).max(100).nullable().optional(),
   surface_m2: z.number().int().min(1).max(10000).nullable().optional(),
-  public_area_label: z.string().trim().min(1, { message: 'La zone de localisation publique est invalide.' }).max(120, {
+  public_area_label: z.string().transform(normalizeGeographicLabel).pipe(z.string().min(1, { message: 'La zone de localisation publique est invalide.' }).max(120, {
     message: 'La zone de localisation publique est invalide.',
-  }).nullable().optional(),
+  })).nullable().optional(),
   precise_location_public: z.boolean().optional(),
   public_latitude: z.number().min(-90).max(90).nullable().optional(),
   public_longitude: z.number().min(-180).max(180).nullable().optional(),

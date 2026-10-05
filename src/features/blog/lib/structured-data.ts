@@ -21,6 +21,5 @@ export function blogPostingSchema(input: {
     author: { '@id': organizationId() },
     publisher: { '@id': organizationId() },
     ...(input.cityName ? { contentLocation: { '@type': 'Place', name: input.cityName } } : {}),
-    ...(input.coverAlt ? { alternativeHeadline: input.coverAlt } : {}),
   }
 }

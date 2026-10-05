@@ -7,7 +7,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { listPublishedMarketingLodgingsForCity } from '@/features/lodging-showcase/queries/public-lodgings'
+import { listPublishedLodgings, listPublishedMarketingLodgingsForCity } from '@/features/lodging-showcase/queries/public-lodgings'
 
 describe('046 local SEO published lodging query', () => {
   beforeEach(() => {
@@ -58,4 +58,14 @@ describe('046 local SEO published lodging query', () => {
       }),
     ])
   })
+})
+
+it('filters the concierge catalogue to the requested cities while retaining publication guards', async () => {
+  jest.mocked(prisma.lodgingPublicProfile.findMany).mockResolvedValue([])
+  await listPublishedLodgings({ citySlugs: ['saint-nicolas-de-veroce'] })
+  expect(prisma.lodgingPublicProfile.findMany).toHaveBeenLastCalledWith(expect.objectContaining({ where: {
+    publication_status: 'published', deleted_at: null,
+    city: { is_active: true, deleted_at: null, slug: { in: ['saint-nicolas-de-veroce'] } },
+    lodging: { is_active: true, deleted_at: null },
+  } }))
 })
