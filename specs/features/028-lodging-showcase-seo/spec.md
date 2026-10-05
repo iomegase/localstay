@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
-updated_at: 2026-10-01
+updated_at: 2026-10-05
 depends_on:
   - 001-city-guide
   - 003-poi-list
@@ -1123,6 +1123,23 @@ Toutes les erreurs utilisent le format standard :
 | BR-24/25 | Non publiés absents public/sitemap et retournent 404 | contract |
 
 ---
+
+## Amendements
+
+- **2026-10-05 (Product Owner) — contact public en modales** : remplace
+  AC-03-02. Le CTA « Contacter » d'une fiche `/logements/[slug]` ouvrait
+  `/guide/[city]/contact?lodging=<id>`, page réservée aux séjours actifs : le
+  visiteur recevait un cookie de séjour inutile puis l'écran « Accès par lien ».
+  Désormais la fiche propose deux formulaires en modale :
+  1. **Voyageur** (« Contacter », visible si `public_contact_enabled = true`) :
+     message à la conciergerie avec la source `lodging_inquiry` ; le logement
+     est désigné par son **slug public**, résolu côté serveur (profil publié,
+     contact public autorisé, logement actif) ; aucun identifiant de base ni
+     lien vers le guide privé dans le HTML. Notification e-mail à MyStay.
+  2. **Propriétaire** (« Confier mon logement », toujours visible) : reprend le
+     formulaire `owner_lead` existant.
+  AC-03-04 s'applique : le `ContactMessage` est créé selon `024`, destination
+  `concierge`, `lodging_id` renseigné côté serveur. Aucune migration.
 
 ## Out of Scope
 

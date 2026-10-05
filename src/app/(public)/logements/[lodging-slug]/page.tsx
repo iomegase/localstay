@@ -21,7 +21,8 @@ import { LodgingRoomsGrid } from '@/features/lodging-showcase/components/Lodging
 import { LodgingLocationMap } from '@/features/lodging-showcase/components/LodgingLocationMap'
 import { LodgingFaq } from '@/features/lodging-showcase/components/LodgingFaq'
 import { ExternalBookingCta } from '@/features/lodging-showcase/components/ExternalBookingCta'
-import { contextualContactPath } from '@/features/city-guide/lib/public-paths'
+import { LodgingInquiryDialog } from '@/features/contact-messages/components/LodgingInquiryDialog'
+import { OwnerLeadDialog } from '@/features/contact-messages/components/OwnerLeadDialog'
 import { MarketingShell } from '@/features/marketing/components/MarketingShell'
 import {
   marketingContainerClass,
@@ -95,8 +96,6 @@ export default async function LodgingDetailPage({ params }: Props) {
 
   const rentalSchema = vacationRentalSchema(lodgingSchemaInput)
   const fallbackSchema = lodgingPlaceSchema(lodgingSchemaInput)
-  const contactHref = `${contextualContactPath(citySlug)}?lodging=${detail.id}`
-
 
   return (
     <>
@@ -189,16 +188,13 @@ export default async function LodgingDetailPage({ params }: Props) {
               </p>
 
               {detail.public_contact_enabled && (
-                <Link
-                  href={contactHref}
-                  rel="nofollow"
-                  data-analytics-event="lodging_contact_click"
-                  data-analytics-city-slug={citySlug}
-                  data-analytics-lodging-id={detail.id}
+                <LodgingInquiryDialog
+                  lodgingSlug={detail.slug}
+                  lodgingTitle={detail.title}
+                  analyticsCitySlug={citySlug}
+                  analyticsLodgingId={detail.id}
                   className={`${marketingPrimaryButtonClass} mt-7 w-full`}
-                >
-                  Contacter
-                </Link>
+                />
               )}
             </aside>
           </section>
@@ -244,20 +240,31 @@ export default async function LodgingDetailPage({ params }: Props) {
                     className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-6 text-xs font-bold text-slate-800 transition-colors hover:bg-pink-600 hover:text-white"
                   />
                   {detail.public_contact_enabled && (
-                    <Link
-                      href={contactHref}
-                      rel="nofollow"
-                      data-analytics-event="lodging_contact_click"
-                      data-analytics-city-slug={citySlug}
-                      data-analytics-lodging-id={detail.id}
+                    <LodgingInquiryDialog
+                      lodgingSlug={detail.slug}
+                      lodgingTitle={detail.title}
+                      analyticsCitySlug={citySlug}
+                      analyticsLodgingId={detail.id}
                       className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/30 px-6 text-xs font-bold text-white transition-colors hover:border-pink-600 hover:bg-pink-600"
-                    >
-                      Contacter
-                    </Link>
+                    />
                   )}
                 </div>
               </section>
             )}
+            <section
+              data-testid="lodging-owner-lead"
+              className="flex flex-col items-start gap-5 rounded-[28px] bg-[#f8f7f5] px-7 py-8 md:flex-row md:items-center md:justify-between md:px-10"
+            >
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+                  Propriétaires
+                </span>
+                <p className="mt-2 max-w-[560px] text-[14px] leading-relaxed text-slate-600">
+                  Vous possédez un logement dans le Pays du Mont-Blanc ? MyStay peut l’accompagner.
+                </p>
+              </div>
+              <OwnerLeadDialog className={`${marketingPrimaryButtonClass} shrink-0`} />
+            </section>
             <SuggestedLodgings lodgings={suggestions} />
           </div>
         </div>

@@ -180,6 +180,29 @@ export async function sendHelpContactNotificationEmail(input: OwnerLeadNotificat
   }, `help-contact-${input.id}`)
 }
 
+export async function sendLodgingInquiryNotificationEmail(
+  input: OwnerLeadNotificationParams & { lodgingTitle: string },
+): Promise<boolean> {
+  return sendContactEmail({
+    from: 'MyStay <bonjour@mystay.city>',
+    to: 'bonjour@mystay.city',
+    replyTo: input.senderEmail,
+    subject: input.subject.replace(/[\r\n]+/g, ' '),
+    text: [
+      'Nouvelle demande sur un logement MyStay',
+      `Logement : ${input.lodgingTitle}`,
+      `Nom : ${input.senderName}`,
+      `Email : ${input.senderEmail}`,
+      `Téléphone : ${input.senderPhone || 'Non renseigné'}`,
+      '',
+      input.message,
+      '',
+      'Consulter les demandes : https://www.mystay.city/admin',
+      `Référence : ${input.id}`,
+    ].join('\n'),
+  }, `lodging-inquiry-${input.id}`)
+}
+
 export async function sendOwnerLeadNotificationEmail(input: OwnerLeadNotificationParams): Promise<boolean> {
   return sendContactEmail({
     from: 'MyStay <bonjour@mystay.city>',

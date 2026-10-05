@@ -295,13 +295,18 @@ describe('lodging showcase public pages', () => {
     )
     expect(screen.getByText('Haute-Savoie, France')).toBeInTheDocument()
 
-    for (const contactLink of screen.getAllByRole('link', { name: 'Contacter' })) {
-      expect(contactLink).toHaveAttribute('href', '/guide/annecy/contact?lodging=profile-1')
-      expect(contactLink).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
-      expect(contactLink).toHaveAttribute('data-analytics-city-slug', 'annecy')
-      expect(contactLink).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
-      expect(contactLink).toHaveAttribute('rel', 'nofollow')
+    // Amendement 028 du 2026-10-05 : « Contacter » ouvre une modale publique,
+    // sans lien vers le guide privé ni identifiant dans une URL.
+    expect(screen.queryByRole('link', { name: 'Contacter' })).not.toBeInTheDocument()
+    expect(document.body.innerHTML).not.toContain('contact?lodging=')
+    const contactButtons = screen.getAllByRole('button', { name: 'Contacter' })
+    expect(contactButtons).toHaveLength(2)
+    for (const contactButton of contactButtons) {
+      expect(contactButton).toHaveAttribute('data-analytics-event', 'lodging_contact_click')
+      expect(contactButton).toHaveAttribute('data-analytics-city-slug', 'annecy')
+      expect(contactButton).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
     }
+    expect(screen.getByRole('button', { name: 'Confier mon logement' })).toBeInTheDocument()
 
     for (const bookingLink of screen.getAllByRole('link', { name: 'Reserver sur Airbnb' })) {
       expect(bookingLink).toHaveAttribute('data-analytics-event', 'lodging_external_booking_click')
@@ -382,7 +387,9 @@ describe('lodging showcase public pages', () => {
     render(jsx)
 
     expect(screen.queryByText('Reserver sur Airbnb')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Contacter' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Contacter' })).not.toBeInTheDocument()
+    // Le formulaire propriétaire ne dépend pas du contact logement.
+    expect(screen.getByRole('button', { name: 'Confier mon logement' })).toBeInTheDocument()
   })
 
   it.each(['unknown', 'unpublished', 'inactive', 'deleted'])(

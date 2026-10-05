@@ -157,7 +157,9 @@ Toutes les URL du sitemap répondent en 200, sans redirection, avec un canonical
 
 Format de chaque constat : gravité, périmètre, preuve, fichier, conséquence, correction, effort, confiance, validation.
 
-### C-01 — Le lien « Contacter » des fiches logement publiques ouvre le guide privé — **Critique**
+### C-01 — Le lien « Contacter » des fiches logement publiques ouvre le guide privé — **Critique** (révisé : **Moyenne**)
+
+> **Révision du 2026-10-05 après vérification en base :** l'identifiant publié est celui de la vitrine (`LodgingPublicProfile.id`), qui ne correspond à aucun `Lodging.id` (0 sur 6 profils publiés). Le guide privé cherche le logement par `Lodging.id` : il n'est donc **pas** exposé. Le défaut réel est un parcours de contact cassé pour les visiteurs (cookie de séjour inutile puis écran « Accès par lien »). Il reste une faiblesse : le proxy accepte n'importe quel UUID bien formé comme cookie de séjour. Corrigé par l'amendement 028 du 2026-10-05 (deux modales de contact).
 
 - **Périmètre :** les 6 fiches `/logements/*`, ainsi que tout robot ou toute personne qui suit le lien.
 - **Preuve [Dépôt] :** `src/app/(public)/logements/[lodging-slug]/page.tsx:98` construit `const contactHref = \`${contextualContactPath(citySlug)}?lodging=${detail.id}\``. `src/proxy.ts:107-128` : si la requête vers `/guide/*` porte un `?lodging=` qui est un UUID valide, le proxy pose le cookie `lodging_id` (7 jours) et redirige vers `/sejour?lodging=…`.

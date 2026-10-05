@@ -4,6 +4,7 @@ import { apiError, validationError } from '@/features/merchant/lib/responses'
 import { publicContactMessageSchema } from '@/features/contact-messages/schemas'
 import {
   sendHelpContactNotificationEmail,
+  sendLodgingInquiryNotificationEmail,
   sendOwnerLeadNotificationEmail,
   sendSeminarLeadNotificationEmail,
 } from '@/shared/lib/resend'
@@ -25,6 +26,20 @@ async function getLodging(lodgingId: string): Promise<LodgingForContact | null> 
   })
 }
 
+/** Logement publié dont le contact public est autorisé, désigné par son slug public. */
+async function getPublicInquiryLodging(slug: string): Promise<{ lodging_id: string; title: string } | null> {
+  return prisma.lodgingPublicProfile.findFirst({
+    where: {
+      slug,
+      publication_status: 'published',
+      public_contact_enabled: true,
+      deleted_at: null,
+      lodging: { is_active: true, deleted_at: null },
+    },
+    select: { lodging_id: true, title: true },
+  })
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const body = await request.json().catch(() => null)
   const parsed = publicContactMessageSchema.safeParse(body)
@@ -37,6 +52,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (input.website) {
     return NextResponse.json({ status: 'received' }, { status: 201 })
   }
+  const inquiryLodging = input.source === 'lodging_inquiry' && input.lodging_slug
+    ? await getPublicInquiryLodging(input.lodging_slug)
+    : null
+  if (input.source === 'lodging_inquiry' && !inquiryLodging) {
+    return apiError('INVALID_LODGING', 'Logement introuvable', 400)
+  }
+
   const lodgingId = input.lodging_id ?? null
   const lodging = lodgingId ? await getLodging(lodgingId) : null
 
@@ -52,7 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const contactMessage = await prisma.contactMessage.create({
     data: {
-      lodging_id: lodging?.id ?? null,
+      lodging_id: inquiryLodging?.lodging_id ?? lodging?.id ?? null,
       owner_id: input.destination === 'owner' ? lodging?.owner_id ?? null : null,
       destination: input.destination,
       sender_name: input.sender_name,
@@ -89,6 +111,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
     if (!emailSent) {
       console.error('OWNER_LEAD_NOTIFICATION_FAILED', { messageId: contactMessage.id })
+    }
+  }
+
+  if (input.source === 'lodging_inquiry' && inquiryLodging) {
+    const emailSent = await sendLodgingInquiryNotificationEmail({
+      id: contactMessage.id,
+      lodgingTitle: inquiryLodging.title,
+      senderName: input.sender_name,
+      senderEmail: input.sender_email,
+      senderPhone: input.sender_phone,
+      subject: input.subject,
+      message: input.message,
+    })
+    if (!emailSent) {
+      console.error('LODGING_INQUIRY_NOTIFICATION_FAILED', { messageId: contactMessage.id })
     }
   }
 
