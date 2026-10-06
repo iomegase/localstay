@@ -119,26 +119,11 @@ export function GuideArrivalFlow({
           {step.kind === 'address' && (
             <GuideAddressBlock lodging={lodging} mapsHref={demo ? null : lodgingMapsHref(lodging.latitude, lodging.longitude)} />
           )}
-          {step.kind === 'access' && lodging.keyBoxCode && (
-            <KeyBoxCode
-              code={lodging.keyBoxCode}
-              action={!arrived ? (
-                <button
-                  type="button"
-                  disabled={sending}
-                  onClick={signalArrival}
-                  className="flex h-11 shrink-0 items-center rounded-full bg-[#DB2777] px-4 text-[14px] font-semibold disabled:opacity-60"
-                >
-                  {m.arrival.imArrived}
-                </button>
-              ) : null}
-            />
-          )}
 
           {step.facts.length > 0 && (
             <dl className="mt-4 grid grid-cols-3 gap-2">
               {step.facts.map((fact, index) => (
-                <div key={index} className="flex flex-col-reverse rounded-2xl bg-[#F6F6F4] p-3">
+                <div key={index} data-testid="arrival-fact" className="flex flex-col-reverse items-center justify-center rounded-2xl bg-[#F6F6F4] p-3 text-center shadow-sm">
                   <dt className="text-[11px] text-[#697386]">{fact.label}</dt>
                   <dd className="text-[15px] font-semibold text-[#111111]">{fact.value}</dd>
                 </div>
@@ -149,25 +134,49 @@ export function GuideArrivalFlow({
           {step.substeps.length > 0 && (
             <ol className="mt-5 grid gap-4">
               {step.substeps.map((substep, index) => (
-                <li key={index} className="flex gap-3 mt-2">
-                  <span className="grid shrink-0 place-items-center text-[35px] font-semibold text-slate-500 [text-shadow:0_2px_4px_rgba(15,23,42,0.3)]">
+                <li key={index} data-testid="arrival-substep" className="flex items-center gap-3 mt-2">
+                  <span className="grid shrink-0 place-items-center text-[35px] font-semibold leading-none text-slate-500 [text-shadow:0_2px_4px_rgba(15,23,42,0.3)]">
                     {index + 1}
                   </span>
-                  <span>
-                    <span className="block text-xs font-semibold text-[#111111]">{substep.title}</span>
+                  {/* Markdown accepté dans le titre et le détail (comme le texte de l'étape). */}
+                  <div className="min-w-0">
+                    <div data-testid="arrival-substep-title" className="text-xs font-semibold text-[#111111] [&_p]:mb-0 [&_p]:text-[#111111]">
+                      <GuideDarkMarkdown source={substep.title} />
+                    </div>
                     {substep.detail ? (
-                      <span className="mt-0.5 block text-xs leading-[1.5] text-[#697386]">{substep.detail}</span>
+                      <div className="mt-0.5 text-xs leading-[1.5] text-[#697386] [&_p]:text-[#697386]">
+                        <GuideDarkMarkdown source={substep.detail} />
+                      </div>
                     ) : null}
-                  </span>
+                  </div>
                 </li>
               ))}
             </ol>
           )}
 
+          {/* PO 2026-10-06 : le code de la boîte à clés vient sous les sous-étapes. */}
+          {step.kind === 'access' && lodging.keyBoxCode && (
+            <KeyBoxCode
+              code={lodging.keyBoxCode}
+              action={!arrived ? (
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={signalArrival}
+                  className="flex h-11 shrink-0 items-center rounded-full bg-[#DB2777] px-4 text-[14px] font-semibold text-white disabled:opacity-60"
+                >
+                  {m.arrival.imArrived}
+                </button>
+              ) : null}
+            />
+          )}
+
           {step.tip ? (
             <aside className="mt-5 rounded-[14px] border-2 border-pink-600 p-4 text-[14px] leading-[1.5] text-[#111111]">
-              <p className="text-[12px] font-semibold uppercase text-pink-600tracking-[0.06em] ">{m.arrival.tip}</p>
-              <p className="mt-1 text-xs">{step.tip}</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-pink-600">{m.arrival.tip}</p>
+              <div className="mt-1 text-xs [&_p]:text-[#111111]">
+                <GuideDarkMarkdown source={step.tip} />
+              </div>
             </aside>
           ) : null}
 
@@ -303,10 +312,10 @@ function KeyBoxCode({ code, action }: { code: string; action: ReactNode }) {
   const m = useGuideMessages()
 
   return (
-    <div data-testid="guide-key-box-card" className="mt-4 rounded-[22px] bg-[#111111] p-5 text-white">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F9A8D4]">{m.arrival.keyBoxCode}</p>
+    <div data-testid="guide-key-box-card" className="mt-4 rounded-[22px] bg-white shadow-md p-5 text-slate-900">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-pink-600">{m.arrival.keyBoxCode}</p>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <span data-testid="guide-key-box-code" className="font-mono text-[32px] font-semibold tracking-[0.3em]">
+        <span data-testid="guide-key-box-code" className="font-mono text-[22px] font-semibold tracking-[0.3em]">
           {code}
         </span>
         {action}
@@ -318,7 +327,7 @@ function KeyBoxCode({ code, action }: { code: string; action: ReactNode }) {
 export function SignalError() {
   const m = useGuideMessages()
   return (
-    <p role="alert" className="mt-3 text-center text-[13px] text-[#B3261E]">
+    <p role="alert" className="mt-3 text-center text-[13px] text-white">
       {m.arrival.signalError}
     </p>
   )

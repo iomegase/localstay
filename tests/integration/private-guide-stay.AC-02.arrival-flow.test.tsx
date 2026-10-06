@@ -4,6 +4,10 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { GuideArrivalFlow } from '@/features/guide-app/components/stay/GuideArrivalFlow'
 import { buildStayLodging } from '../support/guide-stay-lodging'
 
+jest.mock('@/features/guide-app/components/GuideDarkMarkdown', () => ({
+  GuideDarkMarkdown: ({ source }: { source: string }) => <div data-testid="guide-markdown">{source}</div>,
+}))
+
 function renderFlow(overrides: Partial<Parameters<typeof GuideArrivalFlow>[0]> = {}) {
   const props = {
     lodging: buildStayLodging(),
@@ -79,6 +83,40 @@ describe('054 US-02 — guided arrival', () => {
     const arrivedButtons = screen.getAllByRole('button', { name: 'Je suis arrivé·e !' })
     expect(arrivedButtons).toHaveLength(1)
     expect(screen.getByTestId('guide-key-box-card')).toContainElement(arrivedButtons[0]!)
+  })
+
+  it('PO 2026-10-06 : le code passe sous les sous-étapes, texte centré verticalement sur le chiffre', () => {
+    renderFlow()
+    fireEvent.click(screen.getAllByRole('tab')[1])
+
+    const card = screen.getByTestId('guide-key-box-card')
+    const substep = screen.getAllByTestId('arrival-substep')[0]!
+    expect(substep.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(substep).toHaveClass('items-center')
+    expect(within(substep).getByText('1')).toHaveClass('leading-none')
+  })
+
+  it('PO 2026-10-06 : le markdown est interprété dans les sous-étapes et le conseil', () => {
+    const base = buildStayLodging()
+    const lodging = buildStayLodging({
+      arrivalInstructions: base.arrivalInstructions.map(step => step.kind === 'access'
+        ? { ...step, tip: 'Refermez **bien** le cache.', substeps: [{ title: 'Ouvrez la **boîte**', detail: 'À *gauche* de la porte.' }] }
+        : step),
+    })
+    renderFlow({ lodging })
+    fireEvent.click(screen.getAllByRole('tab')[1])
+
+    // react-markdown est remplacé par un stub en test : on vérifie que ces textes passent par le rendu markdown du guide.
+    const rendered = screen.getAllByTestId('guide-markdown').map(node => node.textContent)
+    expect(rendered).toEqual(expect.arrayContaining(['Ouvrez la **boîte**', 'À *gauche* de la porte.', 'Refermez **bien** le cache.']))
+  })
+
+  it('PO 2026-10-06 : le texte des repères est centré dans leur case', () => {
+    renderFlow()
+    fireEvent.click(screen.getAllByRole('tab')[2])
+    const fact = screen.getAllByTestId('arrival-fact')[0]!
+    expect(fact).toHaveClass('items-center', 'justify-center', 'text-center')
+    expect(fact).toHaveTextContent('−2')
   })
 
   it('sans code, le bouton « Je suis arrivé·e ! » reste sous l’étape', () => {

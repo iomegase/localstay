@@ -142,7 +142,7 @@ export function GuideStayHome<P extends StayPoiCard>({
           className="absolute inset-0 h-full w-full object-cover"
         />
         {/* Spec 084 AC-02 : titre lisible même sur une photo claire (voile léger + ombre du texte). */}
-        <div data-testid="guide-hero-overlay" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0)_50%,rgba(17,17,17,0.35)_100%)]" />
+        <div data-testid="guide-hero-overlay" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0)_20%,rgba(17,17,17,0.35)_50%)]" />
         {/* <span className="absolute left-5 top-6 rounded-full bg-[#DB2777] px-3 py-[7px] text-[11px] font-semibold uppercase tracking-[0.12em]">
           Votre guide de séjour
         </span> */}
@@ -151,14 +151,14 @@ export function GuideStayHome<P extends StayPoiCard>({
           className={`absolute inset-x-5 [text-shadow:0_1px_10px_rgba(0,0,0,0.35)] ${stats.length > 0 ? "bottom-[96px]" : "bottom-6"}`}
         >
           <h1>
-            <span className="block text-[13px] font-normal">
+            <span className="block text-[15px] font-bold">
               {welcome.lead}
             </span>{" "}
             <span className="mt-1 block  text-[52px] font-medium  leading-[0.95] tracking-[-0.04em]">
               {welcome.name}
             </span>
           </h1>
-          <p className="mt-2 text-[13px] text-white/80">{lodging.city}</p>
+          <p className="mt-2 text-[15px] font-extrabold text-white/80">{lodging.city}</p>
         </div>
         {stats.length > 0 && (
           <dl
@@ -171,7 +171,7 @@ export function GuideStayHome<P extends StayPoiCard>({
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="flex flex-row-reverse items-center justify-center gap-2 rounded-2xl bg-[rgba(17,17,17,0.6)] p-3 text-center"
+                className="flex flex-row-reverse items-center justify-center gap-2 rounded-2xl bg-[rgba(17,17,17,0.3)] p-3 text-center"
               >
                 <dt className="text-[11px] text-white/70">
                   <span className="sr-only">{stat.label}</span>
