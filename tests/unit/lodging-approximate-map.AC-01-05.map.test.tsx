@@ -42,11 +42,12 @@ describe('spec 088 — LodgingAreaMap', () => {
   afterAll(() => { process.env.NEXT_PUBLIC_MAPBOX_TOKEN = previousToken })
   beforeEach(() => { mapInstances.length = 0; markerCreated.mockClear() })
 
-  it('AC-01: draws a ~300 m circle around the approximate centre, without marker nor directions', () => {
+  it('AC-01: draws a ~50 m circle around the approximate centre, without marker nor directions', () => {
     render(<LodgingAreaMap location={location} areaLabel="Centre-ville" />)
 
-    expect(screen.getByText('Centre-ville')).toBeInTheDocument()
-    expect(screen.getByText('Emplacement approximatif')).toBeInTheDocument()
+    // Pas de bandeau de légende sous la carte (PO 2026-10-06) : le libellé reste accessible.
+    expect(screen.getByRole('img', { name: 'Zone du logement : Centre-ville' })).toBeInTheDocument()
+    expect(screen.queryByText('Emplacement approximatif')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /itinéraire/i })).not.toBeInTheDocument()
     expect(markerCreated).not.toHaveBeenCalled()
 

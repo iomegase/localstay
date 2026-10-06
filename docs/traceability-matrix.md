@@ -1876,8 +1876,8 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 
 | Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
 |---|---|---|---|---|---|---|
-| 088 | lodging-approximate-map | US-01 | AC-01 cercle ~300 m, sans repère ni itinéraire, légende quartier/ville | src/features/lodging-showcase/components/LodgingAreaMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
-| 088 | lodging-approximate-map | US-01 | AC-02 décalage stable 50–150 m | src/features/lodging-showcase/lib/approximate-location.ts | tests/unit/lodging-approximate-map.AC-02-03.location.test.ts | ✅ |
+| 088 | lodging-approximate-map | US-01 | AC-01 cercle ~50 m, sans repère, itinéraire ni bandeau de légende | src/features/lodging-showcase/components/LodgingAreaMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
+| 088 | lodging-approximate-map | US-01 | AC-02 décalage stable 15–35 m | src/features/lodging-showcase/lib/approximate-location.ts | tests/unit/lodging-approximate-map.AC-02-03.location.test.ts | ✅ |
 | 088 | lodging-approximate-map | US-01 | AC-03 aucune coordonnée exacte transmise | src/features/lodging-showcase/queries/public-lodgings.ts, src/app/api/cities/[slug]/lodgings/[lodgingSlug]/route.ts | tests/contract/lodging-approximate-map.AC-03-04.api.test.ts | ✅ |
 | 088 | lodging-approximate-map | US-01 | AC-04 pas de carte sans adresse géocodée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/contract/lodging-approximate-map.AC-03-04.api.test.ts, tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
 | 088 | lodging-approximate-map | US-01 | AC-05 carte précise conservée si publiée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |

@@ -27,9 +27,9 @@ logement (page Guide) est géocodée (055) mais reste privée.
 ## User Stories
 
 - **AC-01**: Given un logement dont l'adresse est géocodée, When sa fiche publique s'affiche, Then
-  une petite carte « Situer le logement » montre un cercle d'environ 300 m (sans repère exact ni
-  itinéraire), avec le quartier affiché ou la ville en légende.
-- **AC-02**: Given le centre du cercle, When il est calculé, Then il est décalé de 50 à 150 m de
+  une petite carte « Situer le logement » montre un cercle d'environ 50 m (sans repère exact ni
+  itinéraire), sans bandeau de légende sous la carte (révision PO 2026-10-06 ; quartier/ville en libellé accessible).
+- **AC-02**: Given le centre du cercle, When il est calculé, Then il est décalé de 15 à 35 m (révision PO 2026-10-06 : cercle réduit à 50 m) de
   la position réelle, de façon stable pour un logement donné (recharger la page ne le déplace pas).
 - **AC-03**: Given les coordonnées exactes, When la fiche ou l'API publique répondent, Then elles
   ne sont jamais transmises (seul le centre décalé, arrondi à 4 décimales, l'est).

@@ -334,11 +334,11 @@ describe('lodging showcase public pages', () => {
       return { area, directions }
     }
 
-    expect(await renderDetail({ approximate_location: { latitude: 45.9, longitude: 6.13, radius_m: 300 } }))
+    expect(await renderDetail({ approximate_location: { latitude: 45.9, longitude: 6.13, radius_m: 50 } }))
       .toEqual({ area: true, directions: false })
     expect(await renderDetail({ approximate_location: null })).toEqual({ area: false, directions: false })
     expect(await renderDetail({
-      approximate_location: { latitude: 45.9, longitude: 6.13, radius_m: 300 },
+      approximate_location: { latitude: 45.9, longitude: 6.13, radius_m: 50 },
       precise_location_public: true,
       public_latitude: 45.9,
       public_longitude: 6.13,

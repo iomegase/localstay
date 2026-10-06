@@ -21,7 +21,7 @@ export function LodgingAreaMap({ location, areaLabel }: { location: ApproximateL
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [location.longitude, location.latitude],
-      zoom: 14,
+      zoom: 16,
       // BR-01 : la page défile, la carte ne capte pas la molette.
       scrollZoom: false,
       attributionControl: true,
@@ -51,10 +51,6 @@ export function LodgingAreaMap({ location, areaLabel }: { location: ApproximateL
       </h2>
       <div className="relative h-[260px] w-full overflow-hidden rounded-[24px] shadow-sm">
         <div ref={containerRef} className="absolute inset-0 h-full w-full" aria-label={`Zone du logement : ${areaLabel}`} role="img" />
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] flex items-center justify-between gap-3 bg-white/90 px-4 py-3 backdrop-blur-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">{areaLabel}</span>
-          <span className="text-[11px] text-slate-500">Emplacement approximatif</span>
-        </div>
       </div>
     </section>
   )

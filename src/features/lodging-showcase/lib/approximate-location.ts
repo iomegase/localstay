@@ -2,9 +2,10 @@
 
 export type ApproximateLocation = { latitude: number; longitude: number; radius_m: number }
 
-export const APPROXIMATE_RADIUS_M = 300
-const MIN_OFFSET_M = 50
-const MAX_OFFSET_M = 150
+export const APPROXIMATE_RADIUS_M = 50
+// Décalage + arrondi (≈ 8 m) restent sous le rayon : le logement est toujours dans le cercle.
+const MIN_OFFSET_M = 15
+const MAX_OFFSET_M = 35
 const EARTH_RADIUS_M = 6_371_000
 
 // Hachage FNV-1a : décalage stable pour un logement donné (AC-02).
@@ -19,7 +20,7 @@ function hash(text: string): number {
 
 const round4 = (value: number) => Math.round(value * 10_000) / 10_000
 
-/** Spec 088 AC-02 / AC-03 : centre décalé de 50 à 150 m, arrondi à 4 décimales. */
+/** Spec 088 AC-02 / AC-03 : centre décalé de 15 à 35 m, arrondi à 4 décimales. */
 export function approximateLodgingLocation(
   lodgingId: string,
   latitude: number | null | undefined,

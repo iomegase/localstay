@@ -4,14 +4,14 @@ import { approximateLodgingLocation, distanceMeters } from '@/features/lodging-s
 describe('088 AC-02 / AC-03 — zone approximative', () => {
   const exact = { latitude: 45.89227, longitude: 6.712007 }
 
-  it('décalage de 50 à 150 m, stable pour un même logement', () => {
+  it('décalage de 15 à 35 m, stable pour un même logement', () => {
     const first = approximateLodgingLocation('lodging-305', exact.latitude, exact.longitude)!
     const second = approximateLodgingLocation('lodging-305', exact.latitude, exact.longitude)!
     expect(first).toEqual(second)
     const offset = distanceMeters(exact, first)
-    expect(offset).toBeGreaterThanOrEqual(45)
-    expect(offset).toBeLessThanOrEqual(155)
-    expect(first.radius_m).toBe(300)
+    expect(offset).toBeGreaterThanOrEqual(8)
+    expect(offset).toBeLessThanOrEqual(43)
+    expect(first.radius_m).toBe(50)
   })
 
   it('décalage différent selon le logement', () => {
@@ -32,7 +32,7 @@ describe('088 AC-02 / AC-03 — zone approximative', () => {
     expect(approximateLodgingLocation('x', 45.9, null)).toBeNull()
   })
 
-  it('le cercle de 300 m contient toujours la position réelle', () => {
+  it('le cercle de 50 m contient toujours la position réelle', () => {
     for (const id of ['a', 'b', 'c', 'd', 'e', 'f']) {
       const zone = approximateLodgingLocation(id, exact.latitude, exact.longitude)!
       expect(distanceMeters(exact, zone)).toBeLessThan(zone.radius_m)

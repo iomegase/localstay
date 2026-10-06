@@ -60,7 +60,7 @@ describe('spec 088 — approximate_location in the public lodging detail', () =>
     mockFindFirstProfile.mockResolvedValue(profile({ lodging_latitude: 45.899247, lodging_longitude: 6.129384 }))
     const json = await fetchDetail()
 
-    expect(json.approximate_location).toEqual({ latitude: expect.any(Number), longitude: expect.any(Number), radius_m: 300 })
+    expect(json.approximate_location).toEqual({ latitude: expect.any(Number), longitude: expect.any(Number), radius_m: 50 })
     expect(json.approximate_location.latitude).not.toBe(45.899247)
     const body = JSON.stringify(json)
     expect(body).not.toContain('45.899247')
