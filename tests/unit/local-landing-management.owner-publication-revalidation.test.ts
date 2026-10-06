@@ -1,6 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { confirmContentRights, saveGeneratedRewrite, saveSourceListingUrl, submitOwnerPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
+import { saveGeneratedRewrite, submitOwnerPublicProfile } from '@/features/lodging-showcase/queries/owner-public-profile'
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 jest.mock('@/shared/lib/prisma', () => ({ prisma: {
   lodging: { findFirst: jest.fn() },
@@ -26,8 +26,6 @@ describe('048 owner mutations removing lodging publication', () => {
 
   it.each([
     ['review', () => submitOwnerPublicProfile('owner-1', 'lodging-1')],
-    ['source URL', () => saveSourceListingUrl('owner-1', 'lodging-1', { source_listing_url: 'https://www.airbnb.fr/rooms/123' })],
-    ['rights confirmation', () => confirmContentRights('owner-1', 'lodging-1', 'v1')],
     ['rewrite draft', () => saveGeneratedRewrite('owner-1', 'lodging-1', {
       sourceDescriptionText: 'Description fournie par le propriétaire',
       rewriteSuggestion: { short_description: 'Court', description: 'Long', seo_title: 'Titre', seo_description: 'Description' },

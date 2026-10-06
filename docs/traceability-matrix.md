@@ -1799,3 +1799,11 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-01-01..02 | Page en veille sans erreur ni lecture de la base ; entrée de menu masquée | `src/app/(dashboard)/dashboard/subscription/page.tsx`<br>`src/app/(dashboard)/layout.tsx` | `tests/integration/owner-subscription-standby.AC-01.page.test.tsx` | ✅ done |
+
+## 079 — Page « Logement » propriétaire : refonte et simplification
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01..03 / BR-01 | Droits contenus retirés (UI, complétude, route) — colonnes conservées | `src/features/lodging-showcase/lib/completeness.ts`<br>`src/features/lodging-showcase/queries/owner-public-profile.ts`<br>`src/features/lodging-showcase/queries/admin-public-profiles.ts`<br>`src/features/lodging-showcase/schemas.ts` | `tests/unit/lodging-showcase.completeness.test.ts`<br>`tests/unit/owner-lodging-page-ui.showcase-form.test.ts`<br>`tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx` | ✅ done |
+| AC-02-01..02 | Un seul « Lien de réservation », pré-rempli par l'ancienne URL d'annonce ; route source-url retirée | `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx`<br>`tests/unit/owner-lodging-page-ui.showcase-form.test.ts` | ✅ done |
+| AC-03-01..04 / BR-03 | Sections + sommaire, compteurs SEO, barre de statut, champs manquants en français, lien fiche publique, mode admin | `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx`<br>`src/features/lodging-showcase/lib/showcase-form.ts`<br>`src/app/(dashboard)/dashboard/lodgings/[id]/showcase/page.tsx` | `tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx`<br>`tests/integration/lodging-showcase.owner-page.test.tsx`<br>`tests/integration/lodging-showcase.AC-05-13-15.photo-editor.test.tsx` | ✅ done |

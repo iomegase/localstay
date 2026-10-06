@@ -5,8 +5,6 @@ const mockGetSessionOwner = jest.fn()
 const mockGetOwnerPublicProfile = jest.fn()
 const mockSaveOwnerPublicProfile = jest.fn()
 const mockSubmitOwnerPublicProfile = jest.fn()
-const mockSaveSourceListingUrl = jest.fn()
-const mockConfirmContentRights = jest.fn()
 const mockCreateLodgingPhoto = jest.fn()
 const mockDeleteOwnerLodgingPhoto = jest.fn()
 const mockSetOwnerCoverPhoto = jest.fn()
@@ -23,8 +21,6 @@ jest.mock('@/features/lodging-showcase/queries/owner-public-profile', () => ({
   getOwnerPublicProfile: (...args: unknown[]) => mockGetOwnerPublicProfile(...args),
   saveOwnerPublicProfile: (...args: unknown[]) => mockSaveOwnerPublicProfile(...args),
   submitOwnerPublicProfile: (...args: unknown[]) => mockSubmitOwnerPublicProfile(...args),
-  saveSourceListingUrl: (...args: unknown[]) => mockSaveSourceListingUrl(...args),
-  confirmContentRights: (...args: unknown[]) => mockConfirmContentRights(...args),
   createLodgingPhoto: (...args: unknown[]) => mockCreateLodgingPhoto(...args),
   deleteOwnerLodgingPhoto: (...args: unknown[]) => mockDeleteOwnerLodgingPhoto(...args),
   setOwnerCoverPhoto: (...args: unknown[]) => mockSetOwnerCoverPhoto(...args),
@@ -42,8 +38,6 @@ jest.mock('@/features/lodging-showcase/services/gemini-rewrite', () => ({
 
 import { GET, PUT } from '@/app/api/dashboard/lodgings/[id]/public-profile/route'
 import { POST as SUBMIT_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/submit/route'
-import { POST as SOURCE_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/source-url/route'
-import { POST as RIGHTS_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/rights-confirmation/route'
 import { POST as PHOTOS_POST } from '@/app/api/dashboard/lodgings/[id]/public-profile/photos/route'
 import {
   DELETE as PHOTO_DELETE,
@@ -256,7 +250,7 @@ describe('028 owner lodging showcase API', () => {
       ok: false,
       code: 'PROFILE_INCOMPLETE',
       status: 400,
-      missingFields: ['content_rights_confirmation', 'photos'],
+      missingFields: ['photos'],
     })
 
     const res = await SUBMIT_POST(
@@ -268,89 +262,12 @@ describe('028 owner lodging showcase API', () => {
     await expect(res.json()).resolves.toMatchObject({
       error: {
         code: 'PROFILE_INCOMPLETE',
-        details: { missingFields: ['content_rights_confirmation', 'photos'] },
+        details: { missingFields: ['photos'] },
       },
     })
   })
 
-  it('AC-05-06: detects Airbnb URL without fetching the platform', async () => {
-    const fetchSpy = jest.spyOn(global, 'fetch')
-    mockSaveSourceListingUrl.mockResolvedValue({
-      source_listing_url: 'https://www.airbnb.fr/rooms/123456789',
-      source_listing_platform: 'airbnb',
-      source_listing_identifier: '123456789',
-      source_metadata_status: 'url_only',
-    })
-
-    const res = await SOURCE_POST(
-      jsonRequest(
-        'http://localhost/api/dashboard/lodgings/lodging-1/public-profile/source-url',
-        'POST',
-        { source_listing_url: 'https://www.airbnb.fr/rooms/123456789' },
-      ),
-      { params: Promise.resolve({ id: 'lodging-1' }) },
-    )
-
-    expect(res.status).toBe(200)
-    expect(fetchSpy).not.toHaveBeenCalled()
-    await expect(res.json()).resolves.toMatchObject({
-      source_listing_platform: 'airbnb',
-      source_listing_identifier: '123456789',
-      source_metadata_status: 'url_only',
-    })
-    fetchSpy.mockRestore()
-  })
-
-  it('AC-05-07: rejects invalid external source urls', async () => {
-    const res = await SOURCE_POST(
-      jsonRequest(
-        'http://localhost/api/dashboard/lodgings/lodging-1/public-profile/source-url',
-        'POST',
-        { source_listing_url: 'http://example.com/listing/1' },
-      ),
-      { params: Promise.resolve({ id: 'lodging-1' }) },
-    )
-
-    expect(res.status).toBe(400)
-    expect(mockSaveSourceListingUrl).not.toHaveBeenCalled()
-    await expect(res.json()).resolves.toMatchObject({
-      error: { code: 'VALIDATION_ERROR' },
-    })
-  })
-
-  it('AC-05-08: records rights confirmation for imported content', async () => {
-    mockConfirmContentRights.mockResolvedValue({
-      content_rights_confirmed_at: '2026-06-12T10:00:00.000Z',
-    })
-
-    const res = await RIGHTS_POST(
-      jsonRequest(
-        'http://localhost/api/dashboard/lodgings/lodging-1/public-profile/rights-confirmation',
-        'POST',
-        { confirmed: true, statement_version: 'v1' },
-      ),
-      { params: Promise.resolve({ id: 'lodging-1' }) },
-    )
-
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({
-      content_rights_confirmed_at: '2026-06-12T10:00:00.000Z',
-    })
-  })
-
-  it('returns 400 when rights confirmation payload is invalid', async () => {
-    const res = await RIGHTS_POST(
-      jsonRequest(
-        'http://localhost/api/dashboard/lodgings/lodging-1/public-profile/rights-confirmation',
-        'POST',
-        { confirmed: false, statement_version: '' },
-      ),
-      { params: Promise.resolve({ id: 'lodging-1' }) },
-    )
-
-    expect(res.status).toBe(400)
-    expect(mockConfirmContentRights).not.toHaveBeenCalled()
-  })
+  // Spec 079 : routes source-url et rights-confirmation supprimées (028 AC-05-06..08 caducs).
 
   it('AC-05-09: rejects unsupported image mime types before storage', async () => {
     const formData = new FormData()

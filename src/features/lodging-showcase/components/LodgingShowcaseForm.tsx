@@ -1,12 +1,12 @@
 'use client'
 
 import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent, type CollisionDetection } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
+import { Plus, Sparkles, Trash2 } from 'lucide-react'
 import { SortablePhotoCard } from './SortablePhotoCard'
 import { Button } from '@/shared/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { MarkdownHint } from '@/shared/components/MarkdownHint'
@@ -17,6 +17,16 @@ import { buildPhotoCategoryOptions } from '../lib/photo-categories'
 import { uploadPhotos } from '../lib/upload-photos'
 import { PhotoCategorySelect } from './PhotoCategorySelect'
 import { publicLodgingPath, publicLodgingsPath } from '../lib/public-paths'
+import {
+  lengthInRange,
+  missingFieldLabel,
+  publicationStatusLabel,
+  SEO_DESCRIPTION_RANGE,
+  SEO_TITLE_RANGE,
+  SHOWCASE_SECTIONS,
+  showcaseDraftSnapshot,
+  type ShowcaseSectionId,
+} from '../lib/showcase-form'
 import type { OwnerLodgingPublicProfileDto } from '../types'
 
 const photoCollisionDetection: CollisionDetection = args => {
@@ -50,7 +60,7 @@ const FIELD_LABELS: Record<string, string> = {
   bed_count: 'Lits',
   surface_m2: 'Surface m2',
   public_area_label: 'Zone de localisation publique',
-  external_booking_url: 'URL de reservation',
+  external_booking_url: 'Lien de réservation',
   seo_title: 'SEO title',
   seo_description: 'SEO description',
   source_description_text: 'Texte source Owner',
@@ -67,11 +77,52 @@ function formatFieldErrors(fieldErrors?: Record<string, string[]>) {
 function amenityCode(label: string): string {
   return label
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 64)
+}
+
+/** Spec 079 AC-03-01 : section numérotée (même présentation que la page Guide). */
+function Section({ id, children }: { id: ShowcaseSectionId; children: ReactNode }) {
+  const index = SHOWCASE_SECTIONS.findIndex(section => section.id === id)
+  const section = SHOWCASE_SECTIONS[index]!
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 space-y-4">
+      <header className="flex items-start gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0B1437] text-sm font-bold text-white">{index + 1}</span>
+        <div>
+          <h2 id={`${id}-title`} className="text-lg font-bold text-neutral-900">{section.title}</h2>
+          <p className="text-xs text-gray-500">{section.description}</p>
+        </div>
+      </header>
+      {children}
+    </section>
+  )
+}
+
+function Panel({ title, description, children }: { title?: string; description?: string; children: ReactNode }) {
+  return (
+    <div className="rounded-[20px] border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+      {title ? (
+        <div className="mb-4">
+          <h3 className="text-sm font-bold text-neutral-900">{title}</h3>
+          {description ? <p className="mt-0.5 text-xs text-gray-500">{description}</p> : null}
+        </div>
+      ) : null}
+      {children}
+    </div>
+  )
+}
+
+function Counter({ value, range, testId }: { value: string; range: { min: number; max: number }; testId: string }) {
+  const ok = lengthInRange(value, range)
+  return (
+    <span data-testid={testId} className={`text-[11px] font-semibold tabular-nums ${ok ? 'text-gray-400' : 'text-amber-600'}`}>
+      {value.trim().length} · {range.min}–{range.max}
+    </span>
+  )
 }
 
 export function LodgingShowcaseForm(props: {
@@ -82,10 +133,11 @@ export function LodgingShowcaseForm(props: {
   const apiBase = props.mode === 'admin'
     ? `/api/admin/lodgings/${props.lodgingId}`
     : `/api/dashboard/lodgings/${props.lodgingId}`
-  const [profile, setProfile] = useState(props.initialProfile)
-  const [sourceUrl, setSourceUrl] = useState(props.initialProfile.source_listing_url ?? '')
-  const [rightsConfirmed, setRightsConfirmed] = useState(Boolean(props.initialProfile.content_rights_confirmed_at))
-  const [rightsVersion, setRightsVersion] = useState(props.initialProfile.content_rights_statement_version ?? 'v1')
+  // Spec 079 AC-02-02 : un seul lien de réservation, pré-rempli par l'ancienne URL d'annonce.
+  const [profile, setProfile] = useState(() => ({
+    ...props.initialProfile,
+    external_booking_url: props.initialProfile.external_booking_url ?? props.initialProfile.source_listing_url ?? null,
+  }))
   const [selectedAmenityCodes, setSelectedAmenityCodes] = useState<Set<string>>(
     () => new Set((props.initialProfile.amenities ?? []).filter(a => AMENITY_CATALOG_CODES.has(a.code)).map(a => a.code)),
   )
@@ -109,6 +161,20 @@ export function LodgingShowcaseForm(props: {
   const [photoAlt, setPhotoAlt] = useState('')
   const [photoCategory, setPhotoCategory] = useState('common_area')
   const [photoActionId, setPhotoActionId] = useState<string | null>(null)
+
+  // Spec 079 AC-03-02 : modifications non enregistrées (les photos sont enregistrées à chaque action,
+  // seules leurs descriptions passent par le brouillon).
+  const snapshot = showcaseDraftSnapshot({ profile, amenityCodes: selectedAmenityCodes, otherAmenitiesText, faqRows })
+  const [savedSnapshot, setSavedSnapshot] = useState(snapshot)
+  const [photoAltsEdited, setPhotoAltsEdited] = useState(false)
+  const dirty = snapshot !== savedSnapshot || photoAltsEdited
+
+  useEffect(() => {
+    if (!dirty) return
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault() }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [dirty])
 
   const photosBusy = uploadProgress !== null || status === 'saving' || photoActionId !== null
   const photoCategoryOptions = buildPhotoCategoryOptions(profile.bedroom_count, profile.bathroom_count)
@@ -153,64 +219,6 @@ export function LodgingShowcaseForm(props: {
       else next.add(code)
       return next
     })
-  }
-
-  async function saveSourceListing() {
-    setStatus('saving')
-    setMessage(null)
-    setValidationErrors([])
-
-    const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/source-url`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source_listing_url: sourceUrl }),
-    })
-
-    const payload = await res.json().catch(() => null) as Record<string, unknown> | null
-    if (!res.ok) {
-      setStatus('error')
-      setMessage((payload?.error as { message?: string } | undefined)?.message ?? 'URL source invalide.')
-      return
-    }
-
-    setProfile(current => ({
-      ...current,
-      source_listing_url: String(payload?.source_listing_url ?? sourceUrl),
-      source_listing_platform: (payload?.source_listing_platform as OwnerLodgingPublicProfileDto['source_listing_platform']) ?? null,
-      source_listing_identifier: (payload?.source_listing_identifier as string | null | undefined) ?? null,
-      source_metadata_status: (payload?.source_metadata_status as OwnerLodgingPublicProfileDto['source_metadata_status']) ?? current.source_metadata_status,
-    }))
-    setStatus('saved')
-    setMessage('URL source enregistree.')
-  }
-
-  async function confirmRights() {
-    if (!rightsConfirmed) return
-
-    setStatus('saving')
-    setMessage(null)
-    setValidationErrors([])
-
-    const res = await fetch(`/api/dashboard/lodgings/${props.lodgingId}/public-profile/rights-confirmation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirmed: true, statement_version: rightsVersion }),
-    })
-
-    const payload = await res.json().catch(() => null) as Record<string, unknown> | null
-    if (!res.ok) {
-      setStatus('error')
-      setMessage((payload?.error as { message?: string } | undefined)?.message ?? 'Confirmation impossible.')
-      return
-    }
-
-    setProfile(current => ({
-      ...current,
-      content_rights_confirmed_at: String(payload?.content_rights_confirmed_at ?? current.content_rights_confirmed_at),
-      content_rights_statement_version: rightsVersion,
-    }))
-    setStatus('saved')
-    setMessage('Confirmation des droits enregistree.')
   }
 
   async function uploadPhoto() {
@@ -440,18 +448,19 @@ export function LodgingShowcaseForm(props: {
     }
 
     const savedProfile = payload as OwnerLodgingPublicProfileDto
-    setProfile(savedProfile)
     const savedAmenities = (savedProfile.amenities as OwnerLodgingPublicProfileDto['amenities'] | undefined) ?? []
-    setSelectedAmenityCodes(new Set(savedAmenities.filter(a => AMENITY_CATALOG_CODES.has(a.code)).map(a => a.code)))
-    setOtherAmenitiesText(
-      savedAmenities.filter(a => !AMENITY_CATALOG_CODES.has(a.code)).map(a => a.label).join(', '),
-    )
-    setFaqRows(
-      ((savedProfile.faq as OwnerLodgingPublicProfileDto['faq'] | undefined) ?? []).map(item => ({
-        question: item.question,
-        answer: item.answer,
-      })),
-    )
+    const nextAmenityCodes = new Set(savedAmenities.filter(a => AMENITY_CATALOG_CODES.has(a.code)).map(a => a.code))
+    const nextOtherAmenities = savedAmenities.filter(a => !AMENITY_CATALOG_CODES.has(a.code)).map(a => a.label).join(', ')
+    const nextFaq = ((savedProfile.faq as OwnerLodgingPublicProfileDto['faq'] | undefined) ?? []).map(item => ({
+      question: item.question,
+      answer: item.answer,
+    }))
+    setProfile(savedProfile)
+    setSelectedAmenityCodes(nextAmenityCodes)
+    setOtherAmenitiesText(nextOtherAmenities)
+    setFaqRows(nextFaq)
+    setSavedSnapshot(showcaseDraftSnapshot({ profile: savedProfile, amenityCodes: nextAmenityCodes, otherAmenitiesText: nextOtherAmenities, faqRows: nextFaq }))
+    setPhotoAltsEdited(false)
     setStatus('saved')
     setMessage('Brouillon sauvegarde.')
   }
@@ -538,81 +547,55 @@ export function LodgingShowcaseForm(props: {
     setMessage('Le brouillon MyStay a ete applique localement. Sauvegardez ensuite le draft.')
   }
 
+  const isOwner = props.mode !== 'admin'
+  const saveState = dirty ? 'Modifications non enregistrées' : 'Toutes les modifications sont enregistrées.'
+
   return (
-    <fieldset disabled={uploadProgress !== null || photoActionId !== null} className="min-w-0 space-y-6 pb-20">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
-          {props.mode !== 'admin' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Annonce externe</CardTitle>
-                <CardDescription>
-                  MyStay ne copie pas automatiquement les photos ou textes Airbnb. Importez uniquement des contenus dont vous possedez les droits.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="source-listing-url">URL Airbnb ou Booking</Label>
-                  <Input
-                    id="source-listing-url"
-                    value={sourceUrl}
-                    onChange={event => setSourceUrl(event.target.value)}
-                    placeholder="https://www.airbnb.fr/rooms/123456789"
-                  />
-                </div>
-                <Button type="button" variant="outline" onClick={saveSourceListing}>
-                  Enregistrer l URL source
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+    <fieldset disabled={uploadProgress !== null || photoActionId !== null} className="min-w-0 pb-32 lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-8">
+      {/* Spec 079 AC-03-01 : sommaire fixe. */}
+      <nav aria-label="Sommaire du logement" className="mb-6 lg:mb-0">
+        <ol className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible">
+          {SHOWCASE_SECTIONS.map((section, index) => (
+            <li key={section.id} className="shrink-0">
+              <a href={`#${section.id}`} className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[13px] font-semibold text-gray-600 transition hover:border-[#0B1437]/30 hover:text-neutral-900 lg:rounded-xl lg:border-transparent lg:bg-transparent lg:px-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#F4F7FE] text-[11px] font-bold text-[#0B1437]">{index + 1}</span>
+                {section.title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
-          {props.mode !== 'admin' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Droits contenus</CardTitle>
-                <CardDescription>
-                  La confirmation est obligatoire avant toute soumission en review si vous reutilisez des textes ou photos importes.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <label className="flex items-start gap-3 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={rightsConfirmed}
-                    onChange={event => setRightsConfirmed(event.target.checked)}
-                    className="mt-1 h-4 w-4"
-                  />
-                  <span>Je confirme posseder les droits de diffusion sur les textes, photos et informations importes dans MyStay.</span>
-                </label>
-                <div className="space-y-2">
-                  <Label htmlFor="rights-version">Version de declaration</Label>
-                  <Input
-                    id="rights-version"
-                    value={rightsVersion}
-                    onChange={event => setRightsVersion(event.target.value)}
-                  />
-                </div>
-                <Button type="button" variant="outline" onClick={confirmRights} disabled={!rightsConfirmed}>
-                  Enregistrer la confirmation
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+      <div className="min-w-0 space-y-10">
+        {(missingFields.length > 0 || validationErrors.length > 0) && (
+          <div role="alert" className="space-y-3 rounded-[20px] border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+            {missingFields.length > 0 && (
+              <div>
+                <p className="font-semibold">À compléter avant la demande de publication</p>
+                <ul className="mt-2 list-disc pl-5">
+                  {missingFields.map(field => <li key={field}>{missingFieldLabel(field)}</li>)}
+                </ul>
+              </div>
+            )}
+            {validationErrors.length > 0 && (
+              <div>
+                <p className="font-semibold">Erreurs a corriger dans le brouillon</p>
+                <ul className="mt-2 list-disc pl-5">
+                  {validationErrors.map(error => <li key={error}>{error}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Presentation publique</CardTitle>
-              <CardDescription>
-                Renseignez les contenus visibles sur la fiche publique MyStay.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+        <Section id="presentation">
+          <Panel>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
                 <Label htmlFor="showcase-title">Titre</Label>
                 <Input id="showcase-title" value={profile.title} onChange={event => setField('title', event.target.value)} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="showcase-short-description">Description courte</Label>
                 <Textarea
                   id="showcase-short-description"
@@ -620,10 +603,9 @@ export function LodgingShowcaseForm(props: {
                   onChange={event => setField('short_description', event.target.value)}
                   rows={3}
                 />
-                <p className="text-xs text-gray-500">Markdown accepté · sans limite de caractères.</p>
-                <MarkdownHint />
+                <p className="text-[11px] text-gray-400">Affichée sur les cartes et en tête de fiche.</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="showcase-description">Description principale</Label>
                 <Textarea
                   id="showcase-description"
@@ -631,21 +613,24 @@ export function LodgingShowcaseForm(props: {
                   onChange={event => setField('description', event.target.value)}
                   rows={8}
                 />
-                <MarkdownHint />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="source-description-text">Texte source Owner</Label>
+              <MarkdownHint />
+            </div>
+          </Panel>
+          {isOwner && (
+            <Panel title="Rédaction assistée" description="Collez votre texte (annonce, notes…) : MyStay propose une version optimisée, à vérifier avant de l’appliquer.">
+              <div className="space-y-3">
+                <Label htmlFor="source-description-text" className="sr-only">Texte source</Label>
                 <Textarea
                   id="source-description-text"
                   value={profile.source_description_text ?? ''}
                   onChange={event => setField('source_description_text', event.target.value)}
-                  rows={6}
+                  rows={5}
+                  placeholder="Votre description, 80 caractères minimum"
                 />
-              </div>
-              {props.mode !== 'admin' && (
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   <Button type="button" variant="outline" onClick={requestRewrite}>
-                    Proposer une version MyStay
+                    <Sparkles aria-hidden="true" />Proposer une version MyStay
                   </Button>
                   {profile.rewrite_suggestion && (
                     <Button type="button" variant="outline" onClick={applyRewriteSuggestion}>
@@ -653,145 +638,101 @@ export function LodgingShowcaseForm(props: {
                     </Button>
                   )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Caracteristiques et equipements</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="property-type">Type</Label>
-                <Input id="property-type" value={profile.property_type} onChange={event => setField('property_type', event.target.value)} />
               </div>
-              <div className="space-y-2">
+            </Panel>
+          )}
+        </Section>
+
+        <Section id="caracteristiques">
+          <Panel>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                <Label htmlFor="property-type">Type</Label>
+                <Input id="property-type" value={profile.property_type} onChange={event => setField('property_type', event.target.value)} placeholder="Appartement, chalet…" />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="max-guests">Voyageurs max</Label>
                 <Input id="max-guests" type="number" min={1} value={String(profile.max_guests)} onChange={event => setField('max_guests', Number(event.target.value) || 1)} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="bedroom-count">Chambres</Label>
-                <Input id="bedroom-count" type="number" min={0} value={profile.bedroom_count ?? ''} onChange={event => setField('bedroom_count', event.target.value === '' ? null : Number(event.target.value))} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bathroom-count">Salles de bain</Label>
-                <Input id="bathroom-count" type="number" min={0} value={profile.bathroom_count ?? ''} onChange={event => setField('bathroom_count', event.target.value === '' ? null : Number(event.target.value))} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bed-count">Lits</Label>
-                <Input id="bed-count" type="number" min={0} value={profile.bed_count ?? ''} onChange={event => setField('bed_count', event.target.value === '' ? null : Number(event.target.value))} />
-              </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="surface-m2">Surface m2</Label>
                 <Input id="surface-m2" type="number" min={1} value={profile.surface_m2 ?? ''} onChange={event => setField('surface_m2', event.target.value === '' ? null : Number(event.target.value))} />
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="bedroom-count">Chambres</Label>
+                <Input id="bedroom-count" type="number" min={0} value={profile.bedroom_count ?? ''} onChange={event => setField('bedroom_count', event.target.value === '' ? null : Number(event.target.value))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="bathroom-count">Salles de bain</Label>
+                <Input id="bathroom-count" type="number" min={0} value={profile.bathroom_count ?? ''} onChange={event => setField('bathroom_count', event.target.value === '' ? null : Number(event.target.value))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="bed-count">Lits</Label>
+                <Input id="bed-count" type="number" min={0} value={profile.bed_count ?? ''} onChange={event => setField('bed_count', event.target.value === '' ? null : Number(event.target.value))} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
                 <Label htmlFor="public-area-label">Zone de localisation publique</Label>
-                <Input id="public-area-label" value={profile.public_area_label ?? ''} onChange={event => setField('public_area_label', event.target.value)} placeholder="Annecy-le-Vieux, centre historique, hameau..." />
+                <Input id="public-area-label" value={profile.public_area_label ?? ''} onChange={event => setField('public_area_label', event.target.value)} placeholder="Centre du village, hameau du Bettex…" />
+                <p className="text-[11px] text-gray-400">L’adresse exacte n’est jamais affichée.</p>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label>Équipements (compris dans le séjour)</Label>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-                  {AMENITY_CATALOG.filter(item => item.availability === 'included').map(item => (
-                    <label key={item.code} className="flex items-center gap-2 text-sm text-charcoal">
-                      <input
-                        type="checkbox"
-                        checked={selectedAmenityCodes.has(item.code)}
-                        onChange={() => toggleAmenity(item.code)}
-                        className="h-4 w-4 rounded border-gray-300 text-[#003A5D] focus:ring-[#003A5D]"
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label>Services (sur demande)</Label>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-                  {AMENITY_CATALOG.filter(item => item.availability === 'on_request').map(item => (
-                    <label key={item.code} className="flex items-center gap-2 text-sm text-charcoal">
-                      <input
-                        type="checkbox"
-                        checked={selectedAmenityCodes.has(item.code)}
-                        onChange={() => toggleAmenity(item.code)}
-                        className="h-4 w-4 rounded border-gray-300 text-[#003A5D] focus:ring-[#003A5D]"
-                      />
-                      {item.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="other-amenities">Autres équipements</Label>
-                <Textarea
-                  id="other-amenities"
-                  value={otherAmenitiesText}
-                  onChange={event => setOtherAmenitiesText(event.target.value)}
-                  rows={2}
-                  placeholder="Tout ce qui n'est pas dans la liste, séparé par des virgules"
-                />
-              </div>
-              <div className="space-y-3 md:col-span-2">
-                <Label>FAQ</Label>
-                {faqRows.map((row, index) => (
-                  <div key={index} className="space-y-2 rounded-md border border-gray-200 p-3">
-                    <Input
-                      value={row.question}
-                      onChange={event =>
-                        setFaqRows(rows => rows.map((r, i) => (i === index ? { ...r, question: event.target.value } : r)))
-                      }
-                      placeholder="Question"
-                    />
-                    <Textarea
-                      value={row.answer}
-                      onChange={event =>
-                        setFaqRows(rows => rows.map((r, i) => (i === index ? { ...r, answer: event.target.value } : r)))
-                      }
-                      rows={2}
-                      placeholder="Reponse"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setFaqRows(rows => rows.filter((_, i) => i !== index))}
-                      className="text-xs text-red-600"
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setFaqRows(rows => [...rows, { question: '', answer: '' }])}
-                  className="text-sm font-medium text-[#003A5D]"
-                >
-                  + Ajouter une question
-                </button>
-              </div>
-              <label className="md:col-span-2 flex items-center gap-3 text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={profile.public_contact_enabled}
-                  onChange={event => setField('public_contact_enabled', event.target.checked)}
-                  className="h-4 w-4"
-                />
-                Activer le contact public sur la fiche logement
-              </label>
-            </CardContent>
-          </Card>
+            </div>
+          </Panel>
+        </Section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Photos</CardTitle>
-              <CardDescription>Televersement manuel depuis votre ordinateur uniquement.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
-                <div className="space-y-2">
+        <Section id="equipements">
+          <Panel title="Compris dans le séjour">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-3">
+              {AMENITY_CATALOG.filter(item => item.availability === 'included').map(item => (
+                <label key={item.code} className="flex items-center gap-2 text-sm text-neutral-800">
+                  <input
+                    type="checkbox"
+                    checked={selectedAmenityCodes.has(item.code)}
+                    onChange={() => toggleAmenity(item.code)}
+                    className="h-4 w-4 accent-[#0B1437]"
+                  />
+                  {item.label}
+                </label>
+              ))}
+            </div>
+          </Panel>
+          <Panel title="Services sur demande">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-3">
+              {AMENITY_CATALOG.filter(item => item.availability === 'on_request').map(item => (
+                <label key={item.code} className="flex items-center gap-2 text-sm text-neutral-800">
+                  <input
+                    type="checkbox"
+                    checked={selectedAmenityCodes.has(item.code)}
+                    onChange={() => toggleAmenity(item.code)}
+                    className="h-4 w-4 accent-[#0B1437]"
+                  />
+                  {item.label}
+                </label>
+              ))}
+            </div>
+          </Panel>
+          <Panel>
+            <div className="space-y-1.5">
+              <Label htmlFor="other-amenities">Autres équipements</Label>
+              <Textarea
+                id="other-amenities"
+                value={otherAmenitiesText}
+                onChange={event => setOtherAmenitiesText(event.target.value)}
+                rows={2}
+                placeholder="Tout ce qui n'est pas dans la liste, séparé par des virgules"
+              />
+            </div>
+          </Panel>
+        </Section>
+
+        <Section id="photos">
+          <Panel title="Ajouter des photos" description="Depuis votre ordinateur. Choisissez la pièce, puis ajustez-la sur chaque vignette.">
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_200px]">
+                <div className="space-y-1.5">
                   <Label htmlFor="photo-alt">Texte alternatif (facultatif, commun au lot)</Label>
                   <Input id="photo-alt" disabled={photosBusy} maxLength={160} value={photoAlt} onChange={event => setPhotoAlt(event.target.value)} placeholder="Salon principal lumineux" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="photo-room-type">Type de piece</Label>
                   <select
                     id="photo-room-type"
@@ -806,20 +747,25 @@ export function LodgingShowcaseForm(props: {
                   </select>
                 </div>
               </div>
-              <p className="text-sm text-gray-500">Sélectionnez plusieurs photos, puis choisissez leur pièce sur chaque vignette. Les chambres et salles de bains suivent les nombres renseignés ci-dessus.</p>
-              <Label htmlFor="photo-files">Photos à importer</Label>
-              <Input key={fileInputKey} id="photo-files" type="file" multiple disabled={photosBusy} accept="image/png,image/jpeg,image/jpg,image/webp,image/avif" onChange={event => { setPhotoFiles(Array.from(event.target.files ?? [])); setUploadErrors([]) }} />
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Label htmlFor="photo-files">Photos à importer</Label>
+                  <Input key={fileInputKey} id="photo-files" type="file" multiple disabled={photosBusy} accept="image/png,image/jpeg,image/jpg,image/webp,image/avif" onChange={event => { setPhotoFiles(Array.from(event.target.files ?? [])); setUploadErrors([]) }} />
+                </div>
+                <Button type="button" variant="outline" onClick={uploadPhoto} disabled={photosBusy || photoFiles.length === 0 || (photoAlt.trim().length > 0 && photoAlt.trim().length < 5)}>
+                  {uploadProgress ? `Envoi ${uploadProgress.completed}/${uploadProgress.total}…` : 'Importer les photos'}
+                </Button>
+              </div>
               {photoFiles.length > 0 && <p className="text-sm">{photoFiles.length} fichier(s) sélectionné(s)</p>}
-              <Button type="button" variant="outline" onClick={uploadPhoto} disabled={photosBusy || photoFiles.length === 0 || (photoAlt.trim().length > 0 && photoAlt.trim().length < 5)}>
-                {uploadProgress ? `Envoi ${uploadProgress.completed}/${uploadProgress.total}…` : 'Importer les photos'}
-              </Button>
               {uploadProgress && <p role="status" className="text-sm">{uploadProgress.completed} / {uploadProgress.total} photos traitées</p>}
               {uploadErrors.length > 0 && <ul role="alert" className="space-y-1 text-sm text-destructive">{uploadErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
-              {photoActionId === 'reorder' && <p role="status" className="text-sm">Enregistrement de l’ordre…</p>}
-              {profile.photos.length > 0 && (
-                <DndContext id={`lodging-photos-${props.lodgingId}`} sensors={sensors} collisionDetection={photoCollisionDetection} onDragEnd={onPhotoDragEnd}
-                  accessibility={{ screenReaderInstructions: { draggable: 'Appuyez sur Espace pour saisir la photo, utilisez les flèches pour la déplacer, Espace pour déposer ou Échap pour annuler.' } }}>
-                  <SortableContext items={profile.photos.map(photo => photo.id ?? photo.url)} strategy={rectSortingStrategy}>
+            </div>
+          </Panel>
+          {photoActionId === 'reorder' && <p role="status" className="text-sm">Enregistrement de l’ordre…</p>}
+          {profile.photos.length > 0 ? (
+            <DndContext id={`lodging-photos-${props.lodgingId}`} sensors={sensors} collisionDetection={photoCollisionDetection} onDragEnd={onPhotoDragEnd}
+              accessibility={{ screenReaderInstructions: { draggable: 'Appuyez sur Espace pour saisir la photo, utilisez les flèches pour la déplacer, Espace pour déposer ou Échap pour annuler.' } }}>
+              <SortableContext items={profile.photos.map(photo => photo.id ?? photo.url)} strategy={rectSortingStrategy}>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {profile.photos.map((photo, photoIndex) => (
                     <SortablePhotoCard key={photo.id ?? photo.url} id={photo.id ?? photo.url} label={photo.alt} cover={photo.is_cover} disabled={photosBusy || !photo.id || profile.photos.length < 2}>
@@ -829,7 +775,7 @@ export function LodgingShowcaseForm(props: {
                           <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} après`} disabled={photosBusy || photoIndex === profile.photos.length - 1 || !photo.id} onClick={() => movePhoto(photoIndex, 1)}>Après →</Button>
                         </div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img draggable={false} src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full object-cover" />
+                        <img draggable={false} src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full rounded-t-xl object-cover" />
                         <div className="absolute inset-x-3 bottom-3">
                           <PhotoCategorySelect
                             options={photoCategoryOptions}
@@ -848,7 +794,10 @@ export function LodgingShowcaseForm(props: {
                           value={photo.alt}
                           maxLength={160}
                           disabled={photosBusy}
-                          onChange={event => setField('photos', profile.photos.map((item, index) => index === photoIndex ? { ...item, alt: event.target.value } : item))}
+                          onChange={event => {
+                            setPhotoAltsEdited(true)
+                            setField('photos', profile.photos.map((item, index) => index === photoIndex ? { ...item, alt: event.target.value } : item))
+                          }}
                         />
                         <p>{photo.room_label ?? ROOM_TYPE_LABELS[photo.room_type ?? 'other'] ?? 'Autre'}</p>
                       </div>
@@ -884,93 +833,136 @@ export function LodgingShowcaseForm(props: {
                     </SortablePhotoCard>
                   ))}
                 </div>
-                  </SortableContext>
-                </DndContext>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <p className="rounded-[20px] border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">Aucune photo pour l’instant.</p>
+          )}
+        </Section>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Publication</CardTitle>
-              <CardDescription>Statut actuel: {profile.publication_status}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button type="button" className="w-full" onClick={saveDraft} disabled={photosBusy}>
-                Sauvegarder le brouillon
+        <Section id="faq">
+          <Panel>
+            <div className="space-y-3">
+              {faqRows.length === 0 && <p className="text-sm text-gray-400">Aucune question pour l’instant.</p>}
+              {faqRows.map((row, index) => (
+                <div key={index} className="grid gap-2 rounded-xl border border-gray-100 bg-gray-50/40 p-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] sm:items-start">
+                  <div className="space-y-1">
+                    <Label htmlFor={`faq-question-${index}`} className="text-[11px] text-gray-500">Question {index + 1}</Label>
+                    <Input
+                      id={`faq-question-${index}`}
+                      value={row.question}
+                      onChange={event => setFaqRows(rows => rows.map((r, i) => (i === index ? { ...r, question: event.target.value } : r)))}
+                      placeholder="Question"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`faq-answer-${index}`} className="text-[11px] text-gray-500">Réponse {index + 1}</Label>
+                    <Textarea
+                      id={`faq-answer-${index}`}
+                      value={row.answer}
+                      onChange={event => setFaqRows(rows => rows.map((r, i) => (i === index ? { ...r, answer: event.target.value } : r)))}
+                      rows={2}
+                      placeholder="Reponse"
+                    />
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="text-gray-400 hover:text-rose-600 sm:mt-5" aria-label={`Supprimer la question ${index + 1}`} onClick={() => setFaqRows(rows => rows.filter((_, i) => i !== index))}>
+                    <Trash2 aria-hidden="true" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={() => setFaqRows(rows => [...rows, { question: '', answer: '' }])}>
+                <Plus aria-hidden="true" />Ajouter une question
               </Button>
-              {props.mode !== 'admin' && (
-                <Button type="button" variant="outline" className="w-full" onClick={submitForReview} disabled={photosBusy}>
-                  Demander publication
-                </Button>
-              )}
-              {props.mode !== 'admin' && missingFields.length > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                  <p className="font-medium">Champs a completer avant la review</p>
-                  <ul className="mt-2 list-disc pl-5">
-                    {missingFields.map(field => (
-                      <li key={field}>{field}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {validationErrors.length > 0 && (
-                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                  <p className="font-medium">Erreurs a corriger dans le brouillon</p>
-                  <ul className="mt-2 list-disc pl-5">
-                    {validationErrors.map(error => (
-                      <li key={error}>{error}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {message && (
-                <p className={`text-sm ${status === 'error' ? 'text-destructive' : 'text-emerald-700'}`}>
-                  {message}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </Panel>
+        </Section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Lien externe</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Label htmlFor="external-booking-url">URL de reservation</Label>
-              <Input
-                id="external-booking-url"
-                value={profile.external_booking_url ?? ''}
-                onChange={event => setField('external_booking_url', event.target.value)}
-                placeholder="https://www.airbnb.fr/rooms/123456789"
-              />
-            </CardContent>
-          </Card>
+        {/* Spec 079 US-02 : un seul lien de réservation. */}
+        <Section id="reservation">
+          <Panel>
+            <div className="space-y-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="external-booking-url">Lien de réservation (Airbnb, Booking…)</Label>
+                <Input
+                  id="external-booking-url"
+                  value={profile.external_booking_url ?? ''}
+                  onChange={event => setField('external_booking_url', event.target.value)}
+                  placeholder="https://www.airbnb.fr/rooms/123456789"
+                />
+                <p className="text-[11px] text-gray-400">Le bouton « Réserver » de la fiche mène à cette annonce.</p>
+              </div>
+              <label className="flex items-center gap-3 text-sm text-neutral-800">
+                <input
+                  type="checkbox"
+                  checked={profile.public_contact_enabled}
+                  onChange={event => setField('public_contact_enabled', event.target.checked)}
+                  className="h-4 w-4 accent-[#0B1437]"
+                />
+                Activer le contact public sur la fiche logement
+              </label>
+            </div>
+          </Panel>
+        </Section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Apercu SEO</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="seo-title">SEO title</Label>
-                <Input id="seo-title" value={profile.seo_title ?? ''} onChange={event => setField('seo_title', event.target.value)} />
+        <Section id="referencement">
+          <Panel>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <Label htmlFor="seo-title">SEO title</Label>
+                    <Counter value={profile.seo_title ?? ''} range={SEO_TITLE_RANGE} testId="counter-seo-title" />
+                  </div>
+                  <Input id="seo-title" value={profile.seo_title ?? ''} onChange={event => setField('seo_title', event.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <Label htmlFor="seo-description">SEO description</Label>
+                    <Counter value={profile.seo_description ?? ''} range={SEO_DESCRIPTION_RANGE} testId="counter-seo-description" />
+                  </div>
+                  <Textarea id="seo-description" value={profile.seo_description ?? ''} onChange={event => setField('seo_description', event.target.value)} rows={4} />
+                </div>
+                <p className="text-[11px] text-gray-400">Vides : le titre et la description courte sont utilisés.</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="seo-description">SEO description</Label>
-                <Textarea id="seo-description" value={profile.seo_description ?? ''} onChange={event => setField('seo_description', event.target.value)} rows={4} />
-              </div>
-              <div className="rounded-xl border border-gray-100 bg-stone-50 p-4 text-sm">
-                <p className="font-medium text-[#1a0dab]">{seoPreview.title || 'Titre SEO'}</p>
-                <p className="mt-2 text-green-700">
+              <div aria-label="Aperçu Google" className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 text-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Aperçu Google</p>
+                <p className="mt-3 text-xs text-gray-600">
                   {profile.slug ? publicLodgingPath(profile.slug) : `${publicLodgingsPath()}/...`}
                 </p>
-                <p className="mt-2 text-gray-600">{seoPreview.description || 'Description SEO'}</p>
+                <p className="mt-1 text-lg leading-snug text-[#1a0dab]">{seoPreview.title || 'Titre SEO'}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-gray-600">{seoPreview.description || 'Description SEO'}</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Panel>
+        </Section>
+      </div>
+
+      {/* Spec 079 AC-03-02 : barre fixe — statut, état des modifications, actions. */}
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <span data-testid="publication-status" className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-gray-600">
+              {publicationStatusLabel(profile.publication_status)}
+            </span>
+            <p role="status" aria-label="État de l’enregistrement" className={`flex items-center gap-2 text-[13px] font-semibold ${dirty ? 'text-amber-700' : 'text-emerald-700'}`}>
+              {dirty ? <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" /> : null}
+              {saveState}
+            </p>
+            {message ? (
+              <p aria-live="polite" className={`text-[13px] ${status === 'error' ? 'font-semibold text-rose-600' : 'text-gray-500'}`}>{message}</p>
+            ) : null}
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant={isOwner ? 'outline' : 'default'} className="h-11" onClick={saveDraft} disabled={photosBusy}>
+              Sauvegarder le brouillon
+            </Button>
+            {isOwner && (
+              <Button type="button" className="h-11 bg-[#0B1437] text-white hover:bg-gray-900" onClick={submitForReview} disabled={photosBusy || dirty}
+                title={dirty ? 'Sauvegardez d’abord le brouillon' : undefined}>
+                Demander la publication
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </fieldset>

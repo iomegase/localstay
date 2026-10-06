@@ -52,10 +52,10 @@ describe('028 lodging showcase owner page', () => {
     // Spec 077 AC-04-03 : « Vitrine publique » devient « Logement ».
     expect(screen.getByText('Logement', { selector: 'p' })).toBeInTheDocument()
     expect(screen.getAllByText('Chalet Hygge').length).toBeGreaterThan(0)
-    expect(
-      screen.getByText(/MyStay ne copie pas automatiquement les photos ou textes Airbnb/i),
-    ).toBeInTheDocument()
+    // Spec 079 : plus d'« Annonce externe » ni de « Droits contenus ».
+    expect(screen.queryByText(/MyStay ne copie pas automatiquement/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('Droits contenus')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Sauvegarder le brouillon/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Demander publication/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Demander la publication/i })).toBeInTheDocument()
   })
 })

@@ -1,7 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import { createHash } from 'node:crypto'
 import { Prisma } from '@prisma/client'
-import { detectExternalListingSource } from '../lib/source-url'
 import { evaluateProfileCompleteness } from '../lib/completeness'
 import { revalidatePublicLodgingPaths } from '../lib/revalidation'
 import {
@@ -17,7 +16,6 @@ import type {
 import type {
   LodgingPhotoCategoryInput,
   LodgingPublicProfileInput,
-  SourceUrlInput,
 } from '../schemas'
 import { deleteUnreferencedFiles } from '@/features/storage-cleanup/services/delete-files'
 
@@ -576,9 +574,6 @@ export async function submitOwnerPublicProfile(ownerId: string, lodgingId: strin
       code: amenity.code,
       label: amenity.label,
     })),
-    content_rights_confirmed_at: owned.profile.content_rights_confirmed_at
-      ? new Date(owned.profile.content_rights_confirmed_at)
-      : null,
   })
 
   if (!completeness.canSubmitForReview) {
@@ -605,66 +600,6 @@ export async function submitOwnerPublicProfile(ownerId: string, lodgingId: strin
 
   revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
   return { ok: true as const, profile: updated }
-}
-
-export async function saveSourceListingUrl(
-  ownerId: string,
-  lodgingId: string,
-  input: SourceUrlInput,
-) {
-  const owned = await ensureOwnerProfileRecord(ownerId, lodgingId)
-  if (!owned) return null
-
-  const detected = detectExternalListingSource(input.source_listing_url)
-
-  const updated = await prisma.lodgingPublicProfile.update({
-    where: { id: owned.profile.id ?? '' },
-    data: {
-      source_listing_url: input.source_listing_url,
-      source_listing_platform: detected.platform,
-      source_listing_identifier: detected.identifier,
-      source_metadata_status: detected.metadataStatus,
-      publication_status: 'draft',
-    },
-    select: {
-      source_listing_url: true,
-      source_listing_platform: true,
-      source_listing_identifier: true,
-      source_metadata_status: true,
-    },
-  })
-
-  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
-  return updated
-}
-
-export async function confirmContentRights(
-  ownerId: string,
-  lodgingId: string,
-  statementVersion: string,
-) {
-  const owned = await ensureOwnerProfileRecord(ownerId, lodgingId)
-  if (!owned) return null
-
-  const updated = await prisma.lodgingPublicProfile.update({
-    where: { id: owned.profile.id ?? '' },
-    data: {
-      content_rights_confirmed_at: new Date(),
-      content_rights_confirmed_by_user_id: ownerId,
-      content_rights_statement_version: statementVersion,
-      publication_status: 'draft',
-    },
-    select: {
-      content_rights_confirmed_at: true,
-    },
-  })
-
-  revalidatePublicLodgingPaths([owned.profileCitySlug, owned.lodging.city.slug])
-  return {
-    content_rights_confirmed_at: updated.content_rights_confirmed_at
-      ? updated.content_rights_confirmed_at.toISOString()
-      : null,
-  }
 }
 
 async function createPhotoForLodging(

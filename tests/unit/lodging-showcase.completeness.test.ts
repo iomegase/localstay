@@ -8,7 +8,6 @@ const baseProfile = {
   max_guests: 4,
   photos: [{ url: 'https://img.test/cover.webp', alt: 'Salon du chalet', is_cover: true, room_type: 'common_area' }],
   amenities: [{ code: 'wifi', label: 'Wi-Fi' }, { code: 'kitchen', label: 'Cuisine' }, { code: 'parking', label: 'Parking' }],
-  content_rights_confirmed_at: new Date('2026-06-12'),
 }
 
 describe('lodging profile completeness', () => {
@@ -22,8 +21,8 @@ describe('lodging profile completeness', () => {
     expect(evaluateProfileCompleteness(baseProfile).missingFields).not.toContain('description')
   })
 
-  it('requires rights confirmation for review', () => {
-    expect(evaluateProfileCompleteness({ ...baseProfile, content_rights_confirmed_at: null }).missingFields).toContain('content_rights_confirmation')
+  it('079 AC-01-02 : la confirmation des droits n’est plus exigée', () => {
+    expect(evaluateProfileCompleteness({ ...baseProfile }).missingFields).not.toContain('content_rights_confirmation')
   })
 
   it('requires eight room-classified photos and public coordinates for VacationRental JSON-LD', () => {

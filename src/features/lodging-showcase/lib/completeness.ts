@@ -8,7 +8,6 @@ type ProfileLike = {
   max_guests: number | null
   photos: Array<{ url: string; alt: string; is_cover: boolean; room_type?: string | null }>
   amenities: Array<{ code: string; label: string }>
-  content_rights_confirmed_at?: Date | null
   precise_location_public?: boolean | null
   public_latitude?: number | null
   public_longitude?: number | null
@@ -25,7 +24,7 @@ export function evaluateProfileCompleteness(profile: ProfileLike): CompletenessR
   if (profile.photos.length < 1) missingFields.push('photos')
   if (!profile.photos.some(photo => photo.is_cover)) missingFields.push('cover_photo')
   if (profile.amenities.length < 3) missingFields.push('amenities')
-  if (!profile.content_rights_confirmed_at) missingFields.push('content_rights_confirmation')
+  // Spec 079 AC-01-02 : la confirmation des droits n'est plus exigée.
 
   const warnings: string[] = []
   if (profile.photos.length < 5) warnings.push('seo_photo_count')

@@ -96,7 +96,6 @@ function toAdminRow(
     max_guests: profile.max_guests,
     photos: profile.photos,
     amenities: profile.amenities,
-    content_rights_confirmed_at: profile.content_rights_confirmed_at,
   })
 
   return {

@@ -13,9 +13,9 @@ describe('064 AC-02 — liens back-office vers /decouvrir', () => {
     expect(page).not.toContain('href={`/guide/${city.slug}`}')
   })
 
-  it('AC-02-02 : vitrine logement « Ouvrir le guide » ouvre /decouvrir/{ville}', () => {
+  it('AC-02-02 / 079 : la page Logement ne pointe plus vers l’ancien guide (lien vers la fiche publique)', () => {
     const page = source('src/app/(dashboard)/dashboard/lodgings/[id]/showcase/page.tsx')
-    expect(page).toContain('href={`/decouvrir/${data.lodging.city.slug}`}')
+    expect(page).toContain('publicLodgingPath(data.profile.slug)')
     expect(page).not.toContain('/guide/')
   })
 })

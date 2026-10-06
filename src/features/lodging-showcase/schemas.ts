@@ -1,7 +1,6 @@
 import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
 import { normalizeEditorialWhitespace, normalizeGeographicLabel } from '@/shared/lib/editorial-label'
 import { z } from 'zod'
-import { detectExternalListingSource } from './lib/source-url'
 
 const trimmedString = (min: number, max: number, message: string) =>
   z.string().trim().min(min, { message }).max(max, { message })
@@ -12,27 +11,6 @@ export const LodgingSourceMetadataStatusSchema = z.enum(['not_checked', 'url_onl
 export const LodgingRewriteStatusSchema = z.enum(['not_requested', 'requested', 'generated', 'accepted', 'rejected', 'failed'])
 export const LodgingPhotoRoomTypeSchema = z.enum(['bedroom', 'bathroom', 'common_area', 'exterior', 'kitchen', 'other'])
 export const LodgingAmenityAvailabilitySchema = z.enum(['included', 'on_request'])
-
-export const SourceUrlInputSchema = z.object({
-  source_listing_url: z.string().trim().url().refine(value => value.startsWith('https://'), {
-    message: 'EXTERNAL_URL_HTTPS_REQUIRED',
-  }),
-}).superRefine((value, ctx) => {
-  try {
-    detectExternalListingSource(value.source_listing_url)
-  } catch (error) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['source_listing_url'],
-      message: error instanceof Error ? error.message : 'EXTERNAL_PLATFORM_NOT_ALLOWED',
-    })
-  }
-})
-
-export const OwnerRightsConfirmationSchema = z.object({
-  confirmed: z.literal(true),
-  statement_version: z.string().trim().min(1).max(64),
-})
 
 export const LodgingAmenityItemSchema = z.object({
   code: z.string().trim().min(1).max(64),
@@ -122,8 +100,6 @@ export const LodgingListFiltersSchema = z.object({
   ) ?? []),
 })
 
-export type SourceUrlInput = z.infer<typeof SourceUrlInputSchema>
-export type OwnerRightsConfirmationInput = z.infer<typeof OwnerRightsConfirmationSchema>
 export type LodgingAmenityAvailability = z.infer<typeof LodgingAmenityAvailabilitySchema>
 export type LodgingAmenityItemInput = z.infer<typeof LodgingAmenityItemSchema>
 export type LodgingFaqItemInput = z.infer<typeof LodgingFaqItemSchema>

@@ -1,14 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ExternalLink, Sparkles } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Home, MapPin } from 'lucide-react'
 import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import { LodgingShowcaseForm } from '@/features/lodging-showcase/components/LodgingShowcaseForm'
+import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { getOwnedLodgingShowcasePageData } from '@/features/lodging-showcase/queries/owner-public-profile'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
+// Spec 079 : page « Logement » (fiche publique du logement), organisée comme la page Guide.
 export default async function LodgingShowcasePage({ params }: Props) {
   const owner = await getPageOwner()
   const { id } = await params
@@ -19,46 +21,48 @@ export default async function LodgingShowcasePage({ params }: Props) {
     return null
   }
 
+  const publicPath = data.profile.publication_status === 'published' && data.profile.slug
+    ? publicLodgingPath(data.profile.slug)
+    : null
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       <Link
         href="/dashboard/lodgings"
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-charcoal"
+        className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-[#0B1437]"
       >
-        <ArrowLeft className="h-4 w-4" />
-        Retour aux logements
+        <ArrowLeft size={12} />
+        Mes logements
       </Link>
 
-      <header className="flex flex-col justify-between gap-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm md:flex-row md:items-center">
-        <div className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">Logement</p>
-          <div>
-            <h1 className="text-3xl font-light text-charcoal">{data.lodging.name}</h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Construisez une fiche MyStay indexable pour {data.lodging.city.name}, avec une presentation premium et un lien de reservation externe.
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href={`/decouvrir/${data.lodging.city.slug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gray-200 px-5 text-sm text-charcoal"
-        >
-          <ExternalLink className="h-4 w-4" />
-          Ouvrir le guide
-        </Link>
-      </header>
-
-      <div className="rounded-2xl border border-pink-600/20 bg-pink-600/5 p-4 text-sm leading-6 text-charcoal">
-        <div className="flex items-start gap-3">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-pink-600" />
-          <p>
-            Cette fiche publique reste distincte de <code>/le-logement</code> : ici, l&apos;objectif est l&apos;acquisition SEO et la mise en valeur publique du logement.
+      <header className="flex flex-col justify-between gap-6 rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm sm:p-8 md:flex-row md:items-center">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Logement</p>
+          <h1 className="mt-2 flex items-center gap-3 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
+            <Home size={26} strokeWidth={2.2} className="text-[#0B1437]" aria-hidden="true" />
+            {data.lodging.name}
+          </h1>
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm leading-relaxed text-gray-500">
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#F4F7FE] px-2.5 py-1 text-[11px] font-semibold text-[#0B1437]">
+              <MapPin size={11} />
+              {data.lodging.city.name}
+            </span>
+            La fiche publique de votre logement sur MyStay, référencée sur Google.
           </p>
         </div>
-      </div>
+
+        {publicPath ? (
+          <Link
+            href={publicPath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-[13px] font-bold text-[#0B1437] shadow-sm transition-all hover:border-[#0B1437]/30 hover:bg-gray-50"
+          >
+            <ExternalLink size={14} aria-hidden="true" />
+            Voir la fiche publique
+          </Link>
+        ) : null}
+      </header>
 
       <LodgingShowcaseForm lodgingId={data.lodging.id} initialProfile={data.profile} />
     </div>
