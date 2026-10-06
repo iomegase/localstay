@@ -1,6 +1,7 @@
 import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
 import { normalizeEditorialWhitespace, normalizeGeographicLabel } from '@/shared/lib/editorial-label'
 import { z } from 'zod'
+import { hasPublicHostname, normalizeExternalUrl } from './lib/booking-url'
 
 const trimmedString = (min: number, max: number, message: string) =>
   z.string().trim().min(min, { message }).max(max, { message })
@@ -65,9 +66,15 @@ export const LodgingPublicProfileInputSchema = z.object({
   precise_location_public: z.boolean().optional(),
   public_latitude: z.number().min(-90).max(90).nullable().optional(),
   public_longitude: z.number().min(-180).max(180).nullable().optional(),
-  external_booking_url: z.string().trim().url().refine(value => value.startsWith('https://'), {
-    message: 'EXTERNAL_URL_HTTPS_REQUIRED',
-  }).nullable().optional(),
+  // Spec 079 AC-02-03 : « airbnb.fr/h/… » ou « http://… » acceptés et normalisés en https.
+  external_booking_url: z.preprocess(
+    value => (typeof value === 'string' ? normalizeExternalUrl(value) : value),
+    z.string()
+      .url({ message: 'Lien de réservation invalide (ex. airbnb.fr/rooms/123).' })
+      .refine(hasPublicHostname, { message: 'Lien de réservation invalide (ex. airbnb.fr/rooms/123).' })
+      .nullable()
+      .optional(),
+  ),
   external_booking_platform: ExternalBookingPlatformSchema.nullable().optional(),
   seo_title: z.string().trim().min(30, { message: 'Le SEO title doit contenir entre 30 et 70 caracteres.' }).max(70, {
     message: 'Le SEO title doit contenir entre 30 et 70 caracteres.',

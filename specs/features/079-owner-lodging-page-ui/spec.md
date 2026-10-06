@@ -46,6 +46,9 @@ et « Lien externe » (URL de réservation) demandent la même adresse. « Droit
   le bloc « Annonce externe » et la route `…/public-profile/source-url` disparaissent.
 - **AC-02-02**: Given une fiche sans lien de réservation mais avec une ancienne URL source,
   When la page s'affiche, Then le champ est pré-rempli avec cette URL.
+- **AC-02-03** (PO 2026-10-06) : Given un lien saisi sans préfixe (`airbnb.fr/h/saint-gervaist2`)
+  ou en `http://`, When le brouillon est enregistré, Then il est accepté et normalisé en
+  `https://…` ; une adresse sans domaine valide reste refusée.
 
 ### US-03 — Page réorganisée (comme la page Guide)
 

@@ -898,9 +898,9 @@ export function LodgingShowcaseForm(props: {
                   id="external-booking-url"
                   value={profile.external_booking_url ?? ''}
                   onChange={event => setField('external_booking_url', event.target.value)}
-                  placeholder="https://www.airbnb.fr/rooms/123456789"
+                  placeholder="airbnb.fr/rooms/123456789"
                 />
-                <p className="text-[11px] text-gray-400">Le bouton « Réserver » de la fiche mène à cette annonce.</p>
+                <p className="text-[11px] text-gray-400">Le bouton « Réserver » de la fiche mène à cette annonce. Le « https:// » est facultatif.</p>
               </div>
               <label className="flex items-center gap-3 text-sm text-neutral-800">
                 <input
