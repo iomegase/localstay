@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Check, Play } from 'lucide-react'
 import type { GuideArrivalInstruction, GuideLodging } from '@/features/guide-app/types'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
@@ -117,7 +117,21 @@ export function GuideArrivalFlow({
           ) : null}
 
           {step.kind === 'address' && <GuideAddressBlock lodging={lodging} />}
-          {step.kind === 'access' && lodging.keyBoxCode && <KeyBoxCode code={lodging.keyBoxCode} />}
+          {step.kind === 'access' && lodging.keyBoxCode && (
+            <KeyBoxCode
+              code={lodging.keyBoxCode}
+              action={!arrived ? (
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={signalArrival}
+                  className="flex h-11 shrink-0 items-center rounded-full bg-[#DB2777] px-4 text-[14px] font-semibold disabled:opacity-60"
+                >
+                  {m.arrival.imArrived}
+                </button>
+              ) : null}
+            />
+          )}
 
           {step.facts.length > 0 && (
             <dl className="mt-4 grid grid-cols-3 gap-2">
@@ -167,7 +181,8 @@ export function GuideArrivalFlow({
       {step.kind === 'address' && !demo && (
         <GuideMapsButton href={lodgingMapsHref(lodging.latitude, lodging.longitude)} />
       )}
-      {step.kind === 'access' && !arrived && (
+      {/* Avec un code de boîte à clés, le bouton est dans la carte du code (amendement 054 AC-02-03). */}
+      {step.kind === 'access' && !arrived && !lodging.keyBoxCode && (
         <button
           type="button"
           disabled={sending}
@@ -284,24 +299,18 @@ function VideoTile({
 }
 
 
-function KeyBoxCode({ code }: { code: string }) {
-  const [shown, setShown] = useState(false)
+// Spec 054 AC-02-03 (amendé PO 2026-10-06) : code toujours affiché ; « Je suis arrivé·e ! » à côté.
+function KeyBoxCode({ code, action }: { code: string; action: ReactNode }) {
   const m = useGuideMessages()
 
   return (
-    <div className="mt-4 rounded-[22px] bg-[#111111] p-5 text-white">
+    <div data-testid="guide-key-box-card" className="mt-4 rounded-[22px] bg-[#111111] p-5 text-white">
       <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F9A8D4]">{m.arrival.keyBoxCode}</p>
-      <div className="mt-2 flex items-center justify-between gap-3">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <span data-testid="guide-key-box-code" className="font-mono text-[32px] font-semibold tracking-[0.3em]">
-          {shown ? code : '••••'}
+          {code}
         </span>
-        <button
-          type="button"
-          onClick={() => setShown(value => !value)}
-          className="flex h-11 shrink-0 items-center rounded-full bg-[#DB2777] px-4 text-[14px] font-semibold"
-        >
-          {shown ? m.arrival.hideCode : m.arrival.showCode}
-        </button>
+        {action}
       </div>
     </div>
   )

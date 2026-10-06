@@ -21,7 +21,6 @@ export const fr = {
   },
   arrival: {
     conciergeNotified: 'La conciergerie a été prévenue de votre arrivée.',
-    hideCode: 'Masquer',
     imArrived: 'Je suis arrivé·e !',
     keyBoxCode: 'Code de la boîte à clés',
     kinds: {
@@ -31,7 +30,6 @@ export const fr = {
       garage: 'Garage',
       ski: 'Local à skis',
     },
-    showCode: 'Afficher le code',
     signalError: 'Le signal n\'a pas pu être envoyé. Vérifiez votre connexion et réessayez.',
     stepDone: 'Validée',
     steps: 'Étapes d\'arrivée',

@@ -1846,3 +1846,5 @@ Note 077 / 079 / 076 (2026-10-06) : barres d'enregistrement passées de `fixed` 
 | AC-01 / BR-01 | Couverture : photo du Guide > couverture de la page Logement > image générique | `src/features/guide-app/lib/cover-image.ts`<br>`src/features/guide-app/queries/private-guide-data.ts` | `tests/unit/guide-audit-fixes.AC-01-03.test.ts`<br>`tests/unit/private-guide-app.AC-01-05.data.test.ts` | ✅ done |
 | AC-02 | Dégradé de lisibilité sur l'accueil | `src/features/guide-app/components/stay/GuideStayHome.tsx` | `tests/integration/private-guide-stay.AC-01.stay-home.test.tsx` | ✅ done |
 | AC-03 | Point de tri : ville non dupliquée dans la recherche Maps | `src/features/guide-app/lib/recycling-maps.ts` | `tests/unit/guide-audit-fixes.AC-01-03.test.ts` | ✅ done |
+
+Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours affiché ; « Je suis arrivé·e ! » dans la carte du code — `src/features/guide-app/components/stay/GuideArrivalFlow.tsx`, test `tests/integration/private-guide-stay.AC-02.arrival-flow.test.tsx`.

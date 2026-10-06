@@ -120,6 +120,9 @@ est accessible depuis le Guide logement (amendement PO du 2026-10-03) ; la vidé
 - **AC-02-03**: Given une étape de type `access` et un code de boîte à clés
   renseigné, When elle s'affiche, Then le code apparaît masqué (`••••`) avec le
   bouton rose « Afficher le code » / « Masquer ».
+  **Amendé par le PO le 2026-10-06** : le code est toujours affiché en clair, sans bouton
+  « Afficher ». Quand un code existe, le bouton « Je suis arrivé·e ! » prend sa place dans
+  la carte du code (plus de bouton séparé en bas de l'étape).
 - **AC-02-04**: Given la navigation entre étapes, When on avance, Then « Retour »
   (blanc bordé) et l'action principale (`#111111`) sont affichés ; sur l'étape
   `access` l'action principale devient « Je suis arrivé·e ! » (rose) ; à la

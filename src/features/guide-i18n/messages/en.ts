@@ -18,7 +18,6 @@ export const en: GuideMessages = {
   },
   arrival: {
     conciergeNotified: 'The concierge has been told you have arrived.',
-    hideCode: 'Hide',
     imArrived: 'I\'ve arrived!',
     keyBoxCode: 'Key box code',
     kinds: {
@@ -28,7 +27,6 @@ export const en: GuideMessages = {
       garage: 'Garage',
       ski: 'Ski room',
     },
-    showCode: 'Show code',
     signalError: 'The signal couldn\'t be sent. Check your connection and try again.',
     stepDone: 'Done',
     steps: 'Arrival steps',

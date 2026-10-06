@@ -66,16 +66,23 @@ describe('054 US-02 — guided arrival', () => {
     jest.useRealTimers()
   })
 
-  it('AC-02-03: the access step masks the key box code until revealed', () => {
+  it('AC-02-03 (amendé 2026-10-06) : code toujours affiché, « Je suis arrivé·e ! » dans la carte du code', () => {
     renderFlow()
     fireEvent.click(screen.getAllByRole('tab')[1])
 
     expect(screen.getByText('Code de la boîte à clés')).toBeInTheDocument()
-    expect(screen.getByTestId('guide-key-box-code')).toHaveTextContent('••••')
-    fireEvent.click(screen.getByRole('button', { name: 'Afficher le code' }))
     expect(screen.getByTestId('guide-key-box-code')).toHaveTextContent('4810')
-    fireEvent.click(screen.getByRole('button', { name: 'Masquer' }))
-    expect(screen.getByTestId('guide-key-box-code')).toHaveTextContent('••••')
+    expect(screen.queryByRole('button', { name: 'Afficher le code' })).not.toBeInTheDocument()
+    const arrivedButtons = screen.getAllByRole('button', { name: 'Je suis arrivé·e !' })
+    expect(arrivedButtons).toHaveLength(1)
+    expect(screen.getByTestId('guide-key-box-card')).toContainElement(arrivedButtons[0]!)
+  })
+
+  it('sans code, le bouton « Je suis arrivé·e ! » reste sous l’étape', () => {
+    renderFlow({ lodging: buildStayLodging({ keyBoxCode: null }) })
+    fireEvent.click(screen.getAllByRole('tab')[1])
+    expect(screen.getAllByRole('button', { name: 'Je suis arrivé·e !' })).toHaveLength(1)
+    expect(screen.queryByTestId('guide-key-box-card')).not.toBeInTheDocument()
   })
 
   it('AC-02-03: no key code block without a code', () => {
