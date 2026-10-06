@@ -32,7 +32,7 @@ export default async function AdminLodgingEditPage({ params }: Props) {
         <p className="mt-2 text-sm text-gray-500">{data.lodging.city.name} — édition de la fiche publique. Les modifications enregistrées restent dans le statut de publication actuel.</p>
       </header>
       <AdminKeyBoxCodeCard lodgingId={data.lodging.id} initialCode={customization?.key_box_code ?? null} />
-      <LodgingShowcaseForm lodgingId={data.lodging.id} initialProfile={data.profile} mode="admin" />
+      <LodgingShowcaseForm lodgingId={data.lodging.id} initialProfile={data.profile} mode="admin" cityName={data.lodging.city.name} />
     </div>
   )
 }

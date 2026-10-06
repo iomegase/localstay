@@ -69,6 +69,7 @@ export default async function LodgingShowcasePage({ params }: Props) {
       <LodgingShowcaseForm
         lodgingId={data.lodging.id}
         initialProfile={data.profile}
+        cityName={data.lodging.city.name}
         privateAddress={{ value: privateAddress, editHref: `/dashboard/lodgings/${data.lodging.id}/customize#logement` }}
       />
     </div>

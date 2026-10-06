@@ -4,7 +4,7 @@ import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-desc
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent, type CollisionDetection } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
-import { Plus, Sparkles, Trash2 } from 'lucide-react'
+import { BookOpen, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { SortablePhotoCard } from './SortablePhotoCard'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -28,6 +28,7 @@ import {
   type ShowcaseSectionId,
 } from '../lib/showcase-form'
 import type { OwnerLodgingPublicProfileDto } from '../types'
+import { fillFaqTemplate, missingLibraryItems, needsAdaptation } from '../lib/faq-library'
 
 const photoCollisionDetection: CollisionDetection = args => {
   const point = args.pointerCoordinates
@@ -131,6 +132,8 @@ export function LodgingShowcaseForm(props: {
   mode?: 'owner' | 'admin'
   /** Spec 080 AC-02-01 : adresse saisie dans le Guide, rappelée en lecture seule. */
   privateAddress?: { value: string | null; editHref: string }
+  /** Spec 082 : ville du logement, pour remplir les FAQ de la bibliothèque. */
+  cityName?: string
 }) {
   const apiBase = props.mode === 'admin'
     ? `/api/admin/lodgings/${props.lodgingId}`
@@ -163,6 +166,9 @@ export function LodgingShowcaseForm(props: {
   const [photoAlt, setPhotoAlt] = useState('')
   const [photoCategory, setPhotoCategory] = useState('common_area')
   const [photoActionId, setPhotoActionId] = useState<string | null>(null)
+  // Spec 082 US-02 : ajout de questions depuis la bibliothèque.
+  const [libraryOpen, setLibraryOpen] = useState(false)
+  const [librarySelection, setLibrarySelection] = useState<Set<string>>(new Set())
 
   // Spec 079 AC-03-02 : modifications non enregistrées (les photos sont enregistrées à chaque action,
   // seules leurs descriptions passent par le brouillon).
@@ -549,6 +555,16 @@ export function LodgingShowcaseForm(props: {
     setMessage('Le brouillon MyStay a ete applique localement. Sauvegardez ensuite le draft.')
   }
 
+  const libraryItems = missingLibraryItems(faqRows)
+
+  function addLibraryQuestions() {
+    const context = { cityName: props.cityName ?? null, maxGuests: profile.max_guests, bedroomCount: profile.bedroom_count }
+    const added = libraryItems.filter(item => librarySelection.has(item.id)).map(item => fillFaqTemplate(item, context))
+    setFaqRows(rows => [...rows, ...added])
+    setLibrarySelection(new Set())
+    setLibraryOpen(false)
+  }
+
   const isOwner = props.mode !== 'admin'
   const saveState = dirty ? 'Modifications non enregistrées' : 'Toutes les modifications sont enregistrées.'
 
@@ -867,7 +883,12 @@ export function LodgingShowcaseForm(props: {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor={`faq-answer-${index}`} className="text-[11px] text-gray-500">Réponse {index + 1}</Label>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor={`faq-answer-${index}`} className="text-[11px] text-gray-500">Réponse {index + 1}</Label>
+                      {needsAdaptation(`${row.question} ${row.answer}`) && (
+                        <span title="Remplacez les passages entre crochets" className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">À adapter</span>
+                      )}
+                    </div>
                     <Textarea
                       id={`faq-answer-${index}`}
                       value={row.answer}
@@ -881,9 +902,53 @@ export function LodgingShowcaseForm(props: {
                   </Button>
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm" onClick={() => setFaqRows(rows => [...rows, { question: '', answer: '' }])}>
-                <Plus aria-hidden="true" />Ajouter une question
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setFaqRows(rows => [...rows, { question: '', answer: '' }])}>
+                  <Plus aria-hidden="true" />Ajouter une question
+                </Button>
+                <Button type="button" variant="outline" size="sm" disabled={libraryItems.length === 0} aria-expanded={libraryOpen} onClick={() => setLibraryOpen(open => !open)}>
+                  <BookOpen aria-hidden="true" />Ajouter depuis la bibliothèque{libraryItems.length > 0 ? ` (${libraryItems.length})` : ''}
+                </Button>
+              </div>
+              {/* Spec 082 AC-02-01 : questions génériques absentes de la FAQ du logement. */}
+              {libraryOpen && libraryItems.length > 0 && (
+                <div role="group" aria-label="Bibliothèque de questions" className="space-y-3 rounded-xl border border-[#0B1437]/10 bg-[#F4F7FE]/50 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[13px] font-semibold text-neutral-900">Questions génériques MyStay</p>
+                    <button
+                      type="button"
+                      className="text-[12px] font-semibold text-[#0B1437] hover:underline"
+                      onClick={() => setLibrarySelection(current => current.size === libraryItems.length ? new Set() : new Set(libraryItems.map(item => item.id)))}
+                    >
+                      {librarySelection.size === libraryItems.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                    </button>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {libraryItems.map(item => (
+                      <li key={item.id}>
+                        <label className="flex items-start gap-2.5 text-sm text-neutral-800">
+                          <input
+                            type="checkbox"
+                            checked={librarySelection.has(item.id)}
+                            onChange={() => setLibrarySelection(current => {
+                              const next = new Set(current)
+                              if (next.has(item.id)) next.delete(item.id)
+                              else next.add(item.id)
+                              return next
+                            })}
+                            className="mt-0.5 h-4 w-4 accent-[#0B1437]"
+                          />
+                          {item.question}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] text-gray-500">La ville, la capacité et le nombre de chambres sont remplis automatiquement ; complétez ensuite les passages entre crochets.</p>
+                  <Button type="button" size="sm" disabled={librarySelection.size === 0} onClick={addLibraryQuestions}>
+                    Ajouter ({librarySelection.size})
+                  </Button>
+                </div>
+              )}
             </div>
           </Panel>
         </Section>

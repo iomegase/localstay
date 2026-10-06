@@ -1824,3 +1824,10 @@ Note 077 / 079 / 076 (2026-10-06) : barres d'enregistrement passées de `fixed` 
 |---|---|---|---|---|
 | AC-01-01..04 | Dump vérifié, copie incrémentale du stockage, rétention 30 j, échec journalisé et notifié (secrets masqués) | `scripts/backup/run-backup.ts`<br>`scripts/backup/lib.ts`<br>`scripts/backup/backup.sh` | `tests/unit/local-daily-backup.AC-01.lib.test.ts` + exécutions manuelles 2026-10-06 (succès, échec simulé, restauration locale vérifiée) | ✅ done |
 | AC-02-01..02 | Installation launchd (03:00), désinstallation, procédure de restauration | `scripts/backup/install-launchd.sh`<br>`docs/backup.md` | exécution `launchctl kickstart` (exit 0) | ✅ done |
+
+## 082 — Bibliothèque de FAQ génériques pour les logements
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01..03 / BR-02..03 | 13 questions génériques (issues du « 305 »), jetons ville / voyageurs / chambres, badge « À adapter » | `src/features/lodging-showcase/lib/faq-library.ts` | `tests/unit/lodging-faq-library.AC-01.library.test.ts` | ✅ done |
+| AC-02-01..02 / BR-01 | « Ajouter depuis la bibliothèque » (sélection, tout sélectionner, pas de doublon) sur la page Logement et l'édition admin | `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx`<br>`src/app/(dashboard)/dashboard/lodgings/[id]/showcase/page.tsx`<br>`src/app/admin/lodgings/[id]/edit/page.tsx` | `tests/integration/lodging-faq-library.AC-02.picker.test.tsx` | ✅ done |
