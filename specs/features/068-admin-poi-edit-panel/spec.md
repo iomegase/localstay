@@ -168,8 +168,10 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
 
 ## UI Behaviour
 
-- Route interceptée `src/app/admin/pois/@panel/(.)[id]/page.tsx` + slot `@panel` dans
-  le layout de `/admin/pois` ; `src/app/admin/pois/[id]/page.tsx` reste la pleine page.
+- Routes interceptées `src/app/admin/@panel/(.)pois/[id]/page.tsx` et
+  `(.)pois/new/page.tsx`, slot `@panel` rendu par le layout `/admin` (avec `default`,
+  `page` et `[...catchAll]` vides pour fermer le panneau ailleurs) ;
+  `src/app/admin/pois/[id]/page.tsx` reste la pleine page.
 - Composant `Sheet` (Radix Dialog, déjà présent via `dialog.tsx`) côté droit.
 - Le contenu de la fiche est extrait dans un composant partagé utilisé par la pleine
   page et le panneau (aucune duplication du formulaire).
@@ -221,6 +223,14 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
     le cocher le réactive (`PATCH is_active: true`). Masqué pour un POI effacé.
   - **AC-07-03** : « Éditer » est remplacé par une icône œil (`aria-label`
     « Éditer »), même lien que précédemment.
+
+- **2026-10-06 (correctif)** — Le slot `@panel` passe du layout `/admin/pois` au
+  layout `/admin`, et le marqueur d'interception est posé sur le segment fixe
+  (`(.)pois/[id]`) au lieu du segment dynamique (`(.)[id]`). Cause, reproduite
+  isolément : avec `(.)[id]`, le serveur de dev Next 16.2.6 (et 16.3.8) corrompt la
+  route interceptée à chaque recompilation d'un fichier du dossier
+  (« Invalid interception route: /admin/pois/(.)(.)…id »), le panneau ne s'ouvre plus
+  jusqu'au redémarrage du serveur. Comportement fonctionnel inchangé.
 
 ---
 

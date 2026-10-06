@@ -7,8 +7,8 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import AdminPoisPage from '@/app/admin/pois/page'
 import AdminPoiDetailPage from '@/app/admin/pois/[id]/page'
-import AdminPoiPanelPage from '@/app/admin/pois/@panel/(.)[id]/page'
-import AdminPoiCreatePanelPage from '@/app/admin/pois/@panel/(.)new/page'
+import AdminPoiPanelPage from '@/app/admin/@panel/(.)pois/[id]/page'
+import AdminPoiCreatePanelPage from '@/app/admin/@panel/(.)pois/new/page'
 import { AdminManualPoiForm } from '@/features/poi-acquisition/components/AdminManualPoiForm'
 
 const mockReplace = jest.fn()
@@ -253,11 +253,21 @@ describe('068 US-05 — création dans le panneau', () => {
 })
 
 describe('068 — routes interceptées', () => {
-  it('le slot @panel a un état par défaut vide et les deux interceptions', () => {
-    const root = join(process.cwd(), 'src/app/admin/pois')
-    expect(existsSync(join(root, 'layout.tsx'))).toBe(true)
-    expect(existsSync(join(root, '@panel/default.tsx'))).toBe(true)
-    expect(existsSync(join(root, '@panel/(.)[id]/page.tsx'))).toBe(true)
-    expect(existsSync(join(root, '@panel/(.)new/page.tsx'))).toBe(true)
+  const admin = join(process.cwd(), 'src/app/admin')
+
+  it('le slot @panel est porté par le layout admin, avec états vides hors fiche POI', () => {
+    expect(existsSync(join(admin, '@panel/default.tsx'))).toBe(true)
+    expect(existsSync(join(admin, '@panel/page.tsx'))).toBe(true)
+    expect(existsSync(join(admin, '@panel/[...catchAll]/page.tsx'))).toBe(true)
+    expect(existsSync(join(admin, '@panel/(.)pois/[id]/page.tsx'))).toBe(true)
+    expect(existsSync(join(admin, '@panel/(.)pois/new/page.tsx'))).toBe(true)
+  })
+
+  // Régression : avec le marqueur posé directement sur le segment dynamique
+  // (`pois/@panel/(.)[id]`), le serveur de dev Next 16 corrompt la route interceptée
+  // à chaque recompilation (« Invalid interception route: /admin/pois/(.)(.)…id »).
+  it('aucun marqueur d’interception sur un segment dynamique', () => {
+    expect(existsSync(join(admin, 'pois/@panel'))).toBe(false)
+    expect(existsSync(join(admin, 'pois/layout.tsx'))).toBe(false)
   })
 })

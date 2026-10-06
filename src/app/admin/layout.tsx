@@ -47,7 +47,10 @@ const NAV_ITEMS = [
   { href: '/admin/users', label: 'Utilisateurs', icon: Users },
 ]
 
-export default function AdminPathLayout({ children }: { children: ReactNode }) {
+// Spec 068 : `panel` = fiche POI ouverte par-dessus la page (slot @panel). Le marqueur
+// d'interception est posé sur un segment fixe (`(.)pois/[id]`) : posé sur le segment
+// dynamique, le serveur de dev Next 16 corrompt la route à chaque recompilation.
+export default function AdminPathLayout({ children, panel }: { children: ReactNode; panel?: ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -276,6 +279,7 @@ export default function AdminPathLayout({ children }: { children: ReactNode }) {
         <main className="mx-auto w-full flex-1 md:px-2 md:pb-8 p-4">
           {children}
         </main>
+        {panel}
       </div>
     </div>
   )
