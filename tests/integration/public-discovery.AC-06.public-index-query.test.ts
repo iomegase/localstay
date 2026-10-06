@@ -104,6 +104,7 @@ function expectExactIndexQuery(call: unknown) {
     'discovery_status', 'geocode_status', 'id', 'is_active', 'is_open_now',
     'latitude', 'longitude', 'name', 'phone', 'photos', 'rating', 'rating_count',
     'slug', 'subcategory', 'subcategory_id', 'website', 'city',
+    'fallback_image', // spec 070 : image de remplacement attribuée (url, deleted_at)
   ].sort())
   expect(Object.keys((args.select.city as { select: object }).select).sort()).toEqual([
     'deleted_at', 'department', 'id', 'is_active', 'latitude', 'longitude',

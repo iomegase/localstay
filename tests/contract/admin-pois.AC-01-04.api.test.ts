@@ -11,6 +11,15 @@ const mockRestoreAdminPoi = jest.fn()
 const mockRefreshOfficialPhotos = jest.fn()
 const mockRevalidatePath = jest.fn()
 
+// Spec 070 : nettoyage du stockage simulé (aucun accès base ni stockage réels).
+jest.mock('@/features/storage-cleanup/queries/references', () => ({
+  poiPhotoUrls: jest.fn(async () => []),
+  lodgingGuidePhotoUrls: jest.fn(async () => []),
+}))
+jest.mock('@/features/storage-cleanup/services/delete-files', () => ({
+  cleanupRemovedPoiPhotos: jest.fn(async () => undefined),
+  deleteUnreferencedFiles: jest.fn(async () => ({ deleted: 0 })),
+}))
 jest.mock('@/features/merchant/lib/session', () => ({
   getSessionAdmin: () => mockGetSessionAdmin(),
 }))

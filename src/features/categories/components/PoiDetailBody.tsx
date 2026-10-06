@@ -14,7 +14,7 @@ import { TrailPoiDetailBody } from '@/features/trail-navigation/components/Trail
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import type { PoiDetail } from '../types'
-import { getPoiFallbackImage } from '../lib/poi-fallback-image'
+import { resolvePoiFallbackImage } from '../lib/poi-fallback-image'
 
 interface Props {
   poi: PoiDetail
@@ -48,7 +48,7 @@ export function PoiDetailBody({
 
   const poiUrl = `/guide/${citySlug}/${categorySlug}/${poi.slug}`
   const photoAttributionHost = getWebsiteHost(poi.website)
-  const fallbackPhoto = getPoiFallbackImage(poi.category.slug, poi.subcategory?.slug ?? poi.subcategory?.name)
+  const fallbackPhoto = resolvePoiFallbackImage(poi.fallback_image_url, poi.category.slug, poi.subcategory?.slug ?? poi.subcategory?.name)
   const heroPhotos = poi.photos.length > 0 ? poi.photos : fallbackPhoto ? [fallbackPhoto] : []
 
   return (

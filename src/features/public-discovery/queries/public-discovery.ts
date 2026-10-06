@@ -12,6 +12,7 @@ import {
   isCanonicalDiscoverySlug,
 } from '../lib/visibility'
 import { resolveDiscoveryCardPhoto } from '../lib/discovery-photo'
+import { activeFallbackImageUrl } from '@/features/categories/lib/poi-fallback-image'
 import { groupPoisBySubcategory } from '../lib/subcategory-groups'
 import type {
   DiscoveryCategory,
@@ -40,6 +41,8 @@ const discoveryPoiListSelect = {
   rating_count: true,
   is_open_now: true,
   photos: true,
+  // Spec 070 : image de remplacement attribuée.
+  fallback_image: { select: { url: true, deleted_at: true } },
   discovery_status: true,
   discovery_published_at: true,
   is_active: true,
@@ -249,7 +252,12 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
   const visibility = getDiscoveryPoiVisibility({ ...row, photos })
   if (!visibility) return null
 
-  const photo = resolveDiscoveryCardPhoto(visibility.photos, row.category.slug, row.subcategory)
+  const photo = resolveDiscoveryCardPhoto(
+    visibility.photos,
+    row.category.slug,
+    row.subcategory,
+    activeFallbackImageUrl(row.fallback_image),
+  )
 
   return {
     row,

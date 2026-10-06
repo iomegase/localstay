@@ -1,4 +1,4 @@
-import { getPoiFallbackImage } from '@/features/categories/lib/poi-fallback-image'
+import { resolvePoiFallbackImage } from '@/features/categories/lib/poi-fallback-image'
 
 export const MYSTAY_DEFAULT_IMAGE = '/og-mystay.png'
 
@@ -10,12 +10,14 @@ export function resolveDiscoveryCardPhoto(
   photos: string[],
   categorySlug: string,
   subcategory: { slug: string; name: string } | null,
+  fallbackImageUrl: string | null = null,
 ): { photo_url: string; photo_is_fallback: boolean } {
   const photo = photos[0]
   if (photo) return { photo_url: photo, photo_is_fallback: false }
 
   return {
-    photo_url: getPoiFallbackImage(categorySlug, subcategory?.slug ?? null) ?? MYSTAY_DEFAULT_IMAGE,
+    // Spec 070 : image attribuée dans la médiathèque d'abord.
+    photo_url: resolvePoiFallbackImage(fallbackImageUrl, categorySlug, subcategory?.slug ?? null) ?? MYSTAY_DEFAULT_IMAGE,
     photo_is_fallback: true,
   }
 }

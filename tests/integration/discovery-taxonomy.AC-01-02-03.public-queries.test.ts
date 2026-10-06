@@ -154,4 +154,18 @@ describe('065 — requêtes publiques /decouvrir', () => {
 
     await expect(getDiscoveryCategory('saint-gervais', 'urgences')).resolves.toBeNull()
   })
+
+  it('070 AC-02-06 : un lieu sans photo affiche l’image attribuée dans la médiathèque', async () => {
+    mockPoiFindMany.mockResolvedValueOnce([{
+      ...row('blanc-sport', { category: SHOPPING, subcategory: SKI, photos: [] }),
+      fallback_image: { url: 'https://cdn.example/guide-photos/fallbacks/u1/1.webp', deleted_at: null },
+    }])
+
+    const category = await getDiscoveryCategory('saint-gervais', 'shopping')
+
+    expect(category?.groups[0]!.pois[0]).toMatchObject({
+      photo_url: 'https://cdn.example/guide-photos/fallbacks/u1/1.webp',
+      photo_is_fallback: true,
+    })
+  })
 })

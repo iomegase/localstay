@@ -9,6 +9,7 @@ import {
 import { createManualPoi } from '@/features/poi-acquisition/queries/manual-poi'
 import { parseAdminPoiListFilters } from '@/features/admin-pois/lib/admin-poi-rules'
 import { listAdminPois } from '@/features/admin-pois/queries/admin-pois'
+import { refreshFallbackImagesSafely } from '@/features/fallback-images/services/reassign'
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const session = await getSessionAdmin()
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   try {
     const data = await createManualPoi(parsed, session.user.id)
+    await refreshFallbackImagesSafely([data.id])
     return NextResponse.json({ data }, { status: 201 })
   } catch (error) {
     return responseFromPoiAcquisitionError(error)

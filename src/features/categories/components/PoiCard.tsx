@@ -16,7 +16,7 @@ import { TrailCardDetails } from './TrailCardDetails'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
 import { formatContextualDistance } from '../lib/distance-label'
-import { getPoiFallbackImage } from '../lib/poi-fallback-image'
+import { resolvePoiFallbackImage } from '../lib/poi-fallback-image'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Facile',
@@ -73,7 +73,7 @@ export function PoiCard({
   const distanceLabel = formatContextualDistance(poi.distance_km, poi.distance_source)
 
   const description = poi.description
-  const fallbackPhoto = getPoiFallbackImage(categorySlug, poi.subcategory_name)
+  const fallbackPhoto = resolvePoiFallbackImage(poi.fallback_image_url, categorySlug, poi.subcategory_name)
   // Galerie classique en en-tête : 1 photo visible à la fois, navigation par flèches.
   const galleryPhotos = (
     poi.photos.length > 0

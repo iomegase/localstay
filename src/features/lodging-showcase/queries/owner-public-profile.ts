@@ -19,6 +19,7 @@ import type {
   LodgingPublicProfileInput,
   SourceUrlInput,
 } from '../schemas'
+import { deleteUnreferencedFiles } from '@/features/storage-cleanup/services/delete-files'
 
 const EMPTY_DRAFT_VALUES = {
   title: '-',
@@ -870,6 +871,11 @@ export async function createAdminLodgingPhoto(
 }
 
 async function deletePhotoForLodging(lodging: ShowcaseLodging, photoId: string): Promise<boolean> {
+  // Spec 070 AC-03-02 : URL lue avant le retrait pour supprimer le fichier ensuite.
+  const photo = await prisma.lodgingPhoto.findFirst({
+    where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
+    select: { url: true },
+  })
   const result = await prisma.$transaction(async tx => {
     const deleted = await tx.lodgingPhoto.updateMany({
       where: { id: photoId, deleted_at: null, profile: { lodging_id: lodging.id } },
@@ -899,6 +905,7 @@ async function deletePhotoForLodging(lodging: ShowcaseLodging, photoId: string):
     return { deleted: true as const, profile }
   })
   if (!result.deleted) return false
+  if (photo?.url) await deleteUnreferencedFiles([photo.url])
 
   revalidatePublicLodgingPaths(
     [result.profile?.city.slug, lodging.city.slug],

@@ -58,3 +58,22 @@ function normalizeToken(value: string | null | undefined): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
+
+/** Spec 070 : URL de l'image de remplacement attribuée, si elle n'a pas été retirée. */
+export function activeFallbackImageUrl(
+  image: { url: string; deleted_at: Date | null } | null | undefined,
+): string | null {
+  return image && !image.deleted_at ? image.url : null
+}
+
+/**
+ * Spec 070 AC-02-06 : image attribuée dans la médiathèque, à défaut l'ancienne
+ * correspondance par mots-clés (`public/fallback`, transition BR-07).
+ */
+export function resolvePoiFallbackImage(
+  fallbackImageUrl: string | null | undefined,
+  categorySlug: string | null | undefined,
+  subcategorySlugOrName: string | null | undefined,
+): string | null {
+  return fallbackImageUrl ?? getPoiFallbackImage(categorySlug, subcategorySlugOrName)
+}

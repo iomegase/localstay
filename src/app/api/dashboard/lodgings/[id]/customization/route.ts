@@ -23,6 +23,9 @@ import {
   arrivalFactSchema,
   arrivalSubstepSchema,
 } from '@/features/guide-app/lib/arrival-steps'
+import { lodgingGuidePhotoUrls } from '@/features/storage-cleanup/queries/references'
+import { deleteUnreferencedFiles } from '@/features/storage-cleanup/services/delete-files'
+import { removedUrls } from '@/features/storage-cleanup/lib/storage-paths'
 
 const trashBinSchema = z.object({
   type: z.string().trim().refine(isTrashBinType, { message: 'Type de bac inconnu' }),
@@ -244,7 +247,10 @@ export async function PUT(
   const { id } = await params
 
   try {
+    // Spec 070 AC-03-02 : photos du guide retirées → fichiers supprimés.
+    const previousPhotos = await lodgingGuidePhotoUrls(id)
     const customization = await saveLodgingCustomization(session.owner.id, id, parsed.data)
+    await deleteUnreferencedFiles(removedUrls(previousPhotos, await lodgingGuidePhotoUrls(id)))
     return NextResponse.json(customization)
   } catch (error) {
     return mapCustomizationError(error)

@@ -23,7 +23,8 @@ import {
   ChevronRight,
   Search,
   Bell,
-  ChevronDown
+  ChevronDown,
+  Images
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogoutButton } from '@/shared/components/LogoutButton'
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { href: '/admin/merchant-claims', label: 'Revendications', icon: BarChart3 },
   { href: '/admin/cities', label: 'Villes', icon: Building2 },
   { href: '/admin/taxonomy', label: 'Taxonomie', icon: Tags },
+  { href: '/admin/fallback-images', label: 'Images de remplacement', icon: Images },
   { href: '/admin/blog', label: 'Journal', icon: Newspaper },
   { href: '/admin/landing-pages', label: 'Landing pages', icon: PanelsTopLeft },
   { href: '/admin/google-reviews', label: 'Avis Google', icon: MessageSquareQuote },

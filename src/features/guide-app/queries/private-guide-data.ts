@@ -2,6 +2,7 @@ import { getPoiPhotoMirrorMap, resolvePoiPhotoList, type PoiPhotoMirrorMap } fro
 import type { Prisma } from '@prisma/client'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
+import { activeFallbackImageUrl } from '@/features/categories/lib/poi-fallback-image'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
 import {
   FIXED_DEPARTURE_INSTRUCTIONS,
@@ -127,6 +128,8 @@ export async function getPrivateGuideData(
           is_open_now: true,
           hours: true,
           photos: true,
+          // Spec 070 : image de remplacement attribuée.
+          fallback_image: { select: { url: true, deleted_at: true } },
           city: { select: { slug: true } },
           category: { select: { id: true, slug: true, name: true, icon: true } },
           trail_detail: {
@@ -160,6 +163,7 @@ export async function getPrivateGuideData(
           id: true, name: true, slug: true, description: true, address: true,
           latitude: true, longitude: true, phone: true, website: true,
           rating: true, rating_count: true, is_open_now: true, hours: true, photos: true,
+          fallback_image: { select: { url: true, deleted_at: true } },
           city: { select: { slug: true } },
           category: { select: { id: true, slug: true, name: true, icon: true } },
           trail_detail: {
@@ -339,6 +343,7 @@ type PrivateGuidePoiRow = {
     is_open_now: boolean | null
     hours: Prisma.JsonValue | null
     photos: string[]
+    fallback_image: { url: string; deleted_at: Date | null } | null
     city: { slug: string }
     category: { slug: string; name: string; icon: string }
     trail_detail: {
@@ -362,6 +367,7 @@ function mapPrivateGuidePoi(row: PrivateGuidePoiRow, mirrorMap: PoiPhotoMirrorMa
   const photo = getGuidePoiHeroImage({
     categorySlug: poi.category.slug,
     photos: poi.photos,
+    fallbackImageUrl: activeFallbackImageUrl(poi.fallback_image),
   })
 
   return {

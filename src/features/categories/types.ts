@@ -44,6 +44,8 @@ export interface PoiCard {
   distance_source?: DistanceSource
   photo_url: string | null
   photos: string[]
+  /** Spec 070 : image de remplacement attribuée (lieu sans photo). */
+  fallback_image_url?: string | null
   phone: string | null
   website: string | null
   description: string | null
@@ -142,6 +144,8 @@ export interface PoiDetail {
   is_open_now: boolean | null
   hours: PoiHours | null
   photos: string[]
+  /** Spec 070 : image de remplacement attribuée (lieu sans photo). */
+  fallback_image_url?: string | null
   distance_km: number | null
   distance_source?: DistanceSource | null
   city: { name: string; slug: string; region: string | null; postal_code: string }

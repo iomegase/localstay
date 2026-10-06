@@ -7,6 +7,7 @@ import {
   responseFromPoiAcquisitionError,
 } from '@/features/poi-acquisition/lib/api'
 import { publishCandidate } from '@/features/poi-acquisition/queries/review'
+import { refreshFallbackImagesSafely } from '@/features/fallback-images/services/reassign'
 
 export async function POST(
   req: NextRequest,
@@ -24,6 +25,7 @@ export async function POST(
   try {
     const { id } = await params
     const data = await publishCandidate(id, session.user.id, parsed)
+    await refreshFallbackImagesSafely([data.published_poi_id])
     return NextResponse.json({ data })
   } catch (error) {
     return responseFromPoiAcquisitionError(error)

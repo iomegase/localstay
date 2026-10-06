@@ -1,3 +1,4 @@
+import { activeFallbackImageUrl } from '@/features/categories/lib/poi-fallback-image'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoList, resolvePoiPhotoUrl } from '@/features/poi-photos/queries/photo-mirror-map'
 import { prisma } from '@/shared/lib/prisma'
 import type { PoiCard, PoiCardGroups, PoiHours } from '../types'
@@ -110,6 +111,8 @@ export async function getPoiCards(
       is_open_now: true,
       hours: true,
       photos: true,
+      // Spec 070 : image de remplacement attribuée.
+      fallback_image: { select: { url: true, deleted_at: true } },
       phone: true,
       website: true,
       description: true,
@@ -134,6 +137,7 @@ export async function getPoiCards(
     rating_count: number; is_open_now: boolean | null
     hours: unknown
     photos: string[]
+    fallback_image: { url: string; deleted_at: Date | null } | null
     phone: string | null
     website: string | null
     description: string | null
@@ -174,6 +178,7 @@ export async function getPoiCards(
         // Spec 063 : sélection sur les URL d'origine (filtre logos), puis copie MyStay.
         photo_url: resolvePrimaryPhoto(p.photos, mirrorMap),
         photos: resolvePoiPhotoList(p.photos, mirrorMap),
+        fallback_image_url: activeFallbackImageUrl(p.fallback_image),
         phone: p.phone,
         website: p.website,
         description: p.description,

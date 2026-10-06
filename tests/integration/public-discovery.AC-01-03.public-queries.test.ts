@@ -122,6 +122,7 @@ function expectExactPrismaContract(call: unknown, detail: boolean) {
     'discovery_status', 'geocode_status', 'id', 'is_active', 'is_open_now',
     'latitude', 'longitude', 'name', 'phone', 'photos', 'rating', 'rating_count',
     'slug', 'subcategory', 'subcategory_id', 'website', 'city',
+    'fallback_image', // spec 070 : image de remplacement attribuée (url, deleted_at)
   ]
   expect(Object.keys(args.where).sort()).toEqual(whereKeys.sort())
   expect(Object.keys(args.select).sort()).toEqual([

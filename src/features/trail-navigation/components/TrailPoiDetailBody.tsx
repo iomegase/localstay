@@ -11,7 +11,7 @@ import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetai
 import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
-import { getPoiFallbackImage } from '@/features/categories/lib/poi-fallback-image'
+import { resolvePoiFallbackImage } from '@/features/categories/lib/poi-fallback-image'
 
 function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
@@ -53,7 +53,7 @@ export function TrailPoiDetailBody({
   const attribution = trail.source_refs.map(source => source.attribution).filter(Boolean).join(' · ')
 
   // Galerie intégrée au hero (comme les autres POIs) ; fallback visuel par catégorie, puis Mapbox.
-  const categoryFallback = getPoiFallbackImage(poi.category.slug, poi.subcategory?.slug ?? poi.subcategory?.name)
+  const categoryFallback = resolvePoiFallbackImage(poi.fallback_image_url, poi.category.slug, poi.subcategory?.slug ?? poi.subcategory?.name)
   const mapboxFallback =
     poi.photos.length === 0 && !categoryFallback
       ? buildMapboxHeroUrl(trail.start_latitude, trail.start_longitude)

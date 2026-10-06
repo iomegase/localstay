@@ -9,6 +9,10 @@ import {
 } from '@/features/admin-pois/lib/admin-poi-rules'
 import { getAdminPoi, updateAdminPoi } from '@/features/admin-pois/queries/admin-pois'
 import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
+import { refreshFallbackImagesSafely } from '@/features/fallback-images/services/reassign'
+import { poiPhotoUrls } from '@/features/storage-cleanup/queries/references'
+import { cleanupRemovedPoiPhotos } from '@/features/storage-cleanup/services/delete-files'
+import { removedUrls } from '@/features/storage-cleanup/lib/storage-paths'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -57,8 +61,13 @@ export async function PATCH(req: NextRequest, context: RouteContext): Promise<Ne
     }
     const parsed = parsedOrValidationError(input)
     if (parsed instanceof NextResponse) return parsed
+    // Spec 070 AC-03-01 : photos avant enregistrement, pour supprimer celles retirées.
+    const previousPhotos = await poiPhotoUrls(id)
     const result = await updateAdminPoi(id, parsed, session.user.id)
+    await cleanupRemovedPoiPhotos(id, removedUrls(previousPhotos, result.data.photos))
     safelyRevalidateDiscoveryPaths(result.discovery_revalidation_paths)
+    // Spec 070 AC-02-04 : image de remplacement recalculée (photos ou catégorie changées).
+    await refreshFallbackImagesSafely([id])
     return NextResponse.json({ data: result.data })
   } catch (error) {
     return responseFromPoiAcquisitionError(error)

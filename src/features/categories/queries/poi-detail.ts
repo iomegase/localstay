@@ -1,3 +1,4 @@
+import { activeFallbackImageUrl } from '@/features/categories/lib/poi-fallback-image'
 import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoList } from '@/features/poi-photos/queries/photo-mirror-map'
@@ -45,6 +46,8 @@ async function getPoiDetailUncached(
       address: true, latitude: true, longitude: true,
       phone: true, website: true, rating: true, rating_count: true,
       is_open_now: true, hours: true, photos: true,
+      // Spec 070 : image de remplacement attribuée.
+      fallback_image: { select: { url: true, deleted_at: true } },
       category: { select: { id: true, name: true, slug: true, icon: true } },
       subcategory: { select: { id: true, name: true, slug: true } },
       hiking_detail: {
@@ -147,6 +150,7 @@ async function getPoiDetailUncached(
     hours: row.hours as PoiHours | null,
     // Spec 063 : copies MyStay à la place des URL tierces.
     photos: resolvePoiPhotoList(row.photos, mirrorMap),
+    fallback_image_url: activeFallbackImageUrl(row.fallback_image),
     distance_km: displayDistanceKm,
     distance_source: lodgingOrigin ? 'lodging' : 'city_center',
     city: { name: city.name, slug: city.slug, region: city.region, postal_code: city.postal_code },
