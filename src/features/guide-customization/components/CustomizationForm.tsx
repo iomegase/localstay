@@ -65,6 +65,8 @@ interface Props {
   pois: PoiOption[]
   initialCustomization: LodgingCustomizationResponse
   initialOtherCityPois?: OtherCityPoiSelection[]
+  /** Spec 080 : ville du logement, proposée pour l'adresse. */
+  cityName?: string
 }
 
 type ApiErrorPayload = {
@@ -83,6 +85,10 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   cover_photo_url: 'Photo du logement',
   presentation_video_url: 'Vidéo de présentation',
   lodging_address: 'Adresse du logement',
+  address_number: 'Adresse - numéro',
+  address_street: 'Adresse - rue',
+  address_postal_code: 'Adresse - code postal',
+  address_city: 'Adresse - ville',
   wifi_ssid: 'Wi-Fi - nom du réseau',
   wifi_password: 'Wi-Fi - mot de passe',
   key_box_code: 'Code de la boîte à clés',
@@ -124,6 +130,10 @@ function practicalInfoFrom(source: LodgingCustomizationResponse): PracticalInfoF
     cover_photo_url: source.cover_photo_url ?? null,
     presentation_video_url: source.presentation_video_url ?? null,
     lodging_address: source.lodging_address ?? null,
+    address_number: source.address_number ?? null,
+    address_street: source.address_street ?? null,
+    address_postal_code: source.address_postal_code ?? null,
+    address_city: source.address_city ?? null,
     wifi_ssid: source.wifi_ssid ?? null,
     wifi_password: source.wifi_password ?? null,
     key_box_code: source.key_box_code ?? null,
@@ -223,6 +233,7 @@ export function CustomizationForm({
   pois,
   initialCustomization,
   initialOtherCityPois = [],
+  cityName,
 }: Props) {
   const otherCityIds = new Set(initialOtherCityPois.map(poi => poi.poi_id))
   const [categoryOrder, setCategoryOrder] = useState(() => {
@@ -431,7 +442,7 @@ export function CustomizationForm({
     : dirty ? 'text-amber-700' : 'text-emerald-700'
 
   return (
-    <div className="pb-32 lg:grid lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-8">
+    <div className="lg:grid lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-x-8">
       {/* Spec 077 AC-04-01 : sommaire fixe. */}
       <nav aria-label="Sommaire du guide" className="mb-6 lg:mb-0">
         <ol className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible">
@@ -486,16 +497,42 @@ export function CustomizationForm({
               )}
             </div>
           </Card>
-          <Card title="Adresse">
-            <TextField
-              id="practical-lodging_address"
-              label="Adresse du logement"
-              value={practicalInfo.lodging_address ?? ''}
-              maxLength={255}
-              placeholder="12 rue des Alpages, 74170 Saint-Gervais-les-Bains"
-              hint="Sert à l’itinéraire et à la carte du guide."
-              onChange={value => setPracticalField('lodging_address', value)}
-            />
+          {/* Spec 080 AC-01-01 : adresse structurée, recomposée côté serveur pour le géocodage. */}
+          <Card title="Adresse du logement" description="Sert à l’itinéraire et à la carte du guide. Jamais affichée publiquement.">
+            <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
+              <TextField
+                id="practical-address_number"
+                label="Numéro"
+                value={practicalInfo.address_number ?? ''}
+                maxLength={10}
+                placeholder="12"
+                onChange={value => setPracticalField('address_number', value)}
+              />
+              <TextField
+                id="practical-address_street"
+                label="Rue"
+                value={practicalInfo.address_street ?? ''}
+                maxLength={200}
+                placeholder="rue des Alpages"
+                onChange={value => setPracticalField('address_street', value)}
+              />
+              <TextField
+                id="practical-address_postal_code"
+                label="Code postal"
+                value={practicalInfo.address_postal_code ?? ''}
+                maxLength={5}
+                placeholder="74170"
+                onChange={value => setPracticalField('address_postal_code', value.replace(/\D/g, ''))}
+              />
+              <TextField
+                id="practical-address_city"
+                label="Ville"
+                value={practicalInfo.address_city ?? ''}
+                maxLength={120}
+                placeholder={cityName ?? 'Saint-Gervais-les-Bains'}
+                onChange={value => setPracticalField('address_city', value)}
+              />
+            </div>
           </Card>
         </GuideSection>
 
@@ -661,8 +698,8 @@ export function CustomizationForm({
         </GuideSection>
       </div>
 
-      {/* Spec 077 AC-04-02 : barre d'état fixe. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+      {/* Spec 077 AC-04-02 : barre d'état collée en bas de la colonne de contenu (ne recouvre pas le menu). */}
+      <div className="sticky bottom-0 z-20 mt-8 rounded-t-[20px] border border-b-0 border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.06)] backdrop-blur-sm lg:col-span-2">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p role="status" aria-label="État de l’enregistrement" className={`flex items-center gap-2 text-[13px] font-semibold ${barTone}`}>
             {dirty && !clientValidationMessage && status !== 'error' ? <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" /> : null}

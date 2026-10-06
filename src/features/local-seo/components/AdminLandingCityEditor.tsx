@@ -107,7 +107,7 @@ export function AdminLandingCityEditor({ destination: initialDestination, initia
   }
 
   return (
-    <div className="min-w-0 space-y-6 pb-28">
+    <div className="min-w-0 space-y-6">
       <header className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm sm:p-8">
         <Link href="/admin/landing-pages" className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-neutral-900">
           <ArrowLeft size={14} aria-hidden="true" /> Landing pages
@@ -192,7 +192,7 @@ export function AdminLandingCityEditor({ destination: initialDestination, initia
 
       {/* Spec 076 AC-02-06 : barre d'enregistrement fixe. */}
       {dirty ? (
-        <div role="region" aria-label="Enregistrement" className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div role="region" aria-label="Enregistrement" className="sticky bottom-0 z-20 rounded-t-[20px] border border-b-0 border-gray-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-amber-700">
               <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" /> Modifications non enregistrées

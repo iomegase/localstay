@@ -129,6 +129,8 @@ export function LodgingShowcaseForm(props: {
   lodgingId: string
   initialProfile: OwnerLodgingPublicProfileDto
   mode?: 'owner' | 'admin'
+  /** Spec 080 AC-02-01 : adresse saisie dans le Guide, rappelée en lecture seule. */
+  privateAddress?: { value: string | null; editHref: string }
 }) {
   const apiBase = props.mode === 'admin'
     ? `/api/admin/lodgings/${props.lodgingId}`
@@ -551,7 +553,7 @@ export function LodgingShowcaseForm(props: {
   const saveState = dirty ? 'Modifications non enregistrées' : 'Toutes les modifications sont enregistrées.'
 
   return (
-    <fieldset disabled={uploadProgress !== null || photoActionId !== null} className="min-w-0 pb-32 lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-8">
+    <fieldset disabled={uploadProgress !== null || photoActionId !== null} className="min-w-0 lg:grid lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-x-8">
       {/* Spec 079 AC-03-01 : sommaire fixe. */}
       <nav aria-label="Sommaire du logement" className="mb-6 lg:mb-0">
         <ol className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible">
@@ -670,10 +672,19 @@ export function LodgingShowcaseForm(props: {
                 <Label htmlFor="bed-count">Lits</Label>
                 <Input id="bed-count" type="number" min={0} value={profile.bed_count ?? ''} onChange={event => setField('bed_count', event.target.value === '' ? null : Number(event.target.value))} />
               </div>
+              {props.privateAddress ? (
+                <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 sm:col-span-2 lg:col-span-3">
+                  <p className="text-[13px] font-semibold text-gray-700">Adresse du logement <span className="font-normal text-gray-400">· privée, jamais affichée</span></p>
+                  <p data-testid="private-address" className="mt-1 text-sm text-neutral-900">{props.privateAddress.value ?? 'Pas encore renseignée.'}</p>
+                  <a href={props.privateAddress.editHref} className="mt-2 inline-flex text-[13px] font-semibold text-[#0B1437] hover:underline">
+                    {props.privateAddress.value ? 'Modifier dans le Guide' : 'Renseigner l’adresse dans le Guide'}
+                  </a>
+                </div>
+              ) : null}
               <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
-                <Label htmlFor="public-area-label">Zone de localisation publique</Label>
+                <Label htmlFor="public-area-label">Quartier affiché (facultatif)</Label>
                 <Input id="public-area-label" value={profile.public_area_label ?? ''} onChange={event => setField('public_area_label', event.target.value)} placeholder="Centre du village, hameau du Bettex…" />
-                <p className="text-[11px] text-gray-400">L’adresse exacte n’est jamais affichée.</p>
+                <p className="text-[11px] text-gray-400">Seuls la ville et ce quartier apparaissent sur la fiche publique.</p>
               </div>
             </div>
           </Panel>
@@ -938,7 +949,7 @@ export function LodgingShowcaseForm(props: {
       </div>
 
       {/* Spec 079 AC-03-02 : barre fixe — statut, état des modifications, actions. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+      <div className="sticky bottom-0 z-20 mt-8 rounded-t-[20px] border border-b-0 border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.06)] backdrop-blur-sm lg:col-span-2">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-3">
             <span data-testid="publication-status" className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-gray-600">

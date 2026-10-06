@@ -143,6 +143,11 @@ const customizationSchema = z.object({
   cover_photo_url: imageUrlSchema,
   presentation_video_url: youtubeUrlSchema,
   lodging_address: practicalText(255),
+  // Spec 080 : adresse structurée ; lodging_address est alors recomposée.
+  address_number: practicalText(10),
+  address_street: practicalText(200),
+  address_postal_code: z.string().trim().regex(/^(\d{5})?$/, 'Le code postal doit contenir 5 chiffres.').nullable().optional(),
+  address_city: practicalText(120),
   wifi_ssid: practicalText(120),
   wifi_password: practicalText(120),
   // Spec 054 AC-05-02 — code de boîte à clés, affiché masqué dans le guide privé.

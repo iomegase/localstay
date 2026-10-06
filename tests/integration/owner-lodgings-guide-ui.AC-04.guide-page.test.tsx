@@ -91,3 +91,32 @@ describe('077 — page Guide', () => {
     expect(screen.getByRole('link', { name: /Aperçu voyageur/ })).toHaveAttribute('href', '/guide/saint-gervais-les-bains?lodging=lodging-1')
   })
 })
+
+// Spec 080 — adresse structurée dans la page Guide.
+describe('080 AC-01-01 — adresse en 4 champs', () => {
+  it('numéro, rue, code postal, ville (ville du logement en exemple) et envoi des parties', async () => {
+    render(
+      <CustomizationForm
+        lodgingId="lodging-1"
+        citySlug="saint-gervais-les-bains"
+        cityName="Saint-Gervais-les-Bains"
+        categories={[]}
+        pois={[]}
+        initialCustomization={{ ...customization, address_number: null, address_street: null, address_postal_code: null, address_city: null }}
+      />,
+    )
+    expect(screen.queryByLabelText('Adresse du logement')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Ville')).toHaveAttribute('placeholder', 'Saint-Gervais-les-Bains')
+    fireEvent.change(screen.getByLabelText('Numéro'), { target: { value: '12' } })
+    fireEvent.change(screen.getByLabelText('Rue'), { target: { value: 'rue des Alpages' } })
+    fireEvent.change(screen.getByLabelText('Code postal'), { target: { value: '74 170a' } })
+    fireEvent.change(screen.getByLabelText('Ville'), { target: { value: 'Saint-Gervais-les-Bains' } })
+    expect(screen.getByLabelText('Code postal')).toHaveValue('74170')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toMatchObject({
+      address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains',
+    })
+  })
+})

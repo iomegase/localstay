@@ -29,11 +29,16 @@ import type {
   PracticalInfoFields,
 } from '../types'
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
+import { composeLodgingAddress, splitLodgingAddress } from '../lib/address'
 
 const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   cover_photo_url: null,
   presentation_video_url: null,
   lodging_address: null,
+  address_number: null,
+  address_street: null,
+  address_postal_code: null,
+  address_city: null,
   wifi_ssid: null,
   wifi_password: null,
   key_box_code: null,
@@ -367,6 +372,10 @@ export async function getLodgingCustomization(
       cover_photo_url: true,
       presentation_video_url: true,
       lodging_address: true,
+      address_number: true,
+      address_street: true,
+      address_postal_code: true,
+      address_city: true,
       wifi_ssid: true,
       wifi_password: true,
       key_box_code: true,
@@ -413,9 +422,18 @@ export async function getLodgingCustomization(
     ignored_category_slugs: [],
     practical_blocks: practicalBlocks,
     arrival_instructions: arrivalInstructions.map(toArrivalInstructionResponse),
-    ...pickPracticalInfo(customization),
+    ...withAddressParts(pickPracticalInfo(customization)),
   }
 }
+
+/** Spec 080 AC-01-03 : sans parties enregistrées, l'ancienne adresse libre est découpée. */
+function withAddressParts(info: PracticalInfoFields): PracticalInfoFields {
+  if (info.address_number || info.address_street || info.address_postal_code || info.address_city) return info
+  const parts = splitLodgingAddress(info.lodging_address)
+  return { ...info, address_number: parts.number, address_street: parts.street, address_postal_code: parts.postal_code, address_city: parts.city }
+}
+
+const ADDRESS_PART_KEYS = ['address_number', 'address_street', 'address_postal_code', 'address_city'] as const
 
 export async function saveLodgingCustomization(
   ownerId: string,
@@ -461,6 +479,15 @@ export async function saveLodgingCustomization(
   const categoryOrderResult = filterValidCategoryOrder(input.category_order, validCategorySlugs)
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
   const practicalInfo = pickPracticalInfo(input)
+  // Spec 080 AC-01-02 : l'adresse saisie en parties est recomposée (source du géocodage).
+  if (ADDRESS_PART_KEYS.some(key => input[key] !== undefined)) {
+    practicalInfo.lodging_address = composeLodgingAddress({
+      number: practicalInfo.address_number,
+      street: practicalInfo.address_street,
+      postal_code: practicalInfo.address_postal_code,
+      city: practicalInfo.address_city,
+    })
+  }
   const lodgingAddressCoordinates = await resolveLodgingAddressCoordinates(
     practicalInfo.lodging_address,
     existingCustomization,
@@ -614,4 +641,16 @@ export async function validateFeaturedPois(
   return validated
     .map(({ city_id: _city_id, ...rest }) => rest)
     .sort((a, b) => a.sort_order - b.sort_order)
+}
+
+/**
+ * Spec 080 AC-02-01 : adresse privée du logement, affichée en lecture seule sur la page
+ * Logement (l'appelant a déjà vérifié la propriété du logement).
+ */
+export async function getLodgingPrivateAddress(lodgingId: string): Promise<string | null> {
+  const customization = await prisma.lodgingCustomization.findFirst({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    select: { lodging_address: true },
+  })
+  return customization?.lodging_address?.trim() || null
 }

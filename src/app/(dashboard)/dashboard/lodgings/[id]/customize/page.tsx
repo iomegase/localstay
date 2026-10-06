@@ -174,6 +174,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
       <CustomizationForm
         lodgingId={lodging.id}
         citySlug={lodging.city.slug}
+        cityName={lodging.city.name}
         categories={categories}
         pois={visiblePois}
         initialCustomization={customization}

@@ -954,6 +954,11 @@ model LodgingCustomization {
   cover_photo_url        String?
   presentation_video_url String?
   lodging_address        String?
+  // Spec 080 : adresse structurée (lodging_address = recomposition, source du géocodage).
+  address_number         String?
+  address_street         String?
+  address_postal_code    String?
+  address_city           String?
   lodging_latitude       Float?
   lodging_longitude      Float?
   wifi_ssid              String?

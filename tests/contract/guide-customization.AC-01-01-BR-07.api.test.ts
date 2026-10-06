@@ -162,6 +162,25 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(mockSaveCustomization).not.toHaveBeenCalled()
   })
 
+  it('080 AC-01-04 : code postal invalide → 400', async () => {
+    const res = await PUT(
+      makeRequest('PUT', { category_order: [], featured_pois: [], address_postal_code: '7417' }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+    expect(res.status).toBe(400)
+    expect(mockSaveCustomization).not.toHaveBeenCalled()
+  })
+
+  it('080 AC-01-02 : les parties de l’adresse sont transmises', async () => {
+    mockSaveCustomization.mockResolvedValue(responseBody)
+    const res = await PUT(
+      makeRequest('PUT', { category_order: [], featured_pois: [], address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains' }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+    expect(res.status).toBe(200)
+    expect(mockSaveCustomization.mock.calls[0][2]).toMatchObject({ address_number: '12', address_postal_code: '74170' })
+  })
+
   it('returns 401 when owner session is missing', async () => {
     const error = Response.json({ error: { code: 'UNAUTHORIZED', message: 'Non authentifié' } }, { status: 401 })
     mockGetSessionOwner.mockResolvedValue({ owner: null, error })

@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen } from '@testing-library/react'
+import '@testing-library/jest-dom'
 
 jest.mock('next/navigation', () => ({
   notFound: jest.fn(),
@@ -9,6 +10,10 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/features/dashboard-owner/lib/get-page-owner', () => ({
   getPageOwner: jest.fn(async () => ({ id: 'owner-1', role: 'owner' })),
+}))
+
+jest.mock('@/features/guide-customization/queries/customization', () => ({
+  getLodgingPrivateAddress: jest.fn(async () => '12 rue des Alpages, 74170 Saint-Gervais-les-Bains'),
 }))
 
 jest.mock('@/features/lodging-showcase/queries/owner-public-profile', () => ({
@@ -57,5 +62,9 @@ describe('028 lodging showcase owner page', () => {
     expect(screen.queryByText('Droits contenus')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Sauvegarder le brouillon/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Demander la publication/i })).toBeInTheDocument()
+    // Spec 080 AC-02-01 / AC-02-02 : adresse du Guide en lecture seule, quartier public.
+    expect(screen.getByTestId('private-address')).toHaveTextContent('12 rue des Alpages, 74170 Saint-Gervais-les-Bains')
+    expect(screen.getByRole('link', { name: 'Modifier dans le Guide' })).toHaveAttribute('href', '/dashboard/lodgings/lodging-1/customize#logement')
+    expect(screen.getByLabelText('Quartier affiché (facultatif)')).toBeInTheDocument()
   })
 })

@@ -72,6 +72,11 @@ export interface PracticalInfoFields {
   cover_photo_url: string | null
   presentation_video_url: string | null
   lodging_address: string | null
+  /** Spec 080 : adresse structurée (lodging_address en est la recomposition). */
+  address_number: string | null
+  address_street: string | null
+  address_postal_code: string | null
+  address_city: string | null
   wifi_ssid: string | null
   wifi_password: string | null
   key_box_code: string | null
@@ -86,6 +91,10 @@ export const PRACTICAL_INFO_KEYS = [
   'cover_photo_url',
   'presentation_video_url',
   'lodging_address',
+  'address_number',
+  'address_street',
+  'address_postal_code',
+  'address_city',
   'wifi_ssid',
   'wifi_password',
   'key_box_code',
