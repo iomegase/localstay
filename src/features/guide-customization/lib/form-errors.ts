@@ -1,11 +1,12 @@
 import { extractYouTubeId } from '@/shared/lib/youtube'
+import { arrivalStepHasContent, EMPTY_ARRIVAL_STEP_MESSAGE } from './validation'
 
 // Spec 083 : erreurs de la page Guide, indexées par chemin (« arrival_instructions.0.text »).
 
 export type FieldErrors = Record<string, string>
 
 type GuideFormState = {
-  arrival_instructions: Array<{ text?: string | null }>
+  arrival_instructions: Array<Parameters<typeof arrivalStepHasContent>[0]>
   practical_blocks: Array<{ title?: string | null; video_url?: string | null }>
   address_postal_code?: string | null
   presentation_video_url?: string | null
@@ -18,7 +19,7 @@ const invalidYouTube = (value: string | null | undefined) =>
 export function validateGuideForm(state: GuideFormState): FieldErrors {
   const errors: FieldErrors = {}
   state.arrival_instructions.forEach((instruction, index) => {
-    if (!instruction.text?.trim()) errors[`arrival_instructions.${index}.text`] = 'Le texte de l’instruction est requis.'
+    if (!arrivalStepHasContent(instruction)) errors[`arrival_instructions.${index}.text`] = EMPTY_ARRIVAL_STEP_MESSAGE
   })
   state.practical_blocks.forEach((block, index) => {
     if (!block.title?.trim()) errors[`practical_blocks.${index}.title`] = 'Le titre du bloc est requis.'

@@ -168,13 +168,14 @@ export function normalizeArrivalInstructions(
   }
 
   return instructions
-    .filter(instruction => clean(instruction.text) !== null)
+    // Spec 083 AC-01-04 : le texte est facultatif ; seule une étape entièrement vide est retirée.
+    .filter(instruction => arrivalStepHasContent(instruction))
     .map((instruction, index) => {
       const id = persistentId(instruction.id)
       return {
         ...(id ? { id } : {}),
         title: clean(instruction.title),
-        text: clean(instruction.text) as string,
+        text: clean(instruction.text) ?? '',
         video_url: clean(instruction.video_url),
         photos: (instruction.photos ?? [])
           .map(photo => photo.trim())
@@ -187,6 +188,23 @@ export function normalizeArrivalInstructions(
         facts: parseArrivalFacts(instruction.facts),
       }
     })
+}
+
+export const EMPTY_ARRIVAL_STEP_MESSAGE = 'Étape vide : ajoutez un titre, un texte ou une photo.'
+
+/** Spec 083 AC-01-04 : une étape doit contenir au moins un titre, un texte, une photo, une vidéo, une sous-étape ou un repère. */
+export function arrivalStepHasContent(step: {
+  title?: string | null
+  text?: string | null
+  photos?: string[] | null
+  video_url?: string | null
+  substeps?: unknown[] | null
+  facts?: unknown[] | null
+}): boolean {
+  const filled = (value: string | null | undefined) => typeof value === 'string' && value.trim().length > 0
+  return filled(step.title) || filled(step.text) || filled(step.video_url)
+    || (step.photos ?? []).some(photo => filled(photo))
+    || (step.substeps ?? []).length > 0 || (step.facts ?? []).length > 0
 }
 
 /** Déplace l'élément `activeId` à la position de `overId` (immutable, identité préservée si no-op). */

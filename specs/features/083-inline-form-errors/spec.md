@@ -38,6 +38,11 @@ instruction ni quel champ corriger.
 - **AC-01-03**: Given des erreurs affichées, When le champ est corrigé, Then son message
   disparaît sans attendre une nouvelle sauvegarde ; la barre indique « N champ(s) à corriger ».
 
+- **AC-01-04** (PO 2026-10-06, amende 054) : Given une étape d'arrivée, When elle n'a pas de
+  texte mais a un titre, une photo, une vidéo, une sous-étape ou un repère, Then elle est
+  acceptée (texte facultatif) ; seule une étape entièrement vide est signalée (« Étape vide :
+  ajoutez un titre, un texte ou une photo. »).
+
 ### US-02 — Page Logement
 
 - **AC-02-01**: Given une sauvegarde refusée (`fieldErrors`) ou une demande de publication

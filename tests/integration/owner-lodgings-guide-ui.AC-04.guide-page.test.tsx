@@ -123,24 +123,31 @@ describe('080 AC-01-01 — adresse en 4 champs', () => {
 
 // Spec 083 — erreurs sous les champs.
 describe('083 — erreurs affichées sous les champs du Guide', () => {
-  const withArrival = (text: string) => ({
+  const withArrival = (title: string | null, text: string) => ({
     ...customization,
-    arrival_instructions: [{ id: 'step-1', title: 'Portail', text, video_url: null, photos: [], sort_order: 0, kind: 'custom', tip: null, substeps: [], facts: [] }],
+    arrival_instructions: [{ id: 'step-1', title, text, video_url: null, photos: [], sort_order: 0, kind: 'custom', tip: null, substeps: [], facts: [] }],
   }) as unknown as LodgingCustomizationResponse
 
-  it('AC-01-01 / AC-01-03 : instruction sans texte signalée sous le champ, rien n’est envoyé, effacée à la correction', () => {
-    render(<CustomizationForm lodgingId="lodging-1" citySlug="saint-gervais-les-bains" categories={[]} pois={[]} initialCustomization={withArrival('')} />)
+  it('AC-01-04 : une étape avec un titre mais sans texte est acceptée', async () => {
+    render(<CustomizationForm lodgingId="lodging-1" citySlug="saint-gervais-les-bains" categories={[]} pois={[]} initialCustomization={withArrival('Le portail', '')} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+    expect(screen.queryByText(/Étape vide/)).not.toBeInTheDocument()
+  })
+
+  it('AC-01-01 / AC-01-03 / AC-01-04 : étape entièrement vide signalée sous le champ, rien n’est envoyé, effacée à la correction', () => {
+    render(<CustomizationForm lodgingId="lodging-1" citySlug="saint-gervais-les-bains" categories={[]} pois={[]} initialCustomization={withArrival(null, '')} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(global.fetch).not.toHaveBeenCalled()
     const field = screen.getByLabelText('Texte de l\'instruction')
     expect(field).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText('Le texte de l’instruction est requis.')).toBeInTheDocument()
+    expect(screen.getByText('Étape vide : ajoutez un titre, un texte ou une photo.')).toBeInTheDocument()
     expect(screen.queryByText(/arrival_instructions/)).not.toBeInTheDocument()
 
     fireEvent.change(field, { target: { value: 'Ouvrez le portail.' } })
-    expect(screen.queryByText('Le texte de l’instruction est requis.')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Étape vide/)).not.toBeInTheDocument()
   })
 
   it('AC-01-02 : une erreur de l’API s’affiche sous le champ désigné par son chemin', async () => {

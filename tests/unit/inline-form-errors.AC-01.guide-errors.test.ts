@@ -2,7 +2,7 @@ import { errorsUnder, issuesToErrors, validateGuideForm, valueAtPath, visibleSer
 
 // Spec 083 — erreurs sous les champs de la page Guide.
 const base = {
-  arrival_instructions: [{ title: 'Portail', text: 'Code 1234' }, { title: null, text: '  ' }],
+  arrival_instructions: [{ title: 'Portail', text: '' }, { title: null, text: '  ', photos: [], video_url: null, substeps: [], facts: [] }],
   practical_blocks: [{ title: '', video_url: 'https://vimeo.com/1' }],
   address_postal_code: '7417',
   presentation_video_url: 'https://youtu.be/dQw4w9WgXcQ',
@@ -11,7 +11,7 @@ const base = {
 describe('083 AC-01-01 — validation du formulaire Guide', () => {
   it('signale chaque champ fautif par son chemin', () => {
     expect(validateGuideForm(base)).toEqual({
-      'arrival_instructions.1.text': 'Le texte de l’instruction est requis.',
+      'arrival_instructions.1.text': 'Étape vide : ajoutez un titre, un texte ou une photo.',
       'practical_blocks.0.title': 'Le titre du bloc est requis.',
       'practical_blocks.0.video_url': 'Lien YouTube invalide.',
       address_postal_code: 'Le code postal doit contenir 5 chiffres.',
@@ -33,7 +33,7 @@ describe('083 AC-01-02 / AC-01-03 — erreurs de l’API', () => {
   })
 
   it('lit une valeur par chemin et masque les erreurs dont le champ a changé', () => {
-    expect(valueAtPath(base, 'arrival_instructions.0.text')).toBe('Code 1234')
+    expect(valueAtPath(base, 'arrival_instructions.0.title')).toBe('Portail')
     const errors = { 'arrival_instructions.1.text': 'requis', wifi_ssid: 'trop long' }
     const snapshot = { 'arrival_instructions.1.text': JSON.stringify('  '), wifi_ssid: JSON.stringify('x') }
     expect(visibleServerErrors(errors, snapshot, { ...base, wifi_ssid: 'y' })).toEqual({ 'arrival_instructions.1.text': 'requis' })

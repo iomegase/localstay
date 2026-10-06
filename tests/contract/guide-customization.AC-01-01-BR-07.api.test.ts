@@ -188,8 +188,18 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     )
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error.details.issues).toContainEqual({ path: 'arrival_instructions.0.text', message: "Le texte de l'instruction est requis." })
+    expect(json.error.details.issues).toContainEqual({ path: 'arrival_instructions.0.text', message: 'Étape vide : ajoutez un titre, un texte ou une photo.' })
     expect(json.error.details.fieldErrors).toHaveProperty('arrival_instructions')
+  })
+
+  it('083 AC-01-04 : une étape avec un titre et sans texte est acceptée', async () => {
+    mockSaveCustomization.mockResolvedValue(responseBody)
+    const res = await PUT(
+      makeRequest('PUT', { category_order: [], featured_pois: [], arrival_instructions: [{ title: 'Le portail', text: '', sort_order: 0 }] }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+    expect(res.status).toBe(200)
+    expect(mockSaveCustomization.mock.calls[0][2].arrival_instructions[0]).toMatchObject({ title: 'Le portail', text: '' })
   })
 
   it('returns 401 when owner session is missing', async () => {

@@ -238,9 +238,9 @@ function SortableInstructionRow({
       </div>
 
       <div className="space-y-1">
-        {/* Spec 083 : champ obligatoire, signalé comme tel (son absence bloquait toute la sauvegarde). */}
+        {/* Spec 083 AC-01-04 : texte facultatif (titre, photo ou vidéo suffisent). */}
         <Label htmlFor={`instruction-text-${index}`} className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-          Texte de l&apos;étape <span className="text-rose-500">· obligatoire</span>
+          Texte de l&apos;étape <span className="normal-case tracking-normal text-gray-300">(facultatif)</span>
         </Label>
         <Textarea
           id={`instruction-text-${index}`}

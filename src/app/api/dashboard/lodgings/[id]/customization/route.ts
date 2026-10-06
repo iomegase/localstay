@@ -7,7 +7,9 @@ import {
 } from '@/features/guide-customization/queries/customization'
 import { GuideCustomizationError } from '@/features/guide-customization/types'
 import {
+  arrivalStepHasContent,
   countWords,
+  EMPTY_ARRIVAL_STEP_MESSAGE,
   normalizeOwnerNote,
   OWNER_NOTE_MAX_WORDS,
 } from '@/features/guide-customization/lib/validation'
@@ -102,11 +104,14 @@ const arrivalInstructionSchema = z.object({
     .nullable()
     .optional()
     .transform(value => (value && value.trim().length > 0 ? value.trim() : null)),
+  // Spec 083 AC-01-04 : texte facultatif (une étape entièrement vide reste refusée, ci-dessous).
   text: z
     .string()
     .trim()
-    .min(1, "Le texte de l'instruction est requis.")
-    .max(2000, "L'instruction doit faire 2000 caractères maximum."),
+    .max(2000, "L'instruction doit faire 2000 caractères maximum.")
+    .nullable()
+    .optional()
+    .transform(value => value ?? ''),
   video_url: youtubeUrlSchema,
   photos: z.array(z.string().trim().url()).max(ARRIVAL_STEP_MAX_MEDIA).default([]),
   sort_order: z.number().int().min(0),
@@ -127,7 +132,7 @@ const arrivalInstructionSchema = z.object({
     .array(arrivalFactSchema.extend({ label: z.string().trim().max(40), value: z.string().trim().max(60) }))
     .max(ARRIVAL_STEP_ITEMS_MAX)
     .default([]),
-}).refine(
+}).refine(arrivalStepHasContent, { message: EMPTY_ARRIVAL_STEP_MESSAGE, path: ['text'] }).refine(
   instruction => arrivalMediaCount(instruction.photos, instruction.video_url) <= ARRIVAL_STEP_MAX_MEDIA,
   {
     message: `${ARRIVAL_STEP_MAX_MEDIA} médias maximum par étape : 1 image principale + 4 photos ou vidéo.`,
