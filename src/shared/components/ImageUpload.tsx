@@ -92,7 +92,7 @@ export function ImageUpload({
         {loading ? 'Téléversement…' : label}
       </button>
       <p className="mt-1 text-[11px] text-gray-400">
-        PNG, JPEG, WebP ou AVIF · max 5 Mo · converti en WebP{multiple ? ` · jusqu’à ${maxFiles} images à la fois` : ''}
+        JPEG, PNG, WebP, AVIF ou HEIC (iPhone) · réduite automatiquement · convertie en WebP{multiple ? ` · jusqu’à ${maxFiles} images à la fois` : ''}
       </p>
       {notice && <p className="mt-1 text-[11px] font-medium text-gray-500">{notice}</p>}
       {error && <p className="mt-1 text-[11px] font-medium text-rose-500">{error}</p>}

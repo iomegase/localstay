@@ -47,4 +47,13 @@ describe('085 — ImageUpload', () => {
 
     expect(await screen.findByText('Photo trop lourde. Réessayez avec une photo plus légère.')).toBeInTheDocument()
   })
+  it('AC-05 : session expirée (401) → invite à recharger la page', async () => {
+    global.fetch = jest.fn(async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'Non authentifié' } }) })) as unknown as typeof fetch
+    const { container } = render(<ImageUpload endpoint="/api/x" onUploaded={jest.fn()} />)
+
+    fireEvent.change(container.querySelector('input[type="file"]')!, { target: { files: [heic] } })
+
+    expect(await screen.findByText('Votre session a expiré. Rechargez la page pour vous reconnecter, puis réessayez.')).toBeInTheDocument()
+    expect(screen.queryByText('Non authentifié')).not.toBeInTheDocument()
+  })
 })

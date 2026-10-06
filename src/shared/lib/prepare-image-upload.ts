@@ -88,5 +88,6 @@ export async function prepareImageForUpload(input: File, deps: PrepareImageDeps 
 /** Message d'erreur lisible pour un envoi de photo (AC-05). */
 export function uploadErrorMessage(status: number, serverMessage?: string): string {
   if (status === 413) return 'Photo trop lourde. Réessayez avec une photo plus légère.'
+  if (status === 401) return 'Votre session a expiré. Rechargez la page pour vous reconnecter, puis réessayez.'
   return serverMessage ?? 'Téléversement impossible. Réessayez.'
 }
