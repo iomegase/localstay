@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { LodgingFaq } from '@/features/lodging-showcase/components/LodgingFaq'
 
 const items = [
@@ -32,5 +32,19 @@ describe('LodgingFaq', () => {
   it('086 AC-02 : la réponse passe par le rendu markdown', () => {
     render(<LodgingFaq items={[{ id: '1', question: 'Heure ?', answer: 'Arrivée dès **16 h**.' }]} />)
     expect(screen.getByTestId('lodging-faq-answer')).toHaveTextContent('Arrivée dès **16 h**.')
+  })
+  it('PO 2026-10-06 : ouvrir une question ferme la précédente, y compris dans l’autre colonne', () => {
+    const many = Array.from({ length: 4 }, (_, index) => ({ id: String(index), question: `Q${index + 1} ?`, answer: `R${index + 1}` }))
+    const { container } = render(<LodgingFaq items={many} />)
+    const details = () => [...container.querySelectorAll('details')]
+
+    fireEvent.click(screen.getByText('Q1 ?'))
+    expect(details().map(item => item.open)).toEqual([true, false, false, false])
+
+    fireEvent.click(screen.getByText('Q4 ?'))
+    expect(details().map(item => item.open)).toEqual([false, false, false, true])
+
+    fireEvent.click(screen.getByText('Q4 ?'))
+    expect(details().map(item => item.open)).toEqual([false, false, false, false])
   })
 })
