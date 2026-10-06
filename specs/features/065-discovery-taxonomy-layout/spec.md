@@ -5,7 +5,7 @@
 ```yaml
 id: 065-discovery-taxonomy-layout
 title: "Organiser /decouvrir selon la taxonomie admin et publier les POI sans photo"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-06
@@ -16,7 +16,7 @@ depends_on:
 bounded_context: public-discovery
 amends:
   - "041 BR-04 (photo obligatoire), BR-05 (dépublication à la perte de photo)"
-implementation_gate: "Ne pas coder avant status: approved et réponse PO aux Open Questions."
+implementation_gate: "Spec approuvée par le PO le 2026-10-06 (« c'est parfait » ; OQ-01 Urgences masquée, OQ-02 3 cartes ; AC-02-05 retiré : « Aux alentours » inchangé)."
 ```
 
 ---
@@ -103,9 +103,8 @@ construire le menu de `/decouvrir` à partir de la taxonomie admin.
 - **AC-02-04**: Given un seul groupe, When la page s'affiche, Then ni pastilles ni
   titres de section : la liste reste simple, comme aujourd'hui.
 - **AC-02-05**: Given des POI de la zone « Aux alentours », When la page s'affiche,
-  Then ils restent dans la section « Aux alentours » séparée (règle globale), avec le
-  même regroupement par sous-catégorie (titres `h3`, sans pastilles). Le tri par
-  distance s'applique à l'intérieur de chaque groupe et de chaque zone.
+  Then la section « Aux alentours » reste inchangée (spec 041 AC-02-03 : liste
+  séparée, triée par distance, affichée seulement si non vide), sans regroupement.
 - **AC-02-06**: Given une sous-catégorie ou une catégorie désactivée ou supprimée dans
   la taxonomie, When la page s'affiche, Then elle n'apparaît pas (comportement 041
   inchangé : ses POI ne sont pas publics).
@@ -156,6 +155,10 @@ construire le menu de `/decouvrir` à partir de la taxonomie admin.
   lieu dans les données structurées ni dans `og:image`.
 - **BR-06**: Aucune modification du schéma de base de données.
 - **BR-07**: Gemini n'intervient pas (ADR-006).
+- **BR-08**: La catégorie `urgences` est réservée au guide privé : ses POI ne sont
+  jamais visibles sur `/decouvrir` (ville, catégorie, fiche, hub, sitemap), même
+  publiés (décision PO OQ-01). Liste versionnée dans
+  `src/features/public-discovery/lib/visibility.ts`.
 
 ---
 
@@ -178,7 +181,7 @@ DiscoveryCategory:
   groups:                    # zone principale
     - subcategory: { slug, name } | null      # null = « Autres adresses »
       pois: DiscoveryPoiCard[]                # tri distance
-  nearby_groups: [ ...même forme ]            # zone « Aux alentours »
+  nearby_pois: DiscoveryPoiCard[]             # zone « Aux alentours », inchangée
 DiscoveryPoiCard / DiscoveryPoi:
   photo_is_fallback: boolean
 ```
@@ -194,8 +197,7 @@ L'endpoint admin de publication renvoie le nouveau motif de refus
   puis « Nos adresses » regroupées par catégorie (3 cartes + lien).
 - Page catégorie : en-tête inchangé ; barre de pastilles collante sous l'en-tête
   (mobile : défilement horizontal, 16 px de marge) ; sections avec titre ; « Autres
-  adresses » en dernier ; « Aux alentours » inchangé visuellement, regroupé à
-  l'intérieur.
+  adresses » en dernier ; « Aux alentours » inchangé.
 - Carte et fiche sans photo : image de remplacement en `object-cover`, sans crédit.
 - Style : composants marketing existants (`MarketingShell`, `MarketingEyebrow`,
   `DiscoveryPoiCard`) ; pas de maquette dédiée.
@@ -213,7 +215,8 @@ L'endpoint admin de publication renvoie le nouveau motif de refus
 | AC-02-02 | Pastilles d'ancre collantes | integration |
 | AC-02-03 | Section « Autres adresses » | unit |
 | AC-02-04 | Un seul groupe : liste simple | integration |
-| AC-02-05 | « Aux alentours » séparé, regroupé, tri par distance | unit |
+| AC-02-05 | « Aux alentours » inchangé, non regroupé | integration |
+| BR-08 | Catégorie urgences jamais publique | unit |
 | AC-02-06 | Taxonomie désactivée masquée | unit |
 | AC-03-01 | Éligible sans photo si description ≥ 150 | unit |
 | AC-03-02 | Refus si sans photo et description < 150 | contract |
@@ -236,8 +239,5 @@ L'endpoint admin de publication renvoie le nouveau motif de refus
 
 ## Open Questions
 
-- **OQ-01** — `pending` — La catégorie **Urgences** (pharmacie, médecin, numéros
-  utiles) doit-elle apparaître sur `/decouvrir`, page publique d'inspiration, ou
-  rester réservée au guide privé ? Recommandation : la masquer de `/decouvrir`.
-- **OQ-02** — `pending` — Dans « Nos adresses » de la page ville, 3 cartes par
-  catégorie te conviennent-elles ? (alternative : 6)
+- **OQ-01** — `resolved` 2026-10-06 — Urgences masquée de `/decouvrir` (BR-08).
+- **OQ-02** — `resolved` 2026-10-06 — 3 cartes par catégorie sur la page ville.
