@@ -5,7 +5,7 @@
 ```yaml
 id: 068-admin-poi-edit-panel
 title: "Modifier un POI depuis la liste admin sans changer de page"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-06
@@ -17,7 +17,7 @@ depends_on:
 bounded_context: admin-ui
 amends:
   - "022 UI Behaviour /admin/pois et /admin/pois/{id} (navigation)"
-implementation_gate: "Ne pas coder avant status: approved et réponse PO aux Open Questions."
+implementation_gate: "Spec approuvée par le PO le 2026-10-06 (« ok parfait » : OQ-01 oui, OQ-02 oui, OQ-03 s'arrêter)."
 ```
 
 ---
@@ -109,10 +109,32 @@ Hors périmètre ici : le cadre général de l'admin (spec 067).
 - **AC-04-01**: Given le panneau ouvert depuis la liste, When il s'affiche, Then il
   indique la position (« 3 / 25 ») dans la page courante de la liste filtrée et
   propose « Précédent » / « Suivant ».
-- **AC-04-02**: Given « Suivant » sur le dernier POI de la page, When il est
-  désactivé, Then aucune navigation inter-pages n'est faite (OQ-03).
+- **AC-04-02**: Given le dernier POI de la page, When le panneau s'affiche, Then
+  « Suivant » est désactivé ; aucune navigation inter-pages (OQ-03).
 - **AC-04-03**: Given le panneau, When l'admin utilise Alt+← / Alt+→ hors d'un champ de
   saisie, Then il passe au POI précédent / suivant (avec AC-02-02 si non enregistré).
+
+### US-05 — Créer un POI dans le panneau (OQ-01)
+
+#### Acceptance Criteria
+
+- **AC-05-01**: Given la liste, When l'admin clique sur « Créer POI », Then le
+  formulaire de création actuel (`/admin/pois/new`, ville pré-remplie depuis le
+  filtre) s'ouvre dans le panneau ; chargement direct = pleine page.
+- **AC-05-02**: Given une création réussie, When le POI est créé, Then le panneau
+  affiche la fiche d'édition du nouveau POI et la liste se met à jour.
+
+### US-06 — Publier depuis la liste (OQ-02)
+
+#### Acceptance Criteria
+
+- **AC-06-01**: Given une ligne de la liste, When elle s'affiche, Then un interrupteur
+  « Publié sur Découvrir » reflète `discovery_status`.
+- **AC-06-02**: Given l'interrupteur, When l'admin le bascule, Then la route de
+  publication existante est appelée ; en cas de succès la ligne se met à jour.
+- **AC-06-03**: Given une fiche incomplète, When la publication est refusée (409),
+  Then l'interrupteur revient à son état et le motif s'affiche sur la ligne
+  (critères manquants).
 
 ---
 
@@ -173,6 +195,11 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
 | AC-04-01 | Position et Précédent / Suivant | integration |
 | AC-04-02 | Pas de navigation inter-pages | unit |
 | AC-04-03 | Raccourcis Alt+← / Alt+→ | integration |
+| AC-05-01 | « Créer POI » dans le panneau | integration |
+| AC-05-02 | Après création : fiche du nouveau POI + liste à jour | integration |
+| AC-06-01 | Interrupteur de publication par ligne | integration |
+| AC-06-02 | Bascule → route de publication, ligne à jour | integration |
+| AC-06-03 | Refus 409 → retour d'état + motif | integration |
 
 ---
 
@@ -188,11 +215,6 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
 
 ## Open Questions
 
-- **OQ-01** — `pending` — « Créer un POI » s'ouvre-t-il aussi dans le panneau
-  (recommandé : oui, même mécanisme) ou reste-t-il une page ?
-- **OQ-02** — `pending` — Ajouter dans la liste un interrupteur « Publié sur
-  Découvrir » par ligne, pour publier/dépublier sans ouvrir le panneau ?
-  (recommandé : oui, c'est l'action la plus fréquente ; refusé avec le motif si la
-  fiche est incomplète)
-- **OQ-03** — `pending` — « Suivant » sur le dernier POI de la page : s'arrêter
-  (recommandé, simple) ou charger la page suivante de la liste ?
+- **OQ-01** — `resolved` 2026-10-06 — « Créer un POI » s'ouvre dans le panneau (US-05).
+- **OQ-02** — `resolved` 2026-10-06 — Interrupteur « Publié sur Découvrir » par ligne (US-06).
+- **OQ-03** — `resolved` 2026-10-06 — « Suivant » s'arrête au dernier POI de la page.
