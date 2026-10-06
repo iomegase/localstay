@@ -228,3 +228,16 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
     expect(onShowPoiOnMap).toHaveBeenCalledWith(cafe)
   })
 })
+
+// Spec 084 AC-02 — titre de l'accueil lisible sur une photo claire.
+describe('084 AC-02 — lisibilité de l’accueil', () => {
+  it('un dégradé sombre recouvre le bas de la photo, sous le titre', () => {
+    render(
+      <GuideStayHome lodging={buildStayLodging()} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />,
+    )
+    const overlay = screen.getByTestId('guide-hero-overlay')
+    expect(overlay.className).toContain('rgba(17,17,17,0.65)')
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(overlay.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+})

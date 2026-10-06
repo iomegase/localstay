@@ -4,6 +4,7 @@ import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
 import { getCategoryColor } from '@/features/categories/lib/category-style'
 import { activeFallbackImageUrl } from '@/features/categories/lib/poi-fallback-image'
 import { getGuidePoiHeroImage } from '@/features/guide-app/lib/poi-image'
+import { guideCoverImage } from '@/features/guide-app/lib/cover-image'
 import {
   FIXED_DEPARTURE_INSTRUCTIONS,
   FIXED_HOUSE_RULES,
@@ -65,7 +66,11 @@ export async function getPrivateGuideData(
         },
       },
       public_profile: {
-        select: { max_guests: true, bedroom_count: true, surface_m2: true, deleted_at: true },
+        select: {
+          max_guests: true, bedroom_count: true, surface_m2: true, deleted_at: true,
+          // Spec 084 AC-01 : photos de la page Logement, en secours de la couverture du guide.
+          photos: { where: { deleted_at: null }, orderBy: { sort_order: 'asc' }, select: { url: true, is_cover: true } },
+        },
       },
       practical_blocks: {
         where: { deleted_at: null },
@@ -178,7 +183,7 @@ export async function getPrivateGuideData(
 
   const customization = lodging.customization
   const profile = lodging.public_profile?.deleted_at ? null : lodging.public_profile
-  const coverImage = customization?.cover_photo_url?.trim()
+  const coverImage = guideCoverImage(customization?.cover_photo_url, profile?.photos ?? [])
 
   const data: PrivateGuideData = {
     lodging: {

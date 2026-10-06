@@ -299,6 +299,27 @@ describe('034-private-guide-app private data adapter', () => {
     expect(result?.lodging.tagline).toBe('Bienvenue à Saint-Gervais-les-Bains')
   })
 
+  it('084 AC-01 : sans photo dans le Guide, la couverture de la page Logement est utilisée', async () => {
+    lodgingFindFirst.mockResolvedValue({
+      id: 'lodging-1',
+      name: 'Le 305',
+      city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
+      customization: null,
+      public_profile: {
+        max_guests: 2, bedroom_count: 1, surface_m2: 37, deleted_at: null,
+        photos: [{ url: 'https://cdn.test/salon.webp', is_cover: false }, { url: 'https://cdn.test/cover.webp', is_cover: true }],
+      },
+      practical_blocks: [],
+      arrival_instructions: [],
+    })
+    featuredFindMany.mockResolvedValue([])
+
+    const result = await getPrivateGuideData('lodging-1')
+
+    expect(result?.lodging.coverImage).toBe('https://cdn.test/cover.webp')
+    expect(result?.lodging.gallery).toEqual(['https://cdn.test/cover.webp'])
+  })
+
   it('returns null when the active lodging cannot be resolved', async () => {
     lodgingFindFirst.mockResolvedValue(null)
 

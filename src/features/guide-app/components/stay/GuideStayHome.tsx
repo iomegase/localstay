@@ -141,7 +141,8 @@ export function GuideStayHome<P extends StayPoiCard>({
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
-        {/* <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.1),rgba(17,17,17,0.88)_72%)]" /> */}
+        {/* Spec 084 AC-02 : titre lisible même sur une photo claire. */}
+        <div data-testid="guide-hero-overlay" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0)_35%,rgba(17,17,17,0.65)_100%)]" />
         {/* <span className="absolute left-5 top-6 rounded-full bg-[#DB2777] px-3 py-[7px] text-[11px] font-semibold uppercase tracking-[0.12em]">
           Votre guide de séjour
         </span> */}

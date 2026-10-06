@@ -1838,3 +1838,11 @@ Note 077 / 079 / 076 (2026-10-06) : barres d'enregistrement passées de `fixed` 
 |---|---|---|---|---|
 | AC-01-01..03 | Guide : instruction sans texte, bloc sans titre, code postal, vidéo signalés sous le champ ; chemin des erreurs API (`issues`) ; effacement à la correction | `src/features/guide-customization/lib/form-errors.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/features/guide-customization/components/ArrivalInstructionsEditor.tsx`<br>`src/features/guide-customization/components/PracticalBlocksEditor.tsx`<br>`src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/shared/components/ui/input.tsx`, `textarea.tsx` | `tests/unit/inline-form-errors.AC-01.guide-errors.test.ts`<br>`tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts`<br>`tests/integration/owner-lodgings-guide-ui.AC-04.guide-page.test.tsx`<br>`tests/unit/guide-customization.customization-form-blocks.test.tsx` | ✅ done |
 | AC-02-01..02 | Logement : brouillon refusé et champs manquants sous les champs / sections, effacés à la correction | `src/features/lodging-showcase/lib/showcase-form.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/unit/owner-lodging-page-ui.showcase-form.test.ts`<br>`tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx` | ✅ done |
+
+## 084 — Audit du guide voyageur : corrections
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01 / BR-01 | Couverture : photo du Guide > couverture de la page Logement > image générique | `src/features/guide-app/lib/cover-image.ts`<br>`src/features/guide-app/queries/private-guide-data.ts` | `tests/unit/guide-audit-fixes.AC-01-03.test.ts`<br>`tests/unit/private-guide-app.AC-01-05.data.test.ts` | ✅ done |
+| AC-02 | Dégradé de lisibilité sur l'accueil | `src/features/guide-app/components/stay/GuideStayHome.tsx` | `tests/integration/private-guide-stay.AC-01.stay-home.test.tsx` | ✅ done |
+| AC-03 | Point de tri : ville non dupliquée dans la recherche Maps | `src/features/guide-app/lib/recycling-maps.ts` | `tests/unit/guide-audit-fixes.AC-01-03.test.ts` | ✅ done |
