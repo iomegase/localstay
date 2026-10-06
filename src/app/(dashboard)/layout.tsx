@@ -7,7 +7,6 @@ import { usePathname } from 'next/navigation'
 import {
   Bell,
   Building2,
-  CreditCard,
   ChevronDown,
   ChevronRight,
   LayoutDashboard,
@@ -24,7 +23,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/lodgings', label: 'Logements', icon: Building2 },
   { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
   { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
-  { href: '/dashboard/subscription', label: 'Abonnement', icon: CreditCard },
+  // Spec 078 : « Abonnement » masqué tant que l'abonnement n'est pas actif.
 ]
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
