@@ -1855,3 +1855,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 |---|---|---|---|---|
 | AC-01..03, AC-05 / BR-02 | HEIC → JPEG et réduction ≤ 2560 px dans le navigateur (heic2any à la demande), sélecteur HEIC, messages précis (413, format, poids) | `src/shared/lib/prepare-image-upload.ts`<br>`src/shared/lib/image-upload.ts`<br>`src/shared/components/ImageUpload.tsx`<br>`src/features/lodging-showcase/lib/upload-photos.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx`<br>routes `cover-photo`, `public-profile/photos` (propriétaire, admin) | `tests/unit/photo-upload-heic.AC-01-05.prepare.test.ts`<br>`tests/integration/photo-upload-heic.AC-01-05.image-upload.test.tsx`<br>`tests/integration/lodging-showcase.AC-05-13-15.photo-editor.test.tsx` | ✅ done |
 | AC-04 / BR-01 | HEIC décodé côté serveur (heic-convert) puis WebP ≤ 2560 px | `src/shared/lib/image-upload-service.ts`<br>`src/shared/types/heic-convert.d.ts` | `tests/unit/photo-upload-heic.AC-04.server.test.ts` + vérification réelle d'un HEIC HEVC (2026-10-06) | ✅ done |
+
+## 086 — Fiche logement publique : FAQ et équipements
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01..02 | FAQ sur 2 colonnes (≥ md), réponses en markdown | `src/features/lodging-showcase/components/LodgingFaq.tsx` | `tests/unit/lodging-showcase/LodgingFaq.test.tsx` | ✅ done |
+| AC-03 | Équipements / services en cases, 2 colonnes (sm) puis 3 (lg) | `src/features/lodging-showcase/components/LodgingFeatureSections.tsx` | `tests/unit/lodging-showcase.AC-02-10.feature-sections-layout.test.tsx` | ✅ done |
+| AC-04 | Icône dédiée pour tout le catalogue (lave-linge corrigé) | `src/features/lodging-showcase/lib/feature-icon.ts` | `tests/unit/lodging-showcase.semantic-feature-icons.test.tsx` | ✅ done |

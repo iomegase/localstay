@@ -1,16 +1,14 @@
 import { featureIconFor } from '@/features/lodging-showcase/lib/feature-icon'
 
-function FeatureItem({ item, compact }: { item: string; compact: boolean }) {
+// Spec 086 AC-03 / AC-04 : chaque équipement dans une case, icône dédiée sur pastille.
+function FeatureItem({ item }: { item: string }) {
   const Icon = featureIconFor(item)
 
   return (
-    <li
-      className={`flex items-center gap-3 border-b border-slate-200/70 py-3 text-[12px] leading-snug text-slate-600 last:border-b-0 ${
-        // Liste sur 2 colonnes (AC-02-10) : l'avant-dernier élément termine toujours une colonne.
-        compact ? '' : 'md:[&:nth-last-child(2)]:border-b-0'
-      }`}
-    >
-      <Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-pink-600" strokeWidth={1.7} />
+    <li className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-[13px] leading-snug text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pink-50">
+        <Icon aria-hidden="true" className="h-4 w-4 text-pink-600" strokeWidth={1.8} />
+      </span>
       <span>{item}</span>
     </li>
   )
@@ -24,14 +22,14 @@ function FeatureCard({ eyebrow, items, compact }: { eyebrow: string; items: stri
       <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-pink-600">
         {eyebrow}
       </span>
-      <ul className={compact ? 'mt-4' : 'mt-4 md:grid md:grid-cols-2 md:gap-x-10'}>
-        {items.map(item => <FeatureItem item={item} key={item} compact={compact} />)}
+      <ul className={compact ? 'mt-4 grid gap-2' : 'mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'}>
+        {items.map(item => <FeatureItem item={item} key={item} />)}
       </ul>
     </article>
   )
 }
 
-/** Équipements puis Services sur demande, chacun sur sa propre ligne pleine largeur (AC-02-10). */
+/** Équipements puis Services sur demande, chacun sur sa propre ligne pleine largeur (AC-02-10), en cases sur 2 à 3 colonnes (086). */
 export function LodgingFeatureSections({
   includedAmenities,
   onRequestAmenities,

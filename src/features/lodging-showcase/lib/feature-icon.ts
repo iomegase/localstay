@@ -1,5 +1,16 @@
 import {
+  Baby,
+  Backpack,
   Bath,
+  Clapperboard,
+  Droplets,
+  Dumbbell,
+  HandHeart,
+  Heater,
+  MountainSnow,
+  PawPrint,
+  Snowflake,
+  Utensils,
   BedDouble,
   CarFront,
   ChefHat,
@@ -25,7 +36,22 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+// Ordre significatif : les termes précis passent avant les termes larges (« lave-linge » avant « linge »).
 const featureIcons: Array<[string[], LucideIcon]> = [
+  // Spec 086 AC-04 : icône dédiée pour chaque équipement / service du catalogue.
+  [['lave-vaisselle'], Utensils],
+  [['lave-linge'], WashingMachine],
+  [['jacuzzi', 'spa privatif'], Bath],
+  [['sauna', 'hammam'], Droplets],
+  [['massage', 'spa'], HandHeart],
+  [['cinéma'], Clapperboard],
+  [['salle de sport', 'fitness'], Dumbbell],
+  [['climatisation'], Snowflake],
+  [['chauffage'], Heater],
+  [['ski'], MountainSnow],
+  [['animaux', 'animal'], PawPrint],
+  [['bébé', 'enfant'], Baby],
+  [['location de matériel', 'matériel'], Backpack],
   [['chambre', 'lit', 'couchage'], BedDouble],
   [['salle de bain'], Bath],
   [['wi-fi', 'wifi'], Wifi],
