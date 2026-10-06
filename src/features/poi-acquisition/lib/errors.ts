@@ -27,6 +27,7 @@ export function messageForPoiAcquisitionCode(code: string): string {
   if (code === 'SOURCE_URL_UNREADABLE') return 'URL officielle impossible à lire'
   if (code === 'NOT_FOUND') return 'Ressource introuvable'
   if (code === 'CITY_NOT_FOUND') return 'Ville introuvable'
+  if (code === 'RUN_NOT_RESUMABLE') return 'Ce lancement ne peut pas être repris'
   if (code === 'GOOGLE_PLACES_UNAVAILABLE') return 'Google Places indisponible, réessayez plus tard'
   return 'Erreur acquisition POI'
 }

@@ -617,11 +617,15 @@ model PoiAcquisitionRun {
   error       String?
 
   // Spec 066 : lieux écartés avant tout traitement payant.
-  skipped_other_village      Int @default(0)
-  skipped_closed_permanently Int @default(0)
+  skipped_other_village      Int     @default(0)
+  skipped_closed_permanently Int     @default(0)
   // Spec 071 : lieux déjà rejetés pour cette catégorie ou exclus de la ville.
-  skipped_rejected           Int @default(0)
-  skipped_excluded           Int @default(0)
+  skipped_rejected           Int     @default(0)
+  skipped_excluded           Int     @default(0)
+  // Spec 072 : traitement par lots reprenables.
+  source_url                 String?
+  pending_places             Json    @default("[]")
+  processed_count            Int     @default(0)
 
   candidates PoiAcquisitionCandidate[]
   audit_logs PoiAcquisitionAuditLog[]

@@ -19,6 +19,7 @@ const STATUS_STYLES = {
   COMPLETED: 'bg-emerald-50/80 text-emerald-600 border-emerald-100/50',
   FAILED: 'bg-rose-50/80 text-rose-600 border-rose-100/50',
   RUNNING: 'bg-blue-50/80 text-blue-600 border-blue-100/50 animate-pulse',
+  PARTIAL: 'bg-amber-50/80 text-amber-700 border-amber-100/50',
   DEFAULT: 'bg-gray-100/80 text-gray-500 border-gray-200/50',
 }
 
@@ -129,9 +130,10 @@ export default async function AdminPoiAcquisitionPage() {
                     {/* Badge Statut */}
                     <td className="px-6 py-5 text-center">
                       <span className={`inline-flex shrink-0 items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                        STATUS_STYLES[run.status as keyof typeof STATUS_STYLES] || STATUS_STYLES.DEFAULT
+                        STATUS_STYLES[run.status.toUpperCase() as keyof typeof STATUS_STYLES] || STATUS_STYLES.DEFAULT
                       }`}>
-                        {run.status}
+                        {/* Spec 072 AC-03-02 */}
+                        {run.status === 'partial' ? 'PARTIEL' : run.status}
                       </span>
                     </td>
 

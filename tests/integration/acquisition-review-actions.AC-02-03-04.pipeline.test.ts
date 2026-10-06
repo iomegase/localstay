@@ -15,6 +15,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     city: { findFirst: (...a: unknown[]) => mockCityFindFirst(...a), findMany: (...a: unknown[]) => mockCityFindMany(...a) },
     category: { findFirst: (...a: unknown[]) => mockCategoryFindFirst(...a) },
     poiAcquisitionRun: {
+      findMany: async () => [],
       create: (...a: unknown[]) => mockRunCreate(...a),
       update: (...a: unknown[]) => mockRunUpdate(...a),
       findFirst: (...a: unknown[]) => mockRunFindFirst(...a),
@@ -36,6 +37,28 @@ function place(id: string) {
   return { id, displayName: { text: id }, formattedAddress: `${id}, Saint-Gervais`, location: { latitude: 45.8925, longitude: 6.7122 }, businessStatus: 'OPERATIONAL' }
 }
 
+
+// Spec 072 : file d'attente du lancement, écrite puis relue par le traitement par lots.
+let pendingPlaces: unknown = []
+function setRunDetail(detail: Record<string, unknown>) {
+  pendingPlaces = []
+  mockRunUpdate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+    if ('pending_places' in data) pendingPlaces = data.pending_places
+    return { id: 'run-1' }
+  })
+  mockRunFindFirst.mockImplementation(async () => {
+    const [city, category] = await Promise.all([mockCityFindFirst(), mockCategoryFindFirst()])
+    return {
+      ...detail,
+      source_url: null,
+      pending_places: pendingPlaces,
+      processed_count: 0,
+      city: { ...(detail.city as object), ...(city as object) },
+      category: { ...(detail.category as object), ...(category as object) },
+    }
+  })
+}
+
 describe('071 — pipeline et mémoire', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -47,7 +70,7 @@ describe('071 — pipeline et mémoire', () => {
     mockPoiFindMany.mockResolvedValue([])
     mockCallGemini.mockResolvedValue([{ description: 'D' }])
     mockGeocode.mockResolvedValue({ status: 'success', latitude: 45.89, longitude: 6.71, confidence: 0.9 })
-    mockRunFindFirst.mockResolvedValue({
+    setRunDetail({
       id: 'run-1', status: 'completed', error: null,
       skipped_other_village: 0, skipped_closed_permanently: 0, skipped_rejected: 1, skipped_excluded: 1,
       city: { name: 'Saint-Gervais-les-Bains' }, category: { name: 'Restaurant' }, candidates: [],

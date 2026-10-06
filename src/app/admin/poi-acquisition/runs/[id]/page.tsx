@@ -3,6 +3,7 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAcquisitionRun } from '@/features/poi-acquisition/queries/runs'
 import { AdminCandidateReviewActions } from '@/features/poi-acquisition/components/AdminCandidateReviewActions'
 import { AdminCandidateEditDialog } from '@/features/poi-acquisition/components/AdminCandidateEditDialog'
+import { AdminResumeRunButton } from '@/features/poi-acquisition/components/AdminResumeRunButton'
 import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
 import { AlertCircle, FileSearch } from 'lucide-react'
 
@@ -28,6 +29,7 @@ function getRunStatusStyle(status: string) {
   if (s === 'COMPLETED') return 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
   if (s === 'RUNNING') return 'bg-blue-50 text-blue-600 border-blue-100/50 animate-pulse'
   if (s === 'FAILED') return 'bg-rose-50 text-rose-600 border-rose-100/50'
+  if (s === 'PARTIAL') return 'bg-amber-50 text-amber-700 border-amber-100/50'
   return 'bg-gray-100 text-gray-500 border-gray-200/50'
 }
 
@@ -68,6 +70,15 @@ export default async function AdminPoiAcquisitionRunPage({
               </span>
             </div>
 
+            {/* Spec 072 AC-02-03 : lancement partiel reprenable. */}
+            {run.status === 'partial' && run.pending_count > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-amber-100 bg-amber-50/60 p-3">
+                <p className="text-[12px] font-semibold text-amber-800">
+                  {run.pending_count} {run.pending_count > 1 ? 'lieux restent' : 'lieu reste'} à traiter ({run.processed_count} déjà traités)
+                </p>
+                <AdminResumeRunButton runId={run.id} />
+              </div>
+            )}
             {(run.skipped_other_village > 0 || run.skipped_closed_permanently > 0
               || run.skipped_rejected > 0 || run.skipped_excluded > 0 || run.excluded_candidates > 0) && (
               <ul className="mt-3 space-y-1 text-[12px] font-medium text-gray-500">

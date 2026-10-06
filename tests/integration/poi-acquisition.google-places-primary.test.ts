@@ -17,6 +17,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     },
     category: { findFirst: (...args: unknown[]) => mockCategoryFindFirst(...args) },
     poiAcquisitionRun: {
+      findMany: async () => [],
       create: (...args: unknown[]) => mockRunCreate(...args),
       update: (...args: unknown[]) => mockRunUpdate(...args),
       findFirst: (...args: unknown[]) => mockRunFindFirst(...args),
@@ -55,6 +56,28 @@ const googlePlacesResponse = {
   ],
 }
 
+
+// Spec 072 : file d'attente du lancement, écrite puis relue par le traitement par lots.
+let pendingPlaces: unknown = []
+function setRunDetail(detail: Record<string, unknown>) {
+  pendingPlaces = []
+  mockRunUpdate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+    if ('pending_places' in data) pendingPlaces = data.pending_places
+    return { id: 'run-1' }
+  })
+  mockRunFindFirst.mockImplementation(async () => {
+    const [city, category] = await Promise.all([mockCityFindFirst(), mockCategoryFindFirst()])
+    return {
+      ...detail,
+      source_url: null,
+      pending_places: pendingPlaces,
+      processed_count: 0,
+      city: { ...(detail.city as object), ...(city as object) },
+      category: { ...(detail.category as object), ...(category as object) },
+    }
+  })
+}
+
 describe('018 Google Places primary POI acquisition', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -85,7 +108,7 @@ describe('018 Google Places primary POI acquisition', () => {
       longitude: 6.71294,
       confidence: 0.96,
     })
-    mockRunFindFirst.mockResolvedValue({
+    setRunDetail({
       id: 'run-1',
       status: 'completed',
       error: null,
@@ -186,7 +209,7 @@ describe('018 Google Places primary POI acquisition', () => {
     expect(mockCandidateCreate).toHaveBeenCalledTimes(2)
     expect(mockRunUpdate).toHaveBeenLastCalledWith({
       where: { id: 'run-1' },
-      data: { status: 'completed', skipped_other_village: 0, skipped_closed_permanently: 0, skipped_rejected: 0, skipped_excluded: 0 },
+      data: { status: 'completed' }, // spec 072 : compteurs écrits au démarrage, statut en fin de traitement
     })
   })
 })

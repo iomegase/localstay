@@ -9,6 +9,7 @@ import {
 import { filterCandidatesForVillage } from '../lib/village'
 import { filterByReviewMemory } from '../lib/review-memory'
 import { loadCityReviewMemories } from './review-memory'
+import { deserializePendingPlaces, serializePendingPlaces } from '../lib/pending-places'
 import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
 import { geocodeForAcquisition } from '../lib/geocode'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
@@ -96,18 +97,14 @@ export async function createAcquisitionRun(
       status: 'running',
       source: runSource(input),
       started_by: adminId,
+      // Spec 072 BR-03 : contexte officiel réutilisé à la reprise.
+      source_url: input.source_url ?? null,
     },
     select: { id: true },
   })
 
   try {
     const subcategories = category.subcategories ?? []
-    const subcategoryIdByName = new Map(
-      subcategories.map(subcategory => [normalizeNameKey(subcategory.name), subcategory.id]),
-    )
-    const officialSourceContext = input.source_url
-      ? await fetchOfficialWebsiteSourceContext(input.source_url)
-      : null
     let googleCandidates: GooglePlaceCandidate[]
     let skippedOtherVillage = 0
     let skippedClosedPermanently = 0
@@ -139,78 +136,18 @@ export async function createAcquisitionRun(
       skippedRejected = remembered.skippedRejected
       skippedExcluded = remembered.skippedExcluded
     }
-    const websiteContextCache = new Map<string, Promise<OfficialWebsiteSourceContext | null>>()
-    const candidateErrors: string[] = []
-
-    for (const candidate of googleCandidates) {
-      try {
-        const candidateOfficialSourceContext = candidate.website
-          ? await getCachedOfficialWebsiteSourceContext(candidate.website, websiteContextCache)
-          : null
-        const description = await generateVerifiedDescription({
-          candidate,
-          cityName: city.name,
-          categoryName: category.name,
-          officialSourceContext,
-          candidateOfficialSourceContext,
-        })
-        const geocode = await geocodeForAcquisition(candidate.address, {
-          latitude: city.latitude,
-          longitude: city.longitude,
-        })
-        const duplicates = await findDuplicates({
-          name: candidate.name,
-          address: candidate.address,
-          google_place_id: candidate.google_place_id,
-          latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
-          longitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.longitude : null,
-        })
-        const subcategoryId = candidate.query_subcategory_name
-          ? subcategoryIdByName.get(normalizeNameKey(candidate.query_subcategory_name)) ?? null
-          : null
-
-        await createCandidateWithRetry({
-          run_id: run.id,
-          source: 'google_places',
-          name: candidate.name,
-          address: candidate.address,
-          description,
-          phone: candidate.phone,
-          website: candidate.website,
-          category_id: category.id,
-          subcategory_id: subcategoryId,
-          google_place_id: candidate.google_place_id,
-          business_status: candidate.business_status && STORED_BUSINESS_STATUSES.has(candidate.business_status)
-            ? candidate.business_status
-            : null,
-          google_review_payload: mergeHoursIntoReviewPayload(candidate.review_payload, candidate.hours),
-          google_review_expires_at: candidate.google_review_expires_at,
-          latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
-          longitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.longitude : null,
-          geocode_status: geocode.status,
-          geocode_provider: geocode.status === 'success' || geocode.status === 'pending_review' ? 'mapbox' : null,
-          geocode_confidence: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.confidence : null,
-          duplicate_poi_ids: duplicates,
-          match_status: duplicates.length > 0 ? 'duplicate_candidate' : 'matched',
-          review_status: 'needs_review',
-        })
-      } catch (error) {
-        candidateErrors.push(`${candidate.name}: ${messageFromError(error)}`)
-      }
-    }
-
-    const skipped = {
-      skipped_other_village: skippedOtherVillage,
-      skipped_closed_permanently: skippedClosedPermanently,
-      skipped_rejected: skippedRejected,
-      skipped_excluded: skippedExcluded,
-    }
+    // Spec 072 AC-01-01 : la liste retenue est enregistrée avant tout traitement payant.
     await prisma.poiAcquisitionRun.update({
       where: { id: run.id },
-      data: candidateErrors.length > 0
-        ? { status: 'completed', ...skipped, error: `Acquisition partielle: ${candidateErrors.slice(0, 5).join(' | ')}` }
-        : { status: 'completed', ...skipped },
+      data: {
+        pending_places: serializePendingPlaces(googleCandidates),
+        skipped_other_village: skippedOtherVillage,
+        skipped_closed_permanently: skippedClosedPermanently,
+        skipped_rejected: skippedRejected,
+        skipped_excluded: skippedExcluded,
+      },
     })
+    await processPendingCandidates(run.id, { deadline: Date.now() + RUN_TIME_BUDGET_MS })
   } catch (error) {
     await prisma.poiAcquisitionRun.update({
       where: { id: run.id },
@@ -221,6 +158,190 @@ export async function createAcquisitionRun(
   const detail = await getAcquisitionRun(run.id)
   if (!detail) throw new PoiAcquisitionError('NOT_FOUND', 404)
   return detail
+}
+
+// Spec 072 AC-01-03 : budget de traitement par requête (fonction Vercel à 300 s).
+const RUN_TIME_BUDGET_MS = 240_000
+// Spec 072 BR-01 : candidats traités simultanément.
+const CANDIDATE_CONCURRENCY = 5
+// Spec 072 AC-03-01 : sans nouvelle depuis ce délai, un run « running » est considéré interrompu.
+const STALLED_RUN_MS = 10 * 60 * 1000
+
+type ProcessContext = {
+  runId: string
+  city: { name: string; latitude: number; longitude: number }
+  category: { id: string; name: string }
+  subcategoryIdByName: Map<string, string>
+  officialSourceContext: OfficialWebsiteSourceContext | null
+  websiteContextCache: Map<string, Promise<OfficialWebsiteSourceContext | null>>
+}
+
+async function processCandidate(candidate: GooglePlaceCandidate, context: ProcessContext): Promise<void> {
+  const candidateOfficialSourceContext = candidate.website
+    ? await getCachedOfficialWebsiteSourceContext(candidate.website, context.websiteContextCache)
+    : null
+  const description = await generateVerifiedDescription({
+    candidate,
+    cityName: context.city.name,
+    categoryName: context.category.name,
+    officialSourceContext: context.officialSourceContext,
+    candidateOfficialSourceContext,
+  })
+  const geocode = await geocodeForAcquisition(candidate.address, {
+    latitude: context.city.latitude,
+    longitude: context.city.longitude,
+  })
+  const located = geocode.status === 'success' || geocode.status === 'pending_review'
+  const duplicates = await findDuplicates({
+    name: candidate.name,
+    address: candidate.address,
+    google_place_id: candidate.google_place_id,
+    latitude: located ? geocode.latitude : null,
+    longitude: located ? geocode.longitude : null,
+  })
+  const subcategoryId = candidate.query_subcategory_name
+    ? context.subcategoryIdByName.get(normalizeNameKey(candidate.query_subcategory_name)) ?? null
+    : null
+
+  await createCandidateWithRetry({
+    run_id: context.runId,
+    source: 'google_places',
+    name: candidate.name,
+    address: candidate.address,
+    description,
+    phone: candidate.phone,
+    website: candidate.website,
+    category_id: context.category.id,
+    subcategory_id: subcategoryId,
+    google_place_id: candidate.google_place_id,
+    business_status: candidate.business_status && STORED_BUSINESS_STATUSES.has(candidate.business_status)
+      ? candidate.business_status
+      : null,
+    google_review_payload: mergeHoursIntoReviewPayload(candidate.review_payload, candidate.hours),
+    google_review_expires_at: candidate.google_review_expires_at,
+    latitude: located ? geocode.latitude : null,
+    longitude: located ? geocode.longitude : null,
+    geocode_status: geocode.status,
+    geocode_provider: located ? 'mapbox' : null,
+    geocode_confidence: located ? geocode.confidence : null,
+    duplicate_poi_ids: duplicates,
+    match_status: duplicates.length > 0 ? 'duplicate_candidate' : 'matched',
+    review_status: 'needs_review',
+  })
+}
+
+/**
+ * Spec 072 US-01 : traite les candidats en attente par lots de 5 en parallèle, met le
+ * run à jour après chaque lot et s'arrête au budget de temps (statut partial s'il reste
+ * des lieux, completed sinon).
+ */
+export async function processPendingCandidates(
+  runId: string,
+  options: { deadline: number; now?: () => number },
+): Promise<{ processed: number; remaining: number; status: 'completed' | 'partial' }> {
+  const now = options.now ?? Date.now
+  const run = await prisma.poiAcquisitionRun.findFirst({
+    where: { id: runId, deleted_at: null },
+    select: {
+      id: true,
+      error: true,
+      source_url: true,
+      pending_places: true,
+      city: { select: { name: true, latitude: true, longitude: true } },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          subcategories: { where: { is_active: true, deleted_at: null }, select: { id: true, name: true } },
+        },
+      },
+    },
+  })
+  if (!run) throw new PoiAcquisitionError('NOT_FOUND', 404)
+
+  const context: ProcessContext = {
+    runId,
+    city: run.city,
+    category: run.category,
+    subcategoryIdByName: new Map(
+      (run.category.subcategories ?? []).map(subcategory => [normalizeNameKey(subcategory.name), subcategory.id]),
+    ),
+    officialSourceContext: run.source_url ? await fetchOfficialWebsiteSourceContext(run.source_url) : null,
+    websiteContextCache: new Map(),
+  }
+
+  const remaining = deserializePendingPlaces(run.pending_places)
+  const errors: string[] = []
+  let processed = 0
+
+  while (remaining.length > 0 && now() < options.deadline) {
+    const batch = remaining.splice(0, CANDIDATE_CONCURRENCY)
+    const results = await Promise.allSettled(batch.map(candidate => processCandidate(candidate, context)))
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') errors.push(`${batch[index]!.name}: ${messageFromError(result.reason)}`)
+    })
+    processed += batch.length
+    await prisma.poiAcquisitionRun.update({
+      where: { id: runId },
+      data: { pending_places: serializePendingPlaces(remaining), processed_count: { increment: batch.length } },
+    })
+  }
+
+  const status = remaining.length > 0 ? 'partial' : 'completed'
+  const errorParts = [
+    run.error,
+    errors.length > 0 ? `Acquisition partielle: ${errors.slice(0, 5).join(' | ')}` : null,
+  ].filter((part): part is string => Boolean(part))
+  await prisma.poiAcquisitionRun.update({
+    where: { id: runId },
+    data: { status, ...(errorParts.length > 0 ? { error: errorParts.join(' · ').slice(0, 2000) } : {}) },
+  })
+  return { processed, remaining: remaining.length, status }
+}
+
+/** Spec 072 US-02 : reprend un run partiel, sans nouvelle recherche Google. */
+export async function resumeAcquisitionRun(runId: string): Promise<AcquisitionRunDetail> {
+  await markStalledRuns()
+  const run = await prisma.poiAcquisitionRun.findFirst({
+    where: { id: runId, deleted_at: null },
+    select: { id: true, status: true },
+  })
+  if (!run) throw new PoiAcquisitionError('NOT_FOUND', 404)
+  if (run.status !== 'partial') throw new PoiAcquisitionError('RUN_NOT_RESUMABLE', 409)
+
+  await prisma.poiAcquisitionRun.update({ where: { id: runId }, data: { status: 'running' } })
+  try {
+    await processPendingCandidates(runId, { deadline: Date.now() + RUN_TIME_BUDGET_MS })
+  } catch (error) {
+    await prisma.poiAcquisitionRun.update({
+      where: { id: runId },
+      data: { status: 'partial', error: messageFromError(error) },
+    })
+  }
+  const detail = await getAcquisitionRun(runId)
+  if (!detail) throw new PoiAcquisitionError('NOT_FOUND', 404)
+  return detail
+}
+
+/**
+ * Spec 072 AC-03-01 : un run resté « running » sans mise à jour depuis 10 minutes a été
+ * interrompu (durée maximale) : il devient partiel s'il reste des lieux, terminé sinon.
+ */
+export async function markStalledRuns(at: Date = new Date()): Promise<void> {
+  const stalled = await prisma.poiAcquisitionRun.findMany({
+    where: { deleted_at: null, status: 'running', updated_at: { lt: new Date(at.getTime() - STALLED_RUN_MS) } },
+    select: { id: true, pending_places: true, error: true },
+  })
+  for (const run of stalled) {
+    const hasRemaining = deserializePendingPlaces(run.pending_places).length > 0
+    await prisma.poiAcquisitionRun.update({
+      where: { id: run.id },
+      data: {
+        status: hasRemaining ? 'partial' : 'completed',
+        error: run.error ?? 'Lancement interrompu par la durée maximale d’exécution.',
+      },
+    })
+  }
 }
 
 export async function deleteAcquisitionRun(id: string, adminId: string): Promise<void> {
@@ -254,6 +375,7 @@ export async function deleteAcquisitionRun(id: string, adminId: string): Promise
 }
 
 export async function listAcquisitionRuns(): Promise<AcquisitionRunListItem[]> {
+  await markStalledRuns()
   const runs = await prisma.poiAcquisitionRun.findMany({
     where: { deleted_at: null },
     orderBy: { created_at: 'desc' },
@@ -286,12 +408,15 @@ export async function listAcquisitionRuns(): Promise<AcquisitionRunListItem[]> {
 }
 
 export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetail | null> {
+  await markStalledRuns()
   const run = await prisma.poiAcquisitionRun.findFirst({
     where: { id, deleted_at: null },
     select: {
       id: true,
       status: true,
       error: true,
+      pending_places: true,
+      processed_count: true,
       skipped_other_village: true,
       skipped_closed_permanently: true,
       skipped_rejected: true,
@@ -336,6 +461,9 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
     skipped_closed_permanently: run.skipped_closed_permanently ?? 0,
     skipped_rejected: run.skipped_rejected ?? 0,
     skipped_excluded: run.skipped_excluded ?? 0,
+    // Spec 072 AC-02-03 : lieux restant à traiter.
+    pending_count: deserializePendingPlaces(run.pending_places).length,
+    processed_count: run.processed_count ?? 0,
     // Spec 071 AC-03-01 : les candidats exclus disparaissent de la revue (comptés).
     excluded_candidates: (run.candidates as CandidateRow[]).filter(candidate => candidate.review_status === 'excluded').length,
     candidates: (run.candidates as CandidateRow[])

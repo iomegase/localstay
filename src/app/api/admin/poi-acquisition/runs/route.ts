@@ -8,6 +8,9 @@ import {
   responseFromPoiAcquisitionError,
 } from '@/features/poi-acquisition/lib/api'
 
+// Spec 072 AC-01-03 : le traitement s'arrête de lui-même à 240 s.
+export const maxDuration = 300
+
 export async function GET(): Promise<NextResponse> {
   const session = await getSessionAdmin()
   if (session.error) return session.error

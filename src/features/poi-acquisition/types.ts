@@ -78,6 +78,9 @@ export type AcquisitionRunDetail = {
   skipped_rejected: number
   skipped_excluded: number
   excluded_candidates: number
+  /** Spec 072 : lieux restant à traiter (run partiel) et lieux déjà traités. */
+  pending_count: number
+  processed_count: number
   candidates: AcquisitionCandidateDto[]
 }
 

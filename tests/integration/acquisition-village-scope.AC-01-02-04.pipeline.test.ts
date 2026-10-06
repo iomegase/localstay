@@ -17,6 +17,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     },
     category: { findFirst: (...args: unknown[]) => mockCategoryFindFirst(...args) },
     poiAcquisitionRun: {
+      findMany: async () => [],
       create: (...args: unknown[]) => mockRunCreate(...args),
       update: (...args: unknown[]) => mockRunUpdate(...args),
       findFirst: (...args: unknown[]) => mockRunFindFirst(...args),
@@ -57,6 +58,28 @@ function candidateNames(): string[] {
   return mockCandidateCreate.mock.calls.map(call => (call[0] as { data: { name: string } }).data.name)
 }
 
+
+// Spec 072 : file d'attente du lancement, écrite puis relue par le traitement par lots.
+let pendingPlaces: unknown = []
+function setRunDetail(detail: Record<string, unknown>) {
+  pendingPlaces = []
+  mockRunUpdate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => {
+    if ('pending_places' in data) pendingPlaces = data.pending_places
+    return { id: 'run-1' }
+  })
+  mockRunFindFirst.mockImplementation(async () => {
+    const [city, category] = await Promise.all([mockCityFindFirst(), mockCategoryFindFirst()])
+    return {
+      ...detail,
+      source_url: null,
+      pending_places: pendingPlaces,
+      processed_count: 0,
+      city: { ...(detail.city as object), ...(city as object) },
+      category: { ...(detail.category as object), ...(category as object) },
+    }
+  })
+}
+
 describe('066 — pipeline d’acquisition', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -68,7 +91,7 @@ describe('066 — pipeline d’acquisition', () => {
     mockPoiFindMany.mockResolvedValue([])
     mockCallGemini.mockResolvedValue([{ description: 'Description vérifiée.' }])
     mockGeocodeForAcquisition.mockResolvedValue({ status: 'success', latitude: 45.8925, longitude: 6.7122, confidence: 0.9 })
-    mockRunFindFirst.mockResolvedValue({
+    setRunDetail({
       id: 'run-1', status: 'completed', error: null,
       skipped_other_village: 0, skipped_closed_permanently: 0,
       city: { name: 'Saint-Gervais-les-Bains' }, category: { name: 'Dîner' }, candidates: [],
@@ -106,13 +129,11 @@ describe('066 — pipeline d’acquisition', () => {
   it('AC-01-02 / AC-02-02 : compte les lieux écartés sur le run', async () => {
     await createAcquisitionRun({ city_id: SAINT_GERVAIS.id, category_id: 'cat-diner' }, 'admin-1')
 
+    // Spec 072 : compteurs écrits avec la file d'attente, statut en fin de traitement.
     expect(mockRunUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        status: 'completed',
-        skipped_other_village: 1,
-        skipped_closed_permanently: 1,
-      }),
+      data: expect.objectContaining({ skipped_other_village: 1, skipped_closed_permanently: 1 }),
     }))
+    expect(mockRunUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'completed' }) }))
   })
 
   it('AC-02-03 : enregistre le statut d’ouverture du candidat', async () => {
