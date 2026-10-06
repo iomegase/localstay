@@ -41,7 +41,7 @@ export default async function LodgingShowcasePage({ params }: Props) {
         </div>
 
         <Link
-          href={`/guide/${data.lodging.city.slug}`}
+          href={`/decouvrir/${data.lodging.city.slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gray-200 px-5 text-sm text-charcoal"

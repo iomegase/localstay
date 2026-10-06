@@ -8,13 +8,11 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('042 legacy category compatibility', () => {
-  test('published legacy category permanently redirects to /decouvrir', async ({ request }) => {
+  test('legacy category answers 410 Gone without redirect (spec 064)', async ({ request }) => {
     const response = await request.get('/guide/saint-gervais-les-bains/rando', {
       maxRedirects: 0,
     })
-    expect(response.status()).toBe(308)
-    expect(new URL(response.headers().location, 'http://staylocal.test').pathname).toBe(
-      '/decouvrir/saint-gervais-les-bains/rando',
-    )
+    expect(response.status()).toBe(410)
+    expect(response.headers().location).toBeUndefined()
   })
 })

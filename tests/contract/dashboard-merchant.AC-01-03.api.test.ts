@@ -113,7 +113,7 @@ describe('015 merchant profile and photos API', () => {
       poi: {
         id: 'poi-1',
         name: 'La Table Alpine',
-        public_url: '/guide/saint-gervais-les-bains/diner/la-table-alpine',
+        public_url: '/decouvrir/saint-gervais-les-bains/diner/la-table-alpine',
       },
     })
     expect(mockFindFirstProfile).toHaveBeenCalledWith(expect.objectContaining({

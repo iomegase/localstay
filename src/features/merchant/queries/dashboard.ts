@@ -61,7 +61,7 @@ function asRecord(value: Prisma.JsonValue | null): Record<string, unknown> | nul
 }
 
 function publicUrlForPoi(poi: Pick<MerchantPoiRow, 'slug' | 'city' | 'category'>): string {
-  return `/guide/${poi.city.slug}/${poi.category.slug}/${poi.slug}`
+  return `/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`
 }
 
 function toProfileDto(profile: MerchantProfileRow): MerchantDashboardProfileDto {

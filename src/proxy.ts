@@ -10,11 +10,11 @@ import {
   hasValidLodgingCookie,
   isGuideCityLanding,
   isGuidePath,
-  isLegacyDiscoveryGuidePath,
   isPrivateGuestPath,
   isPrivateGuideCompatibilityPath,
   isValidLodgingId,
 } from '@/features/seo/lib/route-policy'
+import { legacyGuideGoneResponse } from '@/features/seo/lib/legacy-guide-gone'
 
 // Écran de blocage affiché quand on accède au site sans séjour actif.
 const GATE_PATH = '/acces-reserve'
@@ -131,34 +131,32 @@ export async function proxy(request: NextRequest) {
       return redirect
     }
 
-    // Les anciennes routes publiques doivent atteindre leur Server Component,
-    // seul à pouvoir vérifier en base l'éligibilité de la destination 308.
+    // Spec 064 : hors séjour, /guide n'a plus de contenu public. Le 410
+    // retire les anciennes URL de l'index (aucune redirection).
+    if (!hasValidLodgingCookie(lodgingCookie)) {
+      return legacyGuideGoneResponse()
+    }
+
+    // En séjour, les anciennes pages logement atteignent leur Server Component,
+    // qui redirige vers la fiche publique /logements.
     if (isLegacyPublicLodgingGuidePath(path)) {
       return response
     }
-    if (!hasValidLodgingCookie(lodgingCookie) && isLegacyDiscoveryGuidePath(path)) {
-      return response
+    if (isGuideCityLanding(path)) {
+      return NextResponse.redirect(new URL('/sejour', request.url))
     }
 
-    if (hasValidLodgingCookie(lodgingCookie)) {
-      if (isGuideCityLanding(path)) {
-        return NextResponse.redirect(new URL('/sejour', request.url))
-      }
-
-      const segments = path.split('/').filter(Boolean) // ['guide', ville, seg2?, seg3?…]
-      const guideSegment = segments[2] ?? null
-      // Fiche POI = /guide/{ville}/{categorie}/{poi} (≥ 4 segments) : autorisée
-      // (accessible depuis recommandations / favoris / carte). Sont bloqués la page
-      // ville (2 segments) et les listings de catégorie (3 segments non whitelistés).
-      const isPoiDetail = segments.length >= 4
-      const allowed = isPoiDetail || (guideSegment !== null && GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment))
-      if (!allowed) {
-        return NextResponse.redirect(new URL('/sejour', request.url))
-      }
-      return response
+    const segments = path.split('/').filter(Boolean) // ['guide', ville, seg2?, seg3?…]
+    const guideSegment = segments[2] ?? null
+    // Fiche POI = /guide/{ville}/{categorie}/{poi} (≥ 4 segments) : autorisée
+    // (accessible depuis recommandations / favoris / carte). Sont bloqués la page
+    // ville (2 segments) et les listings de catégorie (3 segments non whitelistés).
+    const isPoiDetail = segments.length >= 4
+    const allowed = isPoiDetail || (guideSegment !== null && GUEST_ALLOWED_GUIDE_SEGMENTS.has(guideSegment))
+    if (!allowed) {
+      return NextResponse.redirect(new URL('/sejour', request.url))
     }
-
-    return NextResponse.rewrite(new URL(GATE_PATH, request.url))
+    return response
   }
 
   // === Branche authentifiée : dashboard/merchant/admin ===

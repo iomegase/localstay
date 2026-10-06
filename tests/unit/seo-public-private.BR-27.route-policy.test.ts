@@ -2,7 +2,6 @@ import {
   hasValidLodgingCookie,
   isGuideCityLanding,
   isGuidePath,
-  isLegacyDiscoveryGuidePath,
   isPrivateGuideCompatibilityPath,
   isValidLodgingId,
 } from '@/features/seo/lib/route-policy'
@@ -49,19 +48,6 @@ describe('042 SEO route policy — BR-27', () => {
     ['/guide', false],
   ])('classifies %s as a City landing: %s', (pathname, expected) => {
     expect(isGuideCityLanding(pathname)).toBe(expected)
-  })
-
-  it.each([
-    ['/guide/annecy', true],
-    ['/guide/annecy/restaurants', true],
-    ['/guide/annecy/restaurants/le-port', true],
-    ['/guide/annecy/logements', false],
-    ['/guide/annecy/logements/chalet', false],
-    ['/guide/annecy/contact', false],
-    ['/guide/annecy/agenda', false],
-    ['/guide/annecy/restaurants/le-port/start', false],
-  ])('classifies %s as an anonymous legacy discovery route: %s', (pathname, expected) => {
-    expect(isLegacyDiscoveryGuidePath(pathname)).toBe(expected)
   })
 
   it.each([

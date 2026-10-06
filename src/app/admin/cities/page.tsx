@@ -118,7 +118,7 @@ export default async function AdminCitiesPage() {
                         <AdminCityTransportButton city={city} />
                         <CityQrCodeModalButton citySlug={city.slug} cityName={city.name} />
                         <Link
-                          href={`/guide/${city.slug}`}
+                          href={`/decouvrir/${city.slug}`}
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-5 py-2.5 text-[13px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white hover:shadow-md"
                         >
                           Voir le guide

@@ -12,12 +12,10 @@ const GUIDE_URL = '/guide/saint-gervais-les-bains'
 const LODGING_ID = 'dc682b31-d390-4a3b-ae2e-e7342581535f'
 
 test.describe('042 QR compatibility', () => {
-  test('historical City QR without Lodging permanently redirects to discovery', async ({ request }) => {
+  test('historical City QR without Lodging answers 410 Gone (spec 064 BR-02)', async ({ request }) => {
     const response = await request.get(GUIDE_URL, { maxRedirects: 0 })
-    expect(response.status()).toBe(308)
-    expect(new URL(response.headers().location, 'http://staylocal.test').pathname).toBe(
-      '/decouvrir/saint-gervais-les-bains',
-    )
+    expect(response.status()).toBe(410)
+    expect(response.headers().location).toBeUndefined()
   })
 
   test('QR with a valid Lodging activates the stay before the public redirect', async ({ request }) => {

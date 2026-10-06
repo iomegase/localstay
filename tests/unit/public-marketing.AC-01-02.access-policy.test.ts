@@ -40,15 +40,15 @@ describe('031-public-marketing-site anonymous access policy', () => {
     expect(isAnonymousMarketingPath(pathname)).toBe(false)
   })
 
-  it('lets a historical lodging detail reach its 308 page without classifying it as public marketing', async () => {
+  it('answers 410 to an anonymous historical lodging detail without classifying it as public marketing (spec 064)', async () => {
     const response = await proxy(
       new NextRequest(
         'http://localhost:3000/guide/saint-gervais-les-bains/logements/le-chalet-hygge',
       ),
     )
 
+    expect(response.status).toBe(410)
     expect(response.headers.get('x-middleware-rewrite')).toBeNull()
-    expect(response.headers.get('x-middleware-next')).toBe('1')
     expect(response.headers.get(
       'x-middleware-request-x-staylocal-marketing-route',
     )).toBeNull()

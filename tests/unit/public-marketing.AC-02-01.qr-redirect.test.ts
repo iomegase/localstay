@@ -76,30 +76,28 @@ describe('031-public-marketing-site QR landing', () => {
     expect(response.cookies.get('lodging_id')?.value).toBe(lodgingId)
   })
 
-  it('does not activate or redirect an invalid lodging identifier', async () => {
+  it('does not activate or redirect an invalid lodging identifier (spec 064 : 410)', async () => {
     const response = await proxy(
       new NextRequest(
         'http://localhost:3000/guide/saint-gervais-les-bains/diner/le-serac?lodging=javascript:alert(1)',
       ),
     )
 
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(410)
     expect(response.headers.get('location')).toBeNull()
     expect(response.cookies.get('lodging_id')).toBeUndefined()
   })
 
-  it('applies the normal access gate to an invalid lodging identifier on a private compatibility route', async () => {
+  it('answers 410 to an invalid lodging identifier on a private compatibility route (spec 064)', async () => {
     const response = await proxy(
       new NextRequest(
         'http://localhost:3000/guide/saint-gervais-les-bains/contact?lodging=not-a-uuid',
       ),
     )
 
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(410)
     expect(response.headers.get('location')).toBeNull()
-    expect(response.headers.get('x-middleware-rewrite')).toBe(
-      'http://localhost:3000/acces-reserve',
-    )
+    expect(response.headers.get('x-middleware-rewrite')).toBeNull()
     expect(response.cookies.get('lodging_id')).toBeUndefined()
   })
 

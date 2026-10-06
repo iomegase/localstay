@@ -16,37 +16,18 @@ function locationPath(response: { headers(): Record<string, string> }): string |
 }
 
 test.describe('042 SEO public/private HTTP routing', () => {
-  test('permanently redirects historical lodging and discovery URLs', async ({ request }) => {
-    const oldLodgingDetail = await request.get(
+  test('answers 410 Gone to historical lodging and discovery URLs (spec 064)', async ({ request }) => {
+    for (const path of [
       `/guide/${citySlug}/logements/${lodgingSlug}`,
-      { maxRedirects: 0 },
-    )
-    expect(oldLodgingDetail.status()).toBe(308)
-    expect(locationPath(oldLodgingDetail)).toBe(`/logements/${lodgingSlug}`)
-
-    const oldLodgingList = await request.get(`/guide/${citySlug}/logements`, {
-      maxRedirects: 0,
-    })
-    expect(oldLodgingList.status()).toBe(308)
-    expect(locationPath(oldLodgingList)).toBe('/logements')
-
-    const oldPoi = await request.get(
+      `/guide/${citySlug}/logements`,
       `/guide/${citySlug}/${categorySlug}/${poiSlug}`,
-      { maxRedirects: 0 },
-    )
-    expect(oldPoi.status()).toBe(308)
-    expect(locationPath(oldPoi)).toBe(
-      `/decouvrir/${citySlug}/${categorySlug}/${poiSlug}`,
-    )
-
-    const oldCategory = await request.get(
       `/guide/${citySlug}/${categorySlug}?sub=historical-filter`,
-      { maxRedirects: 0 },
-    )
-    expect(oldCategory.status()).toBe(308)
-    expect(oldCategory.headers().location).toBe(
-      `/decouvrir/${citySlug}/${categorySlug}`,
-    )
+      `/guide/${citySlug}/agenda`,
+    ]) {
+      const response = await request.get(path, { maxRedirects: 0 })
+      expect(response.status(), path).toBe(410)
+      expect(response.headers()['x-robots-tag'], path).toBe('noindex')
+    }
   })
 
   test('renders canonical discovery without private navigation or legacy links', async ({ page }) => {
@@ -64,12 +45,12 @@ test.describe('042 SEO public/private HTTP routing', () => {
     await expect(page.getByTestId('bottom-navigation')).toHaveCount(0)
   })
 
-  test('returns 404 for a legacy POI without a published equivalent', async ({ request }) => {
+  test('returns 410 for a legacy POI without a published equivalent (spec 064)', async ({ request }) => {
     const response = await request.get(
       `/guide/${citySlug}/${categorySlug}/poi-prive-inexistant`,
       { maxRedirects: 0 },
     )
-    expect(response.status()).toBe(404)
+    expect(response.status()).toBe(410)
   })
 
   test('keeps historical City, category and POI routes private for an active stay', async ({ request }) => {

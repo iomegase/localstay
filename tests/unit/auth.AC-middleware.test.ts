@@ -115,15 +115,16 @@ describe('middleware — QR séjour : /guide/:slug?lodging=:id', () => {
     expect(res.cookies.get('lodging_id')?.value).toBe(VALID_UUID)
   })
 
-  it('does not redirect when /guide/ has no ?lodging= param', async () => {
+  it('answers 410 without redirect when /guide/ has no ?lodging= param (spec 064)', async () => {
     const res = await middleware(makeRequest('/guide/chamonix'))
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(410)
+    expect(res.headers.get('location')).toBeNull()
     expect(res.cookies.get('lodging_id')).toBeUndefined()
   })
 
-  it('does not redirect nor set a cookie when ?lodging= is not a valid UUID', async () => {
+  it('does not redirect nor set a cookie when ?lodging= is not a valid UUID (spec 064 : 410)', async () => {
     const res = await middleware(makeRequest('/guide/chamonix?lodging=not-a-uuid'))
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(410)
     expect(res.cookies.get('lodging_id')).toBeUndefined()
   })
 })

@@ -56,7 +56,7 @@ describe('AdminCitiesPage — génération du QR ville en modal', () => {
   it('opens the prefilled city editor and saves while preserving the guide link and QR action', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true })
     render(await AdminCitiesPage())
-    expect(screen.getByRole('link', { name: /Voir le guide/i })).toHaveAttribute('href', '/guide/saint-gervais-les-bains')
+    expect(screen.getByRole('link', { name: /Voir le guide/i })).toHaveAttribute('href', '/decouvrir/saint-gervais-les-bains')
     fireEvent.click(screen.getByRole('button', { name: 'Modifier' }))
     expect(screen.getByRole('textbox', { name: 'Nom' })).toHaveValue('Saint-Gervais-les-Bains')
     expect(screen.getByRole('textbox', { name: 'Code postal' })).toHaveValue('74170')

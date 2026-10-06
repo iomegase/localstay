@@ -117,7 +117,7 @@ describe('016 superadmin pages', () => {
 
     expect(screen.getByText('Saint-Gervais')).toBeInTheDocument()
     expect(screen.getByText('À enrichir')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Voir le guide/i })).toHaveAttribute('href', '/guide/saint-gervais')
+    expect(screen.getByRole('link', { name: /Voir le guide/i })).toHaveAttribute('href', '/decouvrir/saint-gervais')
   })
 
   it('AC-05-01/05-03: renders consultative users without mutation actions', async () => {
