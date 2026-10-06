@@ -1659,3 +1659,20 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 
 
 | 031 | Présentation et contact propriétaire | US-07 | AC-07-01 | `src/app/(public)/confier-mon-logement/page.tsx` | `tests/integration/local-seo.AC-04-04.hub-links.test.tsx` | Implémenté : titre, encart David Devillers, formulaire en une colonne |
+
+## 066 — Acquisition POI : périmètre du village, statut d'ouverture, recherche par nom
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 / BR-02 | Rattachement à la City active la plus proche (égalité → City du run) | `src/features/poi-acquisition/lib/village.ts` | `tests/unit/acquisition-village-scope.AC-01-02-03.google-places.test.ts`<br>`tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts` | ✅ done |
+| AC-01-02 / BR-03 | Lieu d'un autre village ignoré avant Gemini/Mapbox, compté | `src/features/poi-acquisition/queries/runs.ts`<br>`src/features/poi-acquisition/lib/village.ts` | `tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts` | ✅ done |
+| AC-01-03 | Lieu sans position conservé | `src/features/poi-acquisition/lib/village.ts` | `tests/unit/acquisition-village-scope.AC-01-02-03.google-places.test.ts`<br>`tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts` | ✅ done |
+| AC-01-04 | Résumé des lieux ignorés dans le détail du run | `src/app/admin/poi-acquisition/runs/[id]/page.tsx` | `tests/integration/acquisition-village-scope.AC-01-04-02-03-04.admin-ui.test.tsx` | ✅ done |
+| AC-02-01 | Masque de champs : businessStatus, location, nextPageToken | `src/features/poi-acquisition/lib/google-places.ts` | `tests/unit/acquisition-village-scope.AC-01-02-03.google-places.test.ts` | ✅ done |
+| AC-02-02 | Fermé définitivement ignoré et compté | `src/features/poi-acquisition/lib/village.ts`<br>`prisma/migrations/20261006120000_acquisition_village_scope/migration.sql` | `tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts` | ✅ done |
+| AC-02-03 | Fermé temporairement enregistré + badge | `src/features/poi-acquisition/queries/runs.ts`<br>`src/app/admin/poi-acquisition/runs/[id]/page.tsx` | `tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts`<br>`tests/integration/acquisition-village-scope.AC-01-04-02-03-04.admin-ui.test.tsx` | ✅ done |
+| AC-03-01 / AC-03-02 | Pagination jusqu'à 3 pages, dédoublonnage | `src/features/poi-acquisition/lib/google-places.ts` | `tests/unit/acquisition-village-scope.AC-01-02-03.google-places.test.ts` | ✅ done |
+| AC-04-01 | Recherche par nom : 5 résultats max, statut, village | `src/features/poi-acquisition/queries/name-search.ts`<br>`src/app/api/admin/poi-acquisition/name-search/route.ts`<br>`src/features/poi-acquisition/components/AdminPlaceByNameSearch.tsx` | `tests/contract/acquisition-village-scope.AC-04.name-search-api.test.ts`<br>`tests/integration/acquisition-village-scope.AC-04-01-03.name-search-query.test.ts` | ✅ done |
+| AC-04-02 / BR-05 | Ajout d'un résultat → run à candidat unique (source google_places_name), sans filtre village | `src/features/poi-acquisition/queries/runs.ts`<br>`src/features/poi-acquisition/lib/api.ts` | `tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts`<br>`tests/contract/acquisition-village-scope.AC-04.name-search-api.test.ts` | ✅ done |
+| AC-04-03 | Avertissement « Plus proche de … » | `src/features/poi-acquisition/components/AdminPlaceByNameSearch.tsx` | `tests/integration/acquisition-village-scope.AC-01-04-02-03-04.admin-ui.test.tsx` | ✅ done |
+| OQ-03 | Centre de Les Contamines-Montjoie corrigé en base (donnée) | — | — (vérifié en base 2026-10-06) | ✅ done |

@@ -15,6 +15,11 @@ function getBadgeStyle(text: string) {
   return 'border-gray-200 bg-gray-50 text-gray-500'
 }
 
+// Spec 066 AC-01-04 / AC-02-02 : lieux écartés avant traitement.
+function skippedLabel(count: number, reason: string): string {
+  return `${count} ${count > 1 ? 'lieux ignorés' : 'lieu ignoré'} car ${reason}`
+}
+
 // Fonction de formatage pour les gros badges de statuts principaux (En-tête)
 function getRunStatusStyle(status: string) {
   const s = status.toUpperCase()
@@ -60,6 +65,17 @@ export default async function AdminPoiAcquisitionRunPage({
                 Total candidats : {run.candidates.length}
               </span>
             </div>
+
+            {(run.skipped_other_village > 0 || run.skipped_closed_permanently > 0) && (
+              <ul className="mt-3 space-y-1 text-[12px] font-medium text-gray-500">
+                {run.skipped_other_village > 0 && (
+                  <li>{skippedLabel(run.skipped_other_village, 'plus proches d’un autre village')}</li>
+                )}
+                {run.skipped_closed_permanently > 0 && (
+                  <li>{skippedLabel(run.skipped_closed_permanently, 'fermés définitivement')}</li>
+                )}
+              </ul>
+            )}
           </div>
 
           {/* Affichage des erreurs du Run (si échec complet) */}
@@ -124,6 +140,11 @@ export default async function AdminPoiAcquisitionRunPage({
                         <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.review_status)}`}>
                           Revue: {candidate.review_status}
                         </span>
+                        {candidate.business_status === 'CLOSED_TEMPORARILY' && (
+                          <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                            Fermé temporairement (souvent saisonnier)
+                          </span>
+                        )}
                       </div>
                     </td>
                     

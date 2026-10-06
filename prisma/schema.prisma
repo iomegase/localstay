@@ -610,6 +610,10 @@ model PoiAcquisitionRun {
   starter     User?    @relation("PoiAcquisitionRunsStarted", fields: [started_by], references: [id])
   error       String?
 
+  // Spec 066 : lieux écartés avant tout traitement payant.
+  skipped_other_village      Int @default(0)
+  skipped_closed_permanently Int @default(0)
+
   candidates PoiAcquisitionCandidate[]
   audit_logs PoiAcquisitionAuditLog[]
 
@@ -640,6 +644,8 @@ model PoiAcquisitionCandidate {
   google_place_id          String?
   google_review_payload    Json?
   google_review_expires_at DateTime?
+  // Spec 066 : OPERATIONAL | CLOSED_TEMPORARILY ; null si inconnu.
+  business_status          String?
 
   latitude           Float?
   longitude          Float?

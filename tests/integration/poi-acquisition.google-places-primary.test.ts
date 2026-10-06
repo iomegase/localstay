@@ -10,7 +10,11 @@ const mockGeocodeForAcquisition = jest.fn()
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
-    city: { findFirst: (...args: unknown[]) => mockCityFindFirst(...args) },
+    city: {
+      findFirst: (...args: unknown[]) => mockCityFindFirst(...args),
+      // Spec 066 : villes actives pour le filtre village (aucune autre ici).
+      findMany: async () => [],
+    },
     category: { findFirst: (...args: unknown[]) => mockCategoryFindFirst(...args) },
     poiAcquisitionRun: {
       create: (...args: unknown[]) => mockRunCreate(...args),
@@ -180,7 +184,7 @@ describe('018 Google Places primary POI acquisition', () => {
     expect(mockCandidateCreate).toHaveBeenCalledTimes(2)
     expect(mockRunUpdate).toHaveBeenLastCalledWith({
       where: { id: 'run-1' },
-      data: { status: 'completed' },
+      data: { status: 'completed', skipped_other_village: 0, skipped_closed_permanently: 0 },
     })
   })
 })

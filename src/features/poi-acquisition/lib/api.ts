@@ -7,6 +7,14 @@ export const AcquisitionRunCreateSchema = z.object({
   city_id: z.string().min(1),
   category_id: z.string().min(1),
   source_url: z.string().url().nullable().optional(),
+  // Spec 066 US-04 : run à candidat unique.
+  google_place_id: z.string().min(1).max(255).optional(),
+})
+
+// Spec 066 AC-04-01.
+export const AcquisitionNameSearchSchema = z.object({
+  city_id: z.string().min(1),
+  query: z.string().trim().min(2).max(120),
 })
 
 export const ReviewPublishSchema = z.object({

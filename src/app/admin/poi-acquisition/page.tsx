@@ -3,6 +3,7 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { listAcquisitionRuns } from '@/features/poi-acquisition/queries/runs'
 import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
 import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
+import { AdminPlaceByNameSearch } from '@/features/poi-acquisition/components/AdminPlaceByNameSearch'
 import { DeleteAcquisitionRunButton } from '@/features/poi-acquisition/components/DeleteAcquisitionRunButton'
 import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/components/CleanupStaleCandidatesButton'
 import {
@@ -58,6 +59,9 @@ export default async function AdminPoiAcquisitionPage() {
 
       {/* Lanceur (Composant existant) */}
       <AdminAcquisitionLauncher cities={options.cities} categories={options.categories} />
+
+      {/* Spec 066 US-04 : lieu précis par son nom */}
+      <AdminPlaceByNameSearch cities={options.cities} categories={options.categories} />
 
       {/* Tableau des Runs (Corporate Style) */}
       <div className="w-full overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">

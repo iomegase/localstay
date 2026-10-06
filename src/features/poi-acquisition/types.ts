@@ -55,6 +55,8 @@ export type AcquisitionCandidateDto = {
   duplicate_poi_ids: string[]
   google_place_id: string | null
   google_review_payload: GoogleReviewPayload | null
+  /** Spec 066 AC-02-03 : OPERATIONAL | CLOSED_TEMPORARILY, null si inconnu. */
+  business_status: string | null
 }
 
 export type AcquisitionRunDetail = {
@@ -63,5 +65,18 @@ export type AcquisitionRunDetail = {
   error: string | null
   city_name: string
   category_name: string
+  /** Spec 066 AC-01-04 / AC-02-02 : lieux écartés avant traitement. */
+  skipped_other_village: number
+  skipped_closed_permanently: number
   candidates: AcquisitionCandidateDto[]
+}
+
+/** Spec 066 AC-04-01 : résultat de la recherche par nom. */
+export type AcquisitionNameSearchResult = {
+  google_place_id: string
+  name: string
+  address: string
+  business_status: 'OPERATIONAL' | 'CLOSED_TEMPORARILY' | 'CLOSED_PERMANENTLY' | null
+  nearest_city: { slug: string; name: string } | null
+  is_other_village: boolean
 }

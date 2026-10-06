@@ -1,7 +1,12 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { callGemini } from '@/features/gemini-fetch/services/gemini-client'
-import { searchGooglePlaceCandidates, type GooglePlaceCandidate } from '../lib/google-places'
+import {
+  getGooglePlaceCandidate,
+  searchGooglePlaceCandidates,
+  type GooglePlaceCandidate,
+} from '../lib/google-places'
+import { filterCandidatesForVillage } from '../lib/village'
 import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
 import { geocodeForAcquisition } from '../lib/geocode'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
@@ -13,6 +18,8 @@ type RunCreateInput = {
   city_id: string
   category_id: string
   source_url?: string | null
+  /** Spec 066 US-04 : run à candidat unique choisi par recherche par nom. */
+  google_place_id?: string | null
 }
 
 type RunRow = {
@@ -36,16 +43,24 @@ type CandidateRow = {
   duplicate_poi_ids: string[]
   google_place_id: string | null
   google_review_payload: Prisma.JsonValue | null
+  business_status: string | null
+}
+
+const STORED_BUSINESS_STATUSES = new Set(['OPERATIONAL', 'CLOSED_TEMPORARILY'])
+
+function runSource(input: RunCreateInput): string {
+  if (input.google_place_id) return 'google_places_name'
+  return input.source_url ? 'google_places_primary_official_website' : 'google_places_primary'
 }
 
 export async function createAcquisitionRun(
   input: RunCreateInput,
   adminId: string,
 ): Promise<AcquisitionRunDetail> {
-  const [city, category] = await Promise.all([
+  const [city, category, activeCities] = await Promise.all([
     prisma.city.findFirst({
       where: { id: input.city_id, is_active: true, deleted_at: null },
-      select: { id: true, name: true, postal_code: true, latitude: true, longitude: true },
+      select: { id: true, slug: true, name: true, postal_code: true, latitude: true, longitude: true },
     }),
     prisma.category.findFirst({
       where: { id: input.category_id, is_active: true, deleted_at: null },
@@ -58,6 +73,10 @@ export async function createAcquisitionRun(
         },
       },
     }),
+    prisma.city.findMany({
+      where: { is_active: true, deleted_at: null },
+      select: { id: true, slug: true, name: true, latitude: true, longitude: true },
+    }),
   ])
 
   if (!city) throw new PoiAcquisitionError('INVALID_CITY', 400)
@@ -68,7 +87,7 @@ export async function createAcquisitionRun(
       city_id: city.id,
       category_id: category.id,
       status: 'running',
-      source: input.source_url ? 'google_places_primary_official_website' : 'google_places_primary',
+      source: runSource(input),
       started_by: adminId,
     },
     select: { id: true },
@@ -82,15 +101,31 @@ export async function createAcquisitionRun(
     const officialSourceContext = input.source_url
       ? await fetchOfficialWebsiteSourceContext(input.source_url)
       : null
-    const googleCandidates = await searchGooglePlaceCandidates({
-      cityName: city.name,
-      postalCode: city.postal_code,
-      categoryName: category.name,
-      subcategoryNames: subcategories.map(subcategory => subcategory.name),
-      sourceUrl: input.source_url ?? null,
-      latitude: city.latitude,
-      longitude: city.longitude,
-    })
+    let googleCandidates: GooglePlaceCandidate[]
+    let skippedOtherVillage = 0
+    let skippedClosedPermanently = 0
+    if (input.google_place_id) {
+      // Spec 066 BR-05 : le choix explicite de l'admin n'est pas filtré.
+      const chosen = await getGooglePlaceCandidate(input.google_place_id)
+      googleCandidates = chosen ? [chosen] : []
+    } else {
+      const searched = await searchGooglePlaceCandidates({
+        cityName: city.name,
+        postalCode: city.postal_code,
+        categoryName: category.name,
+        subcategoryNames: subcategories.map(subcategory => subcategory.name),
+        sourceUrl: input.source_url ?? null,
+        latitude: city.latitude,
+        longitude: city.longitude,
+      })
+      const villageCities = activeCities.some(activeCity => activeCity.id === city.id)
+        ? activeCities
+        : [...activeCities, city]
+      const filtered = filterCandidatesForVillage(searched, villageCities, city.id)
+      googleCandidates = filtered.kept
+      skippedOtherVillage = filtered.skippedOtherVillage
+      skippedClosedPermanently = filtered.skippedClosedPermanently
+    }
     const websiteContextCache = new Map<string, Promise<OfficialWebsiteSourceContext | null>>()
     const candidateErrors: string[] = []
 
@@ -132,6 +167,9 @@ export async function createAcquisitionRun(
           category_id: category.id,
           subcategory_id: subcategoryId,
           google_place_id: candidate.google_place_id,
+          business_status: candidate.business_status && STORED_BUSINESS_STATUSES.has(candidate.business_status)
+            ? candidate.business_status
+            : null,
           google_review_payload: mergeHoursIntoReviewPayload(candidate.review_payload, candidate.hours),
           google_review_expires_at: candidate.google_review_expires_at,
           latitude: geocode.status === 'success' || geocode.status === 'pending_review' ? geocode.latitude : null,
@@ -148,11 +186,15 @@ export async function createAcquisitionRun(
       }
     }
 
+    const skipped = {
+      skipped_other_village: skippedOtherVillage,
+      skipped_closed_permanently: skippedClosedPermanently,
+    }
     await prisma.poiAcquisitionRun.update({
       where: { id: run.id },
       data: candidateErrors.length > 0
-        ? { status: 'completed', error: `Acquisition partielle: ${candidateErrors.slice(0, 5).join(' | ')}` }
-        : { status: 'completed' },
+        ? { status: 'completed', ...skipped, error: `Acquisition partielle: ${candidateErrors.slice(0, 5).join(' | ')}` }
+        : { status: 'completed', ...skipped },
     })
   } catch (error) {
     await prisma.poiAcquisitionRun.update({
@@ -235,6 +277,8 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
       id: true,
       status: true,
       error: true,
+      skipped_other_village: true,
+      skipped_closed_permanently: true,
       city: { select: { name: true } },
       category: { select: { name: true } },
       candidates: {
@@ -251,6 +295,7 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
           duplicate_poi_ids: true,
           google_place_id: true,
           google_review_payload: true,
+          business_status: true,
         },
       },
     },
@@ -264,6 +309,8 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
     error: run.error,
     city_name: run.city.name,
     category_name: run.category.name,
+    skipped_other_village: run.skipped_other_village ?? 0,
+    skipped_closed_permanently: run.skipped_closed_permanently ?? 0,
     candidates: (run.candidates as CandidateRow[]).map(mapCandidate),
   }
 }
@@ -282,6 +329,7 @@ function mapCandidate(candidate: CandidateRow): AcquisitionCandidateDto {
     google_review_payload: isGoogleReviewPayload(candidate.google_review_payload)
       ? candidate.google_review_payload
       : null,
+    business_status: candidate.business_status ?? null,
   }
 }
 
