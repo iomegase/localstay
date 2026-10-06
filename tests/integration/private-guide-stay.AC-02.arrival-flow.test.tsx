@@ -49,7 +49,10 @@ describe('054 US-02 — guided arrival', () => {
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=45.89,6.71',
     )
-    expect(screen.getByRole('tabpanel')).not.toContainElement(mapsLink)
+    // PO 2026-10-06 : bouton sous l'adresse, aligné à droite, icône épingle.
+    expect(screen.getByTestId('arrival-address').nextElementSibling).toContainElement(mapsLink)
+    expect(mapsLink.parentElement).toHaveClass('justify-end')
+    expect(mapsLink.querySelector('svg')).toHaveClass('lucide-map-pin')
     expect(screen.queryByRole('button', { name: 'Retour' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Étape suivante' })).not.toBeInTheDocument()
     const address = screen.getByTestId('arrival-address')

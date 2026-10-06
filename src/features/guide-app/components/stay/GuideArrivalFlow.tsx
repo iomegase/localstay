@@ -12,7 +12,7 @@ import {
   lodgingMapsHref,
   STAY_PRIMARY_BUTTON,
 } from './stay-styles'
-import { GuideAddressBlock, GuideMapsButton } from './GuideAddressBlock'
+import { GuideAddressBlock } from './GuideAddressBlock'
 import { useGuideI18n, useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 // Sans étape saisie, l'adresse reste le minimum utile (spec 054 AC-02-02).
@@ -116,7 +116,9 @@ export function GuideArrivalFlow({
             </div>
           ) : null}
 
-          {step.kind === 'address' && <GuideAddressBlock lodging={lodging} />}
+          {step.kind === 'address' && (
+            <GuideAddressBlock lodging={lodging} mapsHref={demo ? null : lodgingMapsHref(lodging.latitude, lodging.longitude)} />
+          )}
           {step.kind === 'access' && lodging.keyBoxCode && (
             <KeyBoxCode
               code={lodging.keyBoxCode}
@@ -178,9 +180,6 @@ export function GuideArrivalFlow({
         </div>
       </article>
 
-      {step.kind === 'address' && !demo && (
-        <GuideMapsButton href={lodgingMapsHref(lodging.latitude, lodging.longitude)} />
-      )}
       {/* Avec un code de boîte à clés, le bouton est dans la carte du code (amendement 054 AC-02-03). */}
       {step.kind === 'access' && !arrived && !lodging.keyBoxCode && (
         <button

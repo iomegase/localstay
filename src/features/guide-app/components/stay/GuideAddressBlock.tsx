@@ -1,12 +1,13 @@
 'use client'
 
-import { Check, Copy, Map } from 'lucide-react'
+import { Check, Copy, MapPin } from 'lucide-react'
 import type { GuideLodging } from '@/features/guide-app/types'
 import { copyToClipboard, useTemporaryFlag } from './useTemporaryFlag'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
 /** Adresse et bouton Maps des captures PO (spec 054 AC-01-05 / AC-04-01). */
-export function GuideAddressBlock({ lodging }: { lodging: GuideLodging }) {
+// mapsHref : bouton « Ouvrir dans Maps » sous l'adresse, aligné à droite (PO 2026-10-06).
+export function GuideAddressBlock({ lodging, mapsHref }: { lodging: GuideLodging; mapsHref?: string | null }) {
   const m = useGuideMessages()
   const [copied, flagCopied] = useTemporaryFlag(1600)
   const [street, ...localityParts] = lodging.addressLabel.split(',')
@@ -32,6 +33,11 @@ export function GuideAddressBlock({ lodging }: { lodging: GuideLodging }) {
           {copied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Copy className="h-5 w-5" aria-hidden="true" />}
         </button>
       </div>
+      {mapsHref ? (
+        <div className="mt-3 flex justify-end">
+          <GuideMapsButton href={mapsHref} />
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -43,10 +49,10 @@ export function GuideMapsButton({ href }: { href: string }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-4 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-900 shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:scale-[0.98]"
+      className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-4 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-900 shadow-[0_7px_16px_rgba(17,24,39,0.07)] transition-[transform,box-shadow] hover:shadow-[0_9px_20px_rgba(17,24,39,0.09)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:scale-[0.98]"
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
-        <Map className="h-4 w-4" aria-hidden="true" />
+        <MapPin className="h-4 w-4" aria-hidden="true" />
       </span>
       {m.address.openMaps}
     </a>
