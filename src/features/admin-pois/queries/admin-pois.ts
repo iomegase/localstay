@@ -152,6 +152,52 @@ export async function getAdminPoiOptions(): Promise<{
   return { cities, categories }
 }
 
+export type AdminPoiTaxonomyCounts = {
+  total: number
+  categories: Array<{
+    id: string
+    name: string
+    count: number
+    uncategorized_count: number
+    subcategories: Array<{ id: string; name: string; count: number }>
+  }>
+}
+
+/**
+ * Spec 069 AC-01-02 : nombre de POI par catégorie et sous-catégorie, selon tous les
+ * filtres sauf la catégorie, la sous-catégorie et la pagination. Ordre de la taxonomie ;
+ * entrées vides masquées (sauf la catégorie sélectionnée).
+ */
+export async function getAdminPoiTaxonomyCounts(
+  filters: AdminPoiListFilters,
+  taxonomy: AdminPoiCategory[],
+): Promise<AdminPoiTaxonomyCounts> {
+  const rows = await prisma.pointOfInterest.groupBy({
+    by: ['category_id', 'subcategory_id'],
+    where: buildAdminPoiWhere({ ...filters, category_id: undefined, subcategory_id: undefined }),
+    _count: { _all: true },
+  })
+
+  const countFor = (categoryId: string, subcategoryId?: string | null) => rows
+    .filter(row => row.category_id === categoryId && (subcategoryId === undefined || row.subcategory_id === subcategoryId))
+    .reduce((sum, row) => sum + row._count._all, 0)
+
+  return {
+    total: rows.reduce((sum, row) => sum + row._count._all, 0),
+    categories: taxonomy
+      .map(category => ({
+        id: category.id,
+        name: category.name,
+        count: countFor(category.id),
+        uncategorized_count: countFor(category.id, null),
+        subcategories: (category.subcategories ?? [])
+          .map(subcategory => ({ id: subcategory.id, name: subcategory.name, count: countFor(category.id, subcategory.id) }))
+          .filter(subcategory => subcategory.count > 0),
+      }))
+      .filter(category => category.count > 0 || category.id === filters.category_id),
+  }
+}
+
 // Spec 068 : ordre stable (un POI enregistré ne change pas de place dans la liste).
 const ADMIN_POI_LIST_ORDER: Prisma.PointOfInterestOrderByWithRelationInput[] = [{ name: 'asc' }, { id: 'asc' }]
 

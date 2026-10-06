@@ -108,7 +108,9 @@ export function buildAdminPoiWhere(filters: Pick<
   }
 
   if (filters.category_id) where.category_id = filters.category_id
-  if (filters.subcategory_id) where.subcategory_id = filters.subcategory_id
+  // Spec 069 BR-03 : `none` = POI sans sous-catégorie.
+  if (filters.subcategory_id === 'none') where.subcategory_id = null
+  else if (filters.subcategory_id) where.subcategory_id = filters.subcategory_id
   if (filters.geocode_status) where.geocode_status = filters.geocode_status
   if (filters.review_source) where.review_source = filters.review_source
   if (filters.discovery_status) where.discovery_status = filters.discovery_status

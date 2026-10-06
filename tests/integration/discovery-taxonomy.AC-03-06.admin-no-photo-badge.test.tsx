@@ -18,6 +18,8 @@ jest.mock('@/features/merchant/lib/get-page-admin', () => ({
 
 jest.mock('@/features/admin-pois/queries/admin-pois', () => ({
   listAdminPois: (...args: unknown[]) => mockListAdminPois(...args),
+  // Spec 069 : comptages du menu catégories (vides ici).
+  getAdminPoiTaxonomyCounts: jest.fn(async () => ({ total: 0, categories: [] })),
   getAdminPoi: jest.fn(),
   getAdminPoiOptions: jest.fn(async () => ({
     cities: [{ id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains' }],

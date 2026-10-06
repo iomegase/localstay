@@ -41,6 +41,22 @@ export function adminPoiListHref(params: SearchParamsRecord): string {
   return withQuery('/admin/pois', params)
 }
 
+/**
+ * Spec 069 AC-01-03 / AC-02-02 : lien d'une pastille catégorie ou sous-catégorie —
+ * page 1, autres filtres conservés ; changer de catégorie retire la sous-catégorie.
+ */
+export function adminPoiTaxonomyFilterHref(
+  params: SearchParamsRecord,
+  selection: { category_id: string | null; subcategory_id?: string | null },
+): string {
+  return adminPoiListHref({
+    ...params,
+    category_id: selection.category_id ?? undefined,
+    subcategory_id: selection.subcategory_id ?? undefined,
+    page: undefined,
+  })
+}
+
 export function adminPoiPanelHref(poiId: string, params: SearchParamsRecord): string {
   return withQuery(`/admin/pois/${poiId}`, params)
 }

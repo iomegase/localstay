@@ -27,6 +27,8 @@ const mockListAdminPoiIds = jest.fn()
 const mockGetAdminPoi = jest.fn()
 jest.mock('@/features/admin-pois/queries/admin-pois', () => ({
   listAdminPois: (...args: unknown[]) => mockListAdminPois(...args),
+  // Spec 069 : comptages du menu catégories (vides ici).
+  getAdminPoiTaxonomyCounts: jest.fn(async () => ({ total: 0, categories: [] })),
   listAdminPoiIds: (...args: unknown[]) => mockListAdminPoiIds(...args),
   getAdminPoi: (...args: unknown[]) => mockGetAdminPoi(...args),
   getAdminPoiOptions: jest.fn(async () => ({

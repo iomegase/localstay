@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { Eye, Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
-import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
+import { getAdminPoiOptions, getAdminPoiTaxonomyCounts, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
+import { AdminPoiCategoryMenu } from '@/features/admin-pois/components/AdminPoiCategoryMenu'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
 import { AdminPoiDiscoveryToggle } from '@/features/admin-pois/components/AdminPoiDiscoveryToggle'
 import {
@@ -33,6 +34,8 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 const PRESERVED_FILTER_KEYS = [
+  // Spec 069 : catégorie et sous-catégorie choisies par les pastilles.
+  'category_id',
   'subcategory_id',
   'geocode_status',
   'photo_status',
@@ -50,7 +53,9 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
   const filters = selectedCityId ? buildAdminPoiListFilters(selectedCityId, params) : null
   // Spec 068 BR-03 : ouvrir une fiche ou en créer une conserve les filtres courants.
   const listParams = selectedCityId ? { ...params, city_id: selectedCityId } : params
-  const response = filters ? await listAdminPois(filters) : null
+  const [response, taxonomyCounts] = filters
+    ? await Promise.all([listAdminPois(filters), getAdminPoiTaxonomyCounts(filters, options.categories)])
+    : [null, null]
 
   return (
     <div className="w-full animate-in fade-in duration-500 space-y-6">
@@ -96,7 +101,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
           ))}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-end">
             
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2 md:col-span-3">
               <label htmlFor="city_id" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Ville</label>
               <div className="relative">
                 <select
@@ -116,7 +121,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
               </div>
             </div>
 
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2 md:col-span-3">
               <label htmlFor="q" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Recherche</label>
               <div className="relative">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -127,26 +132,6 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                   placeholder="Nom du POI..."
                   className="w-full h-[48px] rounded-xl border border-gray-100 bg-gray-50/50 pl-11 pr-4 text-sm font-medium text-neutral-900 placeholder-gray-400 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]" 
                 />
-              </div>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label htmlFor="category_id" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Catégorie</label>
-              <div className="relative">
-                <select
-                  id="category_id"
-                  name="category_id"
-                  defaultValue={firstParam(params.category_id) ?? ''}
-                  className="w-full h-[48px] appearance-none rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-semibold text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
-                >
-                  <option value="">Toutes catégories</option>
-                  {options.categories.map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
-                  <ChevronDownIcon />
-                </div>
               </div>
             </div>
 
@@ -202,6 +187,8 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
             
           </div>
         </form>
+
+        {taxonomyCounts && <AdminPoiCategoryMenu params={listParams} counts={taxonomyCounts} />}
 
         {/* Dynamic Content */}
         {response && (

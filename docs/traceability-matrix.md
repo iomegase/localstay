@@ -1695,3 +1695,13 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | AC-06-01 / AC-06-02 / AC-06-03 | Interrupteur « Publié sur Découvrir » par ligne, motif si refus | `src/features/admin-pois/components/AdminPoiDiscoveryToggle.tsx`<br>`src/features/admin-pois/lib/discovery-check-labels.ts` | `tests/integration/admin-poi-edit-panel.AC-06.discovery-toggle.test.tsx` | ✅ done |
 | AC-07-01 / AC-07-02 | Actions en icônes seules ; interrupteur « POI actif » (disable / PATCH is_active) | `src/features/admin-pois/components/AdminPoiStatusActions.tsx` | `tests/integration/admin-poi-edit-panel.AC-07.row-actions.test.tsx`<br>`tests/integration/admin-pois.AC-01-05.pages.test.tsx` | ✅ done |
 | AC-07-03 | « Éditer » en icône œil | `src/app/admin/pois/page.tsx` | `tests/integration/admin-poi-edit-panel.AC-01-02-05.pages.test.tsx` | ✅ done |
+
+## 069 — Admin POI : menu de catégories et sous-catégories
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 / AC-01-04 | Pastilles « Toutes » + catégories (ordre taxonomie, nombres), active + aria-current ; menu déroulant retiré | `src/features/admin-pois/components/AdminPoiCategoryMenu.tsx`<br>`src/app/admin/pois/page.tsx` | `tests/integration/admin-poi-category-menu.AC-01-02.menu.test.tsx` | ✅ done |
+| AC-01-02 | Nombres selon les autres filtres, catégories vides masquées | `src/features/admin-pois/queries/admin-pois.ts` (`getAdminPoiTaxonomyCounts`) | `tests/unit/admin-poi-category-menu.AC-01-02.counts-and-links.test.ts` | ✅ done |
+| AC-01-03 / AC-02-02 | Liens : page 1, filtres conservés, sous-catégorie retirée au changement de catégorie | `src/features/admin-pois/lib/list-filters.ts` (`adminPoiTaxonomyFilterHref`) | `tests/unit/admin-poi-category-menu.AC-01-02.counts-and-links.test.ts`<br>`tests/integration/admin-poi-category-menu.AC-01-02.menu.test.tsx` | ✅ done |
+| AC-02-01 / AC-02-04 | Rangée sous-catégories (si catégorie choisie) + « Sans sous-catégorie » | `src/features/admin-pois/components/AdminPoiCategoryMenu.tsx` | `tests/integration/admin-poi-category-menu.AC-01-02.menu.test.tsx` | ✅ done |
+| AC-02-03 / BR-03 | `subcategory_id=none` → sans sous-catégorie | `src/features/admin-pois/lib/admin-poi-rules.ts` | `tests/unit/admin-poi-category-menu.AC-01-02.counts-and-links.test.ts` | ✅ done |
