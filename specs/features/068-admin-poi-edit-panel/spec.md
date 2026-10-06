@@ -200,6 +200,9 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
 | AC-06-01 | Interrupteur de publication par ligne | integration |
 | AC-06-02 | Bascule → route de publication, ligne à jour | integration |
 | AC-06-03 | Refus 409 → retour d'état + motif | integration |
+| AC-07-01 | Actions en icônes seules, accessibles | integration |
+| AC-07-02 | Interrupteur « POI actif » (désactiver / réactiver) | integration |
+| AC-07-03 | « Éditer » en icône œil | integration |
 
 ---
 
@@ -209,6 +212,15 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
   puis identifiant (au lieu de la date de modification décroissante). Sans cet ordre
   stable, un POI enregistré remontait en tête de liste, ce qui cassait AC-02-01
   (même position) et AC-04-01 (Précédent / Suivant).
+
+- **2026-10-06 (Product Owner)** — Actions de ligne et de fiche plus sobres :
+  - **AC-07-01** : « Enrichir photos », « Effacer » et « Restaurer » sont des boutons
+    icône seuls (sans texte visible), avec `aria-label` et info-bulle.
+  - **AC-07-02** : « Désactiver » devient un interrupteur « POI actif » : le
+    décocher désactive le POI (route `disable` existante, après confirmation),
+    le cocher le réactive (`PATCH is_active: true`). Masqué pour un POI effacé.
+  - **AC-07-03** : « Éditer » est remplacé par une icône œil (`aria-label`
+    « Éditer »), même lien que précédemment.
 
 ---
 

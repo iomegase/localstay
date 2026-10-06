@@ -30,7 +30,7 @@ export function AdminPoiPanelHeader({ poi }: { poi: AdminPoiDetail }) {
             <ExternalLink aria-hidden="true" className="h-3 w-3" />
           </Link>
         )}
-        <div className="[&_button]:h-7 [&_button]:rounded-lg [&_button]:px-2.5 [&_button]:text-[11px]">
+        <div>
           <AdminPoiStatusActions poiId={poi.id} status={poi.status} merchantAttached={poi.merchant_attached} />
         </div>
       </div>

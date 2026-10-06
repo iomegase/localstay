@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
+import { Eye, Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
@@ -330,9 +330,11 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                 <Link
                                   href={adminPoiPanelHref(poi.id, listParams)}
                                   scroll={false}
-                                  className="inline-flex h-[32px] items-center justify-center rounded-lg bg-[#F4F7FE] px-3 text-[12px] font-bold text-[#0B1437] transition-all hover:bg-[#0B1437] hover:text-white"
+                                  aria-label="Éditer"
+                                  title="Éditer"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#F4F7FE] text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white"
                                 >
-                                  Éditer
+                                  <Eye aria-hidden="true" size={15} strokeWidth={2.25} />
                                 </Link>
                               </div>
                             </td>

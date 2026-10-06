@@ -112,6 +112,14 @@ describe('068 — liste POI', () => {
     expect(within(row).getByRole('link', { name: 'Blanc Sport' })).toHaveAttribute('href', `/admin/pois/poi-b?${QUERY}`)
   })
 
+  it('AC-07-03 : « Éditer » est une icône œil sans texte', async () => {
+    render(await AdminPoisPage({ searchParams: Promise.resolve(search) }))
+
+    const edit = within(screen.getByRole('row', { name: /Blanc Sport/ })).getByRole('link', { name: 'Éditer' })
+    expect(edit.textContent).toBe('')
+    expect(edit.querySelector('svg.lucide-eye')).not.toBeNull()
+  })
+
   it('AC-05-01 : « Créer POI » ouvre la création avec les filtres', async () => {
     render(await AdminPoisPage({ searchParams: Promise.resolve(search) }))
 

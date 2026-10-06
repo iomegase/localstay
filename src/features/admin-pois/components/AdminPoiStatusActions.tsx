@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useTransition } from 'react'
-import { ImagePlus, Power, Trash2, ArchiveRestore } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ImagePlus, Trash2, ArchiveRestore } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
+import { Switch } from '@/shared/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +16,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import type { AdminPoiStatus } from '../types'
 
-type ActionKind = 'disable' | 'restore' | 'refresh-official-photos'
+type ActionKind = 'restore' | 'refresh-official-photos'
 
 type Props = {
   poiId: string
@@ -23,12 +25,6 @@ type Props = {
 }
 
 const actionConfig: Record<ActionKind, { label: string; icon: React.ElementType; colorStyle: string; iconColor: string }> = {
-  disable: { 
-    label: 'Désactiver', 
-    icon: Power, 
-    colorStyle: 'border-amber-200/60 bg-amber-50/30 text-amber-700 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-800', 
-    iconColor: 'text-amber-500' 
-  },
   restore: { 
     label: 'Restaurer', 
     icon: ArchiveRestore, 
@@ -43,9 +39,15 @@ const actionConfig: Record<ActionKind, { label: string; icon: React.ElementType;
   },
 }
 
+// Spec 068 AC-07-01 : actions en icônes seules (nom accessible + info-bulle).
+const iconButtonClass = 'h-8 w-8 shrink-0 rounded-lg border p-0 shadow-none transition-colors'
+
 export function AdminPoiStatusActions({ poiId, status, merchantAttached }: Props) {
   return (
-    <div className="flex flex-wrap gap-3 animate-in fade-in zoom-in-95 duration-500">
+    <div className="flex flex-wrap items-center gap-2">
+      {status !== 'archived' && (
+        <ActiveSwitch poiId={poiId} active={status === 'active'} merchantAttached={merchantAttached} />
+      )}
       <ActionDialog
         poiId={poiId}
         action="refresh-official-photos"
@@ -60,17 +62,7 @@ export function AdminPoiStatusActions({ poiId, status, merchantAttached }: Props
           description="Le POI effacé sera restauré en statut inactif. Il restera masqué du guide public jusqu'à réactivation explicite."
         />
       ) : (
-        <>
-          {status === 'active' && (
-            <ActionDialog
-              poiId={poiId}
-              action="disable"
-              title="Désactiver ce POI"
-              description={`Le POI disparaîtra du guide public mais restera éditable. ${merchantAttached ? 'Un Merchant est lié à cette fiche.' : ''}`}
-            />
-          )}
-          <QuickDeleteButton poiId={poiId} merchantAttached={merchantAttached} />
-        </>
+        <QuickDeleteButton poiId={poiId} merchantAttached={merchantAttached} />
       )}
     </div>
   )
@@ -119,13 +111,14 @@ function ActionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           variant="outline"
-          className={`group flex items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-[13px] font-bold shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${config.colorStyle}`}
+          aria-label={config.label}
+          title={config.label}
+          className={`${iconButtonClass} ${config.colorStyle}`}
         >
-          <Icon size={16} strokeWidth={2.5} className={`transition-transform duration-300 group-hover:scale-110 ${config.iconColor}`} />
-          {config.label}
+          <Icon aria-hidden="true" size={15} strokeWidth={2.25} className={config.iconColor} />
         </Button>
       </DialogTrigger>
       
@@ -220,12 +213,73 @@ function QuickDeleteButton({ poiId, merchantAttached }: { poiId: string; merchan
         variant="outline"
         disabled={isPending}
         onClick={handleClick}
-        className="group flex items-center justify-center gap-2.5 rounded-xl border border-red-200/60 bg-red-50/30 px-4 py-2.5 text-[13px] font-bold text-red-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-800 hover:shadow-md disabled:opacity-60"
+        aria-label="Effacer"
+        title="Effacer"
+        className={`${iconButtonClass} border-red-200/60 bg-red-50/30 hover:border-red-200 hover:bg-red-50 disabled:opacity-60`}
       >
-        <Trash2 size={16} strokeWidth={2.5} className="text-red-500 transition-transform duration-300 group-hover:scale-110" />
-        {isPending ? 'Effacement…' : 'Effacer'}
+        <Trash2 aria-hidden="true" size={15} strokeWidth={2.25} className="text-red-500" />
       </Button>
-      {error && <p className="px-1 text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="px-1 text-xs text-red-600">{error}</p>}
+    </div>
+  )
+}
+
+/**
+ * Spec 068 AC-07-02 : « POI actif » remplace « Désactiver ». Décocher passe par la route
+ * `disable` (après confirmation), cocher réactive via `PATCH is_active: true`.
+ */
+function ActiveSwitch({
+  poiId,
+  active,
+  merchantAttached,
+}: {
+  poiId: string
+  active: boolean
+  merchantAttached: boolean
+}) {
+  const router = useRouter()
+  const [checked, setChecked] = useState(active)
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function toggle(nextActive: boolean) {
+    if (!nextActive) {
+      const merchantNote = merchantAttached ? ' Un Merchant est lié à cette fiche.' : ''
+      if (!confirm(`Désactiver ce POI ? Il disparaîtra du guide public mais restera éditable.${merchantNote}`)) return
+    }
+
+    setError(null)
+    setChecked(nextActive)
+    startTransition(async () => {
+      const response = nextActive
+        ? await fetch(`/api/admin/pois/${poiId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_active: true }),
+        })
+        : await fetch(`/api/admin/pois/${poiId}/disable`, { method: 'POST' })
+      if (!response.ok) {
+        const json = (await response.json().catch(() => null)) as { error?: { message?: string } } | null
+        setChecked(!nextActive)
+        setError(json?.error?.message ?? 'Action impossible')
+        return
+      }
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <label className="inline-flex items-center gap-1.5" title={checked ? 'POI actif' : 'POI inactif'}>
+        <Switch
+          checked={checked}
+          disabled={isPending}
+          onCheckedChange={toggle}
+          aria-label="POI actif"
+          className="data-[state=checked]:bg-emerald-500"
+        />
+      </label>
+      {error && <p role="alert" className="text-[10px] font-semibold text-rose-600">{error}</p>}
     </div>
   )
 }

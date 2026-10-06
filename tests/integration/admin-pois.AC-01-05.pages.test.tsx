@@ -221,7 +221,7 @@ describe('022 admin POI pages', () => {
     expect(screen.getByRole('button', { name: /Effacer Photo 1/i })).toBeInTheDocument()
     expect(screen.queryByText('https://example.com/photo.jpg')).not.toBeInTheDocument()
     expect(screen.queryByText('Photos et tags')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Désactiver/i })).toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: 'POI actif' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^Effacer$/i })).toBeInTheDocument()
   })
 })

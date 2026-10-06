@@ -78,7 +78,7 @@ export default async function AdminPoiDetailPage({ params, searchParams }: PageP
                   <ExternalLink size={16} className="transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
                 </Link>
              )}
-             <div className="inline-flex [&_button]:rounded-xl [&_button]:px-5 [&_button]:py-2.5 [&_button]:text-[13px] [&_button]:font-bold [&_button]:shadow-sm [&_button]:transition-all [&_button]:duration-300 hover:[&_button]:-translate-y-0.5 hover:[&_button]:shadow-md">
+             <div className="inline-flex">
                <AdminPoiStatusActions
                  poiId={poi.id}
                  status={poi.status}
