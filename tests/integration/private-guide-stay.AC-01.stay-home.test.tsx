@@ -236,7 +236,9 @@ describe('084 AC-02 — lisibilité de l’accueil', () => {
       <GuideStayHome lodging={buildStayLodging()} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />,
     )
     const overlay = screen.getByTestId('guide-hero-overlay')
-    expect(overlay.className).toContain('rgba(17,17,17,0.65)')
+    // PO 2026-10-06 : voile allégé (35 % max, à partir de mi-hauteur) + ombre portée du titre.
+    expect(overlay.className).toContain('rgba(17,17,17,0.35)')
+    expect(screen.getByTestId('guide-hero-title').className).toContain('text-shadow')
     const heading = screen.getByRole('heading', { level: 1 })
     expect(overlay.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
