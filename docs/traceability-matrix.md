@@ -1756,3 +1756,10 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | AC-02-03 / BR-03 | Repli texte (aucun type, ou type refusé 400) | `src/features/poi-acquisition/lib/google-places.ts` (`fetchTypedTextSearchPages`) | `tests/unit/acquisition-google-types.AC-02-01-03.search.test.ts` | ✅ done |
 | AC-03-01 | `primary_type` / `type_match` enregistrés à la création | `src/features/poi-acquisition/lib/google-types.ts` (`classifyTypeMatch`)<br>`src/features/poi-acquisition/queries/runs.ts` | `tests/unit/acquisition-google-types.AC-02-03.types.test.ts`<br>`tests/unit/acquisition-google-types.AC-03-01.candidate-type.test.ts` | ✅ done |
 | AC-03-02..03 / BR-01 | Revue : primary/unknown d'abord, « Autres types (N) » replié, badge en français | `src/app/admin/poi-acquisition/runs/[id]/page.tsx`<br>`src/features/poi-acquisition/lib/google-types.ts` (`googleTypeLabel`) | `tests/integration/acquisition-google-types.AC-03-02-03.review.test.tsx` | ✅ done |
+
+## 074 — Images de remplacement : suppression d'une catégorie ou sous-catégorie
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01..03 / BR-01..03 | Sous-catégorie supprimée → images en catégorie seule ; catégorie supprimée → « Non classées » ; rien si refus | `src/features/admin-taxonomy/queries/taxonomy.ts` (`deleteSubCategory`, `deleteCategory`) | `tests/unit/fallback-images-taxonomy-deletion.AC-01.delete.test.ts` | ✅ done |
+| AC-02-01 | Nombre d'images annoncé dans la confirmation (`fallback_image_count`) | `src/features/admin-taxonomy/queries/taxonomy.ts`<br>`src/features/admin-taxonomy/lib/fallback-deletion-notice.ts`<br>`src/features/admin-taxonomy/components/AdminTaxonomyClient.tsx` | `tests/unit/fallback-images-taxonomy-deletion.AC-02-01.notice.test.ts`<br>`tests/integration/fallback-images-taxonomy-deletion.AC-02-01.dialog.test.tsx` | ✅ done |

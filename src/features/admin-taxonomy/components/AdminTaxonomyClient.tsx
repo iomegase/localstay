@@ -5,6 +5,7 @@ import { Plus, Power, Edit2, AlertCircle, Trash2 } from 'lucide-react'
 import type { AdminCategory, AdminSubCategory } from '../types'
 import { getLucideIconComponent, LUCIDE_ICON_COMPONENTS } from '../lib/icons'
 import { formatGoogleTypesInput, parseGoogleTypesInput } from '../lib/google-types-input'
+import { fallbackDeletionNotice } from '../lib/fallback-deletion-notice'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -110,6 +111,18 @@ export function AdminTaxonomyClient({ initialCategories }: { initialCategories: 
       setDeleteDialog(null)
     })
   }
+
+  const deleteNotice = deleteDialog?.kind === 'category'
+    ? fallbackDeletionNotice({ kind: 'category' }, deleteDialog.category.fallback_image_count)
+    : deleteDialog?.kind === 'subcategory'
+      ? fallbackDeletionNotice(
+        {
+          kind: 'subcategory',
+          categoryName: categories.find(category => category.id === deleteDialog.subcategory.category_id)?.name ?? 'sa catégorie',
+        },
+        deleteDialog.subcategory.fallback_image_count,
+      )
+      : null
 
   function deleteCategory(category: AdminCategory) {
     runDelete(`/api/admin/taxonomy/categories/${category.id}`)
@@ -294,6 +307,9 @@ export function AdminTaxonomyClient({ initialCategories }: { initialCategories: 
               <span className="font-bold text-neutral-900 border-b border-gray-200 pb-0.5">
                 {deleteDialog.kind === 'category' ? deleteDialog.category.name : deleteDialog.subcategory.name}
               </span>{' '}?
+              {deleteNotice && (
+                <p className="mt-3 rounded-xl bg-amber-50 p-3 text-[12px] font-semibold text-amber-700">{deleteNotice}</p>
+              )}
             </div>
             {error && <p className="text-[13px] font-bold text-rose-600 p-3 bg-rose-50 rounded-xl">{error}</p>}
             <DialogFooter className="mt-4 flex gap-3">

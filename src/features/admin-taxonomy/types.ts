@@ -9,6 +9,8 @@ export type AdminSubCategory = {
   poi_count: number
   /** Spec 073 : types Google acceptés à l'acquisition. */
   google_types: string[]
+  /** Spec 074 : images de remplacement rattachées (non retirées). */
+  fallback_image_count: number
 }
 
 export type AdminCategory = {
@@ -23,6 +25,8 @@ export type AdminCategory = {
   subcategory_count: number
   /** Spec 073 : types Google acceptés à l'acquisition. */
   google_types: string[]
+  /** Spec 074 : images de remplacement rattachées, sous-catégories comprises. */
+  fallback_image_count: number
   subcategories: AdminSubCategory[]
 }
 

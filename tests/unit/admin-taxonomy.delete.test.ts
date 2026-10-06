@@ -24,6 +24,7 @@ const tx = {
     update: (...a: unknown[]) => mockSubCategoryUpdate(...a),
     updateMany: (...a: unknown[]) => mockSubCategoryUpdateMany(...a),
   },
+  fallbackImage: { updateMany: async () => ({ count: 0 }) },
   taxonomyChangeLog: { create: (...a: unknown[]) => mockChangeLogCreate(...a) },
 }
 

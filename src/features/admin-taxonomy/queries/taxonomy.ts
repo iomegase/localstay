@@ -37,7 +37,7 @@ type CategoryRow = {
   sort_order: number
   is_active: boolean
   google_types?: string[]
-  _count: { pois: number }
+  _count: { pois: number; fallback_images?: number }
   subcategories: Array<{
     id: string
     category_id: string
@@ -46,7 +46,7 @@ type CategoryRow = {
     sort_order: number
     is_active: boolean
     google_types?: string[]
-    _count: { pois: number }
+    _count: { pois: number; fallback_images?: number }
   }>
 }
 
@@ -106,6 +106,7 @@ export async function getAdminTaxonomy(): Promise<AdminCategory[]> {
       _count: {
         select: {
           pois: { where: { is_active: true, deleted_at: null } },
+          fallback_images: { where: { deleted_at: null } },
         },
       },
       subcategories: {
@@ -122,6 +123,7 @@ export async function getAdminTaxonomy(): Promise<AdminCategory[]> {
           _count: {
             select: {
               pois: { where: { is_active: true, deleted_at: null } },
+              fallback_images: { where: { deleted_at: null } },
             },
           },
         },
@@ -172,6 +174,7 @@ export async function createCategory(input: CategoryCreateInput, adminId: string
       poi_count: 0,
       subcategory_count: 0,
       google_types: [],
+      fallback_image_count: 0,
       subcategories: [],
     }
   })
@@ -297,6 +300,7 @@ export async function createSubCategory(
       slug_locked: false,
       poi_count: 0,
       google_types: [],
+      fallback_image_count: 0,
     }
   })
 }
@@ -376,6 +380,9 @@ export async function updateSubCategory(
       poi_count: await prisma.pointOfInterest.count({
         where: { subcategory_id: mutation.subcategory.id, is_active: true, deleted_at: null },
       }),
+      fallback_image_count: await prisma.fallbackImage.count({
+        where: { subcategory_id: mutation.subcategory.id, deleted_at: null },
+      }),
     },
     discovery_revalidation_paths: mutation.discoveryRevalidationPaths,
   }
@@ -399,6 +406,12 @@ export async function deleteCategory(id: string, adminId: string): Promise<{ id:
 
   const now = new Date()
   await prisma.$transaction(async tx => {
+    // Spec 074 AC-01-02 : ses images de remplacement repassent dans « Non classées ».
+    await tx.fallbackImage.updateMany({
+      where: { category_id: id, deleted_at: null },
+      data: { category_id: null, subcategory_id: null },
+    })
+
     // Cascade : les sous-catégories de la catégorie supprimée sont soft-deleted avec elle.
     await tx.subCategory.updateMany({
       where: { category_id: id, deleted_at: null },
@@ -440,6 +453,12 @@ export async function deleteSubCategory(id: string, adminId: string): Promise<{ 
 
   const now = new Date()
   await prisma.$transaction(async tx => {
+    // Spec 074 AC-01-01 : ses images de remplacement restent dans la catégorie parente.
+    await tx.fallbackImage.updateMany({
+      where: { subcategory_id: id, deleted_at: null },
+      data: { subcategory_id: null },
+    })
+
     const subcategory = await tx.subCategory.update({
       where: { id },
       data: { deleted_at: now, is_active: false },
@@ -473,6 +492,7 @@ async function getCategoryById(id: string): Promise<AdminCategory> {
       _count: {
         select: {
           pois: { where: { is_active: true, deleted_at: null } },
+          fallback_images: { where: { deleted_at: null } },
         },
       },
       subcategories: {
@@ -489,6 +509,7 @@ async function getCategoryById(id: string): Promise<AdminCategory> {
           _count: {
             select: {
               pois: { where: { is_active: true, deleted_at: null } },
+              fallback_images: { where: { deleted_at: null } },
             },
           },
         },
@@ -514,6 +535,7 @@ function mapCategory(category: CategoryRow, locks: TaxonomyLockMaps): AdminCateg
     poi_count: category._count.pois,
     subcategory_count: subcategories.length,
     google_types: category.google_types ?? [],
+    fallback_image_count: category._count.fallback_images ?? 0,
     subcategories,
   }
 }
@@ -532,6 +554,7 @@ function mapSubCategory(
     slug_locked: locks.subCategoryLocks.has(subcategory.id),
     poi_count: subcategory._count.pois,
     google_types: subcategory.google_types ?? [],
+    fallback_image_count: subcategory._count.fallback_images ?? 0,
   }
 }
 

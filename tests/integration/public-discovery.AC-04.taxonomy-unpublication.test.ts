@@ -24,6 +24,7 @@ jest.mock('@/shared/lib/prisma', () => ({
       groupBy: (...args: unknown[]) => mockPoiGroupBy(...args),
     },
     geminiCache: { groupBy: (...args: unknown[]) => mockGeminiGroupBy(...args) },
+    fallbackImage: { count: async () => 0 },
     cacheTtlConfig: { findMany: (...args: unknown[]) => mockCacheFindMany(...args) },
     lodgingCustomization: { findMany: (...args: unknown[]) => mockCustomizationFindMany(...args) },
     analytics: { groupBy: (...args: unknown[]) => mockAnalyticsGroupBy(...args) },
