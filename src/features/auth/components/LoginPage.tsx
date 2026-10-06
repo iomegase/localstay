@@ -122,7 +122,7 @@ export function LoginPage() {
 
         <Link
           href="/auth/forgot-password"
-          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md border border-slate-300 px-3 py-3 text-center text-sm font-medium text-slate-900 underline underline-offset-4 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          className="mt-3 flex h-12 w-full items-center justify-center border border-black bg-white px-6 text-sm font-light uppercase text-black shadow-sm transition-all hover:bg-black hover:text-white hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
         >
           Réinitialiser mon mot de passe
         </Link>
