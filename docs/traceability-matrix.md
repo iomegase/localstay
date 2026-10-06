@@ -1817,3 +1817,10 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | AC-02-01..02 | Adresse en lecture seule sur la page Logement, « Quartier affiché (facultatif) » | `src/app/(dashboard)/dashboard/lodgings/[id]/showcase/page.tsx`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/integration/lodging-showcase.owner-page.test.tsx` | ✅ done |
 
 Note 077 / 079 / 076 (2026-10-06) : barres d'enregistrement passées de `fixed` à `sticky` (ne recouvrent plus le bouton de déconnexion du menu latéral).
+
+## 081 — Sauvegarde locale quotidienne
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01..04 | Dump vérifié, copie incrémentale du stockage, rétention 30 j, échec journalisé et notifié (secrets masqués) | `scripts/backup/run-backup.ts`<br>`scripts/backup/lib.ts`<br>`scripts/backup/backup.sh` | `tests/unit/local-daily-backup.AC-01.lib.test.ts` + exécutions manuelles 2026-10-06 (succès, échec simulé, restauration locale vérifiée) | ✅ done |
+| AC-02-01..02 | Installation launchd (03:00), désinstallation, procédure de restauration | `scripts/backup/install-launchd.sh`<br>`docs/backup.md` | exécution `launchctl kickstart` (exit 0) | ✅ done |
