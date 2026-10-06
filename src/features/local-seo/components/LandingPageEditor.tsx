@@ -2,146 +2,158 @@
 
 import { useId, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/components/ui/accordion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { blocksForIntent, seoLength, type EditorBlock, type EditorField } from '../lib/landing-editor'
 import type { LocalLandingPageInput } from '../types/landing-pages'
 
 export const landingIntentLabels = { CONCIERGE: 'Conciergerie', SEMINAR: 'Séminaires', VACATION_RENTAL: 'Locations de vacances' } as const
 
-const scalarFields = [
-  ['seo_title', 'Titre SEO', 180], ['meta_description', 'Description SEO', 320],
-  ['eyebrow', 'Surtitre', 100], ['h1', 'H1', 180], ['hero_title', 'Titre du bandeau', 240],
-  ['hero_copy', 'Texte du bandeau', 2000], ['reassurance', 'Réassurance', 300],
-  ['section_title', 'Titre de section', 240], ['section_copy', 'Texte de section', 2000],
-  ['process_title', 'Titre des étapes', 240], ['local_title', 'Titre local', 240],
-  ['local_copy', 'Texte local', 2000], ['cta_label', 'Libellé du CTA', 120],
-  ['cta_href', 'Lien du CTA', 500], ['empty_copy', 'Texte sans logement', 2000],
-] as const
+type Repeatable = NonNullable<EditorBlock['repeatable']>
+
+const REPEATABLE = {
+  highlights: { legend: 'Points forts', item: 'Point fort', add: 'Ajouter un point fort', keys: ['title', 'copy'], labels: ['Titre', 'Texte'], max: 12 },
+  steps: { legend: 'Étapes', item: 'Étape', add: 'Ajouter une étape', keys: ['title', 'copy'], labels: ['Titre', 'Texte'], max: 12 },
+  faq: { legend: 'Questions', item: 'Question', add: 'Ajouter une question', keys: ['question', 'answer'], labels: ['Question', 'Réponse'], max: 20 },
+} as const
 
 type Props = {
-  cityName: string
-  pages: LocalLandingPageInput[]
-  onChange: (pages: LocalLandingPageInput[]) => void
-  onSubmit: () => void
-  pending: boolean
+  page: LocalLandingPageInput
+  publicUrl: string
+  /** Spec 076 AC-02-05 : chemins des champs à compléter. */
+  issues: Set<string>
+  onChange: (page: LocalLandingPageInput) => void
 }
 
-type RepeatableField = 'highlights' | 'steps' | 'faq'
+const NULLABLE_FIELDS = new Set(['reassurance', 'process_title', 'empty_copy'])
 
-type RowKeyState = {
-  next: number
-  groups: Record<string, string[]>
+function Missing({ show }: { show: boolean }) {
+  return show ? <p className="text-xs font-semibold text-rose-600">À compléter</p> : null
 }
 
-function rowGroup(intent: LocalLandingPageInput['intent'], field: RepeatableField) {
-  return `${intent}-${field}`
-}
-
-function initialRowKeys(pages: LocalLandingPageInput[], prefix: string): RowKeyState {
-  let next = 0
-  const groups: Record<string, string[]> = {}
-  for (const page of pages) {
-    for (const field of ['highlights', 'steps', 'faq'] as const) {
-      groups[rowGroup(page.intent, field)] = page[field].map(() => `${prefix}-row-${next++}`)
-    }
-  }
-  return { next, groups }
-}
-
-export function LandingPageEditor({ cityName, pages, onChange, onSubmit, pending }: Props) {
+// Spec 076 AC-02-02 : une page éditée par blocs, dans l'ordre de la page publique.
+export function LandingPageEditor({ page, publicUrl, issues, onChange }: Props) {
   const prefix = useId()
-  const [rowKeys, setRowKeys] = useState(() => initialRowKeys(pages, prefix))
+  // Clés stables des lignes répétables (ajout / suppression sans perdre le focus).
+  const [rowKeys, setRowKeys] = useState(() => ({
+    next: 0,
+    highlights: page.highlights.map((_, index) => `h${index}`),
+    steps: page.steps.map((_, index) => `s${index}`),
+    faq: page.faq.map((_, index) => `f${index}`),
+  }))
 
-  function addRowKey(intent: LocalLandingPageInput['intent'], field: RepeatableField) {
-    setRowKeys(current => {
-      const group = rowGroup(intent, field)
-      return {
-        next: current.next + 1,
-        groups: { ...current.groups, [group]: [...(current.groups[group] ?? []), `${prefix}-row-${current.next}`] },
-      }
-    })
+  function setField(field: EditorField['field'], value: string) {
+    onChange({ ...page, [field]: NULLABLE_FIELDS.has(field) && !value ? null : value })
   }
 
-  function removeRowKey(intent: LocalLandingPageInput['intent'], field: RepeatableField, index: number) {
-    setRowKeys(current => {
-      const group = rowGroup(intent, field)
-      return {
-        ...current,
-        groups: { ...current.groups, [group]: (current.groups[group] ?? []).filter((_, position) => position !== index) },
-      }
-    })
+  function addRow(kind: Repeatable) {
+    setRowKeys(current => ({ ...current, next: current.next + 1, [kind]: [...current[kind], `n${current.next}`] }))
+    onChange(kind === 'faq'
+      ? { ...page, faq: [...page.faq, { question: '', answer: '' }] }
+      : { ...page, [kind]: [...page[kind], { title: '', copy: '' }] })
   }
 
-  function update(index: number, changes: Partial<LocalLandingPageInput>) {
-    onChange(pages.map((page, candidate) => candidate === index ? { ...page, ...changes } : page))
+  function removeRow(kind: Repeatable, index: number) {
+    setRowKeys(current => ({ ...current, [kind]: current[kind].filter((_, position) => position !== index) }))
+    onChange({ ...page, [kind]: (page[kind] as unknown[]).filter((_, position) => position !== index) })
   }
+
+  function setRowValue(kind: Repeatable, index: number, key: string, value: string) {
+    onChange({ ...page, [kind]: (page[kind] as Array<Record<string, string>>).map((row, position) => position === index ? { ...row, [key]: value } : row) })
+  }
+
   return (
-    <form aria-label={`Contenus de ${cityName}`} onSubmit={event => { event.preventDefault(); onSubmit() }} className="min-w-0 space-y-4">
-      <p className="text-sm text-slate-500">Les trois pages sont enregistrées ensemble. Les changements d’une ville active sont publiés immédiatement.</p>
-      <fieldset disabled={pending} className="min-w-0">
-        <Accordion type="single" collapsible>
-          {pages.map((page, index) => (
-            <AccordionItem key={page.intent} value={page.intent}>
-              <AccordionTrigger>{landingIntentLabels[page.intent]}</AccordionTrigger>
-              <AccordionContent>
-                <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-                  {scalarFields.map(([field, label, maxLength]) => {
-                    const id = `${prefix}-${page.intent}-${field}`
-                    const nullable = field === 'reassurance' || field === 'process_title' || field === 'empty_copy'
-                    const props = { id, value: page[field] ?? '', maxLength, onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => update(index, { [field]: nullable && !event.target.value ? null : event.target.value }) }
-                    return <div key={field} className="min-w-0 space-y-2">
-                      <label htmlFor={id} className="text-sm font-medium text-slate-700">{label}</label>
-                      {maxLength >= 300 && field !== 'cta_href' ? <Textarea {...props} rows={3} /> : <Input {...props} />}
+    <div className="space-y-5">
+      {blocksForIntent(page.intent).map(block => (
+        <section key={block.id} aria-labelledby={`${prefix}-${block.id}`} className="rounded-[20px] border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+          <header className="mb-4">
+            <h3 id={`${prefix}-${block.id}`} className="text-base font-bold text-neutral-900">{block.title}</h3>
+            <p className="mt-0.5 text-xs text-gray-500">{block.description}</p>
+          </header>
+
+          <div className={block.id === 'seo' ? 'grid gap-5 lg:grid-cols-2' : ''}>
+            <div className="grid gap-4">
+              {block.fields.map(field => {
+                const id = `${prefix}-${field.field}`
+                const value = page[field.field] ?? ''
+                const counter = field.recommended ? seoLength(value, field.recommended) : null
+                const missing = issues.has(field.field)
+                const common = {
+                  id, value, maxLength: field.maxLength,
+                  'aria-invalid': missing || undefined,
+                  onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setField(field.field, event.target.value),
+                }
+                return (
+                  <div key={field.field} className="min-w-0 space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <label htmlFor={id} className="text-[13px] font-semibold text-gray-700">{field.label}</label>
+                      {counter ? (
+                        <span data-testid={`counter-${field.field}`} className={`text-[11px] font-semibold tabular-nums ${counter.over ? 'text-amber-600' : 'text-gray-400'}`}>
+                          {counter.length} / {field.recommended}
+                        </span>
+                      ) : null}
                     </div>
-                  })}
-                </div>
-                {(['highlights', 'steps'] as const).map(field => {
-                  const highlight = field === 'highlights'
-                  const label = highlight ? 'Point fort' : 'Étape'
-                  return <fieldset key={field} className="mt-6 min-w-0 space-y-3">
-                    <legend className="text-sm font-semibold">{highlight ? 'Points forts' : 'Étapes'}</legend>
-                    {page[field].map((item, itemIndex) => <div key={rowKeys.groups[rowGroup(page.intent, field)]?.[itemIndex] ?? `${page.intent}-${field}-${itemIndex}`} className="space-y-3 rounded-lg border border-slate-200 p-3">
-                      {(['title', 'copy'] as const).map(key => {
-                        const id = `${prefix}-${page.intent}-${field}-${itemIndex}-${key}`
-                        const inputProps = { id, value: item[key], maxLength: key === 'title' ? 160 : 2000, onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => update(index, { [field]: page[field].map((row, position) => position === itemIndex ? { ...row, [key]: event.target.value } : row) }) }
-                        return <div key={key} className="space-y-2"><label htmlFor={id} className="text-sm">{label} {itemIndex + 1} — {key === 'title' ? 'Titre' : 'Texte'}</label>{key === 'title' ? <Input {...inputProps} /> : <Textarea {...inputProps} />}</div>
-                      })}
-                      <Button type="button" size="sm" variant="ghost" aria-label={`Supprimer ${highlight ? 'le point fort' : 'l’étape'} ${itemIndex + 1}`} onClick={() => {
-                        removeRowKey(page.intent, field, itemIndex)
-                        update(index, { [field]: page[field].filter((_, position) => position !== itemIndex) })
-                      }}><Trash2 />Supprimer</Button>
-                    </div>)}
-                    <Button type="button" variant="outline" size="sm" disabled={page[field].length >= 12} onClick={() => {
-                      addRowKey(page.intent, field)
-                      update(index, { [field]: [...page[field], { title: '', copy: '' }] })
-                    }}><Plus />{highlight ? 'Ajouter un point fort' : 'Ajouter une étape'}</Button>
-                  </fieldset>
-                })}
-                <fieldset className="mt-6 min-w-0 space-y-3">
-                  <legend className="text-sm font-semibold">FAQ</legend>
-                  {page.faq.map((item, itemIndex) => <div key={rowKeys.groups[rowGroup(page.intent, 'faq')]?.[itemIndex] ?? `${page.intent}-faq-${itemIndex}`} className="space-y-3 rounded-lg border border-slate-200 p-3">
-                    {(['question', 'answer'] as const).map(key => {
-                      const id = `${prefix}-${page.intent}-faq-${itemIndex}-${key}`
-                      return <div key={key} className="space-y-2"><label htmlFor={id} className="text-sm">FAQ {itemIndex + 1} — {key === 'question' ? 'Question' : 'Réponse'}</label><Textarea id={id} value={item[key]} maxLength={key === 'question' ? 240 : 2000} onChange={event => update(index, { faq: page.faq.map((row, position) => position === itemIndex ? { ...row, [key]: event.target.value } : row) })} /></div>
+                    {field.multiline ? <Textarea {...common} rows={3} /> : <Input {...common} />}
+                    {field.hint ? <p className="text-[11px] text-gray-400">{field.hint}</p> : null}
+                    <Missing show={missing} />
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Spec 076 AC-02-03 : aperçu du résultat Google. */}
+            {block.id === 'seo' ? (
+              <div aria-label="Aperçu Google" className="rounded-xl border border-gray-100 bg-gray-50/60 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Aperçu Google</p>
+                <p className="mt-3 truncate text-xs text-gray-600">{publicUrl.replace(/^https?:\/\//, '')}</p>
+                <p className="mt-1 line-clamp-2 text-lg leading-snug text-[#1a0dab]">{page.seo_title || 'Titre SEO'}</p>
+                <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-gray-600">{page.meta_description || 'Description SEO'}</p>
+              </div>
+            ) : null}
+          </div>
+
+          {block.repeatable ? (() => {
+            const kind = block.repeatable
+            const config = REPEATABLE[kind]
+            const rows = page[kind] as Array<Record<string, string>>
+            return (
+              <fieldset className={`${block.fields.length > 0 ? 'mt-5 border-t border-gray-100 pt-5' : ''} min-w-0 space-y-3`}>
+                <legend className="sr-only">{config.legend}</legend>
+                {block.fields.length > 0 ? <p className="text-[13px] font-semibold text-gray-700">{config.legend} ({rows.length})</p> : null}
+                <Missing show={issues.has(kind)} />
+                {rows.map((row, index) => (
+                  <div key={rowKeys[kind][index] ?? `${kind}-${index}`} className="grid gap-3 rounded-xl border border-gray-100 bg-gray-50/40 p-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] sm:items-start">
+                    {config.keys.map((key, keyIndex) => {
+                      const id = `${prefix}-${kind}-${index}-${key}`
+                      const missing = issues.has(`${kind}.${index}.${key}`)
+                      const props = {
+                        id, value: row[key] ?? '',
+                        maxLength: keyIndex === 0 ? (kind === 'faq' ? 240 : 160) : 2000,
+                        'aria-invalid': missing || undefined,
+                        onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setRowValue(kind, index, key, event.target.value),
+                      }
+                      return (
+                        <div key={key} className="min-w-0 space-y-1">
+                          <label htmlFor={id} className="text-[11px] font-semibold text-gray-500">{config.item} {index + 1} — {config.labels[keyIndex]}</label>
+                          {keyIndex === 0 && kind !== 'faq' ? <Input {...props} /> : <Textarea {...props} rows={2} />}
+                          <Missing show={missing} />
+                        </div>
+                      )
                     })}
-                    <Button type="button" variant="ghost" size="sm" aria-label={`Supprimer la FAQ ${itemIndex + 1}`} onClick={() => {
-                      removeRowKey(page.intent, 'faq', itemIndex)
-                      update(index, { faq: page.faq.filter((_, position) => position !== itemIndex) })
-                    }}><Trash2 />Supprimer</Button>
-                  </div>)}
-                  <Button type="button" variant="outline" size="sm" disabled={page.faq.length >= 20} onClick={() => {
-                    addRowKey(page.intent, 'faq')
-                    update(index, { faq: [...page.faq, { question: '', answer: '' }] })
-                  }}><Plus />Ajouter une FAQ</Button>
-                </fieldset>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </fieldset>
-      <Button type="submit" disabled={pending} className="h-auto min-h-9 whitespace-normal">{pending ? 'Enregistrement…' : 'Enregistrer les trois pages'}</Button>
-    </form>
+                    <Button type="button" variant="ghost" size="icon" className="self-end text-gray-400 hover:text-rose-600 sm:mt-5 sm:self-start" aria-label={`Supprimer ${config.item.toLowerCase()} ${index + 1}`} onClick={() => removeRow(kind, index)}>
+                      <Trash2 aria-hidden="true" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" disabled={rows.length >= config.max} onClick={() => addRow(kind)}>
+                  <Plus aria-hidden="true" />{config.add}
+                </Button>
+              </fieldset>
+            )
+          })() : null}
+        </section>
+      ))}
+    </div>
   )
 }

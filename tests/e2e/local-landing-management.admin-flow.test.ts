@@ -25,23 +25,24 @@ test.describe('048 Admin landing lifecycle', () => {
       await page.getByRole('option', { name: city, exact: true }).click()
       creationAttempted = true
       await page.getByRole('button', { name: 'Créer les landings', exact: true }).click()
-      const mobile = page.getByTestId('landing-mobile-cards')
-      await expect(mobile.getByRole('button', { name: `Modifier ${city}`, exact: true })).toBeVisible()
-      await mobile.getByRole('switch', { name: `Activer ${city}`, exact: true }).click()
+      // Spec 076 : la ville créée s'ouvre dans sa page d'édition.
+      await expect(page).toHaveURL(/\/admin\/landing-pages\/[^/?]+$/)
+      await expect(page.getByRole('heading', { name: city, exact: true })).toBeVisible()
+      await page.getByRole('switch', { name: `Activer ${city}`, exact: true }).click()
       await expect(page.getByRole('alert')).toContainText('contenus obligatoires')
-      await expect(mobile.getByRole('switch', { name: `Activer ${city}`, exact: true })).not.toBeChecked()
+      await expect(page.getByRole('switch', { name: `Activer ${city}`, exact: true })).not.toBeChecked()
 
-      const editor = page.getByRole('form', { name: `Contenus de ${city}` })
       const fields = [
         ['Titre SEO', `Séjour et accompagnement à ${city}`], ['Description SEO', `Découvrez notre accompagnement pour votre séjour à ${city}.`],
-        ['Surtitre', city], ['H1', `Organiser votre séjour à ${city}`], ['Titre du bandeau', 'Un projet pensé avec vous'],
+        ['Surtitre', city], ['Titre principal (H1)', `Organiser votre séjour à ${city}`], ['Accroche', 'Un projet pensé avec vous'],
         ['Texte du bandeau', 'Nous vous accompagnons dans les étapes de votre projet local.'],
         ['Titre de section', 'Un accompagnement local'], ['Texte de section', 'Un service adapté à votre projet.'],
         ['Titre local', 'Les repères de votre séjour'], ['Texte local', 'Découvrez les services et les repères utiles autour de votre séjour.'],
-        ['Libellé du CTA', 'Nous contacter'], ['Lien du CTA', '/contact'],
+        ['Libellé du bouton', 'Nous contacter'], ['Lien du bouton', '/contact'],
       ] as const
       for (const intent of ['Conciergerie', 'Séminaires', 'Locations de vacances']) {
-        await editor.getByRole('button', { name: intent, exact: true }).click()
+        await page.getByRole('tab', { name: new RegExp(`^${intent}`) }).click()
+        const editor = page.getByRole('tabpanel')
         for (const [label, value] of fields) await editor.getByLabel(label, { exact: true }).fill(value)
         if (intent === 'Locations de vacances') {
           await editor.getByLabel('Texte sans logement', { exact: true }).fill('Aucun logement public disponible pour cette ville.')
@@ -52,39 +53,38 @@ test.describe('048 Admin landing lifecycle', () => {
           await editor.getByRole('button', { name: 'Ajouter une étape', exact: true }).click()
           await editor.getByLabel('Étape 1 — Titre').fill('Parlons de votre projet')
           await editor.getByLabel('Étape 1 — Texte').fill('Contactez notre équipe pour préparer votre projet.')
-          await editor.getByRole('button', { name: 'Ajouter une FAQ', exact: true }).click()
-          await editor.getByLabel('FAQ 1 — Question').fill('Comment nous contacter ?')
-          await editor.getByLabel('FAQ 1 — Réponse').fill('Utilisez le formulaire de contact pour nous écrire.')
+          await editor.getByRole('button', { name: 'Ajouter une question', exact: true }).click()
+          await editor.getByLabel('Question 1 — Question').fill('Comment nous contacter ?')
+          await editor.getByLabel('Question 1 — Réponse').fill('Utilisez le formulaire de contact pour nous écrire.')
         }
       }
-      await editor.getByRole('button', { name: 'Enregistrer les trois pages' }).click()
+      await page.getByRole('region', { name: 'Enregistrement' }).getByRole('button', { name: 'Enregistrer les trois pages' }).click()
       await expect(page.getByRole('status')).toHaveText('Contenus enregistrés.')
-      await mobile.getByRole('switch', { name: `Activer ${city}`, exact: true }).click()
+      await page.getByRole('switch', { name: `Activer ${city}`, exact: true }).click()
       await expect(page.getByRole('status')).toHaveText('Landings activées.')
 
+      await page.getByRole('link', { name: 'Landing pages' }).click()
+      const list = page.getByRole('list', { name: 'Landings par ville' })
       for (const width of [375, 1440]) {
         await page.setViewportSize({ width, height: 900 })
-        const surface = width < 768 ? mobile : page.getByRole('table', { name: 'Landings par ville' })
-        await expect(surface.getByRole('switch', { name: `Archiver ${city}`, exact: true })).toBeChecked()
+        await expect(list.getByRole('switch', { name: `Archiver ${city}`, exact: true })).toBeChecked()
         const sizes = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }))
         expect(sizes.scroll).toBeLessThanOrEqual(sizes.client)
       }
-      const table = page.getByRole('table', { name: 'Landings par ville' })
-      await table.getByRole('switch', { name: `Archiver ${city}`, exact: true }).click()
+      await list.getByRole('switch', { name: `Archiver ${city}`, exact: true }).click()
       await expect(page.getByRole('status')).toHaveText('Landings archivées.')
     } finally {
       if (creationAttempted) {
         await page.setViewportSize({ width: 1440, height: 900 })
         await page.goto('/admin/landing-pages')
-        const table = page.getByRole('table', { name: 'Landings par ville' })
-        const deleteButton = table.getByRole('button', { name: `Supprimer les landings de ${city}`, exact: true })
+        const list = page.getByRole('list', { name: 'Landings par ville' })
+        const deleteButton = list.getByRole('button', { name: `Supprimer les landings de ${city}`, exact: true })
 
         if (await deleteButton.count()) {
           await deleteButton.click()
           await page.getByRole('alertdialog').getByRole('button', { name: 'Supprimer les landings', exact: true }).click()
           await expect(page.getByRole('status')).toHaveText('Landings supprimées.')
-          await expect(page.getByRole('button', { name: `Modifier ${city}`, exact: true })).toHaveCount(0)
-          await expect(page.getByRole('heading', { name: `Avis de ${city}`, exact: true })).toHaveCount(0)
+          await expect(page.getByRole('link', { name: `Modifier ${city}`, exact: true })).toHaveCount(0)
         }
       }
     }

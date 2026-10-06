@@ -1,5 +1,5 @@
 import type { LocalLandingPage } from '@prisma/client'
-import { LOCAL_LANDING_INTENTS, type LocalLandingIntent, type LocalLandingPageInput } from '@/features/local-seo/types/landing-pages'
+import { LOCAL_LANDING_INTENTS, type AdminLandingDestinationDto, type LocalLandingIntent, type LocalLandingPageInput } from '@/features/local-seo/types/landing-pages'
 
 export const landingDate = new Date('2026-09-08T12:00:00.000Z')
 
@@ -49,5 +49,15 @@ export function landingReviewRow() {
     author: 'Marie', quote: 'Un séjour parfaitement accompagné par MyStay.',
     stay_date: null, source: 'DIRECT' as const, rating: 5, sort_order: 0,
     is_active: true, deleted_with_destination: false, deleted_at: null as Date | null, created_at: landingDate, updated_at: landingDate,
+  }
+}
+
+export function adminLandingDestination(overrides: Partial<AdminLandingDestinationDto> = {}): AdminLandingDestinationDto {
+  return {
+    id: '7a3fffcf-6f71-4fbb-916a-12a052d43b81', city: { id: 'city-1', name: 'Megève', slug: 'megeve' },
+    is_active: true, pages: LOCAL_LANDING_INTENTS.map(landingPageInput),
+    publication: { concierge: true, seminar: true, vacationRental: false },
+    contentIssues: [], publicLodgingCount: 0, reviewCount: 0, reviews: [],
+    created_at: '2026-09-08T12:00:00.000Z', updated_at: '2026-09-08T12:00:00.000Z', ...overrides,
   }
 }

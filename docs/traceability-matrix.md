@@ -1774,3 +1774,13 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | AC-02-02..03 | Rapports GA4 filtrés (trafic public) ; lignes privées retirées (soft delete) | `src/features/admin-analytics/services/google-analytics.ts` | `tests/unit/admin-analytics.ga4-sync.test.ts` | ✅ done |
 | AC-03-01 | Rattachement des pages actuelles aux villages | `src/features/admin-analytics/lib/city-path-mapping.ts` | `tests/unit/admin-analytics-data-fix.AC-02-03.paths.test.ts` | ✅ done |
 | AC-04-01 | Pages / Requêtes / Villes totalisées sur la période | `src/features/admin-analytics/lib/period-totals.ts`<br>`src/features/admin-analytics/queries/dashboard.ts` | `tests/unit/admin-analytics-data-fix.AC-04-01.period-totals.test.ts` | ✅ done |
+
+## 076 — Admin Landing pages : refonte de l'interface
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01..03 | Liste par ville, pastilles cliquables, modifier (lien), création → page ville | `src/features/local-seo/components/AdminLandingPages.tsx`<br>`src/features/local-seo/components/AdminLandingDestinationTable.tsx`<br>`src/features/local-seo/lib/landing-admin-api.ts` | `tests/integration/local-landing-management.admin-page.test.tsx` | ✅ done |
+| AC-02-01 | Page ville, onglets (URL `?onglet=`) | `src/app/admin/landing-pages/[citySlug]/page.tsx`<br>`src/features/local-seo/queries/landing-pages.ts` (`getAdminLandingDestinationBySlug`)<br>`src/features/local-seo/components/AdminLandingCityEditor.tsx`<br>`src/features/local-seo/lib/landing-editor.ts` | `tests/unit/admin-landing-pages-ui.AC-02.editor-model.test.ts`<br>`tests/integration/admin-landing-pages-ui.AC-02.city-editor.test.tsx` | ✅ done |
+| AC-02-02..05 / BR-03 | Blocs, compteurs + aperçu Google, « Voir la page », champs à compléter | `src/features/local-seo/components/LandingPageEditor.tsx`<br>`src/features/local-seo/lib/landing-editor.ts` | `tests/unit/admin-landing-pages-ui.AC-02.editor-model.test.ts`<br>`tests/integration/admin-landing-pages-ui.AC-02.city-editor.test.tsx` | ✅ done |
+| AC-02-06 / BR-02 | Barre fixe, annuler, enregistrement des trois pages, confirmation avant de quitter | `src/features/local-seo/components/AdminLandingCityEditor.tsx` | `tests/integration/admin-landing-pages-ui.AC-02.city-editor.test.tsx`<br>`tests/e2e/local-landing-management.admin-flow.test.ts` | ✅ done |
+| AC-02-07 | Onglet Avis (047 inchangé) | `src/features/local-seo/components/AdminLandingCityEditor.tsx`<br>`src/features/local-seo/components/AdminLandingReviews.tsx` | `tests/integration/local-landing-reviews.admin-page.test.tsx` | ✅ done |

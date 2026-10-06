@@ -184,6 +184,14 @@ export async function listAdminLandingDestinations(): Promise<AdminLandingDestin
   return adminDtos(prisma, destinations)
 }
 
+/** Spec 076 : destination admin d'une ville (page d'édition dédiée). */
+export async function getAdminLandingDestinationBySlug(citySlug: string): Promise<AdminLandingDestinationDto | null> {
+  const destination = await prisma.localLandingDestination.findFirst({
+    where: { deleted_at: null, city: { slug: citySlug } }, include: destinationInclude,
+  })
+  return destination ? (await adminDtos(prisma, [destination]))[0] ?? null : null
+}
+
 export async function listEligibleLandingCities(): Promise<EligibleLandingCityDto[]> {
   return prisma.city.findMany({
     where: {
