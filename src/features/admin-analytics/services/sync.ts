@@ -1,25 +1,20 @@
 import { prisma } from '@/shared/lib/prisma'
 import { syncGoogleAnalyticsSource } from '@/features/admin-analytics/services/google-analytics'
 import { syncGoogleSearchConsoleSource } from '@/features/admin-analytics/services/google-search-console'
-import { syncVercelSource } from '@/features/admin-analytics/services/vercel'
 import type { AnalyticsSourceKind } from '@/features/admin-analytics/types'
 import type { AnalyticsSyncRequestInput } from '@/features/admin-analytics/schemas'
 
-const SOURCE_ORDER: AnalyticsSourceKind[] = [
-  'ga4',
-  'gsc',
-  'vercel_analytics',
-  'vercel_speed_insights',
-]
+// Spec 075 AC-01-02 : seules les sources réellement synchronisables (Vercel n'a pas d'API de lecture).
+type SyncableSource = Extract<AnalyticsSourceKind, 'ga4' | 'gsc'>
 
-const SOURCE_ENV_REQUIREMENTS: Record<AnalyticsSourceKind, string[]> = {
+const SOURCE_ORDER: SyncableSource[] = ['ga4', 'gsc']
+
+const SOURCE_ENV_REQUIREMENTS: Record<SyncableSource, string[]> = {
   ga4: ['GA4_PROPERTY_ID', 'GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_SERVICE_ACCOUNT_KEY'],
   gsc: ['GSC_SITE_URL', 'GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_SERVICE_ACCOUNT_KEY'],
-  vercel_analytics: ['VERCEL_ANALYTICS_PROJECT_ID'],
-  vercel_speed_insights: ['VERCEL_ANALYTICS_PROJECT_ID'],
 }
 
-function resolveRequestedSources(source: AnalyticsSyncRequestInput['source']): AnalyticsSourceKind[] {
+function resolveRequestedSources(source: AnalyticsSyncRequestInput['source']): SyncableSource[] {
   if (!source || source === 'all') {
     return SOURCE_ORDER
   }
@@ -27,7 +22,7 @@ function resolveRequestedSources(source: AnalyticsSyncRequestInput['source']): A
   return [source]
 }
 
-function getMissingEnvNames(source: AnalyticsSourceKind): string[] {
+function getMissingEnvNames(source: SyncableSource): string[] {
   return SOURCE_ENV_REQUIREMENTS[source].filter(name => !process.env[name])
 }
 
@@ -89,28 +84,6 @@ export async function runAdminAnalyticsSync(
             period_start: new Date(`${details.period_start}T00:00:00.000Z`),
             period_end: new Date(`${details.period_end}T00:00:00.000Z`),
             last_success_at: new Date(),
-            details_json: details,
-          },
-        })
-
-        syncedSources.push(source)
-        continue
-      }
-
-      if (source === 'vercel_analytics' || source === 'vercel_speed_insights') {
-        const details = await syncVercelSource(source)
-
-        await prisma.analyticsSourceSync.create({
-          data: {
-            source,
-            status: 'success',
-            started_at: startedAt,
-            finished_at: new Date(),
-            period_start: new Date(`${details.period_start}T00:00:00.000Z`),
-            period_end: new Date(`${details.period_end}T00:00:00.000Z`),
-            last_success_at: new Date(),
-            error_code: null,
-            error_message: null,
             details_json: details,
           },
         })

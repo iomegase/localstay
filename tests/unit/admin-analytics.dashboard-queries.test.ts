@@ -171,14 +171,6 @@ describe('030 admin analytics dashboard queries', () => {
         status: 'stale',
         error_code: 'SYNC_TIMEOUT',
       }),
-      expect.objectContaining({
-        source: 'vercel_analytics',
-        status: 'not_configured',
-      }),
-      expect.objectContaining({
-        source: 'vercel_speed_insights',
-        status: 'not_configured',
-      }),
     ])
   })
 
@@ -243,7 +235,8 @@ describe('030 admin analytics dashboard queries', () => {
   it('returns source statuses directly for the sources endpoint', async () => {
     const sources = await getAdminAnalyticsSourceStatuses()
 
-    expect(sources).toHaveLength(4)
+    // Spec 075 AC-01-01 : GA4 et Search Console uniquement.
+    expect(sources.map(source => source.source)).toEqual(['ga4', 'gsc'])
     expect(sources[0]).toEqual(
       expect.objectContaining({
         source: 'ga4',
@@ -271,18 +264,6 @@ describe('030 admin analytics dashboard queries', () => {
         source: 'gsc',
         status: 'partial',
         error_code: 'SYNC_PENDING',
-      }),
-      expect.objectContaining({
-        source: 'vercel_analytics',
-        status: 'partial',
-        error_code: 'SYNC_PENDING',
-        error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.',
-      }),
-      expect.objectContaining({
-        source: 'vercel_speed_insights',
-        status: 'partial',
-        error_code: 'SYNC_PENDING',
-        error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.',
       }),
     ])
   })

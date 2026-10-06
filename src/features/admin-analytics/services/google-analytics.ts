@@ -1,6 +1,11 @@
 import { createSign } from 'node:crypto'
 import { prisma } from '@/shared/lib/prisma'
 import { resolveAnalyticsCityContext } from '@/features/admin-analytics/lib/city-path-mapping'
+import {
+  ga4PublicPathsFilter,
+  isPrivateAnalyticsPath,
+  PRIVATE_ANALYTICS_PATH_PREFIXES,
+} from '@/features/admin-analytics/lib/private-paths'
 import type { AnalyticsPageType } from '@/features/admin-analytics/lib/city-path-mapping'
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -91,6 +96,7 @@ export async function syncGoogleAnalyticsSource(): Promise<{
     persistDailyRows(normalizedDailyRows),
     persistPageRows(normalizedPageRows),
     persistCityRows(normalizedCityRows),
+    retirePrivatePageRows(),
   ])
 
   return {
@@ -217,6 +223,8 @@ async function runGa4Report(input: {
           ? { dimensions: input.dimensions.map(name => ({ name })) }
           : {}),
         metrics: input.metrics.map(name => ({ name })),
+        // Spec 075 AC-02-02 : trafic public uniquement.
+        dimensionFilter: ga4PublicPathsFilter(),
         keepEmptyRows: false,
         limit: 100000,
       }),
@@ -266,7 +274,7 @@ function normalizePageRows(
   return rows.flatMap(row => {
     const date = row.dimensionValues?.[0]?.value
     const pagePath = row.dimensionValues?.[1]?.value
-    if (!date || !pagePath) return []
+    if (!date || !pagePath || isPrivateAnalyticsPath(pagePath)) return []
 
     const { citySlug, pageType } = resolveAnalyticsCityContext(pagePath)
 
@@ -305,6 +313,20 @@ function aggregateCityRows(rows: PageMetricRow[]): CityMetricRow[] {
   }
 
   return Array.from(aggregate.values()).sort((a, b) => a.date.localeCompare(b.date))
+}
+
+/** Spec 075 AC-02-03 : lignes de pages privées déjà enregistrées → retirées (soft delete). */
+async function retirePrivatePageRows() {
+  await prisma.analyticsPageDailySnapshot.updateMany({
+    where: {
+      deleted_at: null,
+      OR: PRIVATE_ANALYTICS_PATH_PREFIXES.flatMap(prefix => [
+        { page_path: prefix },
+        { page_path: { startsWith: `${prefix}/` } },
+      ]),
+    },
+    data: { deleted_at: new Date() },
+  })
 }
 
 async function persistDailyRows(rows: DailyMetricRow[]) {

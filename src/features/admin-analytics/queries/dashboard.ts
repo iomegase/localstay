@@ -1,6 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import { fetchGoogleAnalyticsTodayMetrics } from '@/features/admin-analytics/services/google-analytics'
 import { fetchVercelLiveMetrics } from '@/features/admin-analytics/services/vercel-live'
+import { totalCityRows, totalPageRows, totalQueryRows } from '@/features/admin-analytics/lib/period-totals'
 import type {
   AnalyticsBlockStatus,
   AnalyticsSourceKind,
@@ -20,12 +21,8 @@ import type {
   AnalyticsPerformanceFiltersInput,
 } from '@/features/admin-analytics/schemas'
 
-const SOURCE_ORDER: AnalyticsSourceKind[] = [
-  'ga4',
-  'gsc',
-  'vercel_analytics',
-  'vercel_speed_insights',
-]
+// Spec 075 AC-01-01 : seules les sources réellement synchronisées ont une carte d'état.
+const SOURCE_ORDER: AnalyticsSourceKind[] = ['ga4', 'gsc']
 
 const SOURCE_ENV_REQUIREMENTS: Record<AnalyticsSourceKind, string[]> = {
   ga4: ['GA4_PROPERTY_ID', 'GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_SERVICE_ACCOUNT_KEY'],
@@ -315,8 +312,6 @@ export async function listAdminAnalyticsPages(
       },
       ...(filters.city_id ? { city_id: filters.city_id } : {}),
     },
-    orderBy: [{ conversions: 'desc' }, { seo_clicks: 'desc' }, { sessions: 'desc' }],
-    take: filters.limit ?? DEFAULT_LIMIT,
     select: {
       page_path: true,
       page_type: true,
@@ -328,7 +323,7 @@ export async function listAdminAnalyticsPages(
     },
   })
 
-  return rows.map(row => ({
+  return totalPageRows(rows.map(row => ({
     page_path: row.page_path,
     page_type: row.page_type,
     city_id: row.city_id,
@@ -336,7 +331,7 @@ export async function listAdminAnalyticsPages(
     sessions: row.sessions,
     seo_clicks: row.seo_clicks,
     conversions: row.conversions,
-  }))
+  })), filters.limit ?? DEFAULT_LIMIT)
 }
 
 export async function listAdminAnalyticsQueries(
@@ -352,8 +347,6 @@ export async function listAdminAnalyticsQueries(
       },
       ...(filters.city_id ? { city_id: filters.city_id } : {}),
     },
-    orderBy: [{ clicks: 'desc' }, { impressions: 'desc' }],
-    take: filters.limit ?? DEFAULT_LIMIT,
     select: {
       query: true,
       page_path: true,
@@ -366,7 +359,7 @@ export async function listAdminAnalyticsQueries(
     },
   })
 
-  return rows.map(row => ({
+  return totalQueryRows(rows.map(row => ({
     query: row.query,
     page_path: row.page_path,
     city_id: row.city_id,
@@ -375,7 +368,7 @@ export async function listAdminAnalyticsQueries(
     impressions: row.impressions,
     ctr: row.ctr,
     avg_position: row.avg_position,
-  }))
+  })), filters.limit ?? DEFAULT_LIMIT)
 }
 
 export async function listAdminAnalyticsCities(
@@ -391,8 +384,6 @@ export async function listAdminAnalyticsCities(
           lt: range.endExclusive,
         },
       },
-      orderBy: [{ seo_clicks: 'desc' }, { sessions: 'desc' }],
-      take: DEFAULT_LIMIT,
       select: {
         city_id: true,
         city: { select: { name: true } },
@@ -412,29 +403,36 @@ export async function listAdminAnalyticsCities(
         },
         city_id: { not: null },
       },
-      orderBy: [{ sessions: 'desc' }, { seo_clicks: 'desc' }, { conversions: 'desc' }],
       select: {
         city_id: true,
         page_path: true,
+        page_type: true,
+        sessions: true,
+        seo_clicks: true,
+        conversions: true,
       },
     }),
   ])
 
+  // Page la plus vue de chaque ville sur la période (totaux, pas un seul jour).
   const topPageByCity = new Map<string, string>()
-  for (const row of topPages) {
+  const pageTotals = totalPageRows(
+    topPages.map(row => ({ ...row, city_name: null })),
+    Number.MAX_SAFE_INTEGER,
+  ).sort((a, b) => b.sessions - a.sessions || b.seo_clicks - a.seo_clicks || b.conversions - a.conversions)
+  for (const row of pageTotals) {
     if (row.city_id && !topPageByCity.has(row.city_id)) {
       topPageByCity.set(row.city_id, row.page_path)
     }
   }
 
-  return rows.map(row => ({
+  return totalCityRows(rows.map(row => ({
     city_id: row.city_id,
     city_name: row.city.name,
     sessions: row.sessions,
     seo_clicks: row.seo_clicks,
     conversions: row.contact_leads + row.lodging_contact_clicks + row.external_booking_clicks,
-    top_page_path: topPageByCity.get(row.city_id) ?? null,
-  }))
+  })), DEFAULT_LIMIT).map(row => ({ ...row, top_page_path: topPageByCity.get(row.city_id) ?? null }))
 }
 
 export async function getAdminAnalyticsPerformance(

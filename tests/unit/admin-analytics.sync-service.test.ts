@@ -71,44 +71,10 @@ describe('030 admin analytics sync service', () => {
     else process.env.VERCEL_ANALYTICS_PROJECT_ID = originalVercelProjectId
   })
 
-  it('AC-05-01/05-02: records Vercel sources as successful syncs when the project is configured', async () => {
+  it('075 AC-01-02 : « all » ne synchronise que GA4 et Search Console', async () => {
     const result = await runAdminAnalyticsSync({ source: 'all' })
 
-    expect(result).toEqual({
-      status: 'ok',
-      synced_sources: ['ga4', 'gsc', 'vercel_analytics', 'vercel_speed_insights'],
-    })
-
-    expect(mockCreateSourceSync).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          source: 'vercel_analytics',
-          status: 'success',
-          error_code: null,
-          error_message: null,
-          details_json: expect.objectContaining({
-            project_id: 'prj_test123',
-            daily_rows: 0,
-            page_rows: 0,
-            city_rows: 0,
-          }),
-        }),
-      }),
-    )
-
-    expect(mockCreateSourceSync).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          source: 'vercel_speed_insights',
-          status: 'success',
-          error_code: null,
-          error_message: null,
-          details_json: expect.objectContaining({
-            project_id: 'prj_test123',
-            perf_rows: 0,
-          }),
-        }),
-      }),
-    )
+    expect(result).toEqual({ status: 'ok', synced_sources: ['ga4', 'gsc'] })
+    expect(mockCreateSourceSync.mock.calls.map(([args]) => args.data.source)).toEqual(['ga4', 'gsc'])
   })
 })

@@ -1,11 +1,9 @@
-import { Activity, BarChart3, LineChart, Search, TimerReset, Waves } from 'lucide-react'
+import { Activity, BarChart3, ExternalLink, LineChart, Search, TimerReset, Waves } from 'lucide-react'
 import { runAdminAnalyticsSyncAction } from '@/features/admin-analytics/actions/run-admin-analytics-sync'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import {
   getAdminAnalyticsGa4TodayBlock,
-  getAdminAnalyticsLiveBlock,
   getAdminAnalyticsOverview,
-  getAdminAnalyticsPerformance,
   getAdminAnalyticsSourceStatuses,
   listAdminAnalyticsCities,
   listAdminAnalyticsPages,
@@ -13,7 +11,6 @@ import {
 } from '@/features/admin-analytics/queries/dashboard'
 import type {
   AdminAnalyticsGa4TodayBlock,
-  AdminAnalyticsLiveBlock,
   AdminAnalyticsSourceStatus,
   AnalyticsSourceKind,
 } from '@/features/admin-analytics/types'
@@ -24,6 +21,8 @@ const SOURCE_LABELS: Record<AnalyticsSourceKind, string> = {
   vercel_analytics: 'Vercel Analytics',
   vercel_speed_insights: 'Vercel Speed Insights',
 }
+
+const VERCEL_DASHBOARD_URL = 'https://vercel.com/dashboard'
 
 const STATUS_LABELS = {
   connected: 'Connectée',
@@ -37,15 +36,13 @@ const STATUS_LABELS = {
 export default async function AdminAnalyticsPage() {
   await getPageAdmin()
 
-  const [overview, sources, ga4Today, live, pages, queries, cities, performance] = await Promise.all([
+  const [overview, sources, ga4Today, pages, queries, cities] = await Promise.all([
     getAdminAnalyticsOverview(),
     getAdminAnalyticsSourceStatuses(),
     getAdminAnalyticsGa4TodayBlock(),
-    getAdminAnalyticsLiveBlock(),
     listAdminAnalyticsPages(),
     listAdminAnalyticsQueries(),
     listAdminAnalyticsCities(),
-    getAdminAnalyticsPerformance(),
   ])
 
   return (
@@ -83,10 +80,23 @@ export default async function AdminAnalyticsPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-4">
+      <section className="grid gap-4 lg:grid-cols-3">
         {sources.map(source => (
           <SourceStatusCard key={source.source} source={source} />
         ))}
+        {/* Spec 075 AC-01-01 : Vercel n'a pas d'API de lecture ; ses données restent dans Vercel. */}
+        <a
+          href={VERCEL_DASHBOARD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col justify-between rounded-[25px] border border-dashed border-gray-200 bg-white p-6 shadow-sm transition hover:border-[#0B1437]/30"
+        >
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Vercel</p>
+          <p className="mt-2 text-base font-bold text-neutral-900">Trafic temps réel et performance</p>
+          <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0B1437]">
+            Voir dans Vercel <ExternalLink size={14} />
+          </span>
+        </a>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-5">
@@ -116,16 +126,6 @@ export default async function AdminAnalyticsPage() {
           </span>
         </div>
         <Ga4TodayBlock block={ga4Today} />
-      </section>
-
-      <section className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-neutral-900">Live Vercel</h2>
-          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-            {STATUS_LABELS[live.status]}
-          </span>
-        </div>
-        <LiveBlock live={live} />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -166,19 +166,6 @@ export default async function AdminAnalyticsPage() {
             formatNumber(row.conversions),
             row.top_page_path ?? 'Aucune',
           ])}
-        />
-        <SimpleTable
-          title="Core Web Vitals"
-          columns={['Page', 'Ville', 'Pass rate', 'LCP', 'INP', 'CLS']}
-          rows={performance.rows.map(row => [
-            row.page_path ?? 'Global',
-            row.city_name ?? 'Global',
-            formatPercent(row.core_web_vitals_pass_rate),
-            formatDecimal(row.lcp),
-            formatDecimal(row.inp),
-            formatDecimal(row.cls),
-          ])}
-          emptyMessage={`Core Web Vitals: ${STATUS_LABELS[performance.status]}`}
         />
       </div>
     </div>
@@ -236,14 +223,6 @@ function getSourceStatusLabel(source: AdminAnalyticsSourceStatus): string {
     return 'Connectée, sans données'
   }
 
-  if (
-    source.status === 'partial' &&
-    source.error_code === 'SYNC_PENDING' &&
-    (source.source === 'vercel_analytics' || source.source === 'vercel_speed_insights')
-  ) {
-    return 'Collecte activée'
-  }
-
   return STATUS_LABELS[source.status]
 }
 
@@ -270,29 +249,6 @@ function MetricCard({
         </div>
       </div>
     </article>
-  )
-}
-
-function LiveBlock({ live }: { live: AdminAnalyticsLiveBlock }) {
-  if (live.status !== 'connected') {
-    return (
-      <p className="text-sm text-gray-500">
-        Live indisponible
-      </p>
-    )
-  }
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <div className="rounded-2xl bg-gray-50 p-4">
-        <p className="text-sm text-gray-500">Visiteurs</p>
-        <p className="mt-2 text-2xl font-bold text-neutral-900">{formatNumber(live.visitors)}</p>
-      </div>
-      <div className="rounded-2xl bg-gray-50 p-4">
-        <p className="text-sm text-gray-500">Page views</p>
-        <p className="mt-2 text-2xl font-bold text-neutral-900">{formatNumber(live.page_views)}</p>
-      </div>
-    </div>
   )
 }
 

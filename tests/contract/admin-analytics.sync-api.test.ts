@@ -55,6 +55,13 @@ describe('POST /api/internal/analytics/sync', () => {
     expect(mockRunAdminAnalyticsSync).toHaveBeenCalledWith({ source: 'all' })
   })
 
+  it.each(['vercel_analytics', 'vercel_speed_insights'])('075 AC-01-02 : source %s refusée (400)', async source => {
+    const res = await POST(makeRequest(SECRET, { source }))
+
+    expect(res.status).toBe(400)
+    expect(mockRunAdminAnalyticsSync).not.toHaveBeenCalled()
+  })
+
   it('AC-05-04: rejects requests with an invalid secret', async () => {
     const res = await POST(makeRequest('wrong-secret', { source: 'all' }))
 

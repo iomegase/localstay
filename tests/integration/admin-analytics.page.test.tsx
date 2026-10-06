@@ -46,15 +46,11 @@ jest.mock('@/features/admin-analytics/queries/dashboard', () => ({
     freshness: [
       { source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: 'NO_DATA', error_message: 'Source connectée, aucune donnée sur la période synchronisée.' },
       { source: 'gsc', status: 'stale', last_success_at: '2026-06-17T08:00:00.000Z', error_code: 'SYNC_TIMEOUT', error_message: 'Google Search Console timeout' },
-      { source: 'vercel_analytics', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
-      { source: 'vercel_speed_insights', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
     ],
   })),
   getAdminAnalyticsSourceStatuses: jest.fn(async () => [
     { source: 'ga4', status: 'connected', last_success_at: '2026-06-18T08:00:00.000Z', error_code: 'NO_DATA', error_message: 'Source connectée, aucune donnée sur la période synchronisée.' },
     { source: 'gsc', status: 'stale', last_success_at: '2026-06-17T08:00:00.000Z', error_code: 'SYNC_TIMEOUT', error_message: 'Google Search Console timeout' },
-    { source: 'vercel_analytics', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
-    { source: 'vercel_speed_insights', status: 'partial', last_success_at: null, error_code: 'SYNC_PENDING', error_message: 'Collecte activée sur le site, agrégation admin Vercel encore en attente.' },
   ]),
   getAdminAnalyticsGa4TodayBlock: jest.fn(async () => ({
     status: 'connected',
@@ -102,12 +98,13 @@ describe('030 admin analytics page', () => {
     expect(screen.getByRole('heading', { name: 'Analytics SEO/GEO' })).toBeInTheDocument()
     expect(screen.getByText('Google Analytics 4')).toBeInTheDocument()
     expect(screen.getByText('Google Search Console')).toBeInTheDocument()
-    expect(screen.getByText('Vercel Analytics')).toBeInTheDocument()
-    expect(screen.getByText('Vercel Speed Insights')).toBeInTheDocument()
+    // Spec 075 AC-01-01 : plus de cartes ni de blocs Vercel, un lien vers Vercel à la place.
+    expect(screen.queryByText('Vercel Analytics')).not.toBeInTheDocument()
+    expect(screen.queryByText('Vercel Speed Insights')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Voir dans Vercel/ })).toHaveAttribute('href', 'https://vercel.com/dashboard')
     expect(screen.getByRole('button', { name: 'Relancer GA4' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Relancer GSC' })).toBeInTheDocument()
     expect(screen.getByText('Connectée, sans données')).toBeInTheDocument()
-    expect(screen.getAllByText('Collecte activée').length).toBeGreaterThan(0)
     expect(screen.getByText('Impressions SEO')).toBeInTheDocument()
     expect(screen.getAllByText('Sessions').length).toBeGreaterThan(0)
     expect(screen.getByText("GA4 aujourd'hui")).toBeInTheDocument()
@@ -115,7 +112,7 @@ describe('030 admin analytics page', () => {
     expect(screen.getAllByText('/guide/annecy').length).toBeGreaterThan(0)
     expect(screen.getByText('annecy chalet')).toBeInTheDocument()
     expect(screen.getAllByText('Annecy').length).toBeGreaterThan(0)
-    expect(screen.getByText('Live indisponible')).toBeInTheDocument()
-    expect(screen.getByText('Core Web Vitals')).toBeInTheDocument()
+    expect(screen.queryByText('Live Vercel')).not.toBeInTheDocument()
+    expect(screen.queryByText('Core Web Vitals')).not.toBeInTheDocument()
   })
 })

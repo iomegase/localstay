@@ -1763,3 +1763,14 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 |---|---|---|---|---|
 | AC-01-01..03 / BR-01..03 | Sous-catégorie supprimée → images en catégorie seule ; catégorie supprimée → « Non classées » ; rien si refus | `src/features/admin-taxonomy/queries/taxonomy.ts` (`deleteSubCategory`, `deleteCategory`) | `tests/unit/fallback-images-taxonomy-deletion.AC-01.delete.test.ts` | ✅ done |
 | AC-02-01 | Nombre d'images annoncé dans la confirmation (`fallback_image_count`) | `src/features/admin-taxonomy/queries/taxonomy.ts`<br>`src/features/admin-taxonomy/lib/fallback-deletion-notice.ts`<br>`src/features/admin-taxonomy/components/AdminTaxonomyClient.tsx` | `tests/unit/fallback-images-taxonomy-deletion.AC-02-01.notice.test.ts`<br>`tests/integration/fallback-images-taxonomy-deletion.AC-02-01.dialog.test.tsx` | ✅ done |
+
+## 075 — Admin Analytics : des données justes
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Cartes GA4 / Search Console seules, blocs Live et Core Web Vitals retirés, lien « Voir dans Vercel » | `src/app/admin/analytics/page.tsx`<br>`src/features/admin-analytics/queries/dashboard.ts` | `tests/integration/admin-analytics.page.test.tsx`<br>`tests/unit/admin-analytics.dashboard-queries.test.ts` | ✅ done |
+| AC-01-02 | Synchro « all » = GA4 + GSC ; source Vercel refusée (400) | `src/features/admin-analytics/services/sync.ts`<br>`src/features/admin-analytics/schemas.ts` | `tests/unit/admin-analytics.sync-service.test.ts`<br>`tests/contract/admin-analytics.sync-api.test.ts` | ✅ done |
+| AC-02-01 / BR-01 | Tag GA4 coupé sur les chemins privés et à la sortie du site public | `src/features/admin-analytics/lib/private-paths.ts`<br>`src/features/admin-analytics/components/GoogleAnalyticsClient.tsx` | `tests/unit/admin-analytics-data-fix.AC-02-03.paths.test.ts`<br>`tests/integration/admin-analytics-data-fix.AC-02-01.ga4-private.test.tsx` | ✅ done |
+| AC-02-02..03 | Rapports GA4 filtrés (trafic public) ; lignes privées retirées (soft delete) | `src/features/admin-analytics/services/google-analytics.ts` | `tests/unit/admin-analytics.ga4-sync.test.ts` | ✅ done |
+| AC-03-01 | Rattachement des pages actuelles aux villages | `src/features/admin-analytics/lib/city-path-mapping.ts` | `tests/unit/admin-analytics-data-fix.AC-02-03.paths.test.ts` | ✅ done |
+| AC-04-01 | Pages / Requêtes / Villes totalisées sur la période | `src/features/admin-analytics/lib/period-totals.ts`<br>`src/features/admin-analytics/queries/dashboard.ts` | `tests/unit/admin-analytics-data-fix.AC-04-01.period-totals.test.ts` | ✅ done |

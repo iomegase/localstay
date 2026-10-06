@@ -16,7 +16,8 @@ export const analyticsPerformanceFiltersSchema = analyticsDateRangeSchema.extend
 
 export const analyticsSyncRequestSchema = z.object({
   source: z
-    .enum(['ga4', 'gsc', 'vercel_analytics', 'vercel_speed_insights', 'all'])
+    // Spec 075 AC-01-02 : les sources Vercel ne sont plus synchronisables.
+    .enum(['ga4', 'gsc', 'all'])
     .optional()
     .default('all'),
 })

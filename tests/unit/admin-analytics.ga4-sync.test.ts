@@ -4,6 +4,7 @@ const mockFindCities = jest.fn()
 const mockUpsertDailySnapshot = jest.fn()
 const mockUpsertPageSnapshot = jest.fn()
 const mockUpsertCitySnapshot = jest.fn()
+const mockRetirePageSnapshots = jest.fn()
 
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
@@ -15,6 +16,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     },
     analyticsPageDailySnapshot: {
       upsert: (...args: unknown[]) => mockUpsertPageSnapshot(...args),
+      updateMany: (...args: unknown[]) => mockRetirePageSnapshots(...args),
     },
     analyticsCityDailySnapshot: {
       upsert: (...args: unknown[]) => mockUpsertCitySnapshot(...args),
@@ -48,6 +50,7 @@ describe('030 google analytics sync', () => {
     mockUpsertDailySnapshot.mockResolvedValue({})
     mockUpsertPageSnapshot.mockResolvedValue({})
     mockUpsertCitySnapshot.mockResolvedValue({})
+    mockRetirePageSnapshots.mockResolvedValue({ count: 0 })
 
     global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
@@ -107,6 +110,11 @@ describe('030 google analytics sync', () => {
                     { value: '12' },
                     { value: '0.55' },
                   ],
+                },
+                {
+                  // Spec 075 : une page privée renvoyée malgré le filtre est ignorée.
+                  dimensionValues: [{ value: '20260619' }, { value: '/admin/pois' }],
+                  metricValues: [{ value: '1' }, { value: '1' }, { value: '3' }, { value: '1' }],
                 },
                 {
                   dimensionValues: [{ value: '20260619' }, { value: '/journal/seo-local' }],
@@ -200,5 +208,25 @@ describe('030 google analytics sync', () => {
         }),
       }),
     )
+  })
+
+  it('075 AC-02-02 / AC-02-03 : rapports filtrés sur le trafic public, pages privées retirées', async () => {
+    await syncGoogleAnalyticsSource()
+
+    const reportBodies = (global.fetch as jest.Mock).mock.calls
+      .filter(([url]) => String(url).endsWith(':runReport'))
+      .map(([, init]) => JSON.parse(String(init?.body)))
+    expect(reportBodies).toHaveLength(2)
+    for (const body of reportBodies) {
+      expect(body.dimensionFilter.notExpression.filter).toEqual({
+        fieldName: 'pagePath',
+        stringFilter: { matchType: 'FULL_REGEXP', value: expect.stringContaining('admin|auth') },
+      })
+    }
+    expect(mockUpsertPageSnapshot.mock.calls.map(([args]) => args.where.snapshot_date_page_path.page_path)).not.toContain('/admin/pois')
+    expect(mockRetirePageSnapshots).toHaveBeenCalledWith({
+      where: { deleted_at: null, OR: expect.arrayContaining([{ page_path: '/admin' }, { page_path: { startsWith: '/admin/' } }]) },
+      data: { deleted_at: expect.any(Date) },
+    })
   })
 })
