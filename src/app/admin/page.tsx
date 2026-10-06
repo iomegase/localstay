@@ -4,14 +4,17 @@ import { getAdminOverview } from '@/features/admin/queries/dashboard'
 import { AdminQrScansChart } from '@/features/admin/components/AdminQrScansChart'
 import { listAdminContactMessages } from '@/features/contact-messages/queries/contact-messages'
 import { AdminContactMessagesPanel } from '@/features/contact-messages/components/AdminContactMessagesPanel'
+import { AdminMaintenanceCard } from '@/features/maintenance/components/AdminMaintenanceCard'
+import { getMaintenanceState } from '@/features/maintenance/queries/maintenance'
 import { Building2, MapPin, BadgeCheck, Store, ShieldAlert, QrCode, ArrowRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export default async function AdminOverviewPage() {
   await getPageAdmin()
-  const [overview, contactMessages] = await Promise.all([
+  const [overview, contactMessages, maintenance] = await Promise.all([
     getAdminOverview(),
     listAdminContactMessages(),
+    getMaintenanceState(),
   ])
 
   return (
@@ -34,6 +37,9 @@ export default async function AdminOverviewPage() {
             <span className="text-xs text-gray-400">Illustration</span>
         </div>
       </div>
+
+      {/* Spec 087 : mode maintenance du site public. */}
+      <AdminMaintenanceCard initial={maintenance} />
 
       {/* Grille des KPIs et sections principales */}
       <div className="grid gap-6 xl:grid-cols-12">

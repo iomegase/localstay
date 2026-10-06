@@ -1863,3 +1863,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | AC-01..02 | FAQ sur 2 colonnes (≥ md), réponses en markdown | `src/features/lodging-showcase/components/LodgingFaq.tsx` | `tests/unit/lodging-showcase/LodgingFaq.test.tsx` | ✅ done |
 | AC-03 | Équipements / services en cases, 2 colonnes (sm) puis 3 (lg) | `src/features/lodging-showcase/components/LodgingFeatureSections.tsx` | `tests/unit/lodging-showcase.AC-02-10.feature-sections-layout.test.tsx` | ✅ done |
 | AC-04 | Icône dédiée pour tout le catalogue (lave-linge corrigé) | `src/features/lodging-showcase/lib/feature-icon.ts` | `tests/unit/lodging-showcase.semantic-feature-icons.test.tsx` | ✅ done |
+
+## 087 — Mode maintenance du site public
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Data model | `SiteMaintenance` (ligne unique) | `prisma/schema.prisma`<br>`prisma/migrations/20261007000000_site_maintenance/migration.sql` | — (appliquée le 2026-10-06) | ✅ done |
+| AC-01-01..02 / BR-01..02 | Carte du cockpit (interrupteur, message, aperçu), API admin Zod, cache 15 s, site ouvert si erreur | `src/features/maintenance/*`<br>`src/app/api/admin/maintenance/route.ts`<br>`src/app/admin/page.tsx` | `tests/unit/site-maintenance.AC-01-02.state.test.ts`<br>`tests/contract/site-maintenance.AC-01.api.test.ts`<br>`tests/integration/site-maintenance.AC-01-02.ui.test.tsx` | ✅ done |
+| AC-02-01..03 | Site public → /maintenance en 503 (Retry-After, noindex) ; connexion, guide, espaces, admin, API ouverts ; logo + message centrés | `src/proxy.ts`<br>`src/app/maintenance/page.tsx` | `tests/unit/site-maintenance.AC-02.proxy.test.ts`<br>`tests/integration/site-maintenance.AC-01-02.ui.test.tsx` | ✅ done |

@@ -1670,3 +1670,16 @@ model PoiAcquisitionMemory {
 
   @@index([city_id, google_place_id, deleted_at])
 }
+
+// ─── Spec 087 — Mode maintenance du site public ──────────────────────────────
+
+model SiteMaintenance {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  enabled    Boolean @default(false)
+  message    String?
+  updated_by String?
+}

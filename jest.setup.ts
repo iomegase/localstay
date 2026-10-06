@@ -30,3 +30,12 @@ if (typeof globalThis.IntersectionObserver === 'undefined') {
   globalThis.IntersectionObserver =
     MockIntersectionObserver as unknown as typeof IntersectionObserver
 }
+
+// Spec 087 : le proxy lit l'état de maintenance ; en test, jamais de lecture de la vraie base
+// (mode inactif par défaut). Les tests du mode maintenance utilisent `jest.unmock`.
+jest.mock('@/features/maintenance/queries/maintenance', () => ({
+  isMaintenanceEnabled: jest.fn(async () => false),
+  getMaintenanceState: jest.fn(async () => ({ enabled: false, message: 'Nous améliorons MyStay. Le site revient très vite, merci de votre patience.' })),
+  setMaintenanceState: jest.fn(),
+  resetMaintenanceCache: jest.fn(),
+}))
