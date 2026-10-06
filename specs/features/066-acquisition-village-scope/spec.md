@@ -5,7 +5,7 @@
 ```yaml
 id: 066-acquisition-village-scope
 title: "Réduire le bruit de l'acquisition entre villages voisins et retrouver les établissements fermés temporairement"
-status: review
+status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-06
@@ -15,7 +15,7 @@ depends_on:
 bounded_context: poi-acquisition
 amends:
   - "018 US-01 (pipeline de recherche), US-04 (création manuelle), BR-16 (coûts)"
-implementation_gate: "Ne pas coder avant status: approved et réponse PO aux Open Questions."
+implementation_gate: "Spec approuvée par le PO le 2026-10-06 (OQ-01 ignorer, OQ-02 pagination activée, OQ-03 correction faite)."
 ```
 
 ---
@@ -251,12 +251,8 @@ model PoiAcquisitionCandidate {
 
 ## Open Questions
 
-- **OQ-01** — `pending` — Lieux plus proches d'un autre village : les **ignorer**
-  (non créés, seulement comptés, recommandé) **ou** les créer avec un badge
-  « Plus proche de … » et décochés par défaut ?
-- **OQ-02** — `pending` — Pagination à 60 résultats : jusqu'à 3× plus d'appels Google
-  Text Search par run. Le filtre village (BR-03) évite les coûts Gemini et Mapbox
-  pour les lieux écartés. On l'active ? (recommandé : oui)
-- **OQ-03** — `pending` — Corriger maintenant le centre de Les Contamines-Montjoie
-  (45,8214 / 6,7272) directement en base, ou le fais-tu dans Admin › Villes ?
-  Sans correction, l'acquisition et le filtre village sont faux pour ce village.
+- **OQ-01** — `resolved` 2026-10-06 — Les lieux plus proches d'un autre village sont
+  ignorés (non créés, comptés dans `skipped_other_village`).
+- **OQ-02** — `resolved` 2026-10-06 — Pagination à 60 résultats activée.
+- **OQ-03** — `resolved` 2026-10-06 — Centre de Les Contamines-Montjoie corrigé en
+  base (43,671883 / 7,192157 → 45,8214 / 6,7272), à la demande du PO.
