@@ -238,7 +238,12 @@ function SortableInstructionRow({
       </div>
 
       <div className="space-y-1">
+        {/* Spec 083 : champ obligatoire, signalé comme tel (son absence bloquait toute la sauvegarde). */}
+        <Label htmlFor={`instruction-text-${index}`} className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+          Texte de l&apos;étape <span className="text-rose-500">· obligatoire</span>
+        </Label>
         <Textarea
+          id={`instruction-text-${index}`}
           aria-label="Texte de l'instruction"
           aria-invalid={errors[`${index}.text`] ? true : undefined}
           data-field-error={errors[`${index}.text`] ? '' : undefined}
