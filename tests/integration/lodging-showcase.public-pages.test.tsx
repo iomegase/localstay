@@ -324,6 +324,27 @@ describe('lodging showcase public pages', () => {
     }
   })
 
+  it('spec 088 AC-01/AC-04/AC-05: approximate area map by default, precise map when published', async () => {
+    const renderDetail = async (overrides: Record<string, unknown>) => {
+      ;(getPublishedLodgingDetailBySlug as jest.Mock).mockResolvedValue({ ...detailResult, ...overrides })
+      const { unmount } = render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
+      const area = screen.queryByTestId('lodging-area-map') !== null
+      const directions = screen.queryByRole('link', { name: /itinéraire/i }) !== null
+      unmount()
+      return { area, directions }
+    }
+
+    expect(await renderDetail({ approximate_location: { latitude: 45.9, longitude: 6.13, radius_m: 300 } }))
+      .toEqual({ area: true, directions: false })
+    expect(await renderDetail({ approximate_location: null })).toEqual({ area: false, directions: false })
+    expect(await renderDetail({
+      approximate_location: { latitude: 45.9, longitude: 6.13, radius_m: 300 },
+      precise_location_public: true,
+      public_latitude: 45.9,
+      public_longitude: 6.13,
+    })).toEqual({ area: false, directions: true })
+  })
+
   it('follows the approved editorial property-detail hierarchy', async () => {
     const jsx = await LodgingDetailPage({
       params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }),

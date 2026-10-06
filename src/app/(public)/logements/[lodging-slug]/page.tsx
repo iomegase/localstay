@@ -20,6 +20,7 @@ import { LodgingFeatureSections } from '@/features/lodging-showcase/components/L
 import { LodgingRoomsGrid } from '@/features/lodging-showcase/components/LodgingRoomsGrid'
 import { LodgingLocationMap } from '@/features/lodging-showcase/components/LodgingLocationMap'
 import { LodgingFaq } from '@/features/lodging-showcase/components/LodgingFaq'
+import { LodgingAreaMap } from '@/features/lodging-showcase/components/LodgingAreaMap'
 import { ExternalBookingCta } from '@/features/lodging-showcase/components/ExternalBookingCta'
 import { LodgingInquiryDialog } from '@/features/contact-messages/components/LodgingInquiryDialog'
 import { OwnerLeadDialog } from '@/features/contact-messages/components/OwnerLeadDialog'
@@ -209,13 +210,16 @@ export default async function LodgingDetailPage({ params }: Props) {
           <div className={`${marketingContainerClass} space-y-16 pb-16 md:space-y-20 md:pb-24`}>
             <LodgingRoomsGrid photos={detail.photos} />
 
-            {detail.precise_location_public && detail.public_latitude != null && detail.public_longitude != null && (
+            {/* Spec 088 : carte précise si publiée (028), sinon zone approximative. */}
+            {detail.precise_location_public && detail.public_latitude != null && detail.public_longitude != null ? (
               <LodgingLocationMap
                 latitude={detail.public_latitude}
                 longitude={detail.public_longitude}
                 areaLabel={detail.public_area_label}
               />
-            )}
+            ) : detail.approximate_location ? (
+              <LodgingAreaMap location={detail.approximate_location} areaLabel={detail.public_area_label ?? detail.city_name} />
+            ) : null}
 
             <LodgingFaq items={detail.faq} />
 

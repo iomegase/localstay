@@ -35,5 +35,7 @@ export async function GET(
     external_booking_platform: result.external_booking_platform,
     public_contact_enabled: result.public_contact_enabled,
     owner_recommendations: result.owner_recommendations,
+    // Spec 088 : centre décalé + rayon, jamais les coordonnées exactes.
+    approximate_location: result.approximate_location,
   })
 }

@@ -1,3 +1,4 @@
+import { approximateLodgingLocation, type ApproximateLocation } from '../lib/approximate-location'
 import { lodgingPhotoAlt } from '../lib/detail-view'
 import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
@@ -52,6 +53,8 @@ export type PublicLodgingDetailQueryResult = PublicLodgingCardApi & {
   precise_location_public: boolean
   public_latitude: number | null
   public_longitude: number | null
+  /** Spec 088 : zone approximative (centre décalé), jamais l'adresse exacte. */
+  approximate_location: ApproximateLocation | null
   amenities_included: string[]
   amenities_on_request: string[]
   faq: Array<{ id: string; question: string; answer: string }>
@@ -382,6 +385,8 @@ async function getPublishedLodgingDetailWhere(
       },
       lodging: {
         select: {
+          // Spec 088 : position géocodée (privée) servant uniquement à calculer la zone approximative.
+          customization: { select: { lodging_latitude: true, lodging_longitude: true } },
           featured_pois: {
             where: {
               deleted_at: null,
@@ -444,6 +449,11 @@ async function getPublishedLodgingDetailWhere(
     precise_location_public: row.precise_location_public,
     public_latitude: row.public_latitude,
     public_longitude: row.public_longitude,
+    approximate_location: approximateLodgingLocation(
+      row.id,
+      row.lodging.customization?.lodging_latitude,
+      row.lodging.customization?.lodging_longitude,
+    ),
     amenities_included: row.amenities.filter(a => a.availability !== 'on_request').map(a => a.label),
     amenities_on_request: row.amenities.filter(a => a.availability === 'on_request').map(a => a.label),
     faq: row.faq_items.map(item => ({ id: item.id, question: item.question, answer: item.answer })),

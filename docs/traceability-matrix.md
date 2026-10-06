@@ -1871,3 +1871,14 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | Data model | `SiteMaintenance` (ligne unique) | `prisma/schema.prisma`<br>`prisma/migrations/20261007000000_site_maintenance/migration.sql` | — (appliquée le 2026-10-06) | ✅ done |
 | AC-01-01..02 / BR-01..02 | Carte du cockpit (interrupteur, message, aperçu), API admin Zod, cache 15 s, site ouvert si erreur | `src/features/maintenance/*`<br>`src/app/api/admin/maintenance/route.ts`<br>`src/app/admin/page.tsx` | `tests/unit/site-maintenance.AC-01-02.state.test.ts`<br>`tests/contract/site-maintenance.AC-01.api.test.ts`<br>`tests/integration/site-maintenance.AC-01-02.ui.test.tsx` | ✅ done |
 | AC-02-01..04 | Production Vercel uniquement (AC-02-04) ; site public → /maintenance en 503 (Retry-After, noindex) ; connexion, guide, espaces, admin, API ouverts ; logo + message centrés | `src/proxy.ts`<br>`src/app/maintenance/page.tsx` | `tests/unit/site-maintenance.AC-02.proxy.test.ts`<br>`tests/integration/site-maintenance.AC-01-02.ui.test.tsx` | ✅ done |
+
+## 088 — Carte de la zone approximative (fiche logement)
+
+| Spec ID | Feature | User Story | Acceptance Criterion | Source File | Test File | Status |
+|---|---|---|---|---|---|---|
+| 088 | lodging-approximate-map | US-01 | AC-01 cercle ~300 m, sans repère ni itinéraire, légende quartier/ville | src/features/lodging-showcase/components/LodgingAreaMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
+| 088 | lodging-approximate-map | US-01 | AC-02 décalage stable 50–150 m | src/features/lodging-showcase/lib/approximate-location.ts | tests/unit/lodging-approximate-map.AC-02-03.location.test.ts | ✅ |
+| 088 | lodging-approximate-map | US-01 | AC-03 aucune coordonnée exacte transmise | src/features/lodging-showcase/queries/public-lodgings.ts, src/app/api/cities/[slug]/lodgings/[lodgingSlug]/route.ts | tests/contract/lodging-approximate-map.AC-03-04.api.test.ts | ✅ |
+| 088 | lodging-approximate-map | US-01 | AC-04 pas de carte sans adresse géocodée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/contract/lodging-approximate-map.AC-03-04.api.test.ts, tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
+| 088 | lodging-approximate-map | US-01 | AC-05 carte précise conservée si publiée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
+| 088 | lodging-approximate-map | — | BR-01 ~260 px, zoom molette désactivé | src/features/lodging-showcase/components/LodgingAreaMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
