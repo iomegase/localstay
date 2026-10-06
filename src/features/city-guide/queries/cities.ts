@@ -97,7 +97,6 @@ export async function getCityGuide(
         customization.featured_pois,
       )
       : categories,
-    welcome_message: customization?.welcome_message ?? null,
   }
 }
 

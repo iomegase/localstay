@@ -83,7 +83,7 @@ export async function applyEnglishTranslations(fields: LocalizableField[]): Prom
 export async function collectAllTranslationSources(): Promise<TranslationSource[]> {
   const activeLodging = { deleted_at: null, is_active: true }
   const [customizations, arrivals, blocks, featured, pois, categories, cards, profiles, amenities, photos] = await Promise.all([
-    prisma.lodgingCustomization.findMany({ where: { lodging: activeLodging }, select: { id: true, welcome_message: true, trash_location: true } }),
+    prisma.lodgingCustomization.findMany({ where: { lodging: activeLodging }, select: { id: true, trash_location: true } }),
     prisma.lodgingArrivalInstruction.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, text: true, tip: true, substeps: true, facts: true } }),
     prisma.lodgingPracticalBlock.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, title: true, body: true } }),
     prisma.lodgingFeaturedPoi.findMany({ where: { deleted_at: null, lodging: activeLodging }, select: { id: true, owner_note: true } }),
@@ -101,7 +101,7 @@ export async function collectAllTranslationSources(): Promise<TranslationSource[
     if (text?.trim()) sources.push({ entityType, entityId, field, text })
   }
   // Contenu des logements d'abord : c'est ce que le voyageur lit en premier.
-  for (const row of customizations) { add('LodgingCustomization', row.id, 'welcome_message', row.welcome_message); add('LodgingCustomization', row.id, 'trash_location', row.trash_location) }
+  for (const row of customizations) add('LodgingCustomization', row.id, 'trash_location', row.trash_location)
   for (const row of arrivals) {
     add('LodgingArrivalInstruction', row.id, 'title', row.title)
     add('LodgingArrivalInstruction', row.id, 'text', row.text)

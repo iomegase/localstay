@@ -1,5 +1,3 @@
-export type { TrashBin, TrashBinInput } from './lib/trash-bins'
-import type { TrashBin, TrashBinInput } from './lib/trash-bins'
 import type { ArrivalFact, ArrivalStepKind, ArrivalSubstep } from '@/features/guide-app/lib/arrival-steps'
 
 export interface FeaturedPoiInput {
@@ -78,7 +76,6 @@ export interface PracticalInfoFields {
   wifi_password: string | null
   key_box_code: string | null
   checkout_instructions: string | null
-  trash_info: string | null
   trash_location: string | null
   house_rules: string | null
   emergency_contacts: string | null
@@ -93,7 +90,6 @@ export const PRACTICAL_INFO_KEYS = [
   'wifi_password',
   'key_box_code',
   'checkout_instructions',
-  'trash_info',
   'trash_location',
   'house_rules',
   'emergency_contacts',
@@ -103,23 +99,19 @@ export const PRACTICAL_INFO_KEYS = [
 export type PracticalInfoInput = Partial<PracticalInfoFields>
 
 export interface LodgingCustomizationInput extends PracticalInfoInput {
-  welcome_message?: string | null
   category_order: string[]
   featured_pois: FeaturedPoiInput[]
   practical_blocks?: PracticalBlockInput[]
   arrival_instructions?: ArrivalInstructionInput[]
-  trash_bins?: TrashBinInput[]
 }
 
 export interface LodgingCustomizationResponse extends PracticalInfoFields {
   lodging_id: string
-  welcome_message: string | null
   category_order: string[]
   featured_pois: FeaturedPoiResponse[]
   ignored_category_slugs: string[]
   practical_blocks: PracticalBlockResponse[]
   arrival_instructions: ArrivalInstructionResponse[]
-  trash_bins: TrashBin[]
 }
 
 export type GuideCustomizationErrorCode =

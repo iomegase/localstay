@@ -5,7 +5,6 @@ import { t } from '@/shared/lib/i18n'
 import Link from 'next/link'
 import { recordQrScanIfPresent } from '@/features/analytics/lib/record-qr-scan'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
-import { MarkdownText } from '@/shared/components/MarkdownText'
 // import { GuideSearchInput } from '@/features/city-guide/components/GuideSearchInput' // réactiver lors de l'optimisation de la recherche
 import { SortControl } from '@/features/categories/components/SortControl'
 import { AllPoisList } from '@/features/categories/components/AllPoisList'
@@ -151,18 +150,6 @@ export default async function GuidePage({ params, searchParams }: Props) {
             />
           </section>
 
-      {guide.welcome_message && (
-        <div
-          data-testid="guide-welcome-message"
-          className="mx-4 mb-5 py-4 text-charcoal shadow-sm"
-        >
-          <MarkdownText
-            source={guide.welcome_message}
-            breaks
-            className="font-hand text-charcoal [&_p]:!text-xl [&_p]:!leading-snug [&_p]:!text-left"
-          />
-        </div>
-      )}
 
     
  

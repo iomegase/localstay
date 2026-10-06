@@ -27,7 +27,6 @@ import { GET, PUT } from '@/app/api/dashboard/lodgings/[id]/customization/route'
 const owner = { id: 'owner-1', role: 'owner' }
 const responseBody = {
   lodging_id: 'lodging-1',
-  welcome_message: 'Bienvenue au chalet',
   category_order: ['restaurants'],
   featured_pois: [],
   ignored_category_slugs: [],
@@ -52,7 +51,6 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
 
     const res = await PUT(
       makeRequest('PUT', {
-        welcome_message: 'Bienvenue au chalet',
         category_order: ['restaurants'],
         featured_pois: [],
       }),
@@ -61,12 +59,10 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
 
     expect(res.status).toBe(200)
     expect(mockSaveCustomization).toHaveBeenCalledWith('owner-1', 'lodging-1', {
-      welcome_message: 'Bienvenue au chalet',
       category_order: ['restaurants'],
       featured_pois: [],
       practical_blocks: [],
       arrival_instructions: [],
-      trash_bins: [],
       presentation_video_url: null,
     })
     await expect(res.json()).resolves.toEqual(responseBody)
@@ -76,7 +72,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     mockSaveCustomization.mockRejectedValue(new Error('FORBIDDEN'))
 
     const res = await PUT(
-      makeRequest('PUT', { welcome_message: 'Hello', category_order: [], featured_pois: [] }),
+      makeRequest('PUT', { category_order: [], featured_pois: [] }),
       { params: Promise.resolve({ id: 'other-lodging' }) },
     )
 
@@ -85,19 +81,28 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(json.error.code).toBe('FORBIDDEN')
   })
 
-  it('accepts a long welcome message over 300 characters but within 400 words', async () => {
+  it('077 AC-02-02 / AC-03-02 : message d’accueil, bacs et texte « déchets » ignorés', async () => {
     mockSaveCustomization.mockResolvedValue(responseBody)
-    // 350 mots ≈ 1 400 caractères : refusé par l'ancienne limite de 300 caractères,
-    // accepté par la nouvelle limite de 400 mots.
-    const longMessage = Array.from({ length: 350 }, () => 'mot').join(' ')
+    const tooManyWords = Array.from({ length: 401 }, () => 'mot').join(' ')
 
     const res = await PUT(
-      makeRequest('PUT', { welcome_message: longMessage, category_order: [], featured_pois: [] }),
+      makeRequest('PUT', {
+        welcome_message: tooManyWords,
+        trash_bins: [{ type: 'jaune' }],
+        trash_info: 'Sortir les poubelles le mardi',
+        trash_location: 'Place du marché',
+        category_order: [],
+        featured_pois: [],
+      }),
       { params: Promise.resolve({ id: 'lodging-1' }) },
     )
 
     expect(res.status).toBe(200)
-    expect(mockSaveCustomization).toHaveBeenCalled()
+    const input = mockSaveCustomization.mock.calls[0][2]
+    expect(input).not.toHaveProperty('welcome_message')
+    expect(input).not.toHaveProperty('trash_bins')
+    expect(input).not.toHaveProperty('trash_info')
+    expect(input.trash_location).toBe('Place du marché')
   })
 
   it('AC-02-02: accepts owner_note but strips owner_rating', async () => {
@@ -150,18 +155,6 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
           sort_order: 0,
         }],
       }),
-      { params: Promise.resolve({ id: 'lodging-1' }) },
-    )
-
-    expect(res.status).toBe(400)
-    expect(mockSaveCustomization).not.toHaveBeenCalled()
-  })
-
-  it('returns 400 when the welcome message exceeds 400 words', async () => {
-    const tooManyWords = Array.from({ length: 401 }, () => 'mot').join(' ')
-
-    const res = await PUT(
-      makeRequest('PUT', { welcome_message: tooManyWords, category_order: [], featured_pois: [] }),
       { params: Promise.resolve({ id: 'lodging-1' }) },
     )
 

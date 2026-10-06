@@ -105,6 +105,11 @@ describe('/le-logement — guide en accordéons', () => {
       name: 'Déposer vos déchets au point de recyclage indiqué ci-dessous.',
     })).toBeInTheDocument()
     expect(within(departureAccordion).getByRole('heading', { name: 'Poubelles' })).toBeInTheDocument()
+    // Spec 077 AC-03-03 : seul le lien vers le point de tri subsiste, plus aucun bac.
+    expect(within(departureAccordion).getByRole('link', { name: /Voir le point de tri/ })).toHaveAttribute(
+      'href', 'https://www.google.com/maps?q=Point%20tri%20en%20bas%20du%20b%C3%A2timent',
+    )
+    expect(within(departureAccordion).queryByText(/Poubelle jaune/)).not.toBeInTheDocument()
     const practicalAccordion = screen.getByRole('button', { name: /Infos pratiques/i }).closest('article') as HTMLElement
     expect(within(practicalAccordion).queryByRole('checkbox')).not.toBeInTheDocument()
     expect(within(practicalAccordion).getByTestId('lodging-emergency-number')).toHaveTextContent('112')

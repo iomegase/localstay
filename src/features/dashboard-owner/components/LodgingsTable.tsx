@@ -1,17 +1,18 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LodgingDialog } from './LodgingDialog'
 import type { LodgingItem } from '../queries/lodgings'
 import {
-  Plus,
-  Pencil,
-  QrCode,
-  SlidersHorizontal,
+  BookOpen,
   Home,
   MapPin,
-  AlertCircle,
+  Pencil,
+  Plus,
   Power,
+  QrCode,
+  ScanLine,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -25,11 +26,10 @@ interface Props {
   cities: City[]
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  generated: 'bg-emerald-50/80 text-emerald-600 border-emerald-100/50',
-  missing: 'bg-amber-50/80 text-amber-600 border-amber-100/50',
-}
+const PRIMARY_ACTION = 'inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#F4F7FE] px-3.5 text-[12px] font-bold text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white'
+const ICON_ACTION = 'inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-100 text-gray-500 transition-colors hover:border-gray-200 hover:text-[#0B1437] disabled:cursor-not-allowed disabled:opacity-40'
 
+// Spec 077 US-01 : un logement = une carte ; « Guide » et « Logement » remplacent « Personnaliser » et « Vitrine ».
 export function LodgingsTable({ lodgings, cities }: Props) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -59,184 +59,105 @@ export function LodgingsTable({ lodgings, cities }: Props) {
 
   return (
     <div className="w-full animate-in fade-in space-y-6 duration-500">
-      {/* Header card */}
-      <header className="flex flex-col justify-between gap-6 rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm md:flex-row md:items-center">
+      <header className="flex flex-col justify-between gap-6 rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm sm:p-8 md:flex-row md:items-center">
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
             Mes logements
           </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-neutral-900">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
             Gestion des séjours
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">
-            Centralisez vos hébergements, suivez les scans QR et personnalisez le guide proposé à vos voyageurs.
+            Pour chaque logement : le guide de vos voyageurs, sa page publique et son QR code.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={openCreate}
-          className="group inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md"
         >
-          <Plus size={16} className="transition-transform duration-300 group-hover:scale-110" />
+          <Plus size={16} aria-hidden="true" />
           Ajouter un logement
         </button>
       </header>
 
-      {/* KPIs */}
-      <div className="grid gap-6 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <MetricCard title="Logements" value={lodgings.length} icon={Home} />
         <MetricCard title="QR générés" value={generatedCount} icon={QrCode} />
-        <MetricCard title="Scans cumulés" value={totalScans} icon={MapPin} />
+        <MetricCard title="Scans cumulés" value={totalScans} icon={ScanLine} />
       </div>
 
-      {/* Table */}
-      <div className="w-full overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
-        <div className="border-b border-gray-100 p-6">
-          <h2 className="text-base font-bold text-neutral-900">Liste des logements</h2>
+      {lodgings.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-[25px] border border-dashed border-gray-200 bg-white p-12 text-center">
+          <p className="text-sm font-medium text-gray-500">Aucun logement</p>
+          <p className="mt-1 text-xs text-gray-400">
+            Ajoutez votre premier logement pour créer son guide et son QR code.
+          </p>
         </div>
+      ) : (
+        <ul aria-label="Mes logements" className="space-y-3">
+          {lodgings.map(lodging => (
+            <li
+              key={lodging.id}
+              aria-label={lodging.name}
+              className={`flex flex-col gap-4 rounded-[20px] border bg-white p-4 shadow-sm sm:p-5 lg:flex-row lg:items-center ${lodging.is_active ? 'border-gray-100' : 'border-dashed border-gray-200 opacity-80'}`}
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-4">
+                {lodging.cover_photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={lodging.cover_photo_url} alt="" referrerPolicy="no-referrer" className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20" />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-[#F4F7FE] text-[#0B1437]/40 sm:h-20 sm:w-20">
+                    <Home size={24} aria-hidden="true" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-base font-bold text-neutral-900">{lodging.name}</p>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                    <MapPin size={12} aria-hidden="true" /> {lodging.city_name}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <Badge tone={lodging.is_active ? 'green' : 'gray'}>{lodging.is_active ? 'Actif' : 'Désactivé'}</Badge>
+                    <Badge tone={lodging.qr_code_status === 'generated' ? 'green' : 'amber'}>
+                      {lodging.qr_code_status === 'generated' ? 'QR généré' : 'QR manquant'}
+                    </Badge>
+                    <span className="text-[11px] font-semibold text-gray-400">
+                      {lodging.qr_scan_count.toLocaleString('fr-FR')} {lodging.qr_scan_count > 1 ? 'scans' : 'scan'}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-        {lodgings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center bg-gray-50/30 p-12 text-center">
-            <p className="text-sm font-medium text-gray-500">Aucun logement</p>
-            <p className="mt-1 text-xs text-gray-400">
-              Ajoutez votre premier logement pour générer un QR code et personnaliser un guide.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full whitespace-nowrap text-left">
-              <thead className="border-b border-gray-100 bg-white">
-                <tr>
-                  <th className="px-6 py-4 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                    Logement
-                  </th>
-                  <th className="px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                    QR code
-                  </th>
-                  <th className="px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                    Scans
-                  </th>
-                  <th className="px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                    Statut
-                  </th>
-                  <th className="px-6 py-4 text-right text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50/80 bg-white">
-                {lodgings.map(lodging => {
-                  const qrLabel = lodging.qr_code_status === 'generated' ? 'Généré' : 'Manquant'
-                  const qrStyle = STATUS_STYLES[lodging.qr_code_status]
-
-                  return (
-                    <tr
-                      key={lodging.id}
-                      className="group transition-colors duration-200 hover:bg-gray-50/50"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-[13px] font-bold text-neutral-900">
-                            {lodging.name}
-                          </span>
-                          <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-gray-400">
-                            <MapPin size={12} className="text-[#0B1437]/40" />
-                            <span>{lodging.city_name}</span>
-                          </div>
-                          {!lodging.is_active && (
-                            <div className="mt-2 flex items-center gap-1.5 text-[10px] font-medium text-rose-500">
-                              <AlertCircle size={12} className="shrink-0" />
-                              Logement désactivé
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${qrStyle}`}
-                        >
-                          <QrCode size={10} />
-                          {qrLabel}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-[13px] font-bold text-neutral-900">
-                          {lodging.qr_scan_count.toLocaleString('fr-FR')}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex shrink-0 items-center rounded-lg border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                            lodging.is_active
-                              ? 'border-emerald-100/50 bg-emerald-50/80 text-emerald-600'
-                              : 'border-gray-200/50 bg-gray-100/80 text-gray-500'
-                          }`}
-                        >
-                          {lodging.is_active ? 'Actif' : 'Inactif'}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() =>
-                              router.push(`/dashboard/lodgings/${lodging.id}/qr-code`)
-                            }
-                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
-                          >
-                            <QrCode size={12} />
-                            QR code
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              router.push(`/dashboard/lodgings/${lodging.id}/customize`)
-                            }
-                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
-                          >
-                            <SlidersHorizontal size={12} />
-                            Personnaliser
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              router.push(`/dashboard/lodgings/${lodging.id}/showcase`)
-                            }
-                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
-                          >
-                            <Home size={12} />
-                            Vitrine
-                          </button>
-
-                          <button
-                            onClick={() => openEdit(lodging)}
-                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-white px-3 text-[11px] font-bold text-gray-600 transition-all duration-300 hover:border-gray-200 hover:text-[#0B1437]"
-                          >
-                            <Pencil size={12} />
-                            Modifier
-                          </button>
-
-                          <button
-                            onClick={() => handleDeactivate(lodging.id)}
-                            disabled={!lodging.is_active}
-                            className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg border border-rose-100/60 bg-rose-50/40 px-3 text-[11px] font-bold text-rose-500 transition-all duration-300 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            <Power size={12} />
-                            Désactiver
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link href={`/dashboard/lodgings/${lodging.id}/customize`} className={PRIMARY_ACTION}>
+                  <BookOpen size={14} aria-hidden="true" /> Guide
+                </Link>
+                <Link href={`/dashboard/lodgings/${lodging.id}/showcase`} className={PRIMARY_ACTION}>
+                  <Home size={14} aria-hidden="true" /> Logement
+                </Link>
+                <Link href={`/dashboard/lodgings/${lodging.id}/qr-code`} className={PRIMARY_ACTION}>
+                  <QrCode size={14} aria-hidden="true" /> QR code
+                </Link>
+                <span className="mx-1 hidden h-6 w-px bg-gray-200 sm:block" aria-hidden="true" />
+                <button type="button" onClick={() => openEdit(lodging)} className={ICON_ACTION} aria-label={`Modifier ${lodging.name}`} title="Modifier">
+                  <Pencil size={15} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeactivate(lodging.id)}
+                  disabled={!lodging.is_active}
+                  className={`${ICON_ACTION} hover:border-rose-200 hover:text-rose-600`}
+                  aria-label={`Désactiver ${lodging.name}`}
+                  title="Désactiver"
+                >
+                  <Power size={15} aria-hidden="true" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <LodgingDialog
         open={dialogOpen}
@@ -245,6 +166,19 @@ export function LodgingsTable({ lodgings, cities }: Props) {
         cities={cities}
       />
     </div>
+  )
+}
+
+function Badge({ tone, children }: { tone: 'green' | 'amber' | 'gray'; children: React.ReactNode }) {
+  const styles = {
+    green: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+    amber: 'border-amber-100 bg-amber-50 text-amber-700',
+    gray: 'border-gray-200 bg-gray-100 text-gray-500',
+  }
+  return (
+    <span className={`inline-flex items-center rounded-lg border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${styles[tone]}`}>
+      {children}
+    </span>
   )
 }
 
@@ -258,15 +192,15 @@ function MetricCard({
   icon: LucideIcon
 }) {
   return (
-    <div className="group flex items-center gap-5 rounded-[20px] border border-gray-50 bg-white p-6 shadow-sm transition-all hover:border-gray-100 hover:shadow-md">
-      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#F3F4F8] text-[#0B1437] transition-transform duration-300 group-hover:scale-110">
-        <Icon size={24} strokeWidth={2} />
+    <div className="flex items-center gap-4 rounded-[20px] border border-gray-50 bg-white p-5 shadow-sm">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F3F4F8] text-[#0B1437]">
+        <Icon size={22} strokeWidth={2} aria-hidden="true" />
       </div>
       <div>
         <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
           {title}
         </h3>
-        <p className="mt-1 text-2xl font-bold tracking-tight text-neutral-900">
+        <p className="mt-0.5 text-2xl font-bold tracking-tight text-neutral-900">
           {value.toLocaleString('fr-FR')}
         </p>
       </div>

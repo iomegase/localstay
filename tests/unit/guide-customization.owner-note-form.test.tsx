@@ -22,7 +22,6 @@ jest.mock('@/shared/components/ImageUpload', () => ({
 
 const baseCustomization = {
   lodging_id: 'lodging-1',
-  welcome_message: null,
   category_order: ['restaurants'],
   featured_pois: [{
     poi_id: 'poi-1',
@@ -37,7 +36,7 @@ const baseCustomization = {
   wifi_password: null,
   parking_info: null,
   checkout_instructions: null,
-  trash_info: null,
+ 
   trash_location: null,
   house_rules: null,
   emergency_contacts: null,

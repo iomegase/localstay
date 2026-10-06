@@ -49,7 +49,8 @@ describe('028 lodging showcase owner page', () => {
   it('AC-05-01: renders the owner showcase page for an owned lodging', async () => {
     render(await ShowcasePage({ params: Promise.resolve({ id: 'lodging-1' }) }))
 
-    expect(screen.getByText('Vitrine publique')).toBeInTheDocument()
+    // Spec 077 AC-04-03 : « Vitrine publique » devient « Logement ».
+    expect(screen.getByText('Logement', { selector: 'p' })).toBeInTheDocument()
     expect(screen.getAllByText('Chalet Hygge').length).toBeGreaterThan(0)
     expect(
       screen.getByText(/MyStay ne copie pas automatiquement les photos ou textes Airbnb/i),

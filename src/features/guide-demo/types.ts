@@ -144,9 +144,6 @@ export type DemoLodging = {
   practicalCards: DemoPracticalCard[]
   usefulNumbers: DemoPhoneNumber[]
   emergencyNumbers: DemoPhoneNumber[]
-  trashBins: {
-    type: string
-  }[]
   trashLocation: string | null
   /** Spec 054 BR-03 : jamais de code de boîte à clés dans la démo. */
   keyBoxCode: null

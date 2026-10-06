@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ExternalLink, MapPin, SlidersHorizontal } from 'lucide-react'
+import { ArrowLeft, BookOpen, MapPin } from 'lucide-react'
 import { prisma } from '@/shared/lib/prisma'
 import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import { getLodgingCustomization } from '@/features/guide-customization/queries/customization'
@@ -146,42 +146,29 @@ export default async function CustomizeLodgingPage({ params }: Props) {
     }))
 
   return (
-    <div className="mx-auto w-full max-w-5xl animate-in fade-in space-y-6 duration-500">
+    <div className="mx-auto w-full max-w-6xl animate-in fade-in space-y-6 duration-500">
       <Link
         href="/dashboard/lodgings"
         className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-[#0B1437]"
       >
         <ArrowLeft size={12} />
-        Retour aux logements
+        Mes logements
       </Link>
 
-      <header className="flex flex-col justify-between gap-6 rounded-[25px] border border-gray-50 bg-white p-8 shadow-sm md:flex-row md:items-center">
-        <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-            Personnalisation
-          </p>
-          <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold tracking-tight text-neutral-900">
-            <SlidersHorizontal size={28} strokeWidth={2.2} className="text-[#0B1437]" />
-            {lodging.name}
-          </h1>
-          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm leading-relaxed text-gray-500">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#F4F7FE] px-2.5 py-1 text-[11px] font-semibold text-[#0B1437]">
-              <MapPin size={11} />
-              {lodging.city.name}
-            </span>
-            Livret d&apos;accueil affiché à vos voyageurs après scan du QR code.
-          </p>
-        </div>
-
-        <Link
-          href={`/guide/${lodging.city.slug}?lodging=${lodging.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 text-[13px] font-bold text-[#0B1437] shadow-sm transition-all hover:border-[#0B1437]/30 hover:bg-gray-50"
-        >
-          <ExternalLink size={14} className="transition-transform duration-300 group-hover:scale-110" />
-          Aperçu voyageur
-        </Link>
+      {/* Spec 077 AC-04-01 : la page « Personnaliser » devient « Guide ». */}
+      <header className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm sm:p-8">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Guide</p>
+        <h1 className="mt-2 flex items-center gap-3 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
+          <BookOpen size={26} strokeWidth={2.2} className="text-[#0B1437]" aria-hidden="true" />
+          {lodging.name}
+        </h1>
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm leading-relaxed text-gray-500">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#F4F7FE] px-2.5 py-1 text-[11px] font-semibold text-[#0B1437]">
+            <MapPin size={11} />
+            {lodging.city.name}
+          </span>
+          Le livret d&apos;accueil que vos voyageurs ouvrent en scannant le QR code.
+        </p>
       </header>
 
       <CustomizationForm

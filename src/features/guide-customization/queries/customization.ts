@@ -11,7 +11,6 @@ import {
   normalizeArrivalInstructions,
   normalizeOwnerNote,
   normalizePracticalBlocks,
-  normalizeTrashBins,
   OWNER_NOTE_MAX_WORDS,
 } from '../lib/validation'
 import type {
@@ -28,7 +27,6 @@ import type {
   LodgingCustomizationResponse,
   PracticalBlockResponse,
   PracticalInfoFields,
-  TrashBin,
 } from '../types'
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 
@@ -40,7 +38,6 @@ const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   wifi_password: null,
   key_box_code: null,
   checkout_instructions: null,
-  trash_info: null,
   trash_location: null,
   house_rules: null,
   emergency_contacts: null,
@@ -106,7 +103,6 @@ type LodgingAddressCoordinates = {
 }
 
 type PublicCustomization = {
-  welcome_message: string | null
   category_order: string[]
   featured_pois: Array<{
     poi_id: string
@@ -336,7 +332,7 @@ export async function getPublicCustomization(
   const [customization, featuredPois] = await Promise.all([
     prisma.lodgingCustomization.findFirst({
       where: { lodging_id: lodging.id, deleted_at: null },
-      select: { welcome_message: true, category_order: true },
+      select: { category_order: true },
     }),
     prisma.lodgingFeaturedPoi.findMany({
       where: { lodging_id: lodging.id, deleted_at: null },
@@ -349,7 +345,6 @@ export async function getPublicCustomization(
   ])
 
   return {
-    welcome_message: customization?.welcome_message ?? null,
     category_order: customization?.category_order ?? [],
     featured_pois: featuredPois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
@@ -368,7 +363,6 @@ export async function getLodgingCustomization(
   const customization = await prisma.lodgingCustomization.findFirst({
     where: { lodging_id: lodgingId, deleted_at: null },
     select: {
-      welcome_message: true,
       category_order: true,
       cover_photo_url: true,
       presentation_video_url: true,
@@ -377,9 +371,7 @@ export async function getLodgingCustomization(
       wifi_password: true,
       key_box_code: true,
       checkout_instructions: true,
-      trash_info: true,
       trash_location: true,
-      trash_bins: true,
       house_rules: true,
       emergency_contacts: true,
       useful_services: true,
@@ -411,7 +403,6 @@ export async function getLodgingCustomization(
 
   return {
     lodging_id: lodgingId,
-    welcome_message: customization?.welcome_message ?? null,
     category_order: customization?.category_order ?? [],
     featured_pois: featuredPois.map(featuredPoi => ({
       poi_id: featuredPoi.poi_id,
@@ -422,7 +413,6 @@ export async function getLodgingCustomization(
     ignored_category_slugs: [],
     practical_blocks: practicalBlocks,
     arrival_instructions: arrivalInstructions.map(toArrivalInstructionResponse),
-    trash_bins: (customization?.trash_bins as unknown as TrashBin[] | null) ?? [],
     ...pickPracticalInfo(customization),
   }
 }
@@ -478,25 +468,19 @@ export async function saveLodgingCustomization(
   )
   const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
   const arrivalInstructions = normalizeArrivalInstructions(input.arrival_instructions)
-  const trashBins = normalizeTrashBins(input.trash_bins)
-  const trashBinsJson = trashBins as unknown as Prisma.InputJsonValue
 
   await prisma.$transaction(async tx => {
     await tx.lodgingCustomization.upsert({
       where: { lodging_id: lodgingId },
       update: {
-        welcome_message: input.welcome_message ?? null,
         category_order: categoryOrderResult.category_order,
         deleted_at: null,
-        trash_bins: trashBinsJson,
         ...practicalInfo,
         ...lodgingAddressCoordinates,
       },
       create: {
         lodging_id: lodgingId,
-        welcome_message: input.welcome_message ?? null,
         category_order: categoryOrderResult.category_order,
-        trash_bins: trashBinsJson,
         ...practicalInfo,
         ...lodgingAddressCoordinates,
       },
@@ -542,13 +526,11 @@ export async function saveLodgingCustomization(
 
   return {
     lodging_id: lodgingId,
-    welcome_message: input.welcome_message ?? null,
     category_order: categoryOrderResult.category_order,
     featured_pois: featuredPois,
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
     practical_blocks: savedBlocks,
     arrival_instructions: savedInstructions.map(toArrivalInstructionResponse),
-    trash_bins: trashBins,
     ...practicalInfo,
   }
 }

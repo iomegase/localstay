@@ -31,7 +31,7 @@ export default async function LodgingShowcasePage({ params }: Props) {
 
       <header className="flex flex-col justify-between gap-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm md:flex-row md:items-center">
         <div className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">Vitrine publique</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink-600">Logement</p>
           <div>
             <h1 className="text-3xl font-light text-charcoal">{data.lodging.name}</h1>
             <p className="mt-2 text-sm text-gray-500">

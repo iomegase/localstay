@@ -26,7 +26,6 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import { getActiveLodgingContext } from '@/features/public-menu/lib/lodging-mode'
-import { getTrashBin, isTrashBinType, type TrashBin } from '@/features/guide-customization/lib/trash-bins'
 import { DepartureChecklist } from './_components/DepartureChecklist'
 import { WifiCredentials } from './_components/WifiCredentials'
 import { GuideAccordions, GUIDE_CARD, type GuideSection } from './_components/GuideAccordions'
@@ -68,14 +67,12 @@ export default async function LeLogementPage() {
     prisma.lodgingCustomization.findFirst({
       where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
       select: {
-        welcome_message: true,
         cover_photo_url: true,
         presentation_video_url: true,
         lodging_address: true,
         wifi_ssid: true,
         wifi_password: true,
         trash_location: true,
-        trash_bins: true,
         emergency_contacts: true,
         useful_services: true,
       },
@@ -92,13 +89,11 @@ export default async function LeLogementPage() {
   ])
 
   const has = (value: string | null | undefined) => Boolean(value?.trim())
-  const trashBins = parseTrashBins(customization?.trash_bins)
   const hasContent = Boolean(
     FIXED_DEPARTURE_INSTRUCTIONS.length
     || FIXED_HOUSE_RULES.length
     || practicalBlocks.length
-    || customization && Object.entries(customization).some(([key, value]) => key !== 'trash_bins' && has(typeof value === 'string' ? value : null))
-    || trashBins.length,
+    || customization && Object.values(customization).some(value => has(typeof value === 'string' ? value : null)),
   )
 
   if (!hasContent) {
@@ -191,28 +186,13 @@ export default async function LeLogementPage() {
       <DepartureChecklist items={checklistItems} />
     </div>,
   )
-  if (trashBins.length > 0 || customization?.trash_location) {
+  // Spec 077 AC-03-03 : seule la localisation du point de tri est proposée.
+  if (trashMapUrl) {
     departureContent.push(
       <PanelDetail key="trash" icon={<Trash2 className="h-5 w-5" />} accent="green" title="Poubelles">
-        <div className="space-y-4">
-          {trashBins.map(bin => {
-            const preset = getTrashBin(bin.type)
-            return (
-              <div key={bin.type} className="flex items-start gap-3">
-                <Trash2 className={`h-8 w-8 shrink-0 ${preset?.colorClass ?? 'text-slate-500'}`} />
-                <div>
-                  <p className="font-bold text-slate-800">{preset?.label}</p>
-                  <p className="text-xs text-slate-500">{preset?.hint}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-        {trashMapUrl && (
-          <a href={trashMapUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 font-bold text-white">
-            Voir le point de tri <MapPin className="h-4 w-4" />
-          </a>
-        )}
+        <a href={trashMapUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 font-bold text-white">
+          Voir le point de tri <MapPin className="h-4 w-4" />
+        </a>
       </PanelDetail>,
     )
   }
@@ -369,12 +349,4 @@ function buildMapsUrl(value: string) {
   const trimmed = value.trim()
   if (/^https?:\/\//i.test(trimmed) && /(google\.[a-z]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(trimmed)) return trimmed
   return `https://www.google.com/maps?q=${encodeURIComponent(trimmed)}`
-}
-
-function parseTrashBins(value: unknown): TrashBin[] {
-  if (!Array.isArray(value)) return []
-  return value.flatMap(item => {
-    if (!item || typeof item !== 'object' || !('type' in item) || typeof item.type !== 'string' || !isTrashBinType(item.type)) return []
-    return [{ type: item.type }]
-  })
 }

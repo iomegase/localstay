@@ -267,13 +267,13 @@ describe('034-private-guide-app private data adapter', () => {
     ])
   })
 
-  it('maps active trash bins and the sorting point location', async () => {
+  it('077 AC-02-03 / AC-03-03 : localisation du point de tri seule, accroche sans message d’accueil', async () => {
     lodgingFindFirst.mockResolvedValue({
       id: 'lodging-1',
       name: 'Le Chalet Hygge',
       city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
       customization: {
-        welcome_message: null,
+        welcome_message: 'Ancien message',
         cover_photo_url: null,
         lodging_address: null,
         lodging_latitude: null,
@@ -294,8 +294,9 @@ describe('034-private-guide-app private data adapter', () => {
 
     const result = await getPrivateGuideData('lodging-1')
 
-    expect(result?.lodging.trashBins).toEqual([{ type: 'jaune' }, { type: 'verte' }])
+    expect(result?.lodging).not.toHaveProperty('trashBins')
     expect(result?.lodging.trashLocation).toBe('https://maps.app.goo.gl/abc')
+    expect(result?.lodging.tagline).toBe('Bienvenue à Saint-Gervais-les-Bains')
   })
 
   it('returns null when the active lodging cannot be resolved', async () => {

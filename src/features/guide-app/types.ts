@@ -196,8 +196,7 @@ export type GuideLodging = {
   houseRules: string[]
   practicalCards: GuidePracticalCard[]
   usefulNumbers: GuideUsefulNumber[]
-  /** Bacs de tri actifs (recyclage) + localisation du point de tri. */
-  trashBins: { type: string }[]
+  /** Localisation du point de tri (spec 077 : les bacs ne sont plus proposés). */
   trashLocation: string | null
   /** Spec 054 AC-02-03 — code de boîte à clés (guide privé uniquement, BR-03). */
   keyBoxCode: string | null

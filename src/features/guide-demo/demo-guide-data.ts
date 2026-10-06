@@ -105,7 +105,6 @@ export const demoLodging: DemoLodging = {
   emergencyNumbers: [
     { label: 'Secours', number: '112', hint: 'Numéro d’urgence européen, 24 h/24' },
   ],
-  trashBins: [{ type: 'jaune' }, { type: 'verte' }, { type: 'bordeaux' }],
   trashLocation: 'Point de tri public du centre de Saint-Gervais',
   keyBoxCode: null,
   stats: { guests: 4, bedrooms: 2, surfaceM2: 62 },

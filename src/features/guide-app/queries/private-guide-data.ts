@@ -15,7 +15,6 @@ import type {
   PrivateGuideData,
 } from '@/features/guide-app/types'
 import { isValidTrailGeometry } from '@/features/trail-navigation/lib/geo'
-import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/lib/arrival-steps'
 import { isFacilibusCity } from '@/features/transport/facilibus'
 import { prisma } from '@/shared/lib/prisma'
@@ -52,7 +51,6 @@ export async function getPrivateGuideData(
       customization: {
         select: {
           id: true,
-          welcome_message: true,
           cover_photo_url: true,
           lodging_address: true,
           lodging_latitude: true,
@@ -61,7 +59,6 @@ export async function getPrivateGuideData(
           wifi_password: true,
           emergency_contacts: true,
           useful_services: true,
-          trash_bins: true,
           trash_location: true,
           presentation_video_url: true,
           key_box_code: true,
@@ -188,9 +185,8 @@ export async function getPrivateGuideData(
       id: lodging.id,
       name: lodging.name,
       city: lodging.city.name,
-      tagline:
-        customization?.welcome_message?.trim() ||
-        `Bienvenue à ${lodging.city.name}`,
+      // Spec 077 AC-02-03 : le message d'accueil n'est plus utilisé.
+      tagline: `Bienvenue à ${lodging.city.name}`,
       coverImage: coverImage || '/marketing/hero-chalet-v2.png',
       gallery: coverImage ? [coverImage] : [],
       latitude: customization?.lodging_latitude ?? lodging.city.latitude,
@@ -223,9 +219,6 @@ export async function getPrivateGuideData(
         videoUrl: block.video_url ?? undefined,
       })),
       usefulNumbers: mapUsefulNumbers(customization?.useful_services),
-      trashBins: (
-        (customization?.trash_bins as unknown as { type: string }[] | null) ?? []
-      ).filter(bin => isTrashBinType(bin.type)),
       trashLocation: customization?.trash_location?.trim() || null,
       keyBoxCode: customization?.key_box_code?.trim() || null,
       stats: {
@@ -249,7 +242,6 @@ export async function getPrivateGuideData(
   if (locale === 'en') {
     await localizeToEnglish(data, {
       customizationId: customization?.id ?? null,
-      welcomeMessage: customization?.welcome_message?.trim() || null,
       arrivalIds: lodging.arrival_instructions.map(instruction => instruction.id),
       featuredRows,
       linkedPoiRows,
@@ -266,7 +258,6 @@ async function localizeToEnglish(
   data: PrivateGuideData,
   refs: {
     customizationId: string | null
-    welcomeMessage: string | null
     arrivalIds: string[]
     featuredRows: Array<{ id: string; owner_note: string | null; poi: { id: string; category: { id: string } } }>
     linkedPoiRows: Array<{ id: string; category: { id: string } }>
@@ -278,7 +269,6 @@ async function localizeToEnglish(
   }
   const { lodging } = data
 
-  if (refs.welcomeMessage) field('LodgingCustomization', refs.customizationId, 'welcome_message', refs.welcomeMessage, value => { lodging.tagline = value })
   field('LodgingCustomization', refs.customizationId, 'trash_location', lodging.trashLocation, value => { lodging.trashLocation = value })
   lodging.arrivalInstructions.forEach((step, index) => {
     const id = refs.arrivalIds[index]

@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import {
   closestCenter,
@@ -19,24 +19,17 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Save, ChevronDown } from 'lucide-react'
+import { ChevronDown, ExternalLink, GripVertical, Save } from 'lucide-react'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Input } from '@/shared/components/ui/input'
-import { MarkdownText } from '@/shared/components/MarkdownText'
 import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { ImageUpload } from '@/shared/components/ImageUpload'
-import {
-  countWords,
-  normalizeOwnerNote,
-  OWNER_NOTE_MAX_WORDS,
-  WELCOME_MESSAGE_MAX_WORDS,
-} from '../lib/validation'
+import { countWords, normalizeOwnerNote, OWNER_NOTE_MAX_WORDS } from '../lib/validation'
+import { GUIDE_SECTIONS, guideFormSnapshot, type GuideSectionId } from '../lib/guide-form'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
 import { ArrivalInstructionsEditor } from '@/features/guide-customization/components/ArrivalInstructionsEditor'
 import type { ArrivalInstructionInput } from '@/features/guide-customization/types'
-import { TrashBinsEditor } from '@/features/guide-customization/components/TrashBinsEditor'
-import type { TrashBinInput } from '@/features/guide-customization/lib/trash-bins'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
 import { UsefulNumbersEditor } from '@/features/guide-customization/components/UsefulNumbersEditor'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
@@ -85,7 +78,6 @@ type ApiErrorPayload = {
 }
 
 const VALIDATION_FIELD_LABELS: Record<string, string> = {
-  welcome_message: "Message d'accueil",
   category_order: 'Ordre des catégories',
   featured_pois: 'Recommandations',
   cover_photo_url: 'Photo du logement',
@@ -95,13 +87,11 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   wifi_password: 'Wi-Fi - mot de passe',
   key_box_code: 'Code de la boîte à clés',
   checkout_instructions: 'Consignes de départ',
-  trash_info: 'Déchets',
   trash_location: 'Point de tri',
   house_rules: 'Règlement intérieur',
   emergency_contacts: 'Urgences',
-  useful_services: 'Services utiles',
+  useful_services: 'Numéros utiles',
   practical_blocks: 'Blocs personnalisés',
-  trash_bins: 'Poubelles',
 }
 
 function validationLabel(field: string): string {
@@ -129,7 +119,23 @@ function hasInvalidYouTubeUrl(value: string | null | undefined): boolean {
   return typeof value === 'string' && value.trim().length > 0 && extractYouTubeId(value) === null
 }
 
-function SortableCategoryItem({ category }: { category: CategoryOption }) {
+function practicalInfoFrom(source: LodgingCustomizationResponse): PracticalInfoFields {
+  return {
+    cover_photo_url: source.cover_photo_url ?? null,
+    presentation_video_url: source.presentation_video_url ?? null,
+    lodging_address: source.lodging_address ?? null,
+    wifi_ssid: source.wifi_ssid ?? null,
+    wifi_password: source.wifi_password ?? null,
+    key_box_code: source.key_box_code ?? null,
+    checkout_instructions: source.checkout_instructions ?? null,
+    trash_location: source.trash_location ?? null,
+    house_rules: source.house_rules ?? null,
+    emergency_contacts: source.emergency_contacts ?? null,
+    useful_services: source.useful_services ?? null,
+  }
+}
+
+function SortableCategoryItem({ category, position }: { category: CategoryOption; position: number }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: category.slug,
   })
@@ -142,19 +148,71 @@ function SortableCategoryItem({ category }: { category: CategoryOption }) {
     <li
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-4 border-b border-gray-50 bg-white px-6 py-4 text-sm transition-colors hover:bg-gray-50/50 last:border-0"
+      className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-sm"
     >
       <button
         type="button"
-        className="flex h-8 w-8 cursor-grab items-center justify-center rounded-lg bg-[#F4F7FE] text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white active:cursor-grabbing"
+        className="flex h-8 w-8 cursor-grab items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-[#F4F7FE] hover:text-[#0B1437] active:cursor-grabbing"
         aria-label={`Déplacer ${category.name}`}
         {...attributes}
         {...listeners}
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span className="text-[13px] font-bold text-neutral-900">{category.name}</span>
+      <span className="w-5 text-[11px] font-bold tabular-nums text-gray-300">{position}</span>
+      <span className="text-[13px] font-semibold text-neutral-900">{category.name}</span>
     </li>
+  )
+}
+
+/** Spec 077 AC-04-01 : section numérotée de la page Guide. */
+function GuideSection({ id, index, children }: { id: GuideSectionId; index: number; children: ReactNode }) {
+  const section = GUIDE_SECTIONS[index]!
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 space-y-4">
+      <header className="flex items-start gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0B1437] text-sm font-bold text-white">{index + 1}</span>
+        <div>
+          <h2 id={`${id}-title`} className="text-lg font-bold text-neutral-900">{section.title}</h2>
+          <p className="text-xs text-gray-500">{section.description}</p>
+        </div>
+      </header>
+      {children}
+    </section>
+  )
+}
+
+function Card({ title, description, children }: { title?: string; description?: string; children: ReactNode }) {
+  return (
+    <div className="rounded-[20px] border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+      {title ? (
+        <div className="mb-4">
+          <h3 className="text-sm font-bold text-neutral-900">{title}</h3>
+          {description ? <p className="mt-0.5 text-xs text-gray-500">{description}</p> : null}
+        </div>
+      ) : null}
+      {children}
+    </div>
+  )
+}
+
+function TextField({
+  id, label, value, placeholder, maxLength, hint, onChange,
+}: {
+  id: string
+  label: string
+  value: string
+  placeholder?: string
+  maxLength: number
+  hint?: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="min-w-0 space-y-1.5">
+      <Label htmlFor={id} className="text-[13px] font-semibold text-gray-700">{label}</Label>
+      <Input id={id} value={value} maxLength={maxLength} placeholder={placeholder} onChange={event => onChange(event.target.value)} />
+      {hint ? <p className="text-[11px] text-gray-400">{hint}</p> : null}
+    </div>
   )
 }
 
@@ -167,10 +225,6 @@ export function CustomizationForm({
   initialOtherCityPois = [],
 }: Props) {
   const otherCityIds = new Set(initialOtherCityPois.map(poi => poi.poi_id))
-  const [welcomeMessage, setWelcomeMessage] = useState(initialCustomization.welcome_message ?? '')
-  const welcomeWordCount = countWords(welcomeMessage)
-  const welcomeOverLimit = welcomeWordCount > WELCOME_MESSAGE_MAX_WORDS
-  const [welcomePreview, setWelcomePreview] = useState(false)
   const [categoryOrder, setCategoryOrder] = useState(() => {
     const knownSlugs = new Set(categories.map(category => category.slug))
     const ordered = initialCustomization.category_order.filter(slug => knownSlugs.has(slug))
@@ -190,32 +244,28 @@ export function CustomizationForm({
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
   )
-  const [practicalInfo, setPracticalInfo] = useState<PracticalInfoFields>(() => ({
-    cover_photo_url: initialCustomization.cover_photo_url ?? null,
-    presentation_video_url: initialCustomization.presentation_video_url ?? null,
-    lodging_address: initialCustomization.lodging_address ?? null,
-    wifi_ssid: initialCustomization.wifi_ssid ?? null,
-    wifi_password: initialCustomization.wifi_password ?? null,
-    key_box_code: initialCustomization.key_box_code ?? null,
-    checkout_instructions: initialCustomization.checkout_instructions ?? null,
-    trash_info: initialCustomization.trash_info ?? null,
-    trash_location: initialCustomization.trash_location ?? null,
-    house_rules: initialCustomization.house_rules ?? null,
-    emergency_contacts: initialCustomization.emergency_contacts ?? null,
-    useful_services: initialCustomization.useful_services ?? null,
-  }))
+  const [practicalInfo, setPracticalInfo] = useState<PracticalInfoFields>(() => practicalInfoFrom(initialCustomization))
   const [practicalBlocks, setPracticalBlocks] = useState<PracticalBlockInput[]>(
     initialCustomization.practical_blocks ?? [],
   )
   const [arrivalInstructions, setArrivalInstructions] = useState<ArrivalInstructionInput[]>(
     initialCustomization.arrival_instructions ?? [],
   )
-  const [trashBins, setTrashBins] = useState<TrashBinInput[]>(
-    initialCustomization.trash_bins ?? [],
-  )
   const [otherCityPois, setOtherCityPois] = useState<OtherCityPoiSelection[]>(initialOtherCityPois)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
+
+  // Spec 077 AC-04-02 : modifications non enregistrées.
+  const snapshot = guideFormSnapshot({ categoryOrder, featuredPois, practicalInfo, practicalBlocks, arrivalInstructions, otherCityPois })
+  const [savedSnapshot, setSavedSnapshot] = useState(snapshot)
+  const dirty = snapshot !== savedSnapshot
+
+  useEffect(() => {
+    if (!dirty) return
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault() }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [dirty])
 
   function setPracticalField<K extends keyof PracticalInfoFields>(key: K, value: string) {
     setPracticalInfo(current => ({ ...current, [key]: value.length === 0 ? null : value }))
@@ -247,11 +297,9 @@ export function CustomizationForm({
       ? 'Les liens vidéo doivent être des URL YouTube valides.'
       : null
   const saveDisabled = status === 'saving' ||
-    welcomeOverLimit ||
     ownerNoteOverLimit ||
     clientValidationMessage !== null
 
-  // Règle métier inchangée
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -264,7 +312,6 @@ export function CustomizationForm({
     })
   }
 
-  // Règle métier inchangée
   function toggleFeaturedPoi(poiId: string, checked: boolean) {
     setFeaturedPois(current => {
       if (!checked) return current.filter(featuredPoi => featuredPoi.poi_id !== poiId)
@@ -301,7 +348,6 @@ export function CustomizationForm({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        welcome_message: welcomeMessage.trim() === '' ? null : welcomeMessage.trim(),
         category_order: categoryOrder,
         featured_pois: [
           ...featuredPois.map((featuredPoi, index) => ({
@@ -323,7 +369,6 @@ export function CustomizationForm({
           ...instruction,
           sort_order: index,
         })),
-        trash_bins: trashBins,
         ...practicalPayload,
       }),
     })
@@ -336,484 +381,320 @@ export function CustomizationForm({
     }
 
     const payload = await response.json() as LodgingCustomizationResponse
-    setWelcomeMessage(payload.welcome_message ?? '')
-    setCategoryOrder(payload.category_order.length > 0 ? payload.category_order : categoryOrder)
+    const nextCategoryOrder = payload.category_order.length > 0 ? payload.category_order : categoryOrder
     const otherCityPoiIds = new Set(otherCityPois.map(poi => poi.poi_id))
     const savedByPoiId = new Map(
       payload.featured_pois.map(featuredPoi => [featuredPoi.poi_id, featuredPoi]),
     )
-    setFeaturedPois(
-      payload.featured_pois
-        .filter(featuredPoi => !otherCityPoiIds.has(featuredPoi.poi_id))
-        .map(featuredPoi => ({
-          poi_id: featuredPoi.poi_id,
-          owner_note: featuredPoi.owner_note,
-          sort_order: featuredPoi.sort_order,
-        })),
-    )
-    setOtherCityPois(current => current.map(poi => ({
+    const nextFeaturedPois = payload.featured_pois
+      .filter(featuredPoi => !otherCityPoiIds.has(featuredPoi.poi_id))
+      .map(featuredPoi => ({
+        poi_id: featuredPoi.poi_id,
+        owner_note: featuredPoi.owner_note,
+        sort_order: featuredPoi.sort_order,
+      }))
+    const nextOtherCityPois = otherCityPois.map(poi => ({
       ...poi,
       owner_note: savedByPoiId.get(poi.poi_id)?.owner_note ?? null,
-    })))
-    setPracticalInfo({
-      cover_photo_url: payload.cover_photo_url ?? null,
-      presentation_video_url: payload.presentation_video_url ?? null,
-      lodging_address: payload.lodging_address ?? null,
-      wifi_ssid: payload.wifi_ssid ?? null,
-      wifi_password: payload.wifi_password ?? null,
-      key_box_code: payload.key_box_code ?? null,
-      checkout_instructions: payload.checkout_instructions ?? null,
-      trash_info: payload.trash_info ?? null,
-      trash_location: payload.trash_location ?? null,
-      house_rules: payload.house_rules ?? null,
-      emergency_contacts: payload.emergency_contacts ?? null,
-      useful_services: payload.useful_services ?? null,
-    })
-    setPracticalBlocks(payload.practical_blocks ?? [])
-    setArrivalInstructions(payload.arrival_instructions ?? [])
-    setTrashBins(payload.trash_bins ?? [])
+    }))
+    const nextPracticalInfo = practicalInfoFrom(payload)
+    const nextPracticalBlocks = payload.practical_blocks ?? []
+    const nextArrivalInstructions = payload.arrival_instructions ?? []
+
+    setCategoryOrder(nextCategoryOrder)
+    setFeaturedPois(nextFeaturedPois)
+    setOtherCityPois(nextOtherCityPois)
+    setPracticalInfo(nextPracticalInfo)
+    setPracticalBlocks(nextPracticalBlocks)
+    setArrivalInstructions(nextArrivalInstructions)
+    setSavedSnapshot(guideFormSnapshot({
+      categoryOrder: nextCategoryOrder,
+      featuredPois: nextFeaturedPois,
+      practicalInfo: nextPracticalInfo,
+      practicalBlocks: nextPracticalBlocks,
+      arrivalInstructions: nextArrivalInstructions,
+      otherCityPois: nextOtherCityPois,
+    }))
     setStatus('saved')
     setMessage(
       payload.ignored_category_slugs.length > 0
-        ? `Sauvegarde effectuée. Slugs ignorés: ${payload.ignored_category_slugs.join(', ')}.`
-        : 'Personnalisation sauvegardée.',
+        ? `Guide enregistré. Slugs ignorés: ${payload.ignored_category_slugs.join(', ')}.`
+        : 'Guide enregistré.',
     )
   }
 
-  return (
-    <div className="space-y-6 pb-32">
-      {/* Aide markdown globale : explique la mise en forme aux owners */}
-      <MarkdownHint />
+  const barMessage = clientValidationMessage
+    ?? (status === 'error' ? message : null)
+    ?? (dirty ? 'Modifications non enregistrées' : message ?? 'Toutes les modifications sont enregistrées.')
+  const barTone = clientValidationMessage || status === 'error'
+    ? 'text-rose-600'
+    : dirty ? 'text-amber-700' : 'text-emerald-700'
 
-      {/* 1. Message d'accueil */}
-      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
-        <div className="border-b border-gray-100 p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-            Accueil voyageur
-          </p>
-          <h2 className="mt-1 text-base font-bold text-neutral-900">Message d&apos;accueil</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            Affiché en haut du guide public personnalisé de ce logement.
-          </p>
-        </div>
-        <div className="p-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="welcome-message" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                Message
-              </Label>
-              {welcomeMessage.trim() !== '' && (
-                <button
-                  type="button"
-                  onClick={() => setWelcomePreview(previewing => !previewing)}
-                  className="inline-flex h-7 items-center rounded-lg bg-[#F4F7FE] px-2.5 text-[10px] font-bold uppercase tracking-widest text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white"
-                >
-                  {welcomePreview ? 'Masquer' : 'Aperçu'}
-                </button>
+  return (
+    <div className="pb-32 lg:grid lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-8">
+      {/* Spec 077 AC-04-01 : sommaire fixe. */}
+      <nav aria-label="Sommaire du guide" className="mb-6 lg:mb-0">
+        <ol className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible">
+          {GUIDE_SECTIONS.map((section, index) => (
+            <li key={section.id} className="shrink-0">
+              <a href={`#${section.id}`} className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[13px] font-semibold text-gray-600 transition hover:border-[#0B1437]/30 hover:text-neutral-900 lg:rounded-xl lg:border-transparent lg:bg-transparent lg:px-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#F4F7FE] text-[11px] font-bold text-[#0B1437]">{index + 1}</span>
+                {section.title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <div className="min-w-0 space-y-10">
+        <GuideSection id="logement" index={0}>
+          <Card title="Photo et vidéo" description="La photo s’affiche en grand sur l’accueil du guide.">
+            <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
+              <div className="space-y-3">
+                <TextField
+                  id="practical-cover_photo_url"
+                  label="Photo du logement (URL)"
+                  value={practicalInfo.cover_photo_url ?? ''}
+                  maxLength={1000}
+                  placeholder="https://exemple.com/ma-photo.jpg"
+                  onChange={value => setPracticalField('cover_photo_url', value)}
+                />
+                <ImageUpload
+                  endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
+                  onUploaded={url => setPracticalField('cover_photo_url', url)}
+                  label="Téléverser une photo"
+                />
+                <YouTubeUrlField
+                  id="practical-presentation_video_url"
+                  label="Vidéo de présentation (lien YouTube)"
+                  value={practicalInfo.presentation_video_url}
+                  onChange={url => setPracticalField('presentation_video_url', url ?? '')}
+                />
+              </div>
+              {practicalInfo.cover_photo_url && practicalInfo.cover_photo_url.trim() !== '' ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={practicalInfo.cover_photo_url}
+                  alt="Aperçu photo du logement"
+                  referrerPolicy="no-referrer"
+                  className="aspect-[4/3] w-full rounded-xl border border-gray-100 object-cover"
+                />
+              ) : (
+                <div className="flex aspect-[4/3] items-center justify-center rounded-xl border border-dashed border-gray-200 text-xs text-gray-400">
+                  Aucune photo
+                </div>
               )}
             </div>
-            <div className="group relative">
-              <Textarea
-                id="welcome-message"
-                maxLength={5000}
-                value={welcomeMessage}
-                onChange={event => setWelcomeMessage(event.target.value)}
-                placeholder="Bienvenue, voici nos recommandations locales..."
-                className="peer min-h-[100px] w-full resize-none rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
+          </Card>
+          <Card title="Adresse">
+            <TextField
+              id="practical-lodging_address"
+              label="Adresse du logement"
+              value={practicalInfo.lodging_address ?? ''}
+              maxLength={255}
+              placeholder="12 rue des Alpages, 74170 Saint-Gervais-les-Bains"
+              hint="Sert à l’itinéraire et à la carte du guide."
+              onChange={value => setPracticalField('lodging_address', value)}
+            />
+          </Card>
+        </GuideSection>
+
+        <GuideSection id="arrivee" index={1}>
+          <Card title="Boîte à clés" description="Affiché masqué dans le guide, révélé à la demande du voyageur.">
+            <TextField
+              id="practical-key_box_code"
+              label="Code de la boîte à clés"
+              value={practicalInfo.key_box_code ?? ''}
+              maxLength={20}
+              placeholder="4810"
+              onChange={value => setPracticalField('key_box_code', value)}
+            />
+          </Card>
+          <Card>
+            <ArrivalInstructionsEditor value={arrivalInstructions} onChange={setArrivalInstructions} lodgingId={lodgingId} />
+          </Card>
+        </GuideSection>
+
+        <GuideSection id="sur-place" index={2}>
+          <Card title="Wi-Fi">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                id="practical-wifi_ssid"
+                label="Nom du réseau (SSID)"
+                value={practicalInfo.wifi_ssid ?? ''}
+                maxLength={120}
+                placeholder="Chalet-StGervais"
+                onChange={value => setPracticalField('wifi_ssid', value)}
               />
-              <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
+              <TextField
+                id="practical-wifi_password"
+                label="Mot de passe"
+                value={practicalInfo.wifi_password ?? ''}
+                maxLength={120}
+                placeholder="mon-mot-de-passe-wifi"
+                onChange={value => setPracticalField('wifi_password', value)}
+              />
             </div>
-            {welcomePreview && (
-              <div className="mt-3 rounded-[18px] border border-[#0B1437]/15 bg-[#F4F7FE]/40 p-4">
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#0B1437]">Aperçu Markdown</p>
-                <MarkdownText source={welcomeMessage} breaks className="text-sm leading-relaxed text-neutral-900" />
-              </div>
-            )}
-            <p className={`text-right text-[11px] font-medium ${welcomeOverLimit ? 'text-rose-500' : 'text-gray-400'}`}>
-              {welcomeWordCount} / {WELCOME_MESSAGE_MAX_WORDS} mots
-            </p>
-          </div>
-        </div>
-      </section>
+          </Card>
+          {/* Spec 077 AC-03-01 : seule la localisation du point de tri est conservée. */}
+          <Card title="Point de tri">
+            <TextField
+              id="practical-trash_location"
+              label="Point de tri (adresse ou lien Google Maps)"
+              value={practicalInfo.trash_location ?? ''}
+              maxLength={500}
+              placeholder="12 rue des Alpages, Saint-Gervais — ou https://maps.app.goo.gl/abcd"
+              hint="Le guide propose un bouton « Voir le point de tri »."
+              onChange={value => setPracticalField('trash_location', value)}
+            />
+          </Card>
+          <Card>
+            <UsefulNumbersEditor
+              value={practicalInfo.useful_services}
+              onChange={value => setPracticalField('useful_services', value)}
+            />
+          </Card>
+          <Card>
+            <MarkdownHint className="mb-4" />
+            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} />
+          </Card>
+        </GuideSection>
 
-      {/* 2. Infos Pratiques (Sous-composant refondu plus bas) */}
-      <PracticalInfoCard lodgingId={lodgingId} practicalInfo={practicalInfo} setPracticalField={setPracticalField} trashBins={trashBins} setTrashBins={setTrashBins} />
+        <GuideSection id="recommandations" index={3}>
+          <Card title="Ordre des catégories" description="Glissez les catégories pour définir leur ordre dans le guide.">
+            {/* id stable : sinon @dnd-kit génère des ids d'accessibilité non déterministes
+                (DndDescribedBy-N) qui diffèrent entre SSR et client → mismatch d'hydratation. */}
+            <DndContext id="category-order-dnd" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <SortableContext items={categoryOrder} strategy={verticalListSortingStrategy}>
+                <ol className="grid gap-2 sm:grid-cols-2">
+                  {orderedCategories.map((category, index) => (
+                    <SortableCategoryItem key={category.slug} category={category} position={index + 1} />
+                  ))}
+                </ol>
+              </SortableContext>
+            </DndContext>
+          </Card>
 
-      {/* 2b. Blocs personnalisés « Infos pratiques » */}
-      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
-        <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} />
-      </section>
+          <Card title="Mes coups de cœur" description="Jusqu’à 5 adresses mises en avant par catégorie, avec votre mot.">
+            <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-100">
+              {orderedCategories.map(category => {
+                const categoryPois = pois.filter(poi => poi.category_id === category.id)
+                if (categoryPois.length === 0) return null
+                const selectedCount = categoryPois.filter(poi => selectedPoiIds.has(poi.id)).length
 
-      {/* 2c. Instructions d'arrivée (texte + photos + vidéo) */}
-      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
-        <ArrivalInstructionsEditor value={arrivalInstructions} onChange={setArrivalInstructions} lodgingId={lodgingId} />
-      </section>
-
-      {/* 2c. Recommandations dans d'autres villes */}
-      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm">
-        <OtherCityRecommendations
-          value={otherCityPois}
-          onChange={setOtherCityPois}
-          excludeCitySlug={citySlug}
-        />
-      </section>
-
-      {/* 3. Ordre des catégories */}
-      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
-        <div className="border-b border-gray-100 p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-            Mise en page
-          </p>
-          <h2 className="mt-1 text-base font-bold text-neutral-900">Ordre des catégories</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            Glissez les catégories pour définir leur ordre dans le guide.
-          </p>
-        </div>
-        {/* id stable : sinon @dnd-kit génère des ids d'accessibilité non déterministes
-            (DndDescribedBy-N) qui diffèrent entre SSR et client → mismatch d'hydratation. */}
-        <DndContext id="category-order-dnd" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <SortableContext items={categoryOrder} strategy={verticalListSortingStrategy}>
-            <ol className="flex flex-col">
-              {orderedCategories.map(category => (
-                <SortableCategoryItem key={category.slug} category={category} />
-              ))}
-            </ol>
-          </SortableContext>
-        </DndContext>
-      </section>
-
-      {/* 4. Mes recommandations (POIs) */}
-      <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
-        <div className="border-b border-gray-100 p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-            Coups de cœur
-          </p>
-          <h2 className="mt-1 text-base font-bold text-neutral-900">Mes recommandations</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            Maximum 5 POI mis en avant par catégorie.
-          </p>
-        </div>
-        <div className="divide-y divide-gray-50">
-          {orderedCategories.map(category => {
-            const categoryPois = pois.filter(poi => poi.category_id === category.id)
-            if (categoryPois.length === 0) return null
-            const selectedCount = categoryPois.filter(poi => selectedPoiIds.has(poi.id)).length
-
-            return (
-              <details key={category.id} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-4 outline-none transition-colors hover:bg-gray-50/50 [&::-webkit-details-marker]:hidden">
-                  <span className="flex items-center gap-3">
-                    <span className="text-[13px] font-bold text-neutral-900">{category.name}</span>
-                    {selectedCount > 0 && (
-                      <span className="inline-flex h-5 items-center justify-center rounded-full bg-[#F4F7FE] px-2 text-[10px] font-bold text-[#0B1437]">
-                        {selectedCount} / 5
-                      </span>
-                    )}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
-                </summary>
-                <div className="space-y-3 bg-gray-50/30 px-6 py-5">
-                  {categoryPois.map(poi => {
-                    const isSelected = selectedPoiIds.has(poi.id)
-                    const featuredPoi = featuredByPoiId.get(poi.id)
-                    const ownerNoteWordCount = countWords(featuredPoi?.owner_note ?? '')
-                    const ownerNoteIsOverLimit = ownerNoteWordCount > OWNER_NOTE_MAX_WORDS
-                    return (
-                      <div
-                        key={poi.id}
-                        className={`rounded-[18px] border bg-white p-5 transition-colors ${
-                          isSelected ? 'border-[#0B1437]/15 shadow-sm' : 'border-gray-100'
-                        }`}
-                      >
-                        <label className="flex cursor-pointer items-center gap-3 text-sm font-bold text-neutral-900">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={event => toggleFeaturedPoi(poi.id, event.target.checked)}
-                            className="h-4 w-4 accent-[#0B1437]"
-                          />
-                          {poi.name}
-                        </label>
-                        {featuredPoi && (
-                          <div className="mt-5 border-t border-gray-100 pt-5">
-                            <Label
-                              htmlFor={`owner-note-${poi.id}`}
-                              className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400"
-                            >
-                              Votre mot pour les voyageurs
-                            </Label>
-                            <Textarea
-                              id={`owner-note-${poi.id}`}
-                              value={featuredPoi.owner_note ?? ''}
-                              onChange={event => updateOwnerNote(poi.id, event.target.value)}
-                              placeholder="Pourquoi recommandez-vous cette adresse ?"
-                              className="mt-2 min-h-[88px] resize-none"
-                            />
-                            <p
-                              className={`mt-2 text-right text-[11px] font-medium ${
-                                ownerNoteIsOverLimit ? 'text-rose-500' : 'text-gray-400'
-                              }`}
-                            >
-                              {ownerNoteWordCount} / {OWNER_NOTE_MAX_WORDS} mots
-                            </p>
-                          </div>
+                return (
+                  <details key={category.id} className="group">
+                    <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 outline-none transition-colors hover:bg-gray-50/60 [&::-webkit-details-marker]:hidden">
+                      <span className="flex items-center gap-3">
+                        <span className="text-[13px] font-bold text-neutral-900">{category.name}</span>
+                        {selectedCount > 0 && (
+                          <span className="inline-flex h-5 items-center justify-center rounded-full bg-[#F4F7FE] px-2 text-[10px] font-bold text-[#0B1437]">
+                            {selectedCount} / 5
+                          </span>
                         )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </details>
-            )
-          })}
-        </div>
-      </section>
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+                    </summary>
+                    <div className="space-y-2 bg-gray-50/40 px-4 py-4">
+                      {categoryPois.map(poi => {
+                        const isSelected = selectedPoiIds.has(poi.id)
+                        const featuredPoi = featuredByPoiId.get(poi.id)
+                        const ownerNoteWordCount = countWords(featuredPoi?.owner_note ?? '')
+                        const ownerNoteIsOverLimit = ownerNoteWordCount > OWNER_NOTE_MAX_WORDS
+                        return (
+                          <div
+                            key={poi.id}
+                            className={`rounded-xl border bg-white p-4 transition-colors ${
+                              isSelected ? 'border-[#0B1437]/20 shadow-sm' : 'border-gray-100'
+                            }`}
+                          >
+                            <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-neutral-900">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={event => toggleFeaturedPoi(poi.id, event.target.checked)}
+                                className="h-4 w-4 accent-[#0B1437]"
+                              />
+                              {poi.name}
+                            </label>
+                            {featuredPoi && (
+                              <div className="mt-4 border-t border-gray-100 pt-4">
+                                <Label
+                                  htmlFor={`owner-note-${poi.id}`}
+                                  className="block text-[12px] font-semibold text-gray-600"
+                                >
+                                  Votre mot pour les voyageurs
+                                </Label>
+                                <Textarea
+                                  id={`owner-note-${poi.id}`}
+                                  value={featuredPoi.owner_note ?? ''}
+                                  onChange={event => updateOwnerNote(poi.id, event.target.value)}
+                                  placeholder="Pourquoi recommandez-vous cette adresse ?"
+                                  className="mt-2 min-h-[88px] resize-none"
+                                />
+                                <p
+                                  className={`mt-1.5 text-right text-[11px] font-medium ${
+                                    ownerNoteIsOverLimit ? 'text-rose-500' : 'text-gray-400'
+                                  }`}
+                                >
+                                  {ownerNoteWordCount} / {OWNER_NOTE_MAX_WORDS} mots
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </details>
+                )
+              })}
+            </div>
+          </Card>
 
-      {/* 5. Barre d'action fixe en bas */}
+          <Card>
+            <OtherCityRecommendations
+              value={otherCityPois}
+              onChange={setOtherCityPois}
+              excludeCitySlug={citySlug}
+            />
+          </Card>
+        </GuideSection>
+      </div>
+
+      {/* Spec 077 AC-04-02 : barre d'état fixe. */}
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-[12px] text-gray-500">
-            {clientValidationMessage || message ? (
-              <span className={clientValidationMessage || status === 'error' ? 'font-semibold text-rose-500' : 'font-semibold text-emerald-600'}>
-                {clientValidationMessage ?? message}
-              </span>
-            ) : (
-              'Les changements sont appliqués uniquement à ce logement.'
-            )}
-          </div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p role="status" aria-label="État de l’enregistrement" className={`flex items-center gap-2 text-[13px] font-semibold ${barTone}`}>
+            {dirty && !clientValidationMessage && status !== 'error' ? <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" /> : null}
+            {barMessage}
+          </p>
           <div className="flex gap-2">
             <Link
               href={`/guide/${citySlug}?lodging=${lodgingId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 text-[13px] font-bold text-[#0B1437] shadow-sm transition-all hover:border-[#0B1437]/30 hover:bg-gray-50"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-[13px] font-bold text-[#0B1437] shadow-sm transition-all hover:border-[#0B1437]/30 hover:bg-gray-50"
             >
-              Aperçu
+              <ExternalLink size={14} aria-hidden="true" />
+              Aperçu voyageur
             </Link>
             <button
               type="button"
               onClick={saveCustomization}
               disabled={saveDisabled}
               title={
-                clientValidationMessage ?? (welcomeOverLimit
-                  ? `Message d'accueil limité à ${WELCOME_MESSAGE_MAX_WORDS} mots`
-                  : ownerNoteOverLimit
-                    ? `Commentaire limité à ${OWNER_NOTE_MAX_WORDS} mots`
-                    : undefined)
+                clientValidationMessage ?? (ownerNoteOverLimit
+                  ? `Commentaire limité à ${OWNER_NOTE_MAX_WORDS} mots`
+                  : undefined)
               }
-              className="group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Save size={14} className="transition-transform duration-300 group-hover:scale-110" />
+              <Save size={14} aria-hidden="true" />
               {status === 'saving' ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </div>
         </div>
       </div>
     </div>
-  )
-}
-
-type PracticalSection = {
-  key: keyof PracticalInfoFields
-  label: string
-  placeholder: string
-  type: 'input' | 'textarea'
-  maxLength: number
-  rows?: number
-  markdown?: boolean
-}
-
-const PRACTICAL_SECTIONS: PracticalSection[] = [
-  {
-    key: 'lodging_address',
-    label: 'Adresse du logement',
-    placeholder: '12 rue des Alpages, 74170 Saint-Gervais-les-Bains',
-    type: 'input',
-    maxLength: 255,
-  },
-  {
-    key: 'wifi_ssid',
-    label: 'Wi-Fi — Nom du réseau (SSID)',
-    placeholder: 'Chalet-StGervais',
-    type: 'input',
-    maxLength: 120,
-  },
-  {
-    key: 'wifi_password',
-    label: 'Wi-Fi — Mot de passe',
-    placeholder: 'mon-mot-de-passe-wifi',
-    type: 'input',
-    maxLength: 120,
-  },
-  // Spec 054 AC-05-02 : affiché masqué (bouton « Afficher ») dans le guide privé.
-  {
-    key: 'key_box_code',
-    label: 'Code de la boîte à clés',
-    placeholder: '4810',
-    type: 'input',
-    maxLength: 20,
-  },
-  {
-    key: 'trash_location',
-    label: 'Localisation du point de tri (adresse ou lien Google Maps)',
-    placeholder: '12 rue des Alpages, Saint-Gervais — ou https://maps.app.goo.gl/abcd',
-    type: 'input',
-    maxLength: 500,
-  },
-  // « Urgences » est désormais une carte en dur côté guide (aucune saisie).
-  // Les « Numéros utiles » (ex-`useful_services`) sont édités via
-  // UsefulNumbersEditor, hors de cette liste de champs texte.
-]
-
-function PracticalInfoCard({
-  lodgingId,
-  practicalInfo,
-  setPracticalField,
-  trashBins,
-  setTrashBins,
-}: {
-  lodgingId: string
-  practicalInfo: PracticalInfoFields
-  setPracticalField: <K extends keyof PracticalInfoFields>(key: K, value: string) => void
-  trashBins: TrashBinInput[]
-  setTrashBins: (next: TrashBinInput[]) => void
-}) {
-  const [previewKey, setPreviewKey] = useState<keyof PracticalInfoFields | null>(null)
-
-  return (
-    <section className="overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">
-      <div className="border-b border-gray-100 p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-          Pratique
-        </p>
-        <h2 className="mt-1 text-base font-bold text-neutral-900">Infos pratiques</h2>
-        <p className="mt-1 text-xs text-gray-500">
-          Renseignements affichés sur le guide du voyageur. Markdown supporté pour les champs longs (**gras**, listes, [liens](url)).
-        </p>
-      </div>
-
-      <div className="space-y-8 p-6">
-        {/* Photo du logement */}
-        <div className="space-y-3">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <Label htmlFor="practical-cover_photo_url" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-              Photo du logement (URL)
-            </Label>
-            <span className="text-[10px] uppercase tracking-widest text-gray-300">Hero sur la home voyageur</span>
-          </div>
-
-          <div className="group relative">
-            <Input
-              id="practical-cover_photo_url"
-              type="url"
-              value={practicalInfo.cover_photo_url ?? ''}
-              maxLength={1000}
-              placeholder="https://exemple.com/ma-photo.jpg"
-              onChange={event => setPracticalField('cover_photo_url', event.target.value)}
-              className="peer w-full rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
-            />
-            <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
-          </div>
-
-          {/* Upload natif (en plus de l'URL) : convertit png/jpeg → webp côté serveur */}
-          <ImageUpload
-            endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
-            onUploaded={url => setPracticalField('cover_photo_url', url)}
-            label="Téléverser une photo"
-          />
-
-          {practicalInfo.cover_photo_url && practicalInfo.cover_photo_url.trim() !== '' && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={practicalInfo.cover_photo_url}
-              alt="Aperçu photo du logement"
-              referrerPolicy="no-referrer"
-              className="h-48 w-full rounded-[18px] border border-gray-100 object-cover shadow-sm"
-            />
-          )}
-          <p className="text-[10px] uppercase tracking-widest text-gray-300">
-            Collez une URL d&apos;image, ou téléversez un fichier (PNG, JPEG, WebP, AVIF).
-          </p>
-
-          <YouTubeUrlField
-            id="practical-presentation_video_url"
-            label="Vidéo de présentation (lien YouTube)"
-            value={practicalInfo.presentation_video_url}
-            onChange={url => setPracticalField('presentation_video_url', url ?? '')}
-          />
-        </div>
-
-        {PRACTICAL_SECTIONS.map(section => {
-          const value = practicalInfo[section.key] ?? ''
-          const isPreviewing = previewKey === section.key
-          return (
-            <Fragment key={section.key}>
-            {section.key === 'trash_location' && (
-              <div className="pt-2">
-                <TrashBinsEditor value={trashBins} onChange={setTrashBins} />
-              </div>
-            )}
-            <div className="space-y-2 pt-2">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor={`practical-${section.key}`} className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                  {section.label}
-                </Label>
-                {section.markdown && value.trim() !== '' && (
-                  <button
-                    type="button"
-                    onClick={() => setPreviewKey(isPreviewing ? null : section.key)}
-                    className="inline-flex h-7 items-center rounded-lg bg-[#F4F7FE] px-2.5 text-[10px] font-bold uppercase tracking-widest text-[#0B1437] transition-colors hover:bg-[#0B1437] hover:text-white"
-                  >
-                    {isPreviewing ? 'Masquer' : 'Aperçu'}
-                  </button>
-                )}
-              </div>
-
-              <div className="group relative">
-                {section.type === 'input' ? (
-                  <Input
-                    id={`practical-${section.key}`}
-                    value={value}
-                    maxLength={section.maxLength}
-                    placeholder={section.placeholder}
-                    onChange={event => setPracticalField(section.key, event.target.value)}
-                    className="peer w-full rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
-                  />
-                ) : (
-                  <Textarea
-                    id={`practical-${section.key}`}
-                    rows={section.rows}
-                    maxLength={section.maxLength}
-                    value={value}
-                    placeholder={section.placeholder}
-                    onChange={event => setPracticalField(section.key, event.target.value)}
-                    className="peer w-full resize-none rounded-none border-0 border-b-2 border-gray-200 bg-white px-0 py-2.5 text-sm text-neutral-900 placeholder-gray-300 shadow-none transition-colors focus-visible:outline-none focus-visible:ring-0"
-                  />
-                )}
-                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#0B1437] transition-all duration-300 ease-out group-hover:w-full peer-focus:w-full" />
-              </div>
-
-              {isPreviewing && (
-                <div className="mt-3 rounded-[18px] border border-[#0B1437]/15 bg-[#F4F7FE]/40 p-4">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#0B1437]">
-                    Aperçu Markdown
-                  </p>
-                  <MarkdownText source={value} className="text-sm leading-relaxed text-neutral-900" />
-                </div>
-              )}
-
-              <p className="text-right text-[11px] font-medium text-gray-400">
-                {value.length}/{section.maxLength}
-              </p>
-            </div>
-            </Fragment>
-          )
-        })}
-
-        <UsefulNumbersEditor
-          value={practicalInfo.useful_services}
-          onChange={value => setPracticalField('useful_services', value)}
-        />
-      </div>
-    </section>
   )
 }

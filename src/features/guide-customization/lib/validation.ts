@@ -1,5 +1,4 @@
 import type { ArrivalInstructionInput, PracticalBlockInput } from '../types'
-import { isTrashBinType, type TrashBin, type TrashBinInput } from './trash-bins'
 import {
   parseArrivalFacts,
   parseArrivalSubsteps,
@@ -10,26 +9,7 @@ import {
 
 const GUIDE_RADIUS_KM = 30
 
-/**
- * Nettoie la liste des bacs à poubelles :
- * - rejette les types inconnus,
- * - dédoublonne par type (premier gardé), ordre préservé.
- */
-export function normalizeTrashBins(bins: TrashBinInput[] | undefined): TrashBin[] {
-  if (!bins || bins.length === 0) return []
-  const seen = new Set<string>()
-  const result: TrashBin[] = []
-  for (const bin of bins) {
-    if (!isTrashBinType(bin.type) || seen.has(bin.type)) continue
-    seen.add(bin.type)
-    result.push({ type: bin.type })
-  }
-  return result
-}
 const FEATURED_POI_LIMIT_PER_CATEGORY = 5
-
-/** Limite du message d'accueil owner : 400 mots (et non caractères). */
-export const WELCOME_MESSAGE_MAX_WORDS = 400
 
 /** Limite d'un commentaire de recommandation owner : 300 mots. */
 export const OWNER_NOTE_MAX_WORDS = 300

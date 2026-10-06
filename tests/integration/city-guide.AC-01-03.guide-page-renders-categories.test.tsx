@@ -102,7 +102,7 @@ describe('GuidePage (AC-01-03)', () => {
     ).toBeInTheDocument()
   })
 
-  it('AC-01-02: renders the lodging welcome message with the owner script font', async () => {
+  it('077 AC-02-03 : le message d’accueil n’est plus affiché', async () => {
     ;(getCityGuide as jest.Mock).mockResolvedValue({
       ...mockGuide,
       welcome_message: 'Bienvenue au chalet',
@@ -110,7 +110,7 @@ describe('GuidePage (AC-01-03)', () => {
     const jsx = await GuidePage({ params: { 'city-slug': 'saint-gervais-les-bains' } })
     render(jsx)
 
-    expect(screen.getByTestId('guide-welcome-message')).toBeInTheDocument()
-    expect(screen.getByText('Bienvenue au chalet')).toHaveClass('font-hand')
+    expect(screen.queryByTestId('guide-welcome-message')).not.toBeInTheDocument()
+    expect(screen.queryByText('Bienvenue au chalet')).not.toBeInTheDocument()
   })
 })

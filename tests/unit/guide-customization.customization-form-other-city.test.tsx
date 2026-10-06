@@ -14,12 +14,11 @@ jest.mock('@/shared/components/ImageUpload', () => ({ ImageUpload: () => <div da
 
 const baseCustomization = {
   lodging_id: 'lodging-1',
-  welcome_message: null,
   category_order: [],
   featured_pois: [],
   ignored_category_slugs: [],
   cover_photo_url: null, lodging_address: null, wifi_ssid: null, wifi_password: null,
-  parking_info: null, checkout_instructions: null, trash_info: null,
+  parking_info: null, checkout_instructions: null,
   trash_location: null, house_rules: null, emergency_contacts: null, useful_services: null,
   practical_blocks: [],
 }
@@ -131,7 +130,7 @@ describe('CustomizationForm — other-city payload', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /enregistrer/i }))
-    await screen.findByText('Personnalisation sauvegardée.')
+    await screen.findByText('Guide enregistré.')
     await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
     await waitFor(() => {

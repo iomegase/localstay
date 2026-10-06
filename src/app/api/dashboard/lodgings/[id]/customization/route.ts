@@ -10,10 +10,8 @@ import {
   countWords,
   normalizeOwnerNote,
   OWNER_NOTE_MAX_WORDS,
-  WELCOME_MESSAGE_MAX_WORDS,
 } from '@/features/guide-customization/lib/validation'
 import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
-import { isTrashBinType } from '@/features/guide-customization/lib/trash-bins'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 import {
   arrivalMediaCount,
@@ -26,10 +24,6 @@ import {
 import { lodgingGuidePhotoUrls } from '@/features/storage-cleanup/queries/references'
 import { deleteUnreferencedFiles } from '@/features/storage-cleanup/services/delete-files'
 import { removedUrls } from '@/features/storage-cleanup/lib/storage-paths'
-
-const trashBinSchema = z.object({
-  type: z.string().trim().refine(isTrashBinType, { message: 'Type de bac inconnu' }),
-})
 
 const imageUrlSchema = z
   .union([
@@ -141,14 +135,8 @@ const arrivalInstructionSchema = z.object({
   },
 )
 
+// Spec 077 : message d'accueil, bacs et texte « déchets » retirés (ignorés s'ils sont envoyés).
 const customizationSchema = z.object({
-  welcome_message: z
-    .string()
-    .refine(value => countWords(value) <= WELCOME_MESSAGE_MAX_WORDS, {
-      message: `Le message d'accueil ne doit pas dépasser ${WELCOME_MESSAGE_MAX_WORDS} mots`,
-    })
-    .nullable()
-    .optional(),
   category_order: z.array(z.string().min(1)).default([]),
   featured_pois: z.array(featuredPoiSchema).max(100).default([]),
   // Spec 012 — Infos pratiques et photo logement
@@ -166,14 +154,12 @@ const customizationSchema = z.object({
     .optional()
     .transform(value => (value === undefined ? undefined : value && value.length > 0 ? value : null)),
   checkout_instructions: practicalText(4000),
-  trash_info: practicalText(2000),
   trash_location: practicalText(500),
   house_rules: practicalText(4000),
   emergency_contacts: practicalText(2000),
   useful_services: practicalText(4000),
   practical_blocks: z.array(practicalBlockSchema).default([]),
   arrival_instructions: z.array(arrivalInstructionSchema).default([]),
-  trash_bins: z.array(trashBinSchema).max(20).default([]),
 })
 
 function errorResponse(code: string, message: string, status: number, details?: unknown) {
