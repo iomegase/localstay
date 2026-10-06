@@ -24,6 +24,7 @@ import {
   SEO_DESCRIPTION_RANGE,
   SEO_TITLE_RANGE,
   SHOWCASE_SECTIONS,
+  applyAltToPhotos,
   showcaseDraftSnapshot,
   type ShowcaseSectionId,
 } from '../lib/showcase-form'
@@ -758,6 +759,24 @@ export function LodgingShowcaseForm(props: {
                 <div className="space-y-1.5">
                   <Label htmlFor="photo-alt">Texte alternatif (facultatif, commun au lot)</Label>
                   <Input id="photo-alt" disabled={photosBusy} maxLength={160} value={photoAlt} onChange={event => setPhotoAlt(event.target.value)} placeholder="Salon principal lumineux" />
+                  <p className="text-[11px] text-gray-400">S’applique aux photos que vous importez ensuite.</p>
+                  {/* Spec 079 AC-03-05 : appliquer ce texte aux photos déjà importées. */}
+                  {profile.photos.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={photosBusy || photoAlt.trim().length < 5}
+                      onClick={() => {
+                        setPhotoAltsEdited(true)
+                        setField('photos', applyAltToPhotos(profile.photos, photoAlt, ROOM_TYPE_LABELS))
+                        setStatus('idle')
+                        setMessage('Texte appliqué aux photos existantes. Sauvegardez le brouillon pour l’enregistrer.')
+                      }}
+                    >
+                      Appliquer aux {profile.photos.length} photo(s) existante(s)
+                    </Button>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="photo-room-type">Type de piece</Label>

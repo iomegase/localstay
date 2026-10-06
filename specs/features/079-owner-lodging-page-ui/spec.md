@@ -61,6 +61,10 @@ et « Lien externe » (URL de réservation) demandent la même adresse. « Droit
   « Sauvegarder le brouillon » et « Demander la publication » (propriétaire).
 - **AC-03-03**: Given une demande refusée pour champs manquants, When elle revient, Then les
   champs sont listés en français.
+- **AC-03-05** (PO 2026-10-06) : Given un texte alternatif saisi dans « Ajouter des photos »,
+  When le propriétaire clique « Appliquer aux photos existantes », Then chaque photo reçoit
+  « <pièce> — <texte> » (modification enregistrée avec le brouillon) ; le champ précise qu'il
+  s'applique aux photos importées ensuite.
 - **AC-03-04**: Given une fiche publiée, When la page s'affiche, Then l'en-tête propose « Voir
   la fiche publique ».
 

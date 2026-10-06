@@ -47,3 +47,22 @@ describe('079 AC-01-03 / AC-02-01 — routes retirées', () => {
     expect(existsSync(join(process.cwd(), 'src/app/api/dashboard/lodgings/[id]/public-profile', segment))).toBe(false)
   })
 })
+
+describe('079 AC-03-05 — texte alternatif appliqué aux photos existantes', () => {
+  it('« <pièce> — <texte> », 160 caractères max, texte vide sans effet', () => {
+    const { applyAltToPhotos } = jest.requireActual<typeof import('@/features/lodging-showcase/lib/showcase-form')>('@/features/lodging-showcase/lib/showcase-form')
+    const photos = [
+      { id: 'a', alt: 'Pièce de vie — Le 305', room_type: 'common_area', room_label: null },
+      { id: 'b', alt: 'x', room_type: 'bedroom', room_label: 'Chambre 1' },
+      { id: 'c', alt: 'y', room_type: null, room_label: null },
+    ]
+    const labels = { common_area: 'Pièce de vie', bedroom: 'Chambre' }
+    expect(applyAltToPhotos(photos, ' le 305 - saint gervais les bains ', labels).map(photo => photo.alt)).toEqual([
+      'Pièce de vie — le 305 - saint gervais les bains',
+      'Chambre 1 — le 305 - saint gervais les bains',
+      'le 305 - saint gervais les bains',
+    ])
+    expect(applyAltToPhotos(photos, 'z'.repeat(200), labels)[0]!.alt).toHaveLength(160)
+    expect(applyAltToPhotos(photos, '  ', labels)).toBe(photos)
+  })
+})

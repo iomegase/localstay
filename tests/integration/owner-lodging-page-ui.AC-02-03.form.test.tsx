@@ -100,3 +100,33 @@ describe('079 — page Logement', () => {
     expect(screen.getByRole('button', { name: 'Sauvegarder le brouillon' })).toBeInTheDocument()
   })
 })
+
+describe('079 AC-03-05 — texte alternatif des photos existantes', () => {
+  it('applique « <pièce> — <texte> » aux photos et l’enregistre avec le brouillon', async () => {
+    const withPhotos = {
+      ...profile,
+      photos: [
+        { id: 'p1', url: 'https://cdn.test/1.webp', alt: 'Pièce de vie — Le 305', room_type: 'common_area', room_label: null, sort_order: 0, is_cover: true },
+        { id: 'p2', url: 'https://cdn.test/2.webp', alt: 'Chambre 1 — Le 305', room_type: 'bedroom', room_label: 'Chambre 1', sort_order: 1, is_cover: false },
+      ],
+    } as unknown as OwnerLodgingPublicProfileDto
+    render(<LodgingShowcaseForm lodgingId="lodging-1" initialProfile={withPhotos} />)
+
+    expect(screen.getByRole('button', { name: /Appliquer aux 2 photo/ })).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Texte alternatif (facultatif, commun au lot)'), { target: { value: 'le 305 - saint gervais les bains' } })
+    fireEvent.click(screen.getByRole('button', { name: /Appliquer aux 2 photo/ }))
+
+    const descriptions = screen.getAllByLabelText('Description de la photo') as HTMLInputElement[]
+    expect(descriptions.map(input => input.value)).toEqual([
+      'Pièce de vie — le 305 - saint gervais les bains', 'Chambre 1 — le 305 - saint gervais les bains',
+    ])
+    expect(screen.getByRole('status', { name: 'État de l’enregistrement' })).toHaveTextContent('Modifications non enregistrées')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder le brouillon' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+    expect(body.photos.map((photo: { alt: string }) => photo.alt)).toEqual([
+      'Pièce de vie — le 305 - saint gervais les bains', 'Chambre 1 — le 305 - saint gervais les bains',
+    ])
+  })
+})

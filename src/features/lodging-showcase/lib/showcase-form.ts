@@ -66,3 +66,20 @@ export function showcaseDraftSnapshot(input: {
     faqRows: input.faqRows,
   })
 }
+
+/**
+ * Spec 079 AC-03-05 : applique un texte alternatif commun aux photos existantes, préfixé par la
+ * pièce (« Pièce de vie — … ») pour garder des descriptions distinctes. 160 caractères maximum.
+ */
+export function applyAltToPhotos<T extends { alt: string; room_type: string | null; room_label: string | null }>(
+  photos: T[],
+  text: string,
+  roomTypeLabels: Record<string, string>,
+): T[] {
+  const common = text.trim()
+  if (!common) return photos
+  return photos.map(photo => {
+    const room = photo.room_label ?? roomTypeLabels[photo.room_type ?? 'other'] ?? null
+    return { ...photo, alt: (room ? `${room} — ${common}` : common).slice(0, 160) }
+  })
+}
