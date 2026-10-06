@@ -200,7 +200,7 @@ Migration additive.
 /api/admin/fallback-images/{id}:
   delete: 200: { data: { id } }   404: NOT_FOUND
 /api/internal/storage-cleanup:
-  get (Vercel Cron, CRON_SECRET) | post { dry_run?: boolean }
+  get (Vercel Cron, INTERNAL_API_SECRET) | post { dry_run?: boolean }
          200: { data: { scanned, deleted, bytes_freed, dry_run } }
 ```
 
