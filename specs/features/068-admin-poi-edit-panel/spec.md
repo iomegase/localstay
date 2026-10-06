@@ -203,6 +203,15 @@ Aucune nouvelle route. Les routes existantes de la spec 022 sont réutilisées
 
 ---
 
+## Amendements
+
+- **2026-10-06 (implémentation)** — La liste `/admin/pois` est désormais triée par nom
+  puis identifiant (au lieu de la date de modification décroissante). Sans cet ordre
+  stable, un POI enregistré remontait en tête de liste, ce qui cassait AC-02-01
+  (même position) et AC-04-01 (Précédent / Suivant).
+
+---
+
 ## Out of Scope
 
 - Cadre de l'admin, navigation latérale et accueil (spec 067).

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, ExternalLink, XCircle } from 'lucide-react'
 import { Badge } from '@/shared/components/ui/badge'
+import { DISCOVERY_CHECK_LABELS as CHECK_LABELS } from '../lib/discovery-check-labels'
 import { Button } from '@/shared/components/ui/button'
 import {
   Card,
@@ -34,20 +35,6 @@ type AdminPoiDiscoveryCardProps = {
   eligibility: AdminPoiDiscoveryEligibility
 }
 
-const CHECK_LABELS: Array<{
-  key: AdminPoiDiscoveryEligibilityKey
-  label: string
-}> = [
-  { key: 'active', label: 'POI actif' },
-  { key: 'city', label: 'Ville active' },
-  { key: 'category', label: 'Catégorie active' },
-  { key: 'subcategory', label: 'Sous-catégorie active (si renseignée)' },
-  { key: 'description', label: 'Description' },
-  { key: 'photo', label: 'Photo exploitable, ou description d’au moins 150 caractères' },
-  { key: 'address', label: 'Adresse' },
-  { key: 'geocode', label: 'Géocodage' },
-  { key: 'contact', label: 'Contact' },
-]
 
 const GENERIC_ERROR = 'La mise à jour de la publication a échoué. Veuillez réessayer.'
 

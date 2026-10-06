@@ -3,17 +3,19 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, ExternalLink, MapPin, Tag } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoi, getAdminPoiOptions } from '@/features/admin-pois/queries/admin-pois'
-import { AdminPoiEditForm } from '@/features/admin-pois/components/AdminPoiEditForm'
-import { AdminPoiDiscoveryCard } from '@/features/admin-pois/components/AdminPoiDiscoveryCard'
+import { AdminPoiEditorBody } from '@/features/admin-pois/components/AdminPoiEditorBody'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
+import { adminPoiListHref, firstParam, type SearchParamsRecord } from '@/features/admin-pois/lib/list-filters'
 
 type PageProps = {
   params: Promise<{ id: string }>
+  searchParams?: Promise<SearchParamsRecord>
 }
 
-export default async function AdminPoiDetailPage({ params }: PageProps) {
+export default async function AdminPoiDetailPage({ params, searchParams }: PageProps) {
   await getPageAdmin()
   const { id } = await params
+  const listParams = searchParams ? await searchParams : {}
   const [poi, options] = await Promise.all([
     getAdminPoi(id),
     getAdminPoiOptions(),
@@ -21,13 +23,16 @@ export default async function AdminPoiDetailPage({ params }: PageProps) {
 
   if (!poi) notFound()
 
+  // Spec 068 AC-02-03 : le retour conserve tous les filtres de la liste.
+  const backHref = adminPoiListHref(firstParam(listParams.city_id) ? listParams : { ...listParams, city_id: poi.city.id })
+
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700 bg-slate-50/30 min-h-screen pb-10">
       <header className="px-6 py-8 md:px-10 border-b border-slate-100 bg-white">
         <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-6">
           <div className="group">
             <Link 
-              href={`/admin/pois?city_id=${poi.city.id}`} 
+              href={backHref}
               className="inline-flex items-center gap-2 text-[13px] font-bold text-slate-400 hover:text-indigo-600 transition-colors mb-6"
             >
               <ArrowLeft size={16} className="transition-transform duration-300 group-hover:-translate-x-1" />
@@ -85,20 +90,7 @@ export default async function AdminPoiDetailPage({ params }: PageProps) {
       </header>
 
       <div className="px-6 mt-8 md:px-10">
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-200">
-            <AdminPoiEditForm poi={poi} categories={options.categories} />
-          </div>
-          <aside>
-            <AdminPoiDiscoveryCard
-              poiId={poi.id}
-              status={poi.discovery_status}
-              publishedAt={poi.discovery_published_at}
-              publicUrl={poi.discovery_public_url}
-              eligibility={poi.discovery_eligibility}
-            />
-          </aside>
-        </div>
+        <AdminPoiEditorBody poi={poi} categories={options.categories} layout="page" />
       </div>
     </div>
   )

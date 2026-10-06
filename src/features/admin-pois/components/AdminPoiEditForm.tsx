@@ -32,6 +32,7 @@ import { ImageUpload } from '@/shared/components/ImageUpload'
 import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPreviewMap'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { PoiDescriptionAssistant } from '@/features/poi-description-assistance/components/PoiDescriptionAssistant'
+import { usePoiEditPanel } from './PoiEditPanelContext'
 
 type Props = {
   poi: AdminPoiDetail
@@ -40,6 +41,8 @@ type Props = {
 
 export function AdminPoiEditForm({ poi, categories }: Props) {
   const router = useRouter()
+  // Spec 068 AC-02-02 : signale au panneau les modifications hors champ et l'enregistrement.
+  const { markDirty, markSaved } = usePoiEditPanel()
   const [message, setMessage] = useState<string | null>(null)
   const [messageIsError, setMessageIsError] = useState(false)
   const [photos, setPhotos] = useState<string[]>(poi.photos)
@@ -82,6 +85,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
   function reorderPhotos(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
+    markDirty()
     setPhotos(current => {
       const oldIndex = current.indexOf(String(active.id))
       const newIndex = current.indexOf(String(over.id))
@@ -165,6 +169,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       if (payload.photos) setSavedPhotos(payload.photos)
       setSavedIdentity({ name: payload.name, address: payload.address, website: payload.website ?? '' })
       setMessage('Modifications enregistrées avec succès')
+      markSaved()
       router.refresh()
     })
   }
@@ -173,7 +178,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
     <form onSubmit={submit} className="grid relative gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* SECTION 1: Identité publique */}
-      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-indigo-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+      <section id="poi-section-identite" className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-indigo-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 transition-colors duration-300 group-hover:bg-indigo-100 group-hover:text-indigo-600">
             <Info size={24} strokeWidth={2} />
@@ -264,7 +269,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       </section>
 
       {/* SECTION 2: Classification et localisation */}
-      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-emerald-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+      <section id="poi-section-lieu" className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-emerald-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 transition-colors duration-300 group-hover:bg-emerald-100 group-hover:text-emerald-600">
             <MapPin size={24} strokeWidth={2} />
@@ -388,7 +393,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       </section>
 
       {/* SECTION 4: Photos */}
-      <section className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-amber-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
+      <section id="poi-section-photos" className="group overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-amber-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] md:p-8">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 transition-colors duration-300 group-hover:bg-amber-100 group-hover:text-amber-600">
             <ImageIcon size={24} strokeWidth={2} />
@@ -486,7 +491,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       {/* Données rando issues du TrailDetail. Valeurs présentes = lecture seule (pilotées
           par le tracé GPX) ; valeurs manquantes = éditables et enregistrées via trail_metrics. */}
       {trail && (
-        <section
+        <section id="poi-section-randonnee" 
           data-testid="trail-stats-readonly"
           className="overflow-hidden rounded-[24px] border border-slate-100 bg-white p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] md:p-8"
         >
@@ -703,20 +708,24 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       setPhotoUrlError('URL invalide.')
       return
     }
+    markDirty()
     setPhotos(current => [...current, trimmed])
     setNewPhotoUrl('')
   }
 
   function addUploadedPhoto(url: string) {
     setPhotoUrlError(null)
+    markDirty()
     setPhotos(current => (current.length >= 12 || current.includes(url) ? current : [...current, url]))
   }
 
   function removePhoto(index: number) {
+    markDirty()
     setPhotos(current => current.filter((_, photoIndex) => photoIndex !== index))
   }
 
   function setHeroPhoto(index: number) {
+    markDirty()
     setPhotos(current => {
       const selected = current[index]
       if (!selected) return current

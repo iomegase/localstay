@@ -23,6 +23,8 @@ type AdminManualPoiFormProps = {
   cities: CityOption[]
   categories: CategoryOption[]
   initialCityId?: string
+  /** Spec 068 AC-05-02 : dans le panneau, ouvre la fiche créée sans quitter la liste. */
+  onCreated?: (poiId: string) => void
 }
 
 type SourceSuggestion = {
@@ -34,7 +36,7 @@ type SourceSuggestion = {
   description: string | null
 }
 
-export function AdminManualPoiForm({ cities, categories, initialCityId }: AdminManualPoiFormProps) {
+export function AdminManualPoiForm({ cities, categories, initialCityId, onCreated }: AdminManualPoiFormProps) {
   const [sourceUrl, setSourceUrl] = useState('')
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
@@ -111,6 +113,10 @@ export function AdminManualPoiForm({ cities, categories, initialCityId }: AdminM
         return
       }
 
+      if (onCreated) {
+        onCreated(json.data.id)
+        return
+      }
       window.location.assign(`/admin/pois/${json.data.id}`)
     } finally {
       setLoadingSubmit(false)

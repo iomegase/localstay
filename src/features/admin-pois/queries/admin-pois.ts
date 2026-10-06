@@ -152,6 +152,21 @@ export async function getAdminPoiOptions(): Promise<{
   return { cities, categories }
 }
 
+// Spec 068 : ordre stable (un POI enregistré ne change pas de place dans la liste).
+const ADMIN_POI_LIST_ORDER: Prisma.PointOfInterestOrderByWithRelationInput[] = [{ name: 'asc' }, { id: 'asc' }]
+
+/** Spec 068 AC-04-01 : identifiants de la page courante de la liste filtrée. */
+export async function listAdminPoiIds(filters: AdminPoiListFilters): Promise<string[]> {
+  const rows = await prisma.pointOfInterest.findMany({
+    where: buildAdminPoiWhere(filters),
+    orderBy: ADMIN_POI_LIST_ORDER,
+    skip: (filters.page - 1) * filters.limit,
+    take: filters.limit,
+    select: { id: true },
+  })
+  return rows.map(row => row.id)
+}
+
 export async function listAdminPois(filters: AdminPoiListFilters): Promise<AdminPoiListResponse> {
   const city = await prisma.city.findFirst({
     where: { id: filters.city_id, is_active: true, deleted_at: null },
@@ -165,7 +180,7 @@ export async function listAdminPois(filters: AdminPoiListFilters): Promise<Admin
   const [rows, total, kpis, acquisitionRuns] = await Promise.all([
     prisma.pointOfInterest.findMany({
       where,
-      orderBy: [{ updated_at: 'desc' }, { name: 'asc' }],
+      orderBy: ADMIN_POI_LIST_ORDER,
       skip,
       take: filters.limit,
       select: adminPoiSelect,

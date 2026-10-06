@@ -4,6 +4,14 @@ import type { LucideIcon } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
+import { AdminPoiDiscoveryToggle } from '@/features/admin-pois/components/AdminPoiDiscoveryToggle'
+import {
+  adminPoiCreateHref,
+  adminPoiPanelHref,
+  buildAdminPoiListFilters,
+  firstParam,
+  parseDiscoveryStatus,
+} from '@/features/admin-pois/lib/list-filters'
 import { Badge } from '@/shared/components/ui/badge'
 import {
   Select,
@@ -12,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import type { AdminPoiListFilters } from '@/features/admin-pois/types'
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
@@ -40,7 +47,9 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
   const options = await getAdminPoiOptions()
   const selectedCityId = firstParam(params.city_id) ?? options.cities[0]?.id ?? null
 
-  const filters = selectedCityId ? buildFilters(selectedCityId, params) : null
+  const filters = selectedCityId ? buildAdminPoiListFilters(selectedCityId, params) : null
+  // Spec 068 BR-03 : ouvrir une fiche ou en créer une conserve les filtres courants.
+  const listParams = selectedCityId ? { ...params, city_id: selectedCityId } : params
   const response = filters ? await listAdminPois(filters) : null
 
   return (
@@ -68,7 +77,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
             Acquisition
           </Link>
           <Link 
-            href={selectedCityId ? `/admin/pois/new?city_id=${selectedCityId}` : '/admin/pois/new'}
+            href={adminPoiCreateHref(listParams)}
             className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md"
           >
             <Plus size={16} className="transition-transform duration-300 group-hover:scale-110" />
@@ -256,7 +265,13 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                 )}
                                 <div className="flex flex-col">
                                   {/* Reduced text sizes: 14px -> 13px, 12px -> 11px */}
-                                  <span className="text-[13px] font-bold text-neutral-900 max-w-[200px] truncate">{poi.name}</span>
+                                  <Link
+                                    href={adminPoiPanelHref(poi.id, listParams)}
+                                    scroll={false}
+                                    className="text-[13px] font-bold text-neutral-900 max-w-[200px] truncate hover:text-indigo-600"
+                                  >
+                                    {poi.name}
+                                  </Link>
                                   {poi.public_url && (
                                     <Link
                                       href={poi.public_url}
@@ -291,6 +306,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                 {poi.merchant_attached && (
                                   <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">Merchant Lié</span>
                                 )}
+                                <AdminPoiDiscoveryToggle key={`${poi.id}-${poi.discovery_status}`} poiId={poi.id} name={poi.name} status={poi.discovery_status} />
                               </div>
                             </td>
 
@@ -311,8 +327,9 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                   status={poi.status}
                                   merchantAttached={poi.merchant_attached}
                                 />
-                                <Link 
-                                  href={`/admin/pois/${poi.id}`}
+                                <Link
+                                  href={adminPoiPanelHref(poi.id, listParams)}
+                                  scroll={false}
                                   className="inline-flex h-[32px] items-center justify-center rounded-lg bg-[#F4F7FE] px-3 text-[12px] font-bold text-[#0B1437] transition-all hover:bg-[#0B1437] hover:text-white"
                                 >
                                   Éditer
@@ -442,27 +459,6 @@ function ChevronDownIcon() {
    Business Logic Extractors (Maintained Identical)
    ------------------------------------------------------------------------- */
    
-function buildFilters(cityId: string, params: Record<string, string | string[] | undefined>): AdminPoiListFilters {
-  return {
-    city_id: cityId,
-    q: firstParam(params.q),
-    category_id: firstParam(params.category_id),
-    subcategory_id: firstParam(params.subcategory_id),
-    status: parseStatus(firstParam(params.status)),
-    geocode_status: firstParam(params.geocode_status),
-    photo_status: parsePhotoStatus(firstParam(params.photo_status)),
-    review_source: parseReviewSource(firstParam(params.review_source)),
-    discovery_status: parseDiscoveryStatus(firstParam(params.discovery_status)),
-    page: Number(firstParam(params.page) ?? 1),
-    limit: Number(firstParam(params.limit) ?? 25),
-  }
-}
-
-function firstParam(value: string | string[] | undefined): string | undefined {
-  const raw = Array.isArray(value) ? value[0] : value
-  return raw && raw.length > 0 ? raw : undefined
-}
-
 function preservedFilterParams(params: Record<string, string | string[] | undefined>) {
   return PRESERVED_FILTER_KEYS.flatMap(name => {
     const values = Array.isArray(params[name]) ? params[name] : [params[name]]
@@ -470,24 +466,4 @@ function preservedFilterParams(params: Record<string, string | string[] | undefi
       ? [{ key: `${name}-${index}`, name, value }]
       : [])
   })
-}
-
-function parseStatus(value: string | undefined): AdminPoiListFilters['status'] {
-  if (value === 'active' || value === 'inactive' || value === 'archived' || value === 'current') return value
-  return 'current'
-}
-
-function parsePhotoStatus(value: string | undefined): AdminPoiListFilters['photo_status'] {
-  if (value === 'with_photos' || value === 'without_photos') return value
-  return undefined
-}
-
-function parseReviewSource(value: string | undefined): AdminPoiListFilters['review_source'] {
-  if (value === 'MANUAL' || value === 'GOOGLE') return value
-  return undefined
-}
-
-function parseDiscoveryStatus(value: string | undefined): AdminPoiListFilters['discovery_status'] {
-  if (value === 'DRAFT' || value === 'PUBLISHED') return value
-  return undefined
 }
