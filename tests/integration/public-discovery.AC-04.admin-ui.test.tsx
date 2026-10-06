@@ -132,14 +132,14 @@ describe('041 AC-04 Admin publication controls', () => {
       'Catégorie active',
       'Sous-catégorie active (si renseignée)',
       'Description',
-      'Photo exploitable',
+      'Photo exploitable, ou description d’au moins 150 caractères',
       'Adresse',
       'Géocodage',
       'Contact',
     ]) {
       expect(within(checklist).getByText(label)).toBeInTheDocument()
     }
-    expect(within(checklist).getByLabelText('Photo exploitable : manquant')).toBeInTheDocument()
+    expect(within(checklist).getByLabelText('Photo exploitable, ou description d’au moins 150 caractères : manquant')).toBeInTheDocument()
     expect(within(checklist).getByLabelText('Description : satisfait')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Retirer de Découvrir' })).toBeEnabled()
   })
@@ -248,7 +248,7 @@ describe('041 AC-04 Admin publication controls', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'La fiche doit être complétée avant publication.',
     )
-    expect(screen.getByLabelText('Photo exploitable : manquant')).toBeInTheDocument()
+    expect(screen.getByLabelText('Photo exploitable, ou description d’au moins 150 caractères : manquant')).toBeInTheDocument()
     expect(screen.getByLabelText('Description : satisfait')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Publier dans Découvrir' })).toBeDisabled()
     expect(mockRefresh).not.toHaveBeenCalled()
@@ -505,6 +505,7 @@ function buildPoi(overrides: Partial<AdminPoiDetail> = {}): AdminPoiDetail {
     geocode_status: 'success',
     photo_count: 1,
     primary_photo_url: null,
+    has_usable_photo: false,
     photos_status: 'fresh',
     review_source: 'MANUAL',
     merchant_attached: false,

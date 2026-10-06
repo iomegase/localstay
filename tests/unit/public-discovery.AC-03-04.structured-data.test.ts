@@ -43,6 +43,8 @@ const discoveryPoi: DiscoveryPoiDetail = {
     'https://images.example.com/musee-cachee.jpg',
   ],
   hero_photo_url: 'https://images.example.com/musee.jpg',
+  photo_is_fallback: false,
+  photo_credit: null,
   category: { name: 'Culture', slug: 'culture' },
   subcategory: { name: 'Musées', slug: 'musees' },
   distance_km: 0.4,
@@ -264,5 +266,17 @@ describe('041 AC-01-05 / AC-03-04 discovery structured data', () => {
     expect(serialized).not.toContain(discoveryPoi.city.postal_code)
     expect(serialized).not.toContain(discoveryPoi.city.region)
     expect(serialized).not.toContain(discoveryPoi.photos[1]!)
+  })
+
+  it('065 AC-03-04 : pas de propriété image pour une fiche sans photo', () => {
+    const schema = discoveryPoiSchema({
+      ...discoveryPoi,
+      photos: [],
+      hero_photo_url: '/fallback/fallback-culture.png',
+      photo_is_fallback: true,
+    })
+
+    expect(schema).not.toHaveProperty('image')
+    expect(JSON.stringify(schema)).not.toContain('/fallback/')
   })
 })

@@ -15,7 +15,7 @@ const poi: AdminPoiDetail = {
   status: 'active', city: { id: 'city', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais' },
   category: { id: 'category', name: 'Refuges', slug: 'refuges' }, subcategory: null,
   photos: [], tags: [], latitude: 45.8, longitude: 6.7, geocode_status: 'success', photo_count: 0,
-  primary_photo_url: null, photos_status: 'ok', review_source: 'MANUAL', merchant_attached: false,
+  primary_photo_url: null, has_usable_photo: false, photos_status: 'ok', review_source: 'MANUAL', merchant_attached: false,
   has_trail_detail: false, updated_at: '2026-09-28T10:00:00.000Z', discovery_status: 'DRAFT',
   discovery_published_at: null, public_url: null, slug_editable: false, trail_fields_locked: false,
   trail_detail: null, discovery_public_url: null,

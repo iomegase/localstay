@@ -17,7 +17,7 @@ export function MarketingShell({ children, localNavigation }: { children: ReactN
     >
       <div
         data-testid="marketing-surface"
-        className="mx-auto min-h-[100dvh] w-full overflow-hidden bg-white md:min-h-0 md:max-w-[1184px] md:rounded-[42px] md:pt-[17px] md:shadow-[0_30px_90px_rgba(0,0,0,0.28)] xl:rounded-[34px]"
+        className="mx-auto min-h-[100dvh] w-full overflow-clip bg-white md:min-h-0 md:max-w-[1184px] md:rounded-[42px] md:pt-[17px] md:shadow-[0_30px_90px_rgba(0,0,0,0.28)] xl:rounded-[34px]"
       >
         <MarketingHeader localNavigation={localNavigation} />
         <main>{children}</main>

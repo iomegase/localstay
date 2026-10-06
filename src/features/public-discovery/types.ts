@@ -46,10 +46,16 @@ export type DiscoveryPoiCard = {
   rating_count: number | null
   is_open_now: boolean | null
   photo_url: string
+  /** Spec 065 AC-03-03 : image de remplacement (pas une photo du lieu). */
+  photo_is_fallback: boolean
   category: DiscoveryTaxonomy
   subcategory: DiscoveryTaxonomy | null
   distance_km: number
   zone: DiscoveryZone
+}
+
+export type DiscoverySubcategorySummary = DiscoveryTaxonomy & {
+  poi_count: number
 }
 
 export type DiscoveryCity = DiscoveryCitySummary & {
@@ -57,8 +63,16 @@ export type DiscoveryCity = DiscoveryCitySummary & {
     icon: string
     sort_order: number
     poi_count: number
+    /** Spec 065 AC-01-02 : sous-catégories publiques dans l'ordre de la taxonomie. */
+    subcategories: DiscoverySubcategorySummary[]
     pois: DiscoveryPoiCard[]
   }>
+}
+
+/** Spec 065 AC-02-01 : `subcategory` null = « Autres adresses ». */
+export type DiscoveryPoiGroup = {
+  subcategory: DiscoveryTaxonomy | null
+  pois: DiscoveryPoiCard[]
 }
 
 export type DiscoveryCategory = DiscoveryTaxonomy & {
@@ -67,6 +81,10 @@ export type DiscoveryCategory = DiscoveryTaxonomy & {
   city: DiscoveryCitySummary
   subcategories: DiscoveryTaxonomy[]
   pois: DiscoveryPoiCard[]
+  /** Spec 065 AC-02-01 : zone principale découpée par sous-catégorie. */
+  groups: DiscoveryPoiGroup[]
+  /** Zone « Aux alentours », inchangée (spec 041 AC-02-03). */
+  nearby_pois: DiscoveryPoiCard[]
 }
 
 export type DiscoveryPoiDetail = Omit<DiscoveryPoiCard, 'photo_url'> & {

@@ -274,6 +274,17 @@ function discoverySocialImages(
 }
 
 /**
+ * Spec 065 AC-03-04 : une image de remplacement n'est jamais présentée comme
+ * photo du lieu ; à défaut de vraie photo, l'image de partage MyStay est utilisée.
+ */
+function discoveryPhotoOrDefault(
+  cards: Array<{ photo_url: string; photo_is_fallback: boolean }>,
+): string[] {
+  const photo = cards.find(card => !card.photo_is_fallback)?.photo_url
+  return [photo ?? '/og-mystay.png']
+}
+
+/**
  * INDEX /DÉCOUVRIR
  */
 export function discoveryIndexMetadata(): Metadata {
@@ -342,13 +353,10 @@ export function discoveryCityMetadata(
   const path =
     `/decouvrir/${city.slug}`
 
-  const photo =
-    city.categories
-      .flatMap(category => category.pois)[0]
-      ?.photo_url ?? null
-
   const images =
-    discoverySocialImages(photo)
+    discoveryPhotoOrDefault(
+      city.categories.flatMap(category => category.pois),
+    )
 
   return {
     title: singleBrandTitle(title),
@@ -396,9 +404,7 @@ export function discoveryCategoryMetadata(
     `/decouvrir/${category.city.slug}/${category.slug}`
 
   const images =
-    discoverySocialImages(
-      category.pois[0]?.photo_url ?? null,
-    )
+    discoveryPhotoOrDefault(category.pois)
 
   return {
     title: singleBrandTitle(title),
@@ -446,7 +452,7 @@ export function discoveryPoiMetadata(
 
   const images =
     discoverySocialImages(
-      poi.hero_photo_url,
+      poi.photo_is_fallback ? '/og-mystay.png' : poi.hero_photo_url,
     )
 
   return {

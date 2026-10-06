@@ -24,7 +24,9 @@ export function DiscoveryPoiCard({
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           <RemotePoiImage
             src={poi.photo_url}
-            alt={`${poi.name} à ${poi.address}`}
+            alt={poi.photo_is_fallback
+              ? `Illustration : ${poi.subcategory?.name ?? poi.category.name}`
+              : `${poi.name} à ${poi.address}`}
             width={800}
             height={600}
             loading="lazy"

@@ -11,6 +11,8 @@ import {
   getDiscoveryPoiVisibility,
   isCanonicalDiscoverySlug,
 } from '../lib/visibility'
+import { resolveDiscoveryCardPhoto } from '../lib/discovery-photo'
+import { groupPoisBySubcategory } from '../lib/subcategory-groups'
 import type {
   DiscoveryCategory,
   DiscoveryCity,
@@ -18,6 +20,7 @@ import type {
   DiscoveryIndexCity,
   DiscoveryPoiCard,
   DiscoveryPoiDetail,
+  DiscoveryPoiGroup,
   DiscoveryTaxonomy,
 } from '../types'
 
@@ -217,7 +220,18 @@ function stableNameCompare(
 
 /** Spec 063 : la carte affiche la copie MyStay de sa photo quand elle existe. */
 function withMirroredPhoto(card: DiscoveryPoiCard, mirrorMap: PoiPhotoMirrorMap): DiscoveryPoiCard {
+  if (card.photo_is_fallback) return card
   return { ...card, photo_url: resolvePoiPhotoUrl(card.photo_url, mirrorMap) }
+}
+
+/** Spec 065 AC-02-01 : sections par sous-catégorie, dans l'ordre de la taxonomie. */
+function toPoiGroups(pois: MappedPoi[], mirrorMap: PoiPhotoMirrorMap): DiscoveryPoiGroup[] {
+  return groupPoisBySubcategory(
+    pois.map(poi => ({ poi, subcategory: poi.row.subcategory })),
+  ).map(group => ({
+    subcategory: group.subcategory ? { name: group.subcategory.name, slug: group.subcategory.slug } : null,
+    pois: group.items.map(item => withMirroredPhoto(item.poi.card, mirrorMap)),
+  }))
 }
 
 function matchesRoute(row: DiscoveryPoiRow, route: DiscoveryRoute): boolean {
@@ -235,8 +249,7 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
   const visibility = getDiscoveryPoiVisibility({ ...row, photos })
   if (!visibility) return null
 
-  const hero = visibility.photos[0]
-  if (!hero) return null
+  const photo = resolveDiscoveryCardPhoto(visibility.photos, row.category.slug, row.subcategory)
 
   return {
     row,
@@ -257,7 +270,7 @@ function mapEligiblePoi(row: DiscoveryPoiRow, route: DiscoveryRoute): MappedPoi 
         ? row.rating_count
         : null,
       is_open_now: typeof row.is_open_now === 'boolean' ? row.is_open_now : null,
-      photo_url: hero,
+      ...photo,
       category: toTaxonomy(row.category),
       subcategory: row.subcategory ? toTaxonomy(row.subcategory) : null,
       distance_km: visibility.distanceKm,
@@ -334,6 +347,15 @@ export const getDiscoveryCity: (citySlug: string) => Promise<DiscoveryCity | nul
           icon: category.icon,
           sort_order: category.sort_order,
           poi_count: group.length,
+          subcategories: groupPoisBySubcategory(
+            group.map(poi => ({ subcategory: poi.row.subcategory })),
+          )
+            .filter(subgroup => subgroup.subcategory !== null)
+            .map(subgroup => ({
+              name: subgroup.subcategory!.name,
+              slug: subgroup.subcategory!.slug,
+              poi_count: subgroup.items.length,
+            })),
           pois: group.map(poi => withMirroredPhoto(poi.card, mirrorMap)),
         }
       })
@@ -379,6 +401,10 @@ export const getDiscoveryCategory: (
         .sort((left, right) => left.sort_order - right.sort_order || stableNameCompare(left, right))
         .map(toTaxonomy),
       pois: mapped.map(poi => withMirroredPhoto(poi.card, mirrorMap)),
+      groups: toPoiGroups(mapped.filter(poi => poi.card.zone === 'primary'), mirrorMap),
+      nearby_pois: mapped
+        .filter(poi => poi.card.zone === 'nearby')
+        .map(poi => withMirroredPhoto(poi.card, mirrorMap)),
     }
   },
 )
@@ -424,7 +450,9 @@ export const getDiscoveryPoi: (
       hours,
       // Spec 063 : copies MyStay à la place des URL tierces ; crédit calculé sur l'origine.
       photos: resolvePoiPhotoList(mapped.photos, mirrorMap),
-      hero_photo_url: resolvePoiPhotoUrl(heroPhotoUrl, mirrorMap),
+      hero_photo_url: detailCard.photo_is_fallback
+        ? heroPhotoUrl
+        : resolvePoiPhotoUrl(heroPhotoUrl, mirrorMap),
       photo_credit: mapped.photos.some(isThirdPartyPhotoUrl)
         ? { name: detailCard.name, website }
         : null,

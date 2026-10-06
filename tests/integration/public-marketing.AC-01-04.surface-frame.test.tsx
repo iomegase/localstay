@@ -22,7 +22,7 @@ describe('031-public-marketing-site editorial surface', () => {
       'xl:py-5',
     )
     expect(surface).toHaveClass(
-      'overflow-hidden',
+      'overflow-clip', // spec 065 : clip sans créer de zone de défilement (pastilles collantes)
       'md:max-w-[1184px]',
       'md:rounded-[42px]',
       'xl:rounded-[34px]',

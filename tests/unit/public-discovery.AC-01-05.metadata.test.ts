@@ -21,6 +21,7 @@ const poiCard: DiscoveryPoiCard = {
   rating_count: 32,
   is_open_now: true,
   photo_url: 'https://images.example.com/musee.jpg',
+  photo_is_fallback: false,
   category: { name: 'Culture', slug: 'culture' },
   subcategory: { name: 'Musées', slug: 'musees' },
   distance_km: 0.4,
@@ -39,6 +40,7 @@ const city: DiscoveryCity = {
     icon: 'landmark',
     sort_order: 1,
     poi_count: 1,
+    subcategories: [{ name: 'Musées', slug: 'musees', poi_count: 1 }],
     pois: [poiCard],
   }],
 }
@@ -57,6 +59,8 @@ const category: DiscoveryCategory = {
   },
   subcategories: [{ name: 'Musées', slug: 'musees' }],
   pois: [poiCard],
+  groups: [{ subcategory: { name: 'Musées', slug: 'musees' }, pois: [poiCard] }],
+  nearby_pois: [],
 }
 
 const poi: DiscoveryPoiDetail = {
@@ -67,7 +71,14 @@ const poi: DiscoveryPoiDetail = {
   hours: null,
   photos: [poiCard.photo_url, 'https://images.example.com/musee-2.jpg'],
   hero_photo_url: poiCard.photo_url,
+  photo_credit: null,
   city: category.city,
+}
+
+const fallbackCard: DiscoveryPoiCard = {
+  ...poiCard,
+  photo_url: '/fallback/fallback-culture.png',
+  photo_is_fallback: true,
 }
 
 describe('041 AC-01-05 discovery metadata', () => {
@@ -149,5 +160,28 @@ describe('041 AC-01-05 discovery metadata', () => {
       description: poi.description,
       images: [poi.hero_photo_url],
     })
+  })
+
+  it('065 AC-03-04 : og:image d’une fiche sans photo = image de partage par défaut', () => {
+    const metadata = discoveryPoiMetadata({
+      ...poi,
+      photo_is_fallback: true,
+      photos: [],
+      hero_photo_url: '/fallback/fallback-culture.png',
+    })
+
+    expect(metadata.openGraph?.images).toEqual(['/og-mystay.png'])
+    expect(JSON.stringify(metadata)).not.toContain('/fallback/')
+  })
+
+  it('065 AC-03-04 : ville et catégorie ignorent les images de remplacement', () => {
+    const cityMetadata = discoveryCityMetadata({
+      ...city,
+      categories: [{ ...city.categories[0]!, pois: [fallbackCard, poiCard] }],
+    })
+    expect(cityMetadata.openGraph?.images).toEqual([poiCard.photo_url])
+
+    const categoryMetadata = discoveryCategoryMetadata({ ...category, pois: [fallbackCard] })
+    expect(categoryMetadata.openGraph?.images).toEqual(['/og-mystay.png'])
   })
 })

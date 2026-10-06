@@ -12,7 +12,7 @@ import {
   fetchOfficialWebsitePhotoEnrichmentDetailed,
   mergeOfficialWebsitePhotos,
 } from '@/features/poi-acquisition/services/official-website-photos'
-import { buildAdminPoiWhere, getAdminPoiStatus } from '../lib/admin-poi-rules'
+import { buildAdminPoiWhere, getAdminPoiStatus, isUsableAdminPhotoUrl } from '../lib/admin-poi-rules'
 import type {
   AdminPoiAcquisitionRunSummary,
   AdminPoiCategory,
@@ -568,6 +568,7 @@ function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
     geocode_status: row.geocode_status,
     photo_count: row.photos.length,
     primary_photo_url: row.photos[0] ?? null,
+    has_usable_photo: row.photos.some(isUsableAdminPhotoUrl),
     photos_status: row.photos_status,
     review_source: row.review_source,
     merchant_attached: Boolean(row.merchant_profile),

@@ -186,8 +186,10 @@ DiscoveryPoiCard / DiscoveryPoi:
   photo_is_fallback: boolean
 ```
 
-L'endpoint admin de publication renvoie le nouveau motif de refus
-`DESCRIPTION_TOO_SHORT_WITHOUT_PHOTO` (format d'erreur standard).
+L'endpoint admin de publication garde son refus existant `409
+DISCOVERY_PUBLICATION_INCOMPLETE` avec `details.missing: ["photo"]` ; dans l'admin, le
+critère « photo » est libellé « Photo exploitable, ou description d'au moins 150
+caractères » (implémentation 2026-10-06, au lieu d'un nouveau code d'erreur).
 
 ---
 

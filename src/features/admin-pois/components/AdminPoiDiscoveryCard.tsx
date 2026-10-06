@@ -43,7 +43,7 @@ const CHECK_LABELS: Array<{
   { key: 'category', label: 'Catégorie active' },
   { key: 'subcategory', label: 'Sous-catégorie active (si renseignée)' },
   { key: 'description', label: 'Description' },
-  { key: 'photo', label: 'Photo exploitable' },
+  { key: 'photo', label: 'Photo exploitable, ou description d’au moins 150 caractères' },
   { key: 'address', label: 'Adresse' },
   { key: 'geocode', label: 'Géocodage' },
   { key: 'contact', label: 'Contact' },

@@ -1635,6 +1635,26 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | AC-02-02 | Vitrine logement « Ouvrir le guide » → /decouvrir/{ville} | `src/app/(dashboard)/dashboard/lodgings/[id]/showcase/page.tsx` | `tests/unit/legacy-guide-cleanup.AC-02.back-office-links.test.ts` | ✅ done |
 | AC-02-03 | URL publique du POI commerçant → /decouvrir | `src/features/merchant/queries/dashboard.ts` | `tests/contract/dashboard-merchant.AC-01-03.api.test.ts` | ✅ done |
 
+## 065 — Découvrir : présentation par taxonomie et POI sans photo
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Catégories ville : ordre + icône taxonomie (défaut si inconnue) | `src/features/public-discovery/components/DiscoveryCityView.tsx`<br>`src/features/public-discovery/queries/public-discovery.ts` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx`<br>`tests/integration/discovery-taxonomy.AC-01-02-03.public-queries.test.ts` | ✅ done |
+| AC-01-02 | Sous-catégories (3 max + « … ») sur la carte catégorie | `src/features/public-discovery/components/DiscoveryCityView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+| AC-01-03 | « Nos adresses » par catégorie, 3 cartes + « Voir les N adresses » | `src/features/public-discovery/components/DiscoveryCityView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+| AC-02-01 / AC-02-03 | Sections par sous-catégorie (ordre taxonomie, ancre), « Autres adresses » en dernier | `src/features/public-discovery/lib/subcategory-groups.ts`<br>`src/features/public-discovery/components/DiscoveryCategoryView.tsx` | `tests/unit/discovery-taxonomy.AC-02.subcategory-groups.test.ts`<br>`tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+| AC-02-02 | Pastilles d'ancre collantes, défilement horizontal | `src/features/public-discovery/components/DiscoveryCategoryView.tsx`<br>`src/features/marketing/components/MarketingShell.tsx` (overflow-clip) | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx`<br>`tests/integration/public-marketing.AC-01-04.surface-frame.test.tsx` | ✅ done |
+| AC-02-04 | Un seul groupe : liste simple | `src/features/public-discovery/components/DiscoveryCategoryView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+| AC-02-05 | « Aux alentours » inchangé | `src/features/public-discovery/queries/public-discovery.ts` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx`<br>`tests/integration/public-discovery.AC-01-03.pages.test.tsx` | ✅ done |
+| AC-02-06 | Taxonomie désactivée masquée (041 inchangé) | `src/features/public-discovery/queries/public-discovery.ts` | `tests/integration/public-discovery.AC-01-03.public-queries.test.ts` | ✅ done |
+| AC-03-01 / AC-03-02 | Éligible sans photo si description ≥ 150 ; sinon motif « photo » (409 existant) | `src/features/public-discovery/lib/eligibility.ts`<br>`src/features/admin-pois/components/AdminPoiDiscoveryCard.tsx` | `tests/unit/discovery-taxonomy.AC-03-BR-08.eligibility-and-photos.test.ts`<br>`tests/integration/public-discovery.AC-04.admin-ui.test.tsx` | ✅ done |
+| AC-03-03 | Image de remplacement par type de lieu, alt neutre, sans crédit, via next/image | `src/features/public-discovery/lib/discovery-photo.ts`<br>`src/features/public-discovery/components/DiscoveryPoiCard.tsx`<br>`src/features/public-discovery/components/DiscoveryPoiView.tsx`<br>`src/features/public-discovery/components/RemotePoiImage.tsx` | `tests/unit/discovery-taxonomy.AC-03-BR-08.eligibility-and-photos.test.ts`<br>`tests/integration/discovery-taxonomy.AC-01-02-03.public-queries.test.ts`<br>`tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+| AC-03-04 | Pas d'image de remplacement en JSON-LD ni og:image | `src/features/seo/lib/metadata.ts`<br>`src/features/seo/lib/structured-data.ts` | `tests/unit/public-discovery.AC-01-05.metadata.test.ts`<br>`tests/unit/public-discovery.AC-03-04.structured-data.test.ts` | ✅ done |
+| AC-03-05 | Pas de dépublication à la perte de photo (description ≥ 150) | `src/features/public-discovery/queries/mutation-reconciliation.ts` (via eligibility) | `tests/unit/discovery-taxonomy.AC-03-05.no-unpublication-on-photo-loss.test.ts` | ✅ done |
+| AC-03-06 | Badge « Sans photo » dans Admin › POI | `src/app/admin/pois/page.tsx`<br>`src/features/admin-pois/queries/admin-pois.ts` | `tests/integration/discovery-taxonomy.AC-03-06.admin-no-photo-badge.test.tsx` | ✅ done |
+| BR-08 | Catégorie urgences jamais publique (pages, hub, sitemap) | `src/features/public-discovery/lib/visibility.ts` | `tests/unit/discovery-taxonomy.AC-03-BR-08.eligibility-and-photos.test.ts`<br>`tests/integration/discovery-taxonomy.AC-01-02-03.public-queries.test.ts` | ✅ done |
+
+
 
 
 

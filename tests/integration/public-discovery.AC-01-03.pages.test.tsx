@@ -37,6 +37,7 @@ const primaryPoi: DiscoveryPoiCard = {
   rating_count: 32,
   is_open_now: true,
   photo_url: 'https://images.example.com/musee.jpg',
+  photo_is_fallback: false,
   category: { name: 'Culture', slug: 'culture' },
   subcategory: { name: 'Musées', slug: 'musees' },
   distance_km: 0.4,
@@ -64,6 +65,7 @@ const city: DiscoveryCity = {
     icon: 'landmark',
     sort_order: 1,
     poi_count: 2,
+    subcategories: [{ name: 'Musées', slug: 'musees', poi_count: 2 }],
     pois: [primaryPoi, nearbyPoi],
   }],
 }
@@ -82,6 +84,8 @@ const category: DiscoveryCategory = {
   },
   subcategories: [{ name: 'Musées', slug: 'musees' }],
   pois: [primaryPoi, nearbyPoi],
+  groups: [{ subcategory: { name: 'Musées', slug: 'musees' }, pois: [primaryPoi] }],
+  nearby_pois: [nearbyPoi],
 }
 
 const poi: DiscoveryPoiDetail = {
@@ -165,7 +169,7 @@ describe('041 public discovery pages', () => {
   })
 
   it('omits the nearby section when the Category has no nearby public POI', async () => {
-    mockedCategory.mockResolvedValue({ ...category, pois: [primaryPoi] })
+    mockedCategory.mockResolvedValue({ ...category, pois: [primaryPoi], nearby_pois: [] })
     const { default: CategoryPage } = await import(
       '@/app/(public)/decouvrir/[city-slug]/[category-slug]/page'
     )

@@ -630,9 +630,14 @@ export function discoveryPoiSchema(
 
     url: poiUrl(path),
 
-    image: [
-      poi.hero_photo_url,
-    ],
+    // Spec 065 AC-03-04 : l'image de remplacement n'est pas une photo du lieu.
+    ...(poi.photo_is_fallback
+      ? {}
+      : {
+          image: [
+            poi.hero_photo_url,
+          ],
+        }),
 
     ...(poi.phone
       ? {

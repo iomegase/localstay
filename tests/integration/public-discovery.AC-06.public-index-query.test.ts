@@ -153,7 +153,7 @@ function expectExactPublicIndexDto(value: unknown) {
     for (const poi of (city as { pois: unknown[] }).pois) {
       exact(poi, [
         'address', 'category', 'distance_km', 'is_open_now', 'latitude', 'longitude',
-        'name', 'photo_url', 'rating', 'rating_count', 'slug', 'subcategory', 'zone',
+        'name', 'photo_is_fallback', 'photo_url', 'rating', 'rating_count', 'slug', 'subcategory', 'zone',
       ])
       exact((poi as { category: unknown }).category, ['name', 'slug'])
       const subcategory = (poi as { subcategory: unknown }).subcategory

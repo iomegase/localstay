@@ -283,6 +283,11 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                               <div className="flex flex-col items-start gap-1">
                                 <StatusBadge status={poi.status} />
                                 <DiscoveryBadge name={poi.name} status={poi.discovery_status} />
+                                {poi.discovery_status === 'PUBLISHED' && !poi.has_usable_photo && (
+                                  <span className="inline-flex w-fit items-center rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                                    Sans photo
+                                  </span>
+                                )}
                                 {poi.merchant_attached && (
                                   <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">Merchant Lié</span>
                                 )}

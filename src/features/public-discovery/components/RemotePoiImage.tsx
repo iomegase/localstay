@@ -7,6 +7,10 @@ import { isMyStayStorageUrl } from '@/features/poi-photos/lib/storage-url'
 
 const MYSTAY_IMAGE_FALLBACK = '/og-mystay.png'
 
+function isLocalImagePath(src: string): boolean {
+  return src.startsWith('/') && !src.startsWith('//')
+}
+
 type RemotePoiImageProps = {
   src: string
   alt: string
@@ -32,8 +36,9 @@ export function RemotePoiImage({
   const failed = failedSource === src
   const renderedSource = failed ? MYSTAY_IMAGE_FALLBACK : src
 
-  // Spec 063 AC-03-03 : une copie MyStay passe par l'optimiseur next/image.
-  if (!failed && isMyStayStorageUrl(src)) {
+  // Spec 063 AC-03-03 : une copie MyStay passe par l'optimiseur next/image,
+  // comme les images locales de remplacement (spec 065 AC-03-03).
+  if (!failed && (isMyStayStorageUrl(src) || isLocalImagePath(src))) {
     return (
       <Image
         src={src}

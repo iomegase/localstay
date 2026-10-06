@@ -40,7 +40,9 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
           <div className="relative mt-7 aspect-[4/3] overflow-hidden rounded-[26px] bg-slate-100 shadow-[0_18px_50px_rgba(15,23,42,0.14)] sm:aspect-[16/9] lg:max-h-[570px]">
             <RemotePoiImage
               src={poi.hero_photo_url}
-              alt={`${poi.name} à ${poi.city.name}`}
+              alt={poi.photo_is_fallback
+                ? `Illustration : ${poi.subcategory?.name ?? poi.category.name}`
+                : `${poi.name} à ${poi.city.name}`}
               width={1200}
               height={900}
               loading="eager"

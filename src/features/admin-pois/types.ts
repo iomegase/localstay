@@ -51,6 +51,8 @@ export type AdminPoiListItem = {
   geocode_status: string
   photo_count: number
   primary_photo_url: string | null
+  /** Spec 065 AC-03-06 : au moins une photo exploitable (règle spec 022). */
+  has_usable_photo: boolean
   photos_status: string
   review_source: AdminPoiReviewSource
   merchant_attached: boolean

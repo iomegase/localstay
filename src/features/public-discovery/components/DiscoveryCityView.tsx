@@ -1,13 +1,30 @@
 import Link from 'next/link'
 import { ArrowRight, MapPinned } from 'lucide-react'
+import { isValidLucideIconSlug, LUCIDE_ICON_COMPONENTS } from '@/features/admin-taxonomy/lib/icons'
 import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
   marketingDarkButtonClass,
 } from '@/features/marketing/components/MarketingShell'
-import type { DiscoveryCity } from '../types'
+import type { DiscoveryCity, DiscoverySubcategorySummary } from '../types'
 import { DiscoveryPoiCard } from './DiscoveryPoiCard'
+
+// Spec 065 AC-01-02 / AC-01-03.
+const MAX_LISTED_SUBCATEGORIES = 3
+const MAX_CARDS_PER_CATEGORY = 3
+
+/** Spec 065 AC-01-01 : icône choisie dans Admin › Taxonomie, sinon icône par défaut. */
+function CategoryIcon({ icon }: { icon: string }) {
+  const Icon = isValidLucideIconSlug(icon) ? LUCIDE_ICON_COMPONENTS[icon] : MapPinned
+  return <Icon aria-hidden="true" className="h-5 w-5" />
+}
+
+function subcategoryLine(subcategories: DiscoverySubcategorySummary[]): string | null {
+  if (subcategories.length === 0) return null
+  const listed = subcategories.slice(0, MAX_LISTED_SUBCATEGORIES).map(subcategory => subcategory.name).join(' · ')
+  return subcategories.length > MAX_LISTED_SUBCATEGORIES ? `${listed}…` : listed
+}
 
 function cityIntroduction(city: DiscoveryCity): string {
   const location = [city.department, city.region].filter(Boolean).join(', ')
@@ -17,8 +34,6 @@ function cityIntroduction(city: DiscoveryCity): string {
 }
 
 export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
-  const pois = city.categories.flatMap(category => category.pois)
-
   return (
     <MarketingShell>
       <div className="overflow-hidden text-slate-800">
@@ -45,11 +60,16 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
                   href={`/decouvrir/${city.slug}/${category.slug}`}
                   className="group flex min-w-0 items-center gap-4 rounded-[20px] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition-colors hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
                 >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pink-50 text-pink-600" title={category.icon}>
-                    <MapPinned aria-hidden="true" className="h-5 w-5" />
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-pink-50 text-pink-600">
+                    <CategoryIcon icon={category.icon} />
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-base font-semibold text-slate-900 group-hover:text-pink-600">{category.name}</span>
+                    {subcategoryLine(category.subcategories) ? (
+                      <span className="mt-1 block truncate text-xs text-slate-600">
+                        {subcategoryLine(category.subcategories)}
+                      </span>
+                    ) : null}
                     <span className="mt-1 block text-[11px] text-slate-500">
                       {category.poi_count} {category.poi_count > 1 ? 'adresses' : 'adresse'}
                     </span>
@@ -66,8 +86,30 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
           <h2 id="discovery-city-pois-title" className="text-3xl font-semibold tracking-[-0.045em] text-slate-900 sm:text-4xl">
             Nos adresses à {city.name}.
           </h2>
-          <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {pois.map(poi => <DiscoveryPoiCard citySlug={city.slug} key={`${poi.category.slug}-${poi.slug}`} poi={poi} />)}
+          <div className="mt-10 space-y-12">
+            {city.categories.map(category => (
+              <section key={category.slug} aria-labelledby={`city-category-${category.slug}`}>
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <h3 id={`city-category-${category.slug}`} className="text-2xl font-semibold tracking-[-0.04em] text-slate-900">
+                    {category.name}
+                  </h3>
+                  {category.poi_count > MAX_CARDS_PER_CATEGORY ? (
+                    <Link
+                      href={`/decouvrir/${city.slug}/${category.slug}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-pink-600 hover:text-slate-900"
+                    >
+                      Voir les {category.poi_count} adresses
+                      <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : null}
+                </div>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {category.pois.slice(0, MAX_CARDS_PER_CATEGORY).map(poi => (
+                    <DiscoveryPoiCard citySlug={city.slug} key={poi.slug} poi={poi} />
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         </section>
 

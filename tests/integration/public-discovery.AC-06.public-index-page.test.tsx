@@ -22,6 +22,7 @@ const poi: DiscoveryPoiCard = {
   rating_count: 24,
   is_open_now: true,
   photo_url: 'https://images.example.com/atelier.jpg',
+  photo_is_fallback: false,
   category: { name: 'Artisanat', slug: 'artisanat' },
   subcategory: null,
   distance_km: 0.4,

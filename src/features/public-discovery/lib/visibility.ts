@@ -7,6 +7,8 @@ import type { DiscoveryZone } from '../types'
 const PRIMARY_RADIUS_KM = 15
 const NEARBY_RADIUS_KM = 30
 const DISCOVERY_ROUTE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+// Spec 065 BR-08 : catégories réservées au guide privé, jamais visibles sur /decouvrir.
+const PRIVATE_GUIDE_ONLY_CATEGORY_SLUGS = new Set(['urgences'])
 
 type VisibilityCandidate = {
   name: string
@@ -86,6 +88,7 @@ export function getDiscoveryPoiVisibility(
     || !candidate.name.trim()
     || !isCanonicalDiscoverySlug(candidate.city.slug)
     || !isCanonicalDiscoverySlug(candidate.category.slug)
+    || PRIVATE_GUIDE_ONLY_CATEGORY_SLUGS.has(candidate.category.slug)
     || !isCanonicalDiscoverySlug(candidate.slug)
     || (candidate.subcategory_id !== null && !candidate.subcategory)
     || (candidate.subcategory && candidate.subcategory.category_id !== candidate.category.id)

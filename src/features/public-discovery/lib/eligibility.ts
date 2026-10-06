@@ -2,6 +2,9 @@ import { isUsableAdminPhotoUrl } from '@/features/admin-pois/lib/admin-poi-rules
 import type { PoiDiscoveryEligibility } from '../types'
 import { isValidLatitude, isValidLongitude } from './coordinates'
 
+// Spec 065 BR-04 : sans photo exploitable, la fiche repose sur son texte.
+export const MIN_DESCRIPTION_LENGTH_WITHOUT_PHOTO = 150
+
 type EligibilityInput = {
   is_active: boolean
   deleted_at: Date | null
@@ -28,7 +31,12 @@ export function getPoiDiscoveryEligibility(input: EligibilityInput): PoiDiscover
     missing.push('subcategory')
   }
   if (!input.description?.trim()) missing.push('description')
-  if (!input.photos.some(isUsableAdminPhotoUrl)) missing.push('photo')
+  if (
+    !input.photos.some(isUsableAdminPhotoUrl)
+    && (input.description?.trim().length ?? 0) < MIN_DESCRIPTION_LENGTH_WITHOUT_PHOTO
+  ) {
+    missing.push('photo')
+  }
   if (!input.address.trim()) missing.push('address')
   if (
     input.geocode_status !== 'success'

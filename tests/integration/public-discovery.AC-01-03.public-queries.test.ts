@@ -170,12 +170,15 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
   const taxonomyKeys = ['name', 'slug']
   const cardKeys = [
     'address', 'category', 'distance_km', 'is_open_now', 'latitude', 'longitude',
-    'name', 'photo_url', 'rating', 'rating_count', 'slug', 'subcategory', 'zone',
+    'name', 'photo_is_fallback', 'photo_url', 'rating', 'rating_count', 'slug', 'subcategory', 'zone',
   ]
-  const categoryKeys = ['city', 'icon', 'name', 'pois', 'slug', 'sort_order', 'subcategories']
+  // Spec 065 : groupes par sous-catégorie et zone « Aux alentours » séparée.
+  const categoryKeys = [
+    'city', 'groups', 'icon', 'name', 'nearby_pois', 'pois', 'slug', 'sort_order', 'subcategories',
+  ]
   const detailKeys = [
     'address', 'category', 'city', 'description', 'distance_km', 'hero_photo_url',
-    'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photos',
+    'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photo_is_fallback', 'photos',
     'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
   ]
   const exact = (candidate: unknown, keys: string[]) => {
@@ -193,7 +196,10 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
   if (kind === 'city') {
     exact(object, cityKeys)
     for (const category of object.categories as Array<Record<string, unknown>>) {
-      exact(category, ['icon', 'name', 'poi_count', 'pois', 'slug', 'sort_order'])
+      exact(category, ['icon', 'name', 'poi_count', 'pois', 'slug', 'sort_order', 'subcategories'])
+      for (const subcategory of category.subcategories as unknown[]) {
+        exact(subcategory, ['name', 'poi_count', 'slug'])
+      }
       for (const poi of category.pois as unknown[]) exactCard(poi)
     }
   } else if (kind === 'category') {
@@ -201,6 +207,12 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
     exact(object.city, citySummaryKeys)
     for (const subcategory of object.subcategories as unknown[]) exactTaxonomy(subcategory)
     for (const poi of object.pois as unknown[]) exactCard(poi)
+    for (const group of object.groups as Array<Record<string, unknown>>) {
+      exact(group, ['pois', 'subcategory'])
+      if (group.subcategory) exactTaxonomy(group.subcategory)
+      for (const poi of group.pois as unknown[]) exactCard(poi)
+    }
+    for (const poi of object.nearby_pois as unknown[]) exactCard(poi)
   } else {
     exact(object, detailKeys)
     exact(object.city, citySummaryKeys)
