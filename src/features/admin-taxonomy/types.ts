@@ -7,6 +7,8 @@ export type AdminSubCategory = {
   is_active: boolean
   slug_locked: boolean
   poi_count: number
+  /** Spec 073 : types Google acceptés à l'acquisition. */
+  google_types: string[]
 }
 
 export type AdminCategory = {
@@ -19,6 +21,8 @@ export type AdminCategory = {
   slug_locked: boolean
   poi_count: number
   subcategory_count: number
+  /** Spec 073 : types Google acceptés à l'acquisition. */
+  google_types: string[]
   subcategories: AdminSubCategory[]
 }
 
@@ -30,7 +34,7 @@ export type CategoryCreateInput = {
   is_active: boolean
 }
 
-export type CategoryPatchInput = Partial<CategoryCreateInput>
+export type CategoryPatchInput = Partial<CategoryCreateInput> & { google_types?: string[] }
 
 export type SubCategoryCreateInput = {
   name: string
@@ -39,4 +43,4 @@ export type SubCategoryCreateInput = {
   is_active: boolean
 }
 
-export type SubCategoryPatchInput = Partial<SubCategoryCreateInput>
+export type SubCategoryPatchInput = Partial<SubCategoryCreateInput> & { google_types?: string[] }

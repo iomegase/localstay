@@ -2,6 +2,7 @@ import { googleReviewExpiry, sanitizeGoogleReviewPayload } from './google-policy
 import { mapRegularOpeningHoursToPoiHours } from './google-hours'
 import type { GooglePolicyResult, GoogleReviewPayload } from '../types'
 import type { PoiHours } from '@/features/categories/types'
+import { googleTypeLabel, type TypeQuery } from './google-types'
 
 type GoogleTextSearchResponse = {
   places?: unknown[]
@@ -11,6 +12,8 @@ type GoogleTextSearchResponse = {
 type GooglePlaceSearchQuery = {
   textQuery: string
   query_subcategory_name: string | null
+  /** Spec 073 AC-02-01 : type Google exact filtré strictement. */
+  includedType?: string
 }
 
 export type GoogleBusinessStatus = 'OPERATIONAL' | 'CLOSED_TEMPORARILY' | 'CLOSED_PERMANENTLY'
@@ -29,6 +32,9 @@ export type GooglePlaceCandidate = {
   business_status: GoogleBusinessStatus | null
   /** Spec 066 BR-01 : position Google, utilisée seulement pour le filtre village. */
   location: { latitude: number; longitude: number } | null
+  /** Spec 073 AC-03-01 : type principal Google et types secondaires. */
+  primary_type: string | null
+  types: string[]
 }
 
 const ACQUISITION_SEARCH_RADIUS_METERS = 30000
@@ -48,6 +54,8 @@ const PLACE_FIELDS = [
   'regularOpeningHours',
   'businessStatus',
   'location',
+  'primaryType',
+  'types',
 ]
 
 const PLACES_FIELD_MASK = [
@@ -72,6 +80,8 @@ export async function searchGooglePlaceCandidates(params: {
   categoryName: string
   subcategoryNames?: string[]
   sourceUrl?: string | null
+  /** Spec 073 : requêtes par type ; vides → recherche texte (AC-02-03). */
+  typeQueries?: TypeQuery[]
   latitude: number
   longitude: number
 }): Promise<GooglePlaceCandidate[]> {
@@ -81,7 +91,7 @@ export async function searchGooglePlaceCandidates(params: {
   const byPlaceId = new Map<string, GooglePlaceCandidate>()
 
   for (const query of buildGooglePlaceSearchQueries(params)) {
-    const places = await fetchAllTextSearchPages(apiKey, {
+    const body = {
       textQuery: query.textQuery,
       languageCode: 'fr',
       pageSize: 20,
@@ -91,7 +101,10 @@ export async function searchGooglePlaceCandidates(params: {
           radius: ACQUISITION_SEARCH_RADIUS_METERS,
         },
       },
-    })
+    }
+    const places = query.includedType
+      ? await fetchTypedTextSearchPages(apiKey, body, query.includedType)
+      : await fetchAllTextSearchPages(apiKey, body)
 
     for (const place of places) {
       const candidate = mapGooglePlaceCandidate(place, query.query_subcategory_name)
@@ -110,6 +123,26 @@ export async function searchGooglePlaceCandidates(params: {
   }
 
   return Array.from(byPlaceId.values())
+}
+
+/** Spec 073 BR-03 : un type refusé par Google (400) est refait en texte seul. */
+async function fetchTypedTextSearchPages(
+  apiKey: string,
+  body: Record<string, unknown>,
+  includedType: string,
+): Promise<unknown[]> {
+  try {
+    return await fetchAllTextSearchPages(apiKey, { ...body, includedType, strictTypeFiltering: true })
+  } catch (error) {
+    if (error instanceof GooglePlacesSearchError && error.status === 400) return fetchAllTextSearchPages(apiKey, body)
+    throw error
+  }
+}
+
+class GooglePlacesSearchError extends Error {
+  constructor(readonly status: number) {
+    super(`Google Places search failed: ${status}`)
+  }
 }
 
 /** Spec 066 AC-03-01 : suit `nextPageToken` jusqu'à MAX_PAGES_PER_QUERY pages. */
@@ -144,7 +177,7 @@ async function postTextSearch(
     body: JSON.stringify(body),
   })
 
-  if (!response.ok) throw new Error(`Google Places search failed: ${response.status}`)
+  if (!response.ok) throw new GooglePlacesSearchError(response.status)
   return (await response.json()) as GoogleTextSearchResponse
 }
 
@@ -241,13 +274,20 @@ function buildGooglePlaceSearchQueries(params: {
   categoryName: string
   subcategoryNames?: string[]
   sourceUrl?: string | null
+  typeQueries?: TypeQuery[]
 }): GooglePlaceSearchQuery[] {
-  const queries: GooglePlaceSearchQuery[] = [
-    { textQuery: `${params.categoryName} ${params.cityName}`, query_subcategory_name: null },
-  ]
-  const seen = new Set(queries.map(query => normalizeQueryKey(query.textQuery)))
+  const typed = params.typeQueries ?? []
+  const queries: GooglePlaceSearchQuery[] = typed.length > 0
+    // Spec 073 AC-02-01 : une requête par type exact, au lieu des requêtes texte.
+    ? typed.map(query => ({
+      textQuery: `${googleTypeLabel(query.includedType)} ${params.cityName}`,
+      query_subcategory_name: query.query_subcategory_name,
+      includedType: query.includedType,
+    }))
+    : [{ textQuery: `${params.categoryName} ${params.cityName}`, query_subcategory_name: null }]
+  const seen = new Set(queries.map(query => normalizeQueryKey(query.textQuery + (query.includedType ?? ''))))
 
-  for (const subcategoryName of params.subcategoryNames ?? []) {
+  for (const subcategoryName of typed.length > 0 ? [] : params.subcategoryNames ?? []) {
     if (!isUsefulSubcategoryQuery(subcategoryName)) continue
 
     const textQuery = `${subcategoryName} ${params.cityName}`
@@ -322,6 +362,8 @@ function mapGooglePlaceCandidate(place: unknown, querySubcategoryName: string | 
     query_subcategory_name: querySubcategoryName,
     business_status: businessStatus(place.businessStatus),
     location: placeLocation(place.location),
+    primary_type: typeof place.primaryType === 'string' && place.primaryType ? place.primaryType : null,
+    types: Array.isArray(place.types) ? place.types.filter((type): type is string => typeof type === 'string') : [],
   }
 }
 

@@ -6,6 +6,7 @@ import {
   searchGooglePlaceCandidates,
   type GooglePlaceCandidate,
 } from '../lib/google-places'
+import { classifyTypeMatch, planTypeQueries } from '../lib/google-types'
 import { filterCandidatesForVillage } from '../lib/village'
 import { filterByReviewMemory } from '../lib/review-memory'
 import { loadCityReviewMemories } from './review-memory'
@@ -52,6 +53,8 @@ type CandidateRow = {
   description: string | null
   category_id: string
   subcategory_id: string | null
+  primary_type?: string | null
+  type_match?: string | null
 }
 
 const STORED_BUSINESS_STATUSES = new Set(['OPERATIONAL', 'CLOSED_TEMPORARILY'])
@@ -75,9 +78,10 @@ export async function createAcquisitionRun(
       select: {
         id: true,
         name: true,
+        google_types: true,
         subcategories: {
           where: { is_active: true, deleted_at: null },
-          select: { id: true, name: true },
+          select: { id: true, name: true, google_types: true },
         },
       },
     }),
@@ -121,6 +125,10 @@ export async function createAcquisitionRun(
         categoryName: category.name,
         subcategoryNames: subcategories.map(subcategory => subcategory.name),
         sourceUrl: input.source_url ?? null,
+        typeQueries: planTypeQueries({
+          categoryTypes: category.google_types ?? [],
+          subcategories: subcategories.map(subcategory => ({ name: subcategory.name, types: subcategory.google_types ?? [] })),
+        }),
         latitude: city.latitude,
         longitude: city.longitude,
       })
@@ -172,6 +180,8 @@ type ProcessContext = {
   city: { name: string; latitude: number; longitude: number }
   category: { id: string; name: string }
   subcategoryIdByName: Map<string, string>
+  /** Spec 073 : types Google acceptés (catégorie + sous-catégories). */
+  acceptedTypes: string[]
   officialSourceContext: OfficialWebsiteSourceContext | null
   websiteContextCache: Map<string, Promise<OfficialWebsiteSourceContext | null>>
 }
@@ -227,6 +237,8 @@ async function processCandidate(candidate: GooglePlaceCandidate, context: Proces
     duplicate_poi_ids: duplicates,
     match_status: duplicates.length > 0 ? 'duplicate_candidate' : 'matched',
     review_status: 'needs_review',
+    primary_type: candidate.primary_type ?? null,
+    type_match: classifyTypeMatch(candidate.primary_type ?? null, candidate.types ?? [], context.acceptedTypes),
   })
 }
 
@@ -252,7 +264,8 @@ export async function processPendingCandidates(
         select: {
           id: true,
           name: true,
-          subcategories: { where: { is_active: true, deleted_at: null }, select: { id: true, name: true } },
+          google_types: true,
+          subcategories: { where: { is_active: true, deleted_at: null }, select: { id: true, name: true, google_types: true } },
         },
       },
     },
@@ -266,6 +279,10 @@ export async function processPendingCandidates(
     subcategoryIdByName: new Map(
       (run.category.subcategories ?? []).map(subcategory => [normalizeNameKey(subcategory.name), subcategory.id]),
     ),
+    acceptedTypes: [
+      ...(run.category.google_types ?? []),
+      ...(run.category.subcategories ?? []).flatMap(subcategory => subcategory.google_types ?? []),
+    ],
     officialSourceContext: run.source_url ? await fetchOfficialWebsiteSourceContext(run.source_url) : null,
     websiteContextCache: new Map(),
   }
@@ -444,6 +461,8 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
           description: true,
           category_id: true,
           subcategory_id: true,
+          primary_type: true,
+          type_match: true,
         },
       },
     },
@@ -492,6 +511,8 @@ function mapCandidate(candidate: CandidateRow): AcquisitionCandidateDto {
     description: candidate.description ?? null,
     category_id: candidate.category_id,
     subcategory_id: candidate.subcategory_id ?? null,
+    primary_type: candidate.primary_type ?? null,
+    type_match: candidate.type_match ?? null,
   }
 }
 

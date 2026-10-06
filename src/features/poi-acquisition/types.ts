@@ -63,6 +63,9 @@ export type AcquisitionCandidateDto = {
   description: string | null
   category_id: string
   subcategory_id: string | null
+  /** Spec 073 AC-03-01 : type principal Google et correspondance (primary | secondary | unknown). */
+  primary_type: string | null
+  type_match: string | null
 }
 
 export type AcquisitionRunDetail = {

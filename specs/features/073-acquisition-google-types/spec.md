@@ -15,7 +15,7 @@ depends_on:
   - 018-poi-acquisition-pipeline
   - 072-acquisition-run-reliability
 bounded_context: poi-acquisition
-implementation_gate: "PO 2026-10-06 : « lance spec 073 ». Option A retenue par défaut (lieux au type principal différent conservés, repliés en bas de revue) — question posée sans réponse explicite, choix réversible."
+implementation_gate: "PO 2026-10-06 : « lance spec 073 » puis option A confirmée explicitement (lieux au type principal différent conservés, repliés en bas de revue avec un badge)."
 ```
 
 ---

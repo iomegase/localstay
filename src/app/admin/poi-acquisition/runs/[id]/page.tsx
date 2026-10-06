@@ -5,6 +5,8 @@ import { AdminCandidateReviewActions } from '@/features/poi-acquisition/componen
 import { AdminCandidateEditDialog } from '@/features/poi-acquisition/components/AdminCandidateEditDialog'
 import { AdminResumeRunButton } from '@/features/poi-acquisition/components/AdminResumeRunButton'
 import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
+import { googleTypeLabel } from '@/features/poi-acquisition/lib/google-types'
+import type { AcquisitionCandidateDto } from '@/features/poi-acquisition/types'
 import { AlertCircle, FileSearch } from 'lucide-react'
 
 // Fonction utilitaire pour générer un style dynamique de badge (Corporate Style)
@@ -43,6 +45,8 @@ export default async function AdminPoiAcquisitionRunPage({
   const [run, options] = await Promise.all([getAcquisitionRun(id), getManualPoiFormOptions()])
   
   if (!run) notFound()
+  const mainCandidates = run.candidates.filter(candidate => candidate.type_match !== 'secondary')
+  const otherCandidates = run.candidates.filter(candidate => candidate.type_match === 'secondary')
 
   return (
     <div className="w-full animate-in fade-in duration-500 space-y-6">
@@ -135,85 +139,117 @@ export default async function AdminPoiAcquisitionRunPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50/80 bg-white">
-                {run.candidates.map((candidate) => (
-                  <tr key={candidate.id} className="group transition-colors duration-200 hover:bg-gray-50/50">
-                    
-                    {/* COL 1 : POI & ADRESSE */}
-                    <td className="px-6 py-4 align-top whitespace-normal">
-                      <h3 className="text-[13px] font-bold text-neutral-900 leading-tight">{candidate.name}</h3>
-                      <p className="mt-1 text-[11px] font-medium leading-relaxed text-gray-500 max-w-sm">
-                        {candidate.address}
-                      </p>
-                      {candidate.duplicate_poi_ids.length > 0 && (
-                        <div className="mt-2 inline-flex flex-col gap-0.5 rounded-lg border border-amber-200/50 bg-amber-50 px-2 py-1.5 text-[11px] font-bold text-amber-600">
-                          <span className="text-[9px] uppercase tracking-widest opacity-80">Doublons probables</span>
-                          <span className="font-mono">{candidate.duplicate_poi_ids.join(', ')}</span>
-                        </div>
-                      )}
-                    </td>
-                    
-                    {/* COL 2 : STATUTS */}
-                    <td className="px-6 py-4 align-top">
-                      <div className="flex flex-col gap-1.5 items-start">
-                        <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.match_status)}`}>
-                          Match: {candidate.match_status}
-                        </span>
-                        <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.geocode_status)}`}>
-                          Geocode: {candidate.geocode_status}
-                        </span>
-                        <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.review_status)}`}>
-                          Revue: {candidate.review_status}
-                        </span>
-                        {candidate.business_status === 'CLOSED_TEMPORARILY' && (
-                          <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
-                            Fermé temporairement (souvent saisonnier)
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    
-                    {/* COL 3 : ORIGINE & DETAILS */}
-                    <td className="px-6 py-4 align-top whitespace-normal">
-                      <div className="flex flex-col gap-1 text-[11px]">
-                        <p className="text-gray-500">
-                          <span className="font-semibold text-gray-400">Source:</span> <span className="font-bold text-neutral-900">{candidate.source}</span>
-                        </p>
-                        {candidate.google_review_payload?.attribution && (
-                          <p className="text-gray-400 leading-snug line-clamp-2" title={candidate.google_review_payload.attribution}>
-                            <span className="font-semibold">Attr:</span> {candidate.google_review_payload.attribution}
-                          </p>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* COL 4 : ACTIONS */}
-                    <td className="px-6 py-4 align-top">
-                      {/* Disposition Horizontale pour tout aligner */}
-                      <div className="flex items-center justify-end gap-2 mt-0.5">
-                        
-                        {/* Actions de Revue (Publier / Rejeter gérés par ce composant) */}
-                        <AdminCandidateReviewActions
-                          candidateId={candidate.id}
-                          reviewStatus={candidate.review_status}
-                          duplicatePoiIds={candidate.duplicate_poi_ids}
-                        />
-                        
-                        {candidate.review_status === 'needs_review' && (
-                          <>
-                            <div className="mx-1 h-6 w-px bg-gray-200"></div>
-                            {/* Spec 071 US-01 : modifier avant publication. */}
-                            <AdminCandidateEditDialog candidate={candidate} categories={options.categories} />
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                {mainCandidates.map(candidate => (
+                  <CandidateTableRow key={candidate.id} candidate={candidate} categories={options.categories} />
                 ))}
               </tbody>
             </table>
+            {/* Spec 073 AC-03-02 : lieux au type principal différent, conservés mais relégués (BR-01). */}
+            {otherCandidates.length > 0 && (
+              <details className="border-t border-gray-100">
+                <summary className="cursor-pointer px-6 py-4 text-[12px] font-bold text-gray-500 hover:bg-gray-50/50">
+                  Autres types ({otherCandidates.length})
+                </summary>
+                <table className="w-full text-left whitespace-nowrap">
+                  <tbody className="divide-y divide-gray-50/80 bg-white">
+                    {otherCandidates.map(candidate => (
+                      <CandidateTableRow key={candidate.id} candidate={candidate} categories={options.categories} />
+                    ))}
+                  </tbody>
+                </table>
+              </details>
+            )}
           </div>
         )}
       </div>
     </div>
+  )
+}
+function CandidateTableRow({
+  candidate,
+  categories,
+}: {
+  candidate: AcquisitionCandidateDto
+  categories: Awaited<ReturnType<typeof getManualPoiFormOptions>>['categories']
+}) {
+  return (
+    <tr className="group transition-colors duration-200 hover:bg-gray-50/50">
+      
+      {/* COL 1 : POI & ADRESSE */}
+      <td className="px-6 py-4 align-top whitespace-normal">
+        <h3 className="text-[13px] font-bold text-neutral-900 leading-tight">{candidate.name}</h3>
+        <p className="mt-1 text-[11px] font-medium leading-relaxed text-gray-500 max-w-sm">
+          {candidate.address}
+        </p>
+        {candidate.duplicate_poi_ids.length > 0 && (
+          <div className="mt-2 inline-flex flex-col gap-0.5 rounded-lg border border-amber-200/50 bg-amber-50 px-2 py-1.5 text-[11px] font-bold text-amber-600">
+            <span className="text-[9px] uppercase tracking-widest opacity-80">Doublons probables</span>
+            <span className="font-mono">{candidate.duplicate_poi_ids.join(', ')}</span>
+          </div>
+        )}
+      </td>
+      
+      {/* COL 2 : STATUTS */}
+      <td className="px-6 py-4 align-top">
+        <div className="flex flex-col gap-1.5 items-start">
+          <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.match_status)}`}>
+            Match: {candidate.match_status}
+          </span>
+          <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.geocode_status)}`}>
+            Geocode: {candidate.geocode_status}
+          </span>
+          <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getBadgeStyle(candidate.review_status)}`}>
+            Revue: {candidate.review_status}
+          </span>
+          {/* Spec 073 AC-03-03 : type principal Google en français. */}
+          {candidate.type_match && (
+            <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${candidate.type_match === 'secondary' ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-sky-100 bg-sky-50 text-sky-700'}`}>
+              Type : {googleTypeLabel(candidate.primary_type)}
+            </span>
+          )}
+          {candidate.business_status === 'CLOSED_TEMPORARILY' && (
+            <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+              Fermé temporairement (souvent saisonnier)
+            </span>
+          )}
+        </div>
+      </td>
+      
+      {/* COL 3 : ORIGINE & DETAILS */}
+      <td className="px-6 py-4 align-top whitespace-normal">
+        <div className="flex flex-col gap-1 text-[11px]">
+          <p className="text-gray-500">
+            <span className="font-semibold text-gray-400">Source:</span> <span className="font-bold text-neutral-900">{candidate.source}</span>
+          </p>
+          {candidate.google_review_payload?.attribution && (
+            <p className="text-gray-400 leading-snug line-clamp-2" title={candidate.google_review_payload.attribution}>
+              <span className="font-semibold">Attr:</span> {candidate.google_review_payload.attribution}
+            </p>
+          )}
+        </div>
+      </td>
+
+      {/* COL 4 : ACTIONS */}
+      <td className="px-6 py-4 align-top">
+        {/* Disposition Horizontale pour tout aligner */}
+        <div className="flex items-center justify-end gap-2 mt-0.5">
+          
+          {/* Actions de Revue (Publier / Rejeter gérés par ce composant) */}
+          <AdminCandidateReviewActions
+            candidateId={candidate.id}
+            reviewStatus={candidate.review_status}
+            duplicatePoiIds={candidate.duplicate_poi_ids}
+          />
+          
+          {candidate.review_status === 'needs_review' && (
+            <>
+              <div className="mx-1 h-6 w-px bg-gray-200"></div>
+              {/* Spec 071 US-01 : modifier avant publication. */}
+              <AdminCandidateEditDialog candidate={candidate} categories={categories} />
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
   )
 }

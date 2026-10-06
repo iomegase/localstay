@@ -7,10 +7,13 @@ export type RecommendedTaxonomyCategory = {
   slug: string
   icon: string
   sort_order: number
+  /** Spec 073 : types Google acceptés. */
+  google_types?: string[]
   subcategories: Array<{
     name: string
     slug: string
     sort_order: number
+    google_types?: string[]
   }>
 }
 
@@ -18,6 +21,7 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Restaurant',
     slug: 'diner',
+    google_types: ['restaurant', '*_restaurant', 'bistro'],
     icon: 'utensils',
     sort_order: 1,
     subcategories: [
@@ -30,12 +34,13 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Cafés',
     slug: 'cafes',
+    google_types: ['cafe', 'coffee_shop', 'tea_house', 'bakery', 'pastry_shop', 'breakfast_restaurant', 'brunch_restaurant'],
     icon: 'coffee',
     sort_order: 2,
     subcategories: [
-      { name: 'Petit-déjeuner', slug: 'petit-dejeuner', sort_order: 1 },
-      { name: 'Café', slug: 'cafe', sort_order: 2 },
-      { name: 'Salon de thé', slug: 'salon-de-the', sort_order: 3 },
+      { name: 'Petit-déjeuner', slug: 'petit-dejeuner', sort_order: 1, google_types: ['breakfast_restaurant', 'brunch_restaurant', 'bakery'] },
+      { name: 'Café', slug: 'cafe', sort_order: 2, google_types: ['cafe', 'coffee_shop'] },
+      { name: 'Salon de thé', slug: 'salon-de-the', sort_order: 3, google_types: ['tea_house', 'pastry_shop'] },
     ],
   },
   {
@@ -53,6 +58,7 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Soin',
     slug: 'soin',
+    google_types: ['spa', 'massage', 'sauna'],
     icon: 'sparkles',
     sort_order: 4,
     subcategories: [
@@ -64,17 +70,20 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Shopping',
     slug: 'shopping',
+    google_types: ['store', 'clothing_store', 'gift_shop', 'grocery_store', 'food_store', 'market', 'book_store', 'sporting_goods_store'],
     icon: 'shopping-bag',
     sort_order: 5,
     subcategories: [
       { name: 'Boutiques locales', slug: 'boutiques-locales', sort_order: 1 },
-      { name: 'Souvenirs', slug: 'souvenirs', sort_order: 2 },
-      { name: 'Produits régionaux', slug: 'produits-regionaux', sort_order: 3 },
+      { name: 'Souvenirs', slug: 'souvenirs', sort_order: 2, google_types: ['gift_shop'] },
+      { name: 'Produits régionaux', slug: 'produits-regionaux', sort_order: 3, google_types: ['grocery_store', 'food_store', 'market'] },
+      { name: 'Location de ski', slug: 'location-de-ski', sort_order: 4, google_types: ['sporting_goods_store'] },
     ],
   },
   {
     name: 'Culture',
     slug: 'culture',
+    google_types: ['museum', 'art_gallery', 'historical_landmark', 'church', 'library'],
     icon: 'landmark',
     sort_order: 6,
     subcategories: [
@@ -86,6 +95,7 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Loisirs',
     slug: 'loisirs',
+    google_types: ['tourist_attraction', 'amusement_center', 'bowling_alley', 'ski_resort', 'swimming_pool', 'movie_theater'],
     icon: 'bike',
     sort_order: 7,
     subcategories: [
@@ -97,6 +107,7 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Bars',
     slug: 'bars',
+    google_types: ['bar', 'wine_bar', 'pub', 'lounge_bar', 'cocktail_bar'],
     icon: 'wine',
     sort_order: 8,
     subcategories: [
@@ -108,6 +119,7 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Mobilité',
     slug: 'mobilite',
+    google_types: ['taxi_stand', 'parking', 'train_station', 'bus_station', 'car_rental'],
     icon: 'car',
     sort_order: 9,
     subcategories: [
@@ -120,6 +132,7 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Famille',
     slug: 'famille',
+    google_types: ['playground', 'park', 'amusement_park', 'zoo', 'swimming_pool'],
     icon: 'baby',
     sort_order: 10,
     subcategories: [
@@ -131,12 +144,13 @@ export const RECOMMENDED_TAXONOMY: RecommendedTaxonomyCategory[] = [
   {
     name: 'Urgences',
     slug: 'urgences',
+    google_types: ['pharmacy', 'doctor', 'hospital', 'veterinary_care'],
     icon: 'cross',
     sort_order: 11,
     subcategories: [
-      { name: 'Pharmacie', slug: 'pharmacie', sort_order: 1 },
-      { name: 'Médecin', slug: 'medecin', sort_order: 2 },
-      { name: 'Vétérinaire', slug: 'veterinaire', sort_order: 3 },
+      { name: 'Pharmacie', slug: 'pharmacie', sort_order: 1, google_types: ['pharmacy'] },
+      { name: 'Médecin', slug: 'medecin', sort_order: 2, google_types: ['doctor'] },
+      { name: 'Vétérinaire', slug: 'veterinaire', sort_order: 3, google_types: ['veterinary_care'] },
       { name: 'Numéros utiles', slug: 'numeros-utiles', sort_order: 4 },
     ],
   },
@@ -152,6 +166,7 @@ export async function seedRecommendedTaxonomy(client: TaxonomySeedClient = prism
         slug: category.slug,
         icon: category.icon,
         sort_order: category.sort_order,
+        google_types: category.google_types ?? [],
         is_active: true,
       },
     })
@@ -164,6 +179,7 @@ export async function seedRecommendedTaxonomy(client: TaxonomySeedClient = prism
           name: subcategory.name,
           slug: subcategory.slug,
           sort_order: subcategory.sort_order,
+          google_types: subcategory.google_types ?? [],
           is_active: true,
           category_id: createdCategory.id,
         },

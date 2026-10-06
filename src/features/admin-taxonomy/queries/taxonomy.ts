@@ -36,6 +36,7 @@ type CategoryRow = {
   icon: string
   sort_order: number
   is_active: boolean
+  google_types?: string[]
   _count: { pois: number }
   subcategories: Array<{
     id: string
@@ -44,6 +45,7 @@ type CategoryRow = {
     slug: string
     sort_order: number
     is_active: boolean
+    google_types?: string[]
     _count: { pois: number }
   }>
 }
@@ -100,6 +102,7 @@ export async function getAdminTaxonomy(): Promise<AdminCategory[]> {
       icon: true,
       sort_order: true,
       is_active: true,
+      google_types: true,
       _count: {
         select: {
           pois: { where: { is_active: true, deleted_at: null } },
@@ -115,6 +118,7 @@ export async function getAdminTaxonomy(): Promise<AdminCategory[]> {
           slug: true,
           sort_order: true,
           is_active: true,
+          google_types: true,
           _count: {
             select: {
               pois: { where: { is_active: true, deleted_at: null } },
@@ -167,6 +171,7 @@ export async function createCategory(input: CategoryCreateInput, adminId: string
       slug_locked: false,
       poi_count: 0,
       subcategory_count: 0,
+      google_types: [],
       subcategories: [],
     }
   })
@@ -208,6 +213,7 @@ export async function updateCategory(
         ...(input.icon !== undefined && { icon: input.icon }),
         ...(input.sort_order !== undefined && { sort_order: input.sort_order }),
         ...(input.is_active !== undefined && { is_active: input.is_active }),
+        ...(input.google_types !== undefined && { google_types: input.google_types }),
       },
       select: {
         id: true,
@@ -290,6 +296,7 @@ export async function createSubCategory(
       ...subcategory,
       slug_locked: false,
       poi_count: 0,
+      google_types: [],
     }
   })
 }
@@ -329,6 +336,7 @@ export async function updateSubCategory(
         ...(input.slug !== undefined && { slug: input.slug }),
         ...(input.sort_order !== undefined && { sort_order: input.sort_order }),
         ...(input.is_active !== undefined && { is_active: input.is_active }),
+        ...(input.google_types !== undefined && { google_types: input.google_types }),
       },
       select: {
         id: true,
@@ -337,6 +345,7 @@ export async function updateSubCategory(
         slug: true,
         sort_order: true,
         is_active: true,
+        google_types: true,
       },
     })
 
@@ -460,6 +469,7 @@ async function getCategoryById(id: string): Promise<AdminCategory> {
       icon: true,
       sort_order: true,
       is_active: true,
+      google_types: true,
       _count: {
         select: {
           pois: { where: { is_active: true, deleted_at: null } },
@@ -475,6 +485,7 @@ async function getCategoryById(id: string): Promise<AdminCategory> {
           slug: true,
           sort_order: true,
           is_active: true,
+          google_types: true,
           _count: {
             select: {
               pois: { where: { is_active: true, deleted_at: null } },
@@ -502,6 +513,7 @@ function mapCategory(category: CategoryRow, locks: TaxonomyLockMaps): AdminCateg
     slug_locked: locks.categoryLocks.has(category.id),
     poi_count: category._count.pois,
     subcategory_count: subcategories.length,
+    google_types: category.google_types ?? [],
     subcategories,
   }
 }
@@ -519,6 +531,7 @@ function mapSubCategory(
     is_active: subcategory.is_active,
     slug_locked: locks.subCategoryLocks.has(subcategory.id),
     poi_count: subcategory._count.pois,
+    google_types: subcategory.google_types ?? [],
   }
 }
 

@@ -5,6 +5,8 @@ import { isValidLucideIconSlug } from './icons'
 import { ApiTaxonomyError } from '../queries/taxonomy'
 
 const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+// Spec 073 : types Google (exacts ou motif `*_suffixe`).
+const googleTypesSchema = z.array(z.string().regex(/^[a-z*_]{2,60}$/)).max(20)
 
 export const CategoryCreateSchema = z.object({
   name: z.string().min(1).max(80),
@@ -20,6 +22,7 @@ export const CategoryPatchSchema = z.object({
   icon: z.string().min(1).optional(),
   sort_order: z.number().int().optional(),
   is_active: z.boolean().optional(),
+  google_types: googleTypesSchema.optional(),
 })
 
 export const SubCategoryCreateSchema = z.object({
@@ -34,6 +37,7 @@ export const SubCategoryPatchSchema = z.object({
   slug: slugSchema.optional(),
   sort_order: z.number().int().optional(),
   is_active: z.boolean().optional(),
+  google_types: googleTypesSchema.optional(),
 })
 
 export async function readJson(req: NextRequest): Promise<unknown | NextResponse> {

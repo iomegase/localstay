@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Plus, Power, Edit2, AlertCircle, Trash2 } from 'lucide-react'
 import type { AdminCategory, AdminSubCategory } from '../types'
 import { getLucideIconComponent, LUCIDE_ICON_COMPONENTS } from '../lib/icons'
+import { formatGoogleTypesInput, parseGoogleTypesInput } from '../lib/google-types-input'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -523,6 +524,7 @@ function CategoryDialogContent({
           <TextField name="slug" label="Slug (Optionnel)" defaultValue={category?.slug} disabled={category?.slug_locked} />
           <TextField name="icon" label="Icône Lucide" defaultValue={category?.icon ?? 'utensils'} />
           <NumberField name="sort_order" label="Ordre d'affichage" defaultValue={category?.sort_order ?? 0} />
+          {category && <GoogleTypesField defaultValue={category.google_types} />}
           
           <ActiveField defaultChecked={category?.is_active ?? true} />
           <IconPreview iconSlug={category?.icon ?? 'utensils'} />
@@ -567,6 +569,7 @@ function SubCategoryDialogContent({
           <TextField name="name" label="Nom" defaultValue={subcategory?.name} />
           <TextField name="slug" label="Slug (Optionnel)" defaultValue={subcategory?.slug} disabled={subcategory?.slug_locked} />
           <NumberField name="sort_order" label="Ordre d'affichage" defaultValue={subcategory?.sort_order ?? 0} />
+          {subcategory && <GoogleTypesField defaultValue={subcategory.google_types} />}
           
           <ActiveField defaultChecked={subcategory?.is_active ?? true} />
 
@@ -628,6 +631,25 @@ function NumberField({ name, label, defaultValue }: { name: string; label: strin
   )
 }
 
+// Spec 073 AC-01-01 : types Google acceptés à l'acquisition.
+function GoogleTypesField({ defaultValue }: { defaultValue: string[] }) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor="google_types" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Types Google</label>
+      <input
+        id="google_types"
+        name="google_types"
+        defaultValue={formatGoogleTypesInput(defaultValue)}
+        placeholder="cafe, coffee_shop, *_restaurant"
+        className="w-full h-[52px] rounded-xl border border-gray-100 bg-gray-50/50 px-4 font-mono text-[13px] font-medium text-neutral-900 placeholder-gray-400 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+      />
+      <p className="text-[10px] font-medium text-gray-400">
+        Séparés par des virgules. <span className="font-mono">*_restaurant</span> accepte toutes les variantes. Vide : recherche texte.
+      </p>
+    </div>
+  )
+}
+
 function ActiveField({ defaultChecked }: { defaultChecked: boolean }) {
   return (
     <label className="flex w-fit cursor-pointer select-none items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:bg-gray-50">
@@ -674,6 +696,7 @@ function categoryPayload(formData: FormData) {
     icon: stringValue(formData, 'icon'),
     sort_order: numberValue(formData, 'sort_order'),
     is_active: formData.get('is_active') === 'on',
+    ...googleTypesValue(formData),
   }
 }
 
@@ -683,7 +706,12 @@ function subCategoryPayload(formData: FormData) {
     slug: optionalStringValue(formData, 'slug'),
     sort_order: numberValue(formData, 'sort_order'),
     is_active: formData.get('is_active') === 'on',
+    ...googleTypesValue(formData),
   }
+}
+
+function googleTypesValue(formData: FormData): { google_types?: string[] } {
+  return formData.has('google_types') ? { google_types: parseGoogleTypesInput(stringValue(formData, 'google_types')) } : {}
 }
 
 function stringValue(formData: FormData, key: string): string {
