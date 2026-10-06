@@ -45,6 +45,7 @@ model City {
   analytics_perf_daily_snapshots  AnalyticsPerfDailySnapshot[]
   analytics_interaction_events    AnalyticsInteractionEvent[]
   local_landing_destination       LocalLandingDestination?
+  acquisition_memories            PoiAcquisitionMemory[]
 }
 
 // ─── Spec 002 — Categories (draft, included for poi_count join) ───────────────
@@ -68,6 +69,7 @@ model Category {
   acquisition_candidates PoiAcquisitionCandidate[]
   missing_poi_requests   MissingPoiRequest[]
   fallback_images        FallbackImage[]
+  acquisition_memories   PoiAcquisitionMemory[]
 }
 
 model SubCategory {
@@ -617,6 +619,9 @@ model PoiAcquisitionRun {
   // Spec 066 : lieux écartés avant tout traitement payant.
   skipped_other_village      Int @default(0)
   skipped_closed_permanently Int @default(0)
+  // Spec 071 : lieux déjà rejetés pour cette catégorie ou exclus de la ville.
+  skipped_rejected           Int @default(0)
+  skipped_excluded           Int @default(0)
 
   candidates PoiAcquisitionCandidate[]
   audit_logs PoiAcquisitionAuditLog[]
@@ -1627,4 +1632,25 @@ model FallbackImage {
   pois PointOfInterest[]
 
   @@index([category_id, subcategory_id, deleted_at])
+}
+
+// ─── Spec 071 — Mémoire de revue de l'acquisition POI ────────────────────────
+
+model PoiAcquisitionMemory {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  city_id         String
+  city            City      @relation(fields: [city_id], references: [id])
+  google_place_id String
+  kind            String // rejected | excluded
+  category_id     String? // rejet : catégorie du run ; exclusion : null
+  category        Category? @relation(fields: [category_id], references: [id])
+  name            String
+  address         String
+  created_by      String?
+
+  @@index([city_id, google_place_id, deleted_at])
 }

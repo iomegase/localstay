@@ -23,6 +23,10 @@ jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
 }))
 
+// Spec 071 : mémoire de revue (vide) et options de la fenêtre « Modifier ».
+jest.mock('@/features/poi-acquisition/queries/review-memory', () => ({
+  listReviewMemories: jest.fn(async () => []),
+}))
 jest.mock('@/features/poi-acquisition/queries/runs', () => ({
   getAcquisitionRun: jest.fn(async () => ({
     id: 'run-1',

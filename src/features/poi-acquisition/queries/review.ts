@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { PoiAcquisitionError } from '../lib/errors'
 import { createPoiSlug } from '../lib/slug'
+import { geocodeForAcquisition } from '../lib/geocode'
 import {
   extractHoursFromReviewPayload,
   extractRatingFromReviewPayload,
@@ -160,8 +161,27 @@ export async function mergeCandidate(candidateId: string, poiId: string, adminId
 }
 
 export async function rejectCandidate(candidateId: string, adminId: string, adminNote?: string) {
+  return closeCandidate(candidateId, adminId, 'rejected', adminNote)
+}
+
+/** Spec 071 US-03 : exclure le lieu de toutes les acquisitions de la ville. */
+export async function excludeCandidate(candidateId: string, adminId: string) {
+  return closeCandidate(candidateId, adminId, 'excluded')
+}
+
+/**
+ * Spec 071 AC-02-01 / AC-03-01 : clôt la revue du candidat et mémorise la décision
+ * (rejet : ville + catégorie du run ; exclusion : ville, toutes catégories).
+ */
+async function closeCandidate(
+  candidateId: string,
+  adminId: string,
+  kind: 'rejected' | 'excluded',
+  adminNote?: string,
+) {
   const candidate = await prisma.poiAcquisitionCandidate.findFirst({
     where: { id: candidateId, deleted_at: null },
+    include: { run: { select: { city_id: true, category_id: true } } },
   })
   if (!candidate || candidate.review_status !== 'needs_review') {
     throw new PoiAcquisitionError('CANDIDATE_NOT_REVIEWABLE', 409)
@@ -171,18 +191,46 @@ export async function rejectCandidate(candidateId: string, adminId: string, admi
     const updated = await tx.poiAcquisitionCandidate.update({
       where: { id: candidate.id },
       data: {
-        review_status: 'rejected',
+        review_status: kind,
         reviewed_by: adminId,
         reviewed_at: new Date(),
         admin_note: adminNote,
       },
     })
 
+    // BR-01 : la mémoire porte sur le lieu Google ; sans identifiant, rien à mémoriser.
+    if (candidate.google_place_id) {
+      const category_id = kind === 'rejected' ? candidate.run.category_id : null
+      const existing = await tx.poiAcquisitionMemory.findFirst({
+        where: {
+          city_id: candidate.run.city_id,
+          google_place_id: candidate.google_place_id,
+          kind,
+          category_id,
+          deleted_at: null,
+        },
+        select: { id: true },
+      })
+      if (!existing) {
+        await tx.poiAcquisitionMemory.create({
+          data: {
+            city_id: candidate.run.city_id,
+            google_place_id: candidate.google_place_id,
+            kind,
+            category_id,
+            name: candidate.name,
+            address: candidate.address,
+            created_by: adminId,
+          },
+        })
+      }
+    }
+
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
         actor_type: 'ADMIN',
-        action: 'candidate_rejected',
+        action: kind === 'rejected' ? 'candidate_rejected' : 'candidate_excluded',
         target_type: 'candidate',
         target_id: candidate.id,
         run_id: candidate.run_id,
@@ -192,6 +240,89 @@ export async function rejectCandidate(candidateId: string, adminId: string, admi
       },
     })
 
+    return updated
+  })
+}
+
+export type CandidateUpdateInput = {
+  name?: string
+  address?: string
+  phone?: string | null
+  website?: string | null
+  description?: string | null
+  category_id?: string
+  subcategory_id?: string | null
+}
+
+/**
+ * Spec 071 US-01 : corrige un candidat avant publication (catégorie comprise) ; une
+ * nouvelle adresse est regéocodée par Mapbox (018 BR-03).
+ */
+export async function updateCandidate(candidateId: string, input: CandidateUpdateInput, adminId: string) {
+  const candidate = await prisma.poiAcquisitionCandidate.findFirst({
+    where: { id: candidateId, deleted_at: null },
+    include: { run: { select: { city: { select: { latitude: true, longitude: true } } } } },
+  })
+  if (!candidate || candidate.review_status !== 'needs_review') {
+    throw new PoiAcquisitionError('CANDIDATE_NOT_REVIEWABLE', 409)
+  }
+
+  const data: Prisma.PoiAcquisitionCandidateUncheckedUpdateInput = {}
+  if (input.name !== undefined) data.name = input.name
+  if (input.phone !== undefined) data.phone = input.phone
+  if (input.website !== undefined) data.website = input.website
+  if (input.description !== undefined) data.description = input.description
+
+  const categoryId = input.category_id ?? candidate.category_id
+  if (input.category_id !== undefined) {
+    const category = await prisma.category.findFirst({
+      where: { id: input.category_id, is_active: true, deleted_at: null },
+      select: { id: true },
+    })
+    if (!category) throw new PoiAcquisitionError('INVALID_CATEGORY', 400)
+    data.category_id = input.category_id
+    // Changer de catégorie retire l'ancienne sous-catégorie, sauf nouvelle valeur fournie.
+    if (input.subcategory_id === undefined && input.category_id !== candidate.category_id) data.subcategory_id = null
+  }
+  if (input.subcategory_id !== undefined) {
+    if (input.subcategory_id !== null) {
+      const subcategory = await prisma.subCategory.findFirst({
+        where: { id: input.subcategory_id, is_active: true, deleted_at: null },
+        select: { id: true, category_id: true },
+      })
+      if (!subcategory || subcategory.category_id !== categoryId) {
+        throw new PoiAcquisitionError('SUBCATEGORY_CATEGORY_MISMATCH', 400)
+      }
+    }
+    data.subcategory_id = input.subcategory_id
+  }
+
+  if (input.address !== undefined && input.address !== candidate.address) {
+    data.address = input.address
+    const geocode = await geocodeForAcquisition(input.address, candidate.run.city)
+    const located = geocode.status === 'success' || geocode.status === 'pending_review'
+    data.latitude = located ? geocode.latitude : null
+    data.longitude = located ? geocode.longitude : null
+    data.geocode_status = geocode.status
+    data.geocode_provider = located ? 'mapbox' : null
+    data.geocode_confidence = located ? geocode.confidence : null
+  }
+
+  return prisma.$transaction(async tx => {
+    const updated = await tx.poiAcquisitionCandidate.update({ where: { id: candidate.id }, data })
+    await tx.poiAcquisitionAuditLog.create({
+      data: {
+        admin_id: adminId,
+        actor_type: 'ADMIN',
+        action: 'candidate_updated',
+        target_type: 'candidate',
+        target_id: candidate.id,
+        run_id: candidate.run_id,
+        candidate_id: candidate.id,
+        before: candidateAudit(candidate),
+        after: candidateAudit(updated),
+      },
+    })
     return updated
   })
 }

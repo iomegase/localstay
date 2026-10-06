@@ -12,6 +12,7 @@ export function messageForPoiAcquisitionCode(code: string): string {
   if (code === 'INVALID_CITY') return 'Ville invalide'
   if (code === 'INVALID_CATEGORY') return 'Catégorie invalide'
   if (code === 'INVALID_SUBCATEGORY') return 'Sous-catégorie invalide'
+  if (code === 'SUBCATEGORY_CATEGORY_MISMATCH') return 'La sous-catégorie n’appartient pas à la catégorie choisie'
   if (code === 'MAPBOX_GEOCODE_FAILED') return 'Géocodage Mapbox impossible'
   if (code === 'MAPBOX_GEOCODE_AMBIGUOUS') return 'Géocodage Mapbox ambigu'
   if (code === 'DUPLICATE_POI_CANDIDATE') return 'Doublon POI probable'

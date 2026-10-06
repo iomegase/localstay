@@ -57,6 +57,12 @@ export type AcquisitionCandidateDto = {
   google_review_payload: GoogleReviewPayload | null
   /** Spec 066 AC-02-03 : OPERATIONAL | CLOSED_TEMPORARILY, null si inconnu. */
   business_status: string | null
+  /** Spec 071 US-01 : champs modifiables avant publication. */
+  phone: string | null
+  website: string | null
+  description: string | null
+  category_id: string
+  subcategory_id: string | null
 }
 
 export type AcquisitionRunDetail = {
@@ -68,6 +74,10 @@ export type AcquisitionRunDetail = {
   /** Spec 066 AC-01-04 / AC-02-02 : lieux écartés avant traitement. */
   skipped_other_village: number
   skipped_closed_permanently: number
+  /** Spec 071 AC-04-01 : lieux écartés par la mémoire de revue, candidats exclus masqués. */
+  skipped_rejected: number
+  skipped_excluded: number
+  excluded_candidates: number
   candidates: AcquisitionCandidateDto[]
 }
 
@@ -79,4 +89,6 @@ export type AcquisitionNameSearchResult = {
   business_status: 'OPERATIONAL' | 'CLOSED_TEMPORARILY' | 'CLOSED_PERMANENTLY' | null
   nearest_city: { slug: string; name: string } | null
   is_other_village: boolean
+  /** Spec 071 AC-04-02 : lieu déjà rejeté (catégories) ou exclu de la ville. */
+  memory: { kind: 'excluded' | 'rejected'; categories: string[] } | null
 }

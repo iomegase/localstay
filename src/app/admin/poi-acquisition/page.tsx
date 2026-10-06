@@ -4,6 +4,8 @@ import { listAcquisitionRuns } from '@/features/poi-acquisition/queries/runs'
 import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
 import { AdminAcquisitionLauncher } from '@/features/poi-acquisition/components/AdminAcquisitionLauncher'
 import { AdminPlaceByNameSearch } from '@/features/poi-acquisition/components/AdminPlaceByNameSearch'
+import { AdminReviewMemoryList } from '@/features/poi-acquisition/components/AdminReviewMemoryList'
+import { listReviewMemories } from '@/features/poi-acquisition/queries/review-memory'
 import { DeleteAcquisitionRunButton } from '@/features/poi-acquisition/components/DeleteAcquisitionRunButton'
 import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/components/CleanupStaleCandidatesButton'
 import {
@@ -22,9 +24,10 @@ const STATUS_STYLES = {
 
 export default async function AdminPoiAcquisitionPage() {
   await getPageAdmin()
-  const [runs, options] = await Promise.all([
+  const [runs, options, memories] = await Promise.all([
     listAcquisitionRuns(),
     getManualPoiFormOptions(),
+    listReviewMemories(),
   ])
 
   return (
@@ -62,6 +65,17 @@ export default async function AdminPoiAcquisitionPage() {
 
       {/* Spec 066 US-04 : lieu précis par son nom */}
       <AdminPlaceByNameSearch cities={options.cities} categories={options.categories} />
+
+      {/* Spec 071 AC-03-03 : décisions de revue mémorisées */}
+      <section className="rounded-[25px] border border-gray-50 bg-white p-6 shadow-sm md:p-8">
+        <h2 className="text-lg font-bold text-neutral-900">Lieux exclus ou rejetés</h2>
+        <p className="mt-1 text-[13px] text-gray-500">
+          Ces lieux ne sont plus proposés par l’acquisition (exclus : toutes catégories ; rejetés : pour la catégorie indiquée).
+        </p>
+        <div className="mt-4">
+          <AdminReviewMemoryList memories={memories} />
+        </div>
+      </section>
 
       {/* Tableau des Runs (Corporate Style) */}
       <div className="w-full overflow-hidden rounded-[25px] border border-gray-50 bg-white shadow-sm">

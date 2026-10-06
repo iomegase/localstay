@@ -2,6 +2,8 @@ import { prisma } from '@/shared/lib/prisma'
 import { searchGooglePlacesByName } from '../lib/google-places'
 import { PoiAcquisitionError } from '../lib/errors'
 import { nearestActiveCity } from '../lib/village'
+import { memoryStatusFor } from '../lib/review-memory'
+import { loadCityReviewMemories } from './review-memory'
 import type { AcquisitionNameSearchResult } from '../types'
 
 /**
@@ -37,6 +39,8 @@ export async function searchAcquisitionPlacesByName(input: {
   }
 
   const cities = activeCities.some(activeCity => activeCity.id === city.id) ? activeCities : [...activeCities, city]
+  // Spec 071 AC-04-02 : décisions de revue déjà prises sur ces lieux.
+  const memories = await loadCityReviewMemories(city.id)
   return places.map(place => {
     const nearest = nearestActiveCity(place.location, cities, city.id)
     return {
@@ -46,6 +50,7 @@ export async function searchAcquisitionPlacesByName(input: {
       business_status: place.business_status,
       nearest_city: nearest ? { slug: nearest.slug, name: nearest.name } : null,
       is_other_village: nearest !== null && nearest.id !== city.id,
+      memory: memoryStatusFor(place.google_place_id, memories),
     }
   })
 }

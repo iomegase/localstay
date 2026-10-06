@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAcquisitionRun } from '@/features/poi-acquisition/queries/runs'
 import { AdminCandidateReviewActions } from '@/features/poi-acquisition/components/AdminCandidateReviewActions'
-import { Edit2, Trash2, AlertCircle, FileSearch } from 'lucide-react'
+import { AdminCandidateEditDialog } from '@/features/poi-acquisition/components/AdminCandidateEditDialog'
+import { getManualPoiFormOptions } from '@/features/poi-acquisition/queries/manual-poi'
+import { AlertCircle, FileSearch } from 'lucide-react'
 
 // Fonction utilitaire pour générer un style dynamique de badge (Corporate Style)
 function getBadgeStyle(text: string) {
@@ -36,7 +38,7 @@ export default async function AdminPoiAcquisitionRunPage({
 }) {
   await getPageAdmin()
   const { id } = await params
-  const run = await getAcquisitionRun(id)
+  const [run, options] = await Promise.all([getAcquisitionRun(id), getManualPoiFormOptions()])
   
   if (!run) notFound()
 
@@ -66,8 +68,19 @@ export default async function AdminPoiAcquisitionRunPage({
               </span>
             </div>
 
-            {(run.skipped_other_village > 0 || run.skipped_closed_permanently > 0) && (
+            {(run.skipped_other_village > 0 || run.skipped_closed_permanently > 0
+              || run.skipped_rejected > 0 || run.skipped_excluded > 0 || run.excluded_candidates > 0) && (
               <ul className="mt-3 space-y-1 text-[12px] font-medium text-gray-500">
+                {/* Spec 071 AC-04-01 : lieux écartés par la mémoire de revue. */}
+                {run.skipped_rejected > 0 && (
+                  <li>{run.skipped_rejected} {run.skipped_rejected > 1 ? 'lieux déjà rejetés' : 'lieu déjà rejeté'} pour cette catégorie</li>
+                )}
+                {run.skipped_excluded > 0 && (
+                  <li>{run.skipped_excluded} {run.skipped_excluded > 1 ? 'lieux exclus' : 'lieu exclu'}</li>
+                )}
+                {run.excluded_candidates > 0 && (
+                  <li>{run.excluded_candidates} {run.excluded_candidates > 1 ? 'candidats exclus masqués' : 'candidat exclu masqué'}</li>
+                )}
                 {run.skipped_other_village > 0 && (
                   <li>{skippedLabel(run.skipped_other_village, 'plus proches d’un autre village')}</li>
                 )}
@@ -174,25 +187,13 @@ export default async function AdminPoiAcquisitionRunPage({
                           duplicatePoiIds={candidate.duplicate_poi_ids}
                         />
                         
-                        {/* Ligne séparatrice verticale */}
-                        <div className="mx-1 h-6 w-px bg-gray-200"></div>
-                        
-                        {/* Outils secondaires (Modifier, Corbeille) formatés comme des petits boutons carrés */}
-                        <button 
-                          type="button"
-                          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-[#0B1437]"
-                          title="Modifier"
-                        >
-                          <Edit2 size={14} strokeWidth={2.5} />
-                        </button>
-                        <button 
-                          type="button"
-                          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                          title="Supprimer candidat"
-                        >
-                          <Trash2 size={14} strokeWidth={2.5} />
-                        </button>
-                        
+                        {candidate.review_status === 'needs_review' && (
+                          <>
+                            <div className="mx-1 h-6 w-px bg-gray-200"></div>
+                            {/* Spec 071 US-01 : modifier avant publication. */}
+                            <AdminCandidateEditDialog candidate={candidate} categories={options.categories} />
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 
@@ -67,6 +68,20 @@ export function AdminCandidateReviewActions({
         >
           Rejeter
         </Button>
+        <button
+          type="button"
+          aria-label="Exclure"
+          title="Exclure : ne plus jamais proposer ce lieu dans cette ville"
+          disabled={loading}
+          onClick={() => {
+            // Spec 071 US-03 : exclusion toutes catégories, réversible depuis la page Acquisition.
+            if (!window.confirm('Exclure ce lieu ? Il ne sera plus proposé dans les acquisitions de cette ville, quelle que soit la catégorie (réversible depuis « Lieux exclus ou rejetés »).')) return
+            void postAction(`/api/admin/poi-acquisition/candidates/${candidateId}/exclude`, {})
+          }}
+          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+        >
+          <Trash2 aria-hidden="true" size={14} strokeWidth={2.5} />
+        </button>
       </div>
       {duplicatePoiIds.length > 0 && (
         <div className="flex flex-col gap-2 md:flex-row">

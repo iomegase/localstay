@@ -152,6 +152,13 @@ export function AdminPlaceByNameSearch({ cities, categories }: { cities: Option[
                         {STATUS_LABELS[result.business_status]}
                       </span>
                     )}
+                    {result.memory && (
+                      <span className="inline-flex items-center rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                        {result.memory.kind === 'excluded'
+                          ? 'Exclu'
+                          : `Rejeté (${result.memory.categories.join(', ')})`}
+                      </span>
+                    )}
                     {result.is_other_village && result.nearest_city && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700">
                         <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" />

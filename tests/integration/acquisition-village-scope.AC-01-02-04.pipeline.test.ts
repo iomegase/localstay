@@ -22,6 +22,8 @@ jest.mock('@/shared/lib/prisma', () => ({
       findFirst: (...args: unknown[]) => mockRunFindFirst(...args),
     },
     poiAcquisitionCandidate: { create: (...args: unknown[]) => mockCandidateCreate(...args) },
+    // Spec 071 : aucune mémoire de revue dans ces scénarios.
+    poiAcquisitionMemory: { findMany: async () => [] },
     pointOfInterest: { findMany: (...args: unknown[]) => mockPoiFindMany(...args) },
   },
 }))

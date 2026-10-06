@@ -25,6 +25,17 @@ export const ReviewMergeSchema = z.object({
   poi_id: z.string().min(1),
 })
 
+// Spec 071 US-01 : modification d'un candidat avant publication.
+export const CandidateUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(160).optional(),
+  address: z.string().trim().min(5).max(255).optional(),
+  phone: z.string().trim().max(40).nullable().optional(),
+  website: z.string().trim().url().nullable().optional(),
+  description: z.string().trim().max(2000).nullable().optional(),
+  category_id: z.string().uuid().optional(),
+  subcategory_id: z.string().uuid().nullable().optional(),
+}).strict()
+
 export const ReviewRejectSchema = z.object({
   admin_note: z.string().max(500).optional(),
 })

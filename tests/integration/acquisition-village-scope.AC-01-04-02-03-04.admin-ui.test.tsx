@@ -16,6 +16,10 @@ jest.mock('@/features/merchant/lib/get-page-admin', () => ({
   getPageAdmin: jest.fn(async () => ({ id: 'admin-1', role: 'admin' })),
 }))
 
+// Spec 071 : options de catégorie de la fenêtre « Modifier ».
+jest.mock('@/features/poi-acquisition/queries/manual-poi', () => ({
+  getManualPoiFormOptions: jest.fn(async () => ({ cities: [], categories: [] })),
+}))
 const mockGetAcquisitionRun = jest.fn()
 jest.mock('@/features/poi-acquisition/queries/runs', () => ({
   getAcquisitionRun: (...args: unknown[]) => mockGetAcquisitionRun(...args),
@@ -102,6 +106,7 @@ describe('066 US-04 — « Ajouter un lieu précis »', () => {
               business_status: 'OPERATIONAL',
               nearest_city: { slug: 'saint-nicolas-de-veroce', name: 'Saint-Nicolas-de-Véroce' },
               is_other_village: true,
+              memory: { kind: 'excluded', categories: [] },
             },
           ],
         })
@@ -127,6 +132,8 @@ describe('066 US-04 — « Ajouter un lieu précis »', () => {
     const montJoly = screen.getByRole('listitem', { name: 'Bistrot du Mont Joly' })
     expect(within(montJoly).getByText('Plus proche de Saint-Nicolas-de-Véroce')).toBeInTheDocument()
     expect(within(galeta).queryByText(/Plus proche de/)).not.toBeInTheDocument()
+    // Spec 071 AC-04-02 : badge de mémoire de revue.
+    expect(within(montJoly).getByText('Exclu')).toBeInTheDocument()
   })
 
   it('AC-04-02 : « Ajouter » crée le run du lieu choisi et ouvre sa revue', async () => {

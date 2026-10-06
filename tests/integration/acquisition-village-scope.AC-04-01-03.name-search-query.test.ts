@@ -2,8 +2,10 @@ const mockCityFindFirst = jest.fn()
 const mockCityFindMany = jest.fn()
 const mockSearchGooglePlacesByName = jest.fn()
 
+const mockMemoryFindMany = jest.fn()
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
+    poiAcquisitionMemory: { findMany: (...args: unknown[]) => mockMemoryFindMany(...args) },
     city: {
       findFirst: (...args: unknown[]) => mockCityFindFirst(...args),
       findMany: (...args: unknown[]) => mockCityFindMany(...args),
@@ -30,6 +32,7 @@ describe('066 AC-04 — recherche par nom', () => {
     jest.clearAllMocks()
     mockCityFindFirst.mockResolvedValue(SAINT_GERVAIS)
     mockCityFindMany.mockResolvedValue([SAINT_GERVAIS, SAINT_NICOLAS])
+    mockMemoryFindMany.mockResolvedValue([])
   })
 
   it('AC-04-01 / AC-04-03 : indique le statut et signale un autre village', async () => {
@@ -50,16 +53,18 @@ describe('066 AC-04 — recherche par nom', () => {
         business_status: 'CLOSED_TEMPORARILY',
         nearest_city: { slug: 'saint-gervais-les-bains', name: 'Saint-Gervais-les-Bains' },
         is_other_village: false,
+        memory: null,
       },
       {
         google_place_id: 'bistrot-du-mont-joly', name: 'bistrot-du-mont-joly', address: 'bistrot-du-mont-joly adresse',
         business_status: 'OPERATIONAL',
         nearest_city: { slug: 'saint-nicolas-de-veroce', name: 'Saint-Nicolas-de-Véroce' },
         is_other_village: true,
+        memory: null,
       },
       {
         google_place_id: 'sans-position', name: 'sans-position', address: 'sans-position adresse',
-        business_status: null, nearest_city: null, is_other_village: false,
+        business_status: null, nearest_city: null, is_other_village: false, memory: null,
       },
     ])
   })
@@ -76,5 +81,16 @@ describe('066 AC-04 — recherche par nom', () => {
 
     await expect(searchAcquisitionPlacesByName({ city_id: 'city-sg', query: 'Le Galeta' }))
       .rejects.toMatchObject({ code: 'GOOGLE_PLACES_UNAVAILABLE', status: 502 })
+  })
+
+  it('071 AC-04-02 : signale un lieu déjà rejeté ou exclu', async () => {
+    mockSearchGooglePlacesByName.mockResolvedValue([candidate('le-galeta', null, 'OPERATIONAL')])
+    mockMemoryFindMany.mockResolvedValue([
+      { google_place_id: 'le-galeta', kind: 'rejected', category_id: 'cat-diner', category: { name: 'Restaurant' } },
+    ])
+
+    const [result] = await searchAcquisitionPlacesByName({ city_id: 'city-sg', query: 'Le Galeta' })
+
+    expect(result!.memory).toEqual({ kind: 'rejected', categories: ['Restaurant'] })
   })
 })

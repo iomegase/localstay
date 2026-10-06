@@ -7,6 +7,8 @@ import {
   type GooglePlaceCandidate,
 } from '../lib/google-places'
 import { filterCandidatesForVillage } from '../lib/village'
+import { filterByReviewMemory } from '../lib/review-memory'
+import { loadCityReviewMemories } from './review-memory'
 import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
 import { geocodeForAcquisition } from '../lib/geocode'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
@@ -44,6 +46,11 @@ type CandidateRow = {
   google_place_id: string | null
   google_review_payload: Prisma.JsonValue | null
   business_status: string | null
+  phone: string | null
+  website: string | null
+  description: string | null
+  category_id: string
+  subcategory_id: string | null
 }
 
 const STORED_BUSINESS_STATUSES = new Set(['OPERATIONAL', 'CLOSED_TEMPORARILY'])
@@ -104,6 +111,8 @@ export async function createAcquisitionRun(
     let googleCandidates: GooglePlaceCandidate[]
     let skippedOtherVillage = 0
     let skippedClosedPermanently = 0
+    let skippedRejected = 0
+    let skippedExcluded = 0
     if (input.google_place_id) {
       // Spec 066 BR-05 : le choix explicite de l'admin n'est pas filtré.
       const chosen = await getGooglePlaceCandidate(input.google_place_id)
@@ -122,9 +131,13 @@ export async function createAcquisitionRun(
         ? activeCities
         : [...activeCities, city]
       const filtered = filterCandidatesForVillage(searched, villageCities, city.id)
-      googleCandidates = filtered.kept
       skippedOtherVillage = filtered.skippedOtherVillage
       skippedClosedPermanently = filtered.skippedClosedPermanently
+      // Spec 071 BR-03 : lieux déjà rejetés pour cette catégorie ou exclus de la ville.
+      const remembered = filterByReviewMemory(filtered.kept, await loadCityReviewMemories(city.id), category.id)
+      googleCandidates = remembered.kept
+      skippedRejected = remembered.skippedRejected
+      skippedExcluded = remembered.skippedExcluded
     }
     const websiteContextCache = new Map<string, Promise<OfficialWebsiteSourceContext | null>>()
     const candidateErrors: string[] = []
@@ -189,6 +202,8 @@ export async function createAcquisitionRun(
     const skipped = {
       skipped_other_village: skippedOtherVillage,
       skipped_closed_permanently: skippedClosedPermanently,
+      skipped_rejected: skippedRejected,
+      skipped_excluded: skippedExcluded,
     }
     await prisma.poiAcquisitionRun.update({
       where: { id: run.id },
@@ -279,6 +294,8 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
       error: true,
       skipped_other_village: true,
       skipped_closed_permanently: true,
+      skipped_rejected: true,
+      skipped_excluded: true,
       city: { select: { name: true } },
       category: { select: { name: true } },
       candidates: {
@@ -296,6 +313,12 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
           google_place_id: true,
           google_review_payload: true,
           business_status: true,
+          // Spec 071 US-01 : champs modifiables avant publication.
+          phone: true,
+          website: true,
+          description: true,
+          category_id: true,
+          subcategory_id: true,
         },
       },
     },
@@ -311,7 +334,13 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
     category_name: run.category.name,
     skipped_other_village: run.skipped_other_village ?? 0,
     skipped_closed_permanently: run.skipped_closed_permanently ?? 0,
-    candidates: (run.candidates as CandidateRow[]).map(mapCandidate),
+    skipped_rejected: run.skipped_rejected ?? 0,
+    skipped_excluded: run.skipped_excluded ?? 0,
+    // Spec 071 AC-03-01 : les candidats exclus disparaissent de la revue (comptés).
+    excluded_candidates: (run.candidates as CandidateRow[]).filter(candidate => candidate.review_status === 'excluded').length,
+    candidates: (run.candidates as CandidateRow[])
+      .filter(candidate => candidate.review_status !== 'excluded')
+      .map(mapCandidate),
   }
 }
 
@@ -330,6 +359,11 @@ function mapCandidate(candidate: CandidateRow): AcquisitionCandidateDto {
       ? candidate.google_review_payload
       : null,
     business_status: candidate.business_status ?? null,
+    phone: candidate.phone ?? null,
+    website: candidate.website ?? null,
+    description: candidate.description ?? null,
+    category_id: candidate.category_id,
+    subcategory_id: candidate.subcategory_id ?? null,
   }
 }
 
