@@ -36,6 +36,8 @@ interface Props {
   value: PracticalBlockInput[]
   onChange: (next: PracticalBlockInput[]) => void
   lodgingId: string
+  /** Spec 083 : erreurs par bloc (« 0.title »), affichées sous le champ. */
+  errors?: Record<string, string>
 }
 
 function blockUid(): string {
@@ -44,7 +46,7 @@ function blockUid(): string {
     : `tmp-${Math.random().toString(36).slice(2)}-${Date.now()}`
 }
 
-export function PracticalBlocksEditor({ value, onChange, lodgingId }: Props) {
+export function PracticalBlocksEditor({ value, onChange, lodgingId, errors = {} }: Props) {
   // id stable pour DndContext : évite le mismatch d'hydratation SSR/client sur
   // l'aria-describedby généré par le compteur global de dnd-kit.
   const dndId = useId()
@@ -101,6 +103,7 @@ export function PracticalBlocksEditor({ value, onChange, lodgingId }: Props) {
                 lodgingId={lodgingId}
                 onUpdate={updateBlock}
                 onRemove={removeBlock}
+                titleError={errors[`${index}.title`]}
               />
             ))}
           </div>
@@ -116,7 +119,9 @@ function SortableBlockRow({
   lodgingId,
   onUpdate,
   onRemove,
+  titleError,
 }: {
+  titleError?: string
   block: PracticalBlockInput
   index: number
   lodgingId: string
@@ -160,8 +165,12 @@ function SortableBlockRow({
         value={block.title}
         maxLength={120}
         placeholder="Ex. La plage, Les commerces, Bons plans…"
+        aria-invalid={titleError ? true : undefined}
+        data-field-error={titleError ? '' : undefined}
+        className={titleError ? 'border-rose-400 focus-visible:ring-rose-400' : undefined}
         onChange={event => onUpdate(index, { title: event.target.value })}
       />
+      {titleError ? <p className="text-xs font-semibold text-rose-600">{titleError}</p> : null}
 
       <div>
         <Label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400">Icône</Label>

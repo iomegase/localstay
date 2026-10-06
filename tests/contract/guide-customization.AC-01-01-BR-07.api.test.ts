@@ -181,6 +181,17 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
     expect(mockSaveCustomization.mock.calls[0][2]).toMatchObject({ address_number: '12', address_postal_code: '74170' })
   })
 
+  it('083 AC-01-02 : le détail de l’erreur donne le chemin de chaque champ', async () => {
+    const res = await PUT(
+      makeRequest('PUT', { category_order: [], featured_pois: [], arrival_instructions: [{ text: ' ', sort_order: 0 }] }),
+      { params: Promise.resolve({ id: 'lodging-1' }) },
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.error.details.issues).toContainEqual({ path: 'arrival_instructions.0.text', message: "Le texte de l'instruction est requis." })
+    expect(json.error.details.fieldErrors).toHaveProperty('arrival_instructions')
+  })
+
   it('returns 401 when owner session is missing', async () => {
     const error = Response.json({ error: { code: 'UNAUTHORIZED', message: 'Non authentifié' } }, { status: 401 })
     mockGetSessionOwner.mockResolvedValue({ owner: null, error })

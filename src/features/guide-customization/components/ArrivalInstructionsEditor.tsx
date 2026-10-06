@@ -39,6 +39,8 @@ interface Props {
   value: ArrivalInstructionInput[]
   onChange: (next: ArrivalInstructionInput[]) => void
   lodgingId: string
+  /** Spec 083 : erreurs par étape (« 0.text »), affichées sous le champ. */
+  errors?: Record<string, string>
 }
 
 function instructionUid(): string {
@@ -47,7 +49,7 @@ function instructionUid(): string {
     : `tmp-${Math.random().toString(36).slice(2)}-${Date.now()}`
 }
 
-export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props) {
+export function ArrivalInstructionsEditor({ value, onChange, lodgingId, errors = {} }: Props) {
   const dndId = useId()
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -136,6 +138,7 @@ export function ArrivalInstructionsEditor({ value, onChange, lodgingId }: Props)
                 onAddPhotos={addPhotos}
                 onMakeHero={makeHero}
                 onRemovePhoto={removePhoto}
+                errors={errors}
               />
             ))}
           </div>
@@ -154,7 +157,9 @@ function SortableInstructionRow({
   onAddPhotos,
   onRemovePhoto,
   onMakeHero,
+  errors,
 }: {
+  errors: Record<string, string>
   instruction: ArrivalInstructionInput
   index: number
   lodgingId: string
@@ -232,14 +237,20 @@ function SortableInstructionRow({
         />
       </div>
 
-      <Textarea
-        aria-label="Texte de l'instruction"
-        value={instruction.text}
-        rows={2}
-        maxLength={2000}
-        placeholder="Ex. Ouvrez le portail avec le badge remis à l'entrée."
-        onChange={event => onUpdate(index, { text: event.target.value })}
-      />
+      <div className="space-y-1">
+        <Textarea
+          aria-label="Texte de l'instruction"
+          aria-invalid={errors[`${index}.text`] ? true : undefined}
+          data-field-error={errors[`${index}.text`] ? '' : undefined}
+          className={errors[`${index}.text`] ? 'border-rose-400 focus-visible:ring-rose-400' : undefined}
+          value={instruction.text}
+          rows={2}
+          maxLength={2000}
+          placeholder="Ex. Ouvrez le portail avec le badge remis à l'entrée."
+          onChange={event => onUpdate(index, { text: event.target.value })}
+        />
+        {errors[`${index}.text`] ? <p className="text-xs font-semibold text-rose-600">{errors[`${index}.text`]}</p> : null}
+      </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3">

@@ -130,3 +130,38 @@ describe('079 AC-03-05 — texte alternatif des photos existantes', () => {
     ])
   })
 })
+
+// Spec 083 US-02 — erreurs sous les champs de la page Logement.
+describe('083 — page Logement : erreurs sous les champs', () => {
+  it('AC-02-01 / AC-02-02 : champs manquants à la publication signalés puis effacés à la correction', async () => {
+    render(<LodgingShowcaseForm lodgingId="lodging-1" initialProfile={profile} />)
+    global.fetch = jest.fn(async () => ({
+      ok: false, status: 400,
+      json: async () => ({ error: { message: 'Fiche incomplète', details: { missingFields: ['title', 'amenities', 'cover_photo'] } } }),
+    })) as unknown as typeof fetch
+
+    fireEvent.click(screen.getByRole('button', { name: 'Demander la publication' }))
+
+    expect(await screen.findByText('Titre requis (5 caractères minimum).')).toBeInTheDocument()
+    expect(screen.getByLabelText('Titre')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('Cochez au moins 3 équipements.')).toBeInTheDocument()
+    expect(screen.getByText('Choisissez une photo de couverture.')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Titre'), { target: { value: 'Le 305 rénové' } })
+    expect(screen.queryByText('Titre requis (5 caractères minimum).')).not.toBeInTheDocument()
+    expect(screen.getByText('Cochez au moins 3 équipements.')).toBeInTheDocument()
+  })
+
+  it('AC-02-01 : brouillon refusé → message de validation sous le champ', async () => {
+    render(<LodgingShowcaseForm lodgingId="lodging-1" initialProfile={profile} />)
+    global.fetch = jest.fn(async () => ({
+      ok: false, status: 400,
+      json: async () => ({ error: { message: 'Parametre manquant ou invalide', details: { fieldErrors: { seo_title: ['Le SEO title doit contenir entre 30 et 70 caracteres.'] } } } }),
+    })) as unknown as typeof fetch
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sauvegarder le brouillon' }))
+
+    await waitFor(() => expect(screen.getByLabelText('SEO title')).toHaveAttribute('aria-invalid', 'true'))
+    expect(screen.getAllByText(/Le SEO title doit contenir entre 30 et 70 caracteres\./).length).toBeGreaterThan(0)
+  })
+})

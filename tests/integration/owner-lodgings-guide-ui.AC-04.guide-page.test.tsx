@@ -120,3 +120,43 @@ describe('080 AC-01-01 — adresse en 4 champs', () => {
     })
   })
 })
+
+// Spec 083 — erreurs sous les champs.
+describe('083 — erreurs affichées sous les champs du Guide', () => {
+  const withArrival = (text: string) => ({
+    ...customization,
+    arrival_instructions: [{ id: 'step-1', title: 'Portail', text, video_url: null, photos: [], sort_order: 0, kind: 'custom', tip: null, substeps: [], facts: [] }],
+  }) as unknown as LodgingCustomizationResponse
+
+  it('AC-01-01 / AC-01-03 : instruction sans texte signalée sous le champ, rien n’est envoyé, effacée à la correction', () => {
+    render(<CustomizationForm lodgingId="lodging-1" citySlug="saint-gervais-les-bains" categories={[]} pois={[]} initialCustomization={withArrival('')} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(global.fetch).not.toHaveBeenCalled()
+    const field = screen.getByLabelText('Texte de l\'instruction')
+    expect(field).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('Le texte de l’instruction est requis.')).toBeInTheDocument()
+    expect(screen.queryByText(/arrival_instructions/)).not.toBeInTheDocument()
+
+    fireEvent.change(field, { target: { value: 'Ouvrez le portail.' } })
+    expect(screen.queryByText('Le texte de l’instruction est requis.')).not.toBeInTheDocument()
+  })
+
+  it('AC-01-02 : une erreur de l’API s’affiche sous le champ désigné par son chemin', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false, status: 400,
+      json: async () => ({ error: { message: 'Payload invalide', details: {
+        fieldErrors: { wifi_ssid: ['Trop long'] }, issues: [{ path: 'wifi_ssid', message: 'Le nom du réseau est trop long.' }],
+      } } }),
+    }) as jest.Mock
+    render(<CustomizationForm lodgingId="lodging-1" citySlug="saint-gervais-les-bains" categories={[]} pois={[]} initialCustomization={customization} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(await screen.findByText('Le nom du réseau est trop long.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nom du réseau (SSID)')).toHaveAttribute('aria-invalid', 'true')
+    fireEvent.change(screen.getByLabelText('Nom du réseau (SSID)'), { target: { value: 'Chalet' + 'x' } })
+    expect(screen.queryByText('Le nom du réseau est trop long.')).not.toBeInTheDocument()
+  })
+})

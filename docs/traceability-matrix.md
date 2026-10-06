@@ -1831,3 +1831,10 @@ Note 077 / 079 / 076 (2026-10-06) : barres d'enregistrement passées de `fixed` 
 |---|---|---|---|---|
 | AC-01-01..03 / BR-02..03 | 13 questions génériques (issues du « 305 »), jetons ville / voyageurs / chambres, badge « À adapter » | `src/features/lodging-showcase/lib/faq-library.ts` | `tests/unit/lodging-faq-library.AC-01.library.test.ts` | ✅ done |
 | AC-02-01..02 / BR-01 | « Ajouter depuis la bibliothèque » (sélection, tout sélectionner, pas de doublon) sur la page Logement et l'édition admin | `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx`<br>`src/app/(dashboard)/dashboard/lodgings/[id]/showcase/page.tsx`<br>`src/app/admin/lodgings/[id]/edit/page.tsx` | `tests/integration/lodging-faq-library.AC-02.picker.test.tsx` | ✅ done |
+
+## 083 — Erreurs affichées sous les champs (pages Guide et Logement)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01..03 | Guide : instruction sans texte, bloc sans titre, code postal, vidéo signalés sous le champ ; chemin des erreurs API (`issues`) ; effacement à la correction | `src/features/guide-customization/lib/form-errors.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/features/guide-customization/components/ArrivalInstructionsEditor.tsx`<br>`src/features/guide-customization/components/PracticalBlocksEditor.tsx`<br>`src/app/api/dashboard/lodgings/[id]/customization/route.ts`<br>`src/shared/components/ui/input.tsx`, `textarea.tsx` | `tests/unit/inline-form-errors.AC-01.guide-errors.test.ts`<br>`tests/contract/guide-customization.AC-01-01-BR-07.api.test.ts`<br>`tests/integration/owner-lodgings-guide-ui.AC-04.guide-page.test.tsx`<br>`tests/unit/guide-customization.customization-form-blocks.test.tsx` | ✅ done |
+| AC-02-01..02 | Logement : brouillon refusé et champs manquants sous les champs / sections, effacés à la correction | `src/features/lodging-showcase/lib/showcase-form.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/unit/owner-lodging-page-ui.showcase-form.test.ts`<br>`tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx` | ✅ done |

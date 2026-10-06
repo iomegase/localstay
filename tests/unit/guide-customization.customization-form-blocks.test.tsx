@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { render, screen, waitFor } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 import { CustomizationForm } from '@/features/guide-customization/components/CustomizationForm'
 
@@ -83,7 +84,7 @@ describe('CustomizationForm — practical blocks payload', () => {
     ])
   })
 
-  it('disables save and explains when a custom practical block has no title', async () => {
+  it('083 : un bloc sans titre est signalé sous le champ et rien n’est envoyé', async () => {
     const user = userEvent.setup()
     render(
       <CustomizationForm
@@ -96,9 +97,16 @@ describe('CustomizationForm — practical blocks payload', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
+    await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
-    expect(screen.getByRole('button', { name: /enregistrer/i })).toBeDisabled()
-    expect(screen.getByText(/un bloc personnalisé doit avoir un titre/i)).toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(screen.getByText('Le titre du bloc est requis.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/titre du bloc/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('status', { name: 'État de l’enregistrement' })).toHaveTextContent('1 champ à corriger.')
+
+    // AC-01-03 : le message disparaît dès que le champ est corrigé.
+    await user.type(screen.getByLabelText(/titre du bloc/i), 'La plage')
+    expect(screen.queryByText('Le titre du bloc est requis.')).not.toBeInTheDocument()
   })
 
   it('shows API field validation details when customization save is rejected', async () => {
@@ -133,7 +141,7 @@ describe('CustomizationForm — practical blocks payload', () => {
     expect(await screen.findByText(/Vidéo de présentation - Lien YouTube invalide/i)).toBeInTheDocument()
   })
 
-  it('disables save when a presentation video URL is not a YouTube link', async () => {
+  it('083 : un lien vidéo non YouTube bloque l’envoi et reste signalé sous le champ', async () => {
     const user = userEvent.setup()
     render(
       <CustomizationForm
@@ -146,9 +154,11 @@ describe('CustomizationForm — practical blocks payload', () => {
     )
 
     await user.type(screen.getByLabelText(/vidéo de présentation/i), 'https://vimeo.com/123')
+    await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
-    expect(screen.getByRole('button', { name: /enregistrer/i })).toBeDisabled()
-    expect(screen.getByText(/les liens vidéo doivent être des URL YouTube valides/i)).toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(screen.getByText('Lien YouTube invalide')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'État de l’enregistrement' })).toHaveTextContent('1 champ à corriger.')
   })
 
   it('preserves an existing owner note across save and response refresh', async () => {

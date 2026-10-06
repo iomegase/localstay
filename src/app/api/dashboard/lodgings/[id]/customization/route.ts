@@ -232,7 +232,11 @@ export async function PUT(
   const parsed = customizationSchema.safeParse(body)
 
   if (!parsed.success) {
-    return errorResponse('INVALID_BODY', 'Payload invalide', 400, parsed.error.flatten())
+    // Spec 083 AC-01-02 : chemin exact de chaque erreur, pour l'afficher sous le bon champ.
+    return errorResponse('INVALID_BODY', 'Payload invalide', 400, {
+      ...parsed.error.flatten(),
+      issues: parsed.error.issues.map(issue => ({ path: issue.path.join('.'), message: issue.message })),
+    })
   }
 
   const { id } = await params

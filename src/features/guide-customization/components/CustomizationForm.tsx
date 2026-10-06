@@ -27,13 +27,13 @@ import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 import { countWords, normalizeOwnerNote, OWNER_NOTE_MAX_WORDS } from '../lib/validation'
 import { GUIDE_SECTIONS, guideFormSnapshot, type GuideSectionId } from '../lib/guide-form'
+import { errorsUnder, issuesToErrors, validateGuideForm, valueAtPath, visibleServerErrors, type FieldErrors } from '../lib/form-errors'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
 import { ArrivalInstructionsEditor } from '@/features/guide-customization/components/ArrivalInstructionsEditor'
 import type { ArrivalInstructionInput } from '@/features/guide-customization/types'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
 import { UsefulNumbersEditor } from '@/features/guide-customization/components/UsefulNumbersEditor'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
-import { extractYouTubeId } from '@/shared/lib/youtube'
 import type {
   FeaturedPoiInput,
   LodgingCustomizationResponse,
@@ -75,6 +75,7 @@ type ApiErrorPayload = {
     details?: {
       fieldErrors?: Record<string, string[]>
       formErrors?: string[]
+      issues?: Array<{ path: string; message: string }>
     }
   }
 }
@@ -119,10 +120,6 @@ function formatApiValidationError(payload: ApiErrorPayload | null): string | nul
   }
 
   return messages.length > 0 ? messages.join(' ') : null
-}
-
-function hasInvalidYouTubeUrl(value: string | null | undefined): boolean {
-  return typeof value === 'string' && value.trim().length > 0 && extractYouTubeId(value) === null
 }
 
 function practicalInfoFrom(source: LodgingCustomizationResponse): PracticalInfoFields {
@@ -207,7 +204,7 @@ function Card({ title, description, children }: { title?: string; description?: 
 }
 
 function TextField({
-  id, label, value, placeholder, maxLength, hint, onChange,
+  id, label, value, placeholder, maxLength, hint, error, onChange,
 }: {
   id: string
   label: string
@@ -215,12 +212,24 @@ function TextField({
   placeholder?: string
   maxLength: number
   hint?: string
+  /** Spec 083 : message affiché en rouge sous le champ. */
+  error?: string
   onChange: (value: string) => void
 }) {
   return (
     <div className="min-w-0 space-y-1.5">
       <Label htmlFor={id} className="text-[13px] font-semibold text-gray-700">{label}</Label>
-      <Input id={id} value={value} maxLength={maxLength} placeholder={placeholder} onChange={event => onChange(event.target.value)} />
+      <Input
+        id={id}
+        value={value}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        aria-invalid={error ? true : undefined}
+        data-field-error={error ? '' : undefined}
+        className={error ? 'border-rose-400 focus-visible:ring-rose-400' : undefined}
+        onChange={event => onChange(event.target.value)}
+      />
+      {error ? <p className="text-xs font-semibold text-rose-600">{error}</p> : null}
       {hint ? <p className="text-[11px] text-gray-400">{hint}</p> : null}
     </div>
   )
@@ -265,6 +274,8 @@ export function CustomizationForm({
   const [otherCityPois, setOtherCityPois] = useState<OtherCityPoiSelection[]>(initialOtherCityPois)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
+  const [showErrors, setShowErrors] = useState(false)
+  const [serverErrors, setServerErrors] = useState<{ errors: FieldErrors; snapshot: Record<string, string> }>({ errors: {}, snapshot: {} })
 
   // Spec 077 AC-04-02 : modifications non enregistrées.
   const snapshot = guideFormSnapshot({ categoryOrder, featuredPois, practicalInfo, practicalBlocks, arrivalInstructions, otherCityPois })
@@ -297,19 +308,23 @@ export function CustomizationForm({
   const ownerNoteOverLimit = [...featuredPois, ...otherCityPois].some(
     featuredPoi => countWords(featuredPoi.owner_note ?? '') > OWNER_NOTE_MAX_WORDS,
   )
-  const practicalBlockWithoutTitle = practicalBlocks.some(
-    block => block.title.trim().length === 0,
-  )
-  const invalidVideoUrl = hasInvalidYouTubeUrl(practicalInfo.presentation_video_url) ||
-    practicalBlocks.some(block => hasInvalidYouTubeUrl(block.video_url))
-  const clientValidationMessage = practicalBlockWithoutTitle
-    ? 'Un bloc personnalisé doit avoir un titre, ou être supprimé avant enregistrement.'
-    : invalidVideoUrl
-      ? 'Les liens vidéo doivent être des URL YouTube valides.'
-      : null
-  const saveDisabled = status === 'saving' ||
-    ownerNoteOverLimit ||
-    clientValidationMessage !== null
+  // Spec 083 : erreurs affichées sous les champs, revérifiées pendant la saisie après une tentative.
+  const formState = { ...practicalInfo, arrival_instructions: arrivalInstructions, practical_blocks: practicalBlocks }
+  const clientErrors = validateGuideForm(formState)
+  const fieldErrors: FieldErrors = showErrors
+    ? { ...visibleServerErrors(serverErrors.errors, serverErrors.snapshot, formState), ...clientErrors }
+    : {}
+  const errorCount = Object.keys(fieldErrors).length
+  const saveDisabled = status === 'saving' || ownerNoteOverLimit
+
+  function revealErrors(count: number) {
+    setShowErrors(true)
+    setStatus('error')
+    setMessage(`${count} champ${count > 1 ? 's' : ''} à corriger.`)
+    window.requestAnimationFrame?.(() => {
+      document.querySelector('[data-field-error]')?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    })
+  }
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
@@ -342,7 +357,9 @@ export function CustomizationForm({
   }
 
   async function saveCustomization() {
-    if (clientValidationMessage) {
+    const blocking = Object.keys(clientErrors).length
+    if (blocking > 0) {
+      revealErrors(blocking)
       return
     }
 
@@ -386,6 +403,15 @@ export function CustomizationForm({
 
     if (!response.ok) {
       const payload = await response.json().catch(() => null) as ApiErrorPayload | null
+      const apiErrors = issuesToErrors(payload?.error?.details?.issues)
+      if (Object.keys(apiErrors).length > 0) {
+        setServerErrors({
+          errors: apiErrors,
+          snapshot: Object.fromEntries(Object.keys(apiErrors).map(path => [path, JSON.stringify(valueAtPath(formState, path))])),
+        })
+        revealErrors(Object.keys(apiErrors).length)
+        return
+      }
       setStatus('error')
       setMessage(formatApiValidationError(payload) ?? payload?.error?.message ?? 'Sauvegarde impossible.')
       return
@@ -426,6 +452,8 @@ export function CustomizationForm({
       arrivalInstructions: nextArrivalInstructions,
       otherCityPois: nextOtherCityPois,
     }))
+    setShowErrors(false)
+    setServerErrors({ errors: {}, snapshot: {} })
     setStatus('saved')
     setMessage(
       payload.ignored_category_slugs.length > 0
@@ -434,12 +462,12 @@ export function CustomizationForm({
     )
   }
 
-  const barMessage = clientValidationMessage
-    ?? (status === 'error' ? message : null)
-    ?? (dirty ? 'Modifications non enregistrées' : message ?? 'Toutes les modifications sont enregistrées.')
-  const barTone = clientValidationMessage || status === 'error'
-    ? 'text-rose-600'
-    : dirty ? 'text-amber-700' : 'text-emerald-700'
+  const hasErrors = errorCount > 0 || (status === 'error' && !showErrors)
+  const barMessage = errorCount > 0
+    ? `${errorCount} champ${errorCount > 1 ? 's' : ''} à corriger.`
+    : (status === 'error' && !showErrors ? message : null)
+      ?? (dirty ? 'Modifications non enregistrées' : message ?? 'Toutes les modifications sont enregistrées.')
+  const barTone = hasErrors ? 'text-rose-600' : dirty ? 'text-amber-700' : 'text-emerald-700'
 
   return (
     <div className="lg:grid lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-x-8">
@@ -464,6 +492,7 @@ export function CustomizationForm({
               <div className="space-y-3">
                 <TextField
                   id="practical-cover_photo_url"
+                  error={fieldErrors.cover_photo_url}
                   label="Photo du logement (URL)"
                   value={practicalInfo.cover_photo_url ?? ''}
                   maxLength={1000}
@@ -502,6 +531,7 @@ export function CustomizationForm({
             <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
               <TextField
                 id="practical-address_number"
+                error={fieldErrors.address_number}
                 label="Numéro"
                 value={practicalInfo.address_number ?? ''}
                 maxLength={10}
@@ -510,6 +540,7 @@ export function CustomizationForm({
               />
               <TextField
                 id="practical-address_street"
+                error={fieldErrors.address_street}
                 label="Rue"
                 value={practicalInfo.address_street ?? ''}
                 maxLength={200}
@@ -518,6 +549,7 @@ export function CustomizationForm({
               />
               <TextField
                 id="practical-address_postal_code"
+                error={fieldErrors.address_postal_code}
                 label="Code postal"
                 value={practicalInfo.address_postal_code ?? ''}
                 maxLength={5}
@@ -526,6 +558,7 @@ export function CustomizationForm({
               />
               <TextField
                 id="practical-address_city"
+                error={fieldErrors.address_city}
                 label="Ville"
                 value={practicalInfo.address_city ?? ''}
                 maxLength={120}
@@ -540,6 +573,7 @@ export function CustomizationForm({
           <Card title="Boîte à clés" description="Affiché masqué dans le guide, révélé à la demande du voyageur.">
             <TextField
               id="practical-key_box_code"
+              error={fieldErrors.key_box_code}
               label="Code de la boîte à clés"
               value={practicalInfo.key_box_code ?? ''}
               maxLength={20}
@@ -548,7 +582,7 @@ export function CustomizationForm({
             />
           </Card>
           <Card>
-            <ArrivalInstructionsEditor value={arrivalInstructions} onChange={setArrivalInstructions} lodgingId={lodgingId} />
+            <ArrivalInstructionsEditor value={arrivalInstructions} onChange={setArrivalInstructions} lodgingId={lodgingId} errors={errorsUnder(fieldErrors, 'arrival_instructions')} />
           </Card>
         </GuideSection>
 
@@ -557,6 +591,7 @@ export function CustomizationForm({
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
                 id="practical-wifi_ssid"
+                error={fieldErrors.wifi_ssid}
                 label="Nom du réseau (SSID)"
                 value={practicalInfo.wifi_ssid ?? ''}
                 maxLength={120}
@@ -565,6 +600,7 @@ export function CustomizationForm({
               />
               <TextField
                 id="practical-wifi_password"
+                error={fieldErrors.wifi_password}
                 label="Mot de passe"
                 value={practicalInfo.wifi_password ?? ''}
                 maxLength={120}
@@ -577,6 +613,7 @@ export function CustomizationForm({
           <Card title="Point de tri">
             <TextField
               id="practical-trash_location"
+              error={fieldErrors.trash_location}
               label="Point de tri (adresse ou lien Google Maps)"
               value={practicalInfo.trash_location ?? ''}
               maxLength={500}
@@ -593,7 +630,7 @@ export function CustomizationForm({
           </Card>
           <Card>
             <MarkdownHint className="mb-4" />
-            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} />
+            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} errors={errorsUnder(fieldErrors, 'practical_blocks')} />
           </Card>
         </GuideSection>
 
@@ -702,7 +739,7 @@ export function CustomizationForm({
       <div className="sticky bottom-0 z-20 mt-8 rounded-t-[20px] border border-b-0 border-gray-100 bg-white/95 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.06)] backdrop-blur-sm lg:col-span-2">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p role="status" aria-label="État de l’enregistrement" className={`flex items-center gap-2 text-[13px] font-semibold ${barTone}`}>
-            {dirty && !clientValidationMessage && status !== 'error' ? <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" /> : null}
+            {dirty && !hasErrors ? <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" /> : null}
             {barMessage}
           </p>
           <div className="flex gap-2">
@@ -720,9 +757,9 @@ export function CustomizationForm({
               onClick={saveCustomization}
               disabled={saveDisabled}
               title={
-                clientValidationMessage ?? (ownerNoteOverLimit
+                ownerNoteOverLimit
                   ? `Commentaire limité à ${OWNER_NOTE_MAX_WORDS} mots`
-                  : undefined)
+                  : undefined
               }
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0B1437] px-6 text-[13px] font-bold text-white shadow-sm transition-all hover:bg-gray-900 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >

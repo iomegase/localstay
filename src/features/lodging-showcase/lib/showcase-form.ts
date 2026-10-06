@@ -83,3 +83,44 @@ export function applyAltToPhotos<T extends { alt: string; room_type: string | nu
     return { ...photo, alt: (room ? `${room} — ${common}` : common).slice(0, 160) }
   })
 }
+
+// Spec 083 AC-02-01 : message affiché sous le champ pour chaque élément manquant à la publication.
+const MISSING_FIELD_MESSAGES: Record<string, string> = {
+  title: 'Titre requis (5 caractères minimum).',
+  short_description: 'Description courte requise.',
+  description: 'Description principale requise (80 caractères minimum).',
+  property_type: 'Type de logement requis.',
+  max_guests: 'Nombre de voyageurs requis.',
+  photos: 'Ajoutez au moins une photo.',
+  cover_photo: 'Choisissez une photo de couverture.',
+  amenities: 'Cochez au moins 3 équipements.',
+}
+
+/** Spec 083 : erreurs par champ, issues du brouillon refusé (fieldErrors) ou de la publication (missingFields). */
+export function showcaseFieldErrors(input: {
+  fieldErrors?: Record<string, string[] | undefined>
+  missingFields?: string[]
+}): Record<string, string> {
+  const errors: Record<string, string> = {}
+  for (const [field, messages] of Object.entries(input.fieldErrors ?? {})) {
+    if (messages?.[0]) errors[field] = messages[0]
+  }
+  for (const field of input.missingFields ?? []) {
+    errors[field] ??= MISSING_FIELD_MESSAGES[field] ?? 'Champ requis.'
+  }
+  return errors
+}
+
+/** Valeurs observées pour effacer une erreur dès que le champ change. */
+export function showcaseErrorState(
+  profile: { photos: Array<{ id?: string | null; is_cover: boolean }> } & Record<string, unknown>,
+  amenityCodes: Iterable<string>,
+  otherAmenitiesText: string,
+): Record<string, unknown> {
+  return {
+    ...profile,
+    amenities: [...amenityCodes].sort().join(',') + `|${otherAmenitiesText}`,
+    photos: profile.photos.length,
+    cover_photo: profile.photos.find(photo => photo.is_cover)?.id ?? null,
+  }
+}

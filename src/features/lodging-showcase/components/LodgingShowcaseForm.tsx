@@ -25,11 +25,14 @@ import {
   SEO_TITLE_RANGE,
   SHOWCASE_SECTIONS,
   applyAltToPhotos,
+  showcaseErrorState,
+  showcaseFieldErrors,
   showcaseDraftSnapshot,
   type ShowcaseSectionId,
 } from '../lib/showcase-form'
 import type { OwnerLodgingPublicProfileDto } from '../types'
 import { fillFaqTemplate, missingLibraryItems, needsAdaptation } from '../lib/faq-library'
+import { valueAtPath, visibleServerErrors } from '@/features/guide-customization/lib/form-errors'
 
 const photoCollisionDetection: CollisionDetection = args => {
   const point = args.pointerCoordinates
@@ -118,6 +121,11 @@ function Panel({ title, description, children }: { title?: string; description?:
   )
 }
 
+/** Spec 083 : message affiché en rouge sous un champ. */
+function FieldError({ message }: { message?: string }) {
+  return message ? <p className="text-xs font-semibold text-rose-600">{message}</p> : null
+}
+
 function Counter({ value, range, testId }: { value: string; range: { min: number; max: number }; testId: string }) {
   const ok = lengthInRange(value, range)
   return (
@@ -170,6 +178,8 @@ export function LodgingShowcaseForm(props: {
   // Spec 082 US-02 : ajout de questions depuis la bibliothèque.
   const [libraryOpen, setLibraryOpen] = useState(false)
   const [librarySelection, setLibrarySelection] = useState<Set<string>>(new Set())
+  // Spec 083 : erreurs par champ, masquées dès que la valeur du champ change.
+  const [fieldErrorState, setFieldErrorState] = useState<{ errors: Record<string, string>; snapshot: Record<string, string> }>({ errors: {}, snapshot: {} })
 
   // Spec 079 AC-03-02 : modifications non enregistrées (les photos sont enregistrées à chaque action,
   // seules leurs descriptions passent par le brouillon).
@@ -184,6 +194,23 @@ export function LodgingShowcaseForm(props: {
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
+
+  const errorState = showcaseErrorState(profile, selectedAmenityCodes, otherAmenitiesText)
+  const visibleErrors = visibleServerErrors(fieldErrorState.errors, fieldErrorState.snapshot, errorState)
+
+  function showFieldErrors(errors: Record<string, string>) {
+    setFieldErrorState({
+      errors,
+      snapshot: Object.fromEntries(Object.keys(errors).map(path => [path, JSON.stringify(valueAtPath(errorState, path))])),
+    })
+    window.requestAnimationFrame?.(() => {
+      document.querySelector('[aria-invalid="true"], [data-field-error]')?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    })
+  }
+
+  function invalid(field: string) {
+    return visibleErrors[field] ? { 'aria-invalid': true as const } : {}
+  }
 
   const photosBusy = uploadProgress !== null || status === 'saving' || photoActionId !== null
   const photoCategoryOptions = buildPhotoCategoryOptions(profile.bedroom_count, profile.bathroom_count)
@@ -445,6 +472,7 @@ export function LodgingShowcaseForm(props: {
       const errorPayload = payload as ApiErrorPayload | null
       const fieldErrors = formatFieldErrors(errorPayload?.error?.details?.fieldErrors)
       setValidationErrors(fieldErrors)
+      showFieldErrors(showcaseFieldErrors({ fieldErrors: errorPayload?.error?.details?.fieldErrors }))
       setStatus('error')
       setMessage(errorPayload?.error?.message ?? 'Sauvegarde impossible.')
       return
@@ -470,6 +498,7 @@ export function LodgingShowcaseForm(props: {
     setFaqRows(nextFaq)
     setSavedSnapshot(showcaseDraftSnapshot({ profile: savedProfile, amenityCodes: nextAmenityCodes, otherAmenitiesText: nextOtherAmenities, faqRows: nextFaq }))
     setPhotoAltsEdited(false)
+    setFieldErrorState({ errors: {}, snapshot: {} })
     setStatus('saved')
     setMessage('Brouillon sauvegarde.')
   }
@@ -489,6 +518,7 @@ export function LodgingShowcaseForm(props: {
       setStatus('error')
       const error = payload?.error as { message?: string; details?: { missingFields?: string[] } } | undefined
       setMissingFields(error?.details?.missingFields ?? [])
+      showFieldErrors(showcaseFieldErrors({ missingFields: error?.details?.missingFields ?? [] }))
       setMessage(error?.message ?? 'Demande de publication impossible.')
       return
     }
@@ -612,26 +642,29 @@ export function LodgingShowcaseForm(props: {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="showcase-title">Titre</Label>
-                <Input id="showcase-title" value={profile.title} onChange={event => setField('title', event.target.value)} />
+                <Input id="showcase-title" {...invalid('title')} value={profile.title} onChange={event => setField('title', event.target.value)} />
+                <FieldError message={visibleErrors.title} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="showcase-short-description">Description courte</Label>
                 <Textarea
-                  id="showcase-short-description"
+                  id="showcase-short-description" {...invalid('short_description')}
                   value={profile.short_description}
                   onChange={event => setField('short_description', event.target.value)}
                   rows={3}
                 />
+                <FieldError message={visibleErrors.short_description} />
                 <p className="text-[11px] text-gray-400">Affichée sur les cartes et en tête de fiche.</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="showcase-description">Description principale</Label>
                 <Textarea
-                  id="showcase-description"
+                  id="showcase-description" {...invalid('description')}
                   value={profile.description}
                   onChange={event => setField('description', event.target.value)}
                   rows={8}
                 />
+                <FieldError message={visibleErrors.description} />
               </div>
               <MarkdownHint />
             </div>
@@ -641,12 +674,13 @@ export function LodgingShowcaseForm(props: {
               <div className="space-y-3">
                 <Label htmlFor="source-description-text" className="sr-only">Texte source</Label>
                 <Textarea
-                  id="source-description-text"
+                  id="source-description-text" {...invalid('source_description_text')}
                   value={profile.source_description_text ?? ''}
                   onChange={event => setField('source_description_text', event.target.value)}
                   rows={5}
                   placeholder="Votre description, 80 caractères minimum"
                 />
+                <FieldError message={visibleErrors.source_description_text} />
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" variant="outline" onClick={requestRewrite}>
                     <Sparkles aria-hidden="true" />Proposer une version MyStay
@@ -667,27 +701,33 @@ export function LodgingShowcaseForm(props: {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
                 <Label htmlFor="property-type">Type</Label>
-                <Input id="property-type" value={profile.property_type} onChange={event => setField('property_type', event.target.value)} placeholder="Appartement, chalet…" />
+                <Input id="property-type" {...invalid('property_type')} value={profile.property_type} onChange={event => setField('property_type', event.target.value)} placeholder="Appartement, chalet…" />
+                <FieldError message={visibleErrors.property_type} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="max-guests">Voyageurs max</Label>
-                <Input id="max-guests" type="number" min={1} value={String(profile.max_guests)} onChange={event => setField('max_guests', Number(event.target.value) || 1)} />
+                <Input id="max-guests" {...invalid('max_guests')} type="number" min={1} value={String(profile.max_guests)} onChange={event => setField('max_guests', Number(event.target.value) || 1)} />
+                <FieldError message={visibleErrors.max_guests} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="surface-m2">Surface m2</Label>
-                <Input id="surface-m2" type="number" min={1} value={profile.surface_m2 ?? ''} onChange={event => setField('surface_m2', event.target.value === '' ? null : Number(event.target.value))} />
+                <Input id="surface-m2" {...invalid('surface_m2')} type="number" min={1} value={profile.surface_m2 ?? ''} onChange={event => setField('surface_m2', event.target.value === '' ? null : Number(event.target.value))} />
+                <FieldError message={visibleErrors.surface_m2} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="bedroom-count">Chambres</Label>
-                <Input id="bedroom-count" type="number" min={0} value={profile.bedroom_count ?? ''} onChange={event => setField('bedroom_count', event.target.value === '' ? null : Number(event.target.value))} />
+                <Input id="bedroom-count" {...invalid('bedroom_count')} type="number" min={0} value={profile.bedroom_count ?? ''} onChange={event => setField('bedroom_count', event.target.value === '' ? null : Number(event.target.value))} />
+                <FieldError message={visibleErrors.bedroom_count} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="bathroom-count">Salles de bain</Label>
-                <Input id="bathroom-count" type="number" min={0} value={profile.bathroom_count ?? ''} onChange={event => setField('bathroom_count', event.target.value === '' ? null : Number(event.target.value))} />
+                <Input id="bathroom-count" {...invalid('bathroom_count')} type="number" min={0} value={profile.bathroom_count ?? ''} onChange={event => setField('bathroom_count', event.target.value === '' ? null : Number(event.target.value))} />
+                <FieldError message={visibleErrors.bathroom_count} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="bed-count">Lits</Label>
-                <Input id="bed-count" type="number" min={0} value={profile.bed_count ?? ''} onChange={event => setField('bed_count', event.target.value === '' ? null : Number(event.target.value))} />
+                <Input id="bed-count" {...invalid('bed_count')} type="number" min={0} value={profile.bed_count ?? ''} onChange={event => setField('bed_count', event.target.value === '' ? null : Number(event.target.value))} />
+                <FieldError message={visibleErrors.bed_count} />
               </div>
               {props.privateAddress ? (
                 <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 sm:col-span-2 lg:col-span-3">
@@ -700,7 +740,8 @@ export function LodgingShowcaseForm(props: {
               ) : null}
               <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
                 <Label htmlFor="public-area-label">Quartier affiché (facultatif)</Label>
-                <Input id="public-area-label" value={profile.public_area_label ?? ''} onChange={event => setField('public_area_label', event.target.value)} placeholder="Centre du village, hameau du Bettex…" />
+                <Input id="public-area-label" {...invalid('public_area_label')} value={profile.public_area_label ?? ''} onChange={event => setField('public_area_label', event.target.value)} placeholder="Centre du village, hameau du Bettex…" />
+                <FieldError message={visibleErrors.public_area_label} />
                 <p className="text-[11px] text-gray-400">Seuls la ville et ce quartier apparaissent sur la fiche publique.</p>
               </div>
             </div>
@@ -708,6 +749,7 @@ export function LodgingShowcaseForm(props: {
         </Section>
 
         <Section id="equipements">
+          <FieldError message={visibleErrors.amenities} />
           <Panel title="Compris dans le séjour">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-3">
               {AMENITY_CATALOG.filter(item => item.availability === 'included').map(item => (
@@ -753,6 +795,7 @@ export function LodgingShowcaseForm(props: {
         </Section>
 
         <Section id="photos">
+ <FieldError message={visibleErrors.photos ?? visibleErrors.cover_photo} />
           <Panel title="Ajouter des photos" description="Depuis votre ordinateur. Choisissez la pièce, puis ajustez-la sur chaque vignette.">
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_200px]">
@@ -979,11 +1022,12 @@ export function LodgingShowcaseForm(props: {
               <div className="space-y-1.5">
                 <Label htmlFor="external-booking-url">Lien de réservation (Airbnb, Booking…)</Label>
                 <Input
-                  id="external-booking-url"
+                  id="external-booking-url" {...invalid('external_booking_url')}
                   value={profile.external_booking_url ?? ''}
                   onChange={event => setField('external_booking_url', event.target.value)}
                   placeholder="airbnb.fr/rooms/123456789"
                 />
+                <FieldError message={visibleErrors.external_booking_url} />
                 <p className="text-[11px] text-gray-400">Le bouton « Réserver » de la fiche mène à cette annonce. Le « https:// » est facultatif.</p>
               </div>
               <label className="flex items-center gap-3 text-sm text-neutral-800">
@@ -1008,14 +1052,16 @@ export function LodgingShowcaseForm(props: {
                     <Label htmlFor="seo-title">SEO title</Label>
                     <Counter value={profile.seo_title ?? ''} range={SEO_TITLE_RANGE} testId="counter-seo-title" />
                   </div>
-                  <Input id="seo-title" value={profile.seo_title ?? ''} onChange={event => setField('seo_title', event.target.value)} />
+                  <Input id="seo-title" {...invalid('seo_title')} value={profile.seo_title ?? ''} onChange={event => setField('seo_title', event.target.value)} />
+                <FieldError message={visibleErrors.seo_title} />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-baseline justify-between gap-3">
                     <Label htmlFor="seo-description">SEO description</Label>
                     <Counter value={profile.seo_description ?? ''} range={SEO_DESCRIPTION_RANGE} testId="counter-seo-description" />
                   </div>
-                  <Textarea id="seo-description" value={profile.seo_description ?? ''} onChange={event => setField('seo_description', event.target.value)} rows={4} />
+                  <Textarea id="seo-description" {...invalid('seo_description')} value={profile.seo_description ?? ''} onChange={event => setField('seo_description', event.target.value)} rows={4} />
+                <FieldError message={visibleErrors.seo_description} />
                 </div>
                 <p className="text-[11px] text-gray-400">Vides : le titre et la description courte sont utilisés.</p>
               </div>

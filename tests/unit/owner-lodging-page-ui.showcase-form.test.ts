@@ -66,3 +66,17 @@ describe('079 AC-03-05 — texte alternatif appliqué aux photos existantes', ()
     expect(applyAltToPhotos(photos, '  ', labels)).toBe(photos)
   })
 })
+
+describe('083 AC-02-01 — erreurs par champ de la page Logement', () => {
+  it('brouillon refusé et champs manquants, sans écraser le message du brouillon', () => {
+    const { showcaseFieldErrors } = jest.requireActual<typeof import('@/features/lodging-showcase/lib/showcase-form')>('@/features/lodging-showcase/lib/showcase-form')
+    expect(showcaseFieldErrors({
+      fieldErrors: { title: ['Le titre doit contenir entre 5 et 90 caracteres.'], seo_title: undefined },
+      missingFields: ['title', 'cover_photo', 'amenities'],
+    })).toEqual({
+      title: 'Le titre doit contenir entre 5 et 90 caracteres.',
+      cover_photo: 'Choisissez une photo de couverture.',
+      amenities: 'Cochez au moins 3 équipements.',
+    })
+  })
+})

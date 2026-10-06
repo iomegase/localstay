@@ -37,6 +37,7 @@ export function YouTubeUrlField({ label, value, onChange, id }: Props) {
           onChange(next.trim() === '' ? null : next)
         }}
         aria-invalid={isInvalid}
+        data-field-error={isInvalid ? '' : undefined}
       />
       {isInvalid && (
         <p className="text-[11px] font-medium text-red-500">Lien YouTube invalide</p>
