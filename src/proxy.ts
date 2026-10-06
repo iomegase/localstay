@@ -15,7 +15,7 @@ import {
   isValidLodgingId,
 } from '@/features/seo/lib/route-policy'
 import { legacyGuideGoneResponse } from '@/features/seo/lib/legacy-guide-gone'
-import { isMaintenanceBlockedPath, MAINTENANCE_PATH } from '@/features/maintenance/lib/maintenance'
+import { isMaintenanceBlockedPath, isMaintenanceEnvironment, MAINTENANCE_PATH } from '@/features/maintenance/lib/maintenance'
 import { isMaintenanceEnabled } from '@/features/maintenance/queries/maintenance'
 
 // Écran de blocage affiché quand on accède au site sans séjour actif.
@@ -74,8 +74,9 @@ export async function proxy(request: NextRequest) {
   const isGuideAppRoute = path === '/sejour' || path.startsWith('/sejour/')
   const requestHeaders = new Headers(request.headers)
 
-  // Spec 087 : site public en maintenance (503, non indexé) ; connexion, guide, espaces et admin ouverts.
-  if (isMaintenanceBlockedPath(path, isMarketingRoute) && await isMaintenanceEnabled()) {
+  // Spec 087 : site public de production en maintenance (503, non indexé) ; connexion, guide, espaces
+  // et admin ouverts ; jamais en local ni en prévisualisation (AC-02-04).
+  if (isMaintenanceBlockedPath(path, isMarketingRoute) && isMaintenanceEnvironment() && await isMaintenanceEnabled()) {
     return NextResponse.rewrite(new URL(MAINTENANCE_PATH, request.url), {
       status: 503,
       headers: { 'Retry-After': '3600', 'X-Robots-Tag': 'noindex', 'Cache-Control': 'no-store' },

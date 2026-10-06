@@ -6,7 +6,7 @@ jest.mock('@/shared/lib/prisma', () => ({
   prisma: { siteMaintenance: { findFirst: (...a: unknown[]) => mockFindFirst(...a), update: (...a: unknown[]) => mockUpdate(...a), create: (...a: unknown[]) => mockCreate(...a) } },
 }))
 
-import { DEFAULT_MAINTENANCE_MESSAGE, isMaintenanceBlockedPath } from '@/features/maintenance/lib/maintenance'
+import { DEFAULT_MAINTENANCE_MESSAGE, isMaintenanceBlockedPath, isMaintenanceEnvironment } from '@/features/maintenance/lib/maintenance'
 import { getMaintenanceState, isMaintenanceEnabled, resetMaintenanceCache, setMaintenanceState } from '@/features/maintenance/queries/maintenance'
 
 // Spec 087 — état du mode maintenance.
@@ -17,6 +17,14 @@ describe('087 — règles', () => {
     expect(isMaintenanceBlockedPath('/connexion', true)).toBe(false)
     expect(isMaintenanceBlockedPath('/sejour', false)).toBe(false)
     expect(isMaintenanceBlockedPath('/admin', false)).toBe(false)
+  })
+})
+
+describe('087 AC-02-04 — production seulement', () => {
+  it('ferme uniquement la production Vercel', () => {
+    expect(isMaintenanceEnvironment({ VERCEL_ENV: 'production' })).toBe(true)
+    expect(isMaintenanceEnvironment({ VERCEL_ENV: 'preview' })).toBe(false)
+    expect(isMaintenanceEnvironment({})).toBe(false)
   })
 })
 

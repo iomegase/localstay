@@ -10,6 +10,11 @@ export function maintenanceMessage(message: string | null | undefined): string {
   return message?.trim() || DEFAULT_MAINTENANCE_MESSAGE
 }
 
+/** Spec 087 AC-02-04 : la maintenance ne ferme que le site de production Vercel. */
+export function isMaintenanceEnvironment(vercelEnv: { VERCEL_ENV?: string } = { VERCEL_ENV: process.env.VERCEL_ENV }): boolean {
+  return vercelEnv.VERCEL_ENV === 'production'
+}
+
 /**
  * Spec 087 AC-02-01 / AC-02-02 : seules les pages du site public sont fermées ;
  * la connexion reste ouverte (le reste est hors du site public : /sejour, /dashboard, /admin, /api…).

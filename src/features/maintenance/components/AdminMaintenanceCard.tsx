@@ -45,7 +45,7 @@ export function AdminMaintenanceCard({ initial }: { initial: MaintenanceState })
           </span>
           <div>
             <h2 id="maintenance-title" className="text-base font-bold text-neutral-900">Mode maintenance</h2>
-            <p className="mt-0.5 text-xs text-gray-500">Ferme le site public. Le guide des voyageurs, les espaces propriétaire et admin, et la connexion restent ouverts.</p>
+            <p className="mt-0.5 text-xs text-gray-500">Ferme le site public en production uniquement (le site local reste ouvert). Le guide des voyageurs, les espaces propriétaire et admin, et la connexion restent ouverts.</p>
           </div>
         </div>
         <span data-testid="maintenance-status" className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${saved.enabled ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>

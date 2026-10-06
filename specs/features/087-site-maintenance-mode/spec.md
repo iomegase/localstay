@@ -34,6 +34,9 @@ implementation_gate: "PO 2026-10-06 : « créer un bouton dans le dashboard admi
   `noindex`.
 - **AC-02-02**: Given le mode actif, When on ouvre /connexion, /auth, /sejour (guide voyageur),
   /dashboard, /admin ou une API, Then ils fonctionnent normalement.
+- **AC-02-04** (PO 2026-10-06) : Given un environnement autre que la production Vercel
+  (`VERCEL_ENV` ≠ `production` : local, prévisualisation), When le mode est actif, Then le site
+  public reste accessible (la base est partagée avec le local) ; `/maintenance` reste consultable.
 - **AC-02-03**: Given la page de maintenance, When elle s'affiche, Then le logo MyStay puis le
   message sont centrés au milieu de l'écran.
 
