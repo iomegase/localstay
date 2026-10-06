@@ -32,6 +32,7 @@ import {
 } from '../lib/showcase-form'
 import type { OwnerLodgingPublicProfileDto } from '../types'
 import { fillFaqTemplate, missingLibraryItems, needsAdaptation } from '../lib/faq-library'
+import { ACCEPTED_IMAGE_INPUT } from '@/shared/lib/image-upload'
 import { valueAtPath, visibleServerErrors } from '@/features/guide-customization/lib/form-errors'
 
 const photoCollisionDetection: CollisionDetection = args => {
@@ -839,7 +840,7 @@ export function LodgingShowcaseForm(props: {
               <div className="flex flex-wrap items-end gap-3">
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <Label htmlFor="photo-files">Photos à importer</Label>
-                  <Input key={fileInputKey} id="photo-files" type="file" multiple disabled={photosBusy} accept="image/png,image/jpeg,image/jpg,image/webp,image/avif" onChange={event => { setPhotoFiles(Array.from(event.target.files ?? [])); setUploadErrors([]) }} />
+                  <Input key={fileInputKey} id="photo-files" type="file" multiple disabled={photosBusy} accept={ACCEPTED_IMAGE_INPUT} onChange={event => { setPhotoFiles(Array.from(event.target.files ?? [])); setUploadErrors([]) }} />
                 </div>
                 <Button type="button" variant="outline" onClick={uploadPhoto} disabled={photosBusy || photoFiles.length === 0 || (photoAlt.trim().length > 0 && photoAlt.trim().length < 5)}>
                   {uploadProgress ? `Envoi ${uploadProgress.completed}/${uploadProgress.total}…` : 'Importer les photos'}

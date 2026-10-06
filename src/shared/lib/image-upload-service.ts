@@ -1,4 +1,5 @@
 import sharp from 'sharp'
+import heicConvert from 'heic-convert'
 import { createSupabaseServer } from '@/shared/lib/supabase'
 import { MAX_IMAGE_UPLOAD_BYTES, resolveUploadFormat } from '@/shared/lib/image-upload'
 
@@ -21,6 +22,16 @@ export function encodeStoredWebp(input: Buffer): Promise<Buffer> {
 }
 
 /**
+ * Spec 085 AC-04 : le binaire de sharp ne décode pas le HEIC (HEVC) ; il est d'abord
+ * converti en JPEG. Les autres formats sont transmis tels quels.
+ */
+export async function decodeUploadInput(input: Buffer, mimeType: string): Promise<Buffer> {
+  if (mimeType !== 'image/heic' && mimeType !== 'image/heif') return input
+  const jpeg = await heicConvert({ buffer: input, format: 'JPEG', quality: 0.92 })
+  return Buffer.isBuffer(jpeg) ? jpeg : Buffer.from(new Uint8Array(jpeg))
+}
+
+/**
  * Réencode l'image en WebP (tous formats acceptés, AVIF compris) puis la téléverse
  * dans le bucket `guide-photos` et renvoie son URL publique.
  */
@@ -29,7 +40,7 @@ export async function uploadGuideImage(file: File, pathPrefix: string): Promise<
   if (!format) return { ok: false, code: 'INVALID_TYPE' }
   if (file.size > MAX_IMAGE_UPLOAD_BYTES) return { ok: false, code: 'TOO_LARGE' }
 
-  const input = Buffer.from(await file.arrayBuffer())
+  const input = await decodeUploadInput(Buffer.from(await file.arrayBuffer()), file.type)
   const body = await encodeStoredWebp(input)
 
   const supabase = createSupabaseServer()

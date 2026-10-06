@@ -31,7 +31,7 @@ export async function POST(
   }
 
   if (!resolveUploadFormat(file.type)) {
-    return apiError('VALIDATION_ERROR', 'Type de fichier non supporte', 400)
+    return apiError('VALIDATION_ERROR', 'Format non pris en charge (jpeg, png, webp, avif, heic).', 400)
   }
 
   const roomType = roomTypeRaw
@@ -46,8 +46,10 @@ export async function POST(
   const upload = await uploadGuideImage(file, `lodgings/${id}/showcase`)
 
   if (!upload.ok) {
+    // Spec 085 AC-05 : message précis selon la cause.
     if (upload.code === 'INVALID_TYPE' || upload.code === 'TOO_LARGE') {
-      return apiError('VALIDATION_ERROR', 'Image invalide', 400, { uploadCode: upload.code })
+      const message = upload.code === 'TOO_LARGE' ? 'Photo trop lourde (5 Mo maximum).' : 'Format non pris en charge (jpeg, png, webp, avif, heic).'
+      return apiError('VALIDATION_ERROR', message, 400, { uploadCode: upload.code })
     }
 
     return apiError('UPLOAD_FAILED', 'Upload impossible', 500)

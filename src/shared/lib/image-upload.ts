@@ -8,7 +8,13 @@ export const ACCEPTED_IMAGE_UPLOAD_MIMES = [
   'image/jpg',
   'image/webp',
   'image/avif',
+  // Spec 085 : photos d'iPhone.
+  'image/heic',
+  'image/heif',
 ] as const
+
+/** Valeur de l'attribut `accept` des champs fichier (certains navigateurs ne connaissent pas le type HEIC). */
+export const ACCEPTED_IMAGE_INPUT = [...ACCEPTED_IMAGE_UPLOAD_MIMES, '.heic', '.heif'].join(',')
 
 export interface UploadFormat {
   /** true → réencoder en webp (sharp) avant stockage. */
@@ -29,6 +35,8 @@ export function resolveUploadFormat(mimeType: string): UploadFormat | null {
     case 'image/jpg':
     case 'image/webp':
     case 'image/avif':
+    case 'image/heic':
+    case 'image/heif':
       return { convert: true, contentType: 'image/webp', extension: 'webp' }
     default:
       return null

@@ -1848,3 +1848,10 @@ Note 077 / 079 / 076 (2026-10-06) : barres d'enregistrement passées de `fixed` 
 | AC-03 | Point de tri : ville non dupliquée dans la recherche Maps | `src/features/guide-app/lib/recycling-maps.ts` | `tests/unit/guide-audit-fixes.AC-01-03.test.ts` | ✅ done |
 
 Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours affiché ; « Je suis arrivé·e ! » dans la carte du code — `src/features/guide-app/components/stay/GuideArrivalFlow.tsx`, test `tests/integration/private-guide-stay.AC-02.arrival-flow.test.tsx`.
+
+## 085 — Téléversement de photos fiable (smartphone, HEIC)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01..03, AC-05 / BR-02 | HEIC → JPEG et réduction ≤ 2560 px dans le navigateur (heic2any à la demande), sélecteur HEIC, messages précis (413, format, poids) | `src/shared/lib/prepare-image-upload.ts`<br>`src/shared/lib/image-upload.ts`<br>`src/shared/components/ImageUpload.tsx`<br>`src/features/lodging-showcase/lib/upload-photos.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx`<br>routes `cover-photo`, `public-profile/photos` (propriétaire, admin) | `tests/unit/photo-upload-heic.AC-01-05.prepare.test.ts`<br>`tests/integration/photo-upload-heic.AC-01-05.image-upload.test.tsx`<br>`tests/integration/lodging-showcase.AC-05-13-15.photo-editor.test.tsx` | ✅ done |
+| AC-04 / BR-01 | HEIC décodé côté serveur (heic-convert) puis WebP ≤ 2560 px | `src/shared/lib/image-upload-service.ts`<br>`src/shared/types/heic-convert.d.ts` | `tests/unit/photo-upload-heic.AC-04.server.test.ts` + vérification réelle d'un HEIC HEVC (2026-10-06) | ✅ done |

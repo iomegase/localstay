@@ -1,7 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { ACCEPTED_IMAGE_UPLOAD_MIMES } from '@/shared/lib/image-upload'
+import { ACCEPTED_IMAGE_INPUT } from '@/shared/lib/image-upload'
+import { prepareImageForUpload, uploadErrorMessage } from '@/shared/lib/prepare-image-upload'
 
 interface Props {
   /** Endpoint POST multipart (champ `file`) renvoyant `{ url }`. */
@@ -35,11 +36,13 @@ export function ImageUpload({
   const multiple = maxFiles > 1
 
   async function uploadOne(file: File): Promise<string> {
+    // Spec 085 : HEIC converti et photo réduite dans le navigateur avant l'envoi.
+    const prepared = await prepareImageForUpload(file)
     const body = new FormData()
-    body.append('file', file)
+    body.append('file', prepared)
     const res = await fetch(endpoint, { method: 'POST', body })
     const json = (await res.json().catch(() => null)) as { url?: string; error?: { message?: string } } | null
-    if (!res.ok || !json?.url) throw new Error(json?.error?.message ?? 'Téléversement impossible')
+    if (!res.ok || !json?.url) throw new Error(uploadErrorMessage(res.status, json?.error?.message))
     return json.url
   }
 
@@ -75,7 +78,7 @@ export function ImageUpload({
       <input
         ref={inputRef}
         type="file"
-        accept={ACCEPTED_IMAGE_UPLOAD_MIMES.join(',')}
+        accept={ACCEPTED_IMAGE_INPUT}
         multiple={multiple}
         className="hidden"
         onChange={handleChange}

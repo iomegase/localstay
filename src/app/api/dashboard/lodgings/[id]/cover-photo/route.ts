@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: Params): Promise<NextRe
   const result = await uploadGuideImage(file, `lodgings/${id}`)
   if (!result.ok) {
     if (result.code === 'INVALID_TYPE') {
-      return NextResponse.json({ error: { code: result.code, message: 'Format non supporté (png, jpeg, webp, avif)' } }, { status: 400 })
+      return NextResponse.json({ error: { code: result.code, message: 'Format non supporté (jpeg, png, webp, avif, heic)' } }, { status: 400 })
     }
     if (result.code === 'TOO_LARGE') {
       return NextResponse.json({ error: { code: result.code, message: 'Image trop volumineuse (max 5 Mo)' } }, { status: 400 })

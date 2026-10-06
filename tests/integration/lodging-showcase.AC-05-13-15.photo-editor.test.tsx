@@ -141,6 +141,8 @@ it('AC-05-13: locks competing actions until the entire batch finishes', async ()
   fireEvent.click(screen.getByRole('button', { name: 'Appliquer le brouillon MyStay' }))
   expect(screen.getByRole('button', { name: 'Sauvegarder le brouillon' })).toBeDisabled()
   expect(screen.getByRole('combobox', { name: 'Catégorie de Chambre lumineuse' })).toBeDisabled()
+  // Spec 085 : la photo est préparée (asynchrone) avant l'envoi.
+  await waitFor(() => expect(global.fetch).toHaveBeenCalled())
   finish({ ok: true, json: async () => ({ ...photo, id: 'b76af918-ab21-40c3-8b59-708f61572446', alt: 'Salon lumineux', is_cover: false }) })
   await screen.findByAltText('Salon lumineux')
   await waitFor(() => expect(screen.getByRole('button', { name: 'Sauvegarder le brouillon' })).toBeEnabled())
