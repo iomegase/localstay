@@ -129,6 +129,12 @@ logements, Journal, cartes transport) et des copies spec 063.
 
 ---
 
+### Révision PO 2026-10-07
+
+- **AC-04-01**: Given la liste admin des POI, When un POI n'a pas de photo, Then sa vignette affiche
+  l'image de remplacement que verrait le public (médiathèque, sinon type de lieu, sinon image MyStay),
+  en pointillés avec une pastille « image de remplacement », au lieu d'un cadre vide.
+
 ## Business Rules
 
 - **BR-01**: Classement par sous-catégorie ; une image classée en catégorie seule sert

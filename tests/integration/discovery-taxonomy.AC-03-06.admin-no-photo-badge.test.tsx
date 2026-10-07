@@ -41,6 +41,7 @@ function listItem(name: string, overrides: Record<string, unknown>) {
     geocode_status: 'success',
     photo_count: 0,
     primary_photo_url: null,
+    fallback_photo_url: '/fallback/sport.jpg',
     has_usable_photo: false,
     photos_status: 'ok',
     review_source: 'MANUAL',
@@ -72,5 +73,23 @@ describe('065 AC-03-06 — badge « Sans photo » dans Admin › POI', () => {
     const badges = screen.getAllByText('Sans photo')
     expect(badges).toHaveLength(1)
     expect(badges[0]!.closest('tr')).toHaveTextContent('blanc-sport')
+  })
+
+  it('spec 070 (PO 2026-10-07) : vignette = image de remplacement quand le POI n’a pas de photo', async () => {
+    mockListAdminPois.mockResolvedValue({
+      data: [
+        listItem('blanc-sport', {}),
+        listItem('avec-photo', { has_usable_photo: true, photo_count: 1, primary_photo_url: 'https://example.com/a.jpg' }),
+      ],
+      pagination: { page: 1, limit: 25, total: 2, total_pages: 1 },
+      kpis: { active_count: 2, inactive_count: 0, archived_count: 0, without_photos_count: 1, pending_geocode_count: 0 },
+      acquisition_runs: [],
+    })
+    render(await AdminPoisPage({ searchParams: Promise.resolve({ city_id: 'city-1' }) }))
+
+    const thumbs = screen.getAllByTestId('admin-poi-fallback-thumb')
+    expect(thumbs).toHaveLength(1)
+    expect(thumbs[0]).toHaveAttribute('src', '/fallback/sport.jpg')
+    expect(document.querySelector('img[src="https://example.com/a.jpg"]')).not.toBeNull()
   })
 })

@@ -1,3 +1,5 @@
+import { activeFallbackImageUrl, resolvePoiFallbackImage } from '@/features/categories/lib/poi-fallback-image'
+import { MYSTAY_DEFAULT_IMAGE } from '@/features/public-discovery/lib/discovery-photo'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
@@ -48,6 +50,7 @@ type AdminPoiRow = {
   category: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null }
   subcategory: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null } | null
   merchant_profile: { id: string } | null
+  fallback_image?: { url: string; deleted_at: Date | null } | null
   trail_detail: {
     id: string
     deleted_at: Date | null
@@ -111,6 +114,8 @@ const adminPoiSelect = {
   category: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
   subcategory: { select: { id: true, name: true, slug: true, is_active: true, deleted_at: true } },
   merchant_profile: { select: { id: true } },
+  // Spec 070 : image de remplacement attribuée (vignette des POI sans photo).
+  fallback_image: { select: { url: true, deleted_at: true } },
   trail_detail: {
     select: {
       id: true,
@@ -665,6 +670,7 @@ function mapAdminPoiListItem(row: AdminPoiRow): AdminPoiListItem {
     geocode_status: row.geocode_status,
     photo_count: row.photos.length,
     primary_photo_url: row.photos[0] ?? null,
+    fallback_photo_url: resolvePoiFallbackImage(activeFallbackImageUrl(row.fallback_image), row.category.slug, row.subcategory?.slug ?? null) ?? MYSTAY_DEFAULT_IMAGE,
     has_usable_photo: row.photos.some(isUsableAdminPhotoUrl),
     photos_status: row.photos_status,
     review_source: row.review_source,

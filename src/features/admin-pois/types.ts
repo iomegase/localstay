@@ -51,6 +51,8 @@ export type AdminPoiListItem = {
   geocode_status: string
   photo_count: number
   primary_photo_url: string | null
+  /** Spec 070 : image affichée à la place de la photo absente (médiathèque, type de lieu, MyStay). */
+  fallback_photo_url: string
   /** Spec 065 AC-03-06 : au moins une photo exploitable (règle spec 022). */
   has_usable_photo: boolean
   photos_status: string
