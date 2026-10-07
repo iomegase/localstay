@@ -231,7 +231,7 @@ export default async function LodgingDetailPage({ params }: Props) {
             <LodgingFaq items={detail.faq} />
 
             {(detail.external_booking_url || detail.public_contact_enabled) && (
-              <section className="flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white md:flex-row md:items-end md:justify-between md:px-10 md:py-12">
+              <section className="flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white md:flex-row md:items-center md:justify-between md:px-10 md:py-12">
                 <div>
                   <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-300">
                     Réserver ce logement
