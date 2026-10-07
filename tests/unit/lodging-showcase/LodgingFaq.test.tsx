@@ -54,4 +54,8 @@ describe('LodgingFaq', () => {
     }
     expect(screen.getAllByTestId('lodging-faq-toggle')).toHaveLength(2)
   })
+  it('PO 2026-10-07 : toutes les questions ont la même hauteur minimale', () => {
+    render(<LodgingFaq items={items} />)
+    for (const question of screen.getAllByTestId('lodging-faq-question')) expect(question).toHaveClass('min-h-[88px]', 'text-[14px]')
+  })
 })

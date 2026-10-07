@@ -17,7 +17,9 @@ function FaqColumn({ items, openId, onToggle }: { items: FaqItem[]; openId: stri
         >
           <summary
             onClick={event => { event.preventDefault(); onToggle(item.id) }}
-            className="flex cursor-pointer list-none items-center justify-between gap-6 px-5 py-5 text-[15px] font-bold leading-[1.4] tracking-[-0.025em] text-slate-900 outline-none sm:px-6 sm:py-6 [&::-webkit-details-marker]:hidden">
+            data-testid="lodging-faq-question"
+            // PO 2026-10-07 : même hauteur pour toutes les questions (1 ou 2 lignes), texte un peu réduit.
+            className="flex min-h-[88px] cursor-pointer list-none items-center justify-between gap-5 px-5 py-4 text-[14px] font-bold leading-[1.4] tracking-[-0.02em] text-slate-900 outline-none sm:px-6 [&::-webkit-details-marker]:hidden">
             <span>{item.question}</span>
             <span
               aria-hidden="true"

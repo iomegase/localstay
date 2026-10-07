@@ -35,7 +35,7 @@ implementation_gate: "PO 2026-10-06 : « refonte UI des FAQ sur 2 colonnes et re
   crème), mini-cartes blanches avec `shadow-md`. Le mode compact (modale démo) reste sur 1 colonne.
 - **AC-06**: La FAQ du logement reprend le design de la FAQ de l'accueil (`MarketingFaqSection`) : cartes
   arrondies crème, blanches + `shadow-md` à l'ouverture, bouton rond + / ×. Markdown, 2 colonnes et
-  accordéon exclusif conservés.
+  accordéon exclusif conservés. Toutes les questions ont la même hauteur (min. 88 px, texte 14 px).
 
 ## Business Rules / Data Model / API Contract
 
