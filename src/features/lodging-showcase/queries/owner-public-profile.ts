@@ -384,7 +384,6 @@ export async function getOwnedLodgingShowcasePageData(
 async function writePublicProfileForLodging(
   lodging: Pick<ShowcaseLodging, 'id' | 'city_id' | 'city'>,
   input: LodgingPublicProfileInput,
-  options: { resetToDraft: boolean },
 ): Promise<OwnerLodgingPublicProfileDto | null> {
   const currentProfile = await prisma.lodgingPublicProfile.findUnique({
     where: { lodging_id: lodging.id },
@@ -447,7 +446,6 @@ async function writePublicProfileForLodging(
       update: {
         city_id: lodging.city_id,
         slug,
-        ...(options.resetToDraft ? { publication_status: 'draft' as const } : {}),
         title: input.title,
         short_description: input.short_description,
         description: input.description,
@@ -561,7 +559,8 @@ export async function saveOwnerPublicProfile(
   const lodging = await getOwnedLodgingForShowcase(ownerId, lodgingId)
   if (!lodging) return null
 
-  return writePublicProfileForLodging(lodging, input, { resetToDraft: true })
+  // Spec 090 : une fiche validée reste en ligne ; le statut n'est jamais modifié par une sauvegarde.
+  return writePublicProfileForLodging(lodging, input)
 }
 
 export async function submitOwnerPublicProfile(ownerId: string, lodgingId: string) {
@@ -709,8 +708,8 @@ export async function saveGeneratedRewrite(
 
   const updated = await prisma.lodgingPublicProfile.update({
     where: { id: owned.profile.id ?? '' },
+    // Spec 090 AC-03 : une proposition de réécriture ne dépublie pas la fiche.
     data: {
-      publication_status: 'draft',
       source_description_text: input.sourceDescriptionText,
       rewrite_status: 'generated',
       rewrite_suggestion: rewriteSuggestion,
@@ -794,7 +793,7 @@ export async function saveAdminPublicProfile(
   const lodging = await getLodgingForAdminShowcase(lodgingId)
   if (!lodging) return null
 
-  return writePublicProfileForLodging(lodging, input, { resetToDraft: false })
+  return writePublicProfileForLodging(lodging, input)
 }
 
 export async function createAdminLodgingPhoto(

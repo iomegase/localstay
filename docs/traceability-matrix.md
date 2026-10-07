@@ -1900,3 +1900,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | AC-02-01..03 / BR-02 | Calendrier 12 mois (1 mois mobile, 2 dès md), nuits prises barrées, section absente sans lien/illisible | `src/features/lodging-showcase/lib/availability.ts`<br>`src/features/lodging-showcase/components/LodgingAvailabilityCalendar.tsx`<br>`src/features/lodging-showcase/components/LodgingAvailability.tsx`<br>`src/app/(public)/logements/[lodging-slug]/page.tsx` | `tests/unit/lodging-availability.AC-02.parse.test.ts`<br>`tests/integration/lodging-availability.AC-02.calendar.test.tsx`<br>`tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |
 | BR-03 / BR-04 | Cache 1 h ; https, DNS public, 3 redirections revérifiées, 5 s, 1 Mo | `src/features/lodging-showcase/queries/availability.ts` | `tests/unit/lodging-availability.BR-04.fetch.test.ts` | ✅ done |
 | BR-05 | Lien iCal jamais exposé (dates seules) | `src/features/lodging-showcase/queries/public-lodgings.ts` | `tests/contract/lodging-availability.BR-05.public-api.test.ts`<br>`tests/unit/lodging-availability.AC-02.parse.test.ts` | ✅ done |
+
+## 090 — Validation unique à la mise en ligne
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01 / AC-02 / BR-01 | Sauvegarde Owner/Admin sans changement de statut ; fiche publiée revalidée | `src/features/lodging-showcase/queries/owner-public-profile.ts` | `tests/unit/lodging-single-approval.AC-01-03.save.test.ts` | ✅ done |
+| AC-03 | Proposition de réécriture sans dépublication | `src/features/lodging-showcase/queries/owner-public-profile.ts` | `tests/unit/lodging-single-approval.AC-01-03.save.test.ts` | ✅ done |
+| AC-04 / AC-05 | « Enregistrer » + « Modifications en ligne. » si publiée ; brouillon + demande de publication sinon | `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/integration/lodging-single-approval.AC-04.form.test.tsx` | ✅ done |

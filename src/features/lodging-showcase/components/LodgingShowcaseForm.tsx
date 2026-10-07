@@ -401,6 +401,8 @@ export function LodgingShowcaseForm(props: {
     }
   }
 
+  const isPublished = profile.publication_status === 'published'
+
   async function saveDraft() {
     setStatus('saving')
     setMessage(null)
@@ -503,7 +505,8 @@ export function LodgingShowcaseForm(props: {
     setPhotoAltsEdited(false)
     setFieldErrorState({ errors: {}, snapshot: {} })
     setStatus('saved')
-    setMessage('Brouillon sauvegarde.')
+    // Spec 090 AC-01 : une fiche validée reste en ligne, les modifications sont publiées.
+    setMessage(savedProfile.publication_status === 'published' ? 'Modifications en ligne.' : 'Brouillon sauvegarde.')
   }
 
   async function submitForReview() {
@@ -1113,9 +1116,10 @@ export function LodgingShowcaseForm(props: {
           </div>
           <div className="flex gap-2">
             <Button type="button" variant={isOwner ? 'outline' : 'default'} className="h-11" onClick={saveDraft} disabled={photosBusy}>
-              Sauvegarder le brouillon
+              {isPublished ? 'Enregistrer' : 'Sauvegarder le brouillon'}
             </Button>
-            {isOwner && (
+            {/* Spec 090 AC-04 : validation Admin uniquement pour la première mise en ligne. */}
+            {isOwner && !isPublished && (
               <Button type="button" className="h-11 bg-[#0B1437] text-white hover:bg-gray-900" onClick={submitForReview} disabled={photosBusy || dirty}
                 title={dirty ? 'Sauvegardez d’abord le brouillon' : undefined}>
                 Demander la publication
