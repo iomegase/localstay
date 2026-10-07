@@ -1931,3 +1931,4 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | 017 BR-12 | Icônes Lucide `dog` et `paw-print` acceptées | `src/features/admin-taxonomy/lib/icons.ts` | `tests/unit/admin-taxonomy.AC-02-03-BR-12.icon-validation.test.ts` | ✅ done |
+| 017 BR-12 | Sélecteur d’icône (liste + aperçu) | `src/features/admin-taxonomy/components/AdminTaxonomyClient.tsx`<br>`src/features/admin-taxonomy/lib/icons.ts` | `tests/integration/acquisition-google-types.AC-01-01.taxonomy-ui.test.tsx` | ✅ done |

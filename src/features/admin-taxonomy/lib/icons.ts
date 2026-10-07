@@ -43,6 +43,27 @@ export const LUCIDE_ICON_COMPONENTS = {
 
 export type SupportedLucideIconSlug = keyof typeof LUCIDE_ICON_COMPONENTS
 
+/** Libellés français du sélecteur d'icône (admin taxonomies). */
+export const LUCIDE_ICON_LABELS: Record<SupportedLucideIconSlug, string> = {
+  baby: 'Bébé / enfants',
+  bike: 'Vélo',
+  car: 'Voiture / transport',
+  coffee: 'Café',
+  croissant: 'Boulangerie',
+  cross: 'Santé',
+  dog: 'Chien / dog-sitter',
+  landmark: 'Culture / monument',
+  mountain: 'Montagne / randonnée',
+  'paw-print': 'Animaux',
+  popcorn: 'Cinéma / loisirs',
+  'shopping-bag': 'Shopping',
+  'shopping-basket': 'Épicerie / alimentation',
+  snowflake: 'Ski / neige',
+  sparkles: 'Bien-être',
+  utensils: 'Restaurant',
+  wine: 'Bar / vin',
+}
+
 export function isValidLucideIconSlug(slug: string): slug is SupportedLucideIconSlug {
   return Object.prototype.hasOwnProperty.call(LUCIDE_ICON_COMPONENTS, slug)
 }

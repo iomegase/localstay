@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useTransition } from 'react'
+import { createElement, useState, useTransition } from 'react'
 import { Plus, Power, Edit2, AlertCircle, Trash2 } from 'lucide-react'
 import type { AdminCategory, AdminSubCategory } from '../types'
-import { getLucideIconComponent, LUCIDE_ICON_COMPONENTS } from '../lib/icons'
+import { getLucideIconComponent, isValidLucideIconSlug, LUCIDE_ICON_COMPONENTS, LUCIDE_ICON_LABELS } from '../lib/icons'
 import { formatGoogleTypesInput, parseGoogleTypesInput } from '../lib/google-types-input'
 import { fallbackDeletionNotice } from '../lib/fallback-deletion-notice'
 import { Button } from '@/shared/components/ui/button'
@@ -538,12 +538,11 @@ function CategoryDialogContent({
         <div className="space-y-5">
           <TextField name="name" label="Nom" defaultValue={category?.name} />
           <TextField name="slug" label="Slug (Optionnel)" defaultValue={category?.slug} disabled={category?.slug_locked} />
-          <TextField name="icon" label="Icône Lucide" defaultValue={category?.icon ?? 'utensils'} />
+          <IconSelectField defaultValue={category?.icon ?? 'utensils'} />
           <NumberField name="sort_order" label="Ordre d'affichage" defaultValue={category?.sort_order ?? 0} />
           {category && <GoogleTypesField defaultValue={category.google_types} />}
           
           <ActiveField defaultChecked={category?.is_active ?? true} />
-          <IconPreview iconSlug={category?.icon ?? 'utensils'} />
           
           {error && <p className="text-[13px] font-bold text-rose-600 p-3 bg-rose-50 rounded-xl">{error}</p>}
         </div>
@@ -681,21 +680,33 @@ function ActiveField({ defaultChecked }: { defaultChecked: boolean }) {
   )
 }
 
-function IconPreview({ iconSlug }: { iconSlug: string }) {
-  const Icon = getLucideIconComponent(iconSlug)
+/** PO 2026-10-07 : choix de l'icône dans une liste, avec aperçu en direct. */
+function IconSelectField({ defaultValue }: { defaultValue: string }) {
+  const [value, setValue] = useState(defaultValue)
+  const preview = createElement(getLucideIconComponent(value), { className: 'h-5 w-5 text-[#0B1437]', 'aria-hidden': true })
+  const slugs = Object.keys(LUCIDE_ICON_COMPONENTS).filter(isValidLucideIconSlug)
+    .sort((a, b) => LUCIDE_ICON_LABELS[a].localeCompare(LUCIDE_ICON_LABELS[b], 'fr'))
+
   return (
-    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Preview Icône</p>
-      <div className="mt-3 flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100">
-           <Icon className="h-5 w-5 text-[#0B1437]" />
+    <div className="space-y-2">
+      <label htmlFor="icon" className="text-[11px] font-semibold tracking-widest text-gray-400 uppercase">Icône</label>
+      <div className="flex items-center gap-3">
+        <div data-testid="icon-preview" className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-white shadow-sm">
+          {preview}
         </div>
-        <p className="text-[11px] font-medium text-gray-500 leading-relaxed">
-          Les icônes autorisées sont issues de la librairie Lucide.<br/>
-          Exemples : <span className="font-mono text-[10px] font-bold text-gray-600 bg-white px-1.5 py-0.5 rounded border border-gray-100">
-             {Object.keys(LUCIDE_ICON_COMPONENTS).slice(0, 4).join(', ')}...
-          </span>
-        </p>
+        <select
+          id="icon"
+          name="icon"
+          value={value}
+          onChange={event => setValue(event.target.value)}
+          required
+          className="h-[52px] w-full rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-medium text-neutral-900 transition-all focus:border-[#0B1437] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0B1437]"
+        >
+          {!isValidLucideIconSlug(value) && <option value={value}>{value} (non disponible)</option>}
+          {slugs.map(slug => (
+            <option key={slug} value={slug}>{LUCIDE_ICON_LABELS[slug]} — {slug}</option>
+          ))}
+        </select>
       </div>
     </div>
   )

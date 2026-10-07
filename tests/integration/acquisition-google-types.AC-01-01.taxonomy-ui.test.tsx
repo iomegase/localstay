@@ -50,3 +50,21 @@ describe('073 AC-01-01 — Types Google', () => {
     expect(within(dialog).queryByLabelText('Types Google')).toBeNull()
   })
 })
+
+describe('017 BR-12 — sélecteur d’icône (PO 2026-10-07)', () => {
+  it('liste déroulante des icônes autorisées, aperçu en direct, valeur envoyée', async () => {
+    render(<AdminTaxonomyClient initialCategories={[category]} />)
+    fireEvent.click(screen.getAllByRole('button', { name: /Modifier/ })[0]!)
+    const dialog = await screen.findByRole('dialog')
+    const select = within(dialog).getByLabelText('Icône') as HTMLSelectElement
+
+    expect(select.tagName).toBe('SELECT')
+    expect([...select.options].map(option => option.value)).toEqual(expect.arrayContaining(['dog', 'paw-print', 'utensils']))
+    const before = within(dialog).getByTestId('icon-preview').innerHTML
+    fireEvent.change(select, { target: { value: 'dog' } })
+    expect(within(dialog).getByTestId('icon-preview').innerHTML).not.toBe(before)
+
+    fireEvent.submit(select.closest('form')!)
+    await waitFor(() => expect(patchBody()).toMatchObject({ icon: 'dog' }))
+  })
+})
