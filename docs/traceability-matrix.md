@@ -1917,3 +1917,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | AC-01 / BR-01 | Galerie du haut → lightbox sur toutes les photos, rien chargé avant le clic | `src/features/lodging-showcase/components/LodgingMarketingGallery.tsx`<br>`src/features/lodging-showcase/components/LodgingPhotoLightbox.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
 | AC-02 | Carte de pièce → photos de la pièce | `src/features/lodging-showcase/components/LodgingRoomsGrid.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
 | AC-03 / AC-04 | Compteur, légende, boutons/clavier/glisser, Échap/fond ; dialogue modal, focus, page figée | `src/features/lodging-showcase/components/LodgingPhotoLightbox.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
+
+## 092 — Changer la ville d'un POI (admin) + redirection 301
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Data model | `PoiCityRedirect` (ancienne ville + ancien slug → POI) | `prisma/schema.prisma`<br>`prisma/migrations/20261007200000_poi_city_redirect/migration.sql` | — (appliquée le 2026-10-07) | ✅ done |
+| AC-01 / AC-02 / AC-05 / BR-01 | Ville modifiable, géocodage depuis la nouvelle ville, slug libre, audit, ville active seulement | `src/features/admin-pois/queries/admin-pois.ts`<br>`src/features/admin-pois/lib/admin-poi-rules.ts`<br>`src/features/admin-pois/components/AdminPoiEditForm.tsx`<br>`src/features/admin-pois/components/AdminPoiEditorBody.tsx`<br>`src/app/admin/pois/[id]/page.tsx`<br>`src/app/admin/@panel/(.)pois/[id]/page.tsx` | `tests/unit/admin-poi-change-city.AC-01-05.update.test.ts`<br>`tests/integration/admin-poi-change-city.AC-01.form.test.tsx` | ✅ done |
+| AC-03 / AC-04 / BR-02 / BR-03 | 301 de l'ancienne adresse si le POI est publié, 404 sinon ; page réelle prioritaire | `src/features/public-discovery/queries/public-discovery.ts`<br>`src/app/(public)/decouvrir/[city-slug]/[category-slug]/[poi-slug]/page.tsx` | `tests/integration/admin-poi-change-city.AC-03-04.redirect.test.tsx` | ✅ done |

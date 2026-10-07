@@ -40,7 +40,7 @@ export default async function AdminPoiPanelPage({ params, searchParams }: PagePr
       neighbors={panelNeighbors(ids, poi.id, listParams)}
       sections={sections}
     >
-      <AdminPoiEditorBody key={poi.id} poi={poi} categories={options.categories} layout="panel" />
+      <AdminPoiEditorBody key={poi.id} poi={poi} categories={options.categories} cities={options.cities} layout="panel" />
     </AdminPoiPanel>
   )
 }

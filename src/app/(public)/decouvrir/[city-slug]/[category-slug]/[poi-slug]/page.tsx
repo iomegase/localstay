@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { DiscoveryPoiView } from '@/features/public-discovery/components/DiscoveryPoiView'
-import { getDiscoveryPoi } from '@/features/public-discovery/queries/public-discovery'
+import { findPoiCityRedirectPath, getDiscoveryPoi } from '@/features/public-discovery/queries/public-discovery'
 import { discoveryPoiMetadata } from '@/features/seo/lib/metadata'
 import { breadcrumbSchema, discoveryPoiSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
@@ -35,6 +35,9 @@ export default async function DiscoveryPoiPage({ params }: PageProps) {
   const poi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
 
   if (!poi) {
+    // Spec 092 : POI déplacé dans une autre ville → 301 vers sa nouvelle adresse.
+    const redirectPath = await findPoiCityRedirectPath(citySlug, poiSlug)
+    if (redirectPath) permanentRedirect(redirectPath)
     notFound()
     return null
   }

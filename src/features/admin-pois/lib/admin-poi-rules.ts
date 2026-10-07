@@ -67,6 +67,8 @@ export const AdminPoiPatchSchema = z.object({
   address: z.string().trim().min(5).max(255).optional(),
   phone: nullableText(40).optional(),
   website: z.union([z.string().trim().url(), z.null()]).optional(),
+  // Spec 092 : rattachement à une autre ville (coordonnées recalculées, ancienne URL redirigée).
+  city_id: UUID.optional(),
   category_id: UUID.optional(),
   subcategory_id: UUID.nullable().optional(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),

@@ -27,6 +27,7 @@ model City {
   is_active   Boolean @default(true)
 
   pois                            PointOfInterest[]
+  poi_city_redirects              PoiCityRedirect[]
   qr_codes                        QrCode[]
   gemini_caches                   GeminiCache[]
   lodgings                        Lodging[]
@@ -278,6 +279,7 @@ model PointOfInterest {
   missing_poi_requests_linked      MissingPoiRequest[]
   trail_candidates_published       TrailCandidate[]          @relation("TrailCandidatePublishedPoi")
   photo_mirrors                    PoiPhotoMirror[]
+  city_redirects                   PoiCityRedirect[]
 
   @@unique([city_id, slug])
   @@index([city_id, deleted_at, is_active, updated_at])
@@ -1683,4 +1685,20 @@ model SiteMaintenance {
   enabled    Boolean @default(false)
   message    String?
   updated_by String?
+}
+
+// Spec 092 — ancienne adresse publique d'un POI déplacé dans une autre ville (redirection 301).
+model PoiCityRedirect {
+  id           String          @id @default(uuid())
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  deleted_at   DateTime?
+  from_city_id String
+  from_city    City            @relation(fields: [from_city_id], references: [id])
+  from_slug    String
+  poi_id       String
+  poi          PointOfInterest @relation(fields: [poi_id], references: [id])
+
+  @@unique([from_city_id, from_slug])
+  @@index([poi_id])
 }

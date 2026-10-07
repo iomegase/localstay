@@ -468,3 +468,23 @@ export const getDiscoveryPoi: (
     }
   },
 )
+
+/**
+ * Spec 092 AC-03 / AC-04 : ancienne adresse d'un POI déplacé dans une autre ville → adresse
+ * actuelle, uniquement si le POI y est réellement publié (sinon `null` → 404).
+ */
+export async function findPoiCityRedirectPath(citySlug: string, poiSlug: string): Promise<string | null> {
+  const normalizedCitySlug = normalizeRouteSlug(citySlug)
+  const normalizedPoiSlug = normalizeRouteSlug(poiSlug)
+  if (!normalizedCitySlug || !normalizedPoiSlug) return null
+
+  const redirect = await prisma.poiCityRedirect.findFirst({
+    where: { from_slug: normalizedPoiSlug, deleted_at: null, from_city: { slug: normalizedCitySlug } },
+    select: { poi: { select: { slug: true, city: { select: { slug: true } }, category: { select: { slug: true } } } } },
+  })
+  if (!redirect) return null
+
+  const { poi } = redirect
+  const current = await getDiscoveryPoi(poi.city.slug, poi.category.slug, poi.slug)
+  return current ? `/decouvrir/${current.city.slug}/${current.category.slug}/${current.slug}` : null
+}

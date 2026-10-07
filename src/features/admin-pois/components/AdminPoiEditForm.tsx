@@ -24,7 +24,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
-import type { AdminPoiCategory, AdminPoiDetail } from '../types'
+import type { AdminPoiCategory, AdminPoiCity, AdminPoiDetail } from '../types'
 import { isUsableAdminPhotoUrl } from '../lib/admin-poi-rules'
 import { TrailGpxUploader } from './TrailGpxUploader'
 import { MarkdownText } from '@/shared/components/MarkdownText'
@@ -37,9 +37,12 @@ import { usePoiEditPanel } from './PoiEditPanelContext'
 type Props = {
   poi: AdminPoiDetail
   categories: AdminPoiCategory[]
+  cities?: AdminPoiCity[]
 }
 
-export function AdminPoiEditForm({ poi, categories }: Props) {
+export function AdminPoiEditForm({ poi, categories, cities = [] }: Props) {
+  const [selectedCityId, setSelectedCityId] = useState(poi.city.id)
+  const cityChanged = selectedCityId !== poi.city.id
   const router = useRouter()
   // Spec 068 AC-02-02 : signale au panneau les modifications hors champ et l'enregistrement.
   const { markDirty, markSaved } = usePoiEditPanel()
@@ -130,6 +133,8 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       address: String(formData.get('address') ?? ''),
       phone: nullableString(formData.get('phone')),
       website: nullableString(formData.get('website')),
+      // Spec 092 : envoyé seulement si la ville change (coordonnées recalculées côté serveur).
+      ...(cityChanged ? { city_id: selectedCityId } : {}),
       category_id: String(formData.get('category_id') ?? ''),
       subcategory_id: nullableString(formData.get('subcategory_id')),
       tags: splitLines(String(formData.get('tags') ?? '')),
@@ -168,7 +173,7 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
       setForceGeocode(false)
       if (payload.photos) setSavedPhotos(payload.photos)
       setSavedIdentity({ name: payload.name, address: payload.address, website: payload.website ?? '' })
-      setMessage('Modifications enregistrées avec succès')
+      setMessage(cityChanged ? 'Ville modifiée : coordonnées recalculées, ancienne adresse publique redirigée.' : 'Modifications enregistrées avec succès')
       markSaved()
       router.refresh()
     })
@@ -281,6 +286,28 @@ export function AdminPoiEditForm({ poi, categories }: Props) {
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {cities.length > 0 && (
+            <div className="md:col-span-2">
+              <Field label="Ville" htmlFor="city_id">
+                <select
+                  id="city_id"
+                  name="city_id"
+                  value={selectedCityId}
+                  onChange={event => setSelectedCityId(event.target.value)}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-[14px] font-medium text-slate-900 outline-none transition-all hover:border-emerald-200 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+                >
+                  {(cities.some(city => city.id === poi.city.id) ? cities : [poi.city, ...cities]).map(city => (
+                    <option key={city.id} value={city.id}>{city.name}</option>
+                  ))}
+                </select>
+              </Field>
+              <p className={`mt-2 text-[12px] ${cityChanged ? 'font-semibold text-amber-700' : 'text-slate-500'}`}>
+                {cityChanged
+                  ? 'Les coordonnées seront recalculées depuis la nouvelle ville à l’enregistrement.'
+                  : 'Changer de ville modifie l’adresse publique ; l’ancienne redirige vers la nouvelle.'}
+              </p>
+            </div>
+          )}
           <Field label="Catégorie" htmlFor="category_id">
             <select
               id="category_id"

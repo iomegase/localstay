@@ -279,9 +279,12 @@ export async function updateAdminPoi(
 ): Promise<AdminPoiMutationResult> {
   const before = await getPoiForMutation(id)
   const targetCategoryId = input.category_id ?? before.category_id
+  // Spec 092 : rattachement à une autre ville.
+  const targetCityId = input.city_id ?? before.city_id
+  const cityChanged = targetCityId !== before.city_id
 
   await validatePoiDependencies({
-    cityId: before.city_id,
+    cityId: targetCityId,
     categoryId: targetCategoryId,
     subcategoryId: input.subcategory_id === undefined ? before.subcategory_id : input.subcategory_id,
   })
@@ -318,13 +321,23 @@ export async function updateAdminPoi(
     }
   }
 
+  const targetCity = cityChanged
+    ? await prisma.city.findUniqueOrThrow({ where: { id: targetCityId }, select: { latitude: true, longitude: true } })
+    : before.city
+  if (cityChanged) {
+    data.city = { connect: { id: targetCityId } }
+    const slug = await availablePoiSlug(targetCityId, before.slug)
+    if (slug !== before.slug) data.slug = slug
+  }
+
   const addressForGeocode = input.address ?? before.address
-  const shouldGeocode = Boolean(input.address && input.address !== before.address) || input.force_geocode
+  // Spec 092 AC-01 : coordonnées et zones recalculées depuis le centre de la nouvelle ville.
+  const shouldGeocode = Boolean(input.address && input.address !== before.address) || input.force_geocode || cityChanged
 
   if (shouldGeocode) {
     const geocode = await geocodeForAcquisition(addressForGeocode, {
-      latitude: before.city.latitude,
-      longitude: before.city.longitude,
+      latitude: targetCity.latitude,
+      longitude: targetCity.longitude,
     })
 
     if (geocode.status === 'failed' || geocode.status === 'rejected') {
@@ -356,6 +369,14 @@ export async function updateAdminPoi(
       data,
       select: adminPoiSelect,
     })
+    if (cityChanged) {
+      // Spec 092 BR-02 : l'ancienne adresse publique pointe vers le POI (toujours son adresse actuelle).
+      await tx.poiCityRedirect.upsert({
+        where: { from_city_id_from_slug: { from_city_id: before.city_id, from_slug: before.slug } },
+        create: { from_city_id: before.city_id, from_slug: before.slug, poi_id: id },
+        update: { poi_id: id, deleted_at: null },
+      })
+    }
     await tx.poiAcquisitionAuditLog.create({
       data: {
         admin_id: adminId,
@@ -562,6 +583,21 @@ async function getAdminPoiAcquisitionRuns(cityId: string): Promise<AdminPoiAcqui
     published_count: run.candidates.filter(candidate => candidate.review_status === 'published').length,
     created_at: run.created_at.toISOString(),
   }))
+}
+
+/** Spec 092 AC-02 : slug conservé s'il est libre dans la ville cible, sinon « slug-2 », « slug-3 »… */
+async function availablePoiSlug(cityId: string, slug: string): Promise<string> {
+  const taken = new Set(
+    (await prisma.pointOfInterest.findMany({
+      where: { city_id: cityId, slug: { startsWith: slug } },
+      select: { slug: true },
+    })).map(row => row.slug),
+  )
+  if (!taken.has(slug)) return slug
+  for (let suffix = 2; ; suffix += 1) {
+    const candidate = `${slug}-${suffix}`
+    if (!taken.has(candidate)) return candidate
+  }
 }
 
 async function getPoiForMutation(id: string) {

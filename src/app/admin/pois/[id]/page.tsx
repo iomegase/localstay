@@ -90,7 +90,7 @@ export default async function AdminPoiDetailPage({ params, searchParams }: PageP
       </header>
 
       <div className="px-6 mt-8 md:px-10">
-        <AdminPoiEditorBody poi={poi} categories={options.categories} layout="page" />
+        <AdminPoiEditorBody poi={poi} categories={options.categories} cities={options.cities} layout="page" />
       </div>
     </div>
   )

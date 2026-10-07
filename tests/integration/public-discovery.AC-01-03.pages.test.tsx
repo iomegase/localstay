@@ -21,6 +21,7 @@ jest.mock('@/features/public-discovery/queries/public-discovery', () => ({
   getDiscoveryCity: jest.fn(),
   getDiscoveryCategory: jest.fn(),
   getDiscoveryPoi: jest.fn(),
+  findPoiCityRedirectPath: jest.fn(async () => null),
 }))
 
 const mockedCity = jest.mocked(getDiscoveryCity)
