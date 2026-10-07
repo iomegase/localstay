@@ -1058,6 +1058,7 @@ model LodgingPublicProfile {
   external_booking_url      String?
   external_booking_platform ExternalBookingPlatform?
   public_contact_enabled    Boolean                  @default(true)
+  availability_ical_url     String? // Spec 089 — lien iCal privé de la plateforme (jamais exposé publiquement)
 
   source_listing_url        String?
   source_listing_platform   ExternalBookingPlatform?

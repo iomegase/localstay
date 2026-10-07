@@ -67,6 +67,7 @@ const FIELD_LABELS: Record<string, string> = {
   surface_m2: 'Surface m2',
   public_area_label: 'Zone de localisation publique',
   external_booking_url: 'Lien de réservation',
+  availability_ical_url: 'Calendrier des disponibilités',
   seo_title: 'SEO title',
   seo_description: 'SEO description',
   source_description_text: 'Texte source Owner',
@@ -450,6 +451,7 @@ export function LodgingShowcaseForm(props: {
         surface_m2: profile.surface_m2 == null ? null : Number(profile.surface_m2),
         public_area_label: profile.public_area_label?.trim() || null,
         external_booking_url: profile.external_booking_url?.trim() || null,
+        availability_ical_url: profile.availability_ical_url?.trim() || null,
         public_contact_enabled: profile.public_contact_enabled,
         source_description_text: profile.source_description_text?.trim() || null,
         seo_title: profile.seo_title?.trim() || null,
@@ -1030,6 +1032,21 @@ export function LodgingShowcaseForm(props: {
                 />
                 <FieldError message={visibleErrors.external_booking_url} />
                 <p className="text-[11px] text-gray-400">Le bouton « Réserver » de la fiche mène à cette annonce. Le « https:// » est facultatif.</p>
+              </div>
+              {/* Spec 089 AC-01 : un seul lien iCal, lu par MyStay pour afficher les disponibilités. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="availability-ical-url">Calendrier des disponibilités (lien iCal)</Label>
+                <Input
+                  id="availability-ical-url" {...invalid('availability_ical_url')}
+                  value={profile.availability_ical_url ?? ''}
+                  onChange={event => setField('availability_ical_url', event.target.value)}
+                  placeholder="https://www.airbnb.fr/calendar/ical/123456789.ics?s=…"
+                />
+                <FieldError message={visibleErrors.availability_ical_url} />
+                <p className="text-[11px] text-gray-400">
+                  Airbnb : Calendrier › Disponibilités › Exporter le calendrier. Booking : Tarifs et disponibilités › Synchroniser les calendriers.
+                  Le lien reste privé : seules les dates libres ou prises sont affichées sur la fiche.
+                </p>
               </div>
               <label className="flex items-center gap-3 text-sm text-neutral-800">
                 <input

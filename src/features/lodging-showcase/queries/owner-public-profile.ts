@@ -49,6 +49,7 @@ const ownerProfileSelect: Prisma.LodgingPublicProfileSelect = {
   external_booking_url: true,
   external_booking_platform: true,
   public_contact_enabled: true,
+  availability_ical_url: true,
   source_listing_url: true,
   source_listing_platform: true,
   source_listing_identifier: true,
@@ -116,6 +117,7 @@ type OwnerProfileQueryRow = {
   external_booking_url: string | null
   external_booking_platform: OwnerLodgingPublicProfileDto['external_booking_platform']
   public_contact_enabled: boolean
+  availability_ical_url: string | null
   source_listing_url: string | null
   source_listing_platform: OwnerLodgingPublicProfileDto['source_listing_platform']
   source_listing_identifier: string | null
@@ -183,6 +185,7 @@ function formatOwnerProfile(
     external_booking_url: row.external_booking_url,
     external_booking_platform: row.external_booking_platform,
     public_contact_enabled: row.public_contact_enabled,
+    availability_ical_url: row.availability_ical_url,
     source_listing_url: row.source_listing_url,
     source_listing_platform: row.source_listing_platform,
     source_listing_identifier: row.source_listing_identifier,
@@ -245,6 +248,7 @@ function emptyOwnerProfile(lodgingId: string, cityId: string): OwnerLodgingPubli
     external_booking_url: null,
     external_booking_platform: null,
     public_contact_enabled: true,
+    availability_ical_url: null,
     source_listing_url: null,
     source_listing_platform: null,
     source_listing_identifier: null,
@@ -435,6 +439,7 @@ async function writePublicProfileForLodging(
         external_booking_url: input.external_booking_url ?? null,
         external_booking_platform: externalBookingPlatform,
         public_contact_enabled: input.public_contact_enabled,
+        availability_ical_url: input.availability_ical_url ?? null,
         source_description_text: input.source_description_text ?? null,
         seo_title: input.seo_title ?? null,
         seo_description: input.seo_description ?? null,
@@ -459,6 +464,8 @@ async function writePublicProfileForLodging(
         external_booking_url: input.external_booking_url ?? null,
         external_booking_platform: externalBookingPlatform,
         public_contact_enabled: input.public_contact_enabled,
+        // Spec 089 : champ absent (ex. édition admin) → lien conservé.
+        ...(input.availability_ical_url !== undefined ? { availability_ical_url: input.availability_ical_url } : {}),
         source_description_text: input.source_description_text ?? null,
         seo_title: input.seo_title ?? null,
         seo_description: input.seo_description ?? null,

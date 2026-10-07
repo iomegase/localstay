@@ -2,6 +2,7 @@ import { isTechnicalImageAlt } from '@/shared/lib/image-alt'
 import { normalizeEditorialWhitespace, normalizeGeographicLabel } from '@/shared/lib/editorial-label'
 import { z } from 'zod'
 import { hasPublicHostname, normalizeExternalUrl } from './lib/booking-url'
+import { isSafePublicHttpsUrl } from './lib/ical-url'
 
 const trimmedString = (min: number, max: number, message: string) =>
   z.string().trim().min(min, { message }).max(max, { message })
@@ -76,6 +77,14 @@ export const LodgingPublicProfileInputSchema = z.object({
       .optional(),
   ),
   external_booking_platform: ExternalBookingPlatformSchema.nullable().optional(),
+  // Spec 089 AC-01 / BR-04 : lien iCal (« https:// » facultatif), hôte public uniquement.
+  availability_ical_url: z.preprocess(
+    value => (typeof value === 'string' ? normalizeExternalUrl(value) : value),
+    z.string()
+      .refine(isSafePublicHttpsUrl, { message: 'Lien de calendrier invalide (lien iCal fourni par la plateforme).' })
+      .nullable()
+      .optional(),
+  ),
   seo_title: z.string().trim().min(30, { message: 'Le SEO title doit contenir entre 30 et 70 caracteres.' }).max(70, {
     message: 'Le SEO title doit contenir entre 30 et 70 caracteres.',
   }).nullable().optional(),

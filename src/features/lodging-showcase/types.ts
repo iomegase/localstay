@@ -106,6 +106,7 @@ export type OwnerLodgingPublicProfileDto = {
   external_booking_url: string | null
   external_booking_platform: ExternalBookingPlatform | null
   public_contact_enabled: boolean
+  availability_ical_url: string | null
   source_listing_url: string | null
   source_listing_platform: ExternalBookingPlatform | null
   source_listing_identifier: string | null

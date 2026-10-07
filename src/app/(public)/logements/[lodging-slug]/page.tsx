@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -21,6 +22,7 @@ import { LodgingRoomsGrid } from '@/features/lodging-showcase/components/Lodging
 import { LodgingLocationMap } from '@/features/lodging-showcase/components/LodgingLocationMap'
 import { LodgingFaq } from '@/features/lodging-showcase/components/LodgingFaq'
 import { LodgingAreaMap } from '@/features/lodging-showcase/components/LodgingAreaMap'
+import { LodgingAvailability } from '@/features/lodging-showcase/components/LodgingAvailability'
 import { ExternalBookingCta } from '@/features/lodging-showcase/components/ExternalBookingCta'
 import { LodgingInquiryDialog } from '@/features/contact-messages/components/LodgingInquiryDialog'
 import { OwnerLeadDialog } from '@/features/contact-messages/components/OwnerLeadDialog'
@@ -220,6 +222,11 @@ export default async function LodgingDetailPage({ params }: Props) {
             ) : detail.approximate_location ? (
               <LodgingAreaMap location={detail.approximate_location} areaLabel={detail.public_area_label ?? detail.city_name} />
             ) : null}
+
+            {/* Spec 089 : lecture iCal en flux, sans bloquer le reste de la fiche. */}
+            <Suspense fallback={null}>
+              <LodgingAvailability profileId={detail.id} />
+            </Suspense>
 
             <LodgingFaq items={detail.faq} />
 

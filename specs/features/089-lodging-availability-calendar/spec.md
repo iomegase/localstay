@@ -72,7 +72,7 @@ Migration additive (colonne nullable).
 
 ## API Contract
 
-- `PUT /api/owner/lodgings/{id}/public-profile` (existant) : champ optionnel
+- `PUT /api/dashboard/lodgings/{id}/public-profile` (existant) : champ optionnel
   `availability_ical_url: string | null` (normalisé en https, validé BR-04 hors résolution DNS) ;
   400 `VALIDATION_ERROR` avec `details.availability_ical_url` sinon. Le GET Owner renvoie le champ.
 - Aucun changement de l'API publique : le lien n'y figure pas (BR-05).

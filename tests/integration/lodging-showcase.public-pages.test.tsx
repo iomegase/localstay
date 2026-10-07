@@ -27,6 +27,11 @@ jest.mock('mapbox-gl', () => ({
   },
 }))
 
+// Spec 089 : composant serveur couvert par tests/integration/lodging-availability.AC-02.calendar.test.tsx.
+jest.mock('@/features/lodging-showcase/components/LodgingAvailability', () => ({
+  LodgingAvailability: ({ profileId }: { profileId: string }) => <div data-testid="lodging-availability-slot" data-profile-id={profileId} />,
+}))
+
 const mockNotFound = jest.fn()
 const mockPermanentRedirect = jest.fn()
 
@@ -343,6 +348,11 @@ describe('lodging showcase public pages', () => {
       public_latitude: 45.9,
       public_longitude: 6.13,
     })).toEqual({ area: false, directions: true })
+  })
+
+  it('spec 089 : la fiche réserve l’emplacement du calendrier des disponibilités', async () => {
+    render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
+    expect(screen.getByTestId('lodging-availability-slot')).toHaveAttribute('data-profile-id', detailResult.id)
   })
 
   it('follows the approved editorial property-detail hierarchy', async () => {

@@ -1890,3 +1890,13 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 |---|---|---|---|---|
 | 086 AC-05 | Équipements 2 col. mobile / 3 lg, fond blanc, mini-cartes shadow-md | src/features/lodging-showcase/components/LodgingFeatureSections.tsx | tests/unit/lodging-showcase.AC-02-10.feature-sections-layout.test.tsx | ✅ |
 | 086 AC-06 | FAQ au design de l'accueil | src/features/lodging-showcase/components/LodgingFaq.tsx | tests/unit/lodging-showcase/LodgingFaq.test.tsx | ✅ |
+
+## 089 — Calendrier des disponibilités (iCal)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Data model | `LodgingPublicProfile.availability_ical_url` | `prisma/schema.prisma`<br>`prisma/migrations/20261007100000_lodging_availability_ical/migration.sql` | — (appliquée le 2026-10-07) | ✅ done |
+| AC-01-01..02 | Champ iCal Owner (https facultatif, vide = retiré, erreur sous le champ) | `src/features/lodging-showcase/schemas.ts`<br>`src/features/lodging-showcase/lib/ical-url.ts`<br>`src/features/lodging-showcase/queries/owner-public-profile.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/contract/lodging-availability.AC-01.owner-api.test.ts` | ✅ done |
+| AC-02-01..03 / BR-02 | Calendrier 12 mois (1 mois mobile, 2 dès md), nuits prises barrées, section absente sans lien/illisible | `src/features/lodging-showcase/lib/availability.ts`<br>`src/features/lodging-showcase/components/LodgingAvailabilityCalendar.tsx`<br>`src/features/lodging-showcase/components/LodgingAvailability.tsx`<br>`src/app/(public)/logements/[lodging-slug]/page.tsx` | `tests/unit/lodging-availability.AC-02.parse.test.ts`<br>`tests/integration/lodging-availability.AC-02.calendar.test.tsx`<br>`tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |
+| BR-03 / BR-04 | Cache 1 h ; https, DNS public, 3 redirections revérifiées, 5 s, 1 Mo | `src/features/lodging-showcase/queries/availability.ts` | `tests/unit/lodging-availability.BR-04.fetch.test.ts` | ✅ done |
+| BR-05 | Lien iCal jamais exposé (dates seules) | `src/features/lodging-showcase/queries/public-lodgings.ts` | `tests/contract/lodging-availability.BR-05.public-api.test.ts`<br>`tests/unit/lodging-availability.AC-02.parse.test.ts` | ✅ done |
