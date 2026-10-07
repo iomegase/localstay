@@ -131,7 +131,7 @@ La liste fournie par le Product Owner est une **taxonomie initiale recommandée*
 - **BR-09**: Les enregistrements supprimés logiquement utilisent `deleted_at`, mais l'action par défaut exposée en UI est la désactivation, pas la suppression.
 - **BR-10**: Une Category inactive est exclue du Guide public, des pages catégories, des filtres Owner `012`, et des déclenchements Gemini.
 - **BR-11**: Une SubCategory inactive est exclue des filtres publics et des formulaires admin de classification, mais les POI existants peuvent conserver leur référence historique.
-- **BR-12**: Les icônes sont stockées comme slugs Lucide React validés côté serveur.
+- **BR-12**: Les icônes sont stockées comme slugs Lucide React validés côté serveur. (PO 2026-10-07 : ajout de `dog` et `paw-print` pour le dog-sitting.)
 - **BR-13**: Le réordonnancement est persistant via `sort_order` et ne dépend jamais de l'ordre d'insertion en base.
 - **BR-14**: Les changements de taxonomie sont audités avec l'Admin, l'action, la cible et les valeurs avant/après.
 - **BR-15**: Cette spec ne change pas les règles d'affichage dynamique de `002-categories` : une catégorie active avec 0 POI visible reste masquée.

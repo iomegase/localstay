@@ -10,6 +10,9 @@ describe('017 admin taxonomy icon validation', () => {
     expect(isValidLucideIconSlug('shopping-bag')).toBe(true)
     expect(isValidLucideIconSlug('shopping-basket')).toBe(true)
     expect(isValidLucideIconSlug('snowflake')).toBe(true)
+    // PO 2026-10-07 : dog-sitter.
+    expect(isValidLucideIconSlug('dog')).toBe(true)
+    expect(isValidLucideIconSlug('paw-print')).toBe(true)
   })
 
   it('AC-02-03/BR-12: rejects empty or unknown icon slugs', () => {
