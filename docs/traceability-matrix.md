@@ -1882,3 +1882,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | 088 | lodging-approximate-map | US-01 | AC-04 pas de carte sans adresse géocodée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/contract/lodging-approximate-map.AC-03-04.api.test.ts, tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
 | 088 | lodging-approximate-map | US-01 | AC-05 carte précise conservée si publiée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
 | 088 | lodging-approximate-map | — | BR-01 ~260 px, zoom molette désactivé | src/features/lodging-showcase/components/LodgingAreaMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
+| 088 | lodging-approximate-map | — | BR-02 carte inclinée + bâtiments 3D | src/features/lodging-showcase/lib/map-3d.ts, LodgingAreaMap.tsx, LodgingLocationMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
+
+## 086 — Révision PO 2026-10-07 (équipements + FAQ)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| 086 AC-05 | Équipements 2 col. mobile / 3 lg, fond blanc, mini-cartes shadow-md | src/features/lodging-showcase/components/LodgingFeatureSections.tsx | tests/unit/lodging-showcase.AC-02-10.feature-sections-layout.test.tsx | ✅ |
+| 086 AC-06 | FAQ au design de l'accueil | src/features/lodging-showcase/components/LodgingFaq.tsx | tests/unit/lodging-showcase/LodgingFaq.test.tsx | ✅ |

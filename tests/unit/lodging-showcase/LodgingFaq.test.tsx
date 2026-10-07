@@ -47,4 +47,11 @@ describe('LodgingFaq', () => {
     fireEvent.click(screen.getByText('Q4 ?'))
     expect(details().map(item => item.open)).toEqual([false, false, false, false])
   })
+  it('PO 2026-10-07 : reprend le design de la FAQ de l’accueil (cartes crème, blanches + ombre ouvertes, bouton +)', () => {
+    const { container } = render(<LodgingFaq items={items} />)
+    for (const item of container.querySelectorAll('details')) {
+      expect(item).toHaveClass('rounded-[20px]', 'bg-[#f8f7f5]', 'open:bg-white', 'open:shadow-md')
+    }
+    expect(screen.getAllByTestId('lodging-faq-toggle')).toHaveLength(2)
+  })
 })

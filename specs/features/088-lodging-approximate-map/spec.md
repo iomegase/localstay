@@ -40,6 +40,8 @@ logement (page Guide) est géocodée (055) mais reste privée.
 ## Business Rules
 
 - **BR-01**: Carte compacte (≈ 260 px de haut), zoom molette désactivé (la page défile).
+- **BR-02** (révision PO 2026-10-07): Cartes de la fiche (zone approximative et position précise)
+  inclinées (pitch 55°) avec bâtiments en 3D sous les libellés ; boussole/inclinaison dans les contrôles.
 - **BR-02**: Mapbox uniquement (ADR-006).
 
 ## Data Model

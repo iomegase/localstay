@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { addBuildings3d, LODGING_MAP_PITCH } from '../lib/map-3d'
 import { mapsDirectionUrl } from '../lib/detail-view'
 
 export function LodgingLocationMap({
@@ -25,10 +26,12 @@ export function LodgingLocationMap({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [longitude, latitude],
-      zoom: 13,
+      zoom: 15,
+      pitch: LODGING_MAP_PITCH,
       attributionControl: true,
     })
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
+    map.on('load', () => addBuildings3d(map))
     new mapboxgl.Marker({ color: '#003A5D' }).setLngLat([longitude, latitude]).addTo(map)
 
     return () => map.remove()

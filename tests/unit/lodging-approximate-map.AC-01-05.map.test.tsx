@@ -19,8 +19,9 @@ jest.mock('mapbox-gl', () => ({
       }
       on(event: string, handler: () => void) { this.handlers[event] = handler }
       addControl() {}
+      getStyle() { return { layers: [{ id: 'road-label', type: 'symbol', layout: { 'text-field': ['get', 'name'] } }] } }
       addSource(id: string, source: unknown) { this.sources[id] = source }
-      addLayer(layer: unknown) { this.layers.push(layer) }
+      addLayer(layer: unknown, beforeId?: string) { this.layers.push({ layer, beforeId }) }
       remove() {}
     },
     Marker: class {
@@ -57,7 +58,21 @@ describe('spec 088 — LodgingAreaMap', () => {
     const source = map.sources['lodging-area'] as { data: { geometry: { type: string; coordinates: number[][][] } } }
     expect(source.data.geometry.type).toBe('Polygon')
     expect(source.data.geometry.coordinates[0]!.length).toBeGreaterThan(32)
-    expect(map.layers).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'fill' }), expect.objectContaining({ type: 'line' })]))
+    expect(map.layers).toEqual(expect.arrayContaining([
+      expect.objectContaining({ layer: expect.objectContaining({ type: 'fill' }) }),
+      expect.objectContaining({ layer: expect.objectContaining({ type: 'line' }) }),
+    ]))
+  })
+
+  it('PO 2026-10-07: tilted view with 3D buildings drawn under the labels', () => {
+    render(<LodgingAreaMap location={location} areaLabel="Annecy" />)
+    const map = mapInstances[0]!
+    expect(map.options.pitch).toBeGreaterThanOrEqual(45)
+    map.handlers.load!()
+    expect(map.layers).toContainEqual({
+      layer: expect.objectContaining({ type: 'fill-extrusion', source: 'composite', 'source-layer': 'building' }),
+      beforeId: 'road-label',
+    })
   })
 
   it('BR-01: keeps the page scrollable (scroll zoom disabled) in a compact frame', () => {

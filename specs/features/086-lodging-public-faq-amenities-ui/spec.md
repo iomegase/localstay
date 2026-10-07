@@ -29,6 +29,14 @@ implementation_gate: "PO 2026-10-06 : « refonte UI des FAQ sur 2 colonnes et re
   (lave-vaisselle, climatisation, chauffage, ski, bébé, animaux, bien-être, cinéma, sport…),
   l'icône générique ne restant qu'en dernier recours.
 
+### Révision PO 2026-10-07
+
+- **AC-05**: Équipements et services : 2 colonnes dès le mobile (3 dès `lg`), bloc sur fond blanc (plus de
+  crème), mini-cartes blanches avec `shadow-md`. Le mode compact (modale démo) reste sur 1 colonne.
+- **AC-06**: La FAQ du logement reprend le design de la FAQ de l'accueil (`MarketingFaqSection`) : cartes
+  arrondies crème, blanches + `shadow-md` à l'ouverture, bouton rond + / ×. Markdown, 2 colonnes et
+  accordéon exclusif conservés.
+
 ## Business Rules / Data Model / API Contract
 
 Aucun changement de données.

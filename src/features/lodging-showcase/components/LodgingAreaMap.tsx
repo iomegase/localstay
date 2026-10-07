@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { circlePolygon, type ApproximateLocation } from '../lib/approximate-location'
+import { addBuildings3d, LODGING_MAP_PITCH } from '../lib/map-3d'
 
 /**
  * Spec 088 : petite carte de la zone du logement — cercle approximatif, sans repère exact
@@ -22,12 +23,14 @@ export function LodgingAreaMap({ location, areaLabel }: { location: ApproximateL
       style: 'mapbox://styles/mapbox/light-v11',
       center: [location.longitude, location.latitude],
       zoom: 16,
+      pitch: LODGING_MAP_PITCH,
       // BR-01 : la page défile, la carte ne capte pas la molette.
       scrollZoom: false,
       attributionControl: true,
     })
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
     map.on('load', () => {
+      addBuildings3d(map)
       map.addSource('lodging-area', {
         type: 'geojson',
         data: {
