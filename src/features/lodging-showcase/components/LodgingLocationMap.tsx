@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { addBuildings3d, LODGING_MAP_PITCH } from '../lib/map-3d'
+import { MapFullscreenButton, mapFrameClass, useMapFullscreen } from './MapFullscreen'
 import { mapsDirectionUrl } from '../lib/detail-view'
 
 export function LodgingLocationMap({
@@ -16,6 +17,8 @@ export function LodgingLocationMap({
   areaLabel: string | null
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
+  const { expanded, toggle } = useMapFullscreen()
 
   useEffect(() => {
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ''
@@ -30,12 +33,24 @@ export function LodgingLocationMap({
       pitch: LODGING_MAP_PITCH,
       attributionControl: true,
     })
+    mapRef.current = map
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
     map.on('load', () => addBuildings3d(map))
     new mapboxgl.Marker({ color: '#003A5D' }).setLngLat([longitude, latitude]).addTo(map)
 
-    return () => map.remove()
+    return () => {
+      map.remove()
+      mapRef.current = null
+    }
   }, [latitude, longitude])
+
+  // Spec 088 BR-03 : redimensionnement au passage en plein écran.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const frame = requestAnimationFrame(() => map.resize())
+    return () => cancelAnimationFrame(frame)
+  }, [expanded])
 
   return (
     <section>
@@ -45,7 +60,8 @@ export function LodgingLocationMap({
       <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
         Situer le logement.
       </h2>
-      <div className="relative h-[280px] w-full overflow-hidden rounded-[24px] shadow-sm md:h-[360px]">
+      <div data-testid="lodging-map-frame" className={mapFrameClass(expanded, 'relative h-[280px] w-full overflow-hidden rounded-[24px] shadow-sm md:h-[360px]')}>
+        <MapFullscreenButton expanded={expanded} onToggle={toggle} />
         <div ref={containerRef} className="absolute inset-0 h-full w-full" />
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] flex items-center justify-between bg-white/90 px-4 py-3 backdrop-blur-sm">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">{areaLabel ?? ''}</span>

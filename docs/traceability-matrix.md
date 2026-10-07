@@ -1882,6 +1882,7 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | 088 | lodging-approximate-map | US-01 | AC-04 pas de carte sans adresse géocodée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/contract/lodging-approximate-map.AC-03-04.api.test.ts, tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
 | 088 | lodging-approximate-map | US-01 | AC-05 carte précise conservée si publiée | src/app/(public)/logements/[lodging-slug]/page.tsx | tests/integration/lodging-showcase.public-pages.test.tsx | ✅ |
 | 088 | lodging-approximate-map | — | BR-01 ~260 px, zoom molette désactivé | src/features/lodging-showcase/components/LodgingAreaMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
+| 088 | lodging-approximate-map | — | BR-03 plein écran des cartes | src/features/lodging-showcase/components/MapFullscreen.tsx, LodgingAreaMap.tsx, LodgingLocationMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx, tests/unit/lodging-showcase/LodgingLocationMap.test.tsx | ✅ |
 | 088 | lodging-approximate-map | — | BR-02 carte inclinée + bâtiments 3D | src/features/lodging-showcase/lib/map-3d.ts, LodgingAreaMap.tsx, LodgingLocationMap.tsx | tests/unit/lodging-approximate-map.AC-01-05.map.test.tsx | ✅ |
 
 ## 086 — Révision PO 2026-10-07 (équipements + FAQ)

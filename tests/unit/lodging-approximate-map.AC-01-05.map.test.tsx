@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 
-const mapInstances: Array<{ options: Record<string, unknown>; handlers: Record<string, () => void>; sources: Record<string, unknown>; layers: unknown[] }> = []
+const mapInstances: Array<{ options: Record<string, unknown>; handlers: Record<string, () => void>; sources: Record<string, unknown>; layers: unknown[]; resize: jest.Mock; scrollZoom: { enable: jest.Mock; disable: jest.Mock } }> = []
 const markerCreated = jest.fn()
 
 jest.mock('mapbox-gl', () => ({
@@ -23,6 +23,8 @@ jest.mock('mapbox-gl', () => ({
       addSource(id: string, source: unknown) { this.sources[id] = source }
       addLayer(layer: unknown, beforeId?: string) { this.layers.push({ layer, beforeId }) }
       remove() {}
+      resize = jest.fn()
+      scrollZoom = { enable: jest.fn(), disable: jest.fn() }
     },
     Marker: class {
       constructor() { markerCreated() }
@@ -79,5 +81,24 @@ describe('spec 088 — LodgingAreaMap', () => {
     const { container } = render(<LodgingAreaMap location={location} areaLabel="Annecy" />)
     expect(mapInstances[0]!.options.scrollZoom).toBe(false)
     expect(container.querySelector('.h-\\[260px\\]')).not.toBeNull()
+  })
+  it('BR-03 (PO 2026-10-07) : plein écran — cadre fixe, molette active, redimensionnement, Échap pour sortir', async () => {
+    render(<LodgingAreaMap location={location} areaLabel="Annecy" />)
+    const map = mapInstances[0]!
+    const frame = screen.getByTestId('lodging-map-frame')
+    expect(frame).toHaveClass('relative', 'h-[260px]')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Afficher la carte en plein écran' }))
+    expect(frame).toHaveClass('fixed', 'inset-0', 'z-[100]')
+    expect(map.scrollZoom.enable).toHaveBeenCalled()
+    expect(document.body.style.overflow).toBe('hidden')
+    await act(() => new Promise(resolve => requestAnimationFrame(() => resolve(undefined))))
+    expect(map.resize).toHaveBeenCalled()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(frame).toHaveClass('relative', 'h-[260px]')
+    expect(map.scrollZoom.disable).toHaveBeenCalled()
+    expect(document.body.style.overflow).toBe('')
+    expect(screen.getByRole('button', { name: 'Afficher la carte en plein écran' })).toHaveAttribute('aria-pressed', 'false')
   })
 })
