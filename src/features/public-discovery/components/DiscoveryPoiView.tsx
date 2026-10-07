@@ -126,8 +126,8 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
           </aside>
         </div>
 
-        <section className={`${marketingContainerClass} pb-16`} aria-labelledby="poi-map-title">
-          <h2 id="poi-map-title" className="mb-6 text-3xl font-semibold tracking-[-0.045em] text-slate-900">Localiser cette adresse</h2>
+        <section className={`${marketingContainerClass} pb-16`} aria-label="Localiser cette adresse">
+          {/* <h2 id="poi-map-title" className="mb-6 text-3xl font-semibold tracking-[-0.045em] text-slate-900">Localiser cette adresse</h2> */}
           <div className="overflow-hidden rounded-[24px] bg-slate-100 [&>img]:aspect-[16/7] [&>img]:min-h-[260px]">
             <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={944} height={420} zoom={17} />
           </div>
@@ -137,7 +137,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
         <aside className={`${marketingContainerClass} mb-16 flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between`}>
           <div>
             <MarketingEyebrow light>Votre logement</MarketingEyebrow>
-            <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">Offrez ces recommandations à vos voyageurs.</h2>
+            <h2 className="max-w-2xl font-semibold leading-tight tracking-[-0.045em] text-2xl">Offrez ces recommandations à vos voyageurs.</h2>
           </div>
           <Link className={`${marketingPrimaryButtonClass} shrink-0 px-6`} href="/confier-mon-logement">Rejoindre MyStay</Link>
         </aside>

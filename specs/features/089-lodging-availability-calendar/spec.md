@@ -43,8 +43,8 @@ Owner, Logement, Fiche publique (vitrine), Lien de réservation.
   section « Disponibilités » montre un calendrier mensuel à partir du mois courant, sur 12 mois,
   navigable mois par mois (1 mois sur mobile, 2 côte à côte dès `md`).
 - **AC-02-02**: Les nuits couvertes par un événement iCal (DTSTART inclus, DTEND exclu) sont
-  affichées indisponibles (grisées, barrées) ; les jours passés sont grisés ; une légende
-  « Disponible / Indisponible » accompagne le calendrier, ainsi que « Réservation sur la plateforme ».
+  affichées indisponibles (grisées, barrées) ; les jours passés sont grisés. (Révision PO 2026-10-07 :
+  pas de légende visible ; chaque jour annonce « disponible / indisponible » aux lecteurs d'écran.)
 - **AC-02-03**: Given un logement sans lien iCal, ou un calendrier illisible / injoignable, When la
   fiche s'affiche, Then la section n'apparaît pas (aucune erreur visible, la page reste rendue).
 

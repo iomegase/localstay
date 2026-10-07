@@ -100,11 +100,11 @@ export function LodgingAvailabilityCalendar({ today, busy }: { today: string; bu
             </div>
           )}
         </div>
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 pt-5 text-[12px] text-slate-500">
+        {/* <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 pt-5 text-[12px] text-slate-500">
           <span className="flex items-center gap-2"><span className="font-semibold text-slate-800">12</span> Disponible</span>
           <span className="flex items-center gap-2"><span className="text-slate-300 line-through">12</span> Indisponible</span>
           <span className="sm:ml-auto">Réservation sur la plateforme</span>
-        </div>
+        </div> */}
       </div>
     </section>
   )

@@ -69,7 +69,7 @@ export function LodgingEssentials({
       className="bg-[#f8f7f5] px-4 py-7 sm:px-6 md:py-10 xl:py-10 mt-8"
     >
       <div className="mx-auto w-full max-w-[944px]">
-        <div className={compact ? 'mb-4' : 'mb-4 md:mb-6 md:flex md:items-end md:justify-between md:gap-10 xl:mb-7'}>
+        {/* <div className={compact ? 'mb-4' : 'mb-4 md:mb-6 md:flex md:items-end md:justify-between md:gap-10 xl:mb-7'}>
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
             En détail
           </span>
@@ -78,7 +78,7 @@ export function LodgingEssentials({
             : 'mt-2 max-w-[600px] text-[16px] font-semibold leading-[1.05] tracking-[-0.04em] text-slate-800 md:mt-0 md:text-right md:text-[20px] md:leading-[1.08]'}>
             Les essentiels, en un coup d’œil.
           </h2>
-        </div>
+        </div> */}
 
         <dl
           aria-label={`Caractéristiques principales de ${title}`}

@@ -204,13 +204,15 @@ export default async function LodgingDetailPage({ params }: Props) {
             </aside>
           </section>
 
+          <LodgingRoomsGrid photos={detail.photos} />
+
           <LodgingFeatureSections
             includedAmenities={detail.amenities_included}
             onRequestAmenities={detail.amenities_on_request}
           />
 
           <div className={`${marketingContainerClass} space-y-16 pb-16 md:space-y-20 md:pb-24`}>
-            <LodgingRoomsGrid photos={detail.photos} />
+            
 
             {/* Spec 088 : carte précise si publiée (028), sinon zone approximative. */}
             {detail.precise_location_public && detail.public_latitude != null && detail.public_longitude != null ? (

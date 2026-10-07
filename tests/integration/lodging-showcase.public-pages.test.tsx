@@ -375,12 +375,14 @@ describe('lodging showcase public pages', () => {
       expect(jest.mocked(MarkdownText).mock.calls.some(([props]) => props.source === source)).toBe(true)
     }
     expect(screen.getByTestId('lodging-stay-card')).toHaveTextContent('Votre séjour')
-    expect(screen.getByRole('heading', { name: 'Les essentiels, en un coup d’œil.' })).toBeInTheDocument()
+    // PO 2026-10-07 : bandeau des essentiels sans titre.
+    expect(screen.queryByRole('heading', { name: 'Les essentiels, en un coup d’œil.' })).not.toBeInTheDocument()
     const features = screen.getByTestId('lodging-feature-sections')
     expect(features).toHaveTextContent('Équipements')
     expect(features).not.toHaveTextContent('Le confort essentiel')
     expect(features).not.toHaveTextContent('Couchages')
-    expect(screen.getByText("L'espace de vie")).toBeInTheDocument()
+    // Titre « L'espace de vie » retiré de la grille des pièces (choix PO).
+    expect(screen.queryByText("L'espace de vie")).not.toBeInTheDocument()
   })
 
   it('renders a compact factual essentials band without invented stay details', async () => {

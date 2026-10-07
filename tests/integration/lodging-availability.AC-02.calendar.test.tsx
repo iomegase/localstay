@@ -20,9 +20,9 @@ describe('spec 089 AC-02 — calendrier des disponibilités', () => {
     expect(state('2026-10-10')).toBe('busy')
     expect(state('2026-10-12')).toBe('busy')
     expect(state('2026-10-13')).toBe('available')
-    expect(screen.getByText('Disponible')).toBeInTheDocument()
-    expect(screen.getByText('Indisponible')).toBeInTheDocument()
-    expect(screen.getByText('Réservation sur la plateforme')).toBeInTheDocument()
+    // PO 2026-10-07 : légende retirée ; l'état reste annoncé par jour.
+    expect(document.querySelector('[data-date="2026-10-10"]')).toHaveAttribute('aria-label', '10 indisponible')
+    expect(document.querySelector('[data-date="2026-10-13"]')).toHaveAttribute('aria-label', '13 disponible')
   })
 
   it('AC-02-01 : 12 mois navigables, boutons désactivés aux bornes', () => {
