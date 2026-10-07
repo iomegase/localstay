@@ -18,6 +18,8 @@ jest.mock('mapbox-gl', () => ({
       on() {}
       remove() {}
       addControl() {}
+      resize() {}
+      scrollZoom = { enable() {}, disable() {} }
     },
     Marker: class {
       setLngLat() { return this }
