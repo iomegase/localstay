@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRef, useState } from 'react'
 import type { RoomPhotoGroup } from '../lib/detail-view'
 import { ROOM_CATEGORIES, categorizeRoomGroups, type RoomCategoryId } from '../lib/room-categories'
+import { LodgingPhotoLightbox } from './LodgingPhotoLightbox'
 
 type Photo = {
   id: string
@@ -24,13 +25,20 @@ export function LodgingRoomsGrid({ photos, compact = false }: { photos: Photo[];
   const visible = filter === 'all' ? groups : groups.filter(group => group.category === filter)
 
   return (
-    <section>
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
+    <section       className={compact
+        ? 'mx-auto grid w-full max-w-[944px] gap-4 px-4 py-16'
+        : 'mx-auto grid w-full max-w-[944px] gap-4 px-4 py-16 sm:px-6 md:py-20 xl:px-0'}>
+      {/* <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
         En images
       </span>
       <h2 className="mb-5 mt-2 text-[20px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 ">
         L&apos;espace de vie
-      </h2>
+      </h2> */}
+
+         
+     
+
+   
       {categories.length > 1 && (
         <div
           role="group"
@@ -78,6 +86,7 @@ function dotWindow(total: number, active: number): number[] {
 function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boolean }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
   const multiple = group.photos.length > 1
 
   const handleScroll = () => {
@@ -99,7 +108,7 @@ function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boo
         onScroll={multiple ? handleScroll : undefined}
         className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {group.photos.map(photo => (
+        {group.photos.map((photo, photoIndex) => (
           <div key={photo.id} className="relative h-full w-full shrink-0 snap-center">
             <Image
               src={photo.url}
@@ -108,6 +117,13 @@ function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boo
               loading="lazy"
               sizes={compact ? '50vw' : '(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw'}
               className="object-cover"
+            />
+            {/* Spec 091 AC-02 : la photo ouvre la lightbox sur les photos de la pièce. */}
+            <button
+              type="button"
+              aria-label={`Agrandir la photo : ${photo.alt}`}
+              onClick={() => setOpenIndex(photoIndex)}
+              className="absolute inset-0 cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white"
             />
           </div>
         ))}
@@ -142,6 +158,10 @@ function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boo
             {group.photos.length}
           </span>
         </div>
+      )}
+
+      {openIndex !== null && (
+        <LodgingPhotoLightbox photos={group.photos} startIndex={openIndex} title={group.label} onClose={() => setOpenIndex(null)} />
       )}
     </div>
   )

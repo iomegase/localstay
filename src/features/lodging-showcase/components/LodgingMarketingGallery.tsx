@@ -1,5 +1,9 @@
+'use client'
+
 import Image from 'next/image'
+import { useState } from 'react'
 import { selectLodgingGalleryPhotos } from '../lib/detail-view'
+import { LodgingPhotoLightbox } from './LodgingPhotoLightbox'
 
 type GalleryPhoto = {
   id: string
@@ -16,6 +20,7 @@ export function LodgingMarketingGallery({
   photos: GalleryPhoto[]
   compact?: boolean
 }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
   const visiblePhotos = selectLodgingGalleryPhotos(photos)
 
   if (visiblePhotos.length === 0) {
@@ -31,8 +36,11 @@ export function LodgingMarketingGallery({
   }
 
   const [mainPhoto, ...secondaryPhotos] = visiblePhotos
+  // Spec 091 AC-01 / AC-04 : chaque photo ouvre la lightbox sur toutes les photos du logement.
+  const zoomClass = 'absolute inset-0 cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white'
 
   return (
+    <>
     <section
       aria-label={`Photos de ${title}`}
       data-testid="lodging-marketing-gallery"
@@ -52,9 +60,10 @@ export function LodgingMarketingGallery({
           sizes="(min-width: 1280px) 630px, (min-width: 768px) 66vw, 100vw"
           className="object-cover"
         />
+        <button type="button" className={zoomClass} aria-label={`Agrandir la photo : ${mainPhoto.alt}`} onClick={() => setOpenIndex(0)} />
       </div>
 
-      {secondaryPhotos.map((photo) => (
+      {secondaryPhotos.map((photo, photoIndex) => (
         <div
           key={photo.id}
           className="relative overflow-hidden bg-slate-100"
@@ -66,6 +75,7 @@ export function LodgingMarketingGallery({
             sizes="(min-width: 768px) 32vw, 50vw"
             className="object-cover"
           />
+          <button type="button" className={zoomClass} aria-label={`Agrandir la photo : ${photo.alt}`} onClick={() => setOpenIndex(photoIndex + 1)} />
         </div>
       ))}
 
@@ -78,8 +88,13 @@ export function LodgingMarketingGallery({
             sizes="50vw"
             className="object-cover"
           />
+          <button type="button" className={zoomClass} aria-label={`Agrandir la photo : ${mainPhoto.alt}`} onClick={() => setOpenIndex(0)} />
         </div>
       )}
     </section>
+    {openIndex !== null && (
+      <LodgingPhotoLightbox photos={photos} startIndex={openIndex} title={title} onClose={() => setOpenIndex(null)} />
+    )}
+    </>
   )
 }

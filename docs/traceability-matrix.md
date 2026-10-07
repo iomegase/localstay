@@ -1908,3 +1908,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | AC-01 / AC-02 / BR-01 | Sauvegarde Owner/Admin sans changement de statut ; fiche publiée revalidée | `src/features/lodging-showcase/queries/owner-public-profile.ts` | `tests/unit/lodging-single-approval.AC-01-03.save.test.ts` | ✅ done |
 | AC-03 | Proposition de réécriture sans dépublication | `src/features/lodging-showcase/queries/owner-public-profile.ts` | `tests/unit/lodging-single-approval.AC-01-03.save.test.ts` | ✅ done |
 | AC-04 / AC-05 | « Enregistrer » + « Modifications en ligne. » si publiée ; brouillon + demande de publication sinon | `src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/integration/lodging-single-approval.AC-04.form.test.tsx` | ✅ done |
+
+## 091 — Lightbox des photos du logement
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01 / BR-01 | Galerie du haut → lightbox sur toutes les photos, rien chargé avant le clic | `src/features/lodging-showcase/components/LodgingMarketingGallery.tsx`<br>`src/features/lodging-showcase/components/LodgingPhotoLightbox.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
+| AC-02 | Carte de pièce → photos de la pièce | `src/features/lodging-showcase/components/LodgingRoomsGrid.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
+| AC-03 / AC-04 | Compteur, légende, boutons/clavier/glisser, Échap/fond ; dialogue modal, focus, page figée | `src/features/lodging-showcase/components/LodgingPhotoLightbox.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
