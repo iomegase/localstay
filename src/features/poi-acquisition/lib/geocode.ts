@@ -16,6 +16,8 @@ export async function geocodeForAcquisition(
 
     const validation = validateGeocode(result, cityCenter)
     if (!validation.valid) {
+      // Règle globale (AGENTS §10) : au-delà de 30 km, toujours rejeté — jamais « à vérifier ».
+      if (validation.outOfRange) return { status: 'rejected', reason: validation.reason ?? 'Hors zone (> 30 km)' }
       if (result.relevance >= 0.4) {
         return {
           status: 'pending_review',

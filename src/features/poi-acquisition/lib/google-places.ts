@@ -122,7 +122,22 @@ export async function searchGooglePlaceCandidates(params: {
     }
   }
 
-  return Array.from(byPlaceId.values())
+  // Règle globale des zones (AGENTS §10) : `locationBias` n'est qu'une préférence ; quand il y a
+  // peu de lieux autour, Google complète avec Genève ou Paris. Au-delà de 30 km : écarté d'office.
+  return Array.from(byPlaceId.values()).filter(candidate => isWithinAcquisitionRange(candidate.location, params))
+}
+
+/** Lieu à 30 km au plus du centre de la ville (sans position Google : le géocodage tranchera). */
+export function isWithinAcquisitionRange(
+  location: { latitude: number; longitude: number } | null,
+  center: { latitude: number; longitude: number },
+): boolean {
+  if (!location) return true
+  const toRad = (value: number) => (value * Math.PI) / 180
+  const dLat = toRad(location.latitude - center.latitude)
+  const dLng = toRad(location.longitude - center.longitude)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(center.latitude)) * Math.cos(toRad(location.latitude)) * Math.sin(dLng / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.sqrt(h)) <= ACQUISITION_SEARCH_RADIUS_METERS / 1000
 }
 
 /** Spec 073 BR-03 : un type refusé par Google (400) est refait en texte seul. */

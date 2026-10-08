@@ -18,13 +18,13 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 export function validateGeocode(
   result: GeocodeResult,
   cityCenter: { latitude: number; longitude: number },
-): { valid: boolean; reason?: string } {
+): { valid: boolean; reason?: string; outOfRange?: boolean } {
   if (result.relevance < MIN_CONFIDENCE) {
     return { valid: false, reason: `confidence ${result.relevance} < ${MIN_CONFIDENCE}` }
   }
   const dist = haversineKm(cityCenter.latitude, cityCenter.longitude, result.latitude, result.longitude)
   if (dist > MAX_DISTANCE_KM) {
-    return { valid: false, reason: `distance ${dist.toFixed(1)}km > ${MAX_DISTANCE_KM}km` }
+    return { valid: false, reason: `distance ${dist.toFixed(1)}km > ${MAX_DISTANCE_KM}km`, outOfRange: true }
   }
   return { valid: true }
 }

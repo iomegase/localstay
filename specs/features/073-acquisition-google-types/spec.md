@@ -129,6 +129,15 @@ Migration additive avec mise à jour des types par défaut (par slug).
 
 ---
 
+### Révision 2026-10-08 (incident run « Culture » Combloux)
+
+- **BR-05**: Les résultats Google situés à plus de 30 km du centre de la ville sont écartés avant de
+  devenir des candidats (`locationBias` n'est qu'une préférence : avec peu de lieux autour, Google
+  complète avec Genève, Nyon, Paris). Un résultat sans position est conservé, le géocodage tranche.
+- **BR-06**: Géocodage d'acquisition : au-delà de 30 km, statut `rejected` quelle que soit la confiance
+  Mapbox (règle globale des zones, AGENTS §10) ; `pending_review` reste réservé aux adresses dans la
+  zone mais incertaines.
+
 ## Out of Scope
 
 - Écarter automatiquement les lieux `secondary` (option B).
