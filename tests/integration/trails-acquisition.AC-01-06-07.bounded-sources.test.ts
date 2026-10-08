@@ -14,7 +14,7 @@ jest.mock('@/features/trails-acquisition/services/gemini-trails', () => ({
 jest.mock('@/features/trails-acquisition/services/start-geocoding', () => ({ enrichCandidatesWithStartGeocoding: (...args: unknown[]) => mockGeocode(...args) }))
 jest.mock('@/features/trails-acquisition/services/ors', () => ({ enrichCandidatesWithDuration: (...args: unknown[]) => mockDuration(...args) }))
 import { collectTrailCandidatesFromSources, type RunSourceResult } from '@/features/trails-acquisition/services/run-orchestrator'
-import { IMPORT_WORK_BUDGET_MS, runWithDeadline } from '@/features/trails-acquisition/lib/import-budget'
+import { IMPORT_IGN_TIMEOUT_MS, IMPORT_WORK_BUDGET_MS, runWithDeadline } from '@/features/trails-acquisition/lib/import-budget'
 
 const city = { id: 'city', name: 'Combloux', latitude: 45, longitude: 6 }
 const candidate = { primary_source_type: 'camptocamp', source_refs: [], raw_payload: {}, title: 'Mont Joly', description: 'Description existante' }
@@ -36,7 +36,7 @@ it('persists discovery before IGN starts and retains partial enrichment on timeo
     return new Promise(() => {})
   })
   const promise = collectTrailCandidatesFromSources({ city, sourceTypes: ['camptocamp', 'ign'] }, async snapshot => { snapshots.push(snapshot) })
-  await jest.advanceTimersByTimeAsync(35_001)
+  await jest.advanceTimersByTimeAsync(IMPORT_IGN_TIMEOUT_MS + 1)
   const result = await promise
   expect(result.candidates[0].elevation_gain_m).toBe(400)
   expect(result.source_errors.ign).toContain('Délai dépassé')

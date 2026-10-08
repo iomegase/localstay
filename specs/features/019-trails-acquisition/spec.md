@@ -794,6 +794,10 @@ components:
   liens wiki `[[…|…]]`, BBCode, titres « ##Titre » sans espace).
 - Un candidat sans tracé ni distance (certains itinéraires Camptocamp, propositions Gemini) reste sans
   durée : aucune métrique n'est inventée (ADR-006).
+- **BR-R4** (audit sur run réel, Les Contamines, 2026-10-08) : l'étape descriptions ne traite que les
+  candidats sans description (un candidat déjà décrit n'est plus réécrit pour son seul lieu de départ),
+  tracés d'abord, 12 en parallèle ; dénivelé IGN : 60 s. Mesure avant / après sur 35 tracés OSM :
+  descriptions 0 → 32, dénivelé 31 → 35, run 190 s.
 
 ## Out of Scope
 

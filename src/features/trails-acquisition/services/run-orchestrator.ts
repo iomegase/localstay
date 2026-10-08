@@ -7,7 +7,7 @@ import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extra
 import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
-import { IMPORT_WORK_BUDGET_MS, IMPORT_SOURCE_TIMEOUT_MS, IMPORT_ENRICHMENT_TIMEOUT_MS, IMPORT_DESCRIPTION_TIMEOUT_MS, runWithDeadline } from '../lib/import-budget'
+import { IMPORT_WORK_BUDGET_MS, IMPORT_SOURCE_TIMEOUT_MS, IMPORT_ENRICHMENT_TIMEOUT_MS, IMPORT_DESCRIPTION_TIMEOUT_MS, IMPORT_IGN_TIMEOUT_MS, runWithDeadline } from '../lib/import-budget'
 import type { TrailSourceType } from '../types'
 import type { DescriptionSource } from '@/shared/lib/description-sources'
 
@@ -120,7 +120,7 @@ export async function collectTrailCandidatesFromSources(
   }
   // 2026-10-08 : métriques d'abord (dénivelé puis durée, rapides et essentielles), descriptions
   // Gemini ensuite avec leur propre délai ; le géocodage du départ dépend de ces descriptions.
-  if (input.sourceTypes.includes('ign')) await enrich('ign', (items, signal) => enrichCandidatesWithIgn(items, signal))
+  if (input.sourceTypes.includes('ign')) await enrich('ign', (items, signal) => enrichCandidatesWithIgn(items, signal), IMPORT_IGN_TIMEOUT_MS)
   await enrich('duration', (items, signal) => enrichCandidatesWithDuration(items, signal))
   if (input.sourceTypes.includes('gemini')) {
     await enrich('gemini_descriptions', (items, signal) => enrichCandidatesWithGeminiDescriptions(items, input.city, signal), IMPORT_DESCRIPTION_TIMEOUT_MS)

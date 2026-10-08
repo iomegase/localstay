@@ -131,6 +131,7 @@ Ne fournis aucune coordonnée GPS, distance, durée, dénivelé ou métrique gé
 
 type EnrichableCandidate = {
   title: string
+  geometry_status?: string | null
   description: string | null
   description_sources?: DescriptionSource[] | null
   start_label?: string | null
@@ -145,7 +146,11 @@ type EnrichableCandidate = {
 
 // 2026-10-08 : textes de 120 à 300 mots en Markdown, plus longs à générer.
 const GEMINI_DESCRIPTION_TIMEOUT_MS = 60_000  // marge pour grounding lent (la fct interne timeout à 50 s)
-const GEMINI_DESCRIPTION_CONCURRENCY = 8      // Gemini Tier 1 supporte largement 8 requêtes simultanées
+const GEMINI_DESCRIPTION_CONCURRENCY = 12     // ~30 s par texte : 35 tracés tiennent en 3 vagues (Gemini Tier 1)
+
+function hasGeometry(candidate: { geometry_status?: string | null }): boolean {
+  return candidate.geometry_status === 'valid'
+}
 
 export async function enrichCandidatesWithGeminiDescriptions<T extends EnrichableCandidate>(
   candidates: T[],
@@ -155,7 +160,12 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
   let enriched = 0
   let errors = 0
 
-  const toEnrich = candidates.filter(c => !c.description?.trim() || !c.start_label)
+  // Audit 2026-10-08 : les candidats déjà décrits (Camptocamp) passaient en premier pour le seul
+  // lieu de départ — chacun rédigeait 300 mots pour rien et l'étape expirait avant les tracés OSM
+  // sans description. On ne traite que les candidats sans description, tracés d'abord.
+  const toEnrich = candidates
+    .filter(c => !c.description?.trim())
+    .sort((a, b) => Number(hasGeometry(b)) - Number(hasGeometry(a)))
 
   await mapWithConcurrency(toEnrich, GEMINI_DESCRIPTION_CONCURRENCY, async candidate => {
     signal?.throwIfAborted()
