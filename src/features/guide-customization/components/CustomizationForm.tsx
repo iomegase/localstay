@@ -42,6 +42,7 @@ import type {
   PracticalInfoFields,
 } from '../types'
 import { PRACTICAL_INFO_KEYS } from '../types'
+import type { EquipmentTemplate } from '@/features/equipment-library/types'
 
 interface CategoryOption {
   id: string
@@ -70,6 +71,8 @@ interface Props {
   initialOtherCityPois?: OtherCityPoiSelection[]
   /** Spec 080 : ville du logement, proposée pour l'adresse. */
   cityName?: string
+  /** Spec 095 : équipements validés de la bibliothèque. */
+  equipmentLibrary?: EquipmentTemplate[]
 }
 
 type ApiErrorPayload = {
@@ -101,7 +104,7 @@ const VALIDATION_FIELD_LABELS: Record<string, string> = {
   house_rules: 'Règlement intérieur',
   emergency_contacts: 'Urgences',
   useful_services: 'Numéros utiles',
-  practical_blocks: 'Blocs personnalisés',
+  practical_blocks: 'Équipements',
 }
 
 function validationLabel(field: string): string {
@@ -246,6 +249,7 @@ export function CustomizationForm({
   initialCustomization,
   initialOtherCityPois = [],
   cityName,
+  equipmentLibrary = [],
 }: Props) {
   const otherCityIds = new Set(initialOtherCityPois.map(poi => poi.poi_id))
   const [categoryOrder, setCategoryOrder] = useState(() => {
@@ -633,7 +637,7 @@ export function CustomizationForm({
           </Card>
           <Card>
             <MarkdownHint className="mb-4" />
-            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} errors={errorsUnder(fieldErrors, 'practical_blocks')} />
+            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} errors={errorsUnder(fieldErrors, 'practical_blocks')} library={equipmentLibrary} />
           </Card>
         </GuideSection>
 

@@ -26,14 +26,14 @@ describe('PracticalBlocksEditor', () => {
     const user = userEvent.setup()
     render(<Harness />)
 
-    await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
-    const titleInput = screen.getByLabelText(/titre du bloc/i)
+    await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
+    const titleInput = screen.getByLabelText(/nom de l’équipement/i)
     await user.type(titleInput, 'La plage')
 
     expect(screen.getByTestId('state').textContent).toContain('"title":"La plage"')
     expect(screen.getByTestId('state').textContent).toContain('"icon":"info"')
 
-    await user.click(screen.getByRole('button', { name: /supprimer le bloc/i }))
+    await user.click(screen.getByRole('button', { name: /supprimer l’équipement/i }))
     expect(screen.getByTestId('state').textContent).toBe('[]')
   })
 
@@ -41,7 +41,7 @@ describe('PracticalBlocksEditor', () => {
     const user = userEvent.setup()
     render(<Harness />)
 
-    await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
+    await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
 
     for (const label of ['Piscine', 'Jacuzzi', 'Climatisation', 'Skis', 'Terrasse']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument()

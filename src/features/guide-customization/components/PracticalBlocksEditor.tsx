@@ -1,7 +1,7 @@
 'use client'
 
-import { useId } from 'react'
-import { Plus, Trash2, GripVertical } from 'lucide-react'
+import { useId, useState } from 'react'
+import { Plus, Trash2, GripVertical, Library } from 'lucide-react'
 import {
   closestCenter,
   DndContext,
@@ -31,6 +31,8 @@ import {
 } from '@/features/guide-customization/lib/practical-block-icons'
 import { reorderById } from '@/features/guide-customization/lib/validation'
 import type { PracticalBlockInput } from '@/features/guide-customization/types'
+import { equipmentTitleKey } from '@/features/equipment-library/lib/title-key'
+import type { EquipmentTemplate } from '@/features/equipment-library/types'
 
 interface Props {
   value: PracticalBlockInput[]
@@ -38,6 +40,8 @@ interface Props {
   lodgingId: string
   /** Spec 083 : erreurs par bloc (« 0.title »), affichées sous le champ. */
   errors?: Record<string, string>
+  /** Spec 095 : équipements validés de la bibliothèque, ajoutables en copie. */
+  library?: EquipmentTemplate[]
 }
 
 function blockUid(): string {
@@ -46,7 +50,27 @@ function blockUid(): string {
     : `tmp-${Math.random().toString(36).slice(2)}-${Date.now()}`
 }
 
-export function PracticalBlocksEditor({ value, onChange, lodgingId, errors = {} }: Props) {
+export function PracticalBlocksEditor({ value, onChange, lodgingId, errors = {}, library = [] }: Props) {
+  const [libraryOpen, setLibraryOpen] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  // Spec 095 AC-04-01 : équipements validés absents du logement (même nom).
+  const presentKeys = new Set(value.map(block => equipmentTitleKey(block.title)))
+  const available = library.filter(template => !presentKeys.has(equipmentTitleKey(template.title)))
+
+  function addFromLibrary() {
+    const picked = available.filter(template => selected.has(template.id))
+    // AC-04-02 : copies modifiables ; photo et vidéo restent propres au logement (BR-02).
+    onChange([
+      ...value,
+      ...picked.map((template, offset) => ({
+        id: blockUid(), title: template.title, body: template.body, icon: template.icon,
+        photo_url: null, video_url: null, sort_order: value.length + offset,
+      })),
+    ])
+    setSelected(new Set())
+    setLibraryOpen(false)
+  }
+
   // id stable pour DndContext : évite le mismatch d'hydratation SSR/client sur
   // l'aria-describedby généré par le compteur global de dnd-kit.
   const dndId = useId()
@@ -80,17 +104,81 @@ export function PracticalBlocksEditor({ value, onChange, lodgingId, errors = {} 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-charcoal">Blocs personnalisés</h3>
-          <p className="text-xs text-gray-500">Ajoutez vos propres rubriques (titre, texte, photo).</p>
+          <h3 className="text-sm font-semibold text-charcoal">Équipements</h3>
+          <p className="text-xs text-gray-500">Ajoutez les équipements du logement : nom, icône, texte, photo.</p>
         </div>
-        <button
-          type="button"
-          onClick={addBlock}
-          className="inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white"
-        >
-          <Plus className="h-3.5 w-3.5" /> Ajouter un bloc
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {library.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setLibraryOpen(open => !open)}
+              aria-expanded={libraryOpen}
+              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-charcoal"
+            >
+              <Library className="h-3.5 w-3.5" /> Ajouter depuis la bibliothèque
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={addBlock}
+            className="inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white"
+          >
+            <Plus className="h-3.5 w-3.5" /> Ajouter un équipement
+          </button>
+        </div>
       </div>
+
+      {libraryOpen && (
+        <div data-testid="equipment-library-picker" className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50/60 p-4">
+          {available.length === 0 ? (
+            <p className="text-xs text-gray-500">Tous les équipements de la bibliothèque sont déjà dans votre guide.</p>
+          ) : (
+            <>
+              <label className="flex items-center gap-2 text-xs font-semibold text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={selected.size === available.length}
+                  onChange={event => setSelected(event.target.checked ? new Set(available.map(template => template.id)) : new Set())}
+                  className="h-4 w-4 accent-[#0B1437]"
+                />
+                Tout sélectionner
+              </label>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {available.map(template => (
+                  <li key={template.id}>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-100 bg-white p-3 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(template.id)}
+                        onChange={event => setSelected(current => {
+                          const next = new Set(current)
+                          if (event.target.checked) next.add(template.id)
+                          else next.delete(template.id)
+                          return next
+                        })}
+                        className="mt-1 h-4 w-4 shrink-0 accent-[#0B1437]"
+                      />
+                      <CategoryIcon iconSlug={template.icon} className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+                      <span className="min-w-0">
+                        <span className="block font-semibold text-charcoal">{template.title}</span>
+                        {template.body ? <span className="line-clamp-2 text-xs text-gray-500">{template.body}</span> : null}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                disabled={selected.size === 0}
+                onClick={addFromLibrary}
+                className="inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white disabled:opacity-40"
+              >
+                Ajouter ({selected.size})
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={value.map(block => block.id ?? '')} strategy={verticalListSortingStrategy}>
@@ -139,7 +227,7 @@ function SortableBlockRow({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            aria-label="Déplacer le bloc"
+            aria-label="Déplacer l’équipement"
             className="flex h-8 w-8 cursor-grab items-center justify-center rounded-lg bg-[#F4F7FE] text-[#0B1437] active:cursor-grabbing"
             {...attributes}
             {...listeners}
@@ -147,13 +235,13 @@ function SortableBlockRow({
             <GripVertical className="h-4 w-4" />
           </button>
           <Label htmlFor={`block-title-${index}`} className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-            Titre du bloc
+            Nom de l’équipement
           </Label>
         </div>
         <button
           type="button"
           onClick={() => onRemove(index)}
-          aria-label="Supprimer le bloc"
+          aria-label="Supprimer l’équipement"
           className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:border-red-300 hover:text-red-500"
         >
           <Trash2 className="h-3.5 w-3.5" /> Supprimer
@@ -164,7 +252,7 @@ function SortableBlockRow({
         id={`block-title-${index}`}
         value={block.title}
         maxLength={120}
-        placeholder="Ex. La plage, Les commerces, Bons plans…"
+        placeholder="Ex. Machine à café, Télévision, Lave-linge…"
         aria-invalid={titleError ? true : undefined}
         data-field-error={titleError ? '' : undefined}
         className={titleError ? 'border-rose-400 focus-visible:ring-rose-400' : undefined}

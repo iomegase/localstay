@@ -6,6 +6,7 @@ import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import { getLodgingCustomization } from '@/features/guide-customization/queries/customization'
 import { CustomizationForm } from '@/features/guide-customization/components/CustomizationForm'
 import { ownerPoiThumbnail } from '@/features/guide-customization/lib/poi-thumbnail'
+import { listApprovedEquipmentTemplates } from '@/features/equipment-library/queries/library'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoUrl } from '@/features/poi-photos/queries/photo-mirror-map'
 
 interface Props {
@@ -102,7 +103,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
       },
     }),
   ])
-  const photoMirrors = await getPoiPhotoMirrorMap()
+  const [photoMirrors, equipmentLibrary] = await Promise.all([getPoiPhotoMirrorMap(), listApprovedEquipmentTemplates()])
 
   // Règle métier strictement non modifiée
   const visiblePois = pois
@@ -186,6 +187,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
         pois={visiblePois}
         initialCustomization={customization}
         initialOtherCityPois={initialOtherCityPois}
+        equipmentLibrary={equipmentLibrary}
       />
     </div>
   )

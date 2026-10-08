@@ -69,8 +69,8 @@ describe('CustomizationForm — practical blocks payload', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
-    await user.type(screen.getByLabelText(/titre du bloc/i), 'La plage')
+    await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
+    await user.type(screen.getByLabelText(/nom de l’équipement/i), 'La plage')
     await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled())
@@ -96,16 +96,16 @@ describe('CustomizationForm — practical blocks payload', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /ajouter un bloc/i }))
+    await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
     await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
     expect(global.fetch).not.toHaveBeenCalled()
     expect(screen.getByText('Le titre du bloc est requis.')).toBeInTheDocument()
-    expect(screen.getByLabelText(/titre du bloc/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/nom de l’équipement/i)).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('status', { name: 'État de l’enregistrement' })).toHaveTextContent('1 champ à corriger.')
 
     // AC-01-03 : le message disparaît dès que le champ est corrigé.
-    await user.type(screen.getByLabelText(/titre du bloc/i), 'La plage')
+    await user.type(screen.getByLabelText(/nom de l’équipement/i), 'La plage')
     expect(screen.queryByText('Le titre du bloc est requis.')).not.toBeInTheDocument()
   })
 

@@ -30,6 +30,7 @@ import type {
 } from '../types'
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 import { composeLodgingAddress, splitLodgingAddress } from '../lib/address'
+import { captureEquipmentTemplates } from '@/features/equipment-library/queries/library'
 
 const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   cover_photo_url: null,
@@ -538,6 +539,11 @@ export async function saveLodgingCustomization(
     await syncPracticalBlocks(tx, lodgingId, practicalBlocks)
     await syncArrivalInstructions(tx, lodgingId, arrivalInstructions)
   }, { timeout: SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS })
+
+  // Spec 095 AC-02-01 : nouveaux équipements proposés à la bibliothèque (à valider) ; ne bloque jamais l'enregistrement.
+  await captureEquipmentTemplates(lodgingId, practicalBlocks).catch(error => {
+    console.error('[equipment-library] capture failed', error instanceof Error ? error.message : error)
+  })
 
   const savedBlocks = await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },

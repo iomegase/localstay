@@ -1998,3 +1998,13 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | 019 BR-R4 | Descriptions : candidats sans description seulement, tracés d'abord, 12 en parallèle ; IGN 60 s | `src/features/trails-acquisition/services/gemini-trails.ts`<br>`src/features/trails-acquisition/lib/import-budget.ts`<br>`src/features/trails-acquisition/services/run-orchestrator.ts` | `tests/unit/trails-completeness.descriptions.test.ts`<br>`tests/integration/trails-acquisition.AC-01-06-07.bounded-sources.test.ts` | ✅ done |
 
 | 054 AC-01-02 | « Bienvenue aux Hauts de… » : « aux » reconnu avant « au » (correctif 2026-10-08) | `src/features/guide-app/components/stay/GuideStayHome.tsx` | `tests/unit/guide-welcome-split.test.ts` | ✅ done |
+
+## 095 — Équipements et bibliothèque partagée
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Data model | `EquipmentTemplate` | `prisma/schema.prisma`<br>`prisma/migrations/20261008200000_equipment_library/migration.sql` | — (appliquée le 2026-10-08) | ✅ done |
+| AC-01-01 | Section « Équipements », boutons et champs renommés | `src/features/guide-customization/components/PracticalBlocksEditor.tsx`<br>`src/features/guide-customization/components/CustomizationForm.tsx` | `tests/integration/equipment-library.AC-01-04.owner-picker.test.tsx`<br>`tests/unit/guide-customization.practical-blocks-editor.test.tsx` | ✅ done |
+| AC-02-01 / AC-02-02 / BR-02 | Alimentation à l'enregistrement, sans doublon, sans photo ni tri des déchets, non bloquante | `src/features/equipment-library/queries/library.ts`<br>`src/features/equipment-library/lib/title-key.ts`<br>`src/features/guide-customization/queries/customization.ts` | `tests/unit/equipment-library.AC-02-03.queries.test.ts`<br>`tests/unit/equipment-library.AC-02-01.save-hook.test.ts` | ✅ done |
+| AC-03-01 / AC-03-02 / BR-01 | Page admin : modifier, valider, refuser | `src/app/admin/equipment-library/page.tsx`<br>`src/features/equipment-library/components/AdminEquipmentLibrary.tsx`<br>`src/app/api/admin/equipment-library/[id]/route.ts`<br>`src/app/admin/layout.tsx` | `tests/integration/equipment-library.AC-03.admin-ui.test.tsx`<br>`tests/contract/equipment-library.AC-03-02.api.test.ts` | ✅ done |
+| AC-04-01 / AC-04-02 | « Ajouter depuis la bibliothèque » : copies modifiables | `src/features/guide-customization/components/PracticalBlocksEditor.tsx`<br>`src/app/(dashboard)/dashboard/lodgings/[id]/customize/page.tsx` | `tests/integration/equipment-library.AC-01-04.owner-picker.test.tsx` | ✅ done |

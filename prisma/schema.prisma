@@ -1705,3 +1705,21 @@ model PoiCityRedirect {
   @@unique([from_city_id, from_slug])
   @@index([poi_id])
 }
+
+// Spec 095 — bibliothèque d'équipements du guide, alimentée par les Owners, validée par l'admin.
+model EquipmentTemplate {
+  id                String    @id @default(uuid())
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  deleted_at        DateTime?
+  title             String
+  title_key         String    @unique
+  icon              String
+  body              String?
+  status            String    @default("pending") // pending | approved | rejected
+  source_lodging_id String?
+  reviewed_by       String?
+  reviewed_at       DateTime?
+
+  @@index([status, deleted_at])
+}
