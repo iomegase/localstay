@@ -35,6 +35,7 @@ import { PoiDescriptionAssistant } from '@/features/poi-description-assistance/c
 import { usePoiEditPanel } from './PoiEditPanelContext'
 import { DescriptionSourcesList } from '@/shared/components/DescriptionSourcesList'
 import type { DescriptionSource } from '@/shared/lib/description-sources'
+import { ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG } from '@/shared/lib/description-length'
 
 type Props = {
   poi: AdminPoiDetail
@@ -239,6 +240,14 @@ export function AdminPoiEditForm({ poi, categories, cities = [] }: Props) {
                 onChange={e => setDescriptionValue(e.target.value)}
                 className="min-h-32 w-full rounded-[16px] border-slate-200 bg-slate-50 p-4 text-[15px] font-medium leading-relaxed text-slate-900 transition-all hover:border-indigo-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 shadow-sm resize-y"
               />
+              {/* PO 2026-10-08 : limite visible (5 000 caractères) au lieu d'une erreur « Invalid input ». */}
+              <p
+                data-testid="description-length"
+                className={`text-right text-[11px] font-medium ${descriptionValue.trim().length > ADMIN_DESCRIPTION_MAX_CHARS ? 'text-rose-600' : 'text-slate-400'}`}
+              >
+                {descriptionValue.trim().length.toLocaleString('fr-FR')} / {ADMIN_DESCRIPTION_MAX_CHARS.toLocaleString('fr-FR')} caractères
+                {descriptionValue.trim().length > ADMIN_DESCRIPTION_MAX_CHARS ? ` — ${ADMIN_DESCRIPTION_TOO_LONG}` : ''}
+              </p>
               <PoiDescriptionAssistant
                 key={JSON.stringify(savedIdentity)}
                 poiId={poi.id}

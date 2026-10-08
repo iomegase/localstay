@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import type { AdminPoiListFilters, AdminPoiStatus } from '../types'
-import { DESCRIPTION_MAX_CHARS } from '@/shared/lib/description-length'
+import { ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG } from '@/shared/lib/description-length'
 import { DescriptionSourcesSchema } from '@/shared/lib/description-sources'
 
 const UUID = z.string().uuid()
@@ -65,7 +65,11 @@ export type AdminPoiTrailMetricsPatch = z.infer<typeof TrailMetricsPatchSchema>
 
 export const AdminPoiPatchSchema = z.object({
   name: z.string().trim().min(1).max(160).optional(),
-  description: nullableText(DESCRIPTION_MAX_CHARS).optional(),
+  // PO 2026-10-08 : 5 000 caractères pour une description écrite à la main (markdown).
+  description: z.union([
+    z.string().trim().max(ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG).transform(value => (value.length === 0 ? null : value)),
+    z.null(),
+  ], { errorMap: () => ({ message: ADMIN_DESCRIPTION_TOO_LONG }) }).optional(),
   // Spec 094 : sources de la description (retirables par l'admin).
   description_sources: DescriptionSourcesSchema.nullable().optional(),
   address: z.string().trim().min(5).max(255).optional(),

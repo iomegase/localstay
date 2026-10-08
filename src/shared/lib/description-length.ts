@@ -4,6 +4,9 @@ export const DESCRIPTION_MIN_WORDS = 120
 export const DESCRIPTION_MAX_WORDS = 300
 /** BR-02 : 300 mots en français tiennent dans 2 500 caractères. */
 export const DESCRIPTION_MAX_CHARS = 2500
+/** PO 2026-10-08 : description rédigée à la main dans l'admin (markdown : titres, listes…). */
+export const ADMIN_DESCRIPTION_MAX_CHARS = 5000
+export const ADMIN_DESCRIPTION_TOO_LONG = `La description dépasse ${ADMIN_DESCRIPTION_MAX_CHARS.toLocaleString('fr-FR')} caractères.`
 
 /** Consigne commune aux prompts Gemini (AC-01 à AC-03, BR-01). */
 export const DESCRIPTION_LENGTH_INSTRUCTION =

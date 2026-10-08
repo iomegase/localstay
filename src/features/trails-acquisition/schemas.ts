@@ -4,7 +4,7 @@ import {
   TRAIL_SOURCE_TYPES,
   TRAIL_SOURCE_USES,
 } from './types'
-import { DESCRIPTION_MAX_CHARS } from '@/shared/lib/description-length'
+import { ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG } from '@/shared/lib/description-length'
 
 export const TrailImportRunCreateSchema = z.object({
   city_id: z.string().uuid(),
@@ -24,7 +24,7 @@ export const TrailSourceRefSchema = z.object({
 export const TrailManualCandidateCreateSchema = z.object({
   city_id: z.string().uuid(),
   title: z.string().trim().min(2).max(160),
-  description: z.string().trim().max(DESCRIPTION_MAX_CHARS).nullable().optional(),
+  description: z.string().trim().max(ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG).nullable().optional(),
   difficulty: z.enum(TRAIL_DIFFICULTIES),
   start_label: z.string().trim().max(200).nullable().optional(),
   start_latitude: z.number().min(-90).max(90),

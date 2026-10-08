@@ -39,6 +39,10 @@ Les descriptions générées font 2 à 5 phrases : trop courtes pour une fiche /
 - **BR-01**: Si les sources fiables ne suffisent pas pour 120 mots, un texte plus court est préféré à du
   remplissage générique (règles existantes : aucun fait inventé, ni prix, horaires, GPS, distances).
 - **BR-02**: Limite de stockage des descriptions portée à 2 500 caractères (300 mots en français).
+- **BR-04** (révision PO 2026-10-08) : une description rédigée ou modifiée à la main dans l'admin (POI,
+  candidats POI et randonnées) peut atteindre 5 000 caractères (markdown : titres, listes) ; compteur sous
+  le champ et message « La description dépasse 5 000 caractères. » au lieu de « Invalid input ». Les textes
+  générés restent limités à 300 mots.
 - **BR-03**: Les descriptions existantes ne sont pas régénérées automatiquement.
 
 ## Data Model / API Contract
