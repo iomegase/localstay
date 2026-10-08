@@ -809,6 +809,12 @@ components:
   publiés sur la page ») : avant Camptocamp, photos du Geotrek du Département de la Haute-Savoie (API
   publique ; offices de tourisme, CEN 74…), randonnée de même nom à 10 km au plus, auteur de chaque
   photo conservé. Mesuré sur le run réel du 08/10 : 3 → 24 randonnées sur 34 avec photos.
+- **AC-02-12** (PO 2026-10-08) : `City.tourism_site_url` (Admin › Villes, « Site de l'office de
+  tourisme », « https:// » facultatif, ramené à l'origine). Si renseigné, après Geotrek et avant
+  Camptocamp : pages de randonnée du plan du site (hors pages hiver et traduites), retrouvées par nom ;
+  galeries extraites (galerie WordPress, fiches HwSheet/Apidae intégrées) ; seules les photos portant un
+  crédit d'auteur sont gardées (pas l'image de partage du site). Mesuré (Les Contamines) : 27 randonnées
+  sur 34 avec photos (Camptocamp 15, Geotrek 6, office de tourisme 6). Migration additive.
 - **AC-02-11**: Les pages publiques d'une randonnée (fiche /decouvrir et page du guide) affichent
   « Crédits photos : » — un crédit par auteur, lien vers la page source — dès qu'elle a des photos.
 - **BR-R5**: Overpass : seule une requête invalide (400) est définitive ; toute autre erreur fait essayer

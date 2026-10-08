@@ -18,6 +18,8 @@ type RunSourceInput = {
     name: string
     latitude: number
     longitude: number
+    /** Spec 019 AC-02-12 : galeries de l'office de tourisme. */
+    tourism_site_url?: string | null
   }
   sourceTypes: TrailSourceType[]
   sourceUrl?: string | null

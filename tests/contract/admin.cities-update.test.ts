@@ -63,7 +63,7 @@ describe('Admin city update', () => {
     expect(prisma.city.update).toHaveBeenCalledWith({
       where: { id: current.id, deleted_at: null },
       data: { ...input, latitude: 45.90, longitude: 6.72 },
-      select: { id: true, name: true, slug: true, postal_code: true },
+      select: { id: true, name: true, slug: true, postal_code: true, tourism_site_url: true },
     })
     expect(await response.json()).toEqual({ data: { id: current.id, slug, ...input } })
   })

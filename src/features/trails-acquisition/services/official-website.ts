@@ -551,6 +551,48 @@ export function extractOfficialWebsiteTrailPhotos(html: string, sourceUrl: strin
     if (attrs['data-hc-lightbox'] !== 'wpet-gallery') continue
     add(attrs['data-src'], attrs['data-caption'], attrs['data-caption'])
   }
+  // 2026-10-08 : fiches Apidae intégrées en JSON (ex. lescontamines.com) — « multimedia » avec copyright.
+  for (const entry of extractApidaeMultimedia(html)) {
+    if (typeof entry.type !== 'string' || !entry.type.startsWith('03.01')) continue
+    const name = isRecord(entry.name) ? entry.name.fr : entry.name
+    add(entry.URL, name, entry.copyright)
+  }
   if (!photos.length) add(extractMetaContent(html, 'og:image'))
   return dedupeTrailPhotos(photos)
+}
+
+/** Tableaux JSON « "multimedia":[…] » d'une page (fiches Apidae intégrées). */
+export function extractApidaeMultimedia(html: string): Array<Record<string, unknown>> {
+  const entries: Array<Record<string, unknown>> = []
+  let from = 0
+  for (;;) {
+    const start = html.indexOf('"multimedia":[', from)
+    if (start < 0) return entries
+    const open = start + '"multimedia":'.length
+    let depth = 0
+    let inString = false
+    let end = -1
+    for (let index = open; index < html.length && index < open + 200_000; index += 1) {
+      const char = html[index]
+      if (inString) {
+        if (char === '\\') index += 1
+        else if (char === '"') inString = false
+        continue
+      }
+      if (char === '"') inString = true
+      else if (char === '[' || char === '{') depth += 1
+      else if (char === ']' || char === '}') {
+        depth -= 1
+        if (depth === 0) { end = index; break }
+      }
+    }
+    from = open + 1
+    if (end < 0) continue
+    try {
+      const parsed = JSON.parse(html.slice(open, end + 1)) as unknown
+      if (Array.isArray(parsed)) entries.push(...parsed.filter(isRecord))
+    } catch {
+      // fragment non JSON : ignoré
+    }
+  }
 }

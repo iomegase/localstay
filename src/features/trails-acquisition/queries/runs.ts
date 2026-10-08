@@ -54,7 +54,7 @@ export async function createTrailImportRun(
 ): Promise<TrailImportRunDetail> {
   const city = await prisma.city.findFirst({
     where: { id: input.city_id, is_active: true, deleted_at: null },
-    select: { id: true, name: true, latitude: true, longitude: true },
+    select: { id: true, name: true, latitude: true, longitude: true, tourism_site_url: true },
   })
   if (!city) throw new TrailsAcquisitionError('INVALID_CITY', 400)
 

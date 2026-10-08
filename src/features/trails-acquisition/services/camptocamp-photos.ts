@@ -1,6 +1,7 @@
 import { camptocampImagePhotos, dedupeTrailPhotos, extractTrailPhotos, type TrailPhoto } from '../lib/photos'
 import { mercatorXToLng, mercatorYToLat } from '../lib/projection'
 import { createGeotrekPhotoFinder } from './geotrek-photos'
+import { createTourismSitePhotoFinder } from './tourism-site-photos'
 import { isSamePlace, placeQueries } from '../lib/place-match'
 
 export { isSamePlace, normalizePlaceName, placeQueries } from '../lib/place-match'
@@ -25,7 +26,7 @@ type PhotoEnrichable = {
   start_longitude?: number | null
 }
 
-type CityRef = { latitude: number; longitude: number }
+type CityRef = { latitude: number; longitude: number; tourism_site_url?: string | null }
 type Fetcher = (path: string, signal?: AbortSignal) => Promise<Record<string, unknown>>
 
 const defaultFetcher: Fetcher = async (path, signal) => {
@@ -104,6 +105,8 @@ export async function enrichCandidatesWithTrailPhotos<T extends PhotoEnrichable>
   signal?: AbortSignal,
   finders: PhotoFinder[] = [
     createGeotrekPhotoFinder(city),
+    // Spec 019 AC-02-12 : galeries de l'office de tourisme de la ville, si son site est renseigné.
+    ...(city.tourism_site_url ? [createTourismSitePhotoFinder(city.tourism_site_url)] : []),
     (candidate, findSignal) => findCamptocampPhotos(candidate, city, defaultFetcher, findSignal),
   ],
 ): Promise<{ enriched: number; errors: number }> {

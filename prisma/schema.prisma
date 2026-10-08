@@ -16,15 +16,16 @@ model City {
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 
-  name        String
-  slug        String  @unique
-  postal_code String
-  department  String?
-  region      String?
-  insee_code  String? @unique
-  latitude    Float
-  longitude   Float
-  is_active   Boolean @default(true)
+  name             String
+  slug             String  @unique
+  postal_code      String
+  tourism_site_url String? // 2026-10-08 — site de l'office de tourisme (photos créditées des randonnées)
+  department       String?
+  region           String?
+  insee_code       String? @unique
+  latitude         Float
+  longitude        Float
+  is_active        Boolean @default(true)
 
   pois                            PointOfInterest[]
   poi_city_redirects              PoiCityRedirect[]

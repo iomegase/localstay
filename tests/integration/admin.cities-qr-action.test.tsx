@@ -65,9 +65,20 @@ describe('AdminCitiesPage — génération du QR ville en modal', () => {
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1))
     expect(global.fetch).toHaveBeenCalledWith('/api/admin/cities/saint-gervais-les-bains', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Saint-Gervais', postal_code: '74170' }),
+      // 2026-10-08 : champ « Site de l’office de tourisme » vide → null.
+      body: JSON.stringify({ name: 'Saint-Gervais', postal_code: '74170', tourism_site_url: null }),
     })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('2026-10-08 : le site de l’office de tourisme se saisit sans « https:// » et part normalisé', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true })
+    render(await AdminCitiesPage())
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Site de l’office de tourisme' }), { target: { value: 'www.saintgervais.com/je-minspire' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1))
+    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body).tourism_site_url).toBe('https://www.saintgervais.com')
   })
 
   it('keeps the editor open with a useful error on save failure', async () => {

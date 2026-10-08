@@ -11,7 +11,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { CityUpdateSchema } from '@/features/admin/schemas/city'
 
-type City = { slug: string; name: string; postal_code: string }
+type City = { slug: string; name: string; postal_code: string; tourism_site_url?: string | null }
 
 export function AdminCityEditButton({ city }: { city: City }) {
   const router = useRouter()
@@ -19,6 +19,7 @@ export function AdminCityEditButton({ city }: { city: City }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(city.name)
   const [postalCode, setPostalCode] = useState(city.postal_code)
+  const [tourismSite, setTourismSite] = useState(city.tourism_site_url ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,6 +28,7 @@ export function AdminCityEditButton({ city }: { city: City }) {
     if (next) {
       setName(city.name)
       setPostalCode(city.postal_code)
+      setTourismSite(city.tourism_site_url ?? '')
       setError(null)
     }
     setOpen(next)
@@ -35,7 +37,7 @@ export function AdminCityEditButton({ city }: { city: City }) {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
-    const parsed = CityUpdateSchema.safeParse({ name, postal_code: postalCode })
+    const parsed = CityUpdateSchema.safeParse({ name, postal_code: postalCode, tourism_site_url: tourismSite })
     if (!parsed.success) {
       setError(parsed.error.issues[0].message)
       return
@@ -85,6 +87,11 @@ export function AdminCityEditButton({ city }: { city: City }) {
           <div className="space-y-2">
             <Label htmlFor={`${fieldId}-postal`}>Code postal</Label>
             <Input id={`${fieldId}-postal`} value={postalCode} onChange={event => setPostalCode(event.target.value)} required inputMode="numeric" pattern="[0-9]{5}" maxLength={5} disabled={busy} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${fieldId}-tourism`}>Site de l’office de tourisme</Label>
+            <Input id={`${fieldId}-tourism`} value={tourismSite} onChange={event => setTourismSite(event.target.value)} placeholder="www.lescontamines.com" maxLength={200} disabled={busy} />
+            <p className="text-xs text-gray-500">Utilisé pour les photos des randonnées (galeries de l’office, crédits des auteurs publiés). Facultatif.</p>
           </div>
           {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
           <DialogFooter className="gap-2">

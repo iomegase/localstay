@@ -34,6 +34,7 @@ export type AdminCityRow = {
   name: string
   slug: string
   postal_code: string
+  tourism_site_url: string | null
   is_active: boolean
   active_poi_count: number
   active_lodging_count: number
@@ -157,6 +158,7 @@ export async function getAdminCities(): Promise<AdminCityRow[]> {
       name: true,
       slug: true,
       postal_code: true,
+      tourism_site_url: true,
       is_active: true,
     },
   })
@@ -173,6 +175,7 @@ export async function getAdminCities(): Promise<AdminCityRow[]> {
       name: city.name,
       slug: city.slug,
       postal_code: city.postal_code,
+      tourism_site_url: city.tourism_site_url,
       is_active: city.is_active,
       active_poi_count: activePoiCount,
       active_lodging_count: activeLodgingCount,

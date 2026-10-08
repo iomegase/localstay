@@ -33,6 +33,6 @@ export async function updateAdminCity(slug: string, input: CityUpdateInput) {
     where: { id: city.id, deleted_at: null },
     // Preserve the slug so existing guide links and QR codes remain valid.
     data: { ...input, ...coordinates },
-    select: { id: true, name: true, slug: true, postal_code: true },
+    select: { id: true, name: true, slug: true, postal_code: true, tourism_site_url: true },
   })
 }
