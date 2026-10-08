@@ -512,6 +512,15 @@ errors:
 
 ---
 
+### Révision 2026-10-08 (homonymes hors zone)
+
+- **BR-R1**: Géocodage d'acquisition Mapbox (BR-03 inchangé) : parmi les 5 premiers résultats, le premier
+  situé à 30 km au plus de la ville est retenu ; si aucun ne l'est (rue inconnue de Mapbox et homonyme
+  ailleurs en France), nouvelle recherche limitée à un carré de 30 km autour de la ville.
+- **BR-R2**: Un résultat qui ne situe que le code postal ou la commune (pas une adresse ni un lieu) donne
+  `pending_review` (« Position approximative »), jamais `success`.
+- Les coordonnées Google Places ne sont pas stockées (BR-03 ; conditions Google, ADR-003).
+
 ## Out of Scope
 
 - Import massif non supervisé depuis Google Places.

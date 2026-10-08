@@ -3,6 +3,8 @@ export interface GeocodeResult {
   longitude: number
   relevance: number
   place_name: string
+  /** Précision Mapbox : address, poi, street… ou postcode / place (centre de commune). */
+  place_type?: string
 }
 
 export interface BatchResult {

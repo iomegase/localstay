@@ -1989,3 +1989,9 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | 019 BR-R1 | Naismith d'abord, ORS en affinage, arrêt sur 429, échecs réels seulement | `src/features/trails-acquisition/services/ors.ts` | `tests/unit/trails-completeness.duration.test.ts` | ✅ done |
 | 019 BR-R2 | Ordre IGN → durée → descriptions (120 s) → géocodage ; budget 270 s | `src/features/trails-acquisition/services/run-orchestrator.ts`<br>`src/features/trails-acquisition/lib/import-budget.ts`<br>`src/features/trails-acquisition/services/gemini-trails.ts` | `tests/integration/trails-acquisition.AC-01-06-07.bounded-sources.test.ts` | ✅ done |
 | 019 BR-R3 | Balisage Camptocamp → Markdown standard | `src/features/trails-acquisition/services/camptocamp.ts` | `tests/unit/trails-completeness.duration.test.ts` | ✅ done |
+
+## 018 — Révision 2026-10-08 (homonymes hors zone)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| 018 BR-R1 / BR-R2 | Résultat Mapbox dans la zone préféré, recherche locale 30 km, commune seule → à vérifier | `src/features/geocoding/services/mapbox-client.ts`<br>`src/features/geocoding/types.ts`<br>`src/features/poi-acquisition/lib/geocode.ts` | `tests/unit/geocode-homonyms.test.ts` | ✅ done |
