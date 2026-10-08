@@ -687,6 +687,11 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
   interdisent de baliser des notes agrégées depuis d'autres sites. La note
   peut rester affichée sur la page, mais n'est jamais balisée.
 
+### Révision PO 2026-10-08
+
+- **AC-09-01**: Sur la fiche d'un POI, la carte (statique, zoom 17) est placée dans la colonne d'infos,
+  sous les horaires, au format carré ; la section carte pleine largeur sous la fiche est supprimée.
+
 ## Out of Scope
 
 - Migration des fiches logement publiques vers `/logements/{slug}`.

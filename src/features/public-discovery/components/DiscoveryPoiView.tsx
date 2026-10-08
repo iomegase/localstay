@@ -109,7 +109,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
             </div>
           </div>
 
-          <aside className="rounded-[24px] bg-[#f7f6f4] p-6 sm:p-7">
+          <aside className="self-start rounded-[24px] bg-[#f7f6f4] p-6 sm:p-7">
             <dl className="grid gap-6">
               <div>
                 <dt className="flex items-center gap-2 text-[9px] font-extrabold uppercase tracking-[0.16em] text-pink-600"><MapPin aria-hidden="true" className="h-4 w-4" />Adresse</dt>
@@ -137,15 +137,12 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
                 </div>
               ) : null}
             </dl>
+            {/* PO 2026-10-08 : carte dans la colonne d'infos, sous les horaires. */}
+            <section aria-label="Localiser cette adresse" className="mt-6 overflow-hidden rounded-[18px] bg-slate-100 [&>img]:aspect-square [&>img]:w-full">
+              <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={640} height={640} zoom={17} />
+            </section>
           </aside>
         </div>
-
-        <section className={`${marketingContainerClass} pb-16`} aria-label="Localiser cette adresse">
-          {/* <h2 id="poi-map-title" className="mb-6 text-3xl font-semibold tracking-[-0.045em] text-slate-900">Localiser cette adresse</h2> */}
-          <div className="overflow-hidden rounded-[24px] bg-slate-100 [&>img]:aspect-[16/7] [&>img]:min-h-[260px]">
-            <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={944} height={420} zoom={17} />
-          </div>
-        </section>
 
         {/* Bloc final de la fiche : bouton rose centré verticalement (spec 041, PO 2026-10-02). */}
         <aside className={`${marketingContainerClass} mb-16 flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between`}>

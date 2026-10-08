@@ -248,6 +248,10 @@ describe('041 public discovery pages', () => {
       'src',
       expect.stringContaining(`/${poi.longitude},${poi.latitude},17/`),
     )
+    // PO 2026-10-08 : carte dans la colonne d'infos, sous les horaires.
+    const map = screen.getByRole('region', { name: 'Localiser cette adresse' })
+    expect(map.closest('aside')).toContainElement(screen.getByText('09:00–18:00'))
+    expect(map.compareDocumentPosition(screen.getByText('09:00–18:00')) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
     expect(screen.getByText(`${poi.rating?.toLocaleString('fr-FR')} / 5 · ${poi.rating_count} avis`)).toBeInTheDocument()
     expect(screen.getByText('09:00–18:00')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'bonjour@mystay.city' })).toHaveAttribute(
