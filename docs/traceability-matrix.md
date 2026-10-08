@@ -1938,3 +1938,9 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | 070 AC-04-01 | Vignette de remplacement dans la liste admin des POI sans photo | `src/features/admin-pois/queries/admin-pois.ts`<br>`src/features/admin-pois/types.ts`<br>`src/app/admin/pois/page.tsx` | `tests/unit/admin-pois.fallback-thumb.test.ts`<br>`tests/integration/discovery-taxonomy.AC-03-06.admin-no-photo-badge.test.tsx` | ✅ done |
+
+## 077 — Révision PO 2026-10-08 (vignettes « Mes coups de cœur »)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| 077 AC-05-01 | Vignette photo / remplacement dans le choix des coups de cœur | `src/features/guide-customization/lib/poi-thumbnail.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/app/(dashboard)/dashboard/lodgings/[id]/customize/page.tsx` | `tests/unit/owner-poi-thumbnails.resolve.test.ts`<br>`tests/integration/owner-poi-thumbnails.favorites.test.tsx` | ✅ done |

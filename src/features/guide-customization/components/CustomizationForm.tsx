@@ -56,6 +56,9 @@ interface PoiOption {
   category_id: string
   category_slug: string
   category_name: string
+  /** PO 2026-10-08 : vignette pour aider à choisir (photo ou image de remplacement). */
+  photo_url?: string
+  photo_is_fallback?: boolean
 }
 
 interface Props {
@@ -687,9 +690,19 @@ export function CustomizationForm({
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={event => toggleFeaturedPoi(poi.id, event.target.checked)}
-                                className="h-4 w-4 accent-[#0B1437]"
+                                className="h-4 w-4 shrink-0 accent-[#0B1437]"
                               />
-                              {poi.name}
+                              {poi.photo_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element -- photos tierces ou médiathèque
+                                <img
+                                  src={poi.photo_url}
+                                  alt=""
+                                  loading="lazy"
+                                  data-testid="owner-poi-thumb"
+                                  className={`h-16 w-16 shrink-0 rounded-lg object-cover ${poi.photo_is_fallback ? 'opacity-80' : 'shadow-sm'}`}
+                                />
+                              ) : null}
+                              <span className="min-w-0">{poi.name}</span>
                             </label>
                             {featuredPoi && (
                               <div className="mt-4 border-t border-gray-100 pt-4">

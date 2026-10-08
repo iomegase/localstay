@@ -5,6 +5,8 @@ import { prisma } from '@/shared/lib/prisma'
 import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import { getLodgingCustomization } from '@/features/guide-customization/queries/customization'
 import { CustomizationForm } from '@/features/guide-customization/components/CustomizationForm'
+import { ownerPoiThumbnail } from '@/features/guide-customization/lib/poi-thumbnail'
+import { getPoiPhotoMirrorMap, resolvePoiPhotoUrl } from '@/features/poi-photos/queries/photo-mirror-map'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -87,6 +89,9 @@ export default async function CustomizeLodgingPage({ params }: Props) {
         latitude: true,
         longitude: true,
         geocode_status: true,
+        photos: true,
+        subcategory: { select: { slug: true, name: true } },
+        fallback_image: { select: { url: true, deleted_at: true } },
         category: {
           select: {
             id: true,
@@ -97,6 +102,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
       },
     }),
   ])
+  const photoMirrors = await getPoiPhotoMirrorMap()
 
   // Règle métier strictement non modifiée
   const visiblePois = pois
@@ -116,6 +122,7 @@ export default async function CustomizeLodgingPage({ params }: Props) {
       category_id: poi.category.id,
       category_slug: poi.category.slug,
       category_name: poi.category.name,
+      ...ownerPoiThumbnail(poi, url => resolvePoiPhotoUrl(url, photoMirrors)),
     }))
 
   const featuredRows = await prisma.lodgingFeaturedPoi.findMany({

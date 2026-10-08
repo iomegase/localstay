@@ -74,6 +74,12 @@ marron, bleue). Seule la localisation du point de tri reste utile.
 
 ---
 
+### Révision PO 2026-10-08
+
+- **AC-05-01**: Given « Mes coups de cœur », When l'Owner parcourt les POI d'une catégorie, Then chaque
+  POI affiche une vignette (64 px) : sa photo (copie MyStay) ou, à défaut, son image de remplacement
+  (médiathèque, type de lieu, image MyStay), atténuée.
+
 ## Business Rules
 
 - **BR-01**: Aucune donnée supprimée : les colonnes `welcome_message`, `trash_bins`,
