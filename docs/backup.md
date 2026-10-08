@@ -31,7 +31,7 @@ launchctl kickstart gui/$(id -u)/city.mystay.backup # déclenche la tâche insta
 cat ~/Backups/mystay/last-success.json              # dernière réussite
 ```
 
-Options (variables d'environnement à l'installation) : `MYSTAY_BACKUP_DIR`, `MYSTAY_BACKUP_HOUR`,
+Options (variables d'environnement à l'installation) : `MYSTAY_BACKUP_DIR`,
 `MYSTAY_BACKUP_RETENTION_DAYS`.
 
 Le Mac doit être allumé (même en veille) pour que la sauvegarde ait lieu. En cas de nouveau
