@@ -18,6 +18,7 @@ import {
   planStorageDownloads,
   storageKey,
   waitForNetwork,
+  isInBackupWindow,
   type RemoteStorageFile,
   type StorageManifest,
 } from './lib'
@@ -27,7 +28,7 @@ const run = promisify(execFile)
 const BACKUP_DIR = process.env.MYSTAY_BACKUP_DIR || join(homedir(), 'Backups', 'mystay')
 const RETENTION_DAYS = Number(process.env.MYSTAY_BACKUP_RETENTION_DAYS || 30)
 // Spec 081 BR-06 : attente du réseau (réveil de maintenance sans réseau à 3 h).
-const NETWORK_WAIT_MS = Number(process.env.MYSTAY_BACKUP_NETWORK_WAIT_MIN || 720) * 60_000
+const NETWORK_WAIT_MS = Number(process.env.MYSTAY_BACKUP_NETWORK_WAIT_MIN || 60) * 60_000
 const NETWORK_CHECK_MS = 30_000
 const DB_DIR = join(BACKUP_DIR, 'db')
 const STORAGE_DIR = join(BACKUP_DIR, 'storage')
@@ -149,6 +150,11 @@ async function notifyFailure(message: string) {
 }
 
 async function main() {
+  // Spec 081 BR-07 : une sauvegarde par heure entre 9 h et 23 h ; « --force » pour lancer hors créneau.
+  if (!process.argv.includes('--force') && !isInBackupWindow(startedAt)) {
+    console.log(`[${startedAt.toISOString()}] Sauvegarde ignorée : hors du créneau 9 h – 23 h`)
+    return
+  }
   await mkdir(DB_DIR, { recursive: true })
   await mkdir(STORAGE_DIR, { recursive: true })
   await mkdir(LOG_DIR, { recursive: true })

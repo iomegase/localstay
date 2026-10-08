@@ -1,6 +1,6 @@
 #!/bin/bash
 # Spec 081 AC-02-01 : installe (ou retire avec --uninstall) la sauvegarde quotidienne launchd.
-# launchd rattrape l'exécution au réveil si le Mac dormait à l'heure prévue.
+# Spec 081 BR-07 : une sauvegarde toutes les heures de 9 h à 22 h (Mac en veille la nuit).
 set -euo pipefail
 
 LABEL="city.mystay.backup"
@@ -8,7 +8,6 @@ PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 DOMAIN="gui/$(id -u)"
 PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 BACKUP_DIR="${MYSTAY_BACKUP_DIR:-$HOME/Backups/mystay}"
-HOUR="${MYSTAY_BACKUP_HOUR:-3}"
 
 launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
 
@@ -39,10 +38,9 @@ cat > "$PLIST" <<PLIST
     <key>MYSTAY_BACKUP_DIR</key><string>$BACKUP_DIR</string>
   </dict>
   <key>StartCalendarInterval</key>
-  <dict>
-    <key>Hour</key><integer>$HOUR</integer>
-    <key>Minute</key><integer>0</integer>
-  </dict>
+  <array>
+$(for hour in $(seq 9 22); do printf '    <dict><key>Hour</key><integer>%s</integer><key>Minute</key><integer>0</integer></dict>\n' "$hour"; done)
+  </array>
   <key>StandardOutPath</key><string>$BACKUP_DIR/logs/launchd.out.log</string>
   <key>StandardErrorPath</key><string>$BACKUP_DIR/logs/launchd.err.log</string>
 </dict>
@@ -51,5 +49,5 @@ PLIST
 
 plutil -lint "$PLIST" >/dev/null
 launchctl bootstrap "$DOMAIN" "$PLIST"
-echo "Sauvegarde quotidienne installée : tous les jours à ${HOUR}h00 → $BACKUP_DIR"
-echo "Lancer maintenant : launchctl kickstart $DOMAIN/$LABEL"
+echo "Sauvegarde installée : toutes les heures de 9 h à 22 h → $BACKUP_DIR"
+echo "Lancer maintenant : bash scripts/backup/backup.sh --force"

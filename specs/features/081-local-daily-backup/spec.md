@@ -51,8 +51,11 @@ Le PO veut une copie locale quotidienne, sans dépendre de Supabase.
 - **BR-03**: Les identifiants sont lus depuis `.env.local` du projet, jamais copiés ailleurs.
 - **BR-06** (révision 2026-10-08, incident des 7 et 8 octobre) : à 3 h le Mac en veille lance la tâche
   pendant un réveil de maintenance sans réseau ; la sauvegarde attend donc que la base et Supabase
-  soient joignables (vérification toutes les 30 s, jusqu'à 12 h, `MYSTAY_BACKUP_NETWORK_WAIT_MIN`) avant
+  soient joignables (vérification toutes les 30 s, jusqu'à 60 min, `MYSTAY_BACKUP_NETWORK_WAIT_MIN`) avant
   de commencer, puis échoue avec notification si le réseau ne revient pas.
+- **BR-07** (PO 2026-10-08 : « le Mac est toujours en veille à 3 h ») : une sauvegarde toutes les heures
+  de 9 h à 22 h (launchd) ; en dehors du créneau 9 h – 23 h (rattrapage au réveil) la tâche s'arrête sans
+  rien faire. `backup.sh --force` sauvegarde immédiatement. Rétention inchangée (30 jours).
 
 ## Data Model / API Contract
 

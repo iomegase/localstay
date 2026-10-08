@@ -1,4 +1,4 @@
-import { dumpFileName, dumpDate, expiredDumps, planStorageDownloads, waitForNetwork } from '../../scripts/backup/lib'
+import { dumpFileName, dumpDate, expiredDumps, planStorageDownloads, waitForNetwork, isInBackupWindow } from '../../scripts/backup/lib'
 
 // Spec 081 — logique de la sauvegarde locale.
 describe('081 AC-01-01 — nom des dumps', () => {
@@ -66,5 +66,19 @@ describe('081 BR-06 — attente du réseau', () => {
     const onWait = jest.fn()
     await expect(waitForNetwork(async () => true, { intervalMs: 30_000, maxWaitMs: 90_000, onWait, ...clock() })).resolves.toBe(true)
     expect(onWait).not.toHaveBeenCalled()
+  })
+})
+
+describe('081 BR-07 — toutes les heures entre 9 h et 23 h', () => {
+  const at = (hour: number, minute = 0) => new Date(2026, 9, 8, hour, minute)
+
+  it('ignorée la nuit et après 23 h (rattrapage launchd au réveil)', () => {
+    for (const hour of [0, 3, 8, 23]) expect(isInBackupWindow(at(hour))).toBe(false)
+    expect(isInBackupWindow(at(8, 59))).toBe(false)
+  })
+
+  it('lancée à chaque passage horaire de 9 h à 22 h', () => {
+    for (let hour = 9; hour <= 22; hour += 1) expect(isInBackupWindow(at(hour))).toBe(true)
+    expect(isInBackupWindow(at(22, 59))).toBe(true)
   })
 })

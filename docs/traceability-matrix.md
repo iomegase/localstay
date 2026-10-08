@@ -1950,3 +1950,4 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | 081 BR-06 | Attente du réseau avant sauvegarde (réveil de maintenance sans réseau) | `scripts/backup/lib.ts`<br>`scripts/backup/run-backup.ts`<br>`docs/backup.md` | `tests/unit/local-daily-backup.AC-01.lib.test.ts` | ✅ done |
+| 081 BR-07 | Toutes les heures de 9 h à 22 h, ignorée hors créneau, `--force` | `scripts/backup/lib.ts`<br>`scripts/backup/run-backup.ts`<br>`scripts/backup/backup.sh`<br>`scripts/backup/install-launchd.sh` | `tests/unit/local-daily-backup.AC-01.lib.test.ts` | ✅ done |

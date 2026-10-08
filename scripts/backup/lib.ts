@@ -71,3 +71,12 @@ export async function waitForNetwork(
     await sleep(options.intervalMs)
   }
 }
+
+/** Spec 081 BR-07 : créneau de sauvegarde (heures locales, fin exclue) — Mac en veille la nuit. */
+export const BACKUP_WINDOW = { startHour: 9, endHour: 23 } as const
+
+/** Sauvegarde à chaque passage horaire du créneau ; ignorée en dehors (rattrapage launchd au réveil). */
+export function isInBackupWindow(now: Date, window = BACKUP_WINDOW): boolean {
+  const hour = now.getHours()
+  return hour >= window.startHour && hour < window.endHour
+}

@@ -8,4 +8,5 @@ set -a
 # shellcheck disable=SC1091
 . ./.env.local
 set +a
-exec node node_modules/.bin/tsx scripts/backup/run-backup.ts
+# « --force » : sauvegarde immédiate, hors créneau ou déjà faite (lancement à la main).
+exec node node_modules/.bin/tsx scripts/backup/run-backup.ts "$@"
