@@ -1,4 +1,5 @@
 const tx = {
+  equipmentTemplate: { findMany: jest.fn() },
   lodgingCustomization: { upsert: jest.fn() },
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
   lodgingPracticalBlock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
@@ -60,6 +61,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
       { id: 'b2' },
     ])
     tx.lodgingArrivalInstruction.findMany.mockResolvedValue([])
+    tx.equipmentTemplate.findMany.mockResolvedValue([{ id: '44444444-4444-4444-8444-444444444444', icon: 'mountain-snow' }])
   })
 
   it('updates retained blocks, creates new blocks and archives only removed blocks', async () => {
@@ -68,7 +70,7 @@ describe('saveLodgingCustomization — practical blocks', () => {
       featured_pois: [],
       practical_blocks: [
         { id: 'b1', title: '  La plage  ', body: 'À 5 min', icon: 'star', photo_url: '', sort_order: 7 },
-        { title: 'Local à skis', body: null, icon: 'info', photo_url: 'https://cdn.test/ski.jpg', sort_order: 8 },
+        { equipment_template_id: '44444444-4444-4444-8444-444444444444', title: 'Local à skis', body: null, icon: 'info', photo_url: 'https://cdn.test/ski.jpg', sort_order: 8 },
         { title: '', body: 'orphan', icon: 'info', photo_url: null, sort_order: 2 },
       ],
     })
@@ -78,9 +80,6 @@ describe('saveLodgingCustomization — practical blocks', () => {
       data: {
         title: 'La plage',
         body: 'À 5 min',
-        icon: 'star',
-        photo_url: null,
-        video_url: null,
         sort_order: 0,
       },
     })
@@ -89,10 +88,12 @@ describe('saveLodgingCustomization — practical blocks', () => {
         lodging_id: 'lodging-1',
         title: 'Local à skis',
         body: null,
-        icon: 'info',
-        photo_url: 'https://cdn.test/ski.jpg',
-        video_url: null,
         sort_order: 1,
+        // Spec 096 : icône de la bibliothèque, aucune photo ni vidéo de l'Owner.
+        equipment_template_id: '44444444-4444-4444-8444-444444444444',
+        icon: 'mountain-snow',
+        photo_url: null,
+        video_url: null,
       },
     })
     expect(tx.lodgingPracticalBlock.updateMany).toHaveBeenCalledWith({

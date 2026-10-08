@@ -1,3 +1,4 @@
+import { EQUIPMENT_TEMPLATE_MEDIA_SELECT, resolveEquipmentMedia } from '@/features/equipment-library/lib/resolve'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoList, type PoiPhotoMirrorMap } from '@/features/poi-photos/queries/photo-mirror-map'
 import type { Prisma } from '@prisma/client'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
@@ -82,6 +83,8 @@ export async function getPrivateGuideData(
           icon: true,
           photo_url: true,
           video_url: true,
+          // Spec 096 AC-04-01 : icône, photo et vidéo de la bibliothèque.
+          equipment_template: EQUIPMENT_TEMPLATE_MEDIA_SELECT,
         },
       },
       arrival_instructions: {
@@ -215,7 +218,7 @@ export async function getPrivateGuideData(
       })),
       departureInstructions: [...FIXED_DEPARTURE_INSTRUCTIONS],
       houseRules: [...FIXED_HOUSE_RULES],
-      practicalCards: lodging.practical_blocks.map(block => ({
+      practicalCards: lodging.practical_blocks.map(resolveEquipmentMedia).map(block => ({
         id: block.id,
         title: block.title,
         description: block.body ?? '',

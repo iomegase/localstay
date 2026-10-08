@@ -34,6 +34,7 @@ import {
   FIXED_HOUSE_RULES,
 } from '@/features/guide-app/lib/fixed-lodging-content'
 import { privatePageMetadata } from '@/features/seo/lib/private-metadata'
+import { EQUIPMENT_TEMPLATE_MEDIA_SELECT, resolveEquipmentMedia } from '@/features/equipment-library/lib/resolve'
 
 export const metadata: Metadata = privatePageMetadata('Votre logement')
 
@@ -77,11 +78,15 @@ export default async function LeLogementPage() {
         useful_services: true,
       },
     }),
+    // Spec 096 AC-04-01 : icône, photo et vidéo de la bibliothèque pour les équipements liés.
     prisma.lodgingPracticalBlock.findMany({
       where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
       orderBy: { sort_order: 'asc' },
-      select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
-    }),
+      select: {
+        id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true,
+        equipment_template: EQUIPMENT_TEMPLATE_MEDIA_SELECT,
+      },
+    }).then(blocks => blocks.map(resolveEquipmentMedia)),
     prisma.lodgingPublicProfile.findFirst({
       where: { lodging_id: lodgingContext.lodgingId, deleted_at: null },
       select: { max_guests: true, bedroom_count: true, surface_m2: true },

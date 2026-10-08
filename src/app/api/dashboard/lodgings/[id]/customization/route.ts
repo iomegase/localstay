@@ -13,7 +13,6 @@ import {
   normalizeOwnerNote,
   OWNER_NOTE_MAX_WORDS,
 } from '@/features/guide-customization/lib/validation'
-import { PRACTICAL_BLOCK_ICON_SLUGS } from '@/features/guide-customization/lib/practical-block-icons'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 import {
   arrivalMediaCount,
@@ -66,32 +65,25 @@ const featuredPoiSchema = z.object({
 const practicalText = (max: number) =>
   z.string().max(max).nullable().optional()
 
+// Spec 096 AC-03-02 : icône, photo et vidéo viennent de la bibliothèque ; les valeurs envoyées
+// par l'Owner sont tolérées mais ignorées.
 const practicalBlockSchema = z.object({
   id: z.string().optional(), // UUID persistant ou identifiant UI préfixé tmp-
+  equipment_template_id: z.string().uuid().nullable().optional(),
   title: z
     .string()
     .trim()
-    .min(1, 'Le titre du bloc est requis.')
-    .max(120, 'Le titre du bloc doit faire 120 caracteres maximum.'),
+    .min(1, 'Le nom de l’équipement est requis.')
+    .max(120, 'Le nom de l’équipement doit faire 120 caractères maximum.'),
   body: z
     .string()
     .max(4000)
     .nullable()
     .optional()
     .transform(value => (value && value.trim().length > 0 ? value : null)),
-  icon: z
-    .string()
-    .trim()
-    .refine(value => PRACTICAL_BLOCK_ICON_SLUGS.includes(value), { message: 'Icône inconnue' }),
-  photo_url: z
-    .union([
-      z.string().trim().url(),
-      z.string().trim().length(0).transform(() => null),
-      z.null(),
-    ])
-    .optional()
-    .transform(value => value ?? null),
-  video_url: youtubeUrlSchema,
+  icon: z.string().default(''),
+  photo_url: z.string().nullable().default(null),
+  video_url: z.string().nullable().default(null),
   sort_order: z.number().int().min(0),
 })
 
@@ -200,6 +192,10 @@ function mapCustomizationError(error: unknown): NextResponse {
 
   if (code === 'INVALID_FEATURED_POI') {
     return errorResponse('INVALID_FEATURED_POI', 'POI invalide pour ce guide', 400)
+  }
+
+  if (code === 'EQUIPMENT_NOT_AVAILABLE') {
+    return errorResponse('EQUIPMENT_NOT_AVAILABLE', 'Équipement indisponible dans la bibliothèque', 400)
   }
 
   if (code === 'INVALID_CHILD_ITEM_ID') {

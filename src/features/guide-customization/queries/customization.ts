@@ -25,12 +25,17 @@ import type {
   GuideCustomizationErrorCode,
   LodgingCustomizationInput,
   LodgingCustomizationResponse,
-  PracticalBlockResponse,
   PracticalInfoFields,
 } from '../types'
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 import { composeLodgingAddress, splitLodgingAddress } from '../lib/address'
-import { captureEquipmentTemplates } from '@/features/equipment-library/queries/library'
+import { EQUIPMENT_TEMPLATE_MEDIA_SELECT, resolveEquipmentMedia } from '@/features/equipment-library/lib/resolve'
+
+// Spec 096 AC-04-01 : équipements renvoyés avec l'icône, la photo et la vidéo de la bibliothèque.
+const PRACTICAL_BLOCK_SELECT = {
+  id: true, equipment_template_id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true,
+  equipment_template: EQUIPMENT_TEMPLATE_MEDIA_SELECT,
+} as const
 
 const EMPTY_PRACTICAL_INFO: PracticalInfoFields = {
   cover_photo_url: null,
@@ -149,13 +154,28 @@ async function syncPracticalBlocks(
   const requestedIds = blocks.flatMap(block => (block.id ? [block.id] : []))
   validateChildItemIds(requestedIds, existingIds)
 
+  // Spec 096 AC-03-01 : un nouvel équipement référence un équipement de bibliothèque validé.
+  const newTemplateIds = [...new Set(blocks.flatMap(block => (!block.id && block.equipment_template_id ? [block.equipment_template_id] : [])))]
+  const templates = newTemplateIds.length > 0
+    ? await tx.equipmentTemplate.findMany({
+      where: { id: { in: newTemplateIds }, status: 'approved', deleted_at: null },
+      select: { id: true, icon: true },
+    })
+    : []
+  const templateIcons = new Map(templates.map(template => [template.id, template.icon]))
+
   for (const block of blocks) {
-    const { id, ...data } = block
+    const { id, equipment_template_id: templateId, ...data } = block
     if (id) {
+      // AC-03-02 : seuls le nom, le texte et l'ordre changent ; le lien à la bibliothèque est figé.
       await tx.lodgingPracticalBlock.update({ where: { id }, data })
     } else {
+      const icon = templateId ? templateIcons.get(templateId) : undefined
+      if (!templateId || !icon) {
+        throw new GuideCustomizationError('EQUIPMENT_NOT_AVAILABLE', 'Équipement indisponible dans la bibliothèque')
+      }
       await tx.lodgingPracticalBlock.create({
-        data: { lodging_id: lodgingId, ...data },
+        data: { lodging_id: lodgingId, ...data, equipment_template_id: templateId, icon, photo_url: null, video_url: null },
       })
     }
   }
@@ -399,11 +419,11 @@ export async function getLodgingCustomization(
     },
   })
 
-  const practicalBlocks = await prisma.lodgingPracticalBlock.findMany({
+  const practicalBlocks = (await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
-  })
+    select: PRACTICAL_BLOCK_SELECT,
+  })).map(resolveEquipmentMedia)
 
   const arrivalInstructions = await prisma.lodgingArrivalInstruction.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
@@ -540,16 +560,12 @@ export async function saveLodgingCustomization(
     await syncArrivalInstructions(tx, lodgingId, arrivalInstructions)
   }, { timeout: SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS })
 
-  // Spec 095 AC-02-01 : nouveaux équipements proposés à la bibliothèque (à valider) ; ne bloque jamais l'enregistrement.
-  await captureEquipmentTemplates(lodgingId, practicalBlocks).catch(error => {
-    console.error('[equipment-library] capture failed', error instanceof Error ? error.message : error)
-  })
-
-  const savedBlocks = await prisma.lodgingPracticalBlock.findMany({
+  // Spec 096 AC-03-03 : les enregistrements de l'Owner n'alimentent plus la bibliothèque.
+  const savedBlocks = (await prisma.lodgingPracticalBlock.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },
     orderBy: { sort_order: 'asc' },
-    select: { id: true, title: true, body: true, icon: true, photo_url: true, video_url: true, sort_order: true },
-  })
+    select: PRACTICAL_BLOCK_SELECT,
+  })).map(resolveEquipmentMedia)
 
   const savedInstructions = await prisma.lodgingArrivalInstruction.findMany({
     where: { lodging_id: lodgingId, deleted_at: null },

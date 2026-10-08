@@ -24,6 +24,8 @@ export interface OtherCityPoiSelection {
 
 export interface PracticalBlockInput {
   id?: string
+  /** Spec 096 : équipement de la bibliothèque (obligatoire pour un nouvel équipement). */
+  equipment_template_id?: string | null
   title: string
   body: string | null
   icon: string
@@ -34,6 +36,8 @@ export interface PracticalBlockInput {
 
 export interface PracticalBlockResponse {
   id: string
+  /** Spec 096 : icon / photo_url / video_url sont ceux de la bibliothèque quand l'équipement y est lié. */
+  equipment_template_id: string | null
   title: string
   body: string | null
   icon: string
@@ -129,6 +133,7 @@ export type GuideCustomizationErrorCode =
   | 'FEATURED_POI_LIMIT_EXCEEDED'
   | 'INVALID_FEATURED_POI'
   | 'INVALID_CHILD_ITEM_ID'
+  | 'EQUIPMENT_NOT_AVAILABLE'
 
 export class GuideCustomizationError extends Error {
   constructor(readonly code: GuideCustomizationErrorCode, message: string) {

@@ -12,7 +12,7 @@ describe('083 AC-01-01 — validation du formulaire Guide', () => {
   it('signale chaque champ fautif par son chemin', () => {
     expect(validateGuideForm(base)).toEqual({
       'arrival_instructions.1.text': 'Étape vide : ajoutez un titre, un texte ou une photo.',
-      'practical_blocks.0.title': 'Le titre du bloc est requis.',
+      'practical_blocks.0.title': 'Le nom de l’équipement est requis.',
       'practical_blocks.0.video_url': 'Lien YouTube invalide.',
       address_postal_code: 'Le code postal doit contenir 5 chiffres.',
     })

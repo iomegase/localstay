@@ -637,7 +637,7 @@ export function CustomizationForm({
           </Card>
           <Card>
             <MarkdownHint className="mb-4" />
-            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} lodgingId={lodgingId} errors={errorsUnder(fieldErrors, 'practical_blocks')} library={equipmentLibrary} />
+            <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} errors={errorsUnder(fieldErrors, 'practical_blocks')} library={equipmentLibrary} />
           </Card>
         </GuideSection>
 

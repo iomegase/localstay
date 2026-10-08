@@ -50,26 +50,5 @@ describe('saveLodgingCustomization — médias infos pratiques', () => {
       presentation_video_url: 'https://youtu.be/dQw4w9WgXcQ',
     })
   })
-
-  it('persists a video_url on a custom practical block', async () => {
-    await saveLodgingCustomization('owner-1', 'lodging-1', {
-      category_order: [],
-      featured_pois: [],
-      practical_blocks: [
-        { title: 'Visite', body: null, icon: 'star', photo_url: null, video_url: 'https://youtu.be/dQw4w9WgXcQ', sort_order: 0 },
-      ],
-    })
-
-    expect(tx.lodgingPracticalBlock.create).toHaveBeenCalledWith({
-      data: {
-        lodging_id: 'lodging-1',
-        title: 'Visite',
-        body: null,
-        icon: 'star',
-        photo_url: null,
-        video_url: 'https://youtu.be/dQw4w9WgXcQ',
-        sort_order: 0,
-      },
-    })
-  })
+  // Spec 096 : la vidéo d'un équipement vient de la bibliothèque (tests/unit/admin-managed-equipment.AC-03.save-sync.test.ts).
 })

@@ -15,14 +15,14 @@ jest.mock('@/shared/lib/prisma', () => ({
 
 import { equipmentTitleKey } from '@/features/equipment-library/lib/title-key'
 import {
-  captureEquipmentTemplates,
+  createEquipmentTemplate,
   EquipmentTemplatePatchSchema,
   listApprovedEquipmentTemplates,
   listEquipmentTemplatesForAdmin,
   updateEquipmentTemplate,
 } from '@/features/equipment-library/queries/library'
 
-const row = (overrides: Record<string, unknown> = {}) => ({ id: 't1', title: 'Machine à café', icon: 'coffee', body: 'Nespresso', status: 'pending', created_at: new Date('2026-10-08'), ...overrides })
+const row = (overrides: Record<string, unknown> = {}) => ({ id: 't1', title: 'Machine à café', icon: 'coffee', body: 'Nespresso', photo_url: null, video_url: null, status: 'pending', created_at: new Date('2026-10-08'), ...overrides })
 
 describe('spec 095 — bibliothèque d’équipements', () => {
   beforeEach(() => { jest.clearAllMocks(); mockCreateMany.mockResolvedValue({ count: 1 }) })
@@ -32,27 +32,7 @@ describe('spec 095 — bibliothèque d’équipements', () => {
     expect(equipmentTitleKey('Lave-linge')).toBe('lave linge')
   })
 
-  it('AC-02-01 / AC-02-02 / BR-02 : nouveaux noms « à valider », sans photo, sans doublon, sans tri des déchets', async () => {
-    await captureEquipmentTemplates('lodging-1', [
-      { title: 'Machine à café', icon: 'coffee', body: ' Nespresso ' },
-      { title: 'MACHINE A CAFE', icon: 'coffee', body: 'doublon' },
-      { title: 'Tri des déchets', icon: 'recycle', body: 'Local poubelles' },
-      { title: '  ', icon: 'info', body: null },
-      { title: 'Télévision', icon: 'tv', body: '' },
-    ])
-    expect(mockCreateMany).toHaveBeenCalledWith({
-      data: [
-        { title: 'Machine à café', title_key: 'machine a cafe', icon: 'coffee', body: 'Nespresso', source_lodging_id: 'lodging-1' },
-        { title: 'Télévision', title_key: 'television', icon: 'tv', body: null, source_lodging_id: 'lodging-1' },
-      ],
-      skipDuplicates: true,
-    })
-  })
-
-  it('aucun équipement à proposer : aucune écriture', async () => {
-    await expect(captureEquipmentTemplates('lodging-1', [{ title: 'Tri', icon: 'recycle', body: null }])).resolves.toBe(0)
-    expect(mockCreateMany).not.toHaveBeenCalled()
-  })
+  // 095 AC-02-01/02 (alimentation par les propriétaires) : supprimé par la spec 096 AC-03-03.
 
   it('BR-01 : seuls les équipements validés sont proposés', async () => {
     mockFindMany.mockResolvedValue([row({ status: 'approved' })])
@@ -80,7 +60,25 @@ describe('spec 095 — bibliothèque d’équipements', () => {
 
   it('PATCH : icône inconnue ou champ non prévu refusés', () => {
     expect(EquipmentTemplatePatchSchema.safeParse({ icon: 'pas-une-icone' }).success).toBe(false)
-    expect(EquipmentTemplatePatchSchema.safeParse({ photo_url: 'https://x' }).success).toBe(false)
+    expect(EquipmentTemplatePatchSchema.safeParse({ source_lodging_id: 'x' }).success).toBe(false)
+    // Spec 096 AC-01-02 : photo et vidéo modifiables par l'admin ; chaîne vide = retrait.
+    expect(EquipmentTemplatePatchSchema.parse({ photo_url: 'https://x/a.webp', video_url: '' })).toEqual({ photo_url: 'https://x/a.webp', video_url: null })
+    expect(EquipmentTemplatePatchSchema.safeParse({ video_url: 'https://vimeo.com/1' }).success).toBe(false)
     expect(EquipmentTemplatePatchSchema.safeParse({ body: '  ' }).success && EquipmentTemplatePatchSchema.parse({ body: '  ' }).body).toBeNull()
+  })
+
+  it('spec 096 AC-01-01 : création admin directement validée ; nom déjà pris → 409', async () => {
+    mockFindFirst.mockResolvedValueOnce(null)
+    const create = jest.fn().mockResolvedValue(row({ status: 'approved', photo_url: 'https://cdn/a.webp' }))
+    const { prisma } = jest.requireMock('@/shared/lib/prisma') as { prisma: { equipmentTemplate: Record<string, unknown> } }
+    prisma.equipmentTemplate.create = create
+    await expect(createEquipmentTemplate({ title: 'Barbecue', icon: 'umbrella', photo_url: 'https://cdn/a.webp' }, 'admin-1'))
+      .resolves.toMatchObject({ status: 'approved', photo_url: 'https://cdn/a.webp' })
+    expect(create.mock.calls[0][0].data).toMatchObject({
+      title: 'Barbecue', title_key: 'barbecue', icon: 'umbrella', body: null, photo_url: 'https://cdn/a.webp', video_url: null,
+      status: 'approved', reviewed_by: 'admin-1',
+    })
+    mockFindFirst.mockResolvedValueOnce({ id: 'autre' })
+    await expect(createEquipmentTemplate({ title: 'BARBECUE', icon: 'info' }, 'admin-1')).rejects.toMatchObject({ code: 'TITLE_ALREADY_EXISTS', status: 409 })
   })
 })

@@ -1481,8 +1481,12 @@ model LodgingPracticalBlock {
   photo_url  String?
   video_url  String?
   sort_order Int     @default(0)
+  // Spec 096 : équipement de la bibliothèque (icône, photo, vidéo gérées par l'admin).
+  equipment_template_id String?
+  equipment_template    EquipmentTemplate? @relation(fields: [equipment_template_id], references: [id])
 
   @@index([lodging_id, deleted_at])
+  @@index([equipment_template_id])
 }
 
 model LodgingArrivalInstruction {
@@ -1721,6 +1725,10 @@ model EquipmentTemplate {
   source_lodging_id String?
   reviewed_by       String?
   reviewed_at       DateTime?
+  // Spec 096 : photo et vidéo gérées par l'admin, affichées dans tous les logements liés.
+  photo_url         String?
+  video_url         String?
+  blocks            LodgingPracticalBlock[]
 
   @@index([status, deleted_at])
 }

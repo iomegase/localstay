@@ -96,18 +96,16 @@ export function groupFeaturedPoisByCategory(
 
 export interface NormalizedPracticalBlock {
   id?: string
+  equipment_template_id: string | null
   title: string
   body: string | null
-  icon: string
-  photo_url: string | null
-  video_url: string | null
   sort_order: number
 }
 
 /**
  * Nettoie et réordonne les blocs « Infos pratiques » personnalisés.
  * - rejette les blocs sans titre (après trim),
- * - trim le titre, nulle body/photo_url vides,
+ * - trim le titre, nulle le texte vide (icône, photo, vidéo : bibliothèque, spec 096),
  * - réindexe sort_order par la position dans le tableau (l'ordre client fait foi).
  */
 export function normalizePracticalBlocks(
@@ -127,11 +125,10 @@ export function normalizePracticalBlocks(
       const id = persistentId(block.id)
       return {
         ...(id ? { id } : {}),
+        equipment_template_id: clean(block.equipment_template_id),
         title: clean(block.title) as string,
         body: clean(block.body),
-        icon: block.icon,
-        photo_url: clean(block.photo_url),
-        video_url: clean(block.video_url),
+        // Spec 096 AC-03-02 : icône, photo et vidéo ne viennent jamais de l'Owner.
         sort_order: index,
       }
     })

@@ -232,13 +232,15 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       'lodging-1',
       expect.objectContaining({
         practical_blocks: [
-          { title: 'La plage', body: 'À 5 min à pied', icon: 'star', photo_url: null, video_url: null, sort_order: 0 },
+          // Spec 096 AC-03-02 : icône / photo / vidéo transmises telles quelles puis ignorées par la requête.
+          { title: 'La plage', body: 'À 5 min à pied', icon: 'star', photo_url: '', video_url: null, sort_order: 0 },
         ],
       }),
     )
   })
 
-  it('rejects a practical block with an icon outside the catalog', async () => {
+  it('spec 096 : un équipement avec une icône hors catalogue n’est plus refusé (icône ignorée)', async () => {
+    mockSaveCustomization.mockResolvedValue(responseBody)
     const res = await PUT(
       makeRequest('PUT', {
         category_order: [],
@@ -250,8 +252,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
       { params: Promise.resolve({ id: 'lodging-1' }) },
     )
 
-    expect(res.status).toBe(400)
-    expect(mockSaveCustomization).not.toHaveBeenCalled()
+    expect(res.status).toBe(200)
   })
 
   it('returns a readable validation detail when a practical block title is missing', async () => {
@@ -272,7 +273,7 @@ describe('GET/PUT /api/dashboard/lodgings/[id]/customization — 012', () => {
         code: 'INVALID_BODY',
         details: {
           fieldErrors: {
-            practical_blocks: ['Le titre du bloc est requis.'],
+            practical_blocks: ['Le nom de l’équipement est requis.'],
           },
         },
       },

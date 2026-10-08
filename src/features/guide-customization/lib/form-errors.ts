@@ -22,7 +22,7 @@ export function validateGuideForm(state: GuideFormState): FieldErrors {
     if (!arrivalStepHasContent(instruction)) errors[`arrival_instructions.${index}.text`] = EMPTY_ARRIVAL_STEP_MESSAGE
   })
   state.practical_blocks.forEach((block, index) => {
-    if (!block.title?.trim()) errors[`practical_blocks.${index}.title`] = 'Le titre du bloc est requis.'
+    if (!block.title?.trim()) errors[`practical_blocks.${index}.title`] = 'Le nom de l’équipement est requis.'
     if (invalidYouTube(block.video_url)) errors[`practical_blocks.${index}.video_url`] = 'Lien YouTube invalide.'
   })
   const postalCode = state.address_postal_code?.trim()

@@ -25,6 +25,18 @@ const baseCustomization = {
   practical_blocks: [],
 }
 
+// Spec 096 : les équipements viennent de la bibliothèque.
+const equipmentLibrary = [{
+  id: '55555555-5555-4555-8555-555555555555', title: 'Local à skis', icon: 'mountain-snow', body: 'Au sous-sol.',
+  photo_url: 'https://cdn/ski.webp', video_url: null, status: 'approved' as const, created_at: '',
+}]
+
+async function addFromLibrary(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
+  await user.click(screen.getByLabelText(/Local à skis/))
+  await user.click(screen.getByRole('button', { name: 'Ajouter (1)' }))
+}
+
 describe('CustomizationForm — practical blocks payload', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -66,11 +78,13 @@ describe('CustomizationForm — practical blocks payload', () => {
         categories={[]}
         pois={[]}
         initialCustomization={baseCustomization}
+        equipmentLibrary={equipmentLibrary}
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
-    await user.type(screen.getByLabelText(/nom de l’équipement/i), 'La plage')
+    await addFromLibrary(user)
+    await user.clear(screen.getByLabelText(/nom de l’équipement/i))
+    await user.type(screen.getByLabelText(/nom de l’équipement/i), 'Skis et chaussures')
     await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalled())
@@ -80,11 +94,13 @@ describe('CustomizationForm — practical blocks payload', () => {
     expect(putCall).toBeTruthy()
     const payload = JSON.parse((putCall![1] as RequestInit).body as string)
     expect(payload.practical_blocks).toEqual([
-      expect.objectContaining({ title: 'La plage', icon: 'info', sort_order: 0 }),
+      expect.objectContaining({
+        equipment_template_id: '55555555-5555-4555-8555-555555555555', title: 'Skis et chaussures', body: 'Au sous-sol.', sort_order: 0,
+      }),
     ])
   })
 
-  it('083 : un bloc sans titre est signalé sous le champ et rien n’est envoyé', async () => {
+  it('083 : un équipement sans nom est signalé sous le champ et rien n’est envoyé', async () => {
     const user = userEvent.setup()
     render(
       <CustomizationForm
@@ -93,20 +109,22 @@ describe('CustomizationForm — practical blocks payload', () => {
         categories={[]}
         pois={[]}
         initialCustomization={baseCustomization}
+        equipmentLibrary={equipmentLibrary}
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /ajouter un équipement/i }))
+    await addFromLibrary(user)
+    await user.clear(screen.getByLabelText(/nom de l’équipement/i))
     await user.click(screen.getByRole('button', { name: /enregistrer/i }))
 
     expect(global.fetch).not.toHaveBeenCalled()
-    expect(screen.getByText('Le titre du bloc est requis.')).toBeInTheDocument()
+    expect(screen.getByText('Le nom de l’équipement est requis.')).toBeInTheDocument()
     expect(screen.getByLabelText(/nom de l’équipement/i)).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('status', { name: 'État de l’enregistrement' })).toHaveTextContent('1 champ à corriger.')
 
     // AC-01-03 : le message disparaît dès que le champ est corrigé.
     await user.type(screen.getByLabelText(/nom de l’équipement/i), 'La plage')
-    expect(screen.queryByText('Le titre du bloc est requis.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Le nom de l’équipement est requis.')).not.toBeInTheDocument()
   })
 
   it('shows API field validation details when customization save is rejected', async () => {

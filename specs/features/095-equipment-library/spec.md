@@ -10,6 +10,7 @@ mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-08
 updated_at: 2026-10-08
+superseded_in_part_by: "096-admin-managed-equipment (AC-02-01, AC-02-02, AC-02-04, AC-04-02, AC-04-03 : l'admin gère photo / icône / vidéo, l'Owner choisit dans la bibliothèque)"
 amended: "PO 2026-10-08 : select sur le nom (AC-04-03) + reprise des équipements existants à valider (AC-02-04)"
 depends_on:
   - 077-owner-lodgings-guide-ui

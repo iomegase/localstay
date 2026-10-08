@@ -6,6 +6,7 @@ const mockLodgingPhotoFindMany = jest.fn()
 const mockCustomizationFindMany = jest.fn()
 const mockBlockFindMany = jest.fn()
 const mockInstructionFindMany = jest.fn()
+const mockEquipmentFindMany = jest.fn()
 
 jest.mock('@/shared/lib/supabase', () => ({
   createSupabaseServer: () => ({ storage: { from: () => ({ remove: (...args: unknown[]) => mockRemove(...args) }) } }),
@@ -21,6 +22,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodgingCustomization: { findMany: (...args: unknown[]) => mockCustomizationFindMany(...args) },
     lodgingPracticalBlock: { findMany: (...args: unknown[]) => mockBlockFindMany(...args) },
     lodgingArrivalInstruction: { findMany: (...args: unknown[]) => mockInstructionFindMany(...args) },
+    equipmentTemplate: { findMany: (...args: unknown[]) => mockEquipmentFindMany(...args) },
   },
 }))
 
@@ -38,6 +40,7 @@ function noReferences() {
   mockCustomizationFindMany.mockResolvedValue([])
   mockBlockFindMany.mockResolvedValue([])
   mockInstructionFindMany.mockResolvedValue([])
+  mockEquipmentFindMany.mockResolvedValue([])
 }
 
 describe('070 — chemins du stockage', () => {
@@ -68,6 +71,8 @@ describe('070 BR-04 — références actives', () => {
     mockCustomizationFindMany.mockResolvedValue([{ cover_photo_url: `${BASE}lodgings/l/cover.webp` }])
     mockBlockFindMany.mockResolvedValue([{ photo_url: `${BASE}lodgings/l/block.webp` }])
     mockInstructionFindMany.mockResolvedValue([{ photos: [`${BASE}lodgings/l/arrivee.webp`] }])
+    // Spec 096 BR-02 : photo d'un équipement de bibliothèque.
+    mockEquipmentFindMany.mockResolvedValue([{ photo_url: `${BASE}lodgings/l/equipement.webp` }])
 
     const urls = await loadReferencedStorageUrls()
 
@@ -76,6 +81,7 @@ describe('070 BR-04 — références actives', () => {
       `${BASE}lodgings/l/arrivee.webp`,
       `${BASE}lodgings/l/block.webp`,
       `${BASE}lodgings/l/cover.webp`,
+      `${BASE}lodgings/l/equipement.webp`,
       `${BASE}lodgings/l/showcase/1.webp`,
       `${BASE}pois/1.webp`,
       `${BASE}pois/p/a.webp`,
