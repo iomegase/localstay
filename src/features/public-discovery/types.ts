@@ -1,3 +1,4 @@
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 import type { PoiHours } from '@/features/categories/types'
 
 export type PoiDiscoveryStatus = 'DRAFT' | 'PUBLISHED'
@@ -89,6 +90,8 @@ export type DiscoveryCategory = DiscoveryTaxonomy & {
 
 export type DiscoveryPoiDetail = Omit<DiscoveryPoiCard, 'photo_url'> & {
   description: string
+  /** Spec 094 : pages ayant servi à rédiger la description. */
+  description_sources: DescriptionSource[]
   phone: string | null
   website: string | null
   hours: PoiHours | null

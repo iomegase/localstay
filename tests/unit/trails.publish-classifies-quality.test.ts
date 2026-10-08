@@ -124,4 +124,14 @@ describe('publishTrailCandidate — data_quality_status comes from the geometry 
     expect(mockTrailDetailUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ source_refs: expect.arrayContaining([expect.objectContaining({ attribution: 'Alice' })]) }) }))
   })
 
+
+  it('spec 094 AC-03 : les sources de la description sont copiées sur le POI publié', async () => {
+    const sources = [{ url: 'https://visorando.com', title: 'visorando.com' }]
+    mockCandidateFindFirst.mockResolvedValue({
+      ...baseCandidate({ type: 'LineString', coordinates: [[6.7, 45.8], [6.71, 45.81]] }),
+      description_sources: sources,
+    })
+    await publishTrailCandidate('cand-1', 'admin-1', { confirm_duplicate: false, confirm_incomplete_geometry: true })
+    expect(mockPoiCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ description_sources: sources }) }))
+  })
 })

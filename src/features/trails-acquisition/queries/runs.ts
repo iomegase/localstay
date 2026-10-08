@@ -93,6 +93,8 @@ export async function createTrailImportRun(
           raw_payload: candidate.raw_payload,
           title: candidate.title,
           description: candidate.description,
+          // Spec 094 AC-03 : sources de la description rédigée par Gemini.
+          description_sources: candidate.description_sources?.length ? candidate.description_sources : Prisma.JsonNull,
           difficulty: candidate.difficulty ?? null,
           distance_km: candidate.distance_km ?? null,
           elevation_gain_m: candidate.elevation_gain_m ?? null,

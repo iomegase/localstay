@@ -33,6 +33,8 @@ import { TrailPreviewMap } from '@/features/trail-navigation/components/TrailPre
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { PoiDescriptionAssistant } from '@/features/poi-description-assistance/components/PoiDescriptionAssistant'
 import { usePoiEditPanel } from './PoiEditPanelContext'
+import { DescriptionSourcesList } from '@/shared/components/DescriptionSourcesList'
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 
 type Props = {
   poi: AdminPoiDetail
@@ -64,6 +66,8 @@ export function AdminPoiEditForm({ poi, categories, cities = [] }: Props) {
   const dndContextId = useId()
   const [photoUrlError, setPhotoUrlError] = useState<string | null>(null)
   const [descriptionValue, setDescriptionValue] = useState(poi.description ?? '')
+  // Spec 094 : sources de la description (proposition appliquée ou déjà enregistrées).
+  const [descriptionSources, setDescriptionSources] = useState<DescriptionSource[]>(poi.description_sources ?? [])
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false)
   const [identity, setIdentity] = useState({ name: poi.name, address: poi.address, website: poi.website ?? '' })
   const [savedIdentity, setSavedIdentity] = useState(identity)
@@ -130,6 +134,7 @@ export function AdminPoiEditForm({ poi, categories, cities = [] }: Props) {
     const payload = {
       name: String(formData.get('name') ?? ''),
       description: descriptionValue,
+      description_sources: descriptionSources,
       address: String(formData.get('address') ?? ''),
       phone: nullableString(formData.get('phone')),
       website: nullableString(formData.get('website')),
@@ -239,7 +244,14 @@ export function AdminPoiEditForm({ poi, categories, cities = [] }: Props) {
                 poiId={poi.id}
                 disabled={isPending || poi.status === 'archived'}
                 identityDirty={identityDirty}
-                onAccept={setDescriptionValue}
+                onAccept={(description, sources) => {
+                  setDescriptionValue(description)
+                  setDescriptionSources(sources)
+                }}
+              />
+              <DescriptionSourcesList
+                sources={descriptionSources}
+                onRemove={url => setDescriptionSources(current => current.filter(source => source.url !== url))}
               />
               {showDescriptionPreview && (
                 <div className="rounded-[16px] border border-indigo-100 bg-indigo-50/40 p-4">

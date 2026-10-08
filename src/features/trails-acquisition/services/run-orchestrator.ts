@@ -9,6 +9,7 @@ import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
 import { IMPORT_WORK_BUDGET_MS, IMPORT_SOURCE_TIMEOUT_MS, IMPORT_ENRICHMENT_TIMEOUT_MS, runWithDeadline } from '../lib/import-budget'
 import type { TrailSourceType } from '../types'
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 
 type RunSourceInput = {
   city: {
@@ -29,6 +30,8 @@ export type RunSourceResult = {
     raw_payload: Prisma.InputJsonValue
     title: string
     description: string | null
+    /** Spec 094 : sources de la description (recherche web Gemini). */
+    description_sources?: DescriptionSource[] | null
     difficulty?: string | null
     distance_km?: number | null
     elevation_gain_m?: number | null

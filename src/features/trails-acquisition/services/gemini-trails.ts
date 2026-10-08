@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, type Tool } from '@google/generative-ai'
 import { z } from 'zod'
 import { rejectGeminiGeoMetrics } from '../lib/source-policy'
 import { DESCRIPTION_LENGTH_INSTRUCTION, DESCRIPTION_MAX_CHARS, limitToWords } from '@/shared/lib/description-length'
+import { sanitizeDescriptionSources, type DescriptionSource } from '@/shared/lib/description-sources'
 
 export type GeminiTrailDiscovery = {
   title: string
@@ -96,6 +97,7 @@ Maximum 10 randonnées. Pas de doublons. Pas de coordonnées GPS. Ne fournis auc
 type DescriptionResult = {
   description: string
   start_label: string | null
+  description_sources: DescriptionSource[]
 }
 
 export async function generateTrailDescription(title: string, city: CityRef): Promise<DescriptionResult> {
@@ -118,15 +120,19 @@ Ne fournis aucune coordonnée GPS, distance, durée, dénivelé ou métrique gé
   const json = parseJsonResponse(result.response.text())
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
+  // Spec 094 AC-03 : pages citées par la recherche Google de Gemini.
+  const chunks = (result.response.candidates?.[0]?.groundingMetadata as { groundingChunks?: Array<{ web?: { uri?: string; title?: string } }> } | undefined)?.groundingChunks ?? []
   return {
     description: limitToWords(parsed.data.description),
     start_label: parsed.data.start_label ?? null,
+    description_sources: sanitizeDescriptionSources(chunks.map(chunk => ({ url: chunk.web?.uri, title: chunk.web?.title }))),
   }
 }
 
 type EnrichableCandidate = {
   title: string
   description: string | null
+  description_sources?: DescriptionSource[] | null
   start_label?: string | null
   source_refs: unknown
   distance_km?: number | null
@@ -162,6 +168,7 @@ export async function enrichCandidatesWithGeminiDescriptions<T extends Enrichabl
       const usedFor: string[] = []
       if (needsDescription) {
         candidate.description = result.description
+        candidate.description_sources = result.description_sources
         usedFor.push('description')
       }
       if (needsStart && result.start_label) {

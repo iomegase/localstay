@@ -1,3 +1,4 @@
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 export type AdminPoiStatus = 'active' | 'inactive' | 'archived'
 export type AdminPoiStatusFilter = 'current' | AdminPoiStatus
 export type AdminPoiPhotoStatus = 'with_photos' | 'without_photos'
@@ -78,6 +79,8 @@ export type AdminPoiTrailDetail = {
 
 export type AdminPoiDetail = AdminPoiListItem & {
   description: string | null
+  /** Spec 094 : sources de la description. */
+  description_sources: DescriptionSource[]
   phone: string | null
   website: string | null
   photos: string[]

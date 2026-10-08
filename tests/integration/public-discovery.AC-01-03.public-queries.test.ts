@@ -127,7 +127,7 @@ function expectExactPrismaContract(call: unknown, detail: boolean) {
   expect(Object.keys(args.where).sort()).toEqual(whereKeys.sort())
   expect(Object.keys(args.select).sort()).toEqual([
     ...listSelectKeys,
-    ...(detail ? ['hours'] : []),
+    ...(detail ? ['hours', 'description_sources'] : []), // spec 094 : sources de la description
   ].sort())
   expect(Object.keys((args.select.city as { select: object }).select).sort()).toEqual([
     'deleted_at', 'department', 'id', 'is_active', 'latitude', 'longitude',
@@ -178,7 +178,7 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
     'city', 'groups', 'icon', 'name', 'nearby_pois', 'pois', 'slug', 'sort_order', 'subcategories',
   ]
   const detailKeys = [
-    'address', 'category', 'city', 'description', 'distance_km', 'hero_photo_url',
+    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url',
     'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photo_is_fallback', 'photos',
     'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
   ]

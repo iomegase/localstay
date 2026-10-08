@@ -1,3 +1,4 @@
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 import { dedupeTrailPhotos, extractTrailPhotos } from './photos'
 type SourceRef = { type: string; attribution: string; used_for: string[] }
 
@@ -7,6 +8,7 @@ type MergeableCandidate = {
   raw_payload: unknown
   title: string
   description: string | null
+  description_sources?: DescriptionSource[] | null
   difficulty?: string | null
   distance_km?: number | null
   elevation_gain_m?: number | null
@@ -96,7 +98,11 @@ function mergeCluster<T extends MergeableCandidate>(cluster: T[]): T {
 }
 
 function fillMissingFields<T extends MergeableCandidate>(base: T, candidate: T): void {
-  if (!base.description && candidate.description) base.description = candidate.description
+  if (!base.description && candidate.description) {
+    base.description = candidate.description
+    // Spec 094 : la description reprise garde ses sources.
+    base.description_sources = candidate.description_sources ?? null
+  }
   if (!base.start_label && candidate.start_label) base.start_label = candidate.start_label
   if (base.distance_km == null && candidate.distance_km != null) base.distance_km = candidate.distance_km
   if (base.elevation_gain_m == null && candidate.elevation_gain_m != null) {

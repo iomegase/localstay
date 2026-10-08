@@ -25,6 +25,7 @@ import type {
   AdminPoiListResponse,
 } from '../types'
 import type { AdminPoiPatchInput } from '../lib/admin-poi-rules'
+import { sanitizeDescriptionSources } from '@/shared/lib/description-sources'
 
 type AdminPoiRow = {
   id: string
@@ -50,6 +51,7 @@ type AdminPoiRow = {
   category: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null }
   subcategory: { id: string; name: string; slug: string; is_active: boolean; deleted_at: Date | null } | null
   merchant_profile: { id: string } | null
+  description_sources?: Prisma.JsonValue | null
   fallback_image?: { url: string; deleted_at: Date | null } | null
   trail_detail: {
     id: string
@@ -95,6 +97,7 @@ const adminPoiSelect = {
   name: true,
   slug: true,
   description: true,
+  description_sources: true,
   address: true,
   latitude: true,
   longitude: true,
@@ -302,6 +305,10 @@ export async function updateAdminPoi(
   const data: Prisma.PointOfInterestUpdateInput = {}
   if (input.name !== undefined) data.name = input.name
   if (input.description !== undefined) data.description = input.description
+  if (input.description_sources !== undefined) {
+    const sources = sanitizeDescriptionSources(input.description_sources)
+    data.description_sources = sources.length > 0 ? sources : Prisma.JsonNull
+  }
   if (input.phone !== undefined) data.phone = input.phone
   if (input.website !== undefined) data.website = input.website
   if (input.tags !== undefined) data.tags = input.tags
@@ -695,6 +702,7 @@ function mapAdminPoiDetail(row: AdminPoiRow): AdminPoiDetail {
   return {
     ...mapAdminPoiListItem(row),
     description: row.description,
+    description_sources: sanitizeDescriptionSources(row.description_sources),
     phone: row.phone,
     website: row.website,
     photos: row.photos,

@@ -225,21 +225,22 @@ model PointOfInterest {
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 
-  name         String
-  slug         String
-  description  String?
-  address      String
-  latitude     Float
-  longitude    Float
-  phone        String?
-  website      String?
-  rating       Float?
-  rating_count Int      @default(0)
-  is_active    Boolean  @default(true)
-  is_open_now  Boolean?
-  hours        Json?
-  photos       String[]
-  tags         String[]
+  name                String
+  slug                String
+  description         String?
+  description_sources Json? // Spec 094 — [{ url, title }]
+  address             String
+  latitude            Float
+  longitude           Float
+  phone               String?
+  website             String?
+  rating              Float?
+  rating_count        Int      @default(0)
+  is_active           Boolean  @default(true)
+  is_open_now         Boolean?
+  hours               Json?
+  photos              String[]
+  tags                String[]
 
   discovery_status       PoiDiscoveryStatus @default(DRAFT)
   discovery_published_at DateTime?
@@ -649,16 +650,17 @@ model PoiAcquisitionCandidate {
   run_id String
   run    PoiAcquisitionRun @relation(fields: [run_id], references: [id])
 
-  source         String
-  name           String
-  address        String
-  description    String?
-  phone          String?
-  website        String?
-  category_id    String
-  category       Category     @relation(fields: [category_id], references: [id])
-  subcategory_id String?
-  subcategory    SubCategory? @relation(fields: [subcategory_id], references: [id])
+  source              String
+  name                String
+  address             String
+  description         String?
+  description_sources Json? // Spec 094 — [{ url, title }]
+  phone               String?
+  website             String?
+  category_id         String
+  category            Category     @relation(fields: [category_id], references: [id])
+  subcategory_id      String?
+  subcategory         SubCategory? @relation(fields: [subcategory_id], references: [id])
 
   google_place_id          String?
   google_review_payload    Json?
@@ -798,6 +800,7 @@ model TrailCandidate {
   title                  String
   slug                   String?
   description            String?
+  description_sources    Json? // Spec 094 — [{ url, title }]
   difficulty             String?
   distance_km            Float?
   elevation_gain_m       Int?

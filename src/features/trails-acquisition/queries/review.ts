@@ -67,6 +67,8 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
         name: candidate.title,
         slug: await uniqueSlug(tx, candidate.city_id, createTrailSlug(candidate.title)),
         description: candidate.description,
+        // Spec 094 AC-03 : sources copiées sur le POI publié.
+        description_sources: candidate.description_sources ?? Prisma.JsonNull,
         address: candidate.start_label ?? candidate.city.name,
         latitude: startLatitude,
         longitude: startLongitude,

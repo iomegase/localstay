@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/shared/components/ui/dialog'
 import type { AcquisitionCandidateDto } from '../types'
+import { DescriptionSourcesList } from '@/shared/components/DescriptionSourcesList'
 
 type CategoryOption = { id: string; name: string; subcategories?: Array<{ id: string; name: string }> }
 
@@ -27,7 +28,7 @@ export function AdminCandidateEditDialog({
   candidate,
   categories,
 }: {
-  candidate: Pick<AcquisitionCandidateDto, 'id' | 'name' | 'address' | 'phone' | 'website' | 'description' | 'category_id' | 'subcategory_id'>
+  candidate: Pick<AcquisitionCandidateDto, 'id' | 'name' | 'address' | 'phone' | 'website' | 'description' | 'category_id' | 'subcategory_id'> & Partial<Pick<AcquisitionCandidateDto, 'description_sources'>>
   categories: CategoryOption[]
 }) {
   const [open, setOpen] = useState(false)
@@ -133,6 +134,8 @@ export function AdminCandidateEditDialog({
               onChange={event => update('description', event.target.value)}
             />
           </label>
+          {/* Spec 094 AC-02 : pages ayant servi à rédiger la description. */}
+          <DescriptionSourcesList sources={candidate.description_sources ?? []} />
           {error && <p role="alert" className="text-sm font-semibold text-rose-600">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>

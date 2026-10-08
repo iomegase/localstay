@@ -18,6 +18,7 @@ import { PoiAcquisitionError } from '../lib/errors'
 import { fetchOfficialWebsiteSourceContext, type OfficialWebsiteSourceContext } from '../services/official-website-source'
 import type { AcquisitionCandidateDto, AcquisitionRunDetail, AcquisitionRunListItem } from '../types'
 import { DESCRIPTION_LENGTH_INSTRUCTION, limitToWords } from '@/shared/lib/description-length'
+import { sanitizeDescriptionSources } from '@/shared/lib/description-sources'
 
 type RunCreateInput = {
   city_id: string
@@ -52,6 +53,7 @@ type CandidateRow = {
   phone: string | null
   website: string | null
   description: string | null
+  description_sources?: Prisma.JsonValue | null
   category_id: string
   subcategory_id: string | null
   primary_type?: string | null
@@ -238,6 +240,10 @@ async function processCandidate(candidate: GooglePlaceCandidate, context: Proces
     duplicate_poi_ids: duplicates,
     match_status: duplicates.length > 0 ? 'duplicate_candidate' : 'matched',
     review_status: 'needs_review',
+    // Spec 094 AC-02 : pages officielles lues pour rédiger la description.
+    ...(description
+      ? { description_sources: officialDescriptionSources([candidateOfficialSourceContext, context.officialSourceContext]) }
+      : {}),
     primary_type: candidate.primary_type ?? null,
     type_match: classifyTypeMatch(candidate.primary_type ?? null, candidate.types ?? [], context.acceptedTypes),
   })
@@ -460,6 +466,7 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
           phone: true,
           website: true,
           description: true,
+          description_sources: true,
           category_id: true,
           subcategory_id: true,
           primary_type: true,
@@ -510,6 +517,7 @@ function mapCandidate(candidate: CandidateRow): AcquisitionCandidateDto {
     phone: candidate.phone ?? null,
     website: candidate.website ?? null,
     description: candidate.description ?? null,
+    description_sources: sanitizeDescriptionSources(candidate.description_sources),
     category_id: candidate.category_id,
     subcategory_id: candidate.subcategory_id ?? null,
     primary_type: candidate.primary_type ?? null,
@@ -589,6 +597,14 @@ function normalizeNameKey(value: string): string {
 
 function messageFromError(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+/** Spec 094 AC-02 : sources = site officiel du lieu, puis source officielle du run. */
+function officialDescriptionSources(contexts: Array<OfficialWebsiteSourceContext | null>): Prisma.InputJsonValue {
+  return sanitizeDescriptionSources(
+    contexts.filter((item): item is OfficialWebsiteSourceContext => item !== null)
+      .map(item => ({ url: item.source_url, title: item.attribution })),
+  )
 }
 
 async function generateVerifiedDescription(params: {

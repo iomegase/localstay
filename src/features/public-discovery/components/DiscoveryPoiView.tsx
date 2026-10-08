@@ -62,6 +62,20 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
               headingLevel={2}
               className="mt-7 text-base leading-8 text-slate-600 [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:normal-case [&_h2]:tracking-[-0.02em] [&_h2]:text-slate-900 [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:normal-case [&_h3]:text-slate-900 [&_p]:mb-4 [&_p]:text-base [&_p]:leading-8 [&_p]:text-slate-600"
             />
+            {/* Spec 094 AC-04 : d'où viennent les informations de la description. */}
+            {poi.description_sources?.length ? (
+              <p data-testid="poi-description-sources" className="mt-3 text-xs leading-6 text-slate-500">
+                Sources :{' '}
+                {poi.description_sources.map((source, index) => (
+                  <span key={source.url}>
+                    {index > 0 ? ' · ' : null}
+                    <a href={source.url} target="_blank" rel="nofollow noopener noreferrer" className="underline decoration-slate-300 underline-offset-2 hover:text-slate-700">
+                      {source.title}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            ) : null}
             {poi.photo_credit ? (
               <p data-testid="poi-photo-credit" className="mt-3 text-xs leading-6 text-slate-500">
                 Photos :{' '}

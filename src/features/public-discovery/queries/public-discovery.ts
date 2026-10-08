@@ -7,6 +7,7 @@ import { cache } from 'react'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
 import type { DayHours, PoiHours } from '@/features/categories/types'
 import { prisma } from '@/shared/lib/prisma'
+import { sanitizeDescriptionSources } from '@/shared/lib/description-sources'
 import {
   getDiscoveryPoiVisibility,
   isCanonicalDiscoverySlug,
@@ -90,6 +91,7 @@ const discoveryPoiListSelect = {
 const discoveryPoiDetailSelect = {
   ...discoveryPoiListSelect,
   hours: true,
+  description_sources: true,
 } satisfies Prisma.PointOfInterestSelect
 
 type DiscoveryPoiRow = Prisma.PointOfInterestGetPayload<{
@@ -456,6 +458,8 @@ export const getDiscoveryPoi: (
       phone: mapped.row.phone?.trim() || null,
       website,
       hours,
+      // Spec 094 AC-04 : sources de la description.
+      description_sources: sanitizeDescriptionSources(rows[0]?.description_sources ?? null),
       // Spec 063 : copies MyStay à la place des URL tierces ; crédit calculé sur l'origine.
       photos: resolvePoiPhotoList(mapped.photos, mirrorMap),
       hero_photo_url: detailCard.photo_is_fallback

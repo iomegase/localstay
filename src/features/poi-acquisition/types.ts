@@ -1,3 +1,4 @@
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 import type { PoiHours } from '@/features/categories/types'
 
 export type GoogleReviewPayload = {
@@ -61,6 +62,8 @@ export type AcquisitionCandidateDto = {
   phone: string | null
   website: string | null
   description: string | null
+  /** Spec 094 : pages ayant servi à rédiger la description. */
+  description_sources: DescriptionSource[]
   category_id: string
   subcategory_id: string | null
   /** Spec 073 AC-03-01 : type principal Google et correspondance (primary | secondary | unknown). */

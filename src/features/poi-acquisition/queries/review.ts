@@ -68,6 +68,8 @@ export async function publishCandidate(
         name: candidate.name,
         slug: await uniqueSlug(tx, candidate.run.city_id, createPoiSlug(candidate.name)),
         description: candidate.description,
+        // Spec 094 AC-02 : sources de la description copiées sur le POI.
+        description_sources: candidate.description_sources ?? Prisma.JsonNull,
         address: candidate.address,
         latitude,
         longitude,

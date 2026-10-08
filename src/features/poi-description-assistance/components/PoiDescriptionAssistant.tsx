@@ -7,12 +7,14 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { DescriptionSuggestionSchema, type DescriptionSuggestion } from '../lib/contracts'
 import { countWords, DESCRIPTION_MAX_CHARS, DESCRIPTION_MAX_WORDS } from '@/shared/lib/description-length'
+import { sanitizeDescriptionSources, type DescriptionSource } from '@/shared/lib/description-sources'
 
 type Props = {
   poiId: string
   disabled: boolean
   identityDirty: boolean
-  onAccept: (description: string) => void
+  /** Spec 094 AC-01 : la description et ses sources. */
+  onAccept: (description: string, sources: DescriptionSource[]) => void
 }
 
 export function PoiDescriptionAssistant({ poiId, disabled, identityDirty, onAccept }: Props) {
@@ -115,7 +117,7 @@ export function PoiDescriptionAssistant({ poiId, disabled, identityDirty, onAcce
           )}
           <div className="flex flex-wrap gap-2">
             <Button type="button" disabled={blocked || pending || !validDraft} onClick={() => {
-              onAccept(draft.trim())
+              onAccept(draft.trim(), sanitizeDescriptionSources(suggestion.sources))
               setSuggestion(null)
               setDraft('')
               setNotice('Proposition appliquée. Enregistrez la fiche pour conserver cette description.')
