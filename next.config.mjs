@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['192.0.0.2'],
+  // Poids des fonctions Vercel : chaque route embarquait les moteurs Prisma WASM
+  // (MySQL/SQLite/Postgres) et les runtimes edge/binary, inutiles avec le moteur
+  // library en runtime Node (aucune route edge, aucun driver adapter).
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@prisma/client/runtime/query_engine_bg.*',
+      'node_modules/@prisma/client/runtime/{binary,edge,edge-esm,react-native,wasm,index-browser}.js',
+      'node_modules/.prisma/client/{edge,wasm,index-browser}.js',
+      'node_modules/.prisma/client/deno/**',
+    ],
+  },
   // Spec 059 : le service worker doit toujours être revalidé.
   async headers() {
     return [
