@@ -805,6 +805,12 @@ components:
   run réel : 3 → 21 randonnées sur 34 (prototype), Camptocamp 17 → 32 sur 38. La récupération du
   30/09 (galeries d'offices de tourisme, Geotrek) était une opération ponctuelle, effacée par la
   réinitialisation de la base du 06/10 ; elle n'est pas reconduite (droits des galeries non vérifiés).
+- **AC-02-10** (PO 2026-10-08 : galeries officielles « à condition que les crédits d'auteurs soient
+  publiés sur la page ») : avant Camptocamp, photos du Geotrek du Département de la Haute-Savoie (API
+  publique ; offices de tourisme, CEN 74…), randonnée de même nom à 10 km au plus, auteur de chaque
+  photo conservé. Mesuré sur le run réel du 08/10 : 3 → 24 randonnées sur 34 avec photos.
+- **AC-02-11**: Les pages publiques d'une randonnée (fiche /decouvrir et page du guide) affichent
+  « Crédits photos : » — un crédit par auteur, lien vers la page source — dès qu'elle a des photos.
 - **BR-R5**: Overpass : seule une requête invalide (400) est définitive ; toute autre erreur fait essayer
   le serveur suivant. Échec de tous les serveurs : « OpenStreetMap indisponible … relancez plus tard ».
 

@@ -14,7 +14,7 @@ jest.mock('@/features/trails-acquisition/services/gemini-trails', () => ({
 }))
 jest.mock('@/features/trails-acquisition/services/start-geocoding', () => ({ enrichCandidatesWithStartGeocoding: (...args: unknown[]) => mockGeocode(...args) }))
 jest.mock('@/features/trails-acquisition/services/ors', () => ({ enrichCandidatesWithDuration: (...args: unknown[]) => mockDuration(...args) }))
-jest.mock('@/features/trails-acquisition/services/camptocamp-photos', () => ({ enrichCandidatesWithCamptocampPhotos: (...args: unknown[]) => mockPhotos(...args) }))
+jest.mock('@/features/trails-acquisition/services/camptocamp-photos', () => ({ enrichCandidatesWithTrailPhotos: (...args: unknown[]) => mockPhotos(...args) }))
 import { collectTrailCandidatesFromSources, type RunSourceResult } from '@/features/trails-acquisition/services/run-orchestrator'
 import { IMPORT_IGN_TIMEOUT_MS, IMPORT_WORK_BUDGET_MS, runWithDeadline } from '@/features/trails-acquisition/lib/import-budget'
 

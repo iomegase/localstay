@@ -76,7 +76,20 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
                 ))}
               </p>
             ) : null}
-            {poi.photo_credit ? (
+            {/* PO 2026-10-08 : randonnée → un crédit par auteur, lien vers la page source. */}
+            {poi.trail_photo_credits?.length ? (
+              <p data-testid="poi-trail-photo-credits" className="mt-3 text-xs leading-6 text-slate-500">
+                Crédits photos :{' '}
+                {poi.trail_photo_credits.map((credit, index) => (
+                  <span key={credit.attribution}>
+                    {index > 0 ? ' · ' : null}
+                    {credit.url ? (
+                      <a href={credit.url} target="_blank" rel="nofollow noopener noreferrer" className="underline decoration-slate-300 underline-offset-2 hover:text-pink-600">{credit.attribution}</a>
+                    ) : credit.attribution}
+                  </span>
+                ))}
+              </p>
+            ) : poi.photo_credit ? (
               <p data-testid="poi-photo-credit" className="mt-3 text-xs leading-6 text-slate-500">
                 Photos :{' '}
                 {poi.photo_credit.website ? (

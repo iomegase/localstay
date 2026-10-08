@@ -1,5 +1,9 @@
 import { camptocampImagePhotos, dedupeTrailPhotos, extractTrailPhotos, type TrailPhoto } from '../lib/photos'
 import { mercatorXToLng, mercatorYToLat } from '../lib/projection'
+import { createGeotrekPhotoFinder } from './geotrek-photos'
+import { isSamePlace, placeQueries } from '../lib/place-match'
+
+export { isSamePlace, normalizePlaceName, placeQueries } from '../lib/place-match'
 
 /**
  * Spec 019 AC-02-09 (2026-10-08) : photos des randonnées qui n'en ont pas, depuis Camptocamp
@@ -28,31 +32,6 @@ const defaultFetcher: Fetcher = async (path, signal) => {
   const response = await fetch(`${CAMPTOCAMP_API}${path}`, { headers: HEADERS, signal })
   if (!response.ok) throw new Error(`Camptocamp HTTP ${response.status}`)
   return (await response.json()) as Record<string, unknown>
-}
-
-export function normalizePlaceName(value: string): string {
-  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-}
-
-const ARTICLE = /^(le|la|les|l)\s+/
-const PREFIX = /^(boucle|tour|balade|sentier|randonnee|promenade)\s+(du|de la|des|de|d)\s+/
-const SUFFIX = /\s+(depuis|par|en boucle|aller retour|via)\b.*$/
-
-/** Noms de lieux cherchés : le titre, puis chacune de ses parties (« A - B », « A et B »). */
-export function placeQueries(title: string): string[] {
-  const parts = [title, ...title.split(/\s+(?:-|–|>|et)\s+/i)]
-  const queries = parts.map(part => normalizePlaceName(part).replace(PREFIX, '').replace(SUFFIX, '').replace(ARTICLE, '').trim())
-  return [...new Set(queries)].filter(query => query.length >= 4)
-}
-
-/** Correspondance stricte : nom identique, ou l'un contient l'autre avec au moins deux mots. */
-export function isSamePlace(query: string, candidateName: string): boolean {
-  const name = normalizePlaceName(candidateName).replace(ARTICLE, '')
-  if (!name) return false
-  if (name === query) return true
-  const shorter = query.length <= name.length ? query : name
-  const longer = shorter === query ? name : query
-  return shorter.split(' ').length >= 2 && longer.includes(shorter)
 }
 
 function distanceKm(a: [number, number], b: [number, number]): number {
@@ -113,11 +92,20 @@ export async function findCamptocampPhotos(
   return []
 }
 
-export async function enrichCandidatesWithCamptocampPhotos<T extends PhotoEnrichable>(
+type PhotoFinder = (candidate: PhotoEnrichable, signal?: AbortSignal) => Promise<TrailPhoto[]>
+
+/**
+ * Photos des randonnées sans photo : Geotrek du Département d'abord (auteurs crédités), puis
+ * Camptocamp (spec 019 AC-02-09 / AC-02-10).
+ */
+export async function enrichCandidatesWithTrailPhotos<T extends PhotoEnrichable>(
   candidates: T[],
   city: CityRef,
   signal?: AbortSignal,
-  fetcher: Fetcher = defaultFetcher,
+  finders: PhotoFinder[] = [
+    createGeotrekPhotoFinder(city),
+    (candidate, findSignal) => findCamptocampPhotos(candidate, city, defaultFetcher, findSignal),
+  ],
 ): Promise<{ enriched: number; errors: number }> {
   const queue = candidates.filter(candidate => extractTrailPhotos(candidate.raw_payload).length === 0)
   let enriched = 0
@@ -128,7 +116,11 @@ export async function enrichCandidatesWithCamptocampPhotos<T extends PhotoEnrich
       signal?.throwIfAborted()
       const candidate = queue[next++]!
       try {
-        const photos = await findCamptocampPhotos(candidate, city, fetcher, signal)
+        let photos: TrailPhoto[] = []
+        for (const find of finders) {
+          photos = await find(candidate, signal)
+          if (photos.length) break
+        }
         if (!photos.length) continue
         const payload = (candidate.raw_payload && typeof candidate.raw_payload === 'object' ? candidate.raw_payload : {}) as Record<string, unknown>
         candidate.raw_payload = { ...payload, acquired_photos: photos }
@@ -140,4 +132,14 @@ export async function enrichCandidatesWithCamptocampPhotos<T extends PhotoEnrich
     }
   }))
   return { enriched, errors }
+}
+
+/** Compatibilité : Camptocamp seul (tests et appels existants). */
+export function enrichCandidatesWithCamptocampPhotos<T extends PhotoEnrichable>(
+  candidates: T[],
+  city: CityRef,
+  signal?: AbortSignal,
+  fetcher: Fetcher = defaultFetcher,
+): Promise<{ enriched: number; errors: number }> {
+  return enrichCandidatesWithTrailPhotos(candidates, city, signal, [(candidate, findSignal) => findCamptocampPhotos(candidate, city, fetcher, findSignal)])
 }

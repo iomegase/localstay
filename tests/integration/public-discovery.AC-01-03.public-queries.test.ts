@@ -126,7 +126,8 @@ function expectExactPrismaContract(call: unknown, detail: boolean) {
     'trail_detail', // PO 2026-10-08 : seule la date de suppression (randonnée sans contact ni adresse)
   ]
   expect(Object.keys(args.where).sort()).toEqual(whereKeys.sort())
-  expect(args.select.trail_detail).toEqual({ select: { deleted_at: true } })
+  // PO 2026-10-08 : fiche sentier — date de suppression, et sources (crédits photos) sur la fiche détaillée.
+  expect(args.select.trail_detail).toEqual({ select: detail ? { deleted_at: true, source_refs: true } : { deleted_at: true } })
   expect(Object.keys(args.select).sort()).toEqual([
     ...listSelectKeys,
     ...(detail ? ['hours', 'description_sources'] : []), // spec 094 : sources de la description
@@ -180,7 +181,7 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
     'city', 'groups', 'icon', 'name', 'nearby_pois', 'pois', 'slug', 'sort_order', 'subcategories',
   ]
   const detailKeys = [
-    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url',
+    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url', 'trail_photo_credits',
     'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photo_is_fallback', 'photos',
     'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
   ]

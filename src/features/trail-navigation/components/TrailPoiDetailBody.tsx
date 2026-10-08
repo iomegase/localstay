@@ -12,6 +12,7 @@ import { HeroShareButton } from '@/features/categories/components/HeroShareButto
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 import { resolvePoiFallbackImage } from '@/features/categories/lib/poi-fallback-image'
+import { trailPhotoCredits } from '@/features/trails-acquisition/lib/photo-credits'
 
 function buildMapboxHeroUrl(latitude: number | null, longitude: number | null): string | null {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
@@ -51,6 +52,8 @@ export function TrailPoiDetailBody({
   const reliability = reliabilityFromQualityStatus(trail.data_quality_status)
   const hasStart = trail.start_latitude !== null && trail.start_longitude !== null
   const attribution = trail.source_refs.map(source => source.attribution).filter(Boolean).join(' · ')
+  // PO 2026-10-08 : photos tierces publiées avec le crédit de leurs auteurs.
+  const photoCredits = poi.photos.length > 0 ? trailPhotoCredits(trail.source_refs) : []
 
   // Galerie intégrée au hero (comme les autres POIs) ; fallback visuel par catégorie, puis Mapbox.
   const categoryFallback = resolvePoiFallbackImage(poi.fallback_image_url, poi.category.slug, poi.subcategory?.slug ?? poi.subcategory?.name)
@@ -191,6 +194,19 @@ export function TrailPoiDetailBody({
               {attribution ? ` · ${attribution}` : ''}
               {trail.data_quality_status === 'incomplete' ? ' · fiche incomplète validée par un administrateur' : ''}
             </p>
+            {photoCredits.length > 0 && (
+              <p data-testid="trail-photo-credits" className="mt-1 text-[10px] leading-5 text-charcoal/60">
+                Crédits photos :{' '}
+                {photoCredits.map((credit, index) => (
+                  <span key={credit.attribution}>
+                    {index > 0 ? ' · ' : null}
+                    {credit.url ? (
+                      <a href={credit.url} target="_blank" rel="nofollow noopener noreferrer" className="underline underline-offset-2">{credit.attribution}</a>
+                    ) : credit.attribution}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         </section>
       </main>

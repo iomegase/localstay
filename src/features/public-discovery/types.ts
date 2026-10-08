@@ -1,5 +1,6 @@
 import type { DescriptionSource } from '@/shared/lib/description-sources'
 import type { PoiHours } from '@/features/categories/types'
+import type { TrailPhotoCredit } from '@/features/trails-acquisition/lib/photo-credits'
 
 export type PoiDiscoveryStatus = 'DRAFT' | 'PUBLISHED'
 
@@ -99,5 +100,7 @@ export type DiscoveryPoiDetail = Omit<DiscoveryPoiCard, 'photo_url'> & {
   hero_photo_url: string
   /** Spec 063 US-04 : origine tierce des photos affichées, ou null si photos MyStay uniquement. */
   photo_credit: { name: string; website: string | null } | null
+  /** Randonnée : auteurs des photos tierces (Camptocamp, Geotrek…), publiés sur la page. */
+  trail_photo_credits: TrailPhotoCredit[]
   city: DiscoveryCitySummary
 }

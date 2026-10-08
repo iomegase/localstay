@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { PoiDetailBody } from '@/features/categories/components/PoiDetailBody'
 import type { PoiDetail } from '@/features/categories/types'
 
@@ -138,4 +138,23 @@ describe('021 public trail detail', () => {
     expect(screen.queryByRole('link', { name: /commencer la rando/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /rejoindre le départ/i })).not.toBeInTheDocument()
   })
+
+  it('PO 2026-10-08 : photos tierces → ligne « Crédits photos » avec un lien par auteur', () => {
+    const withPhotos = {
+      ...trailPoi,
+      photos: ['https://media.camptocamp.org/c2corg-active/a.jpg'],
+      trail_detail: {
+        ...trailPoi.trail_detail!,
+        source_refs: [
+          ...trailPoi.trail_detail!.source_refs,
+          { type: 'camptocamp', url: 'https://www.camptocamp.org/waypoints/11', attribution: 'Alice — Camptocamp.org', used_for: ['photos'] },
+        ],
+      },
+    }
+    render(<PoiDetailBody poi={withPhotos} citySlug="saint-gervais-les-bains" categorySlug="rando" />)
+    const credits = screen.getByTestId('trail-photo-credits')
+    expect(credits).toHaveTextContent('Crédits photos : Alice — Camptocamp.org')
+    expect(within(credits).getByRole('link', { name: 'Alice — Camptocamp.org' })).toHaveAttribute('href', 'https://www.camptocamp.org/waypoints/11')
+  })
 })
+

@@ -3,7 +3,7 @@ import { fetchOfficialWebsiteTrailCandidates } from './official-website'
 import { fetchCamptocampTrails } from './camptocamp'
 import { enrichCandidatesWithIgn } from './ign'
 import { enrichCandidatesWithDuration } from './ors'
-import { enrichCandidatesWithCamptocampPhotos } from './camptocamp-photos'
+import { enrichCandidatesWithTrailPhotos } from './camptocamp-photos'
 import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extractStartLabelFromDescription } from './gemini-trails'
 import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
@@ -123,8 +123,8 @@ export async function collectTrailCandidatesFromSources(
   // Gemini ensuite avec leur propre délai ; le géocodage du départ dépend de ces descriptions.
   if (input.sourceTypes.includes('ign')) await enrich('ign', (items, signal) => enrichCandidatesWithIgn(items, signal), IMPORT_IGN_TIMEOUT_MS)
   await enrich('duration', (items, signal) => enrichCandidatesWithDuration(items, signal))
-  // Spec 019 AC-02-09 : photos Camptocamp des randonnées qui n'en ont pas.
-  await enrich('photos', (items, signal) => enrichCandidatesWithCamptocampPhotos(items, input.city, signal))
+  // Spec 019 AC-02-09 / AC-02-10 : photos Geotrek puis Camptocamp des randonnées qui n'en ont pas.
+  await enrich('photos', (items, signal) => enrichCandidatesWithTrailPhotos(items, input.city, signal))
   if (input.sourceTypes.includes('gemini')) {
     await enrich('gemini_descriptions', (items, signal) => enrichCandidatesWithGeminiDescriptions(items, input.city, signal), IMPORT_DESCRIPTION_TIMEOUT_MS)
   }
