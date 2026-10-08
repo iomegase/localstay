@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Phone, Navigation, Globe, Map, MapPin, Play } from 'lucide-react'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
+import { formatPhone, phoneHref } from '@/shared/lib/phone'
 
 export type ActionButtonsVariant = 'default' | 'compact' | 'modalFooter' | 'guide'
 
@@ -57,8 +58,9 @@ export function ActionButtons({ phone, website, latitude, longitude, address, va
   const m = useGuideMessages()
   const destination = address.trim() || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
-  const phoneLabel = phone?.trim() || null
-  const telHref = phoneLabel ? `tel:${phoneLabel.replace(/\s/g, '')}` : null
+  // Spec 096 : appel au format international, numéro lu « +33 4 50 47 78 95 ».
+  const phoneLabel = formatPhone(phone) || null
+  const telHref = phoneHref(phone) || null
 
   if (variant === 'modalFooter') {
     return (

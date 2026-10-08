@@ -4,6 +4,7 @@ import { prisma } from '@/shared/lib/prisma'
 import type { GeminiRawPoi } from '../types'
 import { runPoiMutationWithDiscoveryReconciliation } from '@/features/public-discovery/queries/mutation-reconciliation'
 import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
+import { normalizePhone } from '@/shared/lib/phone'
 
 function toSlug(name: string): string {
   return name
@@ -62,7 +63,7 @@ export async function persistPois(
             address: poi.address,
             latitude: ctx.cityLatitude,   // placeholder — enriched by Mapbox in MVP 2+
             longitude: ctx.cityLongitude, // placeholder
-            phone: poi.phone,
+            phone: normalizePhone(poi.phone),
             website: poi.website,
             hours: poi.hours ?? undefined,
             tags: poi.tags,
@@ -75,7 +76,7 @@ export async function persistPois(
             name: poi.name,
             description: poi.description,
             address: poi.address,
-            phone: poi.phone,
+            phone: normalizePhone(poi.phone),
             website: poi.website,
             hours: poi.hours ?? Prisma.JsonNull,
             tags: poi.tags,

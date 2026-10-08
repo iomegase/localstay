@@ -17,6 +17,7 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { reportDeadPhoto } from '@/features/poi-photos/lib/report-dead-photo'
 import { formatContextualDistance } from '../lib/distance-label'
 import { resolvePoiFallbackImage } from '../lib/poi-fallback-image'
+import { phoneHref } from '@/shared/lib/phone'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Facile',
@@ -418,9 +419,9 @@ export function PoiCard({
                           SITE
                         </a>
                       )}
-                      {poi.phone && (
+                      {phoneHref(poi.phone) && (
                         <a
-                          href={`tel:${poi.phone}`}
+                          href={phoneHref(poi.phone)}
                           onClick={e => e.stopPropagation()}
                           className="flex h-14 min-w-0 items-center justify-center border border-black bg-white px-3 text-[11px] font-medium uppercase tracking-[0.12em] text-black shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-md active:translate-y-0 active:scale-[0.98]"
                         >

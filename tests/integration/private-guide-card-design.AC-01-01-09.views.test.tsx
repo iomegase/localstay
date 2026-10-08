@@ -31,6 +31,7 @@ describe('050 private guide card design', () => {
     expect(blocks[0].querySelector('img')).toHaveAttribute('src', '/spa.jpg')
     expect(within(blocks[0]).queryByRole('button')).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(within(blocks[1]).getByRole('link', { name: /0450000000/ })).toHaveAttribute('href', 'tel:0450000000')
+    // Spec 096 : numéro lu au format international, appel en +33.
+    expect(within(blocks[1]).getByRole('link', { name: /\+33 4 50 00 00 00/ })).toHaveAttribute('href', 'tel:+33450000000')
   })
 })

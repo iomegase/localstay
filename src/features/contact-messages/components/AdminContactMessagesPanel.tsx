@@ -14,6 +14,7 @@ import {
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import type { AdminContactMessageRow } from '../types'
+import { formatPhone } from '@/shared/lib/phone'
 
 type Tab = 'active' | 'archived'
 
@@ -196,7 +197,7 @@ export function AdminContactMessagesPanel({ messages }: AdminContactMessagesPane
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <p><span className="font-semibold text-gray-900">Email :</span> {selected.sender_email}</p>
-                <p><span className="font-semibold text-gray-900">Téléphone :</span> {selected.sender_phone ?? 'Non renseigné'}</p>
+                <p><span className="font-semibold text-gray-900">Téléphone :</span> {selected.sender_phone ? formatPhone(selected.sender_phone) : 'Non renseigné'}</p>
               </div>
               {selected.archived_at && (
                 <p className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600">

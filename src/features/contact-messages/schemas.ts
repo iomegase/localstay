@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PhoneSchema } from '@/shared/lib/phone'
 
 export const contactMessageDestinationSchema = z.enum(['owner', 'concierge'])
 
@@ -11,7 +12,7 @@ export const publicContactMessageSchema = z.object({
   destination: contactMessageDestinationSchema,
   sender_name: z.string().trim().min(2).max(120),
   sender_email: z.string().trim().email(),
-  sender_phone: z.string().trim().max(40).optional().nullable(),
+  sender_phone: PhoneSchema.optional().nullable(),
   subject: z.string().trim().min(2).max(160),
   message: z.string().trim().min(10).max(2000),
   website: z.string().trim().max(240).optional(),

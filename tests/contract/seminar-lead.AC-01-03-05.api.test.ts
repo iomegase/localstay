@@ -54,7 +54,8 @@ describe('052 seminar lead API', () => {
     }), { idempotencyKey: 'seminar-lead-message-456' })
     const text = mockSend.mock.calls[0][0].text as string
     expect(text).toContain('Nouvelle demande séminaire MyStay')
-    for (const expected of [body.sender_name, body.sender_email, body.sender_phone, 'Séminaire CODIR', 'https://www.mystay.city/admin']) {
+    // Spec 096 : le téléphone arrive au format international.
+    for (const expected of [body.sender_name, body.sender_email, '+33611223344', 'Séminaire CODIR', 'https://www.mystay.city/admin']) {
       expect(text).toContain(expected)
     }
   })

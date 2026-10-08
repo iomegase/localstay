@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PhoneSchema } from '@/shared/lib/phone'
 
 export const MerchantSearchSchema = z.object({
   q: z.string().trim().min(3).max(120),
@@ -24,7 +25,7 @@ export const MerchantProfilePatchSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(1000).nullable().optional(),
   hours: z.record(z.string(), z.unknown()).nullable().optional(),
-  phone: z.string().trim().max(30).nullable().optional(),
+  phone: PhoneSchema.nullable().optional(),
   website: NullableUrlSchema.optional(),
 }).strict()
 

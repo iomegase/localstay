@@ -62,7 +62,7 @@ describe('024 contact messages public API', () => {
         destination: 'owner',
         sender_name: 'Marie Dupont',
         sender_email: 'marie@example.test',
-        sender_phone: '+33 6 12 34 56 78',
+        sender_phone: '+33612345678', // spec 096 : stocké en E.164
         subject: 'Question arrivée',
         message: 'Bonjour, pouvons-nous arriver un peu plus tôt demain ?',
       }),

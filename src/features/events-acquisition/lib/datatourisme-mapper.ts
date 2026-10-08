@@ -1,5 +1,6 @@
 import type { EventPeriod, ParsedEvent } from '../types'
 import { normalizeEventTypes } from './event-types'
+import { normalizePhone } from '@/shared/lib/phone'
 
 // DATAtourisme REST API v1 objects (endpoint /v1/entertainmentAndEvent). Shapes are
 // permissive (multilingual { '@fr': … }, arrays vs scalars), so we narrow via helpers.
@@ -103,7 +104,7 @@ export function mapDatatourismeObject(obj: Json): ParsedEvent | null {
     longitude: num(geo.longitude),
     images,
     website: firstString(contact.homepage),
-    phone: firstString(contact.telephone),
+    phone: normalizePhone(firstString(contact.telephone)),
     email: firstString(contact.email),
     priceInfo: null,
     raw: obj,

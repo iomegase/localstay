@@ -30,6 +30,7 @@ import type {
 import { GuideCustomizationError, PRACTICAL_INFO_KEYS } from '../types'
 import { composeLodgingAddress, splitLodgingAddress } from '../lib/address'
 import { EQUIPMENT_TEMPLATE_MEDIA_SELECT, resolveEquipmentMedia } from '@/features/equipment-library/lib/resolve'
+import { normalizeUsefulNumbersText } from '@/features/guide-customization/lib/useful-numbers'
 
 // Spec 096 AC-04-01 : équipements renvoyés avec l'icône, la photo et la vidéo de la bibliothèque.
 const PRACTICAL_BLOCK_SELECT = {
@@ -500,6 +501,8 @@ export async function saveLodgingCustomization(
   const categoryOrderResult = filterValidCategoryOrder(input.category_order, validCategorySlugs)
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
   const practicalInfo = pickPracticalInfo(input)
+  // Spec 096 : numéros utiles enregistrés au format international.
+  practicalInfo.useful_services = normalizeUsefulNumbersText(practicalInfo.useful_services)
   // Spec 080 AC-01-02 : l'adresse saisie en parties est recomposée (source du géocodage).
   if (ADDRESS_PART_KEYS.some(key => input[key] !== undefined)) {
     practicalInfo.lodging_address = composeLodgingAddress({

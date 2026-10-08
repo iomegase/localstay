@@ -11,6 +11,7 @@ import {
 import type { DiscoveryPoiDetail } from '../types'
 import { buildDiscoveryDirectionsHref } from '../lib/directions'
 import { RemotePoiImage } from './RemotePoiImage'
+import { phoneHref } from '@/shared/lib/phone'
 
 const DAY_NAMES = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as const
 const decimalFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
@@ -106,8 +107,8 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
             ) : null}
 
             <div className="mt-8 flex flex-wrap gap-3">
-              {poi.phone ? (
-                <a className={marketingPrimaryButtonClass} href={`tel:${poi.phone}`}>
+              {phoneHref(poi.phone) ? (
+                <a className={marketingPrimaryButtonClass} href={phoneHref(poi.phone)}>
                   <Phone aria-hidden="true" className="mr-2 h-4 w-4" /> Appeler
                 </a>
               ) : null}

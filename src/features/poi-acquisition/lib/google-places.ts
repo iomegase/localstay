@@ -3,6 +3,7 @@ import { mapRegularOpeningHoursToPoiHours } from './google-hours'
 import type { GooglePolicyResult, GoogleReviewPayload } from '../types'
 import type { PoiHours } from '@/features/categories/types'
 import { googleTypeLabel, type TypeQuery } from './google-types'
+import { normalizePhone } from '@/shared/lib/phone'
 
 type GoogleTextSearchResponse = {
   places?: unknown[]
@@ -368,7 +369,8 @@ function mapGooglePlaceCandidate(place: unknown, querySubcategoryName: string | 
   return {
     name,
     address,
-    phone: firstString(place.nationalPhoneNumber, place.internationalPhoneNumber),
+    // Spec 096 : numéro international de Google en priorité, stocké en E.164.
+    phone: normalizePhone(firstString(place.internationalPhoneNumber, place.nationalPhoneNumber)),
     website: typeof place.websiteUri === 'string' ? place.websiteUri : null,
     google_place_id: sanitized.google_place_id,
     review_payload: sanitized.review_payload,

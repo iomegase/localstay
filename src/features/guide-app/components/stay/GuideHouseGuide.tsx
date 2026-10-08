@@ -11,6 +11,7 @@ import { GuideStayScreen } from './GuideStayScreen'
 import { STAY_CARD } from './stay-styles'
 import { recyclingMapsHref } from '@/features/guide-app/lib/recycling-maps'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
+import { formatPhone, phoneHref } from '@/shared/lib/phone'
 
 const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
@@ -124,11 +125,11 @@ function EquipmentCard({ card }: { card: GuidePracticalCard }) {
         </div>
         {card.phone ? (
           <a
-            href={`tel:${card.phone.replace(/\s/g, '')}`}
+            href={phoneHref(card.phone)}
             className="mt-2 inline-flex min-h-11 items-center gap-2 text-[14px] font-semibold text-[#DB2777]"
           >
             <Phone className="h-4 w-4" aria-hidden="true" />
-            {card.phone}
+            {formatPhone(card.phone)}
           </a>
         ) : null}
       </div>

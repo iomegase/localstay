@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import type { OwnerContactMessageRow } from '../types'
+import { formatPhone } from '@/shared/lib/phone'
 
 type OwnerContactMessagesPanelProps = {
   messages: OwnerContactMessageRow[]
@@ -115,7 +116,7 @@ export function OwnerContactMessagesPanel({ messages }: OwnerContactMessagesPane
                 </p>
                 <p className="flex items-center gap-2 text-gray-700">
                   <Phone className="h-4 w-4 text-gray-400" />
-                  {selected.sender_phone ?? 'Non renseigné'}
+                  {selected.sender_phone ? formatPhone(selected.sender_phone) : 'Non renseigné'}
                 </p>
               </div>
             </div>

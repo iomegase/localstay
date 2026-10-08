@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { AdminPoiListFilters, AdminPoiStatus } from '../types'
 import { ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG } from '@/shared/lib/description-length'
 import { DescriptionSourcesSchema } from '@/shared/lib/description-sources'
+import { PhoneSchema } from '@/shared/lib/phone'
 
 const UUID = z.string().uuid()
 
@@ -73,7 +74,7 @@ export const AdminPoiPatchSchema = z.object({
   // Spec 094 : sources de la description (retirables par l'admin).
   description_sources: DescriptionSourcesSchema.nullable().optional(),
   address: z.string().trim().min(5).max(255).optional(),
-  phone: nullableText(40).optional(),
+  phone: PhoneSchema.nullable().optional(),
   website: z.union([z.string().trim().url(), z.null()]).optional(),
   // Spec 092 : rattachement à une autre ville (coordonnées recalculées, ancienne URL redirigée).
   city_id: UUID.optional(),

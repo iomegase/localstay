@@ -153,7 +153,7 @@ describe('018 Google Places primary POI acquisition', () => {
         source: 'google_places',
         name: 'Médiathèque Municipale de Saint-Gervais',
         address: '450 avenue du Mont d’Arbois, 74170 Saint-Gervais-les-Bains',
-        phone: '04 50 93 57 90',
+        phone: '+33450935790', // spec 096
         website: 'https://bibliotheque.saintgervais.com',
         description: 'Description éditoriale réaliste issue des données vérifiées.',
         google_place_id: 'google-place-1',
@@ -167,7 +167,7 @@ describe('018 Google Places primary POI acquisition', () => {
       {
         name: 'Médiathèque Municipale de Saint-Gervais',
         address: '450 avenue du Mont d’Arbois, 74170 Saint-Gervais-les-Bains',
-        phone: '04 50 93 57 90',
+        phone: '+33450935790', // spec 096
         website: 'https://bibliotheque.saintgervais.com',
         description: 'Description nourrie par le site officiel.',
         subcategory: null,

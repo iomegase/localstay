@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { apiError, validationError } from '@/features/merchant/lib/responses'
 import { messageForPoiAcquisitionCode, PoiAcquisitionError } from './errors'
 import { ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG } from '@/shared/lib/description-length'
+import { PhoneSchema } from '@/shared/lib/phone'
 
 export const AcquisitionRunCreateSchema = z.object({
   city_id: z.string().min(1),
@@ -30,7 +31,7 @@ export const ReviewMergeSchema = z.object({
 export const CandidateUpdateSchema = z.object({
   name: z.string().trim().min(1).max(160).optional(),
   address: z.string().trim().min(5).max(255).optional(),
-  phone: z.string().trim().max(40).nullable().optional(),
+  phone: PhoneSchema.nullable().optional(),
   website: z.string().trim().url().nullable().optional(),
   description: z.string().trim().max(ADMIN_DESCRIPTION_MAX_CHARS, ADMIN_DESCRIPTION_TOO_LONG).nullable().optional(),
   category_id: z.string().uuid().optional(),
@@ -47,7 +48,7 @@ export const ManualPoiCreateSchema = z.object({
   city_id: z.string().min(1),
   category_id: z.string().min(1),
   subcategory_id: z.string().min(1).nullable().optional(),
-  phone: z.string().nullable().optional(),
+  phone: PhoneSchema.nullable().optional(),
   website: z.string().url().nullable().optional(),
   description: z.string().nullable().optional(),
   confirm_duplicate: z.boolean().default(false),
@@ -61,7 +62,7 @@ export const ManualPoiSourceUrlSchema = z.object({
 export const MissingPoiCreateSchema = z.object({
   name: z.string().min(1).max(160),
   address: z.string().min(5).max(255),
-  phone: z.string().nullable().optional(),
+  phone: PhoneSchema.nullable().optional(),
   website: z.string().url().nullable().optional(),
   city_id: z.string().min(1),
   category_id: z.string().min(1).nullable().optional(),

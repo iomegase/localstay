@@ -154,7 +154,7 @@ describe('015 merchant profile and photos API', () => {
     expect(mockUpdatePoi).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'poi-1' },
       data: expect.objectContaining({
-        phone: '+33 4 50 78 00 00',
+        phone: '+33450780000', // spec 096
         website: 'https://latablealpine.fr',
       }),
     }))

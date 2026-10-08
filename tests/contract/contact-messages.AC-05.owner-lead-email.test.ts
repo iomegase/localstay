@@ -51,7 +51,8 @@ it('AC-05-01: stores first, then notifies only MyStay with reply-to, details and
     subject: body.subject, text: expect.stringContaining(body.message),
   }, { idempotencyKey: 'owner-lead-message-123' })
   const text = mockSend.mock.calls[0][0].text as string
-  for (const expected of [body.sender_name, body.sender_email, body.sender_phone, 'https://www.mystay.city/admin']) expect(text).toContain(expected)
+  // Spec 096 : téléphone au format international.
+  for (const expected of [body.sender_name, body.sender_email, '+33600000000', 'https://www.mystay.city/admin']) expect(text).toContain(expected)
 })
 
 it.each(['missing-key', 'rejected', 'network', 'missing-id'])('AC-05-02: preserves the saved lead on %s', async (failure) => {

@@ -1,3 +1,5 @@
+import { normalizePhone } from '@/shared/lib/phone'
+
 export type UsefulNumberCategory = {
   value: string
   label: string
@@ -81,4 +83,22 @@ export function parseUsefulNumbers(
       return { category: OTHER_CATEGORY, customLabel: label, phone }
     })
     .filter((row): row is UsefulNumberRow => row !== null)
+}
+
+/**
+ * Spec 096 : à l'enregistrement, chaque numéro de « Label: numéro » passe au format international
+ * (`+33…`). Ligne par ligne, sans rien perdre : une ligne sans « : » est gardée telle quelle.
+ * Pas pendant la saisie (l'éditeur relit le texte à chaque frappe).
+ */
+export function normalizeUsefulNumbersText(text: string | null): string | null {
+  if (!text) return text
+  return text
+    .split('\n')
+    .map(line => {
+      const separator = line.indexOf(':')
+      if (separator < 0) return line
+      const phone = normalizePhone(line.slice(separator + 1))
+      return phone ? `${line.slice(0, separator).trim()}: ${phone}` : line
+    })
+    .join('\n')
 }
