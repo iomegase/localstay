@@ -26,4 +26,24 @@ describe('spec 093 — longueur des descriptions', () => {
     expect(countWords(limited)).toBe(300)
     expect(limited.endsWith('…')).toBe(true)
   })
+  it('PO 2026-10-08 : consigne Markdown (gras, intertitres ##, liste courte, pas de titre #)', () => {
+    expect(DESCRIPTION_LENGTH_INSTRUCTION).toContain('Rédige en Markdown')
+    expect(DESCRIPTION_LENGTH_INSTRUCTION).toContain('**gras**')
+    expect(DESCRIPTION_LENGTH_INSTRUCTION).toContain('intertitres « ## »')
+    expect(DESCRIPTION_LENGTH_INSTRUCTION).toContain('Pas de titre « # »')
+  })
+
+  it('le compteur ignore les marqueurs Markdown', () => {
+    expect(countWords('## Une brasserie\n\nLa **Brasserie** du Mont Blanc :\n\n- terrasse\n- groupes')).toBe(9)
+  })
+
+  it('la coupe ne laisse pas un intertitre seul en fin de texte', () => {
+    const sentence = 'Une phrase de dix mots pour remplir ce paragraphe ici.'
+    const paragraph = Array.from({ length: 29 }, () => sentence).join(' ')
+    // L'intertitre se termine par « ? » : il forme un segment à part, qui tient dans les 300 mots.
+    const text = `${paragraph}\n\n## Intertitre final ?\n\n${sentence} ${sentence}`
+    const limited = limitToWords(text)
+    expect(limited.endsWith('ici.')).toBe(true)
+    expect(limited).not.toContain('Intertitre final')
+  })
 })

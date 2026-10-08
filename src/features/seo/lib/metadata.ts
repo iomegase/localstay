@@ -13,6 +13,7 @@ import {
 } from '@/features/lodging-showcase/lib/public-paths'
 
 import { SITE } from './site'
+import { markdownToPlainText } from '@/shared/lib/markdown-plain-text'
 
 const MAX_DESCRIPTION = 160
 
@@ -445,7 +446,7 @@ export function discoveryPoiMetadata(
     `${poi.name} à ${poi.city.name}`
 
   const description =
-    truncate(poi.description)
+    truncate(markdownToPlainText(poi.description))
 
   const path =
     `/decouvrir/${poi.city.slug}/${poi.category.slug}/${poi.slug}`

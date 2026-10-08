@@ -43,6 +43,11 @@ Les descriptions générées font 2 à 5 phrases : trop courtes pour une fiche /
   candidats POI et randonnées) peut atteindre 5 000 caractères (markdown : titres, listes) ; compteur sous
   le champ et message « La description dépasse 5 000 caractères. » au lieu de « Invalid input ». Les textes
   générés restent limités à 300 mots.
+- **BR-05** (révision PO 2026-10-08 : « proposer une description Markdown ») : les trois générateurs
+  rédigent en Markdown — **gras** sur 2 à 4 éléments clés, 1 ou 2 intertitres « ## » au-delà de 150 mots,
+  au plus une courte liste ; ni titre « # », ni tableau, lien ou emoji. Le compteur de mots ignore les
+  marqueurs ; la coupe à 300 mots ne laisse pas d'intertitre orphelin. La meta description et le JSON-LD
+  des POI reçoivent le texte sans Markdown.
 - **BR-03**: Les descriptions existantes ne sont pas régénérées automatiquement.
 
 ## Data Model / API Contract

@@ -6,6 +6,7 @@ import type { PublicLodgingCardDto } from '@/features/lodging-showcase/types'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { selectVisibleLodgingPhotos } from '@/features/lodging-showcase/lib/detail-view'
 import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
+import { markdownToPlainText } from '@/shared/lib/markdown-plain-text'
 
 const SCHEMA = 'https://schema.org'
 
@@ -398,7 +399,7 @@ export function localBusinessSchema(
 
     ...(poi.description
       ? {
-          description: poi.description,
+          description: markdownToPlainText(poi.description),
         }
       : {}),
 
@@ -475,7 +476,7 @@ export function touristAttractionSchema(
 
     ...(poi.description
       ? {
-          description: poi.description,
+          description: markdownToPlainText(poi.description),
         }
       : {}),
 
@@ -626,7 +627,7 @@ export function discoveryPoiSchema(
     name: poi.name,
 
     description:
-      poi.description,
+      markdownToPlainText(poi.description),
 
     url: poiUrl(path),
 
