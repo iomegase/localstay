@@ -1,4 +1,4 @@
-import { dumpFileName, dumpDate, expiredDumps, planStorageDownloads } from '../../scripts/backup/lib'
+import { dumpFileName, dumpDate, expiredDumps, planStorageDownloads, waitForNetwork } from '../../scripts/backup/lib'
 
 // Spec 081 — logique de la sauvegarde locale.
 describe('081 AC-01-01 — nom des dumps', () => {
@@ -38,5 +38,33 @@ describe('081 AC-01-02 — copie incrémentale du stockage', () => {
     expect(planStorageDownloads(remote, manifest).map(file => `${file.bucket}/${file.path}`)).toEqual([
       'guide-photos/pois/b.webp', 'qr-codes/c.png',
     ])
+  })
+})
+
+describe('081 BR-06 — attente du réseau', () => {
+  function clock() {
+    let time = 0
+    return { now: () => time, sleep: async (ms: number) => { time += ms } }
+  }
+
+  it('réseau absent au réveil de maintenance, puis disponible : attend et réussit', async () => {
+    const results = [false, false, true]
+    const onWait = jest.fn()
+    const check = jest.fn(async () => results.shift() ?? true)
+    await expect(waitForNetwork(check, { intervalMs: 30_000, maxWaitMs: 600_000, onWait, ...clock() })).resolves.toBe(true)
+    expect(check).toHaveBeenCalledTimes(3)
+    expect(onWait).toHaveBeenCalledTimes(1)
+  })
+
+  it('échec DNS levé = réseau absent ; abandon après le délai maximal', async () => {
+    const check = jest.fn(async () => { throw new Error('ENOTFOUND') })
+    await expect(waitForNetwork(check, { intervalMs: 30_000, maxWaitMs: 90_000, ...clock() })).resolves.toBe(false)
+    expect(check).toHaveBeenCalledTimes(4)
+  })
+
+  it('réseau disponible tout de suite : aucune attente', async () => {
+    const onWait = jest.fn()
+    await expect(waitForNetwork(async () => true, { intervalMs: 30_000, maxWaitMs: 90_000, onWait, ...clock() })).resolves.toBe(true)
+    expect(onWait).not.toHaveBeenCalled()
   })
 })

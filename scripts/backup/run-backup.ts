@@ -6,6 +6,7 @@
  * Lecture seule côté Supabase (BR-01). Lancé par launchd via scripts/backup/backup.sh.
  */
 import { execFile } from 'node:child_process'
+import { lookup } from 'node:dns/promises'
 import { appendFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -16,6 +17,7 @@ import {
   expiredDumps,
   planStorageDownloads,
   storageKey,
+  waitForNetwork,
   type RemoteStorageFile,
   type StorageManifest,
 } from './lib'
@@ -24,6 +26,9 @@ const run = promisify(execFile)
 
 const BACKUP_DIR = process.env.MYSTAY_BACKUP_DIR || join(homedir(), 'Backups', 'mystay')
 const RETENTION_DAYS = Number(process.env.MYSTAY_BACKUP_RETENTION_DAYS || 30)
+// Spec 081 BR-06 : attente du réseau (réveil de maintenance sans réseau à 3 h).
+const NETWORK_WAIT_MS = Number(process.env.MYSTAY_BACKUP_NETWORK_WAIT_MIN || 720) * 60_000
+const NETWORK_CHECK_MS = 30_000
 const DB_DIR = join(BACKUP_DIR, 'db')
 const STORAGE_DIR = join(BACKUP_DIR, 'storage')
 const LOG_DIR = join(BACKUP_DIR, 'logs')
@@ -148,6 +153,28 @@ async function main() {
   await mkdir(STORAGE_DIR, { recursive: true })
   await mkdir(LOG_DIR, { recursive: true })
   await log('Début de la sauvegarde')
+
+  const databaseHost = new URL(requireEnv('DIRECT_URL')).hostname
+  const supabaseHost = new URL(requireEnv('NEXT_PUBLIC_SUPABASE_URL')).hostname
+  const online = await waitForNetwork(
+    async () => {
+      await Promise.all([lookup(databaseHost), lookup(supabaseHost)])
+      return true
+    },
+    {
+      intervalMs: NETWORK_CHECK_MS,
+      maxWaitMs: NETWORK_WAIT_MS,
+      onWait: () => { void log('Réseau indisponible (Mac en veille ?) : attente de la connexion…') },
+    },
+  )
+  if (!online) {
+    const message = `Réseau toujours indisponible après ${Math.round(NETWORK_WAIT_MS / 60_000)} min`
+    await log(`ÉCHEC : ${message}`)
+    await notifyFailure(message)
+    process.exitCode = 1
+    return
+  }
+  await log('Réseau disponible')
 
   const errors: string[] = []
   // Chaque étape est indépendante : un échec du stockage n'empêche pas le dump, et inversement.

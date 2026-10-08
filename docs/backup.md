@@ -13,6 +13,13 @@ Chaque jour à 3 h (rattrapé au réveil du Mac s'il dormait), une tâche launch
 Les identifiants sont lus dans `.env.local` du projet (`DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
 `SUPABASE_SERVICE_ROLE_KEY`). Le script est en lecture seule côté Supabase.
 
+## Mac en veille
+
+À 3 h, si le Mac dort, macOS lance la tâche pendant un bref réveil de maintenance, sans réseau.
+La sauvegarde attend alors la connexion (contrôle toutes les 30 s, jusqu'à 12 h — variable
+`MYSTAY_BACKUP_NETWORK_WAIT_MIN`) et se termine dès que le Mac est réveillé et connecté.
+Le journal indique « Réseau indisponible (Mac en veille ?) : attente de la connexion… ».
+
 ## Commandes
 
 ```bash

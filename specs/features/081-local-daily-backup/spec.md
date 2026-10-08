@@ -49,6 +49,10 @@ Le PO veut une copie locale quotidienne, sans dépendre de Supabase.
 - **BR-01**: Lecture seule côté Supabase : aucune commande destructive, jamais de base fantôme.
 - **BR-02**: Les sauvegardes restent hors du dépôt git (données personnelles).
 - **BR-03**: Les identifiants sont lus depuis `.env.local` du projet, jamais copiés ailleurs.
+- **BR-06** (révision 2026-10-08, incident des 7 et 8 octobre) : à 3 h le Mac en veille lance la tâche
+  pendant un réveil de maintenance sans réseau ; la sauvegarde attend donc que la base et Supabase
+  soient joignables (vérification toutes les 30 s, jusqu'à 12 h, `MYSTAY_BACKUP_NETWORK_WAIT_MIN`) avant
+  de commencer, puis échoue avec notification si le réseau ne revient pas.
 
 ## Data Model / API Contract
 

@@ -48,3 +48,26 @@ export function planStorageDownloads(remote: RemoteStorageFile[], manifest: Stor
     return !known || known.size !== file.size || known.updated_at !== file.updated_at
   })
 }
+
+/**
+ * Spec 081 BR-06 : attend que le réseau réponde (le Mac en veille lance la tâche pendant un
+ * réveil de maintenance, sans réseau). `true` dès que `check` réussit, `false` après `maxWaitMs`.
+ */
+export async function waitForNetwork(
+  check: () => Promise<boolean>,
+  options: { intervalMs: number; maxWaitMs: number; now?: () => number; sleep?: (ms: number) => Promise<void>; onWait?: () => void },
+): Promise<boolean> {
+  const now = options.now ?? Date.now
+  const sleep = options.sleep ?? (ms => new Promise<void>(resolve => setTimeout(resolve, ms)))
+  const deadline = now() + options.maxWaitMs
+  let notified = false
+  for (;;) {
+    if (await check().catch(() => false)) return true
+    if (now() >= deadline) return false
+    if (!notified) {
+      options.onWait?.()
+      notified = true
+    }
+    await sleep(options.intervalMs)
+  }
+}

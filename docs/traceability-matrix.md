@@ -1944,3 +1944,9 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | 077 AC-05-01 | Vignette photo / remplacement dans le choix des coups de cœur | `src/features/guide-customization/lib/poi-thumbnail.ts`<br>`src/features/guide-customization/components/CustomizationForm.tsx`<br>`src/app/(dashboard)/dashboard/lodgings/[id]/customize/page.tsx` | `tests/unit/owner-poi-thumbnails.resolve.test.ts`<br>`tests/integration/owner-poi-thumbnails.favorites.test.tsx` | ✅ done |
+
+## 081 — Révision 2026-10-08 (attente du réseau)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| 081 BR-06 | Attente du réseau avant sauvegarde (réveil de maintenance sans réseau) | `scripts/backup/lib.ts`<br>`scripts/backup/run-backup.ts`<br>`docs/backup.md` | `tests/unit/local-daily-backup.AC-01.lib.test.ts` | ✅ done |
