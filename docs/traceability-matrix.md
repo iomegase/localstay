@@ -1996,3 +1996,5 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 |---|---|---|---|---|
 | 018 BR-R1 / BR-R2 | Résultat Mapbox dans la zone préféré, recherche locale 30 km, commune seule → à vérifier | `src/features/geocoding/services/mapbox-client.ts`<br>`src/features/geocoding/types.ts`<br>`src/features/poi-acquisition/lib/geocode.ts` | `tests/unit/geocode-homonyms.test.ts` | ✅ done |
 | 019 BR-R4 | Descriptions : candidats sans description seulement, tracés d'abord, 12 en parallèle ; IGN 60 s | `src/features/trails-acquisition/services/gemini-trails.ts`<br>`src/features/trails-acquisition/lib/import-budget.ts`<br>`src/features/trails-acquisition/services/run-orchestrator.ts` | `tests/unit/trails-completeness.descriptions.test.ts`<br>`tests/integration/trails-acquisition.AC-01-06-07.bounded-sources.test.ts` | ✅ done |
+
+| 054 AC-01-02 | « Bienvenue aux Hauts de… » : « aux » reconnu avant « au » (correctif 2026-10-08) | `src/features/guide-app/components/stay/GuideStayHome.tsx` | `tests/unit/guide-welcome-split.test.ts` | ✅ done |

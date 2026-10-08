@@ -34,7 +34,8 @@ import { useGuideI18n } from "@/features/guide-i18n/components/GuideI18nContext"
 /** « Le 305 » → { lead: « Bienvenue au », name: « 305 » } (spec 054 AC-01-02). */
 export function splitWelcome(name: string): { lead: string; name: string } {
   const reference = formatFrenchPlaceReference(name);
-  const match = reference.match(/^(au|aux|à la|à l['’"]|à)\s*(.*)$/);
+  // « aux » avant « au » et article suivi d'un espace : « aux Hauts… » ne doit pas donner « au » + « x Hauts… ».
+  const match = reference.match(/^(aux(?=\s)|au(?=\s)|à la(?=\s)|à l['’"]|à(?=\s))\s*(.*)$/);
   if (!match) return { lead: "Bienvenue", name };
   const elided = /['’"]$/.test(match[1]);
   return {
