@@ -243,7 +243,7 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                   <img 
                                     src={poi.primary_photo_url} 
                                     alt="" 
-                                    className="h-8 w-12 shrink-0 rounded-md object-cover border border-gray-100 shadow-sm" 
+                                    className="h-[100px] w-[100px] shrink-0 rounded-xl object-cover border border-gray-100 shadow-sm" 
                                   />
                                 ) : (
                                   // Spec 070 : sans photo, l'image de remplacement (comme sur le site public), repérée par une pastille.
@@ -253,10 +253,10 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
                                       src={poi.fallback_photo_url}
                                       alt=""
                                       data-testid="admin-poi-fallback-thumb"
-                                      className="h-8 w-12 rounded-md border border-dashed border-gray-300 object-cover opacity-80"
+                                      className="h-[100px] w-[100px] rounded-xl border border-dashed border-gray-300 object-cover opacity-80"
                                     />
-                                    <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-white text-gray-500 shadow-sm">
-                                      <ImageIcon size={9} strokeWidth={2} aria-hidden="true" />
+                                    <span className="absolute bottom-1.5 right-1.5 grid h-6 w-6 place-items-center rounded-full bg-white text-gray-500 shadow-sm">
+                                      <ImageIcon size={13} strokeWidth={2} aria-hidden="true" />
                                     </span>
                                   </span>
                                 )}
