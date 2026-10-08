@@ -11,22 +11,32 @@ function toTemplate(row: { id: string; title: string; icon: string; body: string
   return { ...row, status: row.status as EquipmentTemplateStatus, created_at: row.created_at.toISOString() }
 }
 
+type EquipmentTemplateDraft = { title: string; title_key: string; icon: string; body: string | null; source_lodging_id: string }
+
 /**
- * Spec 095 AC-02-01 / AC-02-02 : chaque équipement enregistré dont le nom est nouveau entre « à
- * valider » (nom, icône, texte — ni photo ni vidéo) ; un nom connu n'est ni dupliqué ni écrasé.
+ * Spec 095 AC-02-01 / AC-02-02 / AC-02-04 : équipements à proposer « à valider » (nom, icône, texte —
+ * ni photo ni vidéo), un par nom ; les noms déjà connus (`knownKeys`) et le tri des déchets sont ignorés.
  */
-export async function captureEquipmentTemplates(
-  lodgingId: string,
-  blocks: Array<{ title: string; icon: string; body: string | null }>,
-): Promise<number> {
-  const seen = new Set<string>()
-  const data = blocks.flatMap(block => {
+export function planEquipmentTemplates(
+  blocks: Array<{ lodgingId: string; title: string; icon: string; body: string | null }>,
+  knownKeys: ReadonlySet<string> = new Set(),
+): EquipmentTemplateDraft[] {
+  const seen = new Set<string>(knownKeys)
+  return blocks.flatMap(block => {
     const title = block.title.trim()
     const key = equipmentTitleKey(title)
     if (!key || block.icon === RECYCLING_ICON || seen.has(key)) return []
     seen.add(key)
-    return [{ title, title_key: key, icon: block.icon, body: block.body?.trim() || null, source_lodging_id: lodgingId }]
+    return [{ title, title_key: key, icon: block.icon, body: block.body?.trim() || null, source_lodging_id: block.lodgingId }]
   })
+}
+
+/** Spec 095 AC-02-01 / AC-02-02 : un nom connu n'est ni dupliqué ni écrasé (contrainte unique). */
+export async function captureEquipmentTemplates(
+  lodgingId: string,
+  blocks: Array<{ title: string; icon: string; body: string | null }>,
+): Promise<number> {
+  const data = planEquipmentTemplates(blocks.map(block => ({ ...block, lodgingId })))
   if (data.length === 0) return 0
   const { count } = await prisma.equipmentTemplate.createMany({ data, skipDuplicates: true })
   return count

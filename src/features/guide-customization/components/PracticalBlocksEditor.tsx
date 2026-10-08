@@ -19,11 +19,11 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Label } from '@/shared/components/ui/label'
-import { Input } from '@/shared/components/ui/input'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ImageUpload } from '@/shared/components/ImageUpload'
 import { MarkdownHint } from '@/shared/components/MarkdownHint'
 import { YouTubeUrlField } from './YouTubeUrlField'
+import { EquipmentNameField } from './EquipmentNameField'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import {
   PRACTICAL_BLOCK_ICONS,
@@ -69,6 +69,12 @@ export function PracticalBlocksEditor({ value, onChange, lodgingId, errors = {},
     ])
     setSelected(new Set())
     setLibraryOpen(false)
+  }
+
+  // Spec 095 AC-04-03 : pour le champ Nom, équipements validés absents des AUTRES équipements.
+  function nameOptionsFor(index: number): EquipmentTemplate[] {
+    const otherKeys = new Set(value.filter((_, i) => i !== index).map(block => equipmentTitleKey(block.title)))
+    return library.filter(template => !otherKeys.has(equipmentTitleKey(template.title)))
   }
 
   // id stable pour DndContext : évite le mismatch d'hydratation SSR/client sur
@@ -192,6 +198,7 @@ export function PracticalBlocksEditor({ value, onChange, lodgingId, errors = {},
                 onUpdate={updateBlock}
                 onRemove={removeBlock}
                 titleError={errors[`${index}.title`]}
+                nameOptions={nameOptionsFor(index)}
               />
             ))}
           </div>
@@ -208,8 +215,10 @@ function SortableBlockRow({
   onUpdate,
   onRemove,
   titleError,
+  nameOptions,
 }: {
   titleError?: string
+  nameOptions: EquipmentTemplate[]
   block: PracticalBlockInput
   index: number
   lodgingId: string
@@ -248,15 +257,18 @@ function SortableBlockRow({
         </button>
       </div>
 
-      <Input
+      <EquipmentNameField
         id={`block-title-${index}`}
         value={block.title}
-        maxLength={120}
-        placeholder="Ex. Machine à café, Télévision, Lave-linge…"
-        aria-invalid={titleError ? true : undefined}
-        data-field-error={titleError ? '' : undefined}
-        className={titleError ? 'border-rose-400 focus-visible:ring-rose-400' : undefined}
-        onChange={event => onUpdate(index, { title: event.target.value })}
+        options={nameOptions}
+        error={titleError}
+        onChange={title => onUpdate(index, { title })}
+        // Le texte de la bibliothèque ne remplace jamais un texte déjà saisi.
+        onPick={template => onUpdate(index, {
+          title: template.title,
+          icon: template.icon,
+          ...(block.body?.trim() ? {} : { body: template.body }),
+        })}
       />
       {titleError ? <p className="text-xs font-semibold text-rose-600">{titleError}</p> : null}
 

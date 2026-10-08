@@ -10,6 +10,7 @@ mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-08
 updated_at: 2026-10-08
+amended: "PO 2026-10-08 : select sur le nom (AC-04-03) + reprise des équipements existants à valider (AC-02-04)"
 depends_on:
   - 077-owner-lodgings-guide-ui
   - 082-lodging-faq-library
@@ -35,6 +36,9 @@ réécrit de zéro alors que beaucoup sont communs à tous les logements.
   valider » avec son nom, son icône et son texte (ni photo ni vidéo), sans bloquer l'enregistrement.
 - **AC-02-02**: Un nom déjà présent (validé, à valider ou refusé) n'est jamais ajouté deux fois ni
   écrasé. Le tri des déchets (icône `recycle`) n'est pas un équipement et n'est pas ajouté.
+- **AC-02-04** (PO 2026-10-08) : une reprise unique (`scripts/backfill-equipment-library.ts`, dry-run
+  par défaut, `--apply` pour écrire) verse les équipements déjà saisis des logements dans la
+  bibliothèque « à valider », selon les mêmes règles qu'AC-02-01/02.
 
 ### US-03 — Validation par l'admin
 - **AC-03-01**: Given `/admin/equipment-library`, When l'admin l'ouvre, Then il voit les équipements
@@ -46,6 +50,11 @@ réécrit de zéro alors que beaucoup sont communs à tous les logements.
 - **AC-04-01**: Given la section Équipements, When l'Owner clique « Ajouter depuis la bibliothèque »,
   Then les équipements validés absents de son logement (même nom) s'affichent avec case à cocher,
   icône et début du texte, et « Ajouter (N) ».
+- **AC-04-03** (PO 2026-10-08) : le champ « Nom de l'équipement » est une liste déroulante avec
+  recherche : au focus (ou via le chevron) il liste les équipements validés absents des autres
+  équipements du logement, filtrés par le texte saisi ; choisir une entrée remplit le nom et l'icône,
+  et le texte uniquement s'il est vide (aucun texte saisi n'est écrasé). La saisie d'un nom libre
+  reste possible. Sans bibliothèque validée, le champ reste un simple champ texte.
 - **AC-04-02**: Les équipements ajoutés sont des copies : l'Owner les modifie ou supprime librement ;
   la bibliothèque n'est pas modifiée par ces changements.
 
@@ -84,8 +93,8 @@ model EquipmentTemplate {
 AC-01-01 à AC-04-02, BR-01 à BR-03.
 
 ## Out of Scope
-Traduction des modèles ; reprise automatique des équipements existants dans la bibliothèque (seuls
-les enregistrements à partir de maintenant l'alimentent) ; photos de bibliothèque.
+Traduction des modèles ; photos de bibliothèque ; validation automatique des équipements repris
+(AC-02-04 : ils restent « à valider »).
 
 ## Open Questions
 Aucune.
