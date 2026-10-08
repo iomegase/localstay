@@ -3,6 +3,7 @@ import { fetchOfficialWebsiteTrailCandidates } from './official-website'
 import { fetchCamptocampTrails } from './camptocamp'
 import { enrichCandidatesWithIgn } from './ign'
 import { enrichCandidatesWithDuration } from './ors'
+import { enrichCandidatesWithCamptocampPhotos } from './camptocamp-photos'
 import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extractStartLabelFromDescription } from './gemini-trails'
 import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
@@ -122,6 +123,8 @@ export async function collectTrailCandidatesFromSources(
   // Gemini ensuite avec leur propre délai ; le géocodage du départ dépend de ces descriptions.
   if (input.sourceTypes.includes('ign')) await enrich('ign', (items, signal) => enrichCandidatesWithIgn(items, signal), IMPORT_IGN_TIMEOUT_MS)
   await enrich('duration', (items, signal) => enrichCandidatesWithDuration(items, signal))
+  // Spec 019 AC-02-09 : photos Camptocamp des randonnées qui n'en ont pas.
+  await enrich('photos', (items, signal) => enrichCandidatesWithCamptocampPhotos(items, input.city, signal))
   if (input.sourceTypes.includes('gemini')) {
     await enrich('gemini_descriptions', (items, signal) => enrichCandidatesWithGeminiDescriptions(items, input.city, signal), IMPORT_DESCRIPTION_TIMEOUT_MS)
   }
@@ -137,7 +140,9 @@ const OVERPASS_FALLBACK_ENDPOINTS = [
   'https://overpass.private.coffee/api/interpreter',
 ]
 
-const TRANSIENT_HTTP_STATUSES = new Set([429, 502, 503, 504])
+// 2026-10-08 : un 500 du serveur principal arrêtait tout sans essayer les secours ; seule une requête
+// invalide (400) est définitive, tout autre échec passe au serveur suivant.
+const DEFINITIVE_HTTP_STATUSES = new Set([400])
 
 async function fetchOverpassPayload(input: RunSourceInput, signal: AbortSignal): Promise<OverpassPayload> {
   const primary = process.env.OVERPASS_API_URL
@@ -165,14 +170,15 @@ async function fetchOverpassPayload(input: RunSourceInput, signal: AbortSignal):
       signal.throwIfAborted()
       lastError = error instanceof Error ? error : new Error(String(error))
       const status = readStatus(lastError)
-      const isTransient = status === null || TRANSIENT_HTTP_STATUSES.has(status)
+      const isTransient = status === null || !DEFINITIVE_HTTP_STATUSES.has(status)
       const hasNextEndpoint = i < endpoints.length - 1
       if (!isTransient || !hasNextEndpoint) break
       await delay(500 * (i + 1))
     }
   }
 
-  throw lastError ?? new Error('Overpass failed')
+  const reason = lastError?.message ?? 'Overpass failed'
+  throw new Error(`OpenStreetMap indisponible (serveurs Overpass publics en échec : ${reason}) — relancez plus tard`)
 }
 
 async function postOverpass(endpoint: string, query: string, signal: AbortSignal): Promise<OverpassPayload> {

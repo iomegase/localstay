@@ -105,6 +105,7 @@ function expectExactIndexQuery(call: unknown) {
     'latitude', 'longitude', 'name', 'phone', 'photos', 'rating', 'rating_count',
     'slug', 'subcategory', 'subcategory_id', 'website', 'city',
     'fallback_image', // spec 070 : image de remplacement attribuée (url, deleted_at)
+    'trail_detail', // PO 2026-10-08 : seule la date de suppression (randonnée sans contact ni adresse)
   ].sort())
   expect(Object.keys((args.select.city as { select: object }).select).sort()).toEqual([
     'deleted_at', 'department', 'id', 'is_active', 'latitude', 'longitude',

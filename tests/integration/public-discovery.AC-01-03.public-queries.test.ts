@@ -123,8 +123,10 @@ function expectExactPrismaContract(call: unknown, detail: boolean) {
     'latitude', 'longitude', 'name', 'phone', 'photos', 'rating', 'rating_count',
     'slug', 'subcategory', 'subcategory_id', 'website', 'city',
     'fallback_image', // spec 070 : image de remplacement attribuée (url, deleted_at)
+    'trail_detail', // PO 2026-10-08 : seule la date de suppression (randonnée sans contact ni adresse)
   ]
   expect(Object.keys(args.where).sort()).toEqual(whereKeys.sort())
+  expect(args.select.trail_detail).toEqual({ select: { deleted_at: true } })
   expect(Object.keys(args.select).sort()).toEqual([
     ...listSelectKeys,
     ...(detail ? ['hours', 'description_sources'] : []), // spec 094 : sources de la description

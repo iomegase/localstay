@@ -56,6 +56,7 @@ export const poiDiscoveryEligibilitySelect = {
   subcategory: {
     select: { id: true, slug: true, is_active: true, deleted_at: true },
   },
+  trail_detail: { select: { deleted_at: true } },
 } satisfies Prisma.PointOfInterestSelect
 
 type PoiDiscoveryRow = Prisma.PointOfInterestGetPayload<{

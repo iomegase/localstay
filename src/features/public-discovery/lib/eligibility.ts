@@ -19,6 +19,8 @@ type EligibilityInput = {
   city: { is_active: boolean; deleted_at: Date | null }
   category: { is_active: boolean; deleted_at: Date | null }
   subcategory: { is_active: boolean; deleted_at: Date | null } | null
+  /** Randonnée (fiche sentier active) : ni contact ni adresse exigés (PO 2026-10-08). */
+  trail_detail?: { deleted_at: Date | null } | null
 }
 
 export function getPoiDiscoveryEligibility(input: EligibilityInput): PoiDiscoveryEligibility {
@@ -37,7 +39,10 @@ export function getPoiDiscoveryEligibility(input: EligibilityInput): PoiDiscover
   ) {
     missing.push('photo')
   }
-  if (!input.address.trim()) missing.push('address')
+  // PO 2026-10-08 : une randonnée n'a ni téléphone, ni site, ni adresse postale ; seul son départ
+  // géolocalisé compte.
+  const isTrail = Boolean(input.trail_detail && !input.trail_detail.deleted_at)
+  if (!isTrail && !input.address.trim()) missing.push('address')
   if (
     input.geocode_status !== 'success'
     || !isValidLatitude(input.latitude)
@@ -45,7 +50,7 @@ export function getPoiDiscoveryEligibility(input: EligibilityInput): PoiDiscover
   ) {
     missing.push('geocode')
   }
-  if (!input.phone?.trim() && !isHttpUrl(input.website)) missing.push('contact')
+  if (!isTrail && !input.phone?.trim() && !isHttpUrl(input.website)) missing.push('contact')
 
   return { eligible: missing.length === 0, missing }
 }

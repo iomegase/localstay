@@ -689,6 +689,10 @@ aux réponses de l'API de publication. Les automatisations sans utilisateur
 
 ### Révision PO 2026-10-08
 
+- **AC-09-02**: Une randonnée (fiche sentier active) est publiable sans téléphone, site web ni adresse
+  postale ; départ géolocalisé, description et photo (ou texte long) restent exigés. Les autres lieux
+  gardent l'exigence d'adresse et de contact.
+
 - **AC-09-01**: Sur la fiche d'un POI, la carte (statique, zoom 17) est placée dans la colonne d'infos,
   sous les horaires, au format carré ; la section carte pleine largeur sous la fiche est supprimée.
 

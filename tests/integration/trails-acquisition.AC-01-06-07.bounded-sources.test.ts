@@ -4,6 +4,7 @@ const mockGemini = jest.fn()
 const mockDescriptions = jest.fn()
 const mockGeocode = jest.fn()
 const mockDuration = jest.fn()
+const mockPhotos = jest.fn()
 jest.mock('@/features/trails-acquisition/services/camptocamp', () => ({ fetchCamptocampTrails: (...args: unknown[]) => mockC2c(...args) }))
 jest.mock('@/features/trails-acquisition/services/ign', () => ({ enrichCandidatesWithIgn: (...args: unknown[]) => mockIgn(...args) }))
 jest.mock('@/features/trails-acquisition/services/gemini-trails', () => ({
@@ -13,6 +14,7 @@ jest.mock('@/features/trails-acquisition/services/gemini-trails', () => ({
 }))
 jest.mock('@/features/trails-acquisition/services/start-geocoding', () => ({ enrichCandidatesWithStartGeocoding: (...args: unknown[]) => mockGeocode(...args) }))
 jest.mock('@/features/trails-acquisition/services/ors', () => ({ enrichCandidatesWithDuration: (...args: unknown[]) => mockDuration(...args) }))
+jest.mock('@/features/trails-acquisition/services/camptocamp-photos', () => ({ enrichCandidatesWithCamptocampPhotos: (...args: unknown[]) => mockPhotos(...args) }))
 import { collectTrailCandidatesFromSources, type RunSourceResult } from '@/features/trails-acquisition/services/run-orchestrator'
 import { IMPORT_IGN_TIMEOUT_MS, IMPORT_WORK_BUDGET_MS, runWithDeadline } from '@/features/trails-acquisition/lib/import-budget'
 
@@ -23,7 +25,7 @@ beforeEach(() => {
   jest.useFakeTimers()
   mockC2c.mockResolvedValue([candidate])
   mockGemini.mockResolvedValue([])
-  for (const mock of [mockIgn, mockDescriptions, mockGeocode, mockDuration]) mock.mockResolvedValue({ errors: 0 })
+  for (const mock of [mockIgn, mockDescriptions, mockGeocode, mockDuration, mockPhotos]) mock.mockResolvedValue({ errors: 0 })
 })
 afterEach(() => jest.useRealTimers())
 it('persists discovery before IGN starts and retains partial enrichment on timeout', async () => {
@@ -95,6 +97,7 @@ it('skips all expired phases without repeatedly writing checkpoints', async () =
   expect(mockDescriptions).not.toHaveBeenCalled()
   expect(mockGeocode).not.toHaveBeenCalled()
   expect(mockDuration).not.toHaveBeenCalled()
+  expect(mockPhotos).not.toHaveBeenCalled()
   expect(result.source_errors).toEqual(expect.objectContaining({ ign: expect.stringContaining('Budget'), duration: expect.stringContaining('Budget') }))
 })
 
@@ -132,6 +135,46 @@ it('2026-10-08 : durée calculée avant les descriptions Gemini, qui ont leur pr
   await jest.advanceTimersByTimeAsync(61_000)
   const result = await promise
   expect(order).toEqual(['duration', 'descriptions'])
+  expect(mockPhotos).toHaveBeenCalled()
   expect(result.source_errors.gemini_descriptions).toBeUndefined()
+})
+
+it('2026-10-08 : un 500 du serveur Overpass principal fait essayer le serveur de secours', async () => {
+  const originalFetch = global.fetch
+  const originalEndpoint = process.env.OVERPASS_API_URL
+  process.env.OVERPASS_API_URL = 'https://overpass.example/api/interpreter'
+  const fetchMock = jest.fn()
+    .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
+    .mockResolvedValueOnce({ ok: true, json: async () => ({ elements: [{ type: 'way', id: 1, tags: { route: 'hiking', name: 'Sentier test' }, geometry: [{ lat: 45, lon: 6 }, { lat: 45.001, lon: 6.001 }] }] }) })
+  global.fetch = fetchMock
+  try {
+    const promise = collectTrailCandidatesFromSources({ city, sourceTypes: ['overpass'] })
+    await jest.advanceTimersByTimeAsync(2_000)
+    const result = await promise
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(result.candidates).toHaveLength(1)
+    expect(result.source_errors.overpass).toBeUndefined()
+  } finally {
+    global.fetch = originalFetch
+    if (originalEndpoint === undefined) delete process.env.OVERPASS_API_URL
+    else process.env.OVERPASS_API_URL = originalEndpoint
+  }
+})
+
+it('2026-10-08 : tous les serveurs Overpass en échec → message explicite', async () => {
+  const originalFetch = global.fetch
+  const originalEndpoint = process.env.OVERPASS_API_URL
+  process.env.OVERPASS_API_URL = 'https://overpass.example/api/interpreter'
+  global.fetch = jest.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })) as unknown as typeof fetch
+  try {
+    const promise = collectTrailCandidatesFromSources({ city, sourceTypes: ['overpass'] })
+    await jest.advanceTimersByTimeAsync(5_000)
+    const result = await promise
+    expect(result.source_errors.overpass).toMatch(/^OpenStreetMap indisponible .*HTTP 500.*relancez plus tard$/)
+  } finally {
+    global.fetch = originalFetch
+    if (originalEndpoint === undefined) delete process.env.OVERPASS_API_URL
+    else process.env.OVERPASS_API_URL = originalEndpoint
+  }
 })
 

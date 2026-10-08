@@ -798,6 +798,15 @@ components:
   candidats sans description (un candidat déjà décrit n'est plus réécrit pour son seul lieu de départ),
   tracés d'abord, 12 en parallèle ; dénivelé IGN : 60 s. Mesure avant / après sur 35 tracés OSM :
   descriptions 0 → 32, dénivelé 31 → 35, run 190 s.
+- **AC-02-09** (PO 2026-10-08 : « les POI rando n'ont majoritairement pas de photos ») : étape
+  « photos » après la durée, pour les candidats sans photo — itinéraire Camptocamp : photos de ses lieux
+  associés (3 au plus) ; autre source : lieu Camptocamp de même nom (identique, ou inclus avec au moins
+  deux mots) à 10 km au plus du départ ; 8 photos au plus, créditées (CC-BY-SA, page source). Mesuré sur
+  run réel : 3 → 21 randonnées sur 34 (prototype), Camptocamp 17 → 32 sur 38. La récupération du
+  30/09 (galeries d'offices de tourisme, Geotrek) était une opération ponctuelle, effacée par la
+  réinitialisation de la base du 06/10 ; elle n'est pas reconduite (droits des galeries non vérifiés).
+- **BR-R5**: Overpass : seule une requête invalide (400) est définitive ; toute autre erreur fait essayer
+  le serveur suivant. Échec de tous les serveurs : « OpenStreetMap indisponible … relancez plus tard ».
 
 ## Out of Scope
 

@@ -24,6 +24,11 @@ export function extractTrailPhotos(rawPayload: unknown): TrailPhoto[] {
   const documentType = rawPayload.type === 'o' ? 'outings' : 'routes'
   const sourceUrl = typeof rawPayload.source_url === 'string' ? rawPayload.source_url
     : `https://www.camptocamp.org/${documentType}/${rawPayload.document_id ?? ''}`
+  return camptocampImagePhotos(images, sourceUrl)
+}
+
+/** Images Camptocamp (`associations.images`) → photos créditées (CC-BY-SA). */
+export function camptocampImagePhotos(images: unknown[], sourceUrl: string): TrailPhoto[] {
   return dedupeTrailPhotos(images.flatMap(image => {
     if (!isRecord(image) || typeof image.filename !== 'string' || !/^[\w.-]+$/.test(image.filename)) return []
     const author = typeof image.author === 'string' ? image.author : ''

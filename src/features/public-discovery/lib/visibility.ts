@@ -26,6 +26,7 @@ type VisibilityCandidate = {
   deleted_at: Date | null
   geocode_status: string
   subcategory_id: string | null
+  trail_detail?: { deleted_at: Date | null } | null
   city: {
     slug: string
     latitude: number
@@ -111,6 +112,7 @@ export function getDiscoveryPoiVisibility(
     city: candidate.city,
     category: candidate.category,
     subcategory: candidate.subcategory,
+    trail_detail: candidate.trail_detail ?? null,
   })
   if (!eligibility.eligible) return null
 

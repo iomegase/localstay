@@ -86,6 +86,8 @@ const discoveryPoiListSelect = {
       deleted_at: true,
     },
   },
+  // PO 2026-10-08 : randonnée → ni contact ni adresse exigés.
+  trail_detail: { select: { deleted_at: true } },
 } satisfies Prisma.PointOfInterestSelect
 
 const discoveryPoiDetailSelect = {
