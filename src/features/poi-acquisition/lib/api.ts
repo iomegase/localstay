@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { apiError, validationError } from '@/features/merchant/lib/responses'
 import { messageForPoiAcquisitionCode, PoiAcquisitionError } from './errors'
+import { DESCRIPTION_MAX_CHARS } from '@/shared/lib/description-length'
 
 export const AcquisitionRunCreateSchema = z.object({
   city_id: z.string().min(1),
@@ -31,7 +32,7 @@ export const CandidateUpdateSchema = z.object({
   address: z.string().trim().min(5).max(255).optional(),
   phone: z.string().trim().max(40).nullable().optional(),
   website: z.string().trim().url().nullable().optional(),
-  description: z.string().trim().max(2000).nullable().optional(),
+  description: z.string().trim().max(DESCRIPTION_MAX_CHARS).nullable().optional(),
   category_id: z.string().uuid().optional(),
   subcategory_id: z.string().uuid().nullable().optional(),
 }).strict()

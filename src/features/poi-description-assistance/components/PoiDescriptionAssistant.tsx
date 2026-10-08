@@ -6,6 +6,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { DescriptionSuggestionSchema, type DescriptionSuggestion } from '../lib/contracts'
+import { countWords, DESCRIPTION_MAX_CHARS, DESCRIPTION_MAX_WORDS } from '@/shared/lib/description-length'
 
 type Props = {
   poiId: string
@@ -72,7 +73,9 @@ export function PoiDescriptionAssistant({ poiId, disabled, identityDirty, onAcce
   }
 
   const blocked = disabled || identityDirty
-  const validDraft = draft.trim().length > 0 && draft.trim().length <= 2000
+  // Spec 093 AC-02 : 300 mots au maximum.
+  const draftWords = countWords(draft)
+  const validDraft = draftWords > 0 && draftWords <= DESCRIPTION_MAX_WORDS && draft.trim().length <= DESCRIPTION_MAX_CHARS
 
   return (
     <div className="space-y-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">
@@ -91,8 +94,8 @@ export function PoiDescriptionAssistant({ poiId, disabled, identityDirty, onAcce
         <section aria-label="Relecture de la description proposée" className="space-y-3 border-t border-indigo-100 pt-4">
           <p className="text-sm font-semibold text-indigo-900">{suggestion.source_mode === 'official_website' ? 'À partir du site officiel' : 'À partir de sources web'}</p>
           <Label htmlFor={id}>Proposition à relire</Label>
-          <Textarea id={id} value={draft} onChange={event => setDraft(event.target.value)} rows={6} aria-describedby={`${id}-length`} />
-          <p id={`${id}-length`} className={validDraft ? 'text-xs text-slate-500' : 'text-xs text-red-700'}>{draft.trim().length} / 2 000 caractères</p>
+          <Textarea id={id} value={draft} onChange={event => setDraft(event.target.value)} rows={12} aria-describedby={`${id}-length`} />
+          <p id={`${id}-length`} className={validDraft ? 'text-xs text-slate-500' : 'text-xs text-red-700'}>{draftWords} / {DESCRIPTION_MAX_WORDS} mots</p>
           <div className="space-y-1 text-sm">
             <p className="font-semibold text-slate-700">Sources à vérifier</p>
             <ul className="list-inside list-disc space-y-1">

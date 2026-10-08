@@ -74,9 +74,20 @@ it('AC-04: hides provider errors and reports unavailable configuration', async (
   await expect(generatePoiDescription(identity)).rejects.toMatchObject({ code: 'DESCRIPTION_SERVICE_UNAVAILABLE' })
 })
 
-it.each(['Une seule phrase.', 'Un. Deux. Trois. Quatre. Cinq. Six.'])('AC-04: rejects descriptions outside the 2–5 sentence contract', async description => {
-  mockGenerate.mockResolvedValue(generated({ description }))
+it('AC-04: rejects a single-sentence description', async () => {
+  mockGenerate.mockResolvedValue(generated({ description: 'Une seule phrase.' }))
   await expect(generatePoiDescription({ ...identity, website: source.source_url })).rejects.toMatchObject({ code: 'DESCRIPTION_GENERATION_FAILED' })
+})
+
+it('spec 093 AC-02 / AC-04 : texte développé accepté, coupé à la dernière phrase sous 300 mots', async () => {
+  const sentence = 'Cette adresse accueille les visiteurs dans un cadre chaleureux au cœur du village alpin.'
+  const long = Array.from({ length: 30 }, () => sentence).join(' ')
+  mockGenerate.mockResolvedValue(generated({ description: long }))
+  const result = await generatePoiDescription({ ...identity, website: source.source_url })
+  const words = result.description.split(/\s+/).length
+  expect(words).toBeLessThanOrEqual(300)
+  expect(words).toBeGreaterThan(250)
+  expect(result.description.endsWith('alpin.')).toBe(true)
 })
 
 it.each([429, 503])('AC-04: maps provider unavailability %s to a retryable service error', async status => {

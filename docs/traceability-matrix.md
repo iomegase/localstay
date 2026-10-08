@@ -1957,3 +1957,12 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | 073 BR-05 / BR-06 | Résultats Google > 30 km écartés ; géocodage > 30 km toujours `rejected` | `src/features/poi-acquisition/lib/google-places.ts`<br>`src/features/poi-acquisition/lib/geocode.ts`<br>`src/features/geocoding/services/geo-validator.ts` | `tests/unit/poi-acquisition.zone-filter.test.ts` | ✅ done |
+
+## 093 — Descriptions plus développées (120 à 300 mots)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| BR-01 / BR-02 / AC-04 | Consigne commune, coupe à la dernière phrase sous 300 mots, 2 500 caractères | `src/shared/lib/description-length.ts`<br>`src/features/admin-pois/lib/admin-poi-rules.ts`<br>`src/features/poi-acquisition/lib/api.ts`<br>`src/features/trails-acquisition/schemas.ts` | `tests/unit/longer-descriptions.AC-01-04.length.test.ts` | ✅ done |
+| AC-01 | Acquisition POI | `src/features/poi-acquisition/queries/runs.ts` | `tests/unit/longer-descriptions.AC-01.acquisition.test.ts` | ✅ done |
+| AC-02 | « Proposer une description » + compteur « n / 300 mots » | `src/features/poi-description-assistance/services/generate-description.ts`<br>`src/features/poi-description-assistance/lib/contracts.ts`<br>`src/features/poi-description-assistance/components/PoiDescriptionAssistant.tsx` | `tests/unit/poi-description-assistance.AC-01-04.generation.test.ts`<br>`tests/integration/poi-description-assistance.AC-05-07.review.test.tsx` | ✅ done |
+| AC-03 | Description d'une randonnée | `src/features/trails-acquisition/services/gemini-trails.ts` | `tests/unit/longer-descriptions.AC-03.trails.test.ts` | ✅ done |

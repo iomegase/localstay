@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI, type Tool } from '@google/generative-ai'
 import { z } from 'zod'
 import { rejectGeminiGeoMetrics } from '../lib/source-policy'
+import { DESCRIPTION_LENGTH_INSTRUCTION, DESCRIPTION_MAX_CHARS, limitToWords } from '@/shared/lib/description-length'
 
 export type GeminiTrailDiscovery = {
   title: string
@@ -26,7 +27,8 @@ const DiscoverySchema = z.object({
 })
 
 const DescriptionSchema = z.object({
-  description: z.string().min(20).max(600),
+  // Spec 093 : marge avant la coupe à 300 mots (AC-03 / AC-04).
+  description: z.string().min(20).max(DESCRIPTION_MAX_CHARS * 2),
   start_label: z.string().min(2).max(120).nullable().optional(),
 })
 
@@ -104,7 +106,7 @@ Cherche sur visorando.com, altituderando.com, camptocamp.org, l'office de touris
 IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, sans markdown, sans backticks. Structure exacte :
 
 {
-  "description": "Description éditoriale 2-4 phrases riches : paysages traversés, intérêt (sommet, lac, alpage, refuge), difficulté générale, période favorable. Synthèse factuelle des sources trouvées.",
+  "description": "Description éditoriale : paysages traversés, intérêt (sommet, lac, alpage, refuge), difficulté générale, période favorable. Synthèse factuelle des sources trouvées. ${DESCRIPTION_LENGTH_INSTRUCTION} Paragraphes séparés par \\n\\n dans la chaîne JSON.",
   "start_label": "Lieu/hameau/parking de départ d'après les sources (ex: 'Parking du Bettex'). null si introuvable."
 }
 
@@ -117,7 +119,7 @@ Ne fournis aucune coordonnée GPS, distance, durée, dénivelé ou métrique gé
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
   return {
-    description: parsed.data.description,
+    description: limitToWords(parsed.data.description),
     start_label: parsed.data.start_label ?? null,
   }
 }

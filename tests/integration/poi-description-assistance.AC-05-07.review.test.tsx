@@ -147,8 +147,12 @@ it('prevents accepting a proposal after identity edits and rejects invalid draft
   const draft = await generate()
   fireEvent.change(draft, { target: { value: ' ' } })
   expect(screen.getByRole('button', { name: 'Utiliser cette proposition' })).toBeDisabled()
-  fireEvent.change(draft, { target: { value: 'x'.repeat(2001) } })
+  // Spec 093 AC-02 : au-delà de 300 mots, refusé.
+  fireEvent.change(draft, { target: { value: Array.from({ length: 301 }, () => 'mot').join(' ') } })
+  expect(screen.getByText('301 / 300 mots')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Utiliser cette proposition' })).toBeDisabled()
+  fireEvent.change(draft, { target: { value: Array.from({ length: 300 }, () => 'mot').join(' ') } })
+  expect(screen.getByRole('button', { name: 'Utiliser cette proposition' })).toBeEnabled()
   fireEvent.change(draft, { target: { value: 'Texte corrigé.' } })
   fireEvent.change(screen.getByRole('textbox', { name: 'Nom', exact: true }), { target: { value: 'Autre POI' } })
   expect(screen.getByRole('button', { name: 'Utiliser cette proposition' })).toBeDisabled()

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DESCRIPTION_MAX_CHARS } from '@/shared/lib/description-length'
 
 // Spec 049: shared validation, safe to import from the admin client.
 export const HttpUrlSchema = z.string().url().refine(value => {
@@ -14,7 +15,7 @@ export const DescriptionIdentitySchema = z.object({
 })
 
 export const DescriptionSuggestionSchema = z.object({
-  description: z.string().trim().min(1).max(2000),
+  description: z.string().trim().min(1).max(DESCRIPTION_MAX_CHARS),
   source_mode: z.enum(['official_website', 'web_search']),
   sources: z.array(z.object({ title: z.string().min(1), url: HttpUrlSchema }).strict()).min(1),
   search_entry_point: z.string().nullable(),

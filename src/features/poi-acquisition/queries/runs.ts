@@ -17,6 +17,7 @@ import { findProbableDuplicates } from '../lib/duplicate-detection'
 import { PoiAcquisitionError } from '../lib/errors'
 import { fetchOfficialWebsiteSourceContext, type OfficialWebsiteSourceContext } from '../services/official-website-source'
 import type { AcquisitionCandidateDto, AcquisitionRunDetail, AcquisitionRunListItem } from '../types'
+import { DESCRIPTION_LENGTH_INSTRUCTION, limitToWords } from '@/shared/lib/description-length'
 
 type RunCreateInput = {
   city_id: string
@@ -599,7 +600,8 @@ async function generateVerifiedDescription(params: {
 }): Promise<string> {
   try {
     const response = await callGemini(buildVerifiedDescriptionPrompt(params))
-    return response[0]?.description.trim() ?? ''
+    // Spec 093 AC-04 : jamais plus de 300 mots.
+    return limitToWords(response[0]?.description ?? '')
   } catch {
     return ''
   }
@@ -637,7 +639,7 @@ Règles strictes:
 - Ne crée aucun nouveau POI.
 - Ne modifie pas le nom, l'adresse, le téléphone ou le site.
 - N'invente pas d'horaires, coordonnées, notes, prix ou photos.
-- Rédige uniquement une description courte en 2 à 3 phrases.
+- Rédige uniquement la description. ${DESCRIPTION_LENGTH_INSTRUCTION}
 
 Données vérifiées:
 - Ville: ${params.cityName}
