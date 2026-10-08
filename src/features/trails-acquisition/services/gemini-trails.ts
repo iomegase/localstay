@@ -116,7 +116,7 @@ Ne fournis aucune coordonnée GPS, distance, durée, dénivelé ou métrique gé
 
   const model = getModel()
   // 30s : descriptions avec grounding sont plus rapides que discovery mais laissent de la marge
-  const result = await withTimeout(model.generateContent(prompt), 30_000)
+  const result = await withTimeout(model.generateContent(prompt), 50_000)
   const json = parseJsonResponse(result.response.text())
   const parsed = DescriptionSchema.safeParse(json)
   if (!parsed.success) throw new Error(`Gemini description validation failed: ${parsed.error.message}`)
@@ -143,8 +143,9 @@ type EnrichableCandidate = {
   metric_source?: string | null
 }
 
-const GEMINI_DESCRIPTION_TIMEOUT_MS = 45_000  // marge pour grounding lent (la fct interne timeout à 30s)
-const GEMINI_DESCRIPTION_CONCURRENCY = 5      // OK : Gemini Tier 1 supporte largement 5 RPS
+// 2026-10-08 : textes de 120 à 300 mots en Markdown, plus longs à générer.
+const GEMINI_DESCRIPTION_TIMEOUT_MS = 60_000  // marge pour grounding lent (la fct interne timeout à 50 s)
+const GEMINI_DESCRIPTION_CONCURRENCY = 8      // Gemini Tier 1 supporte largement 8 requêtes simultanées
 
 export async function enrichCandidatesWithGeminiDescriptions<T extends EnrichableCandidate>(
   candidates: T[],

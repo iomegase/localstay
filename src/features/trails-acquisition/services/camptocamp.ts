@@ -120,7 +120,7 @@ function normalize(detail: RouteDetail): CamptocampTrailCandidate | null {
   const geometry = parseGeometry(detail.geometry?.geom_detail ?? detail.geometry?.geom)
   const startPoint = extractStartPoint(geometry)
 
-  const description = htmlToPlainText(frenchLocale?.description ?? frenchLocale?.summary ?? null)
+  const description = cleanCamptocampMarkup(htmlToPlainText(frenchLocale?.description ?? frenchLocale?.summary ?? null))
   // Camptocamp `durations` est un enum de plage (1=<1h, 2=2-3h, 3=4-6h, etc.),
   // pas une valeur en heures. On laisse Naismith calculer depuis distance + gain
   // dans l'étape ORS/Naismith en aval.
@@ -236,6 +236,28 @@ function haversineKm(a: [number, number], b: [number, number]): number {
   const dLng = ((b[0] - a[0]) * Math.PI) / 180
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
+}
+
+/**
+ * 2026-10-08 : balisage propre à Camptocamp (images, liens wiki, BBCode, titres collés) ramené à du
+ * Markdown standard — sinon « ##Aller [img=361438 right/] » s'affiche tel quel.
+ */
+export function cleanCamptocampMarkup(text: string | null): string | null {
+  if (!text) return null
+  const cleaned = text
+    .replace(/\[img=[^\]]*\/\]/gi, '')
+    .replace(/\[img=[^\]]*\][\s\S]*?\[\/img\]/gi, '')
+    .replace(/\[\[[^\]|]+\|([^\]]+)\]\]/g, '$1')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/\[url=[^\]]*\]([\s\S]*?)\[\/url\]/gi, '$1')
+    .replace(/\[(acr|abbr)=[^\]]*\]([\s\S]*?)\[\/\1\]/gi, '$2')
+    .replace(/\[\/?(toc|warning|important|note|center|right|left|p|b|i|u|s|quote|c)\b[^\]]*\]/gi, '')
+    .replace(/^(#{1,6})(?=[^#\s])/gm, '$1 ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return cleaned.length > 0 ? cleaned : null
 }
 
 function htmlToPlainText(html: string | null): string | null {

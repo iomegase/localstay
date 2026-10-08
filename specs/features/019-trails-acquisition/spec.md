@@ -782,6 +782,19 @@ components:
 
 ---
 
+### Révision 2026-10-08 (runs « partiels », durées manquantes)
+
+- **BR-R1**: Durée : Naismith est calculé d'abord pour tous les candidats ayant une distance (local,
+  instantané), puis ORS l'affine sur les tracés ; ORS n'est plus appelé après un refus de quota (429).
+  Un échec ORS n'est compté que si aucune durée n'a pu être calculée.
+- **BR-R2**: Ordre des enrichissements : IGN (dénivelé), durée, descriptions Gemini, puis géocodage du
+  départ. Les descriptions (120 à 300 mots, spec 093) ont leur propre délai de 120 s, 8 en parallèle ;
+  budget de travail 270 s sur les 300 s de la route.
+- **BR-R3**: Les descriptions Camptocamp sont ramenées à du Markdown standard (balises `[img=…]`,
+  liens wiki `[[…|…]]`, BBCode, titres « ##Titre » sans espace).
+- Un candidat sans tracé ni distance (certains itinéraires Camptocamp, propositions Gemini) reste sans
+  durée : aucune métrique n'est inventée (ADR-006).
+
 ## Out of Scope
 
 - Scraping AllTrails ou copie de bases propriétaires non autorisées.

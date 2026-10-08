@@ -14,7 +14,7 @@ jest.mock('@/features/trails-acquisition/services/gemini-trails', () => ({
 jest.mock('@/features/trails-acquisition/services/start-geocoding', () => ({ enrichCandidatesWithStartGeocoding: (...args: unknown[]) => mockGeocode(...args) }))
 jest.mock('@/features/trails-acquisition/services/ors', () => ({ enrichCandidatesWithDuration: (...args: unknown[]) => mockDuration(...args) }))
 import { collectTrailCandidatesFromSources, type RunSourceResult } from '@/features/trails-acquisition/services/run-orchestrator'
-import { runWithDeadline } from '@/features/trails-acquisition/lib/import-budget'
+import { IMPORT_WORK_BUDGET_MS, runWithDeadline } from '@/features/trails-acquisition/lib/import-budget'
 
 const city = { id: 'city', name: 'Combloux', latitude: 45, longitude: 6 }
 const candidate = { primary_source_type: 'camptocamp', source_refs: [], raw_payload: {}, title: 'Mont Joly', description: 'Description existante' }
@@ -87,7 +87,8 @@ it('retains Camptocamp routes received before a hanging detail times out', async
 })
 
 it('skips all expired phases without repeatedly writing checkpoints', async () => {
-  const checkpoint = jest.fn(async () => { jest.setSystemTime(Date.now() + 211_000) })
+  // Juste après le budget de travail (270 s depuis le 2026-10-08).
+  const checkpoint = jest.fn(async () => { jest.setSystemTime(Date.now() + IMPORT_WORK_BUDGET_MS + 1_000) })
   const result = await collectTrailCandidatesFromSources({ city, sourceTypes: ['camptocamp', 'ign', 'gemini'] }, checkpoint)
   expect(checkpoint).toHaveBeenCalledTimes(1)
   expect(mockIgn).not.toHaveBeenCalled()
@@ -118,3 +119,19 @@ it('tries a backup Overpass server before the total source timeout when the prim
     else process.env.OVERPASS_API_URL = originalEndpoint
   }
 })
+
+it('2026-10-08 : durée calculée avant les descriptions Gemini, qui ont leur propre délai de 120 s', async () => {
+  const order: string[] = []
+  mockDuration.mockImplementation(async () => { order.push('duration'); return { errors: 0 } })
+  mockDescriptions.mockImplementation(async (_items: unknown, _city: unknown, signal: AbortSignal) => {
+    order.push('descriptions')
+    await new Promise(resolve => setTimeout(resolve, 60_000))
+    return { errors: signal.aborted ? 1 : 0 }
+  })
+  const promise = collectTrailCandidatesFromSources({ city, sourceTypes: ['camptocamp', 'ign', 'gemini'] })
+  await jest.advanceTimersByTimeAsync(61_000)
+  const result = await promise
+  expect(order).toEqual(['duration', 'descriptions'])
+  expect(result.source_errors.gemini_descriptions).toBeUndefined()
+})
+

@@ -118,33 +118,37 @@ export async function enrichCandidatesWithDuration<T extends DurationEnrichable>
   let errors = 0
   const orsEnabled = Boolean(process.env.ORS_API_KEY)
 
-  for (const candidate of candidates) {
-    signal?.throwIfAborted()
-    if (candidate.estimated_duration_min != null) continue
-
-    // Priorité 1 : ORS si clé disponible et géométrie présente
-    if (orsEnabled) {
-      const coords = extractCoordinates(candidate.geometry_geojson)
-      if (coords.length >= 2) {
-        try {
-          const duration = await fetchOrsHikingDuration(coords, signal)
-          if (duration != null) {
-            candidate.estimated_duration_min = duration
-            candidate.source_refs = appendOrsRef(candidate.source_refs)
-            ors += 1
-            continue
-          }
-        } catch {
-          errors += 1
-        }
-      }
-    }
-
-    // Priorité 2 : Naismith local si distance + (optionnellement) dénivelé connus
+  // Naismith d'abord pour tous (local, instantané) : une interruption de l'étape ne laisse
+  // plus de candidat sans durée alors que distance et dénivelé sont connus (2026-10-08).
+  const pending = candidates.filter(candidate => candidate.estimated_duration_min == null)
+  for (const candidate of pending) {
     const naismithValue = naismithDurationMin(candidate.distance_km, candidate.elevation_gain_m)
     if (naismithValue != null) {
       candidate.estimated_duration_min = naismithValue
       naismith += 1
+    }
+  }
+
+  // Puis ORS, plus précis, sur les tracés ; arrêt au premier refus de quota (429).
+  let orsAvailable = orsEnabled
+  for (const candidate of pending) {
+    if (!orsAvailable) break
+    signal?.throwIfAborted()
+    const coords = extractCoordinates(candidate.geometry_geojson)
+    if (coords.length < 2) continue
+    try {
+      const duration = await fetchOrsHikingDuration(coords, signal)
+      if (duration != null) {
+        if (candidate.estimated_duration_min != null) naismith -= 1
+        candidate.estimated_duration_min = duration
+        candidate.source_refs = appendOrsRef(candidate.source_refs)
+        ors += 1
+      }
+    } catch (error) {
+      if (signal?.aborted) throw error
+      if (error instanceof Error && error.message === 'ORS HTTP 429') orsAvailable = false
+      // Échec réel seulement si aucune durée n'a pu être calculée (Naismith a pu suppléer).
+      if (candidate.estimated_duration_min == null) errors += 1
     }
   }
 

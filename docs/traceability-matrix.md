@@ -1981,3 +1981,11 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 
 | 041 AC-09-01 | Carte du POI sous les horaires (colonne d’infos) | `src/features/public-discovery/components/DiscoveryPoiView.tsx` | `tests/integration/public-discovery.AC-01-03.pages.test.tsx` | ✅ done |
 | 093 BR-05 | Descriptions générées en Markdown ; compteur et coupe adaptés ; texte brut pour meta/JSON-LD | `src/shared/lib/description-length.ts`<br>`src/shared/lib/markdown-plain-text.ts`<br>`src/features/seo/lib/metadata.ts`<br>`src/features/seo/lib/structured-data.ts` | `tests/unit/longer-descriptions.AC-01-04.length.test.ts`<br>`tests/unit/markdown-plain-text.test.ts` | ✅ done |
+
+## 019 — Révision 2026-10-08 (complétude des runs randonnée)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| 019 BR-R1 | Naismith d'abord, ORS en affinage, arrêt sur 429, échecs réels seulement | `src/features/trails-acquisition/services/ors.ts` | `tests/unit/trails-completeness.duration.test.ts` | ✅ done |
+| 019 BR-R2 | Ordre IGN → durée → descriptions (120 s) → géocodage ; budget 270 s | `src/features/trails-acquisition/services/run-orchestrator.ts`<br>`src/features/trails-acquisition/lib/import-budget.ts`<br>`src/features/trails-acquisition/services/gemini-trails.ts` | `tests/integration/trails-acquisition.AC-01-06-07.bounded-sources.test.ts` | ✅ done |
+| 019 BR-R3 | Balisage Camptocamp → Markdown standard | `src/features/trails-acquisition/services/camptocamp.ts` | `tests/unit/trails-completeness.duration.test.ts` | ✅ done |

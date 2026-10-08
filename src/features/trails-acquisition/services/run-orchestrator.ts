@@ -7,7 +7,7 @@ import { discoverTrailsWithGemini, enrichCandidatesWithGeminiDescriptions, extra
 import { enrichCandidatesWithStartGeocoding } from './start-geocoding'
 import { normalizeOverpassTrails, type OverpassPayload } from './overpass'
 import { mergeDuplicateCandidates } from '../lib/dedup'
-import { IMPORT_WORK_BUDGET_MS, IMPORT_SOURCE_TIMEOUT_MS, IMPORT_ENRICHMENT_TIMEOUT_MS, runWithDeadline } from '../lib/import-budget'
+import { IMPORT_WORK_BUDGET_MS, IMPORT_SOURCE_TIMEOUT_MS, IMPORT_ENRICHMENT_TIMEOUT_MS, IMPORT_DESCRIPTION_TIMEOUT_MS, runWithDeadline } from '../lib/import-budget'
 import type { TrailSourceType } from '../types'
 import type { DescriptionSource } from '@/shared/lib/description-sources'
 
@@ -101,7 +101,7 @@ export async function collectTrailCandidatesFromSources(
   // Persist discovery before starting any potentially expensive enrichment.
   await checkpoint()
 
-  async function enrich(name: string, work: (items: Candidate[], signal: AbortSignal) => Promise<{ errors?: number }>) {
+  async function enrich(name: string, work: (items: Candidate[], signal: AbortSignal) => Promise<{ errors?: number }>, timeoutMs = IMPORT_ENRICHMENT_TIMEOUT_MS) {
     if (candidates.length === 0) return
     if (Date.now() >= deadline) {
       sourceErrors[name] = 'Budget de temps de l’import épuisé'
@@ -109,7 +109,7 @@ export async function collectTrailCandidatesFromSources(
     }
     const draft = structuredClone(candidates)
     try {
-      const result = await runWithDeadline(deadline, IMPORT_ENRICHMENT_TIMEOUT_MS, signal => work(draft, signal))
+      const result = await runWithDeadline(deadline, timeoutMs, signal => work(draft, signal))
       if (result.errors) sourceErrors[name] = `${result.errors} enrichissement(s) en échec`
     } catch (error) {
       sourceErrors[name] = error instanceof Error ? error.message : 'Enrichissement indisponible'
@@ -118,13 +118,17 @@ export async function collectTrailCandidatesFromSources(
     candidates = structuredClone(draft)
     await checkpoint()
   }
+  // 2026-10-08 : métriques d'abord (dénivelé puis durée, rapides et essentielles), descriptions
+  // Gemini ensuite avec leur propre délai ; le géocodage du départ dépend de ces descriptions.
   if (input.sourceTypes.includes('ign')) await enrich('ign', (items, signal) => enrichCandidatesWithIgn(items, signal))
-  if (input.sourceTypes.includes('gemini')) await enrich('gemini_descriptions', (items, signal) => enrichCandidatesWithGeminiDescriptions(items, input.city, signal))
+  await enrich('duration', (items, signal) => enrichCandidatesWithDuration(items, signal))
+  if (input.sourceTypes.includes('gemini')) {
+    await enrich('gemini_descriptions', (items, signal) => enrichCandidatesWithGeminiDescriptions(items, input.city, signal), IMPORT_DESCRIPTION_TIMEOUT_MS)
+  }
   for (const candidate of candidates) {
     if (!candidate.start_label && candidate.description) candidate.start_label = extractStartLabelFromDescription(candidate.description)
   }
   await enrich('start_geocoding', (items, signal) => enrichCandidatesWithStartGeocoding(items, input.city, signal))
-  await enrich('duration', (items, signal) => enrichCandidatesWithDuration(items, signal))
   return { candidates, source_errors: sourceErrors }
 }
 
