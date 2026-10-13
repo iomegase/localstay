@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { SeminarLeadDialog } from '@/features/contact-messages/components/SeminarLeadDialog'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
+import { SeminarFormats } from '@/features/marketing/components/SeminarFormats'
 
 import {
   MarketingEyebrow,
@@ -81,21 +82,6 @@ const placePrinciples = [
   },
 ] as const
 
-const formats = [
-  {
-    title: 'Comité de direction',
-    copy: 'Un cadre confidentiel pour décider, arbitrer et aligner les priorités.',
-  },
-  {
-    title: 'Séminaire résidentiel',
-    copy: 'Deux à trois jours de travail et de vie commune dans un même lieu.',
-  },
-  {
-    title: 'Retraite d’équipe',
-    copy: 'Renforcer les liens et réfléchir ensemble, loin du bureau.',
-  },
-] as const
-
 const steps = [
   {
     number: '01',
@@ -105,12 +91,12 @@ const steps = [
   {
     number: '02',
     title: 'Votre proposition sous 48 h',
-    copy: 'Lieu, hébergement, repas, espace de travail, activités et devis.',
+    copy: 'Programme détaillé, devis du chalet et de nos frais de coordination, budget des prestataires.',
   },
   {
     number: '03',
     title: 'L’organisation complète',
-    copy: 'Nous réservons, coordonnons les prestataires et gérons les imprévus.',
+    copy: 'Nous coordonnons les prestataires, suivons les réservations et gérons les imprévus.',
   },
   {
     number: '04',
@@ -122,10 +108,10 @@ const steps = [
 const faq = [
   { question: 'Pour combien de personnes pouvez-vous organiser un séminaire ?', answer: 'Jusqu’à 26 personnes réunies dans le Chalet Rémy. Au-delà, nous coordonnons plusieurs hébergements proches avec un programme commun.' },
   { question: 'Dans quel délai recevrai-je une proposition ?', answer: 'Nous vous adressons une proposition détaillée sous 48 h après réception de votre demande.' },
-  { question: 'Les repas, transferts et activités sont-ils inclus ?', answer: 'Oui, nous les intégrons au programme selon vos besoins : traiteur ou chef à domicile, navettes, activités d’équipe en montagne.' },
+  { question: 'Organisez-vous les repas, les transferts et les activités ?', answer: 'Oui, nous les organisons selon vos besoins : traiteur ou chef à domicile, navettes, activités d’équipe en montagne. Chaque prestataire vous facture directement sa prestation.' },
   { question: 'Disposez-vous d’un espace de réunion ?', answer: 'Oui. Le chalet dispose d’un espace de réunion sur place, que nous aménageons selon votre format : plénière, ateliers ou sessions informelles.' },
   { question: 'Quelle est la meilleure saison ?', answer: 'Toute l’année : ski et activités de neige en hiver, randonnée et grand air de mai à octobre, thermes en toute saison.' },
-  { question: 'Comment se passe la facturation ?', answer: 'Vous recevez un devis global, puis une facture unique au nom de votre entreprise.' },
+  { question: 'Comment se passe la facturation ?', answer: 'MyStay vous facture la location du chalet et ses frais de coordination. Les repas, transferts et activités vous sont facturés directement par chaque prestataire ; un budget récapitulatif vous donne la vue d’ensemble avant de vous engager.' },
 ] as const
 
 export default async function SeminarsPage() {
@@ -282,9 +268,9 @@ export default async function SeminarsPage() {
 
             <p className="mt-5 max-w-[660px] text-sm leading-[1.72] text-slate-500">
               Hébergement, espace de travail, restauration, activités et
-              déplacements : nous assemblons les prestations dans un programme
-              clair et un devis unique. Vous gardez la main sur les objectifs,
-              nous gérons l’organisation.
+              déplacements : nous coordonnons les prestataires dans un programme
+              clair, avec un budget récapitulatif. Vous gardez la main sur les
+              objectifs, nous gérons l’organisation.
             </p>
           </div>
 
@@ -560,121 +546,7 @@ export default async function SeminarsPage() {
           </div>
         </section>
 
-        {/* FORMATS */}
-        <section
-          className={`
-            ${marketingContainerClass}
-            pb-[54px]
-            pt-[82px]
-            sm:pb-[72px]
-            sm:pt-24
-          `}
-        >
-          <div className="mb-12 max-w-[760px]">
-            <MarketingEyebrow>
-              Formats de séminaire
-            </MarketingEyebrow>
-
-            <h2
-              className="
-                m-0
-                max-w-[720px]
-                text-[clamp(34px,4vw,40px)]
-                font-bold
-                leading-[1.02]
-                tracking-[-0.05em]
-              "
-            >
-              À chaque équipe son format.
-            </h2>
-          </div>
-
-          <div
-            className="
-              grid
-              grid-cols-2
-              gap-3
-
-              min-[761px]:grid-cols-3
-              min-[761px]:gap-4
-            "
-          >
-            {formats.map((format, index) => {
-              const isLast = index === formats.length - 1
-              const isOdd = formats.length % 2 !== 0
-
-              return (
-                <article
-                  key={format.title}
-                  className={`
-                    relative
-                    flex
-                    min-h-[168px]
-                    min-w-0
-                    flex-col
-                    justify-center
-                    rounded-[22px]
-                    bg-[radial-gradient(circle_at_100%_0,rgba(219,39,119,0.055),transparent_34%)]
-                    bg-[#f7f6f4]
-                    px-4
-                    py-6
-
-                    before:absolute
-                    before:left-4
-                    before:top-0
-                    before:h-[3px]
-                    before:w-10
-                    before:rounded-b-full
-                    before:bg-pink-600
-
-                    min-[761px]:min-h-[188px]
-                    min-[761px]:rounded-[24px]
-                    min-[761px]:px-7
-                    min-[761px]:py-[30px]
-                    min-[761px]:before:left-7
-                    min-[761px]:before:w-[50px]
-
-                    ${
-                      isLast && isOdd
-                        ? 'col-span-2 min-[761px]:col-span-1'
-                        : ''
-                    }
-                  `}
-                >
-                  <h3
-                    className="
-                      m-0
-                      text-[16px]
-                      font-bold
-                      leading-[1.15]
-                      tracking-[-0.035em]
-
-                      min-[761px]:text-[22px]
-                    "
-                  >
-                    {format.title}
-                  </h3>
-
-                  <p
-                    className="
-                      mb-0
-                      mt-3
-                      text-[11.5px]
-                      leading-[1.55]
-                      text-slate-500
-
-                      min-[761px]:mt-4
-                      min-[761px]:text-[13px]
-                      min-[761px]:leading-[1.65]
-                    "
-                  >
-                    {format.copy}
-                  </p>
-                </article>
-              )
-            })}
-          </div>
-        </section>
+        <SeminarFormats />
 
         {/* PROCESS */}
         <section

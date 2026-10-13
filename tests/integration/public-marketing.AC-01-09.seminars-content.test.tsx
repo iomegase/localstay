@@ -48,8 +48,43 @@ describe('031 AC-01-09 — /seminaires content', () => {
     const ctas = screen.getAllByRole('button', { name: 'Recevoir une proposition' })
     expect(ctas).toHaveLength(2)
     fireEvent.click(ctas[1])
-    const dialog = screen.getByRole('dialog', { name: 'Recevoir une proposition' })
+    const dialog = screen.getByRole('dialog', { name: 'Demander un devis' })
     expect(dialog).toHaveTextContent('dans le Pays du Mont-Blanc')
+  })
+
+  it('bills only the chalet and coordination fees, never a global package', async () => {
+    const { container } = await renderPage()
+    const main = container.querySelector('main')!.textContent ?? ''
+
+    expect(main).toContain('MyStay vous facture la location du chalet et ses frais de coordination.')
+    expect(main).toContain('facturés directement par chaque prestataire')
+    expect(main).not.toMatch(/devis global|devis unique|facture unique|tout compris/i)
+  })
+
+  it('develops each seminar format: key facts, inclusions, typical day and a quote button', async () => {
+    await renderPage()
+
+    for (const [title, facts, inclusion, evening] of [
+      ['Comité de direction', '6 à 12 personnes · 1 à 2 nuits', 'Chalet privatisé, sans autre groupe sur place', 'Dîner au chalet préparé par un chef'],
+      ['Séminaire résidentiel', '12 à 26 personnes · 2 à 3 nuits', 'Hébergement de toute l’équipe sous le même toit', 'Dîner partagé et temps libre au chalet'],
+      ['Retraite d’équipe', '8 à 20 personnes · 2 à 4 nuits', 'Temps de travail allégés, en matinée ou en demi-journée', 'Thermes, puis repas partagé'],
+    ] as const) {
+      const card = screen.getByRole('heading', { level: 3, name: title }).closest('article')!
+      expect(card).toHaveTextContent(facts)
+      const [inclusions, day] = within(card).getAllByRole('list')
+      expect(within(inclusions).getAllByRole('listitem')).toHaveLength(3)
+      expect(inclusions).toHaveTextContent(inclusion)
+      expect(within(card).getByRole('heading', { level: 4, name: 'Journée type' })).toBeInTheDocument()
+      expect(within(day).getAllByRole('listitem').map(item => item.textContent?.split(' — ')[0])).toEqual([
+        'Matin', 'Après-midi', 'Soirée',
+      ])
+      expect(day).toHaveTextContent(evening)
+      expect(within(card).getByRole('button', { name: 'Demander un devis' })).toBeInTheDocument()
+    }
+
+    const card = screen.getByRole('heading', { level: 3, name: 'Séminaire résidentiel' }).closest('article')!
+    fireEvent.click(within(card).getByRole('button', { name: 'Demander un devis' }))
+    expect(screen.getByRole('dialog', { name: 'Demander un devis' })).toBeInTheDocument()
   })
 
   it('shows the lodgings block, a six-question two-column FAQ and the final call to action', async () => {

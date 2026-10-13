@@ -98,7 +98,7 @@ describe('046 AC-03-07 — dedicated local lodging card', () => {
 })
 
 describe('046 AC-03-08 — editorial sections', () => {
-  it('renders destination, highlights, steps, FAQ and final CTA', () => {
+  it('renders destination, highlights, steps and FAQ, without a final CTA block', () => {
     const { container } = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
 
     const destination = container.querySelector<HTMLElement>('#destination')!
@@ -114,7 +114,21 @@ describe('046 AC-03-08 — editorial sections', () => {
     expect(within(destination).queryByRole('heading', { name: landing.page.highlights[0].title })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: landing.page.highlights[0].title })).toBeInTheDocument()
     expect(container.querySelector('#faq details summary')).toHaveTextContent(landing.page.faq[0].question)
-    expect(screen.getByRole('link', { name: landing.page.cta_label })).toHaveAttribute('href', landing.page.cta_href)
+    // Amendement du 2026-10-13 : le bloc final « [City] vous attend. » est retiré.
+    expect(screen.queryByText('Saint-Gervais-les-Bains vous attend.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: landing.page.cta_label })).not.toBeInTheDocument()
+  })
+
+  it('keeps the highlights spaced from the footer when there is no FAQ', () => {
+    const highlights = (root: HTMLElement) => within(root).getByRole('heading', { name: 'Séjourner avec MyStay à Saint-Gervais-les-Bains' }).closest('section')!
+    const withFaq = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
+    // La FAQ apporte déjà l'espace bas de la page.
+    expect(highlights(withFaq.container)).not.toHaveClass('pb-16')
+    withFaq.unmount()
+
+    const noFaq = { ...landing, page: { ...landing.page, faq: [] } }
+    const { container } = render(<LocalVacationRentalLanding landing={noFaq} lodgings={[lodging]} />)
+    expect(highlights(container)).toHaveClass('pb-16', 'sm:pb-24')
   })
 
   it('keeps the empty state content and links', () => {

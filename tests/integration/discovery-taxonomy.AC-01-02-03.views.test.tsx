@@ -160,6 +160,18 @@ describe('065 US-01 — page ville organisée par la taxonomie', () => {
     expect(shopping).not.toHaveTextContent('Souvenirs')
   })
 
+  it('bloc « L’expertise MyStay » : bouton rose lisible, centré verticalement', () => {
+    render(<DiscoveryCityView city={city} />)
+    // L'en-tête porte aussi un lien « Nous contacter » : on cible celui du bloc.
+    const block = screen.getByRole('heading', { name: 'Un accueil local qui valorise aussi votre logement.' }).closest('aside')!
+    const cta = within(block).getByRole('link', { name: 'Nous contacter' })
+    expect(cta).toHaveAttribute('href', '/confier-mon-logement')
+    expect(cta).toHaveClass('bg-pink-600', 'text-white')
+    expect(cta).not.toHaveClass('bg-white')
+    expect(cta.closest('aside')).toHaveClass('lg:items-center')
+    expect(cta.closest('aside')).not.toHaveClass('lg:items-end')
+  })
+
   it('AC-01-03 : adresses regroupées par catégorie, 3 cartes et un lien vers la suite', () => {
     render(<DiscoveryCityView city={city} />)
 

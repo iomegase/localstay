@@ -109,7 +109,20 @@ routes privées, l'authentification et les API existantes restent inchangées.
   réécrites sans répétitions (étape 4 : guide digital du séjour) ; FAQ de six
   questions sur deux colonnes ; appel final « Parlons de votre prochain
   séminaire. » ; les boutons « Recevoir une proposition » ouvrent la modal de
-  la spec 052 au lieu d'un lien e-mail.
+  la spec 052 au lieu d'un lien e-mail. Amendement du 2026-10-13 (Product
+  Owner, option « plus riche ») : chaque carte de la section formats (Comité
+  de direction, Séminaire résidentiel, Retraite d'équipe) affiche, sous son
+  titre, une ligne de repères (taille du groupe · nombre de nuits), sa phrase
+  d'accroche, trois éléments inclus, une « Journée type » en trois temps
+  (Matin, Après-midi, Soirée) et un lien « Demander un devis » qui ouvre la
+  modal de la spec 052 ; les cartes passent sur une colonne en mobile et trois
+  à partir de 761 px. Décision PO du 2026-10-13 sur la facturation : MyStay ne
+  facture que la location du chalet et ses frais de coordination ; repas,
+  transferts et activités sont facturés directement par chaque prestataire,
+  avec un budget récapitulatif. La page ne promet donc plus de « devis
+  global », de « devis unique » ni de « facture unique » (texte d'offre,
+  étapes 2 et 3, questions « Organisez-vous les repas, les transferts et les
+  activités ? » et « Comment se passe la facturation ? »).
 - **AC-01-10**: Given la home et le chrome marketing, When ils s'affichent, Then
   les corrections de l'audit du 2026-10-01 validées par le Product Owner sont
   appliquées : (1) le H1 commence par le mot-clé « Conciergerie dans le Pays du

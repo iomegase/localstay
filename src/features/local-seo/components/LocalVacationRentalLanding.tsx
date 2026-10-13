@@ -152,7 +152,7 @@ export function LocalVacationRentalLanding({
         </section>
 
         {content.highlights.length > 0 && (
-          <section className={`${marketingContainerClass} pt-16 sm:pt-24`}>
+          <section className={`${marketingContainerClass} pt-16 sm:pt-24 ${content.faq.length > 0 ? '' : 'pb-16 sm:pb-24'}`}>
             <MarketingEyebrow>Pourquoi MyStay</MarketingEyebrow>
             <h2 className="max-w-[720px] text-[30px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[40px]">
               Séjourner avec MyStay à {landing.city.name}
@@ -166,20 +166,6 @@ export function LocalVacationRentalLanding({
             <MarketingFaqSection items={content.faq} title="Bon à savoir avant de réserver" columns={2} />
           </div>
         )}
-
-        <section className={`${marketingContainerClass} pb-16 sm:pb-24`}>
-          <div className="flex flex-col gap-6 rounded-[28px] bg-slate-900 px-6 py-9 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10">
-            <p className="max-w-[560px] text-[22px] font-semibold leading-snug ">
-              {landing.city.name} vous attend.
-            </p>
-            <Link
-              className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-[14px] font-bold text-slate-900 transition-colors hover:bg-pink-600 hover:text-white "
-              href={content.cta_href}
-            >
-              {content.cta_label}
-            </Link>
-          </div>
-        </section>
       </div>
     </MarketingShell>
   )

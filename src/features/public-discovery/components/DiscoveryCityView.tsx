@@ -5,8 +5,9 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
-  marketingDarkButtonClass,
+  marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
+import { cn } from '@/shared/lib/utils'
 import type { DiscoveryCity, DiscoverySubcategorySummary } from '../types'
 import { DiscoveryPoiCard } from './DiscoveryPoiCard'
 
@@ -113,14 +114,14 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
           </div>
         </section>
 
-        <aside className={`${marketingContainerClass} mb-16 flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between`}>
+        <aside className={`${marketingContainerClass} mb-16 flex flex-col items-start gap-8 rounded-[28px] bg-slate-800 px-7 py-10 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between`}>
           <div>
             <MarketingEyebrow light>L’expertise MyStay</MarketingEyebrow>
             <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">
               Un accueil local qui valorise aussi votre logement.
             </h2>
           </div>
-          <Link className={`${marketingDarkButtonClass} shrink-0 bg-white text-slate-800 hover:text-white`} href="/confier-mon-logement">
+          <Link className={cn(marketingPrimaryButtonClass, 'shrink-0 hover:bg-white hover:text-slate-900')} href="/confier-mon-logement">
             Nous contacter
           </Link>
         </aside>

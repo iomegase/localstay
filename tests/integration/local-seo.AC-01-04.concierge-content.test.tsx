@@ -106,6 +106,16 @@ describe('046 AC-01-04 — concierge landing content', () => {
     expect(local).toHaveClass('bg-slate-800', 'text-white')
   })
 
+  it('separates the steps with inner lines only (no line above the first or below the last)', async () => {
+    await renderConcierge()
+
+    const steps = screen.getByRole('heading', { name: 'Une étape à Saint-Gervais-les-Bains' }).closest('ol')!
+    expect(steps).toHaveClass('divide-y')
+    expect(steps).not.toHaveClass('border-y')
+    expect(steps).not.toHaveClass('border-t')
+    expect(steps).not.toHaveClass('border-b')
+  })
+
   it('never promises an owner area', async () => {
     const { container } = await renderConcierge()
 

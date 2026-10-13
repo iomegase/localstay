@@ -10,13 +10,14 @@ type FormState = 'idle' | 'submitting' | 'sent' | 'error'
 const fieldClass = 'mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-normal normal-case tracking-normal outline-none transition-colors placeholder:text-slate-400 focus:border-pink-600 focus:ring-2 focus:ring-pink-100'
 const labelClass = 'text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600'
 
-const PARTICIPANTS = ['Moins de 10', '10 à 15', '16 à 26', 'Plus de 26'] as const
+// Prestations à chiffrer en plus de la location du chalet (spec 052, amendement du 2026-10-13).
+const SERVICES = ['Salle de réunion', 'Repas', 'Transferts', 'Activités'] as const
 
 /**
- * Bouton + modal de demande séminaire (spec 052) : alimente le circuit
+ * Bouton + modal de demande de devis séminaire (spec 052) : alimente le circuit
  * ContactMessage existant avec la source `seminar_lead`.
  */
-export function SeminarLeadDialog({ label, cityName }: { label: string; cityName?: string }) {
+export function SeminarLeadDialog({ label, cityName, triggerClassName = marketingPrimaryButtonClass }: { label: string; cityName?: string; triggerClassName?: string }) {
   // Sans commune (page /seminaires) : demande pour le Pays du Mont-Blanc (spec 052 BR-05).
   const place = cityName ?? 'Pays du Mont-Blanc'
   const placePhrase = cityName ? `à ${cityName}` : 'dans le Pays du Mont-Blanc'
@@ -35,6 +36,8 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
     const text = (name: string) => String(data.get(name) ?? '').trim()
     const company = text('company')
     const dates = text('dates')
+    const services = data.getAll('services').map(String)
+    const budget = text('budget')
     setState('submitting')
 
     try {
@@ -52,7 +55,10 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
           message: [
             `Entreprise : ${company}`,
             `Participants : ${text('participants')}`,
+            `Nuits : ${text('nights')}`,
             ...(dates ? [`Dates souhaitées : ${dates}`] : []),
+            ...(services.length > 0 ? [`Prestations : ${services.join(', ')}`] : []),
+            ...(budget ? [`Budget indicatif : ${budget}`] : []),
             '',
             text('project'),
           ].join('\n'),
@@ -70,7 +76,7 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
-        <button type="button" className={marketingPrimaryButtonClass}>
+        <button type="button" className={triggerClassName}>
           {label}
         </button>
       </Dialog.Trigger>
@@ -89,10 +95,10 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
             Séminaire d’entreprise
           </span>
           <Dialog.Title className="mt-3 text-2xl font-bold tracking-[-0.04em] text-slate-900 sm:text-[30px]">
-            Recevoir une proposition
+            Demander un devis
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm leading-6 text-slate-500">
-            Votre séminaire {placePhrase} : décrivez votre projet, nous revenons vers vous sous 48 h avec une proposition sur mesure.
+            Votre séminaire {placePhrase} : location d’un chalet et prestations sur mesure. Décrivez votre projet, nous vous adressons un devis sous 48 h.
           </Dialog.Description>
 
           <form aria-label="Demande séminaire" className="mt-7" onSubmit={submit}>
@@ -101,15 +107,22 @@ export function SeminarLeadDialog({ label, cityName }: { label: string; cityName
               <label className={labelClass}>Entreprise *<input className={fieldClass} autoComplete="organization" name="company" required minLength={2} maxLength={80} /></label>
               <label className={labelClass}>Adresse e-mail *<input className={fieldClass} autoComplete="email" name="email" required type="email" maxLength={180} /></label>
               <label className={labelClass}>Téléphone<input className={fieldClass} autoComplete="tel" name="phone" type="tel" maxLength={40} /></label>
-              <label className={labelClass}>Nombre de participants *
-                <select className={fieldClass} defaultValue="" name="participants" required>
-                  <option disabled value="">Sélectionner</option>
-                  {PARTICIPANTS.map(option => <option key={option}>{option}</option>)}
-                </select>
-              </label>
+              <label className={labelClass}>Nombre de participants *<input className={fieldClass} inputMode="numeric" name="participants" required type="number" min={1} max={500} /></label>
+              <label className={labelClass}>Nombre de nuits *<input className={fieldClass} inputMode="numeric" name="nights" required type="number" min={1} max={30} /></label>
               <label className={labelClass}>Dates souhaitées<input className={fieldClass} name="dates" placeholder="Ex. : 12-14 mars 2027" maxLength={120} /></label>
+              <label className={labelClass}>Budget indicatif<input className={fieldClass} name="budget" placeholder="Ex. : 15 000 € HT" maxLength={80} /></label>
             </div>
-            <label className={`${labelClass} mt-5 block`}>Votre projet *<textarea className={`${fieldClass} min-h-[120px] py-3`} name="project" required minLength={10} maxLength={1800} placeholder="Objectifs, format, besoins de travail, activités souhaitées…" /></label>
+            <fieldset className="mt-5">
+              <legend className={labelClass}>Prestations souhaitées</legend>
+              <div className="mt-2 flex flex-wrap gap-x-6 gap-y-3">
+                {SERVICES.map(service => (
+                  <label key={service} className="flex min-h-11 items-center gap-2 text-sm text-slate-700">
+                    <input className="h-4 w-4 accent-pink-600" name="services" type="checkbox" value={service} />{service}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <label className={`${labelClass} mt-5 block`}>Votre projet *<textarea className={`${fieldClass} min-h-[120px] py-3`} name="project" required minLength={10} maxLength={1500} placeholder="Objectifs, format, besoins de travail, activités souhaitées…" /></label>
             <label className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">Site web<input name="website" tabIndex={-1} autoComplete="off" /></label>
             <label className="mt-5 flex items-start gap-3 text-xs leading-5 text-slate-500"><input className="mt-1 accent-pink-600" required type="checkbox" />J’accepte que MyStay utilise ces informations uniquement pour répondre à ma demande.</label>
             {state === 'sent' && <p className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800" role="status">Merci. Votre demande a bien été envoyée. Nous revenons vers vous sous 48 h.</p>}

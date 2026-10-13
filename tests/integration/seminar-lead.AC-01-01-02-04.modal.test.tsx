@@ -16,10 +16,14 @@ function fill(dialog: HTMLElement) {
   fireEvent.change(field(/Entreprise/), { target: { value: 'Acme' } })
   fireEvent.change(field(/Adresse e-mail/), { target: { value: 'claire@entreprise.test' } })
   fireEvent.change(field(/Téléphone/), { target: { value: '0611223344' } })
-  fireEvent.change(field(/Nombre de participants/), { target: { value: '16 à 26' } })
+  fireEvent.change(field(/Nombre de participants/), { target: { value: '18' } })
+  fireEvent.change(field(/Nombre de nuits/), { target: { value: '2' } })
   fireEvent.change(field(/Dates souhaitées/), { target: { value: 'mars 2027' } })
+  fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Salle de réunion' }))
+  fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Repas' }))
+  fireEvent.change(field(/Budget indicatif/), { target: { value: '15 000 € HT' } })
   fireEvent.change(field(/Votre projet/), { target: { value: 'Séminaire CODIR de deux jours.' } })
-  fireEvent.click(within(dialog).getByRole('checkbox'))
+  fireEvent.click(within(dialog).getByRole('checkbox', { name: /J’accepte/ }))
 }
 
 describe('052 seminar lead modal', () => {
@@ -37,8 +41,10 @@ describe('052 seminar lead modal', () => {
     expect(ctas.length).toBeGreaterThanOrEqual(2)
 
     fireEvent.click(ctas[0])
-    const dialog = screen.getByRole('dialog', { name: 'Recevoir une proposition' })
+    const dialog = screen.getByRole('dialog', { name: 'Demander un devis' })
     expect(dialog).toHaveTextContent('Saint-Gervais-les-Bains')
+    // Amendement du 2026-10-13 : le devis porte toujours sur la location d'un chalet.
+    expect(dialog).toHaveTextContent('location d’un chalet')
 
     fireEvent.keyDown(dialog, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -51,17 +57,22 @@ describe('052 seminar lead modal', () => {
 
     for (const [label, required] of [
       [/Prénom et nom/, true], [/Entreprise/, true], [/Adresse e-mail/, true], [/Téléphone/, false],
-      [/Nombre de participants/, true], [/Dates souhaitées/, false], [/Votre projet/, true],
+      [/Nombre de participants/, true], [/Nombre de nuits/, true], [/Dates souhaitées/, false],
+      [/Budget indicatif/, false], [/Votre projet/, true],
     ] as const) {
       const input = within(dialog).getByLabelText(label)
       if (required) expect(input).toBeRequired()
       else expect(input).not.toBeRequired()
     }
-    const participants = within(dialog).getByLabelText(/Nombre de participants/)
-    expect(within(participants).getAllByRole('option').map(option => option.textContent)).toEqual([
-      'Sélectionner', 'Moins de 10', '10 à 15', '16 à 26', 'Plus de 26',
+    expect(within(dialog).getByLabelText(/Nombre de participants/)).toHaveAttribute('type', 'number')
+    expect(within(dialog).getByLabelText(/Nombre de nuits/)).toHaveAttribute('type', 'number')
+    const services = within(dialog).getByRole('group', { name: 'Prestations souhaitées' })
+    const serviceBoxes = within(services).getAllByRole('checkbox')
+    expect(serviceBoxes.map(box => (box as HTMLInputElement).value)).toEqual([
+      'Salle de réunion', 'Repas', 'Transferts', 'Activités',
     ])
-    expect(within(dialog).getByRole('checkbox')).toBeRequired()
+    for (const box of serviceBoxes) expect(box).not.toBeRequired()
+    expect(within(dialog).getByRole('checkbox', { name: /J’accepte/ })).toBeRequired()
     expect(within(dialog).getByRole('button', { name: 'Envoyer ma demande' })).toBeInTheDocument()
   })
 
@@ -83,7 +94,7 @@ describe('052 seminar lead modal', () => {
       sender_email: 'claire@entreprise.test',
       sender_phone: '0611223344',
       subject: 'Demande séminaire — Acme — Saint-Gervais-les-Bains',
-      message: 'Entreprise : Acme\nParticipants : 16 à 26\nDates souhaitées : mars 2027\n\nSéminaire CODIR de deux jours.',
+      message: 'Entreprise : Acme\nParticipants : 18\nNuits : 2\nDates souhaitées : mars 2027\nPrestations : Salle de réunion, Repas\nBudget indicatif : 15 000 € HT\n\nSéminaire CODIR de deux jours.',
       website: '',
     })
     expect(await within(dialog).findByRole('status')).toHaveTextContent(
@@ -102,11 +113,34 @@ describe('052 seminar lead modal', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('Vérifiez les champs et réessayez')
   })
 
+  it('046 AC-02-04: the seminar landing shows the three formats, the concierge landing does not', () => {
+    const seminar = renderSeminar()
+    expect(screen.getByRole('heading', { level: 2, name: 'À chaque équipe son format.' })).toBeInTheDocument()
+    const card = screen.getByRole('heading', { level: 3, name: 'Séminaire résidentiel' }).closest('article')!
+    expect(within(card).getByRole('heading', { level: 4, name: 'Journée type' })).toBeInTheDocument()
+    // Le devis d'une carte reprend la commune de la landing.
+    fireEvent.click(within(card).getByRole('button', { name: 'Demander un devis' }))
+    expect(screen.getByRole('dialog', { name: 'Demander un devis' })).toHaveTextContent('à Saint-Gervais-les-Bains')
+    seminar.unmount()
+
+    render(<LocalServiceLanding landing={publicLocalLanding('CONCIERGE', city)} />)
+    expect(screen.queryByRole('heading', { name: 'À chaque équipe son format.' })).not.toBeInTheDocument()
+  })
+
   it('BR-04: keeps the concierge landing CTA as a plain link', () => {
     render(<LocalServiceLanding landing={publicLocalLanding('CONCIERGE', city)} />)
 
     expect(screen.queryByRole('button', { name: 'Confier mon logement' })).not.toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: /Confier mon logement/ })[0]).toHaveAttribute('href', '/confier-mon-logement')
+  })
+
+  it('separates the steps with inner lines only (no line above the first or below the last)', () => {
+    renderSeminar()
+
+    const steps = screen.getByRole('heading', { name: 'Une étape à Saint-Gervais-les-Bains' }).closest('ol')!
+    expect(steps).toHaveClass('divide-y')
+    expect(steps).not.toHaveClass('border-t')
+    expect(steps.querySelector('li')).not.toHaveClass('border-b')
   })
 
   it('PO texts: seminar FAQ title and final call to action', () => {

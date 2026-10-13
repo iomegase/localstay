@@ -116,6 +116,14 @@ Lodging Public Profile publié et éligible.
   elle ne publie ni prix, ni disponibilité, ni capacité non issue des contenus
   MyStay déjà validés.
 
+- **AC-02-04** (amendement PO du 2026-10-13) : Given une landing séminaire
+  publiée, When elle est rendue, Then la section « À chaque équipe son
+  format. » de `/seminaires` (spec 031 AC-01-09 : trois formats détaillés,
+  journée type, lien « Demander un devis ») s'affiche entre les points forts et
+  le déroulé, à l'identique pour toutes les communes ; le formulaire ouvert
+  depuis une carte reprend la commune de la landing. Les landings conciergerie
+  n'affichent pas cette section.
+
 ### US-03 — Trouver une location de vacances par commune
 
 **As a** Tourist
@@ -337,6 +345,7 @@ statique approuvé.
 | AC-01-03 | Contenu conciergerie factuel | unit + editorial review |
 | AC-01-04 | Landing conciergerie : cartes compactes, bloc guide et bloc final à bouton unique | integration |
 | AC-02-01 | Pages séminaires actives, uniques et canoniques | unit + integration |
+| AC-02-04 | Section formats partagée sur les landings séminaire | integration |
 | AC-02-02 | Destinations séminaires futures ou inconnues en 404 | unit + integration |
 | AC-02-03 | Aucun prix/capacité/disponibilité inventé | unit |
 | AC-03-01 | Page locations indexable avec profils publiés | unit + integration |
@@ -430,7 +439,7 @@ Remplace la présentation de `/locations-vacances/[city-slug]` décrite en UI Be
   « Notre fonctionnement », `process_title` et les étapes numérotées `01`, `02`… Suivent les
   highlights (« Pourquoi MyStay », titre `Séjourner avec MyStay à [City]`, composant partagé
   `MarketingHighlightCards` comme la conciergerie), la FAQ (`id="faq"`, composant partagé
-  `MarketingFaqSection` en 2 colonnes comme la conciergerie, titre « Bon à savoir avant de réserver ») puis le CTA final `cta_label` → `cta_href`. Tailles de texte et justification de `local_copy` arbitrées par le
+  `MarketingFaqSection` en 2 colonnes comme la conciergerie, titre « Bon à savoir avant de réserver »). Le bloc final « [City] vous attend. » avec le bouton `cta_label` → `cta_href` est retiré (amendement PO du 2026-10-13 : le lien `Découvrir [City]` de la section sombre joue déjà ce rôle) ; `cta_label` et `cta_href` ne servent plus que dans l'état vide (AC-03-02). Tailles de texte et justification de `local_copy` arbitrées par le
   Product Owner (2026-10-04). L'état vide (AC-03-02) conserve son contenu et ses liens.
 
 ## Amendement approuvé — Logements locaux prioritaires (PO 2026-10-05)

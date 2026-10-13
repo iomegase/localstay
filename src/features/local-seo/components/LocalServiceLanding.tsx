@@ -19,6 +19,7 @@ import {
 } from '@/features/marketing/components/MarketingShell'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { SeminarLeadDialog } from '@/features/contact-messages/components/SeminarLeadDialog'
+import { SeminarFormats } from '@/features/marketing/components/SeminarFormats'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 
 function PrimaryCta({
@@ -196,6 +197,9 @@ export function LocalServiceLanding({
           <MarketingHighlightCards items={content.highlights} />
         </section>
 
+        {/* Spec 046 AC-02-04 : formats de séminaire, communs à toutes les communes. */}
+        {!isConcierge && <SeminarFormats cityName={landing.city.name} className="pb-20 sm:pb-28" />}
+
         {/* PROCESS */}
         <section className="bg-slate-800 py-16 text-white sm:py-24">
   <div
@@ -229,7 +233,7 @@ export function LocalServiceLanding({
       )}
     </div>
 
-    <ol className="border-t border-white/15">
+    <ol className="divide-y divide-white/15">
       {content.steps.map((step, index) => (
         <li
           key={step.title}
@@ -237,8 +241,6 @@ export function LocalServiceLanding({
             grid
             grid-cols-[34px_1fr]
             gap-4
-            border-b
-            border-white/15
             py-6
           "
         >

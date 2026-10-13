@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-01
-updated_at: 2026-10-01
+updated_at: 2026-10-13
 depends_on:
   - 024-contact-messages
   - 046-local-seo-city-cluster
@@ -26,6 +26,12 @@ d'un client e-mail configuré et ne structure pas la demande. Le Product Owner
 demande un formulaire dans une modal au style MyStay, qui alimente la même
 boîte de réception que le formulaire propriétaire (spec 024 : section Messages
 de l'admin et notification e-mail à `bonjour@mystay.city`).
+
+**Amendement du 2026-10-13 (Product Owner, en conversation)** : les séminaires
+se vendent sur devis et portent toujours sur la location d'un chalet en plus de
+la prestation séminaire. Le formulaire devient une demande de devis : il
+recueille le nombre exact de participants, le nombre de nuits, les prestations
+souhaitées et un budget indicatif. L'hébergement n'est pas une option à cocher.
 
 ## Glossary References
 
@@ -51,15 +57,20 @@ de l'admin et notification e-mail à `bonjour@mystay.city`).
   (`cta_label`).
 - **AC-01-02**: Given la modal ouverte, When elle s'affiche, Then le formulaire
   demande : Prénom et nom*, Entreprise*, Adresse e-mail*, Téléphone, Nombre de
-  participants* (Moins de 10 · 10 à 15 · 16 à 26 · Plus de 26), Dates
-  souhaitées, Votre projet* (10 à 1800 caractères), un champ anti-spam caché et
-  le consentement obligatoire « J'accepte que MyStay utilise ces informations
-  uniquement pour répondre à ma demande. ».
+  participants* (nombre entier de 1 à 500), Nombre de nuits* (nombre entier de
+  1 à 30), Dates souhaitées, Budget indicatif (80 caractères au plus),
+  Prestations souhaitées (cases facultatives : Salle de réunion · Repas ·
+  Transferts · Activités), Votre projet* (10 à 1500 caractères), un champ
+  anti-spam caché et le consentement obligatoire « J'accepte que MyStay utilise
+  ces informations uniquement pour répondre à ma demande. ». Aucune question
+  sur l'hébergement : la location d'un chalet fait toujours partie du devis
+  (amendement du 2026-10-13, remplace les tranches de participants).
 - **AC-01-03**: Given un formulaire valide, When le visiteur l'envoie, Then
   `POST /api/public/contact-messages` reçoit `source: "seminar_lead"`,
   `destination: "concierge"`, `lodging_id: null`, l'objet
   `Demande séminaire — [Entreprise] — [Commune]` et un message reprenant
-  entreprise, participants, dates et projet ; un ContactMessage est créé et une
+  entreprise, participants, nuits, dates, prestations, budget indicatif (les
+  lignes facultatives vides sont omises) et projet ; un ContactMessage est créé et une
   notification « Nouvelle demande séminaire MyStay » est envoyée à
   `bonjour@mystay.city` (échec d'envoi journalisé, sans bloquer la demande).
 - **AC-01-04**: Given l'envoi réussi, When la réponse arrive, Then la modal
@@ -110,9 +121,12 @@ Aucun changement. `ContactMessage` (spec 024) avec `destination = concierge`.
 ## UI Behaviour
 
 - Bouton principal inchangé visuellement (style primaire MyStay).
-- Modal centrée, fond flouté, carte blanche arrondie, titre « Recevoir une
-  proposition », sous-titre rappelant la commune, champs au style du
-  formulaire propriétaire, bouton « Envoyer ma demande ».
+- Modal centrée, fond flouté, carte blanche arrondie, titre « Demander un
+  devis » (amendement du 2026-10-13, remplace « Recevoir une proposition »),
+  sous-titre « Votre séminaire [à Commune] : location d'un chalet et
+  prestations sur mesure. Décrivez votre projet, nous vous adressons un devis
+  sous 48 h. », champs au style du formulaire propriétaire, bouton « Envoyer
+  ma demande ». Le libellé des boutons qui ouvrent la modal ne change pas.
 - Mobile : la modal occupe la largeur disponible et défile verticalement.
 
 ## Acceptance Criteria
