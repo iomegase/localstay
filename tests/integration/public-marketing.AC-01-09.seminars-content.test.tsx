@@ -3,6 +3,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 
 const mockListSeminarLodgings = jest.fn()
+// Spec 097 : menu d'activités séminaire, vide dans ces tests.
+jest.mock('@/features/seminar-activities/queries/public', () => ({ listPublicSeminarActivities: jest.fn().mockResolvedValue([]) }))
 jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({
   listSeminarLodgings: (...args: unknown[]) => mockListSeminarLodgings(...args),
 }))
@@ -45,18 +47,21 @@ describe('031 AC-01-09 — /seminaires content', () => {
 
     expect(container.querySelector('main a[href^="mailto:"]')).toBeNull()
     expect(screen.queryByRole('link', { name: 'Échanger sur mon projet' })).not.toBeInTheDocument()
-    const ctas = screen.getAllByRole('button', { name: 'Recevoir une proposition' })
-    expect(ctas).toHaveLength(2)
-    fireEvent.click(ctas[1])
-    const dialog = screen.getByRole('dialog', { name: 'Demander un devis' })
+    // Bandeau du haut, trois cartes « Formats » et bloc final (libellé du 2026-10-14).
+    const ctas = screen.getAllByRole('button', { name: 'Demander une estimation' })
+    expect(ctas).toHaveLength(5)
+    fireEvent.click(ctas[4])
+    const dialog = screen.getByRole('dialog', { name: 'Demander une estimation' })
     expect(dialog).toHaveTextContent('dans le Pays du Mont-Blanc')
   })
 
-  it('bills only the chalet and coordination fees, never a global package', async () => {
+  it('never bills the company from MyStay: owner bills the chalet, providers bill directly', async () => {
     const { container } = await renderPage()
     const main = container.querySelector('main')!.textContent ?? ''
 
-    expect(main).toContain('MyStay vous facture la location du chalet et ses frais de coordination.')
+    expect(main).toContain('La location du chalet vous est facturée par son propriétaire.')
+    expect(main).toContain('devis du chalet établi par son propriétaire')
+    expect(main).not.toMatch(/MyStay vous facture|frais de coordination/i)
     expect(main).toContain('facturés directement par chaque prestataire')
     expect(main).not.toMatch(/devis global|devis unique|facture unique|tout compris/i)
   })
@@ -79,12 +84,12 @@ describe('031 AC-01-09 — /seminaires content', () => {
         'Matin', 'Après-midi', 'Soirée',
       ])
       expect(day).toHaveTextContent(evening)
-      expect(within(card).getByRole('button', { name: 'Demander un devis' })).toBeInTheDocument()
+      expect(within(card).getByRole('button', { name: 'Demander une estimation' })).toBeInTheDocument()
     }
 
     const card = screen.getByRole('heading', { level: 3, name: 'Séminaire résidentiel' }).closest('article')!
-    fireEvent.click(within(card).getByRole('button', { name: 'Demander un devis' }))
-    expect(screen.getByRole('dialog', { name: 'Demander un devis' })).toBeInTheDocument()
+    fireEvent.click(within(card).getByRole('button', { name: 'Demander une estimation' }))
+    expect(screen.getByRole('dialog', { name: 'Demander une estimation' })).toBeInTheDocument()
   })
 
   it('shows the lodgings block, a six-question two-column FAQ and the final call to action', async () => {

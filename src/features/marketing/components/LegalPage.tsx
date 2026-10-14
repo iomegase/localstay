@@ -10,12 +10,15 @@ const documents = [
   { href: '/cgu', label: 'CGU' },
 ] as const
 
-/** Spec 031 US-06 — documents publics, aucune donnée de séjour. */
-export function LegalPage({ title, intro, sections, pathname }: {
+const updatedOnFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+
+/** Spec 031 US-06 — documents publics, aucune donnée de séjour. Date de mise à jour propre à chaque page (AC-06-05). */
+export function LegalPage({ title, intro, sections, pathname, updatedOn }: {
   title: string
   intro: string
   sections: LegalSection[]
   pathname: string
+  updatedOn: string
 }) {
   return (
     <MarketingShell>
@@ -24,7 +27,7 @@ export function LegalPage({ title, intro, sections, pathname }: {
           <MarketingEyebrow>En toute clarté</MarketingEyebrow>
           <h1 className="text-4xl font-bold tracking-[-0.055em] text-slate-800 sm:text-6xl">{title}</h1>
           <p className="mt-6 text-base leading-7 text-slate-500">{intro}</p>
-          <p className="mt-5 text-xs text-slate-500">Mis à jour le <time dateTime="2026-10-05">5 octobre 2026</time></p>
+          <p className="mt-5 text-xs text-slate-500">Mis à jour le <time dateTime={updatedOn}>{updatedOnFormat.format(new Date(updatedOn))}</time></p>
         </header>
         <div className="mt-12 grid items-start gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-14">
           <nav aria-label="Sommaire" className="rounded-2xl bg-slate-50 p-5 lg:sticky lg:top-8">

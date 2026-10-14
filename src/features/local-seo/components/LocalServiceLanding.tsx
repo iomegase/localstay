@@ -69,6 +69,7 @@ export function LocalServiceLanding({
 }) {
   const content = landing.page
   const isConcierge = content.intent === 'CONCIERGE'
+  const isSeminar = content.intent === 'SEMINAR'
   const reassuranceItems = content.reassurance
     ?.split('·')
     .map(item => item.trim())
@@ -220,13 +221,15 @@ export function LocalServiceLanding({
 
       {content.process_title && (
         <h2
-          className="
-            text-[32px]
+          className={`
             font-bold
             leading-[1.08]
             tracking-[-0.045em]
-            sm:text-[42px]
-          "
+            ${isSeminar
+              // Ajustement PO du 2026-10-14 : « De votre brief au jour J » sur une seule ligne.
+              ? 'text-[clamp(24px,8.4vw,32px)] sm:text-[42px] lg:text-[30px]'
+              : 'text-[32px] sm:text-[42px]'}
+          `}
         >
           {content.process_title}
         </h2>
@@ -316,9 +319,8 @@ export function LocalServiceLanding({
           className={`${marketingContainerClass} pb-20 sm:pb-28`}
         >
           <div
-            className="
+            className={`
               rounded-[28px]
-              bg-slate-50
               px-6
               py-10
               sm:px-10
@@ -327,23 +329,27 @@ export function LocalServiceLanding({
               lg:items-center
               lg:justify-between
               lg:gap-12
-            "
+              ${isSeminar
+                // Ajustement PO du 2026-10-14 : fond slate comme le bloc final de /seminaires.
+                ? 'bg-slate-800 bg-[radial-gradient(circle_at_0_0,rgba(219,39,119,0.12),transparent_34%)] text-white'
+                : 'bg-slate-50'}
+            `}
           >
             <div>
-              <MarketingEyebrow>
+              <MarketingEyebrow light={isSeminar}>
                 Aller plus loin
               </MarketingEyebrow>
 
               <h2
-                className="
+                className={`
                   max-w-[650px]
                   text-[30px]
                   font-bold
                   leading-[1.12]
                   tracking-[-0.04em]
-                  text-slate-900
                   sm:text-[38px]
-                "
+                  ${isSeminar ? 'text-white' : 'text-slate-900'}
+                `}
               >
                 {isConcierge
                   ? `Parlons de votre logement à ${landing.city.name}.`
@@ -354,20 +360,19 @@ export function LocalServiceLanding({
 
   <Link
     href="/decouvrir"
-    className="
+    className={`
       inline-flex
       items-center
       rounded-full
-      bg-slate-200
       px-4
       py-2
       text-[10px]
       font-bold
-      text-slate-700
       transition-colors
-      hover:bg-slate-300
-      hover:text-slate-900
-    "
+      ${isSeminar
+        ? 'bg-white/10 text-slate-100 hover:bg-white/20 hover:text-white'
+        : 'bg-slate-200 text-slate-700 hover:bg-slate-300 hover:text-slate-900'}
+    `}
   >
     Découvrir la région
   </Link>

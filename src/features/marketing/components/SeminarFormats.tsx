@@ -167,7 +167,7 @@ export function SeminarFormats({
 
             <div className="mt-auto pt-6">
               <SeminarLeadDialog
-                label="Demander un devis"
+                label="Demander une estimation"
                 cityName={cityName}
                 triggerClassName="inline-flex min-h-11 items-center text-[13px] font-bold text-pink-600 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
               />

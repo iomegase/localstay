@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react'
 import { publicLocalLanding } from '../fixtures/public-local-landing'
 import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-pages'
 
+// Spec 097 : menu d'activités séminaire, vide dans ces tests.
+jest.mock('@/features/seminar-activities/queries/public', () => ({ listPublicSeminarActivities: jest.fn().mockResolvedValue([]) }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn() }))
 
 jest.mock('next/navigation', () => ({

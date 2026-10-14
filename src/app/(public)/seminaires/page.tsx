@@ -15,6 +15,8 @@ import {
 import { SeminarLeadDialog } from '@/features/contact-messages/components/SeminarLeadDialog'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { SeminarFormats } from '@/features/marketing/components/SeminarFormats'
+import { SeminarActivityMenu } from '@/features/seminar-activities/components/SeminarActivityMenu'
+import { listPublicSeminarActivities } from '@/features/seminar-activities/queries/public'
 
 import {
   MarketingEyebrow,
@@ -91,7 +93,7 @@ const steps = [
   {
     number: '02',
     title: 'Votre proposition sous 48 h',
-    copy: 'Programme détaillé, devis du chalet et de nos frais de coordination, budget des prestataires.',
+    copy: 'Programme détaillé, devis du chalet établi par son propriétaire, budget des prestataires.',
   },
   {
     number: '03',
@@ -111,11 +113,14 @@ const faq = [
   { question: 'Organisez-vous les repas, les transferts et les activités ?', answer: 'Oui, nous les organisons selon vos besoins : traiteur ou chef à domicile, navettes, activités d’équipe en montagne. Chaque prestataire vous facture directement sa prestation.' },
   { question: 'Disposez-vous d’un espace de réunion ?', answer: 'Oui. Le chalet dispose d’un espace de réunion sur place, que nous aménageons selon votre format : plénière, ateliers ou sessions informelles.' },
   { question: 'Quelle est la meilleure saison ?', answer: 'Toute l’année : ski et activités de neige en hiver, randonnée et grand air de mai à octobre, thermes en toute saison.' },
-  { question: 'Comment se passe la facturation ?', answer: 'MyStay vous facture la location du chalet et ses frais de coordination. Les repas, transferts et activités vous sont facturés directement par chaque prestataire ; un budget récapitulatif vous donne la vue d’ensemble avant de vous engager.' },
+  { question: 'Comment se passe la facturation ?', answer: 'La location du chalet vous est facturée par son propriétaire. Les repas, transferts et activités vous sont facturés directement par chaque prestataire ; un budget récapitulatif vous donne la vue d’ensemble avant de vous engager.' },
 ] as const
 
 export default async function SeminarsPage() {
-  const seminarLodgings = await listSeminarLodgings()
+  const [seminarLodgings, seminarActivities] = await Promise.all([
+    listSeminarLodgings(),
+    listPublicSeminarActivities(null),
+  ])
   return (
     <MarketingShell>
       <div className="overflow-hidden">
@@ -185,7 +190,7 @@ export default async function SeminarsPage() {
               </p>
 
               <div className="mt-[30px] flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-                <SeminarLeadDialog label="Recevoir une proposition" />
+                <SeminarLeadDialog label="Demander une estimation" />
               </div>
             </div>
 
@@ -548,6 +553,9 @@ export default async function SeminarsPage() {
 
         <SeminarFormats />
 
+        {/* Spec 097 : menu d'activités attribuées à la page globale. */}
+        <SeminarActivityMenu activities={seminarActivities} />
+
         {/* PROCESS */}
         <section
           data-testid="seminar-process"
@@ -760,7 +768,7 @@ export default async function SeminarsPage() {
                 suffisent. Vous recevez une proposition sur mesure sous 48 h.
               </p>
 
-              <SeminarLeadDialog label="Recevoir une proposition" />
+              <SeminarLeadDialog label="Demander une estimation" />
             </div>
           </div>
         </section>

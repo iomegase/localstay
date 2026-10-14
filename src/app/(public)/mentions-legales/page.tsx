@@ -13,6 +13,10 @@ const sections: LegalSection[] = [
     <p>Le site MyStay, accessible à l’adresse www.mystay.city, est édité par <strong>David Devillers</strong>, qui en assure également la direction de la publication. MyStay est le nom utilisé pour présenter son activité et son guide local.</p>
     <p><strong>Adresse :</strong> 1094 route de la Croix, 74170 Saint-Gervais-les-Bains, France.<br /><strong>E-mail :</strong> <a href="mailto:bonjour@mystay.city">bonjour@mystay.city</a>.<br /><strong>Téléphone :</strong> <a href="tel:+33607859058">+33 6 07 85 90 58</a>.</p>
   </> },
+  { id: 'statut', title: 'Statut et facturation', content: <>
+    <p>David Devillers exerce l’activité MyStay dans le cadre du portage salarial. Les prestations sont facturées par la société de portage :</p>
+    <p><strong>JUMP GREEN</strong>, SCIC sous forme de SAS à capital variable.<br /><strong>Siège social :</strong> 229 rue Saint-Honoré, 75001 Paris.<br /><strong>SIRET :</strong> 977 610 781 00022 · RCS Paris 977 610 781.<br /><strong>TVA intracommunautaire :</strong> FR10 977 610 781.</p>
+  </> },
   { id: 'objet', title: 'Un site de présentation et de contact', content: <>
     <p>MyStay présente un accompagnement local des logements et des voyageurs en Haute-Savoie, des informations sur les séminaires, des logements et des contenus de découverte locale.</p>
     <p>Aucune vente, réservation ou opération de paiement n’est réalisée en ligne sur ce site. Les formulaires servent à nous transmettre un message ou une demande. Les conditions d’une éventuelle prestation sont définies séparément.</p>
@@ -32,5 +36,5 @@ const sections: LegalSection[] = [
 ]
 
 export default function LegalNoticePage() {
-  return <LegalPage pathname="/mentions-legales" title="Mentions légales" intro="Les informations utiles pour savoir qui se trouve derrière MyStay et comment nous contacter." sections={sections} />
+  return <LegalPage pathname="/mentions-legales" updatedOn="2026-10-14" title="Mentions légales" intro="Les informations utiles pour savoir qui se trouve derrière MyStay et comment nous contacter." sections={sections} />
 }

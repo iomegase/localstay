@@ -5,7 +5,7 @@ import { prisma } from '@/shared/lib/prisma'
  * spec 063 ne compte que si sa photo d'origine est encore sur une fiche active.
  */
 export async function loadReferencedStorageUrls(): Promise<Set<string>> {
-  const [pois, mirrors, lodgingPhotos, customizations, blocks, instructions, equipment] = await Promise.all([
+  const [pois, mirrors, lodgingPhotos, customizations, blocks, instructions, equipment, seminarActivities] = await Promise.all([
     prisma.pointOfInterest.findMany({ where: { deleted_at: null }, select: { photos: true } }),
     prisma.poiPhotoMirror.findMany({ where: { deleted_at: null }, select: { source_url: true, storage_url: true } }),
     prisma.lodgingPhoto.findMany({ where: { deleted_at: null }, select: { url: true } }),
@@ -14,6 +14,8 @@ export async function loadReferencedStorageUrls(): Promise<Set<string>> {
     prisma.lodgingArrivalInstruction.findMany({ where: { deleted_at: null }, select: { photos: true } }),
     // Spec 096 BR-02 : photos de la bibliothèque d'équipements.
     prisma.equipmentTemplate.findMany({ where: { deleted_at: null, photo_url: { not: null } }, select: { photo_url: true } }),
+    // Spec 097 BR-07 : images du menu d'activités séminaire.
+    prisma.seminarActivity.findMany({ where: { deleted_at: null, image_url: { not: null } }, select: { image_url: true } }),
   ])
 
   const referenced = new Set<string>()
@@ -26,6 +28,7 @@ export async function loadReferencedStorageUrls(): Promise<Set<string>> {
   blocks.forEach(block => block.photo_url && referenced.add(block.photo_url))
   instructions.forEach(instruction => instruction.photos.forEach(url => referenced.add(url)))
   equipment.forEach(template => template.photo_url && referenced.add(template.photo_url))
+  seminarActivities.forEach(activity => activity.image_url && referenced.add(activity.image_url))
   return referenced
 }
 

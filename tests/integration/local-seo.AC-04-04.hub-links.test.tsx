@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react'
 
 const mockListPublishedLocalLandingSummaries = jest.fn()
 
+// Spec 097 : menu d'activités séminaire, vide dans ces tests.
+jest.mock('@/features/seminar-activities/queries/public', () => ({ listPublicSeminarActivities: jest.fn().mockResolvedValue([]) }))
 jest.mock('@/features/lodging-showcase/queries/public-lodgings', () => ({
   listPublishedLodgings: jest.fn(async () => []),
 }))

@@ -11,15 +11,16 @@ jest.mock('@/features/marketing/components/MarketingHeader', () => ({
 
 describe('031 US-06 — pages légales MyStay', () => {
   it.each([
-    [LegalNoticePage, 'Mentions légales', '/mentions-legales', legalMetadata],
-    [PrivacyPage, 'Confidentialité', '/confidentialite', privacyMetadata],
-    [TermsPage, 'Conditions d’utilisation', '/cgu', termsMetadata],
-  ] as const)('AC-06-01/05 renders %s with the marketing shell, footer and working anchors', (Page, title, path, metadata) => {
+    [LegalNoticePage, 'Mentions légales', '/mentions-legales', legalMetadata, '2026-10-14', '14 octobre 2026'],
+    [PrivacyPage, 'Confidentialité', '/confidentialite', privacyMetadata, '2026-10-05', '5 octobre 2026'],
+    [TermsPage, 'Conditions d’utilisation', '/cgu', termsMetadata, '2026-10-14', '14 octobre 2026'],
+  ] as const)('AC-06-01/05 renders %s with the marketing shell, footer and working anchors', (Page, title, path, metadata, isoDate, label) => {
     const { container } = render(<Page />)
     expect(screen.getByTestId('marketing-surface')).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(title)
-    expect(container.querySelector('time')).toHaveAttribute('datetime', '2026-10-05')
+    expect(container.querySelector('time')).toHaveAttribute('datetime', isoDate)
+    expect(container.querySelector('time')).toHaveTextContent(label)
     for (const link of within(screen.getByRole('navigation', { name: 'Sommaire' })).getAllByRole('link')) {
       expect(container.querySelector(link.getAttribute('href')!)).toBeInTheDocument()
     }
@@ -31,13 +32,15 @@ describe('031 US-06 — pages légales MyStay', () => {
     expect(metadata.description).toBeTruthy()
   })
 
-  it('AC-06-02 identifies the actual editor and host without inventing a company', () => {
+  it('AC-06-02 identifies the actual editor, host and billing portage company', () => {
     const { container } = render(<LegalNoticePage />)
     expect(container.textContent).toContain('David Devillers')
     expect(container.textContent).toContain('1094 route de la Croix, 74170 Saint-Gervais-les-Bains')
     expect(container.textContent).toContain('Vercel Inc.')
-    expect(container.textContent).not.toContain('Jump')
-    expect(container.textContent).not.toContain('SIRET')
+    expect(container.textContent).toContain('portage salarial')
+    expect(container.textContent).toContain('JUMP GREEN')
+    expect(container.textContent).toContain('977 610 781 00022')
+    expect(container.textContent).toContain('FR10 977 610 781')
   })
 
   it('AC-06-03 explains retention, services and consent accurately', () => {
@@ -56,5 +59,18 @@ describe('031 US-06 — pages légales MyStay', () => {
     expect(container.textContent).toContain('ni une commande, ni une réservation, ni un contrat de prestation')
     expect(container.textContent).toContain('ne propose pas de vente ou de paiement en ligne')
     expect(container.textContent).toContain('ne limitent pas les droits impératifs')
+  })
+
+  it('AC-06-04 describes the concierge model and who bills each service', () => {
+    const { container } = render(<TermsPage />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('co-hôte sur le compte')
+    expect(text).toContain('MyStay n’encaisse pas les loyers.')
+    expect(text).toContain('aucune clause')
+    expect(text).toContain('JUMP GREEN')
+    expect(text).toContain('MyStay ne facture que ses clients partenaires')
+    expect(text).toContain('aucune facture aux voyageurs')
+    expect(text).toContain('Les estimations transmises par MyStay ont une valeur')
+    expect(text).not.toContain('ne facture pas les séjours aux entreprises en son nom')
   })
 })

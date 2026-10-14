@@ -468,6 +468,15 @@ Aucune nouvelle route API n'est introduite.
   statut 404 et `noindex` posés par Next. Volontairement légère (ni en-tête ni
   footer complets, aucune requête) car Next la pré-rend dans le payload de
   chaque page.
+- **2026-10-10 (Product Owner) — 404 illustrée et animée** : remplace le
+  contenu de la 404 du 2026-10-05. `src/app/not-found.tsx` reste un Server
+  Component (titre « Page introuvable », statut 404 et `noindex` posés par
+  Next) et rend la scène cliente `NotFoundScene` : trois chiffres illustrés
+  (`public/404/`) animés à l'entrée avec GSAP, léger suivi du pointeur hors
+  tactile, message « Cette page s'est égarée. », lien « Retour à l'accueil »
+  et bouton « Rejouer ». Le logo, les liens Nos logements / Découvrir /
+  Journal et le contact sont retirés. Avec `prefers-reduced-motion`, le
+  contenu s'affiche sans animation. Toujours aucune requête.
 
 ## Out of Scope
 

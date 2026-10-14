@@ -2,6 +2,8 @@
 
 import { render, screen, within } from '@testing-library/react'
 
+// Spec 097 : menu d'activités séminaire, vide dans ces tests.
+jest.mock('@/features/seminar-activities/queries/public', () => ({ listPublicSeminarActivities: jest.fn().mockResolvedValue([]) }))
 jest.mock('next/navigation', () => ({ redirect: jest.fn(), permanentRedirect: jest.fn(), usePathname: () => '/seminaires' }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({
   listPublishedLocalLandingSummaries: jest.fn(async () => []),
@@ -35,7 +37,7 @@ describe('031-public-marketing-site editorial routes', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-slate-900')
     expect(
       within(screen.getByTestId('seminar-hero')).getByRole('button', {
-        name: 'Recevoir une proposition',
+        name: 'Demander une estimation',
       }),
     ).toHaveClass('bg-pink-600')
     expect(screen.getAllByTestId('seminar-service-card')).toHaveLength(4)

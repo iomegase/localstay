@@ -7,6 +7,7 @@ const mockCustomizationFindMany = jest.fn()
 const mockBlockFindMany = jest.fn()
 const mockInstructionFindMany = jest.fn()
 const mockEquipmentFindMany = jest.fn()
+const mockSeminarActivityFindMany = jest.fn()
 
 jest.mock('@/shared/lib/supabase', () => ({
   createSupabaseServer: () => ({ storage: { from: () => ({ remove: (...args: unknown[]) => mockRemove(...args) }) } }),
@@ -23,6 +24,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodgingPracticalBlock: { findMany: (...args: unknown[]) => mockBlockFindMany(...args) },
     lodgingArrivalInstruction: { findMany: (...args: unknown[]) => mockInstructionFindMany(...args) },
     equipmentTemplate: { findMany: (...args: unknown[]) => mockEquipmentFindMany(...args) },
+    seminarActivity: { findMany: (...args: unknown[]) => mockSeminarActivityFindMany(...args) },
   },
 }))
 
@@ -41,6 +43,7 @@ function noReferences() {
   mockBlockFindMany.mockResolvedValue([])
   mockInstructionFindMany.mockResolvedValue([])
   mockEquipmentFindMany.mockResolvedValue([])
+  mockSeminarActivityFindMany.mockResolvedValue([])
 }
 
 describe('070 — chemins du stockage', () => {
@@ -73,6 +76,8 @@ describe('070 BR-04 — références actives', () => {
     mockInstructionFindMany.mockResolvedValue([{ photos: [`${BASE}lodgings/l/arrivee.webp`] }])
     // Spec 096 BR-02 : photo d'un équipement de bibliothèque.
     mockEquipmentFindMany.mockResolvedValue([{ photo_url: `${BASE}lodgings/l/equipement.webp` }])
+    // Spec 097 BR-07 : image d'une activité séminaire.
+    mockSeminarActivityFindMany.mockResolvedValue([{ image_url: `${BASE}seminar-activities/a/1.webp` }])
 
     const urls = await loadReferencedStorageUrls()
 
@@ -85,6 +90,7 @@ describe('070 BR-04 — références actives', () => {
       `${BASE}lodgings/l/showcase/1.webp`,
       `${BASE}pois/1.webp`,
       `${BASE}pois/p/a.webp`,
+      `${BASE}seminar-activities/a/1.webp`,
     ].sort())
     expect(mockPoiFindMany.mock.calls[0]![0].where).toEqual({ deleted_at: null })
     expect(mockMirrorFindMany.mock.calls[0]![0].where).toEqual({ deleted_at: null })

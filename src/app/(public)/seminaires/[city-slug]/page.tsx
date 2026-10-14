@@ -1,5 +1,7 @@
 import { listSeminarLodgings } from '@/features/lodging-showcase/queries/seminar-lodgings'
 import { SeminarLodgings } from '@/features/lodging-showcase/components/SeminarLodgings'
+import { SeminarActivityMenu } from '@/features/seminar-activities/components/SeminarActivityMenu'
+import { listPublicSeminarActivities } from '@/features/seminar-activities/queries/public'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import {
@@ -41,7 +43,10 @@ export default async function SeminarCityPage({ params }: PageProps) {
   const landing = await getPublishedLocalLanding(citySlug, 'SEMINAR')
   if (!landing) notFound()
 
-  const seminarLodgings = await listSeminarLodgings(landing.city.id)
+  const [seminarLodgings, seminarActivities] = await Promise.all([
+    listSeminarLodgings(landing.city.id),
+    listPublicSeminarActivities(landing.id),
+  ])
   const path = localSeoPath('seminar', landing.city.slug)
   const breadcrumb = breadcrumbSchema([
     { name: 'Accueil', path: '/' },
@@ -53,7 +58,16 @@ export default async function SeminarCityPage({ params }: PageProps) {
   return (
     <>
       <JsonLd data={[breadcrumb, service]} />
-      <LocalServiceLanding landing={landing} beforeFinalCta={<SeminarLodgings lodgings={seminarLodgings} />} />
+      <LocalServiceLanding
+        landing={landing}
+        beforeFinalCta={(
+          <>
+            <SeminarLodgings lodgings={seminarLodgings} />
+            {/* Spec 097 : menu d'activités attribuées à cette landing. */}
+            <SeminarActivityMenu activities={seminarActivities} />
+          </>
+        )}
+      />
     </>
   )
 }

@@ -6,6 +6,8 @@ import { getPublishedLocalLanding } from '@/features/local-seo/queries/landing-p
 import SeminarsPage from '@/app/(public)/seminaires/page'
 import SeminarCityPage from '@/app/(public)/seminaires/[city-slug]/page'
 
+// Spec 097 : menu d'activités séminaire, vide dans ces tests.
+jest.mock('@/features/seminar-activities/queries/public', () => ({ listPublicSeminarActivities: jest.fn().mockResolvedValue([]) }))
 jest.mock('@/features/lodging-showcase/queries/seminar-lodgings', () => ({ listSeminarLodgings: jest.fn() }))
 jest.mock('@/features/local-seo/queries/landing-pages', () => ({ getPublishedLocalLanding: jest.fn(), listPublishedLocalLandingSummaries: jest.fn().mockResolvedValue([]) }))
 jest.mock('next/navigation', () => ({ usePathname: () => '/logements', notFound: () => { throw new Error('NEXT_NOT_FOUND') } }))

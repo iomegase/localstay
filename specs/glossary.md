@@ -106,6 +106,15 @@ Configuration SEO persistée rattachée à une City existante. Elle pilote globa
 ### Local Landing Page (Landing page locale)
 Contenu SEO et éditorial d'une intention locale pour une Local Landing Destination. Une destination possède exactement une page Conciergerie, une page Séminaires et une page Locations de vacances.
 
+### Seminar Activity (Activité séminaire)
+Carte du menu d'activités séminaire (spec 097), gérée par l'Admin : titre, catégorie, description, saison, niveau et image. Elle porte aussi des prix internes HT (par personne et forfait groupe, TVA 20 % calculée) qui servent à préparer les devis et ne sont jamais publiés. Elle n'apparaît jamais dans le Guide ni dans les pages Découvrir.
+
+### Activity Provider (Prestataire d'activité)
+POI existant relié à une Seminar Activity, avec une note interne, pour la préparation des devis. Donnée strictement interne, jamais publiée.
+
+### Seminar Surface (Surface séminaire)
+Emplacement de diffusion d'une Seminar Activity : la page globale `/seminaires` (clé `hub`) ou la landing séminaire d'une Local Landing Destination. L'Admin attribue chaque carte manuellement, surface par surface, et en règle l'ordre.
+
 ### Owner (Hébergeur)
 Propriétaire ou gestionnaire d'un ou plusieurs Lodgings. Accède au dashboard hébergeur (MVP 2+).
 

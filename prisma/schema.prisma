@@ -135,6 +135,8 @@ model LocalLandingDestination {
   city    City                 @relation(fields: [city_id], references: [id])
   pages   LocalLandingPage[]
   reviews LocalLandingReview[]
+
+  seminar_activity_placements SeminarActivityPlacement[]
 }
 
 model LocalLandingPage {
@@ -282,6 +284,7 @@ model PointOfInterest {
   trail_candidates_published       TrailCandidate[]          @relation("TrailCandidatePublishedPoi")
   photo_mirrors                    PoiPhotoMirror[]
   city_redirects                   PoiCityRedirect[]
+  seminar_activity_providers       SeminarActivityProvider[]
 
   @@unique([city_id, slug])
   @@index([city_id, deleted_at, is_active, updated_at])
@@ -1473,14 +1476,14 @@ model LodgingPracticalBlock {
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 
-  lodging_id String
-  lodging    Lodging @relation(fields: [lodging_id], references: [id])
-  title      String
-  body       String?
-  icon       String
-  photo_url  String?
-  video_url  String?
-  sort_order Int     @default(0)
+  lodging_id            String
+  lodging               Lodging            @relation(fields: [lodging_id], references: [id])
+  title                 String
+  body                  String?
+  icon                  String
+  photo_url             String?
+  video_url             String?
+  sort_order            Int                @default(0)
   // Spec 096 : équipement de la bibliothèque (icône, photo, vidéo gérées par l'admin).
   equipment_template_id String?
   equipment_template    EquipmentTemplate? @relation(fields: [equipment_template_id], references: [id])
@@ -1713,15 +1716,15 @@ model PoiCityRedirect {
 
 // Spec 095 — bibliothèque d'équipements du guide, alimentée par les Owners, validée par l'admin.
 model EquipmentTemplate {
-  id                String    @id @default(uuid())
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
+  id                String                  @id @default(uuid())
+  created_at        DateTime                @default(now())
+  updated_at        DateTime                @updatedAt
   deleted_at        DateTime?
   title             String
-  title_key         String    @unique
+  title_key         String                  @unique
   icon              String
   body              String?
-  status            String    @default("pending") // pending | approved | rejected
+  status            String                  @default("pending") // pending | approved | rejected
   source_lodging_id String?
   reviewed_by       String?
   reviewed_at       DateTime?
@@ -1731,4 +1734,75 @@ model EquipmentTemplate {
   blocks            LodgingPracticalBlock[]
 
   @@index([status, deleted_at])
+}
+
+// ─── Spec 097 — Menu d'activités séminaire ──────────────────────────────────
+
+enum SeminarActivityCategory {
+  TEAM_BUILDING
+  WINTER
+  SUMMER
+  WELLBEING
+  GASTRONOMY
+  EXCEPTIONAL
+}
+
+model SeminarActivity {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  slug         String                  @unique
+  title        String
+  category     SeminarActivityCategory
+  description  String
+  season_label String
+  level_label  String
+  is_published Boolean                 @default(false)
+  image_url    String?
+
+  // Données internes (BR-02) : montants HT en centimes, TVA 20 % calculée.
+  price_per_person_cents Int?
+  price_per_group_cents  Int?
+  internal_notes         String?
+
+  providers  SeminarActivityProvider[]
+  placements SeminarActivityPlacement[]
+
+  @@index([deleted_at, is_published, category])
+}
+
+model SeminarActivityProvider {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  activity_id String
+  activity    SeminarActivity @relation(fields: [activity_id], references: [id])
+  poi_id      String
+  poi         PointOfInterest @relation(fields: [poi_id], references: [id])
+  notes       String?
+
+  @@unique([activity_id, poi_id])
+}
+
+model SeminarActivityPlacement {
+  id         String    @id @default(uuid())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  activity_id    String
+  activity       SeminarActivity          @relation(fields: [activity_id], references: [id])
+  // null = page globale /seminaires ; sinon la landing séminaire de cette destination
+  destination_id String?
+  destination    LocalLandingDestination? @relation(fields: [destination_id], references: [id])
+  // "hub" ou destination_id : unicité malgré le null (BR-11)
+  surface_key    String
+  position       Int
+
+  @@unique([activity_id, surface_key])
+  @@index([surface_key, deleted_at, position])
 }

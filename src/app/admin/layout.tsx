@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Images,
   Coffee,
+  Presentation,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogoutButton } from '@/shared/components/LogoutButton'
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   { href: '/admin/taxonomy', label: 'Taxonomie', icon: Tags },
   { href: '/admin/fallback-images', label: 'Images de remplacement', icon: Images },
   { href: '/admin/equipment-library', label: 'Équipements', icon: Coffee },
+  { href: '/admin/seminar-activities', label: 'Activités séminaire', icon: Presentation },
   { href: '/admin/blog', label: 'Journal', icon: Newspaper },
   { href: '/admin/landing-pages', label: 'Landing pages', icon: PanelsTopLeft },
   { href: '/admin/google-reviews', label: 'Avis Google', icon: MessageSquareQuote },

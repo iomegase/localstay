@@ -61,5 +61,5 @@ const sections: LegalSection[] = [
 ]
 
 export default function PrivacyPage() {
-  return <LegalPage pathname="/confidentialite" title="Confidentialité" intro="Vos données, expliquées simplement. Ce que vous nous confiez, pourquoi nous l’utilisons et comment garder la main." sections={sections} />
+  return <LegalPage pathname="/confidentialite" updatedOn="2026-10-05" title="Confidentialité" intro="Vos données, expliquées simplement. Ce que vous nous confiez, pourquoi nous l’utilisons et comment garder la main." sections={sections} />
 }

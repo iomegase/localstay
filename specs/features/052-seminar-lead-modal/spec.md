@@ -85,7 +85,9 @@ souhaitées et un budget indicatif. L'hébergement n'est pas une option à coche
   votre prochain séminaire. » (textes du code validés par le Product Owner le
   2026-10-01 ; les landings conciergerie gardent leurs titres). Le titre de la
   FAQ est placé au-dessus des questions, réparties sur 2 colonnes à partir de
-  `md` (une colonne sur mobile), en deux piles indépendantes ; la home et les
+  `md` (une colonne sur mobile), en deux piles indépendantes dont les questions
+  fermées partagent une hauteur commune (jusqu'à trois lignes de texte) pour
+  rester alignées d'une colonne à l'autre (ajustement PO du 2026-10-13) ; la home et les
   landings conciergerie gardent leur disposition. Dans le bloc final, le bouton
   principal est centré verticalement et seul le lien « Découvrir la région »
   est conservé (« Voir les logements » et « Tous les séminaires » retirés).
@@ -126,7 +128,13 @@ Aucun changement. `ContactMessage` (spec 024) avec `destination = concierge`.
   sous-titre « Votre séminaire [à Commune] : location d'un chalet et
   prestations sur mesure. Décrivez votre projet, nous vous adressons un devis
   sous 48 h. », champs au style du formulaire propriétaire, bouton « Envoyer
-  ma demande ». Le libellé des boutons qui ouvrent la modal ne change pas.
+  ma demande ». Le libellé des boutons qui ouvrent la modal ne change pas,
+  sauf sur `/seminaires` où les deux boutons deviennent « Demander un devis »
+  (décision PO du 2026-10-14). Amendement PO du 2026-10-14 : MyStay ne
+  facturant pas l'entreprise (spec 031 AC-01-09), « devis » devient
+  « estimation » : titre « Demander une estimation », sous-titre « … nous
+  vous adressons une estimation sous 48 h. » et boutons de `/seminaires`
+  « Demander une estimation ».
 - Mobile : la modal occupe la largeur disponible et défile verticalement.
 
 ## Acceptance Criteria

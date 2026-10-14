@@ -41,7 +41,7 @@ describe('052 seminar lead modal', () => {
     expect(ctas.length).toBeGreaterThanOrEqual(2)
 
     fireEvent.click(ctas[0])
-    const dialog = screen.getByRole('dialog', { name: 'Demander un devis' })
+    const dialog = screen.getByRole('dialog', { name: 'Demander une estimation' })
     expect(dialog).toHaveTextContent('Saint-Gervais-les-Bains')
     // Amendement du 2026-10-13 : le devis porte toujours sur la location d'un chalet.
     expect(dialog).toHaveTextContent('location d’un chalet')
@@ -119,8 +119,8 @@ describe('052 seminar lead modal', () => {
     const card = screen.getByRole('heading', { level: 3, name: 'Séminaire résidentiel' }).closest('article')!
     expect(within(card).getByRole('heading', { level: 4, name: 'Journée type' })).toBeInTheDocument()
     // Le devis d'une carte reprend la commune de la landing.
-    fireEvent.click(within(card).getByRole('button', { name: 'Demander un devis' }))
-    expect(screen.getByRole('dialog', { name: 'Demander un devis' })).toHaveTextContent('à Saint-Gervais-les-Bains')
+    fireEvent.click(within(card).getByRole('button', { name: 'Demander une estimation' }))
+    expect(screen.getByRole('dialog', { name: 'Demander une estimation' })).toHaveTextContent('à Saint-Gervais-les-Bains')
     seminar.unmount()
 
     render(<LocalServiceLanding landing={publicLocalLanding('CONCIERGE', city)} />)
@@ -150,6 +150,8 @@ describe('052 seminar lead modal', () => {
     // FAQ sur 2 colonnes à partir de md, titre au-dessus.
     expect(screen.getByTestId('marketing-faq-items')).toHaveClass('md:grid-cols-2', 'md:items-start')
     expect(screen.getByTestId('marketing-faq-section').firstElementChild).not.toHaveClass('lg:grid-cols-[0.75fr_1.25fr]')
+    // Hauteur commune des questions fermées : les deux colonnes restent alignées.
+    expect(screen.getByTestId('marketing-faq-items').querySelector('summary')).toHaveClass('md:min-h-[111px]')
     const finalHeading = screen.getByRole('heading', { name: 'Parlons de votre prochain séminaire.' })
     const finalBlock = finalHeading.closest('section')!
     expect(within(finalBlock).queryByRole('link', { name: 'Voir les logements' })).not.toBeInTheDocument()

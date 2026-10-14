@@ -95,10 +95,10 @@ export function SeminarLeadDialog({ label, cityName, triggerClassName = marketin
             Séminaire d’entreprise
           </span>
           <Dialog.Title className="mt-3 text-2xl font-bold tracking-[-0.04em] text-slate-900 sm:text-[30px]">
-            Demander un devis
+            Demander une estimation
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm leading-6 text-slate-500">
-            Votre séminaire {placePhrase} : location d’un chalet et prestations sur mesure. Décrivez votre projet, nous vous adressons un devis sous 48 h.
+            Votre séminaire {placePhrase} : location d’un chalet et prestations sur mesure. Décrivez votre projet, nous vous adressons une estimation sous 48 h.
           </Dialog.Description>
 
           <form aria-label="Demande séminaire" className="mt-7" onSubmit={submit}>

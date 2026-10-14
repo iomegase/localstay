@@ -52,7 +52,8 @@ export function MarketingFaqSection({
               name="mystay-faq"
               className="group overflow-hidden rounded-[20px] bg-[#f8f7f5] transition-all duration-300 open:bg-white open:shadow-md"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 px-5 py-5 text-[15px] font-bold leading-[1.4] tracking-[-0.025em] text-slate-900 outline-none sm:px-6 sm:py-6 [&::-webkit-details-marker]:hidden">
+              {/* Deux colonnes : hauteur commune (jusqu'à 3 lignes) pour garder les rangées alignées. */}
+              <summary className={`flex cursor-pointer list-none items-center justify-between gap-6 px-5 py-5 text-[15px] font-bold leading-[1.4] tracking-[-0.025em] text-slate-900 outline-none sm:px-6 sm:py-6 [&::-webkit-details-marker]:hidden ${twoColumns ? 'md:min-h-[111px]' : ''}`}>
                 <span className="max-w-[560px]">{item.question}</span>
 
                 <span

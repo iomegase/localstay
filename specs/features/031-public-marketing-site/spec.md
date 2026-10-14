@@ -109,7 +109,8 @@ routes privées, l'authentification et les API existantes restent inchangées.
   réécrites sans répétitions (étape 4 : guide digital du séjour) ; FAQ de six
   questions sur deux colonnes ; appel final « Parlons de votre prochain
   séminaire. » ; les boutons « Recevoir une proposition » ouvrent la modal de
-  la spec 052 au lieu d'un lien e-mail. Amendement du 2026-10-13 (Product
+  la spec 052 au lieu d'un lien e-mail (libellé remplacé par « Demander un
+  devis » sur les deux boutons de `/seminaires`, décision PO du 2026-10-14). Amendement du 2026-10-13 (Product
   Owner, option « plus riche ») : chaque carte de la section formats (Comité
   de direction, Séminaire résidentiel, Retraite d'équipe) affiche, sous son
   titre, une ligne de repères (taille du groupe · nombre de nuits), sa phrase
@@ -122,7 +123,15 @@ routes privées, l'authentification et les API existantes restent inchangées.
   avec un budget récapitulatif. La page ne promet donc plus de « devis
   global », de « devis unique » ni de « facture unique » (texte d'offre,
   étapes 2 et 3, questions « Organisez-vous les repas, les transferts et les
-  activités ? » et « Comment se passe la facturation ? »).
+  activités ? » et « Comment se passe la facturation ? »). Correction PO du 2026-10-14 :
+  MyStay ne facture que ses clients partenaires (les propriétaires). La
+  location du chalet est facturée à l'entreprise par son propriétaire ; les
+  frais de coordination de MyStay sont facturés au propriétaire, jamais à
+  l'entreprise ; repas, transferts et activités restent facturés directement
+  par chaque prestataire. La page ne dit donc plus « MyStay vous facture »
+  (étape 2 et question « Comment se passe la facturation ? »). Les boutons
+  « Demander un devis » deviennent « Demander une estimation » (même
+  décision, voir spec 052).
 - **AC-01-10**: Given la home et le chrome marketing, When ils s'affichent, Then
   les corrections de l'audit du 2026-10-01 validées par le Product Owner sont
   appliquées : (1) le H1 commence par le mot-clé « Conciergerie dans le Pays du
@@ -660,7 +669,12 @@ connaître les conditions d'utilisation depuis le footer.
   sans cookie séjour et conservent MarketingShell, y compris avec un cookie.
 - **AC-06-02** : Mentions légales identifie David Devillers, adresse, contact
   existant et hébergeur Vercel Inc. (coordonnées officielles vérifiées), puis
-  droits sur les contenus. Aucun identifiant commercial inventé.
+  droits sur les contenus. Aucun identifiant commercial inventé. Amendement PO
+  du 2026-10-14 : une section « Statut et facturation » indique l'exercice en
+  portage salarial et identifie la société de portage qui facture, avec les
+  identifiants fournis par le PO : JUMP GREEN, SCIC sous forme de SAS à
+  capital variable, 229 rue Saint-Honoré 75001 Paris, SIRET
+  977 610 781 00022, RCS Paris 977 610 781, TVA FR10 977 610 781.
 - **AC-06-03** : Confidentialité détaille formulaires (nom, e-mail, téléphone
   facultatif, objet, message), finalités, bases légales, destinataires,
   Supabase/Resend/Vercel, outils d'audience, cookies et droits/CNIL. Elle annonce
@@ -671,8 +685,19 @@ connaître les conditions d'utilisation depuis le footer.
   décrits sans promettre leur exemption de consentement ni un stockage 100 % UE.
 - **AC-06-04** : CGU précise information, accès privé, formulaires sans commande,
   usage raisonnable, contenus, liens externes, disponibilité et responsabilités
-  sans exclusion générale de responsabilité ni tribunal imposé.
-- **AC-06-05** : pages Server Components, un H1, date de mise à jour, sommaire
+  sans exclusion générale de responsabilité ni tribunal imposé. Amendement PO
+  du 2026-10-14 : section « Conciergerie des logements » (co-hôte sur le compte
+  du propriétaire, titulaire de l'annonce et pleine jouissance du bien, pas
+  d'encaissement des loyers, ménage réglé par les voyageurs au propriétaire,
+  pas d'exclusivité, prestataires de ménage indépendants, frais de service
+  définis dans l'accord propriétaire) ; section « Qui facture nos prestations »
+  (portage salarial JUMP GREEN, MyStay ne facture que les propriétaires
+  partenaires, aucune facture aux voyageurs ni aux entreprises) ; section
+  séminaires : frais de coordination facturés au propriétaire, estimations
+  MyStay indicatives, seuls les devis des propriétaires et prestataires
+  engagent.
+- **AC-06-05** : pages Server Components, un H1, date de mise à jour propre à
+  chaque page (amendement du 2026-10-14), sommaire
   accessible par ancres, texte 14 px/interligne 28 px, titres et accents MyStay,
   liens entre pages, metadata/canonical propres, chemins dans le sitemap.
 

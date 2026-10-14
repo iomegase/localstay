@@ -119,7 +119,7 @@ Lodging Public Profile publié et éligible.
 - **AC-02-04** (amendement PO du 2026-10-13) : Given une landing séminaire
   publiée, When elle est rendue, Then la section « À chaque équipe son
   format. » de `/seminaires` (spec 031 AC-01-09 : trois formats détaillés,
-  journée type, lien « Demander un devis ») s'affiche entre les points forts et
+  journée type, lien « Demander une estimation » (libellé du 2026-10-14, ex-« Demander un devis »)) s'affiche entre les points forts et
   le déroulé, à l'identique pour toutes les communes ; le formulaire ouvert
   depuis une carte reprend la commune de la landing. Les landings conciergerie
   n'affichent pas cette section.
@@ -335,6 +335,13 @@ statique approuvé.
   (AC-04-06).
 
 ---
+
+- Ajustements PO du 2026-10-14, landings séminaire uniquement : le bloc final
+  « Aller plus loin » passe sur fond slate (`bg-slate-800`, halo rose, textes
+  clairs), comme le bloc final de `/seminaires` ; le titre de la section
+  « Une organisation claire » (ex. « De votre brief au jour J ») tient sur une
+  ligne (32 px max sur mobile, 42 px dès 640 px, 30 px dès 1024 px). Les
+  landings conciergerie et locations de vacances sont inchangées.
 
 ## Acceptance Criteria Summary
 
