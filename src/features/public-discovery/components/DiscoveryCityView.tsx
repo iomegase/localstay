@@ -47,7 +47,7 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
               {city.name}
             </span>
           </h1>
-          <p className="mt-7 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
+          <p data-testid="city-introduction" className="mt-7 max-w-2xl text-[15px] leading-7 text-slate-500">
             {cityIntroduction(city)}
           </p>
         </header>

@@ -162,6 +162,8 @@ describe('065 US-01 — page ville organisée par la taxonomie', () => {
     const h1 = screen.getByRole('heading', { level: 1 })
     expect(h1.textContent!.replace(/\s+/g, ' ').trim()).toBe(`Découvrir ${city.name}`)
     expect(within(h1).getByTestId('city-title-name')).toHaveClass('block', 'font-serif', 'italic', 'text-[34px]')
+    expect(screen.getByTestId('city-introduction')).toHaveClass('text-[15px]')
+    expect(screen.getByTestId('city-introduction')).not.toHaveClass('sm:text-lg')
   })
 
   it('AC-01-01 : icône de la taxonomie, ou icône par défaut si inconnue', () => {

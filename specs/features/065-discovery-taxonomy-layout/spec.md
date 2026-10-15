@@ -261,4 +261,5 @@ caractères » (implémentation 2026-10-06, au lieu d'un nouveau code d'erreur).
   est retirée (redondante avec le titre).
 - **AC-02-10** (PO 2026-10-15) : sur la page commune `/decouvrir/[city]`, le H1 tient
   sur deux lignes : « Découvrir » puis « [Commune] » en serif italique 34 px. Texte
-  accessible inchangé (« Découvrir [Commune] »). Introduction inchangée.
+  accessible inchangé (« Découvrir [Commune] »). Le paragraphe d'introduction sous le
+  titre passe à 15 px à toutes les largeurs (texte inchangé).
