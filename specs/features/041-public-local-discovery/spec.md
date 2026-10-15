@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-20
-updated_at: 2026-10-05
+updated_at: 2026-10-15
 depends_on:
   - 001-city-guide
   - 002-categories
@@ -738,3 +738,9 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
   interactive de catégorie ont été confirmés comme fonctionnalités du guide de
   séjour privé uniquement. Ils ne sont pas restaurés sur `/decouvrir`, qui
   conserve Appeler, Itinéraire, Site officiel et la mini-carte statique de fiche.
+
+## Ajustement PO — Zoom de la mini-carte des fiches (2026-10-15)
+
+- **AC-05-10** : sur une fiche `/decouvrir/[city]/[category]/[poi]`, la mini-carte
+  statique de la colonne d'informations est zoomée au niveau 19 (au lieu de 17),
+  pour montrer le bâtiment et sa rue. Image, taille et marqueur inchangés.

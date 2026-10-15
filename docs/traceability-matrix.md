@@ -1611,7 +1611,7 @@ Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplac
 | 029 | Tableaux Journal public | US-02 | AC-02-06 | `src/features/blog/components/BlogMarkdown.tsx`, `src/shared/components/MarkdownText.tsx` | `tests/integration/blog.AC-02-06.markdown-table.test.ts` | Implémenté |
 | 029 | Filtre catégories Journal public | US-01 | AC-01-17 | `src/app/(public)/journal/page.tsx` | `tests/integration/blog.AC-01-17.public-category-filter.test.tsx` | Implémenté |
 | 029 | CTA fin d'article Journal | US-02 | AC-02-14 | `src/app/(public)/journal/[slug]/page.tsx` | `tests/integration/blog.AC-02-01.article-detail.test.tsx` | Implémenté |
-| 029 | Liens des articles Journal | US-02 | AC-02-16 | `src/features/blog/components/BlogMarkdown.tsx` | `tests/unit/blog.AC-02-05.markdown-sanitization.test.tsx` | Implémenté : liens pink-600, pink-200 au survol ; lien CODIR → `/seminaires` (données) — PO 2026-10-15 |
+| 029 | Liens des articles Journal | US-02 | AC-02-16 | `src/features/blog/components/BlogMarkdown.tsx` | `tests/unit/blog.AC-02-05.markdown-sanitization.test.tsx` | Implémenté : liens pink-600, pink-200 au survol ; lien CODIR → `/seminaires/saint-gervais-les-bains` (données) — PO 2026-10-15 |
 | 029 | Fond de l'article Journal | US-02 | AC-02-15 | `src/app/(public)/journal/[slug]/page.tsx` | `tests/integration/blog.AC-02-01.article-detail.test.tsx` | Implémenté : fond blanc uni, dégradé rose retiré (PO 2026-10-15) |
 
 | 031-public-marketing-site | Pages légales publiques MyStay | US-06 | AC-06-01 | `src/proxy.ts`, `src/features/marketing/components/LegalPage.tsx`, `src/app/(public)/mentions-legales/page.tsx`, `src/app/(public)/confidentialite/page.tsx`, `src/app/(public)/cgu/page.tsx` | `tests/contract/public-marketing.AC-06.legal-routes.test.ts`, `tests/integration/public-marketing.AC-06.legal-pages.test.tsx` | Implémenté ; accès sans et avec cookie vérifié |
@@ -2108,3 +2108,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | AC-02-14 | Bandeau des caractéristiques : `shadow-md` sans bordure, fond de section blanc, colonnes = nombre de caractéristiques (4 max) — PO 2026-10-15 | `src/features/lodging-showcase/components/LodgingEssentials.tsx` | `tests/unit/lodging-showcase.AC-02-14.essentials-band.test.tsx` | ✅ done |
 | AC-02-13 | Icônes des équipements et services en `slate-800` (PO 2026-10-15) | `src/features/lodging-showcase/components/LodgingFeatureSections.tsx` | `tests/unit/lodging-showcase.AC-02-10.feature-sections-layout.test.tsx` | ✅ done |
 | AC-02-12 | Plus d'option « Pièce de vie » ; repli `common_area` = « Salon » ; données : 9 photos → `Salon`, 21 textes alternatifs recalculés depuis la pièce réelle | `src/features/lodging-showcase/lib/photo-categories.ts`<br>`src/features/lodging-showcase/lib/detail-view.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/unit/lodging-showcase/photo-categories.test.ts`<br>`tests/unit/lodging-showcase/detail-view.test.ts`<br>`tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx` | ✅ done |
+
+## 041 — Zoom de la mini-carte (PO 2026-10-15)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-05-10 | Mini-carte des fiches `/decouvrir` au zoom 19 | `src/features/public-discovery/components/DiscoveryPoiView.tsx` | `tests/unit/public-discovery.AC-05-10.mini-map-zoom.test.ts` | ✅ done |

@@ -817,4 +817,4 @@ Aucune question ouverte pour cet amendement.
 - **AC-02-16** (PO 2026-10-15) : dans le contenu d'un article du Journal, les liens
   sont en `pink-600`, et `pink-200` au survol (choix PO), y compris dans un passage
   en gras. Le lien de l'article « chalet-remy-seminaire-codir-mont-blanc » pointe
-  vers `/seminaires` (données : ancien lien cassé `www.mystay.city/seminaire`).
+  vers la landing `/seminaires/saint-gervais-les-bains` (choix PO ; données : ancien lien cassé `www.mystay.city/seminaire`).

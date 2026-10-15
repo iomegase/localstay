@@ -153,7 +153,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
             </dl>
             {/* PO 2026-10-08 : carte dans la colonne d'infos, sous les horaires. */}
             <section aria-label="Localiser cette adresse" className="mt-6 overflow-hidden rounded-[18px] bg-slate-100 [&>img]:aspect-square [&>img]:w-full">
-              <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={640} height={640} zoom={17} />
+              <MiniMap latitude={poi.latitude} longitude={poi.longitude} poiName={poi.name} width={640} height={640} zoom={19} />
             </section>
           </aside>
         </div>
