@@ -1,4 +1,5 @@
 // Spec 093 : longueur des descriptions générées (acquisition POI, assistance, randonnées).
+import { DESCRIPTION_STYLE_INSTRUCTION } from './description-style'
 
 export const DESCRIPTION_MIN_WORDS = 120
 export const DESCRIPTION_MAX_WORDS = 300
@@ -15,7 +16,9 @@ export const DESCRIPTION_LENGTH_INSTRUCTION =
   // PO 2026-10-08 : descriptions proposées en Markdown (rendu sur /decouvrir, le guide et l'admin).
   'Rédige en Markdown : **gras** sur 2 à 4 éléments clés (nom du lieu, spécialité, atout principal) ; ' +
   'si le texte dépasse 150 mots, 1 ou 2 intertitres « ## » courts ; au plus une courte liste à puces « - » pour des faits concrets. ' +
-  'Pas de titre « # » (le nom du lieu est déjà le titre de la page), ni tableau, ni lien, ni emoji.'
+  'Pas de titre « # » (le nom du lieu est déjà le titre de la page), ni tableau, ni lien, ni emoji. ' +
+  // Spec 098 BR-01 / BR-02 (AC-02-01) : mêmes règles anti-remplissage pour tous les générateurs.
+  DESCRIPTION_STYLE_INSTRUCTION
 
 /** Mots du texte, sans les marqueurs Markdown (#, -, *, **, >). */
 export function countWords(text: string): number {

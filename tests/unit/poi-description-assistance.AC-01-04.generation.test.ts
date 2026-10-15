@@ -20,12 +20,58 @@ beforeEach(() => { jest.clearAllMocks(); process.env.GEMINI_API_KEY = 'test-only
 beforeEach(() => { jest.spyOn(console, 'error').mockImplementation(() => {}) })
 afterEach(() => { jest.restoreAllMocks() })
 
-it('AC-01: uses the official page and does not enable search', async () => {
+it('AC-01: uses a rich official page and does not enable search', async () => {
+  // Spec 098 BR-07 : au-delà de 1 500 caractères, la page officielle suffit.
+  mockReadSource.mockResolvedValue({ ...source, text: source.text.padEnd(1600, ' Refuge familial en alpage.') })
   mockGenerate.mockResolvedValue(generated())
   await expect(generatePoiDescription({ ...identity, website: source.source_url })).resolves.toEqual({ description, source_mode: 'official_website', sources: [{ title: source.attribution, url: source.source_url }], search_entry_point: null })
   expect(mockReadSource).toHaveBeenCalledWith(source.source_url)
   expect(mockModel.mock.calls[0][0]).not.toHaveProperty('tools')
   expect(mockGenerate.mock.calls[0][0]).toContain(source.text)
+})
+
+it('098 BR-07: a thin official page is completed by a web search, official source first', async () => {
+  const web = { uri: 'https://tourisme.example/refuge', title: 'Office de tourisme' }
+  mockGenerate.mockResolvedValue(generated({}, { groundingChunks: [{ web }], searchEntryPoint: { renderedContent: '<div>Google</div>' } }))
+  await expect(generatePoiDescription({ ...identity, website: source.source_url })).resolves.toEqual({
+    description,
+    source_mode: 'official_website',
+    sources: [{ title: source.attribution, url: source.source_url }, { title: web.title, url: web.uri }],
+    search_entry_point: '<div>Google</div>',
+  })
+  expect(mockModel).toHaveBeenCalledWith(expect.objectContaining({ tools: [{ googleSearch: {} }] }))
+  expect(mockModel.mock.calls[0][0].generationConfig).not.toHaveProperty('responseMimeType')
+  const prompt = mockGenerate.mock.calls[0][0] as string
+  expect(prompt).toContain(source.text)
+  expect(prompt).toContain('La page officielle contient peu de texte')
+})
+
+it('098 BR-07: without any cited web page, falls back to the official page only', async () => {
+  mockGenerate
+    .mockResolvedValueOnce(generated({ description: 'Pizzas à la tartiflette sans source. Fait inventé par la recherche.' }, { groundingChunks: [] }))
+    .mockResolvedValueOnce(generated())
+  await expect(generatePoiDescription({ ...identity, website: source.source_url })).resolves.toEqual({
+    description,
+    source_mode: 'official_website',
+    sources: [{ title: source.attribution, url: source.source_url }],
+    search_entry_point: null,
+  })
+  expect(mockModel).toHaveBeenCalledTimes(2)
+  expect(mockModel.mock.calls[1][0]).not.toHaveProperty('tools')
+  expect(mockModel.mock.calls[1][0].generationConfig).toMatchObject({ responseMimeType: 'application/json' })
+})
+
+it('098 BR-07: falls back to the official page when the combined call is cut (MAX_TOKENS)', async () => {
+  mockGenerate
+    .mockResolvedValueOnce({ response: { text: () => '{"matches', candidates: [{ finishReason: 'MAX_TOKENS' }] } })
+    .mockResolvedValueOnce(generated())
+  await expect(generatePoiDescription({ ...identity, website: source.source_url })).resolves.toMatchObject({ description, sources: [{ url: source.source_url }] })
+})
+
+it('098: generous output budget so model reasoning does not cut the answer', async () => {
+  mockGenerate.mockResolvedValue(generated({}, { groundingChunks: [{ web: { uri: 'https://tourisme.example/x', title: 'OT' } }] }))
+  await generatePoiDescription(identity)
+  expect(mockModel.mock.calls[0][0].generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(12_000)
 })
 
 it('AC-02: uses provider citations, deduplicates and preserves the search entry point', async () => {

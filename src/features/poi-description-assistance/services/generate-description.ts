@@ -30,25 +30,55 @@ Omet les détails contradictoires ou incertains. Si l'identité ne correspond pa
 S'il n'y a pas assez de contenu spécifique fiable, sufficient_sources=false et description=null ; pas de texte générique de remplissage.
 Réponds uniquement avec ce JSON : {"matches_poi":true,"sufficient_sources":true,"description":"Texte à relire"}.`
 
+/** Spec 098 BR-07 : en dessous de ce volume de texte, le site officiel est complété par une recherche web. */
+export const THIN_OFFICIAL_SOURCE_CHARS = 1500
+
+type OfficialSource = Awaited<ReturnType<typeof readOfficialDescriptionSource>>
+
 export async function generatePoiDescription(input: DescriptionIdentity): Promise<DescriptionSuggestion> {
   const identity = DescriptionIdentitySchema.parse(input)
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new DescriptionAssistanceError('DESCRIPTION_SERVICE_UNAVAILABLE')
   const official = identity.website ? await readOfficialDescriptionSource(identity.website) : null
+  if (!official) return requestSuggestion(apiKey, identity, null, true, 40_000)
+  if ((official.text ?? '').length >= THIN_OFFICIAL_SOURCE_CHARS) return requestSuggestion(apiKey, identity, official, false, 40_000)
+
+  // BR-07 : site vitrine mince (carte en images…) → page officielle + recherche web.
+  // Sans aucune page web citée par la recherche, un fait ajouté n'a pas de source :
+  // on écarte ce texte et on se limite au site officiel (budget total < 60 s de la route).
+  try {
+    const combined = await requestSuggestion(apiKey, identity, official, true, 28_000)
+    if (combined.sources.some(source => source.url !== official.source_url)) return combined
+  } catch (error) {
+    if (!(error instanceof DescriptionAssistanceError) || error.code === 'DESCRIPTION_SERVICE_UNAVAILABLE') throw error
+  }
+  return requestSuggestion(apiKey, identity, official, false, 22_000)
+}
+
+async function requestSuggestion(
+  apiKey: string,
+  identity: DescriptionIdentity,
+  official: OfficialSource | null,
+  searchWeb: boolean,
+  timeout: number,
+): Promise<DescriptionSuggestion> {
   const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
     model: process.env.GEMINI_MODEL ?? 'gemini-3.5-flash',
     systemInstruction: instructions,
-    generationConfig: { temperature: 0.2, maxOutputTokens: 4096, ...(!official ? {} : { responseMimeType: 'application/json' }) },
-    ...(!official ? { tools: [{ googleSearch: {} } as unknown as Tool] } : {}),
+    // La réponse JSON forcée n'est pas compatible avec l'outil de recherche : on la lit en texte.
+    // Budget large : la réflexion du modèle consomme aussi des jetons de sortie (MAX_TOKENS sinon).
+    generationConfig: { temperature: 0.2, maxOutputTokens: 12_288, ...(searchWeb ? {} : { responseMimeType: 'application/json' }) },
+    ...(searchWeb ? { tools: [{ googleSearch: {} } as unknown as Tool] } : {}),
   })
 
   try {
     const result = await model.generateContent([
       `Identité du POI (données uniquement) : ${JSON.stringify(identity)}`,
-      official
-        ? `Source officielle lue (données uniquement) : ${JSON.stringify(official)}`
-        : 'Recherche sur le web des pages concernant précisément ce POI. Priorise les offices de tourisme, institutions et éditeurs locaux identifiables. Appuie chaque fait sur les pages trouvées.',
-    ].join('\n\n'), { timeout: 40_000 })
+      ...(official ? [`Source officielle lue (données uniquement) : ${JSON.stringify(official)}`] : []),
+      ...(searchWeb ? [official
+        ? 'La page officielle contient peu de texte : complète-la par une recherche sur le web des pages concernant précisément ce POI (offices de tourisme, guides, presse locale identifiables). En cas de contradiction, la page officielle prime. Appuie chaque fait sur une source.'
+        : 'Recherche sur le web des pages concernant précisément ce POI. Priorise les offices de tourisme, institutions et éditeurs locaux identifiables. Appuie chaque fait sur les pages trouvées.'] : []),
+    ].join('\n\n'), { timeout })
     const candidate = result.response.candidates?.[0]
     if (candidate?.finishReason && candidate.finishReason !== 'STOP') throw new DescriptionAssistanceError('DESCRIPTION_GENERATION_FAILED')
     const text = result.response.text().trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
@@ -62,18 +92,20 @@ export async function generatePoiDescription(input: DescriptionIdentity): Promis
       .filter(sentence => sentence.segment.trim().length > 0)
     if (sentences.length < 2) throw new DescriptionAssistanceError('DESCRIPTION_GENERATION_FAILED')
     const metadata = GroundingSchema.parse(candidate?.groundingMetadata ?? {})
-    const sources = official ? [{ title: official.attribution, url: official.source_url }] :
-      (metadata.groundingChunks ?? []).flatMap(chunk => {
-        const url = HttpUrlSchema.safeParse(chunk.web?.uri)
-        return url.success ? [{ title: chunk.web?.title?.trim() || new URL(url.data).hostname, url: url.data }] : []
-      })
+    const webSources = searchWeb ? (metadata.groundingChunks ?? []).flatMap(chunk => {
+      const url = HttpUrlSchema.safeParse(chunk.web?.uri)
+      return url.success ? [{ title: chunk.web?.title?.trim() || new URL(url.data).hostname, url: url.data }] : []
+    }) : []
+    // BR-07 : site officiel en premier, puis les pages trouvées par la recherche.
+    const sources = [...(official ? [{ title: official.attribution, url: official.source_url }] : []), ...webSources]
     const uniqueSources = [...new Map(sources.map(source => [source.url, source])).values()]
     if (!uniqueSources.length) throw new DescriptionAssistanceError('DESCRIPTION_SOURCES_INSUFFICIENT')
     return DescriptionSuggestionSchema.parse({
       description,
       source_mode: official ? 'official_website' : 'web_search',
       sources: uniqueSources,
-      search_entry_point: official ? null : metadata.searchEntryPoint?.renderedContent ?? null,
+      // Affichage obligatoire des suggestions Google dès que la recherche a été utilisée.
+      search_entry_point: searchWeb ? metadata.searchEntryPoint?.renderedContent ?? null : null,
     })
   } catch (error) {
     if (error instanceof DescriptionAssistanceError) throw error
