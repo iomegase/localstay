@@ -5,7 +5,7 @@ import type { LocalMarketingNavigation } from './marketing-navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ArrowRight, UserRound, X } from 'lucide-react'
+import { UserRound, X } from 'lucide-react'
 
 import { HelpContactDialog } from '@/features/contact-messages/components/HelpContactDialog'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
@@ -194,20 +194,6 @@ export function MarketingMobileMenu({ localNavigation }: { localNavigation?: Loc
                     "
                   >
                     <span>{item.label}</span>
-
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="
-                        h-5
-                        w-5
-                        translate-x-1
-                        text-pink-600
-                        opacity-0
-                        transition-all
-                        group-hover:translate-x-0
-                        group-hover:opacity-100
-                      "
-                    />
                   </Link>
                 </Dialog.Close>
               ))}

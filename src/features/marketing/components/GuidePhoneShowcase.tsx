@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { ArrowRight, Heart, Home, QrCode } from 'lucide-react'
+import { Heart, Home, QrCode } from 'lucide-react'
 
 /**
  * Visuel du guide MyStay (téléphone, étiquettes « Équipe MyStay » / « Voyageur »
@@ -59,11 +59,6 @@ export function GuidePhoneShowcase({
             className="h-full w-full text-slate-900"
           />
         </div>
-
-        <ArrowRight
-          aria-hidden="true"
-          className="h-4 w-4 text-slate-400"
-        />
       </div>
 
       <div className="absolute -right-2 bottom-6 z-20 flex max-w-[212px] items-center gap-3 overflow-hidden rounded-2xl bg-[#f7f6f4] p-3 pt-3.5 shadow-[0_18px_38px_rgba(15,23,42,0.12)]">

@@ -3,8 +3,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
-  ArrowRight,
-  ArrowUpRight,
   BedDouble,
   Clock3,
   Info,
@@ -132,7 +130,7 @@ export default async function LeLogementPage() {
         <p>{customization.lodging_address}</p>
         {mapUrl && (
           <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 font-bold text-blue-600">
-            Ouvrir dans Maps <ArrowUpRight className="h-4 w-4" />
+            Ouvrir dans Maps
           </a>
         )}
       </div>,
@@ -295,7 +293,7 @@ export default async function LeLogementPage() {
       <Link
         href="/nos-recommandations"
         aria-label="Autour de vous : les coups de cœur de votre hôte"
-        className={`${GUIDE_CARD} mt-3 grid grid-cols-[48px_minmax(0,1fr)_24px] items-center gap-3 p-4`}
+        className={`${GUIDE_CARD} mt-3 grid grid-cols-[48px_minmax(0,1fr)] items-center gap-3 p-4`}
       >
         <span className={`grid h-12 w-12 place-items-center rounded-[15px] ${BUBBLE.violet}`}>
           <Map className="h-5 w-5" />
@@ -304,7 +302,6 @@ export default async function LeLogementPage() {
           <strong className="block text-[17px] font-semibold text-slate-900">Autour de vous</strong>
           <small className="mt-1 block text-[13px] leading-snug text-slate-500">Retrouvez les coups de cœur de votre hôte</small>
         </span>
-        <ArrowRight className="h-6 w-6 text-violet-600" aria-hidden="true" />
       </Link>
     </div>
   )

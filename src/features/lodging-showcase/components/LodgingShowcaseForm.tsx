@@ -866,8 +866,8 @@ export function LodgingShowcaseForm(props: {
                     <SortablePhotoCard key={photo.id ?? photo.url} id={photo.id ?? photo.url} label={photo.alt} cover={photo.is_cover} disabled={photosBusy || !photo.id || profile.photos.length < 2}>
                       <div className="relative">
                         <div className="absolute inset-x-3 top-3 z-10 flex justify-between gap-2">
-                          <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} avant`} disabled={photosBusy || photoIndex === 0 || !photo.id} onClick={() => movePhoto(photoIndex, -1)}>← Avant</Button>
-                          <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} après`} disabled={photosBusy || photoIndex === profile.photos.length - 1 || !photo.id} onClick={() => movePhoto(photoIndex, 1)}>Après →</Button>
+                          <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} avant`} disabled={photosBusy || photoIndex === 0 || !photo.id} onClick={() => movePhoto(photoIndex, -1)}>Avant</Button>
+                          <Button type="button" size="sm" variant="secondary" aria-label={`Déplacer ${photo.alt} après`} disabled={photosBusy || photoIndex === profile.photos.length - 1 || !photo.id} onClick={() => movePhoto(photoIndex, 1)}>Après</Button>
                         </div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img draggable={false} src={photo.url} alt={photo.alt} className="aspect-[4/3] w-full rounded-t-xl object-cover" />

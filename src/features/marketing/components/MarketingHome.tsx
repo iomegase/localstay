@@ -963,12 +963,6 @@ export function MarketingHome({
 
               <span className="mt-auto pt-8 text-[12px] font-semibold text-slate-700">
                 Découvrir
-                <span
-                  aria-hidden="true"
-                  className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1"
-                >
-                  →
-                </span>
               </span>
             </Link>
           ))}

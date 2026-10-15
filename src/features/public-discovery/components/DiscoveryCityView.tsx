@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, MapPinned } from 'lucide-react'
+import { MapPinned } from 'lucide-react'
 import { isValidLucideIconSlug, LUCIDE_ICON_COMPONENTS } from '@/features/admin-taxonomy/lib/icons'
 import {
   MarketingEyebrow,
@@ -75,7 +75,6 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
                       {category.poi_count} {category.poi_count > 1 ? 'adresses' : 'adresse'}
                     </span>
                   </span>
-                  <ArrowRight aria-hidden="true" className="ml-auto h-4 w-4 shrink-0" />
                 </Link>
               ))}
             </div>
@@ -100,7 +99,6 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
                       className="inline-flex items-center gap-1 text-xs font-bold text-pink-600 hover:text-slate-900"
                     >
                       Voir les {category.poi_count} adresses
-                      <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
                     </Link>
                   ) : null}
                 </div>

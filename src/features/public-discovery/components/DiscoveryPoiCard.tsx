@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowUpRight, MapPin, Star } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
 import type { DiscoveryPoiCard as DiscoveryPoiCardDto } from '../types'
 import { RemotePoiImage } from './RemotePoiImage'
 
@@ -32,9 +32,6 @@ export function DiscoveryPoiCard({
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
           />
-          <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-800 shadow-sm backdrop-blur-sm">
-            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-          </span>
         </div>
 
         <div className="p-5 sm:p-6">

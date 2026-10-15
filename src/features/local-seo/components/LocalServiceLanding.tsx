@@ -3,7 +3,6 @@ import { JsonLd } from '@/shared/components/JsonLd'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import {
-  ArrowRight,
 } from 'lucide-react'
 
 import type {
@@ -51,11 +50,6 @@ function PrimaryCta({
       href={content.cta_href}
     >
       {content.cta_label}
-
-      <ArrowRight
-        aria-hidden="true"
-        className="ml-3 h-4 w-4"
-      />
     </Link>
   )
 }

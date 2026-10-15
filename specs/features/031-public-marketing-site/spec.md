@@ -764,3 +764,12 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   (`/decouvrir`), « Voir le lieu » (recommandations), « Voir la fiche » (carte
   voyageur), « Acquisition », « Ouvrir », « Détails », « Voir le guide » (admin).
   Les liens texte, lignes de liste et illustrations ne sont pas des boutons.
+- **AC-01-19** (PO 2026-10-15, « enlève-les toutes ») : plus aucune flèche
+  décorative dans l'interface, au-delà des boutons : lien « Découvrir » des cartes
+  de la home, « Itinéraire » de la carte logement, lignes de catégories et
+  « Voir les N adresses » de `/decouvrir/[commune]`, pastille fléchée des cartes
+  POI, survol du menu mobile, illustration du guide, CTA des landings séminaire,
+  « Ouvrir dans Maps » et carte « Autour de vous » du guide voyageur, boutons
+  « Avant » / « Après » de l'ordre des photos. Restent : l'indicateur départ →
+  arrivée des randonnées (sens, pas décoration) et l'aide Markdown de l'admin
+  (« `**gras**` → gras », explication de syntaxe).

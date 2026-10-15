@@ -71,7 +71,7 @@ export function LodgingLocationMap({
             rel="noopener noreferrer"
             className="pointer-events-auto text-[11px] font-bold text-pink-600"
           >
-            Itinéraire →
+            Itinéraire
           </a>
         </div>
       </div>
