@@ -2100,4 +2100,5 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
+| AC-02-13 | Icônes des équipements et services en `slate-800` (PO 2026-10-15) | `src/features/lodging-showcase/components/LodgingFeatureSections.tsx` | `tests/unit/lodging-showcase.AC-02-10.feature-sections-layout.test.tsx` | ✅ done |
 | AC-02-12 | Plus d'option « Pièce de vie » ; repli `common_area` = « Salon » ; données : 9 photos → `Salon`, 21 textes alternatifs recalculés depuis la pièce réelle | `src/features/lodging-showcase/lib/photo-categories.ts`<br>`src/features/lodging-showcase/lib/detail-view.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/unit/lodging-showcase/photo-categories.test.ts`<br>`tests/unit/lodging-showcase/detail-view.test.ts`<br>`tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx` | ✅ done |

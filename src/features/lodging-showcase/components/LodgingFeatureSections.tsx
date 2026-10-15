@@ -1,13 +1,13 @@
 import { featureIconFor } from '@/features/lodging-showcase/lib/feature-icon'
 
-// Spec 086 AC-03 / AC-04 : chaque équipement dans une case, icône dédiée sur pastille.
+// Spec 086 AC-03 / AC-04 : chaque équipement dans une case, icône dédiée sur pastille (icône slate-800, 028 AC-02-13).
 function FeatureItem({ item }: { item: string }) {
   const Icon = featureIconFor(item)
 
   return (
     <li className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-white px-3 py-3 text-[13px] leading-snug text-slate-700 shadow-md sm:gap-3 sm:px-4">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pink-50">
-        <Icon aria-hidden="true" className="h-4 w-4 text-pink-600" strokeWidth={1.8} />
+        <Icon aria-hidden="true" className="h-4 w-4 text-slate-800" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 break-words">{item}</span>
     </li>

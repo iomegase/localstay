@@ -26,7 +26,11 @@ describe('028 AC-02-10 — Équipements and Services sur demande layout', () => 
       expect(article).toHaveClass('bg-white')
       expect(article).not.toHaveClass('bg-[#f8f7f5]')
       expect(within(article).getByRole('list')).toHaveClass('grid', 'grid-cols-2')
-      for (const item of within(article).getAllByRole('listitem')) expect(item).toHaveClass('bg-white', 'shadow-md')
+      for (const item of within(article).getAllByRole('listitem')) {
+        expect(item).toHaveClass('bg-white', 'shadow-md')
+        // AC-02-13 : icônes en slate-800.
+        expect(item.querySelector('svg')).toHaveClass('text-slate-800')
+      }
     }
     expect(within(articles[0]).getAllByRole('listitem')).toHaveLength(5)
   })

@@ -1194,3 +1194,5 @@ Constat PO : « enlever cette catégorie idiote ».
   `common_area` sans nom reçoivent `room_label = "Salon"` ; les textes alternatifs
   préfixés « Pièce de vie — » sont recalculés depuis la pièce réelle de chaque
   photo (« Cuisine — … », « Chambre — … », etc.). Aucune migration de schéma.
+- **AC-02-13** (PO 2026-10-15) : sur la fiche logement, les icônes des cases
+  « Équipements » et « Services sur demande » sont en `slate-800` (au lieu du rose).
