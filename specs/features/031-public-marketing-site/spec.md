@@ -789,7 +789,8 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   home, `/seminaires`, `/logements`, `/journal`, `/confier-mon-logement`, pages
   légales, landings locations / conciergerie / séminaire, `/decouvrir` et
   `/decouvrir/[city]`. Hors périmètre : slogans et sous-titres en grand, description
-  longue des fiches lieu, guide voyageur privé.
+  longue des fiches lieu, guide voyageur privé. Exception (PO 2026-10-15) : le texte
+  du hero des landings séminaire (colonne de droite) est en 14 px.
 - **AC-01-24** (PO 2026-10-15) : le retrait horizontal des heros de la home
   (`marketingHeroInsetClass`, AC-01-17) s'applique aussi aux landings locations,
   conciergerie et séminaire, et aux pages `/decouvrir`, `/decouvrir/[city]` et

@@ -10,11 +10,17 @@ const heroIntros: [string, string][] = [
   ['src/app/(public)/confier-mon-logement/page.tsx', '<p className="mt-6 text-[15px]'],
   ['src/features/marketing/components/LegalPage.tsx', '{intro}'],
   ['src/features/local-seo/components/LocalVacationRentalLanding.tsx', '{content.hero_copy}'],
-  ['src/features/local-seo/components/LocalServiceLanding.tsx', '{content.hero_copy}'],
   ['src/features/local-seo/components/LocalConciergeLanding.tsx', '{content.hero_copy}'],
   ['src/features/public-discovery/components/DiscoveryIndexView.tsx', 'MyStay réunit ici'],
   ['src/features/public-discovery/components/DiscoveryCityView.tsx', '{cityIntroduction(city)}'],
 ]
+
+describe('031 AC-01-23 — exception : hero des landings séminaire en 14 px', () => {
+  it('LocalServiceLanding garde 14 px (choix PO)', () => {
+    const source = readFileSync(join(process.cwd(), 'src/features/local-seo/components/LocalServiceLanding.tsx'), 'utf8')
+    expect(source).toContain('<p data-testid="service-hero-copy" className="text-[14px] leading-7 text-slate-600">')
+  })
+})
 
 describe('031 AC-01-23 — introduction des heros en 15 px', () => {
   it.each(heroIntros)('%s', (file, marker) => {
