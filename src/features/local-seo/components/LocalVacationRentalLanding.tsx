@@ -54,7 +54,7 @@ export function LocalVacationRentalLanding({
               {content.hero_title}
             </p>
           )}
-          <p className="mt-5 max-w-[680px] text-[14px] leading-8 text-slate-600">
+          <p className="mt-5 max-w-[680px] text-[15px] leading-8 text-slate-600">
             {content.hero_copy}
           </p>
           {content.reassurance && (

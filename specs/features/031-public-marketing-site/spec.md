@@ -784,3 +784,9 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
 - **AC-01-22** (PO 2026-10-15) : même règle pour la FAQ marketing partagée
   (`MarketingFaqSection` : home, landings, séminaires) : réponse pleine largeur,
   justifiée, avec césure automatique.
+- **AC-01-23** (PO 2026-10-15, « pour tous les heros du site ») : le paragraphe
+  d'introduction sous le H1 des pages marketing est en 15 px à toutes les largeurs :
+  home, `/seminaires`, `/logements`, `/journal`, `/confier-mon-logement`, pages
+  légales, landings locations / conciergerie / séminaire, `/decouvrir` et
+  `/decouvrir/[city]`. Hors périmètre : slogans et sous-titres en grand, description
+  longue des fiches lieu, guide voyageur privé.

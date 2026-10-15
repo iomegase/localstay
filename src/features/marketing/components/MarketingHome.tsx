@@ -262,7 +262,6 @@ export function MarketingHome({
                   leading-[1.75]
                   text-slate-600
                   xl:max-w-[570px]
-                  xl:text-[14px]
                 "
               >
                 MyStay accompagne les locations saisonnières à

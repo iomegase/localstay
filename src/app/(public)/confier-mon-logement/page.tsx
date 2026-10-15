@@ -19,7 +19,7 @@ export default function OwnerContactPage() {
           <div>
             <MarketingEyebrow>Votre projet</MarketingEyebrow>
             <h1 className="text-4xl font-bold tracking-[-0.055em] sm:text-6xl">Parlons de votre logement.</h1>
-            <p className="mt-6 text-sm leading-7 text-slate-500">
+            <p className="mt-6 text-[15px] leading-7 text-slate-500">
               Quelques informations suffisent pour préparer un premier échange utile et vous
               proposer un accompagnement réellement adapté.
             </p>

@@ -63,7 +63,7 @@ export function LocalConciergeLanding({
                 <span className="mt-3 block font-serif text-[32px] font-normal italic leading-[1.1] tracking-[-0.025em]">{sloganTail}</span>
               )}
             </p>
-            <p className="mt-7 max-w-[620px] text-[15px] leading-[1.75] text-slate-600 xl:max-w-[570px] xl:text-[14px]">
+            <p className="mt-7 max-w-[620px] text-[15px] leading-[1.75] text-slate-600 xl:max-w-[570px]">
               {content.hero_copy}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

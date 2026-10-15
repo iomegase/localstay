@@ -27,7 +27,7 @@ export default async function LodgingsPage() {
                 avec attention.
               </span>
             </h1>
-            <p className="mt-6 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+            <p className="mt-6 max-w-xl text-[15px] leading-7 text-slate-500">
               Chaque logement est accompagné par notre conciergerie et dispose de son propre guide
               d’arrivée MyStay.
             </p>

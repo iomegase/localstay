@@ -16,7 +16,7 @@ export function DiscoveryIndexView({ cities }: { cities: DiscoveryIndexCity[] })
           <h1 className="max-w-4xl text-[44px] font-semibold leading-[0.96] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-7xl">
             Découvrir les bonnes adresses locales.
           </h1>
-          <p className="mt-7 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
+          <p className="mt-7 max-w-2xl text-[15px] leading-7 text-slate-500">
             MyStay réunit ici des adresses locales sélectionnées et actuellement publiées.
           </p>
         </header>

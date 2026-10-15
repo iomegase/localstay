@@ -66,7 +66,7 @@ export default async function BlogListPage({ searchParams }: PageProps) {
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.055em] text-slate-900 sm:text-6xl">
               {title}
             </h1>
-            <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
+            <p className="mt-6 max-w-2xl text-[15px] leading-7 text-slate-500">
               Sélectionnez une catégorie ou parcourez nos articles pour optimiser vos séjours et votre expérience.
             </p>
             <nav

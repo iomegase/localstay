@@ -175,10 +175,9 @@ export default async function SeminarsPage() {
                 className="
                   mt-7
                   max-w-[590px]
-                  text-sm
+                  text-[15px]
                   leading-[1.72]
                   text-slate-600
-                  lg:text-[15px]
                 "
               >
                 <strong className="block font-semibold text-slate-900">Réunir vos équipes. Prendre de la hauteur.</strong>

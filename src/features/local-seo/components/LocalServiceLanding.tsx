@@ -135,7 +135,7 @@ export function LocalServiceLanding({
                 </h2>
               )}
 
-              <p className="text-[14px] leading-7 text-slate-600 sm:text-[15px]">
+              <p className="text-[15px] leading-7 text-slate-600">
                 {content.hero_copy}
               </p>
 

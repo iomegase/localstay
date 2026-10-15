@@ -26,7 +26,7 @@ export function LegalPage({ title, intro, sections, pathname, updatedOn }: {
         <header className="max-w-[720px]">
           <MarketingEyebrow>En toute clarté</MarketingEyebrow>
           <h1 className="text-4xl font-bold tracking-[-0.055em] text-slate-800 sm:text-6xl">{title}</h1>
-          <p className="mt-6 text-base leading-7 text-slate-500">{intro}</p>
+          <p className="mt-6 text-[15px] leading-7 text-slate-500">{intro}</p>
           <p className="mt-5 text-xs text-slate-500">Mis à jour le <time dateTime={updatedOn}>{updatedOnFormat.format(new Date(updatedOn))}</time></p>
         </header>
         <div className="mt-12 grid items-start gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-14">
