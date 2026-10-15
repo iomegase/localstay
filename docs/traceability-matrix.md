@@ -2124,6 +2124,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-05-10 | Mini-carte des fiches `/decouvrir` au zoom 19 | `src/features/public-discovery/components/DiscoveryPoiView.tsx` | `tests/unit/public-discovery.AC-05-10.mini-map-zoom.test.ts` | ✅ done |
+| AC-05-11 | Fiche lieu : H1 45 px, paragraphes de la description 14 px | `src/features/public-discovery/components/DiscoveryPoiView.tsx` | `tests/unit/public-discovery.AC-05-10.mini-map-zoom.test.ts` | ✅ done |
 
 ## 065 — Menu des sous-catégories (PO 2026-10-15)
 

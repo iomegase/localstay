@@ -744,3 +744,6 @@ Aucune question ouverte. Décisions du Product Owner du 2026-08-20 :
 - **AC-05-10** : sur une fiche `/decouvrir/[city]/[category]/[poi]`, la mini-carte
   statique de la colonne d'informations est zoomée au niveau 19 (au lieu de 17),
   pour montrer le bâtiment et sa rue. Image, taille et marqueur inchangés.
+- **AC-05-11** (PO 2026-10-15) : sur une fiche lieu `/decouvrir/[city]/[category]/[poi]`,
+  le H1 fait 45 px à toutes les largeurs et les paragraphes de la description
+  14 px (interligne 28 px). Mentions « Sources » et crédits photo inchangés.
