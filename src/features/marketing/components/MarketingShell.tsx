@@ -6,6 +6,7 @@ import { MarketingHeader } from './MarketingHeader'
 export {
   marketingContainerClass,
   marketingDarkButtonClass,
+  marketingHeroInsetClass,
   marketingPrimaryButtonClass,
 } from './marketing-styles'
 

@@ -38,11 +38,10 @@ describe('031 AC-01-10 — home audit corrections', () => {
     expect(h1.querySelector('.font-serif')).toHaveTextContent(/Vos voyageurs,\s*mieux accompagnés\./)
   })
 
-  it('(2) removes the hero horizontal padding so it aligns with the next sections', () => {
+  it('AC-01-17 (remplace (2)): applies the /seminaires hero horizontal inset', () => {
     render(<MarketingHome lodgings={[]} />)
 
-    const content = screen.getByTestId('editorial-hero-content')
-    expect(content.className).not.toMatch(/(^|\s)(sm:|xl:|min-\[\d+px\]:)?px-/)
+    expect(screen.getByTestId('editorial-hero-content')).toHaveClass('px-7', 'min-[761px]:px-[54px]')
   })
 
   it('(3)(4) renames the service card and the final call to action', () => {

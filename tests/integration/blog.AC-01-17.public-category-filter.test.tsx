@@ -31,6 +31,11 @@ jest.mock('@/features/blog/queries/public-blog', () => ({
 }))
 
 describe('029 AC-01-17 public category filter', () => {
+  it('031 AC-01-17: insets the Journal hero like /seminaires', async () => {
+    render(await BlogListPage({ searchParams: Promise.resolve({}) }))
+    expect(screen.getByTestId('journal-hero')).toHaveClass('px-7', 'min-[761px]:px-[54px]')
+  })
+
   it('renders category pills as links and shows all articles by default', async () => {
     render(await BlogListPage({ searchParams: Promise.resolve({}) }))
 

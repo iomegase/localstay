@@ -13,6 +13,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
 } from '@/features/marketing/components/MarketingShell'
 
 type PageProps = {
@@ -60,21 +61,23 @@ export default async function BlogListPage({ searchParams }: PageProps) {
     <MarketingShell>
       <section className=" py-16 sm:py-24">
         <div className={marketingContainerClass}>
-          <MarketingEyebrow>Journal &amp; Guides</MarketingEyebrow>
-          <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.055em] text-slate-900 sm:text-6xl">
-            {title}
-          </h1>
-          <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
-            Sélectionnez une catégorie ou parcourez nos articles pour optimiser vos séjours et votre expérience.
-          </p>
-          <nav
-            aria-label="Breadcrumb"
-            className="mt-7 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500"
-          >
-            <Link href="/" className="hover:text-pink-600">Accueil</Link>
-            <span aria-hidden="true">/</span>
-            <Link href="/journal" className="hover:text-pink-600">Journal</Link>
-          </nav>
+          <div data-testid="journal-hero" className={marketingHeroInsetClass}>
+            <MarketingEyebrow>Journal &amp; Guides</MarketingEyebrow>
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.055em] text-slate-900 sm:text-6xl">
+              {title}
+            </h1>
+            <p className="mt-6 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
+              Sélectionnez une catégorie ou parcourez nos articles pour optimiser vos séjours et votre expérience.
+            </p>
+            <nav
+              aria-label="Breadcrumb"
+              className="mt-7 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500"
+            >
+              <Link href="/" className="hover:text-pink-600">Accueil</Link>
+              <span aria-hidden="true">/</span>
+              <Link href="/journal" className="hover:text-pink-600">Journal</Link>
+            </nav>
+          </div>
         </div>
       </section>
 

@@ -5,6 +5,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
 } from '@/features/marketing/components/MarketingShell'
 import { lodgingListMetadata } from '@/features/seo/lib/metadata'
 
@@ -17,18 +18,20 @@ export default async function LodgingsPage() {
     <MarketingShell>
       <section className="py-16 sm:py-24">
         <div className={marketingContainerClass}>
-          <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
-          <h1 className="max-w-4xl text-4xl py-8 font-bold leading-[1.03] tracking-[-0.05em] sm:text-6xl">
-            {/* Deux lignes, « avec attention. » en serif italique 34 px comme la home (spec 031 AC-01-16). */}
-            <span className="block">Des lieux suivis</span>{' '}
-            <span className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
-              avec attention.
-            </span>
-          </h1>
-          <p className="mt-6 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-            Chaque logement est accompagné par notre conciergerie et dispose de son propre guide
-            d’arrivée MyStay.
-          </p>
+          <div data-testid="lodgings-hero" className={marketingHeroInsetClass}>
+            <MarketingEyebrow>Les logements confiés à MyStay</MarketingEyebrow>
+            <h1 className="max-w-4xl text-4xl py-8 font-bold leading-[1.03] tracking-[-0.05em] sm:text-6xl">
+              {/* Deux lignes, « avec attention. » en serif italique 34 px comme la home (spec 031 AC-01-16). */}
+              <span className="block">Des lieux suivis</span>{' '}
+              <span className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+                avec attention.
+              </span>
+            </h1>
+            <p className="mt-6 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+              Chaque logement est accompagné par notre conciergerie et dispose de son propre guide
+              d’arrivée MyStay.
+            </p>
+          </div>
         </div>
       </section>
 

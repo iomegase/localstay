@@ -753,3 +753,8 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
 - **AC-01-16** (PO 2026-10-15) : sur `/logements`, le H1 tient sur deux lignes :
   « Des lieux suivis » puis « avec attention. » en serif italique 34 px, comme la
   home. Texte accessible inchangé.
+- **AC-01-17** (PO 2026-10-15) : les heros de la home, de `/logements` et de
+  `/journal` reprennent le retrait horizontal du hero de `/seminaires` : 28 px sur
+  mobile, 54 px dès 761 px (`marketingHeroInsetClass`, appliqué à l'intérieur du
+  conteneur marketing). Remplace AC-01-10 (2) (« hero sans padding horizontal »).
+  Les sections suivantes et le padding vertical sont inchangés.

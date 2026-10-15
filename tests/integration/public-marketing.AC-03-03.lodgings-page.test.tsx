@@ -19,6 +19,11 @@ describe('031-public-marketing-site global lodgings page', () => {
     expect(screen.getByText(/Aucun logement public n’est encore disponible/i)).toBeInTheDocument()
   })
 
+  it('AC-01-17: insets the hero like /seminaires', async () => {
+    render(await LodgingsPage())
+    expect(screen.getByTestId('lodgings-hero')).toHaveClass('px-7', 'min-[761px]:px-[54px]')
+  })
+
   it('AC-01-16: puts « avec attention. » on its own serif italic 34px line', async () => {
     render(await LodgingsPage())
     const serif = screen.getByRole('heading', { level: 1 }).querySelector('.font-serif')

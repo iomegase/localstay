@@ -78,12 +78,13 @@ for (const viewport of [
         expect(heroStyles).toEqual({
           backgroundColor: 'rgb(255, 255, 255)',
           borderRadius: '0px',
-          minHeight: '560px',
+          minHeight: '580px',
           width: 944,
         })
+        // Spec 031 AC-01-17 : retrait horizontal de /seminaires (54 px dès 761 px).
         expect(heroContentStyles).toEqual({
-          minHeight: '560px',
-          padding: ['60px', '52px', '43px', '52px'],
+          minHeight: '580px',
+          padding: ['64px', '54px', '48px', '54px'],
         })
       }
     }

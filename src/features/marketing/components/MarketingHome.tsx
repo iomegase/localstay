@@ -15,6 +15,7 @@ import {
   MarketingShell,
   marketingContainerClass,
   marketingDarkButtonClass,
+  marketingHeroInsetClass,
   marketingPrimaryButtonClass,
 } from './MarketingShell'
 
@@ -203,7 +204,8 @@ export function MarketingHome({
         >
           <div
             data-testid="editorial-hero-content"
-            className="
+            className={`
+              ${marketingHeroInsetClass}
               relative
               flex min-h-[580px] flex-col
               pb-14 pt-16
@@ -211,7 +213,7 @@ export function MarketingHome({
               min-[761px]:pt-[76px]
               xl:pb-[48px]
               xl:pt-[64px]
-            "
+            `}
           >
             <div className="max-w-[760px] xl:max-w-[690px]">
               {/* Le H1 porte le mot-clé (au style eyebrow) puis le slogan (spec 031 AC-01-10 (1)). */}
