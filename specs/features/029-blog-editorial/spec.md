@@ -823,3 +823,8 @@ Aucune question ouverte pour cet amendement.
   « Inspirations... » puis « et conseils pour vos séjours » en serif italique 34 px.
   Avec le filtre `?city=`, « Journal » puis « [Commune] » sur le même modèle. Texte
   accessible inchangé.
+- **AC-01-19** (PO 2026-10-15) : `/journal` affiche les 6 premiers articles (après
+  filtre catégorie / commune), puis un bouton « Voir plus d'articles (n) » qui affiche
+  6 articles de plus via `?page=N` (lien crawlable, filtres conservés, sans remonter
+  en haut de page). Le bouton disparaît quand tout est affiché ; une valeur `page`
+  invalide vaut 1. Canonical inchangé (`/journal`).

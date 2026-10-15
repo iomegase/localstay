@@ -13,19 +13,24 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingDarkButtonClass,
   marketingHeroInsetClass,
 } from '@/features/marketing/components/MarketingShell'
 
 type PageProps = {
-  searchParams: Promise<{ city?: string; category?: string }>
+  searchParams: Promise<{ city?: string; category?: string; page?: string }>
 }
 
 const categoryParamSchema = z.enum(BLOG_ARTICLE_CATEGORIES)
+// Spec 029 AC-01-19 : 6 articles, puis « Voir plus d'articles » (6 de plus par page).
+const ARTICLES_PER_PAGE = 6
+const pageParamSchema = z.coerce.number().int().min(1).max(100).catch(1)
 
-function buildJournalListPath(city: string | undefined, category: BlogArticleCategory | null): string {
+function buildJournalListPath(city: string | undefined, category: BlogArticleCategory | null, page = 1): string {
   const query = new URLSearchParams()
   if (city) query.set('city', city)
   if (category) query.set('category', category)
+  if (page > 1) query.set('page', String(page))
   const search = query.toString()
   return search ? `/journal?${search}` : '/journal'
 }
@@ -59,6 +64,9 @@ export default async function BlogListPage({ searchParams }: PageProps) {
   const activeCategory = parsedCategory.success ? parsedCategory.data : null
   const categories = [...new Set(allItems.map(article => article.category))]
   const items = activeCategory ? allItems.filter(article => article.category === activeCategory) : allItems
+  const page = pageParamSchema.parse(params.page ?? 1)
+  const visibleItems = items.slice(0, page * ARTICLES_PER_PAGE)
+  const remaining = items.length - visibleItems.length
 
   return (
     <MarketingShell>
@@ -114,8 +122,9 @@ export default async function BlogListPage({ searchParams }: PageProps) {
             <p className="text-sm leading-relaxed text-gray-500">Aucun article n&apos;est encore publié.</p>
           </div>
         ) : (
+          <>
           <section data-testid="blog-grid" className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map(article => (
+            {visibleItems.map(article => (
               <Link
                 key={article.id}
                 href={buildBlogArticlePath(article.slug)}
@@ -160,6 +169,18 @@ export default async function BlogListPage({ searchParams }: PageProps) {
               </Link>
             ))}
           </section>
+          {remaining > 0 && (
+            <div className="mt-12 flex justify-center">
+              <Link
+                href={buildJournalListPath(params.city, activeCategory, page + 1)}
+                scroll={false}
+                className={marketingDarkButtonClass}
+              >
+                Voir plus d’articles ({remaining})
+              </Link>
+            </div>
+          )}
+          </>
         )}
       </section>
     </MarketingShell>
