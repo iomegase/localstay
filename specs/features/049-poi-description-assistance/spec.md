@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-28
-updated_at: 2026-09-28
+updated_at: 2026-10-15
 depends_on: [018-poi-acquisition-pipeline, 022-admin-poi-management, 041-public-local-discovery]
 bounded_context: admin
 ```
@@ -244,3 +244,14 @@ Aucune question bloquante. Parcours détaillé validé par le Product Owner le
 - Extension validée à ADR-008 : sources web tierces pour décrire uniquement un
   POI existant, avec références et validation admin ; aucune découverte libre.
 - Documentation Google : https://ai.google.dev/gemini-api/docs/google-search
+
+## Correction approuvée — Pages officielles volumineuses (PO 2026-10-15)
+
+Constat PO : `https://www.eterle.com/` (site Wix, 856 Ko de HTML dont l'essentiel en
+JavaScript) déclenchait « Le site officiel est illisible ». Cause : la lecture était
+abandonnée au-delà de 512 Ko.
+- **AC-04 (révisé)** : au-delà de 512 Ko, la lecture s'arrête et seuls les 512 premiers
+  Ko sont analysés, au lieu d'abandonner ; un `content-length` supérieur n'entraîne plus
+  de rejet. La mémoire reste bornée à 512 Ko. Les autres garde-fous sont inchangés
+  (adresses publiques uniquement, DNS épinglé, 3 redirections, 6 s, HTML seulement,
+  sans compression). Le texte transmis à Gemini reste limité à 12 000 caractères.

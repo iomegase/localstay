@@ -92,22 +92,35 @@ async function readPage(url: URL, signal: AbortSignal): Promise<{ html?: string;
       }
       const contentType = response.headers['content-type'] ?? ''
       if (status < 200 || status >= 300 || !/^(text\/html|application\/xhtml\+xml)\b/i.test(contentType)
-        || Number(response.headers['content-length'] ?? 0) > MAX_BYTES
         || !['identity', undefined].includes(response.headers['content-encoding'])) {
         reject(unreadable())
         response.destroy()
         return
       }
+      // Spec 049 AC-04 (révisé PO 2026-10-15) : au-delà de 512 Ko (sites Wix, JavaScript
+      // intégré), on garde les 512 premiers Ko au lieu d'abandonner ; la mémoire reste bornée.
       let size = 0
+      let done = false
       const chunks: Buffer[] = []
+      const finish = () => {
+        if (done) return
+        done = true
+        resolve({ html: Buffer.concat(chunks).toString('utf8') })
+      }
       response.on('data', (chunk: Buffer) => {
-        size += chunk.length
-        if (size > MAX_BYTES) {
-          reject(unreadable())
+        if (done) return
+        const room = MAX_BYTES - size
+        if (chunk.length >= room) {
+          chunks.push(chunk.subarray(0, room))
+          size = MAX_BYTES
+          finish()
           response.destroy()
-        } else chunks.push(chunk)
+          return
+        }
+        size += chunk.length
+        chunks.push(chunk)
       })
-      response.on('end', () => resolve({ html: Buffer.concat(chunks).toString('utf8') }))
+      response.on('end', finish)
     })
     req.on('error', reject)
     req.end()

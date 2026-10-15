@@ -70,12 +70,19 @@ it('AC-01: returns the final source URL after a valid redirect', async () => {
 })
 
 it.each([
-  ['oversized', 'x'.repeat(512 * 1024 + 1), 200, { 'content-type': 'text/html' }],
   ['not HTML', 'image', 200, { 'content-type': 'image/png' }],
   ['unavailable', 'error', 503, { 'content-type': 'text/html' }],
 ] as const)('AC-04: rejects %s response', async (_name, body, status, headers) => {
   page(body, status, headers)
   await expect(readOfficialDescriptionSource('https://refuge.example')).rejects.toMatchObject({ code: 'SOURCE_URL_UNREADABLE' })
+})
+
+it('AC-04 (révisé) : reads only the first 512 KB of an oversized page instead of rejecting it', async () => {
+  const text = '<p>Ce refuge accueille les randonneurs face au Mont-Blanc.</p>'
+  page(text + `<script>${'x'.repeat(900 * 1024)}</script><p>Fin de page jamais lue.</p>`, 200, { 'content-type': 'text/html', 'content-length': String(950 * 1024) })
+  const context = await readOfficialDescriptionSource('https://refuge.example')
+  expect(context.text).toContain('Ce refuge accueille les randonneurs')
+  expect(context.text).not.toContain('Fin de page jamais lue.')
 })
 
 it('AC-04: bounds redirect loops', async () => {
