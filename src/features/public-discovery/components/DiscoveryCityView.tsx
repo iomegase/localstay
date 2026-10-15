@@ -41,7 +41,11 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
         <header className={`${marketingContainerClass} pb-14 pt-12 sm:pb-16 sm:pt-16 lg:pb-20`}>
           <MarketingEyebrow>Découvrir</MarketingEyebrow>
           <h1 className="max-w-4xl text-[44px] font-semibold leading-[0.96] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-7xl">
-            Découvrir {city.name}
+            {/* Spec 065 AC-02-10 : deux lignes, la commune en serif italique 34 px (comme les pages catégorie). */}
+            <span className="block">Découvrir</span>{' '}
+            <span data-testid="city-title-name" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+              {city.name}
+            </span>
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
             {cityIntroduction(city)}
