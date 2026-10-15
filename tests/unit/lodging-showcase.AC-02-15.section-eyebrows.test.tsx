@@ -55,3 +55,11 @@ describe('028 AC-02-16 / 031 AC-01-22 — réponses de FAQ pleine largeur et jus
     expect(source).not.toMatch(/pr-16|sm:pr-20|max-w-\[600px\]/)
   })
 })
+
+describe('028 AC-02-17 — filtre actif de la grille des pièces en slate', () => {
+  it('styles the active pill in slate, never pink', () => {
+    const source = readFileSync(join(process.cwd(), 'src/features/lodging-showcase/components/LodgingRoomsGrid.tsx'), 'utf8')
+    expect(source).toContain("'border-slate-300 bg-slate-100 text-slate-800'")
+    expect(source).not.toMatch(/bg-pink-50|text-pink-700|border-pink-200/)
+  })
+})

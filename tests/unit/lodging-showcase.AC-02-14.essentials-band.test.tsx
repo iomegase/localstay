@@ -12,6 +12,9 @@ describe('028 AC-02-14 — bandeau des caractéristiques', () => {
     expect(dl.className).not.toMatch(/(^|\s)border(\s|-slate)/)
     expect(dl.className).not.toContain('md:grid-cols-5')
     expect(dl.querySelectorAll(':scope > div')).toHaveLength(4)
+    // AC-02-14 (bis) : fond blanc sous la barre, plus de crème.
+    expect(screen.getByTestId('lodging-essentials')).toHaveClass('bg-white')
+    expect(screen.getByTestId('lodging-essentials')).not.toHaveClass('bg-[#f8f7f5]')
   })
 
   it('switches to 3 columns when a fact is missing', () => {

@@ -75,7 +75,7 @@ export function LodgingEssentials({
   return (
     <section
       data-testid="lodging-essentials"
-      className="bg-[#f8f7f5] px-4 py-7 sm:px-6 md:py-10 xl:py-10 mt-8"
+      className="bg-white px-4 py-7 sm:px-6 md:py-10 xl:py-10 mt-8"
     >
       <div className="mx-auto w-full max-w-[944px]">
         {/* <div className={compact ? 'mb-4' : 'mb-4 md:mb-6 md:flex md:items-end md:justify-between md:gap-10 xl:mb-7'}>

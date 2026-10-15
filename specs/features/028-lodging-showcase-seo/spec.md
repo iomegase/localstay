@@ -1202,6 +1202,8 @@ Constat PO : « enlever cette catégorie idiote ».
   caractéristiques présentes (3 s'il en manque une), 4 au plus avec retour à la
   ligne au-delà, sans case vide. Séparateurs internes conservés ; mobile inchangé
   (2 colonnes).
+  Fond de la section sous la barre : blanc (plus de fond crème), ajustement PO du
+  2026-10-15.
 - **AC-02-15** (PO 2026-10-15) : sur la fiche logement, les grands titres
   « Situer le logement. », « Disponibilités. » et « Questions fréquentes. » sont
   retirés. Chaque section porte un eyebrow identique à celui des cases
@@ -1214,3 +1216,6 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-16** (PO 2026-10-15) : dans la FAQ de la fiche logement, la réponse
   d'un accordéon ouvert occupe toute la largeur de la carte (sous le bouton
   fermer, sans marge droite) et est justifiée, avec césure automatique (`lang="fr"`).
+- **AC-02-17** (PO 2026-10-15) : dans la grille des pièces, la pastille de filtre
+  active (« Tout », « Salon »…) est en slate (`border-slate-300 bg-slate-100
+  text-slate-800`), plus en rose.

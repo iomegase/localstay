@@ -63,7 +63,7 @@ export function LodgingRoomsGrid({
                 onClick={() => setFilter(category.id)}
                 className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
                   active
-                    ? 'border-pink-200 bg-pink-50 text-pink-700'
+                    ? 'border-slate-300 bg-slate-100 text-slate-800'
                     : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
               >
