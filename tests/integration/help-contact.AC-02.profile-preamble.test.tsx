@@ -92,3 +92,40 @@ describe('053 AC-02 — préambule par profil', () => {
     ])
   })
 })
+
+describe('053 AC-02-06 — select des logements publiés', () => {
+  it('lists every published lodging when the page provides none', () => {
+    const { ContactLodgingOptionsProvider } = jest.requireActual('@/features/contact-messages/components/ContactLodgingOptions')
+    render(
+      <ContactLodgingOptionsProvider value={['Le 305 · Saint-Gervais-les-Bains', 'Chalet Hygge · Megève']}>
+        <HelpContactDialog label="Nous contacter" />
+      </ContactLodgingOptionsProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Nous contacter' }))
+    const dialog = screen.getByRole('dialog', { name: 'Nous écrire' })
+    fireEvent.click(within(dialog).getByRole('button', { name: /Voyageur/ }))
+    const select = within(dialog).getByLabelText(/Logement concerné/)
+    expect(select.tagName).toBe('SELECT')
+    expect(select).not.toBeRequired()
+    expect(within(select).getAllByRole('option').map(option => option.textContent)).toEqual([
+      'Pas encore choisi', 'Le 305 · Saint-Gervais-les-Bains', 'Chalet Hygge · Megève',
+    ])
+  })
+
+  it('falls back to free text without published lodgings', () => {
+    render(<HelpContactDialog />)
+    fireEvent.click(screen.getByRole('button', { name: 'Aide & contact' }))
+    fireEvent.click(screen.getByRole('button', { name: /Voyageur/ }))
+    expect(screen.getByLabelText(/Logement concerné/).tagName).toBe('INPUT')
+  })
+})
+
+describe('053 AC-02-07 — description voyageur sur deux lignes', () => {
+  it('breaks the traveler description after the question', () => {
+    render(<HelpContactDialog profile="traveler" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Aide & contact' }))
+    const description = screen.getByText(/Une question sur un logement/)
+    expect(description.textContent).toBe('Une question sur un logement, vos dates ou votre séjour ?\nÉcrivez-nous, nous vous répondons par e-mail.')
+    expect(description).toHaveClass('whitespace-pre-line')
+  })
+})

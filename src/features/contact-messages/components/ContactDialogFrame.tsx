@@ -45,7 +45,7 @@ export function ContactDialogFrame({
           <Dialog.Title className="mt-3 text-2xl font-bold tracking-[-0.04em] text-slate-900 sm:text-[30px]">
             {title}
           </Dialog.Title>
-          <Dialog.Description className="mt-2 text-sm leading-6 text-slate-500">
+          <Dialog.Description className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-500">
             {description}
           </Dialog.Description>
           {children}

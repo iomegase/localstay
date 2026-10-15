@@ -4,6 +4,7 @@ import { Briefcase, ChevronLeft, ChevronRight, Home, Luggage } from 'lucide-reac
 import { useState } from 'react'
 import { marketingPrimaryButtonClass } from '@/features/marketing/components/marketing-styles'
 import { ContactDialogFrame } from './ContactDialogFrame'
+import { useContactLodgingOptions } from './ContactLodgingOptions'
 import { OwnerLeadForm } from './OwnerLeadForm'
 import { SeminarLeadForm } from './SeminarLeadDialog'
 
@@ -21,7 +22,7 @@ const PROFILES = [
 
 const DESCRIPTIONS: Record<Profile | 'choose', string> = {
   choose: 'Dites-nous qui vous êtes : nous vous proposons le formulaire adapté à votre demande.',
-  traveler: 'Une question sur un logement, vos dates ou votre séjour ? Écrivez-nous, nous vous répondons par e-mail.',
+  traveler: 'Une question sur un logement, vos dates ou votre séjour ?\nÉcrivez-nous, nous vous répondons par e-mail.',
   owner: 'Vous possédez un logement dans le Pays du Mont-Blanc ? Parlez-nous de votre projet, nous vous recontactons personnellement.',
   company: 'Votre séminaire dans le Pays du Mont-Blanc : décrivez votre projet, nous vous adressons une estimation sous 48 h.',
 }
@@ -103,7 +104,10 @@ export function HelpContactDialog({
   )
 }
 
-function TravelerContactForm({ lodgingOptions }: { lodgingOptions?: string[] }) {
+function TravelerContactForm({ lodgingOptions: pageOptions }: { lodgingOptions?: string[] }) {
+  // Logements de la page s'ils sont fournis, sinon tous les logements publiés (AC-02-06).
+  const publishedOptions = useContactLodgingOptions()
+  const lodgingOptions = pageOptions && pageOptions.length > 0 ? pageOptions : publishedOptions
   const [state, setState] = useState<FormState>('idle')
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -152,7 +156,7 @@ function TravelerContactForm({ lodgingOptions }: { lodgingOptions?: string[] }) 
         <label className={labelClass}>Adresse e-mail *<input className={fieldClass} autoComplete="email" name="email" required type="email" maxLength={180} /></label>
         <label className={labelClass}>Téléphone<input className={fieldClass} autoComplete="tel" name="phone" type="tel" maxLength={40} /></label>
         <label className={labelClass}>Logement concerné
-          {lodgingOptions && lodgingOptions.length > 0 ? (
+          {lodgingOptions.length > 0 ? (
             <select className={fieldClass} defaultValue="" name="lodging">
               <option value="">Pas encore choisi</option>
               {lodgingOptions.map(option => <option key={option}>{option}</option>)}

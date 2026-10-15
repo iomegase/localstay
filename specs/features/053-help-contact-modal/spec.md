@@ -145,3 +145,14 @@ réutilise sa source existante. Remplace AC-01-02 (le menu « Vous êtes » disp
   landings locations (spec 046 AC-03-09, AC-03-13) ouvrent directement le formulaire
   Voyageur, avec la liste des logements de la page. Les boutons « Nous contacter »
   du contenu de la home restent des liens vers `/confier-mon-logement`.
+
+- **AC-02-06** (PO 2026-10-15) : hors landing locations, « Logement concerné » est
+  un select listant tous les logements publiés (profil publié, logement et commune
+  actifs, non supprimés), libellés « Titre · Commune », triés par commune puis
+  titre, précédés de « Pas encore choisi » (facultatif). La liste est chargée côté
+  serveur par le layout des routes marketing ; si la lecture échoue ou qu'aucun
+  logement n'est publié, le champ redevient un texte libre. Aucun changement d'API
+  ni de modèle.
+- **AC-02-07** (PO 2026-10-15) : la description du formulaire Voyageur tient sur
+  deux lignes : « Une question sur un logement, vos dates ou votre séjour ? » puis
+  « Écrivez-nous, nous vous répondons par e-mail. » (retour à la ligne explicite).

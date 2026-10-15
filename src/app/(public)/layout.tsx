@@ -9,6 +9,8 @@ import { PublicAnalyticsTracker } from '@/features/admin-analytics/components/Pu
 import { GoogleAnalyticsClient } from '@/features/admin-analytics/components/GoogleAnalyticsClient'
 import { FooterDestinationsProvider } from '@/features/marketing/components/FooterDestinations'
 import { getFooterLocalLandingLinks } from '@/features/local-seo/queries/footer-links'
+import { ContactLodgingOptionsProvider } from '@/features/contact-messages/components/ContactLodgingOptions'
+import { listContactLodgingOptions } from '@/features/contact-messages/queries/contact-lodgings'
 
 export default async function PublicLayout({
   children,
@@ -34,11 +36,16 @@ export default async function PublicLayout({
   // Une page marketing (dont `/decouvrir`) ne doit jamais lire le cookie séjour
   // ni charger Lodging/Owner, même si le navigateur porte encore un ancien cookie.
   if (isMarketingRoute) {
-    const footerLinks = await getFooterLocalLandingLinks()
+    const [footerLinks, contactLodgings] = await Promise.all([
+      getFooterLocalLandingLinks(),
+      listContactLodgingOptions(),
+    ])
     return (
       <FooterDestinationsProvider value={footerLinks}>
-        {children}
-        {analytics}
+        <ContactLodgingOptionsProvider value={contactLodgings}>
+          {children}
+          {analytics}
+        </ContactLodgingOptionsProvider>
       </FooterDestinationsProvider>
     )
   }
