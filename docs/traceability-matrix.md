@@ -2135,3 +2135,16 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | AC-02-09 | Phrase d'introduction redondante retirée sous le H1 des pages catégorie — PO 2026-10-15 | `src/features/public-discovery/components/DiscoveryCategoryView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
 | AC-02-10 | H1 de la page commune sur deux lignes, commune en serif italique 34 px ; introduction en 15 px — PO 2026-10-15 | `src/features/public-discovery/components/DiscoveryCityView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
 | AC-02-11 | Page commune : grille titrée « Explorer par catégorie. » (option A) — PO 2026-10-15 | `src/features/public-discovery/components/DiscoveryCityView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+
+## 098 — Enrichissement des descriptions courtes des POI (PO 2026-10-15)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Liste des POI publiés < 120 mots, du plus court au plus long ; API `GET /api/admin/pois/enrichment` | `src/features/admin-pois/queries/description-enrichment.ts`<br>`src/app/api/admin/pois/enrichment/route.ts`<br>`src/app/admin/pois/enrichissement/page.tsx`<br>`src/app/admin/pois/page.tsx` | `tests/unit/poi-description-enrichment.098.query.test.ts`<br>`tests/contract/poi-description-enrichment.098.api.test.ts` | ✅ done |
+| AC-01-02 / BR-05 | Génération par lots de 10, une fiche à la fois, états par ligne | `src/features/admin-pois/components/DescriptionEnrichmentQueue.tsx` | `tests/integration/poi-description-enrichment.098.queue.test.tsx` | ✅ done |
+| AC-01-03 / BR-03 | Relecture actuelle / proposée, mots, sources, « Sources maigres » | `src/features/admin-pois/components/DescriptionEnrichmentQueue.tsx` | `tests/integration/poi-description-enrichment.098.queue.test.tsx` | ✅ done |
+| AC-01-04 / BR-04 | « Publier » enregistre description + sources (PATCH existant, revalidation) ; « Ignorer » | `src/features/admin-pois/components/DescriptionEnrichmentQueue.tsx` | `tests/integration/poi-description-enrichment.098.queue.test.tsx` | ✅ done |
+| AC-01-05 | Sources insuffisantes : aucune proposition, description inchangée | `src/features/admin-pois/components/DescriptionEnrichmentQueue.tsx` | `tests/integration/poi-description-enrichment.098.queue.test.tsx` | ✅ done |
+| AC-02-01 / BR-01 / BR-08 | Consigne anti-remplissage commune aux 3 générateurs (ni horaires, prix, téléphone) | `src/shared/lib/description-style.ts`<br>`src/shared/lib/description-length.ts` | `tests/unit/description-style.AC-02-01-02.test.ts` | ✅ done |
+| AC-02-02 / BR-02 | Formules creuses détectées et signalées en relecture | `src/shared/lib/description-style.ts`<br>`src/features/admin-pois/components/DescriptionEnrichmentQueue.tsx` | `tests/unit/description-style.AC-02-01-02.test.ts`<br>`tests/integration/poi-description-enrichment.098.queue.test.tsx` | ✅ done |
+| BR-07 / BR-08 | Site officiel < 1 500 caractères complété par la recherche web ; sans page citée, repli sur le site seul ; budget de sortie relevé | `src/features/poi-description-assistance/services/generate-description.ts` | `tests/unit/poi-description-assistance.AC-01-04.generation.test.ts` | ✅ done |

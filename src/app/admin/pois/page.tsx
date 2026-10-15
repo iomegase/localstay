@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { Eye, Filter, Plus, Radar, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
+import { Eye, Filter, Plus, Radar, Sparkles, Image as ImageIcon, CheckCircle2, XCircle, Trash2, MapPin, Search, Store } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminPoiOptions, getAdminPoiTaxonomyCounts, listAdminPois } from '@/features/admin-pois/queries/admin-pois'
+import { listDescriptionEnrichmentItems } from '@/features/admin-pois/queries/description-enrichment'
 import { AdminPoiCategoryMenu } from '@/features/admin-pois/components/AdminPoiCategoryMenu'
 import { AdminPoiStatusActions } from '@/features/admin-pois/components/AdminPoiStatusActions'
 import { AdminPoiDiscoveryToggle } from '@/features/admin-pois/components/AdminPoiDiscoveryToggle'
@@ -56,6 +57,8 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
   const [response, taxonomyCounts] = filters
     ? await Promise.all([listAdminPois(filters), getAdminPoiTaxonomyCounts(filters, options.categories)])
     : [null, null]
+  // Spec 098 : nombre de fiches à enrichir ; un échec de comptage ne bloque jamais le backoffice.
+  const shortDescriptionCount = await listDescriptionEnrichmentItems().then(items => items.length, () => null)
 
   return (
     <div className="w-full animate-in fade-in duration-500 space-y-6">
@@ -74,6 +77,14 @@ export default async function AdminPoisPage({ searchParams }: PageProps) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 shrink-0">
+          {/* Spec 098 : file d'enrichissement des descriptions courtes. */}
+          <Link
+            href="/admin/pois/enrichissement"
+            className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-5 text-[13px] font-bold text-[#0B1437] transition-all hover:bg-[#e4e9f7]"
+          >
+            <Sparkles size={16} />
+            Enrichir les descriptions{shortDescriptionCount === null ? '' : ` (${shortDescriptionCount})`}
+          </Link>
           <Link 
             href={selectedCityId ? `/admin/poi-acquisition?city_id=${selectedCityId}` : '/admin/poi-acquisition'}
             className="group flex h-11 items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-5 text-[13px] font-bold text-[#0B1437] transition-all hover:bg-[#e4e9f7]"
