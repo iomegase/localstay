@@ -174,6 +174,7 @@ export function LocalServiceLanding({
             </MarketingEyebrow>
 
             <h2
+              data-testid="service-section-title"
               className="
                 text-[32px]
                 font-bold
@@ -181,6 +182,7 @@ export function LocalServiceLanding({
                 tracking-[-0.045em]
                 text-slate-900
                 sm:text-[42px]
+                lg:text-[36px]
               "
             >
               {content.section_title}
@@ -276,6 +278,7 @@ export function LocalServiceLanding({
             </MarketingEyebrow>
 
             <h2
+              data-testid="service-local-title"
               className="
                 text-[32px]
                 font-bold
@@ -283,6 +286,7 @@ export function LocalServiceLanding({
                 tracking-[-0.045em]
                 text-slate-900
                 sm:text-[42px]
+                lg:text-[36px]
               "
             >
               {content.local_title}

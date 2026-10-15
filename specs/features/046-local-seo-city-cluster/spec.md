@@ -550,3 +550,8 @@ d'API, de données, de metadata ni de JSON-LD ; le texte du H1 reste `h1`.
 - **AC-03-17** (PO 2026-10-15) : le bouton « Poser une question » du hero de la
   landing locations est un bouton principal rose (`marketingPrimaryButtonClass`),
   et non plus un bouton à contour.
+- **AC-02-06** (PO 2026-10-15) : sur les landings séminaire, les titres de section
+  « Votre projet » (`section_title`, ex. « Un format construit autour de votre
+  équipe. ») et « Sur place » (`local_title`, ex. « Saint-Gervais, entre village et
+  montagne ») passent à 36 px dès 1024 px pour tenir sur une ligne (32 px mobile,
+  42 px dès 640 px inchangés ; retour à la ligne conservé pour les titres longs).

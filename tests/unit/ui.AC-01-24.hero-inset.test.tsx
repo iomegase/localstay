@@ -56,3 +56,14 @@ describe('046 AC-02-05 — titre des landings séminaire sur deux lignes', () =>
     expect(source).toContain('<CityTitle title={content.h1} testId="service-title-city" />')
   })
 })
+
+describe('046 AC-02-06 — titres de section des landings séminaire en 36 px dès lg', () => {
+  it('sets lg:text-[36px] on the « Votre projet » and « Sur place » titles', () => {
+    const source = readFileSync(join(process.cwd(), 'src/features/local-seo/components/LocalServiceLanding.tsx'), 'utf8')
+    for (const id of ['service-section-title', 'service-local-title']) {
+      const start = source.indexOf(`data-testid="${id}"`)
+      expect(start).toBeGreaterThan(-1)
+      expect(source.slice(start, source.indexOf('>', start))).toContain('lg:text-[36px]')
+    }
+  })
+})
