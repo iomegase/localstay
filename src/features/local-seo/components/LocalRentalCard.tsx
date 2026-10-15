@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { BedDouble, Scan, ShowerHead, Users } from 'lucide-react'
 
 // Carte dédiée à la landing locations, style MarketingPropertyCard (spec 046 AC-03-07) :
-// l'eyebrow porte le type de bien, la commune n'est pas répétée, aucun CTA de réservation.
+// l'eyebrow porte le type de bien, la commune n'est pas répétée. Pied de carte
+// `Voir les disponibilités` vers la fiche (AC-03-11), jamais de CTA Airbnb.
 export function LocalRentalCard({
   lodging,
   priority = false,
@@ -46,7 +47,7 @@ export function LocalRentalCard({
           {shortDescriptionText(lodging.short_description)}
         </p>
 
-        <dl className="mt-5 grid grid-cols-2 border-t border-slate-200 text-slate-800">
+        <dl className="mb-6 mt-5 grid grid-cols-2 border-t border-slate-200 text-slate-800">
           <PropertyStat icon={Scan} label="Surface" dense value={lodging.surface_m2 ? `${lodging.surface_m2} m²` : '—'} />
           <PropertyStat icon={Users} label="Voyageurs" dense value={String(lodging.max_guests)} borderLeft />
           <PropertyStat icon={BedDouble} label="Chambres" dense value={lodging.bedroom_count == null ? '—' : String(lodging.bedroom_count)} borderTop />
@@ -59,6 +60,14 @@ export function LocalRentalCard({
             borderTop
           />
         </dl>
+
+        <Link
+          href={lodging.href}
+          aria-label={`Voir les disponibilités — ${lodging.title}`}
+          className="relative z-10 mt-auto inline-flex min-h-11 w-full items-center justify-center rounded-full bg-pink-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(219,39,119,0.22)] transition-colors hover:bg-slate-900 group-hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+        >
+          Voir les disponibilités
+        </Link>
       </div>
     </article>
   )

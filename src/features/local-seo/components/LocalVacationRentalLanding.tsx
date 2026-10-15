@@ -1,6 +1,7 @@
 import { faqPageSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
+import { HelpContactDialog } from '@/features/contact-messages/components/HelpContactDialog'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 import type {
@@ -11,13 +12,20 @@ import {
   MarketingShell,
   marketingContainerClass,
   marketingDarkButtonClass,
+  marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
 import { vacationFacts } from '../lib/vacation-facts'
 import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { LocalRentalCard } from './LocalRentalCard'
 
-// Refonte éditoriale de la landing locations (spec 046 AC-03-06 à AC-03-08).
+const secondaryButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-700 transition-colors hover:border-pink-600 hover:text-pink-600'
+const lightOutlineButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-white/40 px-5 text-xs font-bold text-white transition-colors hover:border-pink-300 hover:text-pink-300'
+
+// Ligne de faits affichée à partir de 3 logements publiés (spec 046 AC-03-10).
+const FACTS_MIN_LODGINGS = 3
+
+// Landing locations (spec 046 AC-03-06 à AC-03-08, orientée réservation AC-03-09 à AC-03-13).
 export function LocalVacationRentalLanding({
   landing,
   lodgings,
@@ -26,7 +34,8 @@ export function LocalVacationRentalLanding({
   lodgings: MarketingLodgingCard[]
 }) {
   const content = landing.page
-  const facts = vacationFacts(lodgings)
+  const facts = lodgings.length >= FACTS_MIN_LODGINGS ? vacationFacts(lodgings) : null
+  const lodgingOptions = lodgings.map(lodging => lodging.title)
   const listingTitle = content.section_title !== content.h1
     ? content.section_title
     : `Nos logements à ${landing.city.name}`
@@ -52,15 +61,23 @@ export function LocalVacationRentalLanding({
             <p className="mt-3 text-[13px] font-semibold text-slate-500">{content.reassurance}</p>
           )}
 
-          <div className="mt-9 flex flex-col gap-5  pt-6 sm:flex-row sm:items-center sm:justify-between">
-            {facts && (
-              <p data-testid="vacation-facts" className="text-xs font-semibold text-slate-900">
-                <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 rounded-full bg-pink-600" />
-                {facts}
-              </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            {lodgings.length > 0 && (
+              <a className={marketingPrimaryButtonClass} href="#logements">Voir les logements</a>
             )}
-
+            <HelpContactDialog
+              label="Poser une question"
+              profile="traveler"
+              lodgingOptions={lodgingOptions}
+              className={secondaryButtonClass}
+            />
           </div>
+          {facts && (
+            <p data-testid="vacation-facts" className="mt-6 text-xs font-semibold text-slate-900">
+              <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 rounded-full bg-pink-600" />
+              {facts}
+            </p>
+          )}
         </section>
 
         <section
@@ -123,7 +140,7 @@ export function LocalVacationRentalLanding({
                 {content.local_title}
               </h2>
               <p className="mt-6 text-[13px] text-justify leading-7 text-slate-300">{content.local_copy}</p>
-              <Link className="mt-6 inline-flex text-xs font-bold text-pink-300 hover:text-white" href={publicDiscoveryCityPath(landing.city.slug)}>
+              <Link className={`${lightOutlineButtonClass} mt-8 self-start`} href={publicDiscoveryCityPath(landing.city.slug)}>
                 Découvrir {landing.city.name}
               </Link>
             </div>
@@ -165,6 +182,30 @@ export function LocalVacationRentalLanding({
           <div id="faq" className="scroll-mt-6">
             <MarketingFaqSection items={content.faq} title="Bon à savoir avant de réserver" columns={2} />
           </div>
+        )}
+
+        {lodgings.length > 0 && (
+          <section
+            aria-labelledby="question-title"
+            className={`${marketingContainerClass} pb-16 sm:pb-24`}
+          >
+            <div className="rounded-[28px] bg-slate-800 bg-[radial-gradient(circle_at_90%_120%,rgba(219,39,119,0.22),transparent_45%)] px-6 py-10 text-white sm:px-12 sm:py-14 lg:flex lg:items-center lg:justify-between lg:gap-10">
+              <div>
+                <h2 id="question-title" className="text-[28px] font-bold leading-tight tracking-[-0.04em] sm:text-[34px]">
+                  Une question sur le logement ?
+                </h2>
+                <p className="mt-3 max-w-[520px] text-[14px] leading-7 text-slate-300">
+                  Accès, équipements, dates, arrivée : l’équipe MyStay connaît chaque logement et vous répond personnellement.
+                </p>
+              </div>
+              <HelpContactDialog
+                label="Nous écrire"
+                profile="traveler"
+                lodgingOptions={lodgingOptions}
+                className={`${marketingPrimaryButtonClass} mt-7 w-full shrink-0 sm:w-auto lg:mt-0`}
+              />
+            </div>
+          </section>
         )}
       </div>
     </MarketingShell>

@@ -6,14 +6,16 @@ import { MarketingFooter } from '@/features/marketing/components/MarketingFooter
 function openDialog() {
   render(<MarketingFooter />)
   fireEvent.click(screen.getByRole('button', { name: 'Aide & contact' }))
-  return screen.getByRole('dialog', { name: 'Nous écrire' })
+  const dialog = screen.getByRole('dialog', { name: 'Nous écrire' })
+  // Amendement 053 AC-02 : le préambule précède le formulaire.
+  fireEvent.click(within(dialog).getByRole('button', { name: /Voyageur/ }))
+  return dialog
 }
 
 function fill(dialog: HTMLElement) {
   const field = (name: RegExp) => within(dialog).getByLabelText(name)
   fireEvent.change(field(/Prénom et nom/), { target: { value: 'Paul Durand' } })
   fireEvent.change(field(/Adresse e-mail/), { target: { value: 'paul@exemple.test' } })
-  fireEvent.change(field(/Vous êtes/), { target: { value: 'Voyageur' } })
   fireEvent.change(field(/Votre message/), { target: { value: 'Bonjour, je cherche le lien de mon guide de séjour.' } })
   fireEvent.click(within(dialog).getByRole('checkbox'))
 }
@@ -37,24 +39,7 @@ describe('053 help contact modal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('AC-01-02: asks for the agreed fields with required markers and consent', () => {
-    const dialog = openDialog()
-
-    for (const [label, required] of [
-      [/Prénom et nom/, true], [/Adresse e-mail/, true], [/Téléphone/, false], [/Vous êtes/, true], [/Votre message/, true],
-    ] as const) {
-      const input = within(dialog).getByLabelText(label)
-      if (required) expect(input).toBeRequired()
-      else expect(input).not.toBeRequired()
-    }
-    const profile = within(dialog).getByLabelText(/Vous êtes/)
-    expect(within(profile).getAllByRole('option').map(option => option.textContent)).toEqual([
-      'Sélectionner', 'Voyageur', 'Propriétaire', 'Entreprise', 'Autre',
-    ])
-    expect(within(dialog).getByRole('checkbox')).toBeRequired()
-    expect(dialog).toHaveTextContent('J’accepte que MyStay utilise ces informations uniquement pour répondre à ma demande.')
-    expect(within(dialog).getByRole('button', { name: 'Envoyer mon message' })).toBeInTheDocument()
-  })
+  // AC-01-02 (menu « Vous êtes ») remplacé par le préambule AC-02 : voir help-contact.AC-02.profile-preamble.test.tsx.
 
   it('AC-01-03/04: sends a help_contact message and confirms', async () => {
     const dialog = openDialog()

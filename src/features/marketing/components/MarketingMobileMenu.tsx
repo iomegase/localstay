@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ArrowRight, UserRound, X } from 'lucide-react'
 
+import { HelpContactDialog } from '@/features/contact-messages/components/HelpContactDialog'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { marketingNavigationFor } from './marketing-navigation'
 
@@ -224,32 +225,11 @@ export function MarketingMobileMenu({ localNavigation }: { localNavigation?: Loc
               </Dialog.Close>
 
 
-              <Dialog.Close asChild>
-                <Link
-                  href="/confier-mon-logement"
-                  className="
-                    inline-flex
-                    min-h-14
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-slate-800
-                    px-6
-                    text-sm
-                    font-bold
-                    text-white
-                    shadow-[0_16px_36px_rgba(15,23,42,0.18)]
-                    transition-colors
-                    hover:bg-pink-600
-                    focus-visible:outline
-                    focus-visible:outline-2
-                    focus-visible:outline-offset-2
-                    focus-visible:outline-pink-600
-                  "
-                >
-                  Nous contacter
-                </Link>
-              </Dialog.Close>
+              {/* Préambule Voyageur / Propriétaire / Entreprise (spec 053 AC-02-05). */}
+              <HelpContactDialog
+                label="Nous contacter"
+                className="inline-flex min-h-14 items-center justify-center rounded-full bg-slate-800 px-6 text-sm font-bold text-white shadow-[0_16px_36px_rgba(15,23,42,0.18)] transition-colors hover:bg-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+              />
             </div>
           </nav>
         </Dialog.Content>

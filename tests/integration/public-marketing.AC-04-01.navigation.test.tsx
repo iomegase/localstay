@@ -13,10 +13,9 @@ describe('031-public-marketing-site navigation', () => {
       'href',
       '/auth/login',
     )
-    expect(screen.getAllByRole('link', { name: /Nous contacter/i })[0]).toHaveAttribute(
-      'href',
-      '/confier-mon-logement',
-    )
+    // Spec 053 AC-02-05 : « Nous contacter » ouvre la modale contact par profil.
+    expect(screen.queryByRole('link', { name: /Nous contacter/i })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Nous contacter' }).length).toBeGreaterThan(0)
   })
 
   it('opens the mobile navigation as a branded editorial panel', () => {
@@ -36,8 +35,8 @@ describe('031-public-marketing-site navigation', () => {
       'Séminaires',
       'Journal',
       'Connexion',
-      'Nous contacter',
     ])
+    expect(within(mobileNavigation).getByRole('button', { name: 'Nous contacter' })).toBeInTheDocument()
     // Spec 045 dépréciée (2026-10-05) : plus de bouton « Guide démo ».
     expect(within(mobileNavigation).queryByText('Guide démo')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()

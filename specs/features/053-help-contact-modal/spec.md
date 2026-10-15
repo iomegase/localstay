@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-01
-updated_at: 2026-10-01
+updated_at: 2026-10-15
 depends_on:
   - 024-contact-messages
   - 031-public-marketing-site
@@ -112,3 +112,36 @@ sinon `400 VALIDATION_ERROR`. Réponse inchangée : `201 { id, status: "received
 ## Open Questions
 
 Aucune.
+
+## Amendement approuvé — Préambule par profil (PO 2026-10-15)
+
+Validation explicite du Product Owner en conversation le 2026-10-15 (option A,
+3 profils). Constat PO : « Nous contacter » de l'en-tête menait les voyageurs vers
+la page propriétaires. Aucun changement d'API ni de modèle : chaque formulaire
+réutilise sa source existante. Remplace AC-01-02 (le menu « Vous êtes » disparaît).
+
+### US-02 — Être orienté vers le bon formulaire
+
+**As a** visiteur anonyme
+**I want to** dire d'abord qui je suis
+**So that** je remplisse un formulaire adapté à ma demande
+
+- **AC-02-01** : la modale contact (titre « Nous écrire ») s'ouvre sur un préambule
+  « Vous êtes… » proposant trois choix : `Voyageur`, `Propriétaire`, `Entreprise`.
+- **AC-02-02** : `Voyageur` affiche : Prénom et nom*, Adresse e-mail*, Téléphone,
+  Logement concerné (liste des logements de la page quand elle est fournie, sinon
+  texte libre ; facultatif), Dates souhaitées, Nombre de voyageurs, Votre message*
+  (10 à 1650 caractères, pour rester sous la limite API de 2000 avec les lignes préfixées), anti-spam caché, consentement obligatoire. L'envoi
+  utilise `source: "help_contact"`, `destination: "concierge"`, `lodging_id: null`,
+  l'objet `Aide & contact — Voyageur` et un message préfixé des lignes renseignées
+  (`Logement : …`, `Dates souhaitées : …`, `Voyageurs : …`).
+- **AC-02-03** : `Propriétaire` affiche le formulaire existant `OwnerLeadForm`
+  (`owner_lead`, spec 024 AC-05) ; `Entreprise` affiche le formulaire de demande
+  séminaire existant (`seminar_lead`, spec 052), pour le Pays du Mont-Blanc.
+- **AC-02-04** : chaque formulaire propose un retour « ← Changer de profil » vers le
+  préambule ; fermer la modale réinitialise le préambule.
+- **AC-02-05** : déclencheurs : « Aide & contact » du footer et « Nous contacter » de
+  l'en-tête (desktop et menu mobile) ouvrent le préambule ; les CTA voyageurs des
+  landings locations (spec 046 AC-03-09, AC-03-13) ouvrent directement le formulaire
+  Voyageur, avec la liste des logements de la page. Les boutons « Nous contacter »
+  du contenu de la home restent des liens vers `/confier-mon-logement`.

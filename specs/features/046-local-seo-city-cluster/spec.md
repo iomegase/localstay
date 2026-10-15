@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-09-07
-updated_at: 2026-10-01
+updated_at: 2026-10-15
 depends_on:
   - 028-lodging-showcase-seo
   - 031-public-marketing-site
@@ -479,3 +479,34 @@ articles ou `/decouvrir` : ces landings restent reliées par le footer
 (AC-04-06). Cette décision remplace la proposition de liens discrets
 (« Où dormir à [ville] », lien de fin d'article vers une landing), qui n'est
 pas implémentée. Modèle et API inchangés.
+
+## Amendement approuvé — Landing locations orientée réservation (PO 2026-10-15)
+
+Validation explicite du Product Owner en conversation le 2026-10-15 (« ok sur le
+reste »). Constat PO : CTA absents ou inutiles, textes peu convaincants. Le hero et
+les sections éditoriales parlent de la commune et des engagements MyStay communs à
+tous les logements, jamais d'un logement particulier, car la page accueillera
+d'autres logements. Aucun changement d'API, de query, de modèle, de metadata ni de
+JSON-LD. Remplace les points contraires de AC-03-06, AC-03-07 et AC-03-08.
+
+- **AC-03-09** : le hero affiche, sous le texte, deux CTA : `Voir les logements`
+  (bouton principal, ancre `#logements`) et `Poser une question` (bouton secondaire
+  qui ouvre directement le formulaire Voyageur de la modale contact, spec 053
+  AC-02). Sans logement publié, seul `Poser une question` est affiché.
+- **AC-03-10** : la ligne de faits (AC-03-06) n'est affichée qu'à partir de
+  3 logements publiés ; en dessous, elle est masquée.
+- **AC-03-11** : chaque carte logement porte en pied un vrai bouton
+  `Voir les disponibilités` vers `/logements/[slug]`. La carte reste entièrement
+  cliquable vers la même fiche ; aucun CTA Airbnb sur la landing.
+- **AC-03-12** : dans la section sombre (2 colonnes « Sur place » / « Notre
+  fonctionnement »), le lien `Découvrir [City]` devient un bouton secondaire clair
+  (contour blanc), même destination.
+- **AC-03-13** : un bloc final sombre « Une question sur le logement ? » suit la FAQ,
+  avec un texte court et un bouton `Nous écrire` qui ouvre le formulaire Voyageur de
+  la modale contact. Il n'est pas rendu dans l'état vide.
+- **AC-03-14** : contenus éditoriaux de Saint-Gervais-les-Bains (données, via le
+  même circuit que l'éditeur admin et validés par `landingPageInputSchema`) :
+  `hero_title` (sous-titre commune), `hero_copy` (promesse MyStay), `local_copy`
+  (secteurs de la commune comme points de départ), `process_title` + 3 étapes
+  (réserver, recevoir le guide voyageur, une conciergerie sur place) et 3
+  highlights communs à tous les logements.

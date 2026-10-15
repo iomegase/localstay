@@ -51,7 +51,9 @@ describe('031 AC-01-08 — home corrections', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ouvrir le menu' }))
 
     const mobile = screen.getByRole('navigation', { name: 'Navigation mobile' })
-    expect(within(mobile).getByRole('link', { name: 'Nous contacter' })).toHaveAttribute('href', '/confier-mon-logement')
+    // Spec 053 AC-02-05 : le bouton ouvre la modale contact par profil.
+    fireEvent.click(within(mobile).getByRole('button', { name: 'Nous contacter' }))
+    expect(screen.getByRole('dialog', { name: 'Nous écrire' })).toHaveTextContent('Vous êtes…')
   })
 
   it('(2) leaves no button coded « Confier mon logement » in the public components', () => {

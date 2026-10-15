@@ -1,6 +1,7 @@
 import type { LocalMarketingNavigation } from './marketing-navigation'
 import Link from 'next/link'
 import { UserRound } from 'lucide-react'
+import { HelpContactDialog } from '@/features/contact-messages/components/HelpContactDialog'
 import { MyStayLogo } from '@/shared/components/brand/MyStayLogo'
 import { MarketingMobileMenu } from './MarketingMobileMenu'
 import { MarketingDesktopNav } from './MarketingDesktopNav'
@@ -47,12 +48,11 @@ export function MarketingHeader({ localNavigation }: { localNavigation?: LocalMa
           />
         </Link>
 
-        <Link
-          href="/confier-mon-logement"
+        {/* Préambule Voyageur / Propriétaire / Entreprise (spec 053 AC-02-05). */}
+        <HelpContactDialog
+          label="Nous contacter"
           className="hidden min-h-10 shrink-0 items-center rounded-full bg-slate-800 px-4 text-[12px] font-bold text-white transition-colors hover:bg-pink-600 lg:inline-flex xl:min-h-[38px] xl:px-[15px]"
-        >
-          Nous contacter
-        </Link>
+        />
 
         <MarketingMobileMenu localNavigation={localNavigation} />
       </div>

@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { publicLocalLanding } from '../fixtures/public-local-landing'
 import { LocalVacationRentalLanding } from '@/features/local-seo/components/LocalVacationRentalLanding'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
@@ -48,17 +48,19 @@ const apartment: MarketingLodgingCard = {
   external_booking_platform: null,
 }
 
-describe('046 AC-03-06 — hero facts line', () => {
-  it('derives the facts line from published lodgings only', () => {
-    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
+const third: MarketingLodgingCard = { ...apartment, id: 'profile-3', slug: 'studio-bettex', title: 'Studio du Bettex', max_guests: 2, href: '/logements/studio-bettex' }
 
-    expect(screen.getByTestId('vacation-facts')).toHaveTextContent('2 logements · de 4 à 6 voyageurs')
+describe('046 AC-03-06 / AC-03-10 — hero facts line', () => {
+  it('derives the facts line from published lodgings from 3 lodgings on', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment, third]} />)
+
+    expect(screen.getByTestId('vacation-facts')).toHaveTextContent('3 logements · de 2 à 6 voyageurs')
     expect(screen.queryByRole('navigation', { name: 'Sur cette page' })).not.toBeInTheDocument()
   })
 
-  it('uses a single capacity wording and singular for one lodging', () => {
-    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
-    expect(screen.getByTestId('vacation-facts')).toHaveTextContent('1 logement · jusqu’à 6 voyageurs')
+  it('hides the facts line below 3 lodgings', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
+    expect(screen.queryByTestId('vacation-facts')).not.toBeInTheDocument()
   })
 
   it('renders no facts line without lodging', () => {
@@ -68,7 +70,7 @@ describe('046 AC-03-06 — hero facts line', () => {
 })
 
 describe('046 AC-03-07 — dedicated local lodging card', () => {
-  it('renders eyebrow type, 2x2 stats grid and main link, without booking CTA or repeated city', () => {
+  it('renders eyebrow type, 2x2 stats grid, main link and availability CTA, without Airbnb CTA or repeated city', () => {
     render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
 
     const section = screen.getByRole('region', { name: /Notre accompagnement/ })
@@ -81,7 +83,9 @@ describe('046 AC-03-07 — dedicated local lodging card', () => {
     expect(within(chalet).getByText('Chalet')).toBeInTheDocument()
     expect(within(chalet).getByRole('link', { name: 'Découvrir Le Chalet Hygge' })).toHaveAttribute('href', '/logements/chalet-hygge')
     expect(within(chalet).queryByRole('link', { name: 'Voir sur Airbnb' })).not.toBeInTheDocument()
-    expect(within(chalet).getAllByRole('link')).toHaveLength(1)
+    // AC-03-11 : vrai bouton « Voir les disponibilités » vers la même fiche.
+    expect(within(chalet).getByRole('link', { name: 'Voir les disponibilités — Le Chalet Hygge' })).toHaveAttribute('href', '/logements/chalet-hygge')
+    expect(within(chalet).getAllByRole('link')).toHaveLength(2)
     const stat = (card: HTMLElement, label: string) =>
       within(card).getByText(label, { selector: 'dt' }).nextElementSibling
     expect(stat(chalet, 'Surface')).toHaveTextContent('110 m²')
@@ -119,6 +123,12 @@ describe('046 AC-03-08 — editorial sections', () => {
     expect(screen.queryByRole('link', { name: landing.page.cta_label })).not.toBeInTheDocument()
   })
 
+  it('AC-03-12: renders the city discovery link as a light outline button', () => {
+    const { container } = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
+    const destination = container.querySelector<HTMLElement>('#destination')!
+    expect(within(destination).getByRole('link', { name: 'Découvrir Saint-Gervais-les-Bains' })).toHaveClass('rounded-full', 'border-white/40')
+  })
+
   it('keeps the highlights spaced from the footer when there is no FAQ', () => {
     const highlights = (root: HTMLElement) => within(root).getByRole('heading', { name: 'Séjourner avec MyStay à Saint-Gervais-les-Bains' }).closest('section')!
     const withFaq = render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
@@ -131,9 +141,33 @@ describe('046 AC-03-08 — editorial sections', () => {
     expect(highlights(container)).toHaveClass('pb-16', 'sm:pb-24')
   })
 
-  it('keeps the empty state content and links', () => {
+  it('keeps the empty state content and links, without listing CTA or final question block', () => {
     render(<LocalVacationRentalLanding landing={landing} lodgings={[]} />)
     expect(screen.getByText(landing.page.empty_copy!)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Découvrir la région' })).toHaveAttribute('href', '/decouvrir')
+    expect(screen.queryByRole('link', { name: 'Voir les logements' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Poser une question' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Une question sur le logement ?' })).not.toBeInTheDocument()
+  })
+})
+
+describe('046 AC-03-09 / AC-03-13 — booking-oriented CTAs', () => {
+  it('AC-03-09: shows « Voir les logements » and « Poser une question » in the hero', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
+    expect(screen.getByRole('link', { name: 'Voir les logements' })).toHaveAttribute('href', '#logements')
+    fireEvent.click(screen.getByRole('button', { name: 'Poser une question' }))
+    const dialog = screen.getByRole('dialog', { name: 'Nous écrire' })
+    expect(within(dialog).getByRole('form', { name: 'Message voyageur' })).toBeInTheDocument()
+    const select = within(dialog).getByLabelText(/Logement concerné/)
+    expect(within(select).getAllByRole('option').map(option => option.textContent)).toEqual([
+      'Pas encore choisi', 'Le Chalet Hygge', 'Les Hauts de Saint-Gervais',
+    ])
+  })
+
+  it('AC-03-13: ends with « Une question sur le logement ? » opening the traveler form', () => {
+    render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging]} />)
+    const block = screen.getByRole('region', { name: 'Une question sur le logement ?' })
+    fireEvent.click(within(block).getByRole('button', { name: 'Nous écrire' }))
+    expect(screen.getByRole('form', { name: 'Message voyageur' })).toBeInTheDocument()
   })
 })
