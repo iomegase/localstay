@@ -256,3 +256,6 @@ caractères » (implémentation 2026-10-06, au lieu d'un nouveau code d'erreur).
   lignes : « [Catégorie] à » (style actuel) puis « [Commune] » en serif italique
   34 px, comme le slogan de la home. Texte accessible inchangé
   (« [Catégorie] à [Commune] »).
+- **AC-02-09** (PO 2026-10-15) : la phrase d'introduction « Découvrez les adresses
+  [catégorie] sélectionnées par MyStay à [Commune]. » sous le H1 des pages catégorie
+  est retirée (redondante avec le titre).

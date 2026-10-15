@@ -41,9 +41,6 @@ export function DiscoveryCategoryView({ category }: { category: DiscoveryCategor
               {category.city.name}
             </span>
           </h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-500">
-            Découvrez les adresses {category.name.toLocaleLowerCase('fr-FR')} sélectionnées par MyStay à {category.city.name}.
-          </p>
         </header>
 
         {isSplit ? (
