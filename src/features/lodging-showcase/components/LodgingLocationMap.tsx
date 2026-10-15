@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { addBuildings3d, LODGING_MAP_PITCH } from '../lib/map-3d'
 import { MapFullscreenButton, mapFrameClass, useMapFullscreen } from './MapFullscreen'
 import { mapsDirectionUrl } from '../lib/detail-view'
+import { LodgingSectionEyebrow } from './LodgingSectionEyebrow'
 
 export function LodgingLocationMap({
   latitude,
@@ -52,14 +53,19 @@ export function LodgingLocationMap({
     return () => cancelAnimationFrame(frame)
   }, [expanded])
 
+  // AC-02-15 : la carte suit la hauteur de son cadre (colonne étirée à côté du calendrier).
+  useEffect(() => {
+    const frame = containerRef.current
+    const map = mapRef.current
+    if (!frame || !map || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => map.resize())
+    observer.observe(frame)
+    return () => observer.disconnect()
+  }, [expanded])
+
   return (
     <section className="flex flex-col">
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
-        Les alentours
-      </span>
-      <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
-        Situer le logement.
-      </h2>
+      <LodgingSectionEyebrow>Les alentours</LodgingSectionEyebrow>
       <div data-testid="lodging-map-frame" className={mapFrameClass(expanded, 'relative h-[280px] w-full overflow-hidden rounded-[24px] shadow-sm md:h-auto md:min-h-[360px] md:flex-1')}>
         <MapFullscreenButton expanded={expanded} onToggle={toggle} />
         <div ref={containerRef} className="absolute inset-0 h-full w-full" />

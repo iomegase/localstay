@@ -1202,3 +1202,12 @@ Constat PO : « enlever cette catégorie idiote ».
   caractéristiques présentes (3 s'il en manque une), 4 au plus avec retour à la
   ligne au-delà, sans case vide. Séparateurs internes conservés ; mobile inchangé
   (2 colonnes).
+- **AC-02-15** (PO 2026-10-15) : sur la fiche logement, les grands titres
+  « Situer le logement. », « Disponibilités. » et « Questions fréquentes. » sont
+  retirés. Chaque section porte un eyebrow identique à celui des cases
+  « Équipements » (trait rose 48 × 3 px puis libellé rose en capitales, rendu en
+  `h2`) : « Les alentours » (carte précise ou zone), « Disponibilités »
+  (calendrier, flèches de navigation dans la carte de part et d'autre du mois),
+  « Questions fréquentes » (remplace « Bon à savoir »). La carte Mapbox se
+  redimensionne avec son cadre (plus de bande blanche dans la colonne étirée).
+  Pastille des icônes d'équipement en `bg-slate-100` (au lieu du rose pâle).

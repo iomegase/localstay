@@ -6,7 +6,7 @@ function FeatureItem({ item }: { item: string }) {
 
   return (
     <li className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-white px-3 py-3 text-[13px] leading-snug text-slate-700 shadow-md sm:gap-3 sm:px-4">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pink-50">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
         <Icon aria-hidden="true" className="h-4 w-4 text-slate-800" strokeWidth={1.8} />
       </span>
       <span className="min-w-0 break-words">{item}</span>

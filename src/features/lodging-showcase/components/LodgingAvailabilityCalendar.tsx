@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { addMonths, AVAILABILITY_HORIZON_MONTHS, isBusyNight, monthGrid, type BusyRange } from '../lib/availability'
+import { LodgingSectionEyebrow } from './LodgingSectionEyebrow'
 
 const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 const monthLabel = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -64,33 +65,27 @@ export function LodgingAvailabilityCalendar({ today, busy }: { today: string; bu
 
   return (
     <section data-testid="lodging-availability" className="flex flex-col">
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">Bon à savoir</span>
-      <div className="mb-7 mt-2 flex items-end justify-between gap-4">
-        <h2 className="text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
-          Disponibilités.
-        </h2>
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            aria-label="Mois précédent"
-            disabled={offset === 0}
-            onClick={() => setOffset(value => Math.max(0, value - 1))}
-            className="flex size-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition disabled:opacity-30 disabled:shadow-none"
-          >
-            <ChevronLeft className="size-5" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            aria-label="Mois suivant"
-            disabled={offset >= last}
-            onClick={() => setOffset(value => Math.min(last, value + 1))}
-            className="flex size-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition disabled:opacity-30 disabled:shadow-none"
-          >
-            <ChevronRight className="size-5" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-      <div className="flex-1 rounded-[24px] bg-white p-5 shadow-md sm:p-7">
+      <LodgingSectionEyebrow>Disponibilités</LodgingSectionEyebrow>
+      <div className="relative flex-1 rounded-[24px] bg-white p-5 shadow-md sm:p-7">
+        {/* AC-02-15 : navigation dans la carte, de part et d’autre du mois. */}
+        <button
+          type="button"
+          aria-label="Mois précédent"
+          disabled={offset === 0}
+          onClick={() => setOffset(value => Math.max(0, value - 1))}
+          className="absolute top-3 left-3 sm:top-5 sm:left-5 flex size-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition disabled:opacity-30 disabled:shadow-none"
+        >
+          <ChevronLeft className="size-5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Mois suivant"
+          disabled={offset >= last}
+          onClick={() => setOffset(value => Math.min(last, value + 1))}
+          className="absolute top-3 right-3 sm:top-5 sm:right-5 flex size-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition disabled:opacity-30 disabled:shadow-none"
+        >
+          <ChevronRight className="size-5" aria-hidden="true" />
+        </button>
         <Month firstOfMonth={month} today={today} busy={busy} />
         {/* <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 pt-5 text-[12px] text-slate-500">
           <span className="flex items-center gap-2"><span className="font-semibold text-slate-800">12</span> Disponible</span>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { LodgingSectionEyebrow } from './LodgingSectionEyebrow'
 
 type FaqItem = { id: string; question: string; answer: string }
 
@@ -52,12 +53,7 @@ export function LodgingFaq({ items }: { items: FaqItem[] }) {
 
   return (
     <section>
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">
-        Bon à savoir
-      </span>
-      <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
-        Questions fréquentes.
-      </h2>
+      <LodgingSectionEyebrow>Questions fréquentes</LodgingSectionEyebrow>
       <div className="grid gap-3 md:grid-cols-2 md:items-start">
         {columns.map((column, index) => (
           <FaqColumn key={index} items={column} openId={openId} onToggle={id => setOpenId(current => (current === id ? null : id))} />
