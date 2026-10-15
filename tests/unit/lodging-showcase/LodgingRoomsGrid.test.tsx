@@ -9,13 +9,13 @@ const photos = [
 
 describe('LodgingRoomsGrid', () => {
   it('renders room-typed photos with their label', () => {
-    render(<LodgingRoomsGrid photos={photos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
     expect(screen.getByAltText('Chambre')).toBeInTheDocument()
     expect(screen.getByText('Chambre')).toBeInTheDocument()
   })
 
   it('renders nothing when no photo has a room type', () => {
-    const { container } = render(<LodgingRoomsGrid photos={[photos[1]]} />)
+    const { container } = render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={[photos[1]]} />)
     expect(container).toBeEmptyDOMElement()
   })
 

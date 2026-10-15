@@ -52,13 +52,13 @@ describe('079 AC-03-05 — texte alternatif appliqué aux photos existantes', ()
   it('« <pièce> — <texte> », 160 caractères max, texte vide sans effet', () => {
     const { applyAltToPhotos } = jest.requireActual<typeof import('@/features/lodging-showcase/lib/showcase-form')>('@/features/lodging-showcase/lib/showcase-form')
     const photos = [
-      { id: 'a', alt: 'Pièce de vie — Le 305', room_type: 'common_area', room_label: null },
+      { id: 'a', alt: 'Salon — Le 305', room_type: 'common_area', room_label: null },
       { id: 'b', alt: 'x', room_type: 'bedroom', room_label: 'Chambre 1' },
       { id: 'c', alt: 'y', room_type: null, room_label: null },
     ]
-    const labels = { common_area: 'Pièce de vie', bedroom: 'Chambre' }
+    const labels = { common_area: 'Salon', bedroom: 'Chambre' }
     expect(applyAltToPhotos(photos, ' le 305 - saint gervais les bains ', labels).map(photo => photo.alt)).toEqual([
-      'Pièce de vie — le 305 - saint gervais les bains',
+      'Salon — le 305 - saint gervais les bains',
       'Chambre 1 — le 305 - saint gervais les bains',
       'le 305 - saint gervais les bains',
     ])

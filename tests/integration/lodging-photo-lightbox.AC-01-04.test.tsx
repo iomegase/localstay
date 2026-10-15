@@ -25,7 +25,8 @@ describe('spec 091 — lightbox des photos du logement', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Agrandir la photo : Photo 3' }))
     expect(counter()).toHaveTextContent('3 / 7')
-    expect(caption()).toHaveTextContent('Photo 3')
+    // AC-01-05 : la légende affiche le nom du logement seul, jamais la pièce.
+    expect(caption()).toHaveTextContent(/^Chalet Hygge$/)
     expect(within(dialog()).getAllByRole('img')).toHaveLength(7)
   })
 
@@ -39,7 +40,8 @@ describe('spec 091 — lightbox des photos du logement', () => {
     fireEvent.keyDown(window, { key: 'ArrowRight' })
     expect(counter()).toHaveTextContent('3 / 7')
     fireEvent.keyDown(window, { key: 'ArrowLeft' })
-    expect(caption()).toHaveTextContent('Photo 2')
+    expect(counter()).toHaveTextContent('2 / 7')
+    expect(caption()).toHaveTextContent(/^Chalet Hygge$/)
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -74,12 +76,14 @@ describe('spec 091 — lightbox des photos du logement', () => {
       { id: 'k2', url: 'https://cdn.test/k2.jpg', alt: 'Îlot de cuisine', room_type: 'kitchen', sort_order: 1, is_cover: false },
       { id: 'b1', url: 'https://cdn.test/b1.jpg', alt: 'Salle de bain', room_type: 'bathroom', sort_order: 2, is_cover: false },
     ]
-    render(<LodgingRoomsGrid photos={roomPhotos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={roomPhotos} />)
     fireEvent.click(screen.getByRole('button', { name: 'Agrandir la photo : Îlot de cuisine' }))
 
     const box = screen.getByRole('dialog')
     expect(box).toHaveAccessibleName(/^Photos de /)
     expect(within(box).getByTestId('lightbox-counter')).toHaveTextContent('2 / 2')
     expect(within(box).getAllByRole('img').map(img => img.getAttribute('alt'))).toEqual(['Cuisine équipée', 'Îlot de cuisine'])
+    // AC-01-05 : depuis la grille des pièces aussi, légende = nom du logement.
+    expect(within(box).getByTestId('lightbox-caption')).toHaveTextContent(/^Chalet Hygge$/)
   })
 })

@@ -204,7 +204,7 @@ export default async function LodgingDetailPage({ params }: Props) {
             </aside>
           </section>
 
-          <LodgingRoomsGrid photos={detail.photos} />
+          <LodgingRoomsGrid photos={detail.photos} lodgingTitle={detail.title} />
 
           <LodgingFeatureSections
             includedAmenities={detail.amenities_included}

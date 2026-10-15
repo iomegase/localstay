@@ -175,7 +175,7 @@ export function LodgingShowcaseForm(props: {
   const [uploadErrors, setUploadErrors] = useState<string[]>([])
   const [fileInputKey, setFileInputKey] = useState(0)
   const [photoAlt, setPhotoAlt] = useState('')
-  const [photoCategory, setPhotoCategory] = useState('common_area')
+  const [photoCategory, setPhotoCategory] = useState('common_area::Salon')
   const [photoActionId, setPhotoActionId] = useState<string | null>(null)
   // Spec 082 US-02 : ajout de questions depuis la bibliothèque.
   const [libraryOpen, setLibraryOpen] = useState(false)

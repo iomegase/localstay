@@ -15,11 +15,14 @@ export function LodgingPhotoLightbox({
   photos,
   startIndex,
   title,
+  caption,
   onClose,
 }: {
   photos: LightboxPhoto[]
   startIndex: number
   title: string
+  /** Légende sous la photo : le nom du logement seul (spec 091 AC-01-05). */
+  caption: string
   onClose: () => void
 }) {
   const [index, setIndex] = useState(startIndex)
@@ -144,7 +147,7 @@ export function LodgingPhotoLightbox({
       </div>
 
       <p data-testid="lightbox-caption" className="min-h-[52px] px-6 py-4 text-center text-[13px] text-white/70">
-        {current?.alt}
+        {caption}
       </p>
     </div>,
     document.body,

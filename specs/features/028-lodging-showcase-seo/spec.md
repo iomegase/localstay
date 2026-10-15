@@ -1182,3 +1182,15 @@ Décision du 2026-09-29 : demande d’import multiple et modification des catég
   leurs cases sur 2 colonnes. Si l'un des blocs est vide, l'autre garde toute la
   largeur (cases sur 3 colonnes dès `lg`). Mode compact (modale démo) inchangé.
   Remplace la « ligne pleine largeur » de AC-02-10 dès `lg`.
+
+## Amendement approuvé — Suppression de la catégorie « Pièce de vie » (PO 2026-10-15)
+
+Constat PO : « enlever cette catégorie idiote ».
+- **AC-02-12** : le sélecteur de catégorie des photos (admin et propriétaire) ne
+  propose plus l'option générique « Pièce de vie » ; les pièces communes se
+  choisissent par leur nom (« Salon » par défaut, Salle à manger, Entrée…). Le type
+  technique `common_area` est conservé (complétude, regroupements). Libellé de repli
+  d'une photo `common_area` sans nom : « Salon ». Données : les photos
+  `common_area` sans nom reçoivent `room_label = "Salon"` ; les textes alternatifs
+  préfixés « Pièce de vie — » sont recalculés depuis la pièce réelle de chaque
+  photo (« Cuisine — … », « Chambre — … », etc.). Aucune migration de schéma.

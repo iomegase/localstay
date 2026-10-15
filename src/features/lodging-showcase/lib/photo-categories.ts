@@ -26,7 +26,8 @@ export function buildPhotoCategoryOptions(bedroomCount: number | null, bathroomC
     options.push({ value: 'bathroom', label: 'Salle de bains', roomType: 'bathroom', roomLabel: null })
   }
 
-  for (const roomType of ['common_area', 'exterior', 'kitchen', 'other'] as const) {
+  // Pas d'option générique « Pièce de vie » : les pièces communes sont nommées (spec 028 AC-02-12).
+  for (const roomType of ['exterior', 'kitchen', 'other'] as const) {
     options.push({ value: roomType, label: ROOM_TYPE_LABELS[roomType], roomType, roomLabel: null })
   }
 

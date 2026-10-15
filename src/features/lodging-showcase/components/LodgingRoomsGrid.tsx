@@ -16,7 +16,15 @@ type Photo = {
   is_cover: boolean
 }
 
-export function LodgingRoomsGrid({ photos, compact = false }: { photos: Photo[]; compact?: boolean }) {
+export function LodgingRoomsGrid({
+  photos,
+  lodgingTitle,
+  compact = false,
+}: {
+  photos: Photo[]
+  lodgingTitle: string
+  compact?: boolean
+}) {
   const [filter, setFilter] = useState<RoomCategoryId | 'all'>('all')
   const groups = categorizeRoomGroups(photos)
   if (groups.length === 0) return null
@@ -67,7 +75,7 @@ export function LodgingRoomsGrid({ photos, compact = false }: { photos: Photo[];
       )}
       <div className={compact ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
         {visible.map(group => (
-          <RoomGroupCard key={group.label} group={group} compact={compact} />
+          <RoomGroupCard key={group.label} group={group} compact={compact} lodgingTitle={lodgingTitle} />
         ))}
       </div>
     </section>
@@ -83,7 +91,7 @@ function dotWindow(total: number, active: number): number[] {
   return Array.from({ length: size }, (_, i) => start + i)
 }
 
-function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boolean }) {
+function RoomGroupCard({ group, compact, lodgingTitle }: { group: RoomPhotoGroup; compact: boolean; lodgingTitle: string }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
@@ -161,7 +169,7 @@ function RoomGroupCard({ group, compact }: { group: RoomPhotoGroup; compact: boo
       )}
 
       {openIndex !== null && (
-        <LodgingPhotoLightbox photos={group.photos} startIndex={openIndex} title={group.label} onClose={() => setOpenIndex(null)} />
+        <LodgingPhotoLightbox photos={group.photos} startIndex={openIndex} title={group.label} caption={lodgingTitle} onClose={() => setOpenIndex(null)} />
       )}
     </div>
   )

@@ -36,7 +36,7 @@ const cardLabels = () =>
 
 describe('028 AC-02-11 — rooms grid category pills', () => {
   it('shows discreet pills Tout · Salon · Cuisine · Chambres · SdBs · Bien-être · Loisirs · Entrée · Extérieur, Tout active by default', () => {
-    render(<LodgingRoomsGrid photos={photos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     const menu = screen.getByRole('group', { name: 'Filtrer les photos par pièce' })
     const pills = within(menu).getAllByRole('button')
@@ -48,7 +48,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
   })
 
   it('orders every card by category under Tout, keeping photo order inside a category', () => {
-    render(<LodgingRoomsGrid photos={photos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     expect(cardLabels()).toEqual([
       'Salon', 'Salle à manger',
@@ -63,7 +63,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
   })
 
   it('filters the cards when a pill is selected', () => {
-    render(<LodgingRoomsGrid photos={photos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Chambres' }))
     expect(screen.getByRole('button', { name: 'Chambres' })).toHaveAttribute('aria-pressed', 'true')
@@ -84,16 +84,16 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
   })
 
   it('only offers pills for categories that have photos, and none with a single category', () => {
-    const { unmount } = render(<LodgingRoomsGrid photos={photos.filter(p => p.room_type !== 'kitchen')} />)
+    const { unmount } = render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos.filter(p => p.room_type !== 'kitchen')} />)
     expect(screen.queryByRole('button', { name: 'Cuisine' })).not.toBeInTheDocument()
     unmount()
 
-    render(<LodgingRoomsGrid photos={photos.filter(p => p.room_type === 'bedroom')} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos.filter(p => p.room_type === 'bedroom')} />)
     expect(screen.queryByRole('group', { name: 'Filtrer les photos par pièce' })).not.toBeInTheDocument()
   })
 
   it('puts the room name top-right and the dots with the photo count bottom-right, in a dark pill', () => {
-    render(<LodgingRoomsGrid photos={photos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     const salon = screen.getAllByTestId('lodging-room-card')[0]
     expect(within(salon).getByTestId('lodging-room-label')).toHaveClass('top-2', 'right-2')
@@ -105,7 +105,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
 
   it('shows at most 5 dots, sliding with the active photo', () => {
     const many = Array.from({ length: 10 }, (_, i) => photo(`s${i}`, 'common_area', 'Salon', i))
-    render(<LodgingRoomsGrid photos={many} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={many} />)
 
     const dots = screen.getByTestId('lodging-room-dots')
     expect(within(dots).getAllByRole('button')).toHaveLength(5)
@@ -114,7 +114,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
   })
 
   it('removes the dark overlay and shows the room name in a small white pill', () => {
-    render(<LodgingRoomsGrid photos={photos} />)
+    render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     const card = screen.getAllByTestId('lodging-room-card')[0]
     expect(card.querySelector('[class*="bg-gradient-to-t"]')).toBeNull()

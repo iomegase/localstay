@@ -69,7 +69,7 @@ export function showcaseDraftSnapshot(input: {
 
 /**
  * Spec 079 AC-03-05 : applique un texte alternatif commun aux photos existantes, préfixé par la
- * pièce (« Pièce de vie — … ») pour garder des descriptions distinctes. 160 caractères maximum.
+ * pièce (« Salon — … ») pour garder des descriptions distinctes. 160 caractères maximum.
  */
 export function applyAltToPhotos<T extends { alt: string; room_type: string | null; room_label: string | null }>(
   photos: T[],

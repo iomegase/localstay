@@ -46,6 +46,7 @@ describe('C-13 — optimisation des images publiques', () => {
     expect(read('src/features/lodging-showcase/components/LodgingRoomsGrid.tsx')).not.toContain('<img')
     render(
       <LodgingRoomsGrid
+        lodgingTitle="Chalet Hygge"
         photos={[
           { id: 'p1', url: 'https://example.supabase.co/a.avif', alt: 'Salon lumineux', room_type: 'living_room', room_label: null, sort_order: 1, is_cover: false },
           { id: 'p2', url: 'https://example.supabase.co/b.avif', alt: 'Cuisine équipée', room_type: 'kitchen', room_label: null, sort_order: 2, is_cover: false },

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-07
-updated_at: 2026-10-07
+updated_at: 2026-10-15
 depends_on:
   - 028-lodging-showcase-seo
 bounded_context: lodging-showcase
@@ -57,3 +57,10 @@ Zoom par pincement dédié, partage, téléchargement, diaporama automatique.
 ## Open Questions
 
 Aucune.
+
+## Amendement approuvé — Légende = nom du logement (PO 2026-10-15)
+
+- **AC-01-05** : la légende sous la photo affiche uniquement le nom du logement
+  (titre public), que la lightbox soit ouverte depuis la galerie ou depuis la
+  grille des pièces ; elle n'affiche plus le texte alternatif (ex. « Pièce de vie —
+  Le 305 »). Le texte alternatif reste sur l'image pour l'accessibilité.

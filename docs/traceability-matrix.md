@@ -2088,3 +2088,16 @@ Note 054 AC-02-03 (amendement PO 2026-10-06) : code de boîte à clés toujours 
 
 Ajustements techniques documentés dans la spec : attribution locale par `LocalLandingDestination`, pas de chemin de stockage persisté, recherche de prestataires, champ `url` dans la réponse d'image (composant `ImageUpload`).
 
+
+
+## 091 — Lightbox : légende = nom du logement (PO 2026-10-15)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-05 | Légende de la lightbox = nom du logement seul (galerie et grille des pièces) | `src/features/lodging-showcase/components/LodgingPhotoLightbox.tsx`<br>`src/features/lodging-showcase/components/LodgingMarketingGallery.tsx`<br>`src/features/lodging-showcase/components/LodgingRoomsGrid.tsx`<br>`src/app/(public)/logements/[lodging-slug]/page.tsx` | `tests/integration/lodging-photo-lightbox.AC-01-04.test.tsx` | ✅ done |
+
+## 028 — Catégorie « Pièce de vie » supprimée (PO 2026-10-15)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-02-12 | Plus d'option « Pièce de vie » ; repli `common_area` = « Salon » ; données : 9 photos → `Salon`, 21 textes alternatifs recalculés depuis la pièce réelle | `src/features/lodging-showcase/lib/photo-categories.ts`<br>`src/features/lodging-showcase/lib/detail-view.ts`<br>`src/features/lodging-showcase/components/LodgingShowcaseForm.tsx` | `tests/unit/lodging-showcase/photo-categories.test.ts`<br>`tests/unit/lodging-showcase/detail-view.test.ts`<br>`tests/integration/owner-lodging-page-ui.AC-02-03.form.test.tsx` | ✅ done |

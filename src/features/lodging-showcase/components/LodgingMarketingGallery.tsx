@@ -93,7 +93,7 @@ export function LodgingMarketingGallery({
       )}
     </section>
     {openIndex !== null && (
-      <LodgingPhotoLightbox photos={photos} startIndex={openIndex} title={title} onClose={() => setOpenIndex(null)} />
+      <LodgingPhotoLightbox photos={photos} startIndex={openIndex} title={title} caption={title} onClose={() => setOpenIndex(null)} />
     )}
     </>
   )

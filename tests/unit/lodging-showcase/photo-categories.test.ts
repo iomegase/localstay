@@ -29,12 +29,14 @@ describe('buildPhotoCategoryOptions', () => {
     expect(baths[0]).toMatchObject({ value: 'bathroom', roomLabel: null })
   })
 
-  it('always includes the fixed generic categories', () => {
+  it('always includes the fixed generic categories, without « Pièce de vie » (028 AC-02-12)', () => {
     const opts = buildPhotoCategoryOptions(0, 0)
     expect(opts.map(o => o.roomType)).toEqual(
       expect.arrayContaining(['bedroom', 'bathroom', 'common_area', 'exterior', 'kitchen', 'other']),
     )
-    expect(opts.find(o => o.roomType === 'common_area')).toMatchObject({ value: 'common_area', label: 'Pièce de vie', roomLabel: null })
+    expect(opts.find(o => o.value === 'common_area')).toBeUndefined()
+    expect(opts.map(o => o.label)).not.toContain('Pièce de vie')
+    expect(opts.find(o => o.value === 'common_area::Salon')).toMatchObject({ label: 'Salon', roomType: 'common_area', roomLabel: 'Salon' })
   })
 
   it('handles null counts as zero', () => {

@@ -13,7 +13,8 @@ type Photo = {
 export const ROOM_TYPE_LABELS: Record<string, string> = {
   bedroom: 'Chambre',
   bathroom: 'Salle de bain',
-  common_area: 'Pièce de vie',
+  // « Pièce de vie » retiré par le PO (2026-10-15) : repli « Salon » (spec 028 AC-02-12).
+  common_area: 'Salon',
   exterior: 'Extérieur',
   kitchen: 'Cuisine',
   other: 'Autre',
