@@ -35,7 +35,11 @@ export function DiscoveryCategoryView({ category }: { category: DiscoveryCategor
         <header className={`${marketingContainerClass} pb-10 pt-12 sm:pb-12`}>
           <MarketingEyebrow>Les adresses MyStay</MarketingEyebrow>
           <h1 className="max-w-4xl text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-900 sm:text-6xl">
-            {category.name} à {category.city.name}
+            {/* Spec 065 AC-02-08 : deux lignes, la commune en serif italique 34 px (comme la home). */}
+            <span className="block">{category.name} à</span>{' '}
+            <span data-testid="category-title-city" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+              {category.city.name}
+            </span>
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-7 text-slate-500">
             Découvrez les adresses {category.name.toLocaleLowerCase('fr-FR')} sélectionnées par MyStay à {category.city.name}.

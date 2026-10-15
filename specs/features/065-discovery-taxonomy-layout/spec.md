@@ -252,3 +252,7 @@ caractères » (implémentation 2026-10-06, au lieu d'un nouveau code d'erreur).
   et n'a plus de bordure haut ni bas. Le nombre de lieux de chaque pastille est en
   `pink-600` ; au survol, la pastille passe en fond `pink-600`, libellé et nombre
   en blanc.
+- **AC-02-08** (PO 2026-10-15) : sur chaque page catégorie, le H1 tient sur deux
+  lignes : « [Catégorie] à » (style actuel) puis « [Commune] » en serif italique
+  34 px, comme le slogan de la home. Texte accessible inchangé
+  (« [Catégorie] à [Commune] »).

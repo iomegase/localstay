@@ -2120,3 +2120,4 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-02-07 | Menu des sous-catégories à la largeur du contenu, sans bordure ; nombre de lieux en pink-600, pastille pink-600 / texte blanc au survol | `src/features/public-discovery/components/DiscoveryCategoryView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
+| AC-02-08 | H1 des pages catégorie sur deux lignes, commune en serif italique 34 px — PO 2026-10-15 | `src/features/public-discovery/components/DiscoveryCategoryView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |

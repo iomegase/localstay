@@ -90,6 +90,10 @@ describe('065 US-02 — page catégorie découpée par sous-catégorie', () => {
       ['Autres adresses1', '#autres-adresses'],
     ])
     expect(menu.className).toContain('sticky')
+    // AC-02-08 : H1 sur deux lignes, commune en serif italique 34 px, texte accessible inchangé.
+    const h1 = screen.getByRole('heading', { level: 1 })
+    expect(h1.textContent!.replace(/\s+/g, ' ').trim()).toMatch(/ à .+$/)
+    expect(within(h1).getByTestId('category-title-city')).toHaveClass('block', 'font-serif', 'italic', 'text-[34px]')
     // AC-02-07 : largeur du contenu, sans bordure, défilement horizontal dans la liste.
     expect(menu.className).toContain('max-w-')
     expect(menu.className).not.toContain('w-max')
