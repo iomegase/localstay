@@ -18,4 +18,11 @@ describe('031-public-marketing-site global lodgings page', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Des lieux suivis avec attention.' })).toBeInTheDocument()
     expect(screen.getByText(/Aucun logement public n’est encore disponible/i)).toBeInTheDocument()
   })
+
+  it('AC-01-16: puts « avec attention. » on its own serif italic 34px line', async () => {
+    render(await LodgingsPage())
+    const serif = screen.getByRole('heading', { level: 1 }).querySelector('.font-serif')
+    expect(serif).toHaveTextContent('avec attention.')
+    expect(serif).toHaveClass('block', 'italic', 'text-[34px]')
+  })
 })

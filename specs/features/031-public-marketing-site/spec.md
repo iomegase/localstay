@@ -750,3 +750,6 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   Texte, ordre et reste du hero inchangés.
 - **AC-01-15** (PO 2026-10-15) : sur `/seminaires`, la partie serif italique du H1
   « face au Mont-Blanc. » est en 34 px à toutes les largeurs, comme le slogan de la home.
+- **AC-01-16** (PO 2026-10-15) : sur `/logements`, le H1 tient sur deux lignes :
+  « Des lieux suivis » puis « avec attention. » en serif italique 34 px, comme la
+  home. Texte accessible inchangé.
