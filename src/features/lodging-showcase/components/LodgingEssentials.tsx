@@ -25,6 +25,13 @@ function hasAmenity(amenities: string[], keywords: string[]) {
   })
 }
 
+const DESKTOP_COLUMNS: Record<number, string> = {
+  1: 'md:grid-cols-1',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'md:grid-cols-4',
+}
+
 export function LodgingEssentials({
   title,
   maxGuests,
@@ -62,6 +69,8 @@ export function LodgingEssentials({
   ]
 
   const visibleEssentials = essentials.filter((item): item is Essential => item !== null)
+  // Spec 028 AC-02-14 : autant de colonnes que de caractéristiques (4 au plus), sans case vide.
+  const desktopColumns = DESKTOP_COLUMNS[Math.min(visibleEssentials.length, 4)] ?? 'md:grid-cols-4'
 
   return (
     <section
@@ -83,8 +92,8 @@ export function LodgingEssentials({
         <dl
           aria-label={`Caractéristiques principales de ${title}`}
           className={compact
-            ? 'grid grid-cols-2 overflow-hidden rounded-[20px] border border-slate-200/70 bg-white'
-            : 'grid grid-cols-2 overflow-hidden rounded-[20px] border border-slate-200/70 bg-white md:grid-cols-5 md:divide-x md:divide-slate-100'}
+            ? 'grid grid-cols-2 overflow-hidden rounded-[20px] bg-white shadow-md'
+            : `grid grid-cols-2 overflow-hidden rounded-[20px] bg-white shadow-md ${desktopColumns} md:divide-x md:divide-slate-100`}
         >
           {visibleEssentials.map(({ label, value, icon: Icon }) => (
             <div

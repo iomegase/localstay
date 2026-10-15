@@ -1196,3 +1196,9 @@ Constat PO : « enlever cette catégorie idiote ».
   photo (« Cuisine — … », « Chambre — … », etc.). Aucune migration de schéma.
 - **AC-02-13** (PO 2026-10-15) : sur la fiche logement, les icônes des cases
   « Équipements » et « Services sur demande » sont en `slate-800` (au lieu du rose).
+- **AC-02-14** (PO 2026-10-15) : le bandeau des caractéristiques (Surface,
+  Voyageurs, Chambres, Salles de bain…) n'a plus de bordure extérieure mais une
+  ombre `shadow-md` ; dès `md`, il compte autant de colonnes que de
+  caractéristiques présentes (3 s'il en manque une), 4 au plus avec retour à la
+  ligne au-delà, sans case vide. Séparateurs internes conservés ; mobile inchangé
+  (2 colonnes).
