@@ -243,10 +243,10 @@ describe('041 public discovery pages', () => {
     expect(join).toHaveAttribute('href', '/confier-mon-logement')
     expect(join).toHaveClass('bg-pink-600')
     expect(join).not.toHaveClass('bg-white')
-    // Zoom rapproché (niveau rue) pour que le marqueur ne soit pas perdu (Product Owner, 2026-10-02).
+    // Zoom rapproché (PO 2026-10-02), porté à 19 (spec 041 AC-05-10, PO 2026-10-15).
     expect(screen.getByTestId('mini-map')).toHaveAttribute(
       'src',
-      expect.stringContaining(`/${poi.longitude},${poi.latitude},17/`),
+      expect.stringContaining(`/${poi.longitude},${poi.latitude},19/`),
     )
     // PO 2026-10-08 : carte dans la colonne d'infos, sous les horaires.
     const map = screen.getByRole('region', { name: 'Localiser cette adresse' })
