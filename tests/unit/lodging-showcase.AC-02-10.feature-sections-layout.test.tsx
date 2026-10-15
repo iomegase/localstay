@@ -25,10 +25,31 @@ describe('028 AC-02-10 — Équipements and Services sur demande layout', () => 
       expect(article).not.toHaveClass('md:min-h-[320px]')
       expect(article).toHaveClass('bg-white')
       expect(article).not.toHaveClass('bg-[#f8f7f5]')
-      expect(within(article).getByRole('list')).toHaveClass('grid', 'grid-cols-2', 'lg:grid-cols-3')
+      expect(within(article).getByRole('list')).toHaveClass('grid', 'grid-cols-2')
       for (const item of within(article).getAllByRole('listitem')) expect(item).toHaveClass('bg-white', 'shadow-md')
     }
     expect(within(articles[0]).getAllByRole('listitem')).toHaveLength(5)
+  })
+
+  it('AC-02-11: splits 4 columns from lg, 3 for amenities and 1 for on-request services', () => {
+    render(<LodgingFeatureSections includedAmenities={included} onRequestAmenities={onRequest} />)
+    const { section, articles } = cards()
+
+    expect(section).toHaveClass('lg:grid-cols-4')
+    expect(articles[0]).toHaveClass('lg:col-span-3')
+    expect(within(articles[0]).getByRole('list')).toHaveClass('grid-cols-2', 'lg:grid-cols-3')
+    expect(articles[1]).not.toHaveClass('lg:col-span-3')
+    expect(within(articles[1]).getByRole('list')).toHaveClass('grid-cols-2', 'lg:grid-cols-1')
+  })
+
+  it('AC-02-11: keeps a full-width block when the other one is empty', () => {
+    render(<LodgingFeatureSections includedAmenities={included} onRequestAmenities={[]} />)
+    const { section, articles } = cards()
+
+    expect(section).not.toHaveClass('lg:grid-cols-4')
+    expect(articles).toHaveLength(1)
+    expect(articles[0]).not.toHaveClass('lg:col-span-3')
+    expect(within(articles[0]).getByRole('list')).toHaveClass('grid-cols-2', 'lg:grid-cols-3')
   })
 
   it('keeps a single column in compact (demo modal) mode', () => {

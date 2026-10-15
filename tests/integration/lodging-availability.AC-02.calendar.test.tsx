@@ -30,13 +30,20 @@ describe('spec 089 AC-02 — calendrier des disponibilités', () => {
     const previous = screen.getByRole('button', { name: 'Mois précédent' })
     const next = screen.getByRole('button', { name: 'Mois suivant' })
     expect(previous).toBeDisabled()
-    expect(screen.getAllByTestId('availability-month').map(month => month.querySelector('h3')?.textContent)).toEqual(['octobre 2026', 'novembre 2026'])
+    expect(screen.getAllByTestId('availability-month').map(month => month.querySelector('h3')?.textContent)).toEqual(['octobre 2026'])
 
     for (let click = 0; click < 11; click += 1) fireEvent.click(next)
     expect(next).toBeDisabled()
     expect(screen.getAllByTestId('availability-month').map(month => month.querySelector('h3')?.textContent)).toEqual(['septembre 2027'])
     fireEvent.click(previous)
     expect(screen.getAllByTestId('availability-month')[0]!.querySelector('h3')).toHaveTextContent('août 2027')
+  })
+
+  it('AC-02-04 : un seul mois affiché, quelle que soit la largeur', () => {
+    render(<LodgingAvailabilityCalendar today="2026-10-07" busy={busy} />)
+    expect(screen.getAllByTestId('availability-month')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Mois suivant' }))
+    expect(screen.getAllByTestId('availability-month').map(month => month.querySelector('h3')?.textContent)).toEqual(['novembre 2026'])
   })
 
   it('AC-02-03 : sans lien iCal, la section n’est pas rendue', async () => {

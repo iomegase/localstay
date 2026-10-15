@@ -56,15 +56,14 @@ function Month({ firstOfMonth, today, busy }: { firstOfMonth: string; today: str
   )
 }
 
-/** Spec 089 AC-02 : 12 mois à partir du mois courant, 1 mois sur mobile, 2 dès md. */
+/** Spec 089 AC-02 : 12 mois à partir du mois courant, un mois à la fois (AC-02-04, à côté de la carte). */
 export function LodgingAvailabilityCalendar({ today, busy }: { today: string; busy: BusyRange[] }) {
   const [offset, setOffset] = useState(0)
   const last = AVAILABILITY_HORIZON_MONTHS - 1
-  const first = addMonths(today, offset)
-  const second = offset < last ? addMonths(today, offset + 1) : null
+  const month = addMonths(today, offset)
 
   return (
-    <section data-testid="lodging-availability">
+    <section data-testid="lodging-availability" className="flex flex-col">
       <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">Bon à savoir</span>
       <div className="mb-7 mt-2 flex items-end justify-between gap-4">
         <h2 className="text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
@@ -91,15 +90,8 @@ export function LodgingAvailabilityCalendar({ today, busy }: { today: string; bu
           </button>
         </div>
       </div>
-      <div className="rounded-[24px] bg-white p-5 shadow-md sm:p-7">
-        <div className="grid gap-10 md:grid-cols-2">
-          <Month firstOfMonth={first} today={today} busy={busy} />
-          {second && (
-            <div className="hidden md:block">
-              <Month firstOfMonth={second} today={today} busy={busy} />
-            </div>
-          )}
-        </div>
+      <div className="flex-1 rounded-[24px] bg-white p-5 shadow-md sm:p-7">
+        <Month firstOfMonth={month} today={today} busy={busy} />
         {/* <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 pt-5 text-[12px] text-slate-500">
           <span className="flex items-center gap-2"><span className="font-semibold text-slate-800">12</span> Disponible</span>
           <span className="flex items-center gap-2"><span className="text-slate-300 line-through">12</span> Indisponible</span>

@@ -64,12 +64,12 @@ export function LodgingAreaMap({ location, areaLabel }: { location: ApproximateL
   }, [expanded])
 
   return (
-    <section data-testid="lodging-area-map">
+    <section data-testid="lodging-area-map" className="flex flex-col">
       <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-pink-600">Les alentours</span>
       <h2 className="mb-7 mt-2 text-[30px] font-semibold leading-[1.08] tracking-[-0.04em] text-slate-800 md:text-[36px]">
         Situer le logement.
       </h2>
-      <div data-testid="lodging-map-frame" className={mapFrameClass(expanded, 'relative h-[260px] w-full overflow-hidden rounded-[24px] shadow-sm')}>
+      <div data-testid="lodging-map-frame" className={mapFrameClass(expanded, 'relative h-[260px] w-full overflow-hidden rounded-[24px] shadow-sm md:h-auto md:min-h-[360px] md:flex-1')}>
         <MapFullscreenButton expanded={expanded} onToggle={toggle} />
         <div ref={containerRef} className="absolute inset-0 h-full w-full" aria-label={`Zone du logement : ${areaLabel}`} role="img" />
       </div>

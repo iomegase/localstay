@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-07
-updated_at: 2026-10-07
+updated_at: 2026-10-15
 depends_on:
   - 028-lodging-showcase-seo
   - 079-owner-lodging-page-redesign
@@ -97,3 +97,12 @@ AC-01-01, AC-01-02, AC-02-01, AC-02-02, AC-02-03, BR-04, BR-05.
 ## Open Questions
 
 Aucune.
+
+## Amendement approuvé — Carte et calendrier sur 2 colonnes (PO 2026-10-15)
+
+- **AC-02-04** : sur la fiche logement, la carte (« Situer le logement. », spec 088)
+  et le calendrier « Disponibilités » sont côte à côte dès `md`, en deux colonnes
+  égales de même hauteur (la carte s'étire, 360 px minimum) ; sur mobile ils restent
+  empilés. Si l'un des deux blocs est absent, l'autre occupe toute la largeur. Le
+  calendrier n'affiche plus qu'un mois à la fois, à toutes les largeurs (remplace
+  « 2 côte à côte dès `md` » de AC-02-01) ; navigation et horizon 12 mois inchangés.

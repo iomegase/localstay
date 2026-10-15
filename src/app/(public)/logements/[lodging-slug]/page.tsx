@@ -214,6 +214,8 @@ export default async function LodgingDetailPage({ params }: Props) {
           <div className={`${marketingContainerClass} space-y-16 pb-16 md:space-y-20 md:pb-24`}>
             
 
+            {/* Spec 089 AC-02-04 : carte et calendrier sur 2 colonnes dès md ; un bloc seul prend toute la largeur. */}
+            <div data-testid="lodging-map-availability" className="grid gap-16 md:auto-cols-fr md:grid-flow-col md:gap-8">
             {/* Spec 088 : carte précise si publiée (028), sinon zone approximative. */}
             {detail.precise_location_public && detail.public_latitude != null && detail.public_longitude != null ? (
               <LodgingLocationMap
@@ -229,6 +231,7 @@ export default async function LodgingDetailPage({ params }: Props) {
             <Suspense fallback={null}>
               <LodgingAvailability profileId={detail.id} />
             </Suspense>
+            </div>
 
             <LodgingFaq items={detail.faq} />
 

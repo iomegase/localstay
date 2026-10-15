@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-12
-updated_at: 2026-10-05
+updated_at: 2026-10-15
 depends_on:
   - 001-city-guide
   - 003-poi-list
@@ -1171,3 +1171,14 @@ Toutes les erreurs utilisent le format standard :
 | OQ-05 | Peut-on partir d'une URL Airbnb pour générer une fiche MyStay ? | Product Owner | 2026-06-12 | Oui, mais uniquement comme source déclarée : validation URL, détection plateforme, import manuel des photos/textes, confirmation de droits et réécriture MyStay en brouillon. Aucun scraping Airbnb. |
 
 Décision du 2026-09-29 : demande d’import multiple et modification des catégories approuvée en conversation ; option A confirmée pour la numérotation.
+
+
+## Amendement approuvé — Équipements et services sur 4 colonnes (PO 2026-10-15)
+
+- **AC-02-11** : sur la fiche logement, dès `lg`, les blocs « Équipements » et
+  « Services sur demande » partagent une grille de 4 colonnes : 3 pour les
+  équipements (cases sur 3 colonnes), 1 pour les services (cases empilées sur une
+  colonne). En dessous de `lg`, les blocs restent empilés en pleine largeur avec
+  leurs cases sur 2 colonnes. Si l'un des blocs est vide, l'autre garde toute la
+  largeur (cases sur 3 colonnes dès `lg`). Mode compact (modale démo) inchangé.
+  Remplace la « ligne pleine largeur » de AC-02-10 dès `lg`.
