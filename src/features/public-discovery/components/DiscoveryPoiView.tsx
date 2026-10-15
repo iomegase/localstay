@@ -3,6 +3,7 @@ import { MarkdownText } from '@/shared/components/MarkdownText'
 import { ArrowLeft, ChevronRight, Clock3, ExternalLink, MapPin, Navigation, Phone, Star } from 'lucide-react'
 import { MiniMap } from '@/features/categories/components/MiniMap'
 import {
+  breadcrumbCurrentClass,
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
@@ -30,7 +31,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
           <ChevronRight aria-hidden="true" className="h-3 w-3" />
           <Link className="hover:text-pink-600" href={categoryPath}>{poi.category.name}</Link>
           <ChevronRight aria-hidden="true" className="h-3 w-3" />
-          <span aria-current="page" className="text-slate-800">{poi.name}</span>
+          <span aria-current="page" className={breadcrumbCurrentClass}>{poi.name}</span>
         </nav>
 
         <div className={`${marketingContainerClass} pt-9`}>

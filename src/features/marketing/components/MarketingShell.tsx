@@ -4,6 +4,7 @@ import { MarketingFooter } from './MarketingFooter'
 import { MarketingHeader } from './MarketingHeader'
 
 export {
+  breadcrumbCurrentClass,
   marketingContainerClass,
   marketingDarkButtonClass,
   marketingHeroInsetClass,

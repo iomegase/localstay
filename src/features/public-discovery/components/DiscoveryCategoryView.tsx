@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import {
+  breadcrumbCurrentClass,
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
@@ -31,7 +32,7 @@ export function DiscoveryCategoryView({ category }: { category: DiscoveryCategor
           <ChevronRight aria-hidden="true" className="h-3 w-3" />
           <Link className="hover:text-pink-600" href={`/decouvrir/${citySlug}`}>{category.city.name}</Link>
           <ChevronRight aria-hidden="true" className="h-3 w-3" />
-          <span aria-current="page" className="text-slate-800">{category.name}</span>
+          <span aria-current="page" className={breadcrumbCurrentClass}>{category.name}</span>
           </div>
         </nav>
 

@@ -796,3 +796,7 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   conciergerie et séminaire, et aux pages `/decouvrir`, `/decouvrir/[city]` et
   `/decouvrir/[city]/[category]` (fil d'Ariane compris) : le H1 commence au même
   endroit que celui de la home à toutes les largeurs.
+- **AC-01-25** (PO 2026-10-15) : le dernier élément de chaque fil d'Ariane visible
+  (Journal, pages catégorie et fiches lieu de `/decouvrir`) est toujours en
+  `pink-600`, et `pink-400` au survol (classe partagée `breadcrumbCurrentClass`,
+  `aria-current="page"`). Les éléments précédents sont inchangés.

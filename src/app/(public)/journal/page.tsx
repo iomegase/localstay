@@ -10,6 +10,7 @@ import { blogCategoryLabel } from '@/features/blog/lib/category-label'
 import { buildBlogArticlePath } from '@/features/blog/lib/slug'
 import { BLOG_ARTICLE_CATEGORIES, type BlogArticleCategory } from '@/features/blog/types'
 import {
+  breadcrumbCurrentClass,
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
@@ -89,7 +90,7 @@ export default async function BlogListPage({ searchParams }: PageProps) {
             >
               <Link href="/" className="hover:text-pink-600">Accueil</Link>
               <span aria-hidden="true">/</span>
-              <Link href="/journal" className="hover:text-pink-600">Journal</Link>
+              <Link href="/journal" aria-current="page" className={breadcrumbCurrentClass}>Journal</Link>
             </nav>
           </div>
         </div>
