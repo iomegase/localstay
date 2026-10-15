@@ -443,7 +443,6 @@ export function GuestMap({
 
                 <span className="mt-1 flex items-center justify-center gap-2 rounded-2xl bg-pine py-2.5 text-sm font-bold text-white">
                   Voir la fiche
-                  <LucideIcons.ArrowRight className="h-4 w-4" />
                 </span>
               </div>
             </Link>

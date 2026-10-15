@@ -11,7 +11,6 @@ import { CleanupStaleCandidatesButton } from '@/features/trails-acquisition/comp
 import {
   Tag,
   AlertCircle,
-  ArrowRight,
   Plus
 } from 'lucide-react'
 
@@ -164,7 +163,6 @@ export default async function AdminPoiAcquisitionPage() {
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-4 py-2.5 text-[13px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
                         >
                           Détails
-                          <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
                         </Link>
                         
                         {/* Le bouton de suppression côté client vient s'insérer ici naturellement */}

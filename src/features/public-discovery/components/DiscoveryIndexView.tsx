@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import {
   MarketingEyebrow,
   MarketingShell,
@@ -48,7 +47,6 @@ export function DiscoveryIndexView({ cities }: { cities: DiscoveryIndexCity[] })
                   className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-full bg-slate-800 px-5 text-xs font-bold text-white transition-colors hover:bg-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600 sm:self-auto"
                 >
                   Découvrir {city.name}
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
               </div>
               <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { CategoryIcon } from '@/features/city-guide/lib/category-icon'
 import type { CardVariant, RecRow } from './variants'
 
@@ -58,7 +57,6 @@ export function RecommendationCard({ row, variant, fallbackCitySlug, showCategor
           )}
           <span className="mt-5 inline-flex self-start items-center gap-2 text-[10px] font-bold rounded-full p-2 uppercase tracking-widest bg-black text-white/80 w-auto shadow-md transition hover:bg-white hover:text-charcoal">
             Voir le lieu
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </span>
         </div>
       </Link>

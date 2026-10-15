@@ -3,7 +3,6 @@ import { SeminarLodgings } from '@/features/lodging-showcase/components/SeminarL
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
-  ArrowRight,
   BadgeCheck,
   BedDouble,
   Clock,
@@ -541,11 +540,6 @@ export default async function SeminarsPage() {
                 "
               >
                 Découvrir nos logements
-
-                <ArrowRight
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                />
               </Link>
             </div>
           </div>

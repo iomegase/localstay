@@ -6,7 +6,7 @@ import { listAdminContactMessages } from '@/features/contact-messages/queries/co
 import { AdminContactMessagesPanel } from '@/features/contact-messages/components/AdminContactMessagesPanel'
 import { AdminMaintenanceCard } from '@/features/maintenance/components/AdminMaintenanceCard'
 import { getMaintenanceState } from '@/features/maintenance/queries/maintenance'
-import { Building2, MapPin, BadgeCheck, Store, ShieldAlert, QrCode, ArrowRight } from 'lucide-react'
+import { Building2, MapPin, BadgeCheck, Store, ShieldAlert, QrCode } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export default async function AdminOverviewPage() {
@@ -72,7 +72,7 @@ export default async function AdminOverviewPage() {
               Gérer les POI
             </Link>
             <Link href="/admin/poi-acquisition" className="group flex flex-1 items-center justify-center rounded-xl bg-[#111A2C] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02]">
-              Acquisition <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
+              Acquisition
             </Link>
           </div>
         </div>

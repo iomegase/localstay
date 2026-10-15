@@ -6,7 +6,7 @@ import { RefineTrailGeometryButton } from '@/features/trails-acquisition/compone
 import { DeleteRunButton } from '@/features/trails-acquisition/components/DeleteRunButton'
 import { getTrailAcquisitionOptions } from '@/features/trails-acquisition/queries/options'
 import { listTrailImportRuns } from '@/features/trails-acquisition/queries/runs'
-import { ArrowRight, Plus, AlertCircle, Map } from 'lucide-react'
+import { Plus, AlertCircle, Map } from 'lucide-react'
 
 type TrailImportRunList = Awaited<ReturnType<typeof listTrailImportRuns>>
 
@@ -167,7 +167,6 @@ function RunsTable({ runs }: { runs: TrailImportRunList }) {
                         className="inline-flex h-[32px] items-center justify-center gap-1.5 rounded-lg bg-[#F4F7FE] px-3 text-[11px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white"
                       >
                         Ouvrir
-                        <ArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-0.5" />
                       </Link>
                       
                       <DeleteRunButton 

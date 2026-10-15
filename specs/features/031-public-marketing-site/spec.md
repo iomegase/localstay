@@ -758,3 +758,9 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   mobile, 54 px dès 761 px (`marketingHeroInsetClass`, appliqué à l'intérieur du
   conteneur marketing). Remplace AC-01-10 (2) (« hero sans padding horizontal »).
   Les sections suivantes et le padding vertical sont inchangés.
+- **AC-01-18** (PO 2026-10-15) : aucun bouton du site (marketing, découverte, guide
+  voyageur, admin) n'affiche de flèche décorative à côté de son libellé. Retirées :
+  « Découvrir nos logements » (`/seminaires`), « Découvrir [Commune] »
+  (`/decouvrir`), « Voir le lieu » (recommandations), « Voir la fiche » (carte
+  voyageur), « Acquisition », « Ouvrir », « Détails », « Voir le guide » (admin).
+  Les liens texte, lignes de liste et illustrations ne sont pas des boutons.

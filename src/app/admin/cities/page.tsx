@@ -3,7 +3,7 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { getAdminCities } from '@/features/admin/queries/dashboard'
 import { AdminCityCreateButton } from '@/features/admin/components/AdminCityCreateButton'
 import { AdminCityEditButton } from '@/features/admin/components/AdminCityEditButton'
-import { MapPin, ArrowRight } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { CityQrCodeModalButton } from '@/features/admin/components/CityQrCodeModalButton'
 import { AdminCityTransportButton } from '@/features/transport/components/AdminCityTransportButton'
 
@@ -122,7 +122,6 @@ export default async function AdminCitiesPage() {
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F4F7FE] px-5 py-2.5 text-[13px] font-bold text-[#0B1437] transition-all duration-300 hover:bg-[#0B1437] hover:text-white hover:shadow-md"
                         >
                           Voir le guide
-                          <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
                         </Link>
                       </div>
                     </td>
