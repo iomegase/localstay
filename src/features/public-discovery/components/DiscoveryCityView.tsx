@@ -59,7 +59,7 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
           <div className={marketingContainerClass}>
             <MarketingEyebrow>Explorer la ville</MarketingEyebrow>
             <h2 id="discovery-categories-title" className="text-3xl font-semibold tracking-[-0.045em] text-slate-900 sm:text-4xl">
-              Choisir une envie.
+              Explorer par catégorie.
             </h2>
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {city.categories.map(category => (

@@ -263,3 +263,7 @@ caractères » (implémentation 2026-10-06, au lieu d'un nouveau code d'erreur).
   sur deux lignes : « Découvrir » puis « [Commune] » en serif italique 34 px. Texte
   accessible inchangé (« Découvrir [Commune] »). Le paragraphe d'introduction sous le
   titre passe à 15 px à toutes les largeurs (texte inchangé).
+- **AC-02-11** (PO 2026-10-15, option A) : sur la page commune, le titre de la grille
+  des catégories devient « Explorer par catégorie. » (au lieu de « Choisir une
+  envie. »), car la grille contient aussi des services pratiques (dog sitter,
+  pharmacie…). Aucun changement de taxonomie ni de données.
