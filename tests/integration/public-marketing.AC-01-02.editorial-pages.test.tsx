@@ -45,6 +45,12 @@ describe('031-public-marketing-site editorial routes', () => {
     for (const card of screen.getAllByTestId('seminar-service-card')) {
       expect(card.className).not.toMatch(/min-h-\[/)
       expect(card.querySelector('h3')).not.toHaveClass('mt-auto')
+      // AC-01-21 : icône et titre sur une même ligne, textes réduits.
+      const heading = card.querySelector('h3')!
+      expect(heading.parentElement).toHaveClass('flex', 'items-center')
+      expect(heading.parentElement!.querySelector('svg')).not.toBeNull()
+      expect(heading).toHaveClass('text-[13px]', 'min-[761px]:text-[15px]')
+      expect(card.querySelector('p')).toHaveClass('text-[11px]')
     }
     expect(screen.getByTestId('seminar-place')).toHaveTextContent('Le bon cadre')
     expect(screen.getByTestId('seminar-process')).toHaveTextContent('quatre étapes claires')

@@ -329,60 +329,53 @@ export default async function SeminarsPage() {
                     }
                   `}
                 >
-                  <span
-                    className="
-                      grid
-                      h-10
-                      w-10
-                      shrink-0
-                      place-items-center
-                      rounded-[12px]
-                      border
-                      border-slate-800/[0.07]
-                      bg-white
-
-                      min-[761px]:h-[46px]
-                      min-[761px]:w-[46px]
-                      min-[761px]:rounded-[14px]
-                    "
-                  >
-                    <Icon
-                      aria-hidden="true"
+                  {/* AC-01-21 : icône et titre côte à côte. */}
+                  <div className="flex items-center gap-3">
+                    <span
                       className="
-                        h-5
-                        w-5
-                        min-[761px]:h-[22px]
-                        min-[761px]:w-[22px]
+                        grid
+                        h-9
+                        w-9
+                        shrink-0
+                        place-items-center
+                        rounded-[11px]
+                        border
+                        border-slate-800/[0.07]
+                        bg-white
                       "
-                      strokeWidth={1.7}
-                    />
-                  </span>
+                    >
+                      <Icon
+                        aria-hidden="true"
+                        className="h-[18px] w-[18px]"
+                        strokeWidth={1.7}
+                      />
+                    </span>
 
-                  <h3
-                    className="
-                      mb-0
-                      mt-4
-                      text-[15px]
-                      font-bold
-                      leading-[1.15]
-                      tracking-[-0.03em]
-                      min-[761px]:text-lg
-                    "
-                  >
-                    {title}
-                  </h3>
+                    <h3
+                      className="
+                        mb-0
+                        min-w-0
+                        text-[13px]
+                        font-bold
+                        leading-[1.2]
+                        tracking-[-0.02em]
+                        min-[761px]:text-[15px]
+                      "
+                    >
+                      {title}
+                    </h3>
+                  </div>
 
                   <p
                     className="
                       mb-0
                       mt-3
-                      text-[11.5px]
-                      leading-[1.55]
+                      text-[11px]
+                      leading-[1.5]
                       text-slate-500
 
-                      min-[761px]:mt-3.5
-                      min-[761px]:text-xs
-                      min-[761px]:leading-[1.65]
+                      min-[761px]:text-[11.5px]
+                      min-[761px]:leading-[1.6]
                     "
                   >
                     {copy}

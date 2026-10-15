@@ -778,3 +778,6 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   activités) n'ont plus de hauteur minimale imposée et le titre suit l'icône
   (plus de titre poussé en bas de carte) ; padding resserré (20 px dès 761 px).
   Les cartes d'une même rangée gardent la même hauteur (grille). Contenu inchangé.
+- **AC-01-21** (PO 2026-10-15) : dans ces cartes, l'icône (pastille 36 px) et le
+  titre sont sur une même ligne, en deux colonnes ; titre 13 px (15 px dès 761 px),
+  texte 11 px (11,5 px dès 761 px).
