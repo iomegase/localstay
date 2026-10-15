@@ -110,9 +110,10 @@ describe('029 blog article detail page', () => {
       'min-[701px]:grid-cols-[0.88fr_1.12fr]',
     )
     expect(screen.getByRole('navigation', { name: 'Sommaire de l’article' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: /Envie d’un accueil plus simple/i }),
-    ).toBeInTheDocument()
+    const ownerCta = screen.getByRole('heading', { name: /Envie d’un accueil plus simple/i }).closest('aside')!
+    // AC-02-14 (PO 2026-10-15) : bouton centré verticalement et libellé non générique.
+    expect(ownerCta).toHaveClass('min-[701px]:items-center')
+    expect(within(ownerCta).getByRole('link', { name: 'Parler de mon logement' })).toHaveAttribute('href', '/confier-mon-logement')
     expect(screen.getByText('À lire ensuite')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Les adresses du Mont-Blanc/i })).toHaveAttribute(
       'href',

@@ -221,7 +221,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
         </div>
 
         <aside
-          className={`${marketingContainerClass} mt-20 flex flex-col items-start gap-10 rounded-none bg-slate-800 min-[701px]:rounded-[26px] px-6 py-9 text-white sm:px-12 sm:py-12 min-[701px]:mt-28 min-[701px]:flex-row min-[701px]:items-end min-[701px]:justify-between min-[701px]:px-[58px] min-[701px]:py-[52px]`}
+          className={`${marketingContainerClass} mt-20 flex flex-col items-start gap-10 rounded-none bg-slate-800 min-[701px]:rounded-[26px] px-6 py-9 text-white sm:px-12 sm:py-12 min-[701px]:mt-28 min-[701px]:flex-row min-[701px]:items-center min-[701px]:justify-between min-[701px]:px-[58px] min-[701px]:py-[52px]`}
         >
           <div>
             <MarketingEyebrow light>Votre logement</MarketingEyebrow>
@@ -233,7 +233,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-pink-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(219,39,119,0.22)] transition-colors hover:bg-white hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
             href="/confier-mon-logement"
           >
-            Nous contacter
+            Parler de mon logement
           </Link>
         </aside>
 

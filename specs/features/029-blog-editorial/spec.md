@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-06-15
-updated_at: 2026-06-16
+updated_at: 2026-10-15
 depends_on:
   - 001-city-guide
   - 016-dashboard-superadmin
@@ -787,3 +787,11 @@ liens actifs. Une pastille filtre la liste via `?category=<valeur>` (validée
 par Zod, valeur inconnue ignorée), en conservant `?city=`. Toutes les
 catégories des articles publiés restent affichées ; la pastille active porte
 `aria-current="page"`. Correction suite à la capture du PO (boutons inactifs).
+
+## Correction approuvée — CTA de fin d'article (PO 2026-10-15)
+
+AC-02-14 : sur `/journal/[slug]`, le bloc « Votre logement » (« Envie d'un
+accueil plus simple et plus attentif ? ») centre verticalement son bouton face
+au titre dès 701 px. Le bouton passe de « Nous contacter », jugé trop
+générique par le PO, à « Parler de mon logement », toujours vers
+`/confier-mon-logement`. Mobile, contenu et destination inchangés.
