@@ -748,3 +748,5 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
 - **AC-01-14** : dans le H1 de la home, la ligne serif italique « Vos voyageurs, /
   mieux accompagnés. » est en 34 px à toutes les largeurs (interlignage 1.1).
   Texte, ordre et reste du hero inchangés.
+- **AC-01-15** (PO 2026-10-15) : sur `/seminaires`, la partie serif italique du H1
+  « face au Mont-Blanc. » est en 34 px à toutes les largeurs, comme le slogan de la home.

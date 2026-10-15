@@ -22,6 +22,13 @@ async function renderPage() {
 }
 
 describe('031 AC-01-09 — /seminaires content', () => {
+  it('AC-01-15: renders « face au Mont-Blanc. » at 34px in the H1', async () => {
+    await renderPage()
+    const serif = screen.getByRole('heading', { level: 1 }).querySelector('em')
+    expect(serif).toHaveTextContent('face au Mont-Blanc.')
+    expect(serif).toHaveClass('font-serif', 'text-[34px]')
+  })
+
   it('fixes the SEO title (no doubled « MyStay ») and keeps the keyword', () => {
     expect(metadata.title).toBe('Séminaire d’entreprise en Haute-Savoie, au pied du Mont-Blanc')
     expect(String(metadata.description)).toContain('jusqu’à 26 personnes')

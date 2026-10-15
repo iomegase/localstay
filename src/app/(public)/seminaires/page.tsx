@@ -167,7 +167,7 @@ export default async function SeminarsPage() {
                 Votre séminaire{' '}
                 <br />
 
-                <em className="font-serif font-normal italic tracking-[-0.035em]">
+                <em className="font-serif text-[34px] font-normal italic tracking-[-0.035em]">
                   face au Mont-Blanc.
                 </em>
               </h1>
