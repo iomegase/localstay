@@ -49,7 +49,9 @@ describe('048 persisted public local landings', () => {
     } else {
       expect(screen.getAllByRole('link', { name: landing.page.cta_label })[0]).toHaveAttribute('href', landing.page.cta_href)
     }
-    for (const text of [landing.page.eyebrow, landing.page.hero_title, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
+    // Spec 046 AC-01-12 : le hero conciergerie ne rend plus l'eyebrow (le H1 en tient lieu).
+    const eyebrow = intent === 'CONCIERGE' ? [] : [landing.page.eyebrow]
+    for (const text of [...eyebrow, landing.page.hero_title, landing.page.hero_copy, landing.page.reassurance!, landing.page.local_title, landing.page.local_copy]) {
       expect(screen.getAllByText(text).length).toBeGreaterThan(0)
     }
     for (const text of [landing.page.section_title, landing.page.section_copy, landing.page.highlights[0].title,

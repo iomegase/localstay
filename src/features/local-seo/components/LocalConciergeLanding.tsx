@@ -1,6 +1,7 @@
 import { faqPageSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import Link from 'next/link'
+import { Check } from 'lucide-react'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
@@ -23,21 +24,14 @@ type LocalConciergeLandingProps = {
   reviews: GuestReview[]
 }
 
-/** H1 « Conciergerie à [Commune] » : la partie « à [Commune] » en serif italique, comme le hero de la home. */
-function SerifCityHeading({ text }: { text: string }) {
-  const index = text.indexOf(' à ')
-  if (index === -1) return <>{text}</>
-  return (
-    <>
-      {text.slice(0, index)}{' '}
-      {/* Trois lignes : « à » en retrait, puis la commune sans coupure sur ses tirets.
-          Les espaces sont conservés : le texte lu reste « Conciergerie à [Commune] ». */}
-      <span className="mt-1 block font-serif text-[0.64em] font-normal italic leading-[1.1] tracking-[-0.02em]">
-        <span className="block pl-[0.9em]">à</span>{' '}
-        <span className="block whitespace-nowrap">{text.slice(index + 3)}</span>
-      </span>
-    </>
-  )
+/**
+ * Slogan du hero découpé comme la home : première phrase en gras, la suite en
+ * serif italique (spec 046 AC-01-12). Sans seconde phrase, tout reste en gras.
+ */
+function splitSlogan(text: string): [string, string | null] {
+  const index = text.indexOf('. ')
+  if (index === -1) return [text, null]
+  return [text.slice(0, index + 1), text.slice(index + 2).trim() || null]
 }
 
 export function LocalConciergeLanding({
@@ -51,45 +45,42 @@ export function LocalConciergeLanding({
     ?.split('·')
     .map(item => item.trim())
     .filter(Boolean) ?? []
+  const [sloganLead, sloganTail] = splitSlogan(content.hero_title)
 
   return (
     <MarketingShell localNavigation={{ city: landing.city, publication: landing.publication }}>
       {content.faq.length > 0 && <JsonLd data={faqPageSchema(content.faq)} />}
       <div className="overflow-hidden font-sans text-slate-800">
-        <section className={`${marketingContainerClass} pb-14 pt-8 sm:pb-20 sm:pt-14`}>
-          <div
-            data-testid="local-concierge-hero"
-            className="rounded-[28px] px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:min-h-[620px] lg:grid-cols-[1.05fr_.95fr] lg:items-stretch lg:gap-16 lg:px-14"
-          >
-            <div className="flex flex-col justify-center">
-              <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
-              <h1 className="break-words text-[39px] font-bold leading-[1] tracking-[-0.055em] text-slate-900 sm:text-[56px] lg:text-[62px]">
-                <SerifCityHeading text={content.h1} />
-              </h1>
-            </div>
-            <div className="mt-8 flex flex-col justify-center lg:mt-0">
-              <h2 className="text-[25px] font-bold leading-tight tracking-[-0.035em] text-slate-900 sm:text-[30px]">
-                {content.hero_title}
-              </h2>
-              <p className="mt-5 text-[14px] leading-7 text-slate-600">
-                {content.hero_copy}
-              </p>
-              <Link className={`${marketingPrimaryButtonClass} mt-7 self-start`} href={content.cta_href}>
+        {/* Hero calqué sur la home (spec 046 AC-01-12) : une colonne, mot-clé H1 au style eyebrow, slogan gras puis serif. */}
+        <section className={`${marketingContainerClass} pb-20 pt-12 sm:pb-28 min-[761px]:pt-[60px]`}>
+          <div data-testid="local-concierge-hero" className="max-w-[760px] xl:max-w-[690px]">
+            <h1>
+              <MarketingEyebrow>{content.h1}</MarketingEyebrow>
+            </h1>
+            <p className="mt-8 text-[42px] font-bold leading-[1.05] tracking-[-0.055em] text-slate-900 sm:text-5xl lg:text-[52px] xl:text-[54px]">
+              <span className="block">{sloganLead}</span>
+              {sloganTail && (
+                <span className="mt-3 block font-serif text-[32px] font-normal italic leading-[1.1] tracking-[-0.025em]">{sloganTail}</span>
+              )}
+            </p>
+            <p className="mt-7 max-w-[620px] text-[15px] leading-[1.75] text-slate-600 xl:max-w-[570px] xl:text-[14px]">
+              {content.hero_copy}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link className={marketingPrimaryButtonClass} href={content.cta_href}>
                 {content.cta_label}
               </Link>
-              {reassuranceItems.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {reassuranceItems.map(item => (
-                    <span
-                      key={item}
-                      className="inline-flex rounded-full bg-white px-3 py-2 text-[10px] font-semibold leading-none text-slate-600 shadow-sm"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
+            {reassuranceItems.length > 0 && (
+              <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+                {reassuranceItems.map(item => (
+                  <li key={item} className="flex items-center gap-2 text-[12px] font-semibold text-slate-600">
+                    <Check aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-pink-600" strokeWidth={2.4} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
 
@@ -225,7 +216,9 @@ export function LocalConciergeLanding({
             <div>
               <MarketingEyebrow>Votre logement</MarketingEyebrow>
               <h2 className="text-[30px] font-bold tracking-[-0.04em] text-slate-900 sm:text-[38px]">
-                Vous avez un logement à {city.name} ?
+                {/* Deux lignes (PO 2026-10-15, AC-01-13) : la commune ne se coupe pas dès sm. */}
+                <span className="block">Vous avez un logement à</span>{' '}
+                <span data-testid="concierge-final-city" className="block sm:whitespace-nowrap">{city.name} ?</span>
               </h2>
               <p className="mt-4 max-w-[620px] text-[13px] text-justify leading-7 text-slate-500">
                 Parlons de votre logement et de ce que vous souhaitez déléguer. Premier échange sans engagement.

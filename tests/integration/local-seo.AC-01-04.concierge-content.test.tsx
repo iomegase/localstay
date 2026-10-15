@@ -76,23 +76,16 @@ describe('046 AC-01-04 — concierge landing content', () => {
     expect(screen.getByTestId('marketing-faq-items')).toHaveClass('md:grid-cols-2')
   })
 
-  it('applies the PO layout tweaks (hero, H1 serif, arrows, guide pills, dark local section)', async () => {
+  it('applies the PO layout tweaks (hero, arrows, guide pills, dark local section)', async () => {
     await renderConcierge()
 
     expect(screen.getByTestId('local-concierge-hero')).not.toHaveClass('bg-slate-50')
     const h1 = screen.getByRole('heading', { level: 1 })
     expect(h1).toHaveTextContent('Conciergerie à Saint-Gervais-les-Bains')
-    // Trois lignes : « Conciergerie » / « à » en retrait / commune sur une ligne, en serif.
-    const preposition = within(h1).getByText('à')
-    expect(preposition).toHaveClass('block', 'pl-[0.9em]')
-    const cityLine = within(h1).getByText('Saint-Gervais-les-Bains')
-    expect(cityLine).toHaveClass('block', 'whitespace-nowrap')
-    expect(preposition.closest('.font-serif')).toBe(cityLine.closest('.font-serif'))
-    expect(cityLine.closest('.font-serif')).toHaveClass('italic')
-
+    // AC-01-12 : hero calqué sur la home, H1 au style eyebrow.
+    expect(h1.querySelector('span')).toHaveClass('uppercase')
     const contact = within(screen.getByTestId('local-concierge-hero')).getByRole('link', { name: 'Nous contacter' })
     expect(contact.querySelector('svg')).toBeNull()
-    expect(contact).toHaveClass('self-start')
     const allLodgings = screen.getByRole('link', { name: 'Voir les logements' })
     expect(allLodgings).toHaveTextContent(/^Voir les logements$/)
 

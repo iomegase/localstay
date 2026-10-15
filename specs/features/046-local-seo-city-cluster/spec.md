@@ -521,3 +521,21 @@ JSON-LD. Remplace les points contraires de AC-03-06, AC-03-07 et AC-03-08.
   `Voir les disponibilités`. Le sous-titre `hero_title` de Saint-Gervais-les-Bains,
   jugé redondant, est retiré (données : `hero_title` = `h1`, donc non rendu).
   Remplace les points contraires de AC-03-07, AC-03-09 et AC-03-14.
+
+## Amendement approuvé — Hero conciergerie calqué sur la home (PO 2026-10-15)
+
+Constat PO : « visuellement le hero de landing conciergerie est très mauvais,
+s'inspirer de la mise en page de la home ». Remplace la mise en forme du hero
+décrite dans AC-01-04 (H1 sur trois lignes, deux colonnes). Aucun changement
+d'API, de données, de metadata ni de JSON-LD ; le texte du H1 reste `h1`.
+
+- **AC-01-12** : le hero des landings conciergerie est une colonne unique alignée
+  à gauche (largeur max 760 px, 690 px dès xl), comme la home : le H1 `h1`
+  (« Conciergerie à [Commune] ») au style eyebrow ; puis `hero_title` en grand
+  (42 → 54 px), sa première phrase en gras et la suite en serif italique sur une
+  nouvelle ligne, en 32 px à toutes les largeurs (ajustement PO du 2026-10-15) (tout en gras s'il n'y a qu'une phrase) ; puis `hero_copy`, le
+  bouton `cta_label` → `cta_href`, et les éléments de `reassurance` (séparés par
+  `·`) en ligne, précédés d'une coche rose. `eyebrow` n'est plus rendu dans ce hero.
+- **AC-01-13** (PO 2026-10-15) : le titre du bloc final des landings conciergerie
+  tient sur deux lignes : « Vous avez un logement à » puis « [Commune] ? », la
+  commune sans coupure sur ses tirets dès `sm`. Texte accessible inchangé.

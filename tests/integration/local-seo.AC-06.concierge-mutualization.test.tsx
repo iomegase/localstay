@@ -87,7 +87,7 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
       name: 'Des logements déjà confiés à MyStay',
     })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: localHeading })).toBeInTheDocument()
-    expect(screen.getByTestId('local-concierge-hero')).toHaveClass('lg:items-stretch')
+    expect(screen.getByTestId('local-concierge-hero')).toHaveClass('max-w-[760px]')
     expect(screen.getByRole('link', { name: `Découvrir ${city}` })).toHaveAttribute(
       'href',
       guideHref,
@@ -116,10 +116,10 @@ describe('046 AC-06 mutualized concierge conversion landing', () => {
     expect(screen.queryByText("L'expérience de nos voyageurs")).not.toBeInTheDocument()
     expect(container.querySelectorAll('h1')).toHaveLength(1)
     expect(container.innerHTML).not.toContain('aggregateRating')
-    // AC-05-01 : seule la partie « à [Commune] » du H1 est en serif (AC-01-04).
+    // AC-05-01 : un seul élément serif, la fin du slogan du hero (AC-01-12).
     const serifElements = container.querySelectorAll('.font-serif')
     expect(serifElements).toHaveLength(1)
-    expect(serifElements[0].closest('h1')).not.toBeNull()
+    expect(serifElements[0].closest('[data-testid="local-concierge-hero"]')).not.toBeNull()
     expect(mockedListPublishedLodgings).toHaveBeenLastCalledWith({ citySlugs: conciergeLodgingCitySlugs })
     expect(mockedListPublicLandingReviews).toHaveBeenLastCalledWith(slug)
   })

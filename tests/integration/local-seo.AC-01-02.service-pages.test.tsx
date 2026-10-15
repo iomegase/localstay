@@ -32,9 +32,10 @@ describe('046 local SEO service pages', () => {
   beforeEach(() => { jest.mocked(getPublishedLocalLanding).mockReset() })
 
   it('renders the active Saint-Gervais concierge page and its MyStay CTA', async () => {
-    const landing = publicLocalLanding('CONCIERGE', {
+    const fixture = publicLocalLanding('CONCIERGE', {
       id: 'city-1', name: 'Saint-Gervais-les-Bains', slug: 'saint-gervais-les-bains',
     })
+    const landing = { ...fixture, page: { ...fixture.page, hero_title: 'Confiez-nous votre logement. Nous organisons chaque séjour.' } }
     jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     const page = await ConciergeCityPage({
       params: Promise.resolve({ 'city-slug': 'saint-gervais-les-bains' }),
@@ -50,12 +51,13 @@ describe('046 local SEO service pages', () => {
       '/confier-mon-logement',
     )
     expect(container.querySelectorAll('h1')).toHaveLength(1)
-    expect(screen.getByText(landing.page.eyebrow)).toBeInTheDocument()
+    // AC-01-12 : l'eyebrow n'est plus rendu, le H1 en tient lieu.
+    expect(screen.queryByText(landing.page.eyebrow)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Vous avez un logement à Saint-Gervais-les-Bains ?' })).toBeInTheDocument()
-    // AC-05-01 : seule la partie « à [Commune] » du H1 est en serif (AC-01-04).
+    // AC-05-01 : un seul élément serif, la fin du slogan du hero (AC-01-12).
     const serifElements = container.querySelectorAll('.font-serif')
     expect(serifElements).toHaveLength(1)
-    expect(serifElements[0].closest('h1')).not.toBeNull()
+    expect(serifElements[0].closest('[data-testid="local-concierge-hero"]')).not.toBeNull()
     expect(container.innerHTML).not.toContain('scale(')
     expect(container.querySelector('script[type="application/ld+json"]')).not.toBeNull()
   })
