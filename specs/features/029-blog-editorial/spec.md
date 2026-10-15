@@ -811,3 +811,6 @@ catégories de `/admin/blog`. Même mécanique que AC-08.
   sans modifier les articles existants. Le SQL généré par Prisma est autorisé.
 
 Aucune question ouverte pour cet amendement.
+
+- **AC-02-15** (PO 2026-10-15) : la page `/journal/[slug]` n'a plus de fond rosé :
+  le dégradé radial rose de l'article est remplacé par un fond blanc uni.

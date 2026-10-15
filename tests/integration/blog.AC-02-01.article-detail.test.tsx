@@ -110,6 +110,9 @@ describe('029 blog article detail page', () => {
       'min-[701px]:grid-cols-[0.88fr_1.12fr]',
     )
     expect(screen.getByRole('navigation', { name: 'Sommaire de l’article' })).toBeInTheDocument()
+    // AC-02-15 : fond blanc uni, sans dégradé rose.
+    expect(screen.getByTestId('blog-article')).toHaveClass('bg-white')
+    expect(screen.getByTestId('blog-article').className).not.toMatch(/radial-gradient|219,39,119/)
     const ownerCta = screen.getByRole('heading', { name: /Envie d’un accueil plus simple/i }).closest('aside')!
     // AC-02-14 (PO 2026-10-15) : bouton centré verticalement et libellé non générique.
     expect(ownerCta).toHaveClass('min-[701px]:items-center')

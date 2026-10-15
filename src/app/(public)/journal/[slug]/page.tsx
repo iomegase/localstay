@@ -89,7 +89,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
 
   return (
     <MarketingShell>
-      <article className="overflow-hidden bg-[radial-gradient(circle_at_6%_4%,rgba(219,39,119,0.045),transparent_20%)] pb-24 text-slate-800 sm:pb-28">
+      <article data-testid="blog-article" className="overflow-hidden bg-white pb-24 text-slate-800 sm:pb-28">
         <nav aria-label="Breadcrumb" className="sr-only">
           {breadcrumbs.map(item =>
             item.href ? (
