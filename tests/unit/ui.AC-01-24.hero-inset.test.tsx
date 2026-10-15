@@ -34,6 +34,8 @@ describe('046 AC-03-16 — titre de la landing locations sur deux lignes', () =>
     expect(within(h1).getByTestId('vacation-title-city')).toHaveTextContent(/^Saint-Gervais-les-Bains$/)
     expect(within(h1).getByTestId('vacation-title-city')).toHaveClass('font-serif', 'italic', 'text-[34px]')
     expect(screen.getByTestId('vacation-hero')).toHaveClass('px-7', 'min-[761px]:px-[54px]')
+    // AC-03-17 : bouton du hero rose.
+    expect(within(screen.getByTestId('vacation-hero')).getByRole('button', { name: 'Poser une question' })).toHaveClass('bg-pink-600', 'text-white')
   })
 
   it('keeps a title without « à » on one line', () => {

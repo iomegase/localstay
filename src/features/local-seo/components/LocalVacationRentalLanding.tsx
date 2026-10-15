@@ -21,7 +21,6 @@ import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { CityTitle } from '../lib/city-title'
 import { LocalRentalCard } from './LocalRentalCard'
 
-const secondaryButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-700 transition-colors hover:border-pink-600 hover:text-pink-600'
 const lightOutlineButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-white/40 px-5 text-xs font-bold text-white transition-colors hover:border-pink-300 hover:text-pink-300'
 
 // Ligne de faits affichée à partir de 3 logements publiés (spec 046 AC-03-10).
@@ -70,7 +69,7 @@ export function LocalVacationRentalLanding({
                 label="Poser une question"
                 profile="traveler"
                 lodgingOptions={lodgingOptions}
-                className={secondaryButtonClass}
+                className={marketingPrimaryButtonClass}
               />
             </div>
             {facts && (

@@ -547,3 +547,6 @@ d'API, de données, de metadata ni de JSON-LD ; le texte du H1 reste `h1`.
   coupé avant la commune au dernier « à » : « Séminaire à » (style actuel) puis
   « [Commune] » en serif italique 34 px. Même règle et même composant que la landing
   locations (AC-03-16). Texte accessible inchangé.
+- **AC-03-17** (PO 2026-10-15) : le bouton « Poser une question » du hero de la
+  landing locations est un bouton principal rose (`marketingPrimaryButtonClass`),
+  et non plus un bouton à contour.
