@@ -90,7 +90,15 @@ describe('065 US-02 — page catégorie découpée par sous-catégorie', () => {
       ['Autres adresses1', '#autres-adresses'],
     ])
     expect(menu.className).toContain('sticky')
-    expect(menu.className).toContain('overflow-x-auto')
+    // AC-02-07 : largeur du contenu, sans bordure, défilement horizontal dans la liste.
+    expect(menu.className).toContain('max-w-')
+    expect(menu.className).not.toContain('w-max')
+    expect(menu.querySelector('ul')).toHaveClass('overflow-x-auto')
+    expect(menu.innerHTML).not.toMatch(/border-y|border-t\b|border-b\b/)
+    for (const count of within(menu).getAllByTestId('subcategory-count')) {
+      expect(count).toHaveClass('text-pink-600', 'group-hover:text-white')
+    }
+    expect(links[0]).toHaveClass('group', 'hover:bg-pink-600', 'hover:text-white')
   })
 
   it('AC-02-03 : les POI sans sous-catégorie forment « Autres adresses »', () => {

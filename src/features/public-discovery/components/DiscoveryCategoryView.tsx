@@ -45,19 +45,20 @@ export function DiscoveryCategoryView({ category }: { category: DiscoveryCategor
         {isSplit ? (
           <nav
             aria-label="Sous-catégories"
-            className="sticky top-0 z-20 overflow-x-auto border-y border-slate-100 bg-white/95 py-3 backdrop-blur-sm"
+            className={`${marketingContainerClass} sticky top-0 z-20 bg-white/95 backdrop-blur-sm`}
           >
-            <ul className={`${marketingContainerClass} flex w-max min-w-full gap-2`}>
+            {/* Spec 065 AC-02-07 : menu à la largeur du contenu, pas en pleine page. */}
+            <ul className="flex gap-2 overflow-x-auto py-3">
               {category.groups.map(group => {
                 const heading = groupHeading(group)
                 return (
-                  <li key={heading.slug}>
+                  <li key={heading.slug} className="shrink-0">
                     <a
                       href={`#${heading.slug}`}
-                      className="inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full bg-slate-100 px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-pink-50 hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+                      className="group inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full bg-slate-100 px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-pink-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
                     >
                       {heading.name}
-                      <span className="text-[10px] font-bold text-slate-400">{group.pois.length}</span>
+                      <span data-testid="subcategory-count" className="text-[10px] font-bold text-pink-600 transition-colors group-hover:text-white">{group.pois.length}</span>
                     </a>
                   </li>
                 )

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-06
-updated_at: 2026-10-06
+updated_at: 2026-10-15
 depends_on:
   - 041-public-local-discovery
   - 022-admin-poi-management
@@ -243,3 +243,12 @@ caractères » (implémentation 2026-10-06, au lieu d'un nouveau code d'erreur).
 
 - **OQ-01** — `resolved` 2026-10-06 — Urgences masquée de `/decouvrir` (BR-08).
 - **OQ-02** — `resolved` 2026-10-06 — 3 cartes par catégorie sur la page ville.
+
+## Ajustement PO — Menu des sous-catégories (2026-10-15)
+
+- **AC-02-07** : sur une page catégorie `/decouvrir/[city]/[category]` scindée en
+  sous-catégories, le menu collant des sous-catégories a la largeur du contenu
+  (conteneur marketing, aligné sur les titres), pas la pleine largeur de la page,
+  et n'a plus de bordure haut ni bas. Le nombre de lieux de chaque pastille est en
+  `pink-600` ; au survol, la pastille passe en fond `pink-600`, libellé et nombre
+  en blanc.

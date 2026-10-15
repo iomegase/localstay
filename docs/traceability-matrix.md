@@ -2114,3 +2114,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-05-10 | Mini-carte des fiches `/decouvrir` au zoom 19 | `src/features/public-discovery/components/DiscoveryPoiView.tsx` | `tests/unit/public-discovery.AC-05-10.mini-map-zoom.test.ts` | ✅ done |
+
+## 065 — Menu des sous-catégories (PO 2026-10-15)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-02-07 | Menu des sous-catégories à la largeur du contenu, sans bordure ; nombre de lieux en pink-600, pastille pink-600 / texte blanc au survol | `src/features/public-discovery/components/DiscoveryCategoryView.tsx` | `tests/integration/discovery-taxonomy.AC-01-02-03.views.test.tsx` | ✅ done |
