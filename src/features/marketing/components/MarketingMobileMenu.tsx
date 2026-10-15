@@ -203,7 +203,7 @@ export function MarketingMobileMenu({ localNavigation }: { localNavigation?: Loc
               <Dialog.Close asChild>
                 <Link
                   href="/auth/login"
-                  className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full px-5 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
+                  className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full px-5 text-sm font-semibold text-pink-600 transition-colors hover:bg-white/70 hover:text-pink-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
                 >
                   <UserRound aria-hidden="true" className="h-5 w-5" strokeWidth={1.7} />
                   Connexion

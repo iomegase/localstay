@@ -39,7 +39,7 @@ export function MarketingHeader({ localNavigation }: { localNavigation?: LocalMa
           href="/auth/login"
           aria-label="Se connecter à l’espace propriétaire"
           title="Se connecter"
-          className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]"
+          className="ml-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-pink-600 transition-colors hover:border-pink-600 hover:bg-pink-600 hover:text-white lg:inline-flex xl:h-[38px] xl:w-[38px]"
         >
           <UserRound
             aria-hidden="true"

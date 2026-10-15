@@ -800,3 +800,6 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   (Journal, pages catégorie et fiches lieu de `/decouvrir`) est toujours en
   `pink-600`, et `pink-400` au survol (classe partagée `breadcrumbCurrentClass`,
   `aria-current="page"`). Les éléments précédents sont inchangés.
+- **AC-01-26** (PO 2026-10-15) : l'accès « Connexion » de l'en-tête (icône desktop
+  et entrée du menu mobile) est en `pink-600` ; survol inchangé (desktop : fond rose,
+  icône blanche).

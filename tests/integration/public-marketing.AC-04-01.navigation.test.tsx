@@ -13,6 +13,8 @@ describe('031-public-marketing-site navigation', () => {
       'href',
       '/auth/login',
     )
+    // AC-01-26 : icône de connexion en rose, survol inchangé.
+    expect(screen.getByRole('link', { name: /Se connecter à l’espace propriétaire/i })).toHaveClass('text-pink-600', 'hover:bg-pink-600', 'hover:text-white')
     // Spec 053 AC-02-05 : « Nous contacter » ouvre la modale contact par profil.
     expect(screen.queryByRole('link', { name: /Nous contacter/i })).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Nous contacter' }).length).toBeGreaterThan(0)
@@ -42,6 +44,7 @@ describe('031-public-marketing-site navigation', () => {
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
     const loginLink = within(mobileNavigation).getByRole('link', { name: 'Connexion' })
     expect(loginLink).toHaveAttribute('href', '/auth/login')
+    expect(loginLink).toHaveClass('text-pink-600')
     fireEvent.click(loginLink)
     expect(screen.queryByRole('dialog', { name: 'Menu MyStay' })).not.toBeInTheDocument()
   })
