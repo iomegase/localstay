@@ -33,3 +33,13 @@ describe('029 blog markdown sanitization', () => {
     expect(container.firstElementChild).not.toHaveClass('[&_p]:text-left')
   })
 })
+
+describe('029 AC-02-16 — couleur des liens des articles', () => {
+  it('renders article links in pink-600, pink-200 on hover', () => {
+    const { container } = render(<BlogMarkdown source={'**Voir notre [séminaire](/seminaires) au Mont-Blanc.**'} />)
+    const root = container.firstElementChild as HTMLElement
+    expect(root.className).toContain('[&_a]:text-pink-600')
+    expect(root.className.split(' ')).not.toContain('[&_a]:text-slate-800')
+    expect(root.className.split(' ')).toContain('[&_a:hover]:text-pink-200')
+  })
+})
