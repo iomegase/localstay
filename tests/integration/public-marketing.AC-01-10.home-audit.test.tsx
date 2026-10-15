@@ -31,6 +31,13 @@ describe('031 AC-01-10 — home audit corrections', () => {
     expect(screen.queryByText('Conciergerie locale en Haute-Savoie')).not.toBeInTheDocument()
   })
 
+  it('AC-01-14: renders the serif slogan line at 34px', () => {
+    render(<MarketingHome lodgings={[]} />)
+    const h1 = screen.getByRole('heading', { level: 1 })
+    expect(h1.querySelector('.font-serif')).toHaveClass('text-[34px]', 'italic')
+    expect(h1.querySelector('.font-serif')).toHaveTextContent(/Vos voyageurs,\s*mieux accompagnés\./)
+  })
+
   it('(2) removes the hero horizontal padding so it aligns with the next sections', () => {
     render(<MarketingHome lodgings={[]} />)
 

@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-07-29
-updated_at: 2026-10-01
+updated_at: 2026-10-15
 depends_on:
   - 006-qr-code
   - 009-auth-owner
@@ -742,3 +742,9 @@ Fond de page blanc (demande PO du 2026-10-05).
 Formulaire, H1 et metadata conservés. Modèle/API inchangés.
 Validation : test d'intégration existant des hubs vérifie l'encart et le retrait
 des étapes ; contrôle ESLint. Aucune question ouverte.
+
+## Ajustement PO — Slogan serif de la home (2026-10-15)
+
+- **AC-01-14** : dans le H1 de la home, la ligne serif italique « Vos voyageurs, /
+  mieux accompagnés. » est en 34 px à toutes les largeurs (interlignage 1.1).
+  Texte, ordre et reste du hero inchangés.

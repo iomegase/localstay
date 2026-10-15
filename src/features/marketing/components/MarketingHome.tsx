@@ -239,8 +239,10 @@ export function MarketingHome({
                   className="
                     mt-3 block
                     font-serif
+                    text-[34px]
                     font-normal
                     italic
+                    leading-[1.1]
                     tracking-[-0.025em]
                   "
                 >
