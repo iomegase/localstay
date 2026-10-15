@@ -795,3 +795,19 @@ accueil plus simple et plus attentif ? ») centre verticalement son bouton face
 au titre dès 701 px. Le bouton passe de « Nous contacter », jugé trop
 générique par le PO, à « Parler de mon logement », toujours vers
 `/confier-mon-logement`. Mobile, contenu et destination inchangés.
+
+## Amendement approuvé — Catégories Séminaire et Fiscalité (2026-10-15)
+
+Demande explicite du Product Owner : ajouter « séminaire et fiscalité » aux
+catégories de `/admin/blog`. Même mécanique que AC-08.
+- **AC-09-01** : l'éditeur et le filtre admin proposent « Séminaire » (valeur
+  technique `seminar`) et « Fiscalité » (`taxation`), après les catégories
+  existantes. Les libellés publics (pastilles `/journal`, cartes) sont identiques.
+- **AC-09-02** : les contrats de création, modification et filtrage acceptent
+  `seminar` et `taxation` via Zod, ainsi que le filtre public `?category=` ; les
+  valeurs inconnues restent refusées.
+- **AC-09-03** : l'enum Prisma `BlogArticleCategory` inclut `seminar` et
+  `taxation`. Une migration additive PostgreSQL ajoute uniquement ces deux valeurs,
+  sans modifier les articles existants. Le SQL généré par Prisma est autorisé.
+
+Aucune question ouverte pour cet amendement.

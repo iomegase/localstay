@@ -488,6 +488,8 @@ enum BlogArticleCategory {
   activities
   travel_tips
   concierge
+  seminar
+  taxation
 }
 
 enum BlogArticlePhotoKind {
