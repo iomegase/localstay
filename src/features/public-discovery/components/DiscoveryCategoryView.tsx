@@ -4,6 +4,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
 } from '@/features/marketing/components/MarketingShell'
 import type { DiscoveryCategory, DiscoveryPoiGroup } from '../types'
 import { DiscoveryPoiCard } from './DiscoveryPoiCard'
@@ -24,23 +25,27 @@ export function DiscoveryCategoryView({ category }: { category: DiscoveryCategor
     // Pas d'overflow-hidden ici : il désactiverait la barre de pastilles collante.
     <MarketingShell>
       <div className="overflow-x-clip text-slate-800">
-        <nav aria-label="Fil d’Ariane" className={`${marketingContainerClass} flex flex-wrap items-center gap-2 pt-9 text-[11px] font-semibold text-slate-500`}>
+        <nav aria-label="Fil d’Ariane" className={`${marketingContainerClass} pt-9 text-[11px] font-semibold text-slate-500`}>
+          <div className={`${marketingHeroInsetClass} flex flex-wrap items-center gap-2`}>
           <Link className="hover:text-pink-600" href="/">Accueil</Link>
           <ChevronRight aria-hidden="true" className="h-3 w-3" />
           <Link className="hover:text-pink-600" href={`/decouvrir/${citySlug}`}>{category.city.name}</Link>
           <ChevronRight aria-hidden="true" className="h-3 w-3" />
           <span aria-current="page" className="text-slate-800">{category.name}</span>
+          </div>
         </nav>
 
         <header className={`${marketingContainerClass} pb-10 pt-12 sm:pb-12`}>
-          <MarketingEyebrow>Les adresses MyStay</MarketingEyebrow>
-          <h1 className="max-w-4xl text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-900 sm:text-6xl">
-            {/* Spec 065 AC-02-08 : deux lignes, la commune en serif italique 34 px (comme la home). */}
-            <span className="block">{category.name} à</span>{' '}
-            <span data-testid="category-title-city" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
-              {category.city.name}
-            </span>
-          </h1>
+          <div data-testid="discovery-category-hero" className={marketingHeroInsetClass}>
+            <MarketingEyebrow>Les adresses MyStay</MarketingEyebrow>
+            <h1 className="max-w-4xl text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-slate-900 sm:text-6xl">
+              {/* Spec 065 AC-02-08 : deux lignes, la commune en serif italique 34 px (comme la home). */}
+              <span className="block">{category.name} à</span>{' '}
+              <span data-testid="category-title-city" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+                {category.city.name}
+              </span>
+            </h1>
+          </div>
         </header>
 
         {isSplit ? (

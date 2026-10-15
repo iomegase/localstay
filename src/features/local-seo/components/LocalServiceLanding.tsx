@@ -14,6 +14,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { MarketingFaqSection } from '@/features/marketing/components/MarketingFaqSection'
@@ -79,20 +80,19 @@ export function LocalServiceLanding({
           className={`${marketingContainerClass} pb-16 pt-10 sm:pb-24 sm:pt-16`}
         >
           <div
-            className="
+            data-testid="service-hero"
+            className={`
+              ${marketingHeroInsetClass}
               rounded-[28px]
-              px-6
               py-10
-              sm:px-10
               sm:py-14
               lg:grid
               lg:min-h-[620px]
               lg:grid-cols-[1.12fr_0.88fr]
               lg:items-stretch
               lg:gap-14
-              lg:px-14
               lg:py-16
-            "
+            `}
           >
             {/* LEFT */}
             <div className="flex flex-col justify-center">

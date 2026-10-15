@@ -3,6 +3,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
 } from '@/features/marketing/components/MarketingShell'
 import type { DiscoveryIndexCity } from '../types'
 import { DiscoveryPoiCard } from './DiscoveryPoiCard'
@@ -12,13 +13,15 @@ export function DiscoveryIndexView({ cities }: { cities: DiscoveryIndexCity[] })
     <MarketingShell>
       <div className="overflow-hidden text-slate-800">
         <header className={`${marketingContainerClass} pb-14 pt-12 sm:pb-16 sm:pt-16 lg:pb-20`}>
-          <MarketingEyebrow>Le guide local MyStay</MarketingEyebrow>
-          <h1 className="max-w-4xl text-[44px] font-semibold leading-[0.96] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-7xl">
-            Découvrir les bonnes adresses locales.
-          </h1>
-          <p className="mt-7 max-w-2xl text-[15px] leading-7 text-slate-500">
-            MyStay réunit ici des adresses locales sélectionnées et actuellement publiées.
-          </p>
+          <div data-testid="discovery-index-hero" className={marketingHeroInsetClass}>
+            <MarketingEyebrow>Le guide local MyStay</MarketingEyebrow>
+            <h1 className="max-w-4xl text-[44px] font-semibold leading-[0.96] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-7xl">
+              Découvrir les bonnes adresses locales.
+            </h1>
+            <p className="mt-7 max-w-2xl text-[15px] leading-7 text-slate-500">
+              MyStay réunit ici des adresses locales sélectionnées et actuellement publiées.
+            </p>
+          </div>
         </header>
 
         {cities.length === 0 ? (

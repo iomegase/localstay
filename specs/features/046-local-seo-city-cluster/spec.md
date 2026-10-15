@@ -539,3 +539,7 @@ d'API, de données, de metadata ni de JSON-LD ; le texte du H1 reste `h1`.
 - **AC-01-13** (PO 2026-10-15) : le titre du bloc final des landings conciergerie
   tient sur deux lignes : « Vous avez un logement à » puis « [Commune] ? », la
   commune sans coupure sur ses tirets dès `sm`. Texte accessible inchangé.
+- **AC-03-16** (PO 2026-10-15) : le H1 de la landing locations tient sur deux lignes,
+  coupé avant la commune au dernier « à » : « Locations de vacances à » (style
+  actuel) puis « [Commune] » en serif italique 34 px. Texte accessible inchangé ;
+  sans « à », le titre reste sur une ligne.

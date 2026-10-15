@@ -11,6 +11,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
   marketingDarkButtonClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
@@ -21,6 +22,13 @@ import { LocalRentalCard } from './LocalRentalCard'
 
 const secondaryButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-700 transition-colors hover:border-pink-600 hover:text-pink-600'
 const lightOutlineButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-white/40 px-5 text-xs font-bold text-white transition-colors hover:border-pink-300 hover:text-pink-300'
+
+/** « Locations de vacances à [Commune] » → [« Locations de vacances à », « [Commune] »] ; sans « à », pas de coupe. */
+function splitCityTitle(title: string): [string | null, string] {
+  const index = title.lastIndexOf(' à ')
+  if (index === -1) return [null, title]
+  return [title.slice(0, index + 2), title.slice(index + 3)]
+}
 
 // Ligne de faits affichée à partir de 3 logements publiés (spec 046 AC-03-10).
 const FACTS_MIN_LODGINGS = 3
@@ -34,6 +42,7 @@ export function LocalVacationRentalLanding({
   lodgings: MarketingLodgingCard[]
 }) {
   const content = landing.page
+  const [titleLead, titleCity] = splitCityTitle(content.h1)
   const facts = lodgings.length >= FACTS_MIN_LODGINGS ? vacationFacts(lodgings) : null
   const lodgingOptions = lodgings.map(lodging => lodging.title)
   const listingTitle = content.section_title !== content.h1
@@ -45,36 +54,46 @@ export function LocalVacationRentalLanding({
       {content.faq.length > 0 && <JsonLd data={faqPageSchema(content.faq)} />}
       <div className="font-sans text-slate-800">
         <section className={`${marketingContainerClass} pb-12 pt-10 sm:pb-16 sm:pt-16`}>
-          <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
-          <h1 className="max-w-[820px] text-balance text-[38px] font-bold leading-[1.02] tracking-[-0.05em] text-slate-900 sm:text-[52px]">
-            {content.h1}
-          </h1>
-          {content.hero_title !== content.h1 && (
-            <p className="mt-5 max-w-[720px] text-[20px] font-semibold leading-snug tracking-[-0.025em] text-slate-800 sm:text-[22px]">
-              {content.hero_title}
+          <div data-testid="vacation-hero" className={marketingHeroInsetClass}>
+            <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
+            <h1 className="max-w-[820px] text-balance text-[38px] font-bold leading-[1.02] tracking-[-0.05em] text-slate-900 sm:text-[52px]">
+              {titleLead ? (
+                <>
+                  {/* Spec 046 AC-03-16 : deux lignes, la commune en serif italique 34 px. */}
+                  <span className="block">{titleLead}</span>{' '}
+                  <span data-testid="vacation-title-city" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+                    {titleCity}
+                  </span>
+                </>
+              ) : content.h1}
+            </h1>
+            {content.hero_title !== content.h1 && (
+              <p className="mt-5 max-w-[720px] text-[20px] font-semibold leading-snug tracking-[-0.025em] text-slate-800 sm:text-[22px]">
+                {content.hero_title}
+              </p>
+            )}
+            <p className="mt-5 max-w-[680px] text-[15px] leading-8 text-slate-600">
+              {content.hero_copy}
             </p>
-          )}
-          <p className="mt-5 max-w-[680px] text-[15px] leading-8 text-slate-600">
-            {content.hero_copy}
-          </p>
-          {content.reassurance && (
-            <p className="mt-3 text-[13px] font-semibold text-slate-500">{content.reassurance}</p>
-          )}
+            {content.reassurance && (
+              <p className="mt-3 text-[13px] font-semibold text-slate-500">{content.reassurance}</p>
+            )}
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <HelpContactDialog
-              label="Poser une question"
-              profile="traveler"
-              lodgingOptions={lodgingOptions}
-              className={secondaryButtonClass}
-            />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <HelpContactDialog
+                label="Poser une question"
+                profile="traveler"
+                lodgingOptions={lodgingOptions}
+                className={secondaryButtonClass}
+              />
+            </div>
+            {facts && (
+              <p data-testid="vacation-facts" className="mt-6 text-xs font-semibold text-slate-900">
+                <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 rounded-full bg-pink-600" />
+                {facts}
+              </p>
+            )}
           </div>
-          {facts && (
-            <p data-testid="vacation-facts" className="mt-6 text-xs font-semibold text-slate-900">
-              <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 rounded-full bg-pink-600" />
-              {facts}
-            </p>
-          )}
         </section>
 
         <section

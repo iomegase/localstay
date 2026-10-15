@@ -5,6 +5,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { cn } from '@/shared/lib/utils'
@@ -39,17 +40,19 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
     <MarketingShell>
       <div className="overflow-hidden text-slate-800">
         <header className={`${marketingContainerClass} pb-14 pt-12 sm:pb-16 sm:pt-16 lg:pb-20`}>
-          <MarketingEyebrow>Découvrir</MarketingEyebrow>
-          <h1 className="max-w-4xl text-[44px] font-semibold leading-[0.96] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-7xl">
-            {/* Spec 065 AC-02-10 : deux lignes, la commune en serif italique 34 px (comme les pages catégorie). */}
-            <span className="block">Découvrir</span>{' '}
-            <span data-testid="city-title-name" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
-              {city.name}
-            </span>
-          </h1>
-          <p data-testid="city-introduction" className="mt-7 max-w-2xl text-[15px] leading-7 text-slate-500">
-            {cityIntroduction(city)}
-          </p>
+          <div data-testid="discovery-city-hero" className={marketingHeroInsetClass}>
+            <MarketingEyebrow>Découvrir</MarketingEyebrow>
+            <h1 className="max-w-4xl text-[44px] font-semibold leading-[0.96] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-7xl">
+              {/* Spec 065 AC-02-10 : deux lignes, la commune en serif italique 34 px (comme les pages catégorie). */}
+              <span className="block">Découvrir</span>{' '}
+              <span data-testid="city-title-name" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+                {city.name}
+              </span>
+            </h1>
+            <p data-testid="city-introduction" className="mt-7 max-w-2xl text-[15px] leading-7 text-slate-500">
+              {cityIntroduction(city)}
+            </p>
+          </div>
         </header>
 
         <section className="bg-[#f7f6f4] py-14 sm:py-16" aria-labelledby="discovery-categories-title">

@@ -790,3 +790,8 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   légales, landings locations / conciergerie / séminaire, `/decouvrir` et
   `/decouvrir/[city]`. Hors périmètre : slogans et sous-titres en grand, description
   longue des fiches lieu, guide voyageur privé.
+- **AC-01-24** (PO 2026-10-15) : le retrait horizontal des heros de la home
+  (`marketingHeroInsetClass`, AC-01-17) s'applique aussi aux landings locations,
+  conciergerie et séminaire, et aux pages `/decouvrir`, `/decouvrir/[city]` et
+  `/decouvrir/[city]/[category]` (fil d'Ariane compris) : le H1 commence au même
+  endroit que celui de la home à toutes les largeurs.

@@ -11,6 +11,7 @@ import {
   MarketingEyebrow,
   MarketingShell,
   marketingContainerClass,
+  marketingHeroInsetClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/MarketingShell'
 import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
@@ -53,7 +54,7 @@ export function LocalConciergeLanding({
       <div className="overflow-hidden font-sans text-slate-800">
         {/* Hero calqué sur la home (spec 046 AC-01-12) : une colonne, mot-clé H1 au style eyebrow, slogan gras puis serif. */}
         <section className={`${marketingContainerClass} pb-20 pt-12 sm:pb-28 min-[761px]:pt-[60px]`}>
-          <div data-testid="local-concierge-hero" className="max-w-[760px] xl:max-w-[690px]">
+          <div data-testid="local-concierge-hero" className={`${marketingHeroInsetClass} max-w-[760px] xl:max-w-[690px]`}>
             <h1>
               <MarketingEyebrow>{content.h1}</MarketingEyebrow>
             </h1>
