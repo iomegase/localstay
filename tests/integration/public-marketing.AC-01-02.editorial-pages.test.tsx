@@ -41,6 +41,11 @@ describe('031-public-marketing-site editorial routes', () => {
       }),
     ).toHaveClass('bg-pink-600')
     expect(screen.getAllByTestId('seminar-service-card')).toHaveLength(4)
+    // AC-01-20 : cartes compactes, sans hauteur minimale ni titre poussé en bas.
+    for (const card of screen.getAllByTestId('seminar-service-card')) {
+      expect(card.className).not.toMatch(/min-h-\[/)
+      expect(card.querySelector('h3')).not.toHaveClass('mt-auto')
+    }
     expect(screen.getByTestId('seminar-place')).toHaveTextContent('Le bon cadre')
     expect(screen.getByTestId('seminar-process')).toHaveTextContent('quatre étapes claires')
   })

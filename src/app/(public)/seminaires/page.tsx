@@ -299,7 +299,6 @@ export default async function SeminarsPage() {
                   className={`
                     relative
                     flex
-                    min-h-[205px]
                     min-w-0
                     flex-col
                     rounded-[22px]
@@ -307,7 +306,7 @@ export default async function SeminarsPage() {
                     bg-[#f7f6f4]
                     px-4
                     pb-5
-                    pt-[22px]
+                    pt-5
 
                     before:absolute
                     before:left-4
@@ -317,14 +316,11 @@ export default async function SeminarsPage() {
                     before:rounded-b-full
                     before:bg-pink-600
 
-                    min-[761px]:min-h-[240px]
-                    min-[761px]:px-6
-                    min-[761px]:pb-6
-                    min-[761px]:pt-[26px]
-                    min-[761px]:before:left-6
+                    min-[761px]:px-5
+                    min-[761px]:pb-5
+                    min-[761px]:pt-[22px]
+                    min-[761px]:before:left-5
                     min-[761px]:before:w-[50px]
-
-                    min-[1051px]:min-h-[270px]
 
                     ${
                       isLast && isOdd
@@ -365,7 +361,7 @@ export default async function SeminarsPage() {
                   <h3
                     className="
                       mb-0
-                      mt-auto
+                      mt-4
                       text-[15px]
                       font-bold
                       leading-[1.15]

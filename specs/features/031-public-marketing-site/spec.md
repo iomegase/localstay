@@ -773,3 +773,8 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   « Avant » / « Après » de l'ordre des photos. Restent : l'indicateur départ →
   arrivée des randonnées (sens, pas décoration) et l'aide Markdown de l'admin
   (« `**gras**` → gras », explication de syntaxe).
+- **AC-01-20** (PO 2026-10-15, « optimiser ces cards, réduire leur taille ») : sur
+  `/seminaires`, les 4 cartes de services (chalet, espace de réunion, repas,
+  activités) n'ont plus de hauteur minimale imposée et le titre suit l'icône
+  (plus de titre poussé en bas de carte) ; padding resserré (20 px dès 761 px).
+  Les cartes d'une même rangée gardent la même hauteur (grille). Contenu inchangé.
