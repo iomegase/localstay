@@ -370,12 +370,9 @@ export default async function SeminarsPage() {
                     className="
                       mb-0
                       mt-3
-                      text-[11px]
-                      leading-[1.5]
+                      text-[13px]
+                      leading-[1.55]
                       text-slate-500
-
-                      min-[761px]:text-[11.5px]
-                      min-[761px]:leading-[1.6]
                     "
                   >
                     {copy}
