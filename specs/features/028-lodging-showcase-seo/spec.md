@@ -1211,3 +1211,6 @@ Constat PO : « enlever cette catégorie idiote ».
   « Questions fréquentes » (remplace « Bon à savoir »). La carte Mapbox se
   redimensionne avec son cadre (plus de bande blanche dans la colonne étirée).
   Pastille des icônes d'équipement en `bg-slate-100` (au lieu du rose pâle).
+- **AC-02-16** (PO 2026-10-15) : dans la FAQ de la fiche logement, la réponse
+  d'un accordéon ouvert occupe toute la largeur de la carte (sous le bouton
+  fermer, sans marge droite) et est justifiée, avec césure automatique (`lang="fr"`).

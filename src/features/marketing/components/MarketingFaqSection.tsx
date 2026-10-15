@@ -68,8 +68,9 @@ export function MarketingFaqSection({
                 </span>
               </summary>
 
-              <div className="px-5 pb-6 pr-16 sm:px-6 sm:pb-7 sm:pr-20">
-                <p className="max-w-[600px] text-[13px] leading-7 text-slate-500">
+              {/* PO 2026-10-15 (031 AC-01-22) : réponse sur toute la largeur, justifiée. */}
+              <div className="px-5 pb-6 sm:px-6 sm:pb-7">
+                <p className="hyphens-auto text-justify text-[13px] leading-7 text-slate-500">
                   {item.answer}
                 </p>
               </div>

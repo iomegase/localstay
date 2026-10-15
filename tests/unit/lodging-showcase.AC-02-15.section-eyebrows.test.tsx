@@ -40,3 +40,18 @@ describe('028 AC-02-15 — eyebrows des sections de la fiche logement', () => {
     expect(screen.getByRole('listitem').querySelector('span')).toHaveClass('bg-slate-100')
   })
 })
+
+describe('028 AC-02-16 / 031 AC-01-22 — réponses de FAQ pleine largeur et justifiées', () => {
+  it('fiche logement : pas de marge droite, texte justifié avec césure', () => {
+    render(<LodgingFaq items={[{ question: 'Q ?', answer: 'Une réponse.' }]} />)
+    const answer = screen.getByTestId('lodging-faq-answer')
+    expect(answer).toHaveClass('text-justify', 'hyphens-auto', '[&_p]:text-justify')
+    expect(answer.className).not.toMatch(/(^|\s)(sm:)?pr-\d+/)
+  })
+
+  it('FAQ marketing : même règle', () => {
+    const source = readFileSync(join(process.cwd(), 'src/features/marketing/components/MarketingFaqSection.tsx'), 'utf8')
+    expect(source).toContain('hyphens-auto text-justify')
+    expect(source).not.toMatch(/pr-16|sm:pr-20|max-w-\[600px\]/)
+  })
+})

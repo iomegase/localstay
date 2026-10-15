@@ -30,10 +30,10 @@ function FaqColumn({ items, openId, onToggle }: { items: FaqItem[]; openId: stri
               <span className="relative block size-4 transition-transform duration-300 before:absolute before:left-1/2 before:top-1/2 before:h-[1.5px] before:w-4 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:bg-slate-500 before:content-[''] after:absolute after:left-1/2 after:top-1/2 after:h-4 after:w-[1.5px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:bg-slate-500 after:content-[''] group-open:rotate-45 group-open:before:bg-white group-open:after:bg-white" />
             </span>
           </summary>
-          {/* Spec 086 AC-02 : réponses en markdown (gras, listes, liens). */}
+          {/* Spec 086 AC-02 : réponses en markdown (gras, listes, liens). 028 AC-02-16 : pleine largeur, justifiées. */}
           <div
             data-testid="lodging-faq-answer"
-            className="px-5 pb-6 pr-16 text-[13px] leading-7 text-slate-500 sm:px-6 sm:pb-7 sm:pr-20 [&_li]:text-[13px] [&_li]:text-slate-500 [&_p]:text-left [&_p]:text-[13px] [&_p]:leading-7 [&_p]:text-slate-500 [&_strong]:text-slate-800"
+            className="hyphens-auto px-5 pb-6 text-justify text-[13px] leading-7 text-slate-500 sm:px-6 sm:pb-7 [&_li]:text-[13px] [&_li]:text-slate-500 [&_p]:text-justify [&_p]:text-[13px] [&_p]:leading-7 [&_p]:text-slate-500 [&_strong]:text-slate-800"
           >
             <MarkdownText source={item.answer} breaks />
           </div>

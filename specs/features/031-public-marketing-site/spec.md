@@ -781,3 +781,6 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
 - **AC-01-21** (PO 2026-10-15) : dans ces cartes, l'icône (pastille 36 px) et le
   titre sont sur une même ligne, en deux colonnes ; titre 13 px (15 px dès 761 px),
   texte 13 px à toutes les largeurs (ajustement PO du 2026-10-15).
+- **AC-01-22** (PO 2026-10-15) : même règle pour la FAQ marketing partagée
+  (`MarketingFaqSection` : home, landings, séminaires) : réponse pleine largeur,
+  justifiée, avec césure automatique.
