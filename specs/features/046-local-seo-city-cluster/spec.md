@@ -510,3 +510,14 @@ JSON-LD. Remplace les points contraires de AC-03-06, AC-03-07 et AC-03-08.
   (secteurs de la commune comme points de départ), `process_title` + 3 étapes
   (réserver, recevoir le guide voyageur, une conciergerie sur place) et 3
   highlights communs à tous les logements.
+
+### Ajustements PO du 2026-10-15 (bis) — landing locations allégée
+
+- **AC-03-15** : le CTA hero `Voir les logements` est retiré (la liste est juste
+  en dessous) : seul `Poser une question` reste dans le hero. La section
+  `#logements` passe sur fond blanc et n'affiche plus `section_copy` au-dessus des
+  cartes (l'état vide AC-03-02 reste inchangé). Les cartes logement n'affichent
+  plus la description courte : eyebrow type de bien, titre, grille 2×2 et
+  `Voir les disponibilités`. Le sous-titre `hero_title` de Saint-Gervais-les-Bains,
+  jugé redondant, est retiré (données : `hero_title` = `h1`, donc non rendu).
+  Remplace les points contraires de AC-03-07, AC-03-09 et AC-03-14.

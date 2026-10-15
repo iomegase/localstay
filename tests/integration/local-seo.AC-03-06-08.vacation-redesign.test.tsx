@@ -152,9 +152,9 @@ describe('046 AC-03-08 — editorial sections', () => {
 })
 
 describe('046 AC-03-09 / AC-03-13 — booking-oriented CTAs', () => {
-  it('AC-03-09: shows « Voir les logements » and « Poser une question » in the hero', () => {
+  it('AC-03-09 / AC-03-15: keeps only « Poser une question » in the hero', () => {
     render(<LocalVacationRentalLanding landing={landing} lodgings={[lodging, apartment]} />)
-    expect(screen.getByRole('link', { name: 'Voir les logements' })).toHaveAttribute('href', '#logements')
+    expect(screen.queryByRole('link', { name: 'Voir les logements' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Poser une question' }))
     const dialog = screen.getByRole('dialog', { name: 'Nous écrire' })
     expect(within(dialog).getByRole('form', { name: 'Message voyageur' })).toBeInTheDocument()
@@ -169,5 +169,17 @@ describe('046 AC-03-09 / AC-03-13 — booking-oriented CTAs', () => {
     const block = screen.getByRole('region', { name: 'Une question sur le logement ?' })
     fireEvent.click(within(block).getByRole('button', { name: 'Nous écrire' }))
     expect(screen.getByRole('form', { name: 'Message voyageur' })).toBeInTheDocument()
+  })
+})
+
+describe('046 AC-03-15 — landing allégée', () => {
+  it('renders the listing on white, without intro copy nor card descriptions', () => {
+    const page = { ...landing, page: { ...landing.page, section_copy: 'Texte d’introduction à ne plus afficher.' } }
+    render(<LocalVacationRentalLanding landing={page} lodgings={[lodging]} />)
+    const section = screen.getByRole('region', { name: /Notre accompagnement|Nos logements/ })
+    expect(section).toHaveClass('bg-white')
+    expect(section).not.toHaveClass('bg-slate-50')
+    expect(screen.queryByText('Texte d’introduction à ne plus afficher.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Un chalet chaleureux face aux montagnes.')).not.toBeInTheDocument()
   })
 })

@@ -25,7 +25,7 @@ const lightOutlineButtonClass = 'inline-flex min-h-11 items-center justify-cente
 // Ligne de faits affichée à partir de 3 logements publiés (spec 046 AC-03-10).
 const FACTS_MIN_LODGINGS = 3
 
-// Landing locations (spec 046 AC-03-06 à AC-03-08, orientée réservation AC-03-09 à AC-03-13).
+// Landing locations (spec 046 AC-03-06 à AC-03-08, orientée réservation AC-03-09 à AC-03-15).
 export function LocalVacationRentalLanding({
   landing,
   lodgings,
@@ -62,9 +62,6 @@ export function LocalVacationRentalLanding({
           )}
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            {lodgings.length > 0 && (
-              <a className={marketingPrimaryButtonClass} href="#logements">Voir les logements</a>
-            )}
             <HelpContactDialog
               label="Poser une question"
               profile="traveler"
@@ -83,7 +80,7 @@ export function LocalVacationRentalLanding({
         <section
           id="logements"
           aria-labelledby="logements-title"
-          className="scroll-mt-6 bg-slate-50 py-14 sm:py-20"
+          className="scroll-mt-6 bg-white pb-14 pt-2 sm:pb-20 sm:pt-4"
         >
           <div className={marketingContainerClass}>
             {lodgings.length > 0 ? (
@@ -93,9 +90,7 @@ export function LocalVacationRentalLanding({
                     <h2 id="logements-title" className="text-[28px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[36px]">
                       {listingTitle}
                     </h2>
-                    {content.section_copy !== content.hero_copy && (
-                      <p className="mt-3 max-w-[640px] text-[15px] leading-7 text-slate-500">{content.section_copy}</p>
-                    )}
+                    {/* AC-03-15 : pas de texte d'introduction au-dessus des cartes. */}
                   </div>
 
                 </div>

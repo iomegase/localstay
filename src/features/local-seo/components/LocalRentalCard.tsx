@@ -1,4 +1,3 @@
-import { shortDescriptionText } from '@/features/lodging-showcase/lib/short-description'
 import type { MarketingLodgingCard } from '@/features/lodging-showcase/queries/public-lodgings'
 import { PropertyStat } from '@/features/marketing/components/MarketingPropertyCard'
 import Image from 'next/image'
@@ -7,7 +6,7 @@ import { BedDouble, Scan, ShowerHead, Users } from 'lucide-react'
 
 // Carte dédiée à la landing locations, style MarketingPropertyCard (spec 046 AC-03-07) :
 // l'eyebrow porte le type de bien, la commune n'est pas répétée. Pied de carte
-// `Voir les disponibilités` vers la fiche (AC-03-11), jamais de CTA Airbnb.
+// `Voir les disponibilités` vers la fiche (AC-03-11), jamais de CTA Airbnb ni description (AC-03-15).
 export function LocalRentalCard({
   lodging,
   priority = false,
@@ -43,10 +42,6 @@ export function LocalRentalCard({
             {lodging.title}
           </Link>
         </h3>
-        <p className="mt-3 line-clamp-3 text-xs leading-5 text-slate-500">
-          {shortDescriptionText(lodging.short_description)}
-        </p>
-
         <dl className="mb-6 mt-5 grid grid-cols-2 border-t border-slate-200 text-slate-800">
           <PropertyStat icon={Scan} label="Surface" dense value={lodging.surface_m2 ? `${lodging.surface_m2} m²` : '—'} />
           <PropertyStat icon={Users} label="Voyageurs" dense value={String(lodging.max_guests)} borderLeft />
