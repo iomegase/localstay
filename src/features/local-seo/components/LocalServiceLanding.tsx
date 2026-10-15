@@ -21,6 +21,7 @@ import { MarketingFaqSection } from '@/features/marketing/components/MarketingFa
 import { SeminarLeadDialog } from '@/features/contact-messages/components/SeminarLeadDialog'
 import { SeminarFormats } from '@/features/marketing/components/SeminarFormats'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
+import { CityTitle } from '../lib/city-title'
 
 function PrimaryCta({
   content,
@@ -113,7 +114,8 @@ export function LocalServiceLanding({
                   lg:text-[64px]
                 "
               >
-                {content.h1}
+                {/* Spec 046 AC-02-05 : deux lignes, la commune en serif italique 34 px. */}
+                <CityTitle title={content.h1} testId="service-title-city" />
               </h1>
             </div>
 

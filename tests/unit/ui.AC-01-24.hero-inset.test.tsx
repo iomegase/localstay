@@ -43,3 +43,14 @@ describe('046 AC-03-16 — titre de la landing locations sur deux lignes', () =>
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Nos locations de vacances')
   })
 })
+
+describe('046 AC-02-05 — titre des landings séminaire sur deux lignes', () => {
+  it('reuses the shared city title split', async () => {
+    const { splitCityTitle } = await import('@/features/local-seo/lib/city-title')
+    expect(splitCityTitle('Séminaire à Saint-Gervais-les-Bains')).toEqual(['Séminaire à', 'Saint-Gervais-les-Bains'])
+    expect(splitCityTitle('Locations de vacances à Saint-Nicolas-de-Véroce')).toEqual(['Locations de vacances à', 'Saint-Nicolas-de-Véroce'])
+    expect(splitCityTitle('Séminaires')).toEqual([null, 'Séminaires'])
+    const source = readFileSync(join(process.cwd(), 'src/features/local-seo/components/LocalServiceLanding.tsx'), 'utf8')
+    expect(source).toContain('<CityTitle title={content.h1} testId="service-title-city" />')
+  })
+})

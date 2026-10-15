@@ -18,17 +18,11 @@ import {
 import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-paths'
 import { vacationFacts } from '../lib/vacation-facts'
 import type { PublicLocalLandingDto } from '../types/landing-pages'
+import { CityTitle } from '../lib/city-title'
 import { LocalRentalCard } from './LocalRentalCard'
 
 const secondaryButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-700 transition-colors hover:border-pink-600 hover:text-pink-600'
 const lightOutlineButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-white/40 px-5 text-xs font-bold text-white transition-colors hover:border-pink-300 hover:text-pink-300'
-
-/** « Locations de vacances à [Commune] » → [« Locations de vacances à », « [Commune] »] ; sans « à », pas de coupe. */
-function splitCityTitle(title: string): [string | null, string] {
-  const index = title.lastIndexOf(' à ')
-  if (index === -1) return [null, title]
-  return [title.slice(0, index + 2), title.slice(index + 3)]
-}
 
 // Ligne de faits affichée à partir de 3 logements publiés (spec 046 AC-03-10).
 const FACTS_MIN_LODGINGS = 3
@@ -42,7 +36,6 @@ export function LocalVacationRentalLanding({
   lodgings: MarketingLodgingCard[]
 }) {
   const content = landing.page
-  const [titleLead, titleCity] = splitCityTitle(content.h1)
   const facts = lodgings.length >= FACTS_MIN_LODGINGS ? vacationFacts(lodgings) : null
   const lodgingOptions = lodgings.map(lodging => lodging.title)
   const listingTitle = content.section_title !== content.h1
@@ -57,15 +50,8 @@ export function LocalVacationRentalLanding({
           <div data-testid="vacation-hero" className={marketingHeroInsetClass}>
             <MarketingEyebrow>{content.eyebrow}</MarketingEyebrow>
             <h1 className="max-w-[820px] text-balance text-[38px] font-bold leading-[1.02] tracking-[-0.05em] text-slate-900 sm:text-[52px]">
-              {titleLead ? (
-                <>
-                  {/* Spec 046 AC-03-16 : deux lignes, la commune en serif italique 34 px. */}
-                  <span className="block">{titleLead}</span>{' '}
-                  <span data-testid="vacation-title-city" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
-                    {titleCity}
-                  </span>
-                </>
-              ) : content.h1}
+              {/* Spec 046 AC-03-16 : deux lignes, la commune en serif italique 34 px. */}
+              <CityTitle title={content.h1} testId="vacation-title-city" />
             </h1>
             {content.hero_title !== content.h1 && (
               <p className="mt-5 max-w-[720px] text-[20px] font-semibold leading-snug tracking-[-0.025em] text-slate-800 sm:text-[22px]">

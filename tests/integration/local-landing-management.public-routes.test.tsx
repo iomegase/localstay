@@ -77,7 +77,8 @@ describe('048 persisted public local landings', () => {
     landing.page.hero_title = landing.page.h1
     jest.mocked(getPublishedLocalLanding).mockResolvedValue(landing)
     render(await seminar.default(props))
-    expect(screen.getAllByText(landing.page.h1)).toHaveLength(1)
+    // Le H1 est sur deux lignes (spec 046 AC-02-05) : on compte les titres par nom accessible.
+    expect(screen.getAllByRole('heading', { name: landing.page.h1 })).toHaveLength(1)
   })
 
   it.each(routes)('uses exact saved metadata and canonical for $intent', async ({ module, intent, segment }) => {
