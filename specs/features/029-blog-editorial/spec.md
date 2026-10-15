@@ -818,3 +818,8 @@ Aucune question ouverte pour cet amendement.
   sont en `pink-600`, et `pink-200` au survol (choix PO), y compris dans un passage
   en gras. Le lien de l'article « chalet-remy-seminaire-codir-mont-blanc » pointe
   vers la landing `/seminaires/saint-gervais-les-bains` (choix PO ; données : ancien lien cassé `www.mystay.city/seminaire`).
+
+- **AC-01-18** (PO 2026-10-15) : sur `/journal`, le H1 tient sur deux lignes :
+  « Inspirations... » puis « et conseils pour vos séjours » en serif italique 34 px.
+  Avec le filtre `?city=`, « Journal » puis « [Commune] » sur le même modèle. Texte
+  accessible inchangé.

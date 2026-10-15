@@ -34,6 +34,9 @@ describe('029 blog public list', () => {
     render(await BlogListPage({ searchParams: Promise.resolve({}) }))
 
     expect(screen.getByRole('heading', { name: /Inspirations.*conseils pour vos séjours/i })).toBeInTheDocument()
+    // AC-01-18 : seconde ligne en serif italique 34 px.
+    expect(screen.getByTestId('journal-title-tail')).toHaveTextContent(/^et conseils pour vos séjours$/)
+    expect(screen.getByTestId('journal-title-tail')).toHaveClass('block', 'font-serif', 'italic', 'text-[34px]')
     expect(screen.getByRole('link', { name: /Un week-end à Saint-Gervais/i })).toHaveAttribute(
       'href',
       '/journal/week-end-saint-gervais',

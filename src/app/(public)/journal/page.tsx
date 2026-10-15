@@ -50,7 +50,10 @@ export default async function BlogListPage({ searchParams }: PageProps) {
     return null
   }
 
-  const title = result?.city ? `Journal ${result.city.name}` : 'Inspirations... et conseils pour vos séjours'
+  // Spec 029 AC-01-18 : titre sur deux lignes, la seconde en serif italique 34 px.
+  const [titleLead, titleTail] = result?.city
+    ? ['Journal', result.city.name]
+    : ['Inspirations...', 'et conseils pour vos séjours']
   const allItems = result?.items ?? []
   const parsedCategory = categoryParamSchema.safeParse(params.category)
   const activeCategory = parsedCategory.success ? parsedCategory.data : null
@@ -64,7 +67,10 @@ export default async function BlogListPage({ searchParams }: PageProps) {
           <div data-testid="journal-hero" className={marketingHeroInsetClass}>
             <MarketingEyebrow>Journal &amp; Guides</MarketingEyebrow>
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.055em] text-slate-900 sm:text-6xl">
-              {title}
+              <span className="block">{titleLead}</span>{' '}
+              <span data-testid="journal-title-tail" className="mt-3 block font-serif text-[34px] font-normal italic leading-[1.1] tracking-[-0.025em]">
+                {titleTail}
+              </span>
             </h1>
             <p className="mt-6 max-w-2xl text-[15px] leading-7 text-slate-500">
               Sélectionnez une catégorie ou parcourez nos articles pour optimiser vos séjours et votre expérience.
