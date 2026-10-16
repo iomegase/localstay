@@ -52,7 +52,7 @@ function categoryOf(roomType: string, label: string): RoomCategoryId | null {
 
 /**
  * Regroupe les photos par pièce (comme `groupRoomPhotos`) puis range les cartes
- * par catégorie ; à l'intérieur d'une catégorie, l'ordre des photos est conservé.
+ * par catégorie ; à l'intérieur d'une catégorie, tri par nom (numérique, AC-02-27).
  */
 export function categorizeRoomGroups(photos: Photo[]): CategorizedRoomGroup[] {
   const typeByLabel = new Map<string, string>()
@@ -66,5 +66,9 @@ export function categorizeRoomGroups(photos: Photo[]): CategorizedRoomGroup[] {
     const category = categoryOf(typeByLabel.get(group.label) ?? '', group.label)
     return category ? [{ ...group, category }] : []
   })
-  return ROOM_CATEGORIES.flatMap(category => groups.filter(group => group.category === category.id))
+  // Spec 028 AC-02-27 (PO 2026-10-16) : dans une catégorie, cartes triées par nom avec
+  // tri numérique (Chambre 1, 2… 10), au lieu de l'ordre des photos.
+  const byName = (a: CategorizedRoomGroup, b: CategorizedRoomGroup) =>
+    a.label.localeCompare(b.label, 'fr', { numeric: true, sensitivity: 'base' })
+  return ROOM_CATEGORIES.flatMap(category => groups.filter(group => group.category === category.id).sort(byName))
 }

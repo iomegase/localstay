@@ -1258,3 +1258,7 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-26** (PO 2026-10-16) : le sélecteur de catégorie des photos liste les chambres,
   puis les salles de bains, puis toutes les autres catégories par ordre alphabétique ;
   « Autre » reste en dernier. Owner et Admin.
+- **AC-02-27** (PO 2026-10-16) : dans la grille publique des pièces, les cartes d'une même
+  catégorie sont triées par nom, avec tri numérique (Chambre 1, 2… 10 ; Salle de bain 1, 2…),
+  au lieu de l'ordre des photos ; l'ordre des catégories (pills) est inchangé. Remplace
+  « l'ordre des premières photos (AC-05-16) est conservé » de AC-02-11.

@@ -47,18 +47,18 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
     pills.forEach(pill => expect(pill).toHaveClass('rounded-full'))
   })
 
-  it('orders every card by category under Tout, keeping photo order inside a category', () => {
+  it('orders every card by category under Tout, by name inside a category (AC-02-27)', () => {
     render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     expect(cardLabels()).toEqual([
-      'Salon', 'Salle à manger',
+      'Salle à manger', 'Salon',
       'Cuisine',
       'Chambre 1', 'Chambre 2',
       'Salle de bain 1',
       'Jacuzzi', 'Sauna',
       'Cinéma',
       'Entrée', 'Skiroom',
-      'Terrasse', 'Extérieur',
+      'Extérieur', 'Terrasse',
     ])
   })
 
@@ -71,7 +71,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
     expect(cardLabels()).toEqual(['Chambre 1', 'Chambre 2'])
 
     fireEvent.click(screen.getByRole('button', { name: 'Salon' }))
-    expect(cardLabels()).toEqual(['Salon', 'Salle à manger'])
+    expect(cardLabels()).toEqual(['Salle à manger', 'Salon'])
 
     fireEvent.click(screen.getByRole('button', { name: 'Bien-être' }))
     expect(cardLabels()).toEqual(['Jacuzzi', 'Sauna'])
@@ -95,7 +95,7 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
   it('puts the room name top-right and the dots with the photo count bottom-right, in a dark pill', () => {
     render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
-    const salon = screen.getAllByTestId('lodging-room-card')[0]
+    const salon = screen.getAllByTestId('lodging-room-card').find(card => within(card).getByTestId('lodging-room-label').textContent === 'Salon')!
     expect(within(salon).getByTestId('lodging-room-label')).toHaveClass('top-2', 'right-2')
     const dots = within(salon).getByTestId('lodging-room-dots')
     // AC-02-20 : pastille claire, plus d'overlay sombre.
@@ -133,5 +133,26 @@ describe('028 AC-02-22 — photos « Vue » rangées dans Extérieur', () => {
       { id: 'v1', url: 'https://cdn.test/v1.jpg', alt: 'Vue', room_type: 'exterior', room_label: 'Vue', sort_order: 0, is_cover: false },
     ])
     expect(groups).toEqual([expect.objectContaining({ label: 'Vue', category: 'exterior' })])
+  })
+})
+
+describe('028 AC-02-25 — Balcon dans Extérieur, Salle de réunion dans « Réunion »', () => {
+  it('files the new categories under the right pills', async () => {
+    const { categorizeRoomGroups } = await import('@/features/lodging-showcase/lib/room-categories')
+    const groups = categorizeRoomGroups([
+      { id: 'b1', url: 'https://cdn.test/b1.jpg', alt: 'Balcon', room_type: 'exterior', room_label: 'Balcon', sort_order: 0, is_cover: false },
+      { id: 'm1', url: 'https://cdn.test/m1.jpg', alt: 'Réunion', room_type: 'common_area', room_label: 'Salle de réunion', sort_order: 1, is_cover: false },
+      { id: 'r1', url: 'https://cdn.test/r1.jpg', alt: 'Bar', room_type: 'common_area', room_label: 'Bar', sort_order: 2, is_cover: false },
+    ])
+    expect(groups.map(group => [group.label, group.category])).toEqual([['Bar', 'leisure'], ['Salle de réunion', 'meeting'], ['Balcon', 'exterior']])
+  })
+})
+
+describe('028 AC-02-27 — tri numérique des cartes dans une catégorie', () => {
+  it('orders numbered rooms 1, 2… 10 regardless of photo order', () => {
+    const rooms = [9, 2, 10, 1, 3].map((number, index) => photo(`c${number}`, 'bedroom', `Chambre ${number}`, index))
+    render(<LodgingRoomsGrid lodgingTitle="Chalet" photos={[photo('k', 'kitchen', null, 99), ...rooms]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Chambres' }))
+    expect(cardLabels()).toEqual(['Chambre 1', 'Chambre 2', 'Chambre 3', 'Chambre 9', 'Chambre 10'])
   })
 })

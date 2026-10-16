@@ -2114,6 +2114,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
+| AC-02-27 | Grille des pièces : cartes triées par nom (numérique) dans chaque catégorie — PO 2026-10-16 | `src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |
 | AC-02-26 | Catégories de photos : chambres, salles de bains, puis ordre alphabétique (« Autre » en dernier) — PO 2026-10-16 | `src/features/lodging-showcase/lib/photo-categories.ts` | `tests/unit/lodging-showcase/photo-categories.test.ts` | ✅ done |
 | AC-02-25 | Catégories de photos « Balcon » (Extérieur), « Salle de réunion » (pill « Réunion ») et « Bar » (Loisirs) — PO 2026-10-16 | `src/features/lodging-showcase/lib/photo-categories.ts`<br>`src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase/photo-categories.test.ts`<br>`tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |
 | AC-02-24 | Fiche : titre « D’autres adresses pour votre prochain séjour. » sur une ligne dès 1024 px — PO 2026-10-16 | `src/features/lodging-showcase/components/SuggestedLodgings.tsx` | `tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |
