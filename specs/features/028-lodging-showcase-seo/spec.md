@@ -1240,3 +1240,9 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-22** (PO 2026-10-16) : nouvelle catégorie de photo « Vue » (`room_type = exterior`,
   `room_label = Vue`) pour les images qui donnent sur l'extérieur ; carte « Vue » rangée
   sous le filtre « Extérieur » de la grille publique. Owner et Admin (formulaire partagé).
+- **AC-02-23** (PO 2026-10-16, « le lien de réservation Airbnb est renseigné mais ne figure
+  pas sur le client ») : quand un lien de réservation existe, la carte « Votre séjour » de
+  la fiche affiche « Réserver sur Airbnb » (ou le libellé de la plateforme) en bouton
+  principal, avec « Contacter » en bouton secondaire en dessous ; le bloc « Réserver ce
+  logement » de bas de page est conservé. Libellés accentués : « Réserver sur Airbnb »,
+  « Réserver sur Booking », « Ouvrir la réservation ».

@@ -189,13 +189,23 @@ export default async function LodgingDetailPage({ params }: Props) {
                 {detail.public_area_label ?? detail.city_name}
               </p>
 
+              {/* Spec 028 AC-02-23 : réservation visible dès la carte « Votre séjour ». */}
+              <ExternalBookingCta
+                externalBookingUrl={detail.external_booking_url}
+                platform={detail.external_booking_platform}
+                citySlug={citySlug}
+                lodgingId={detail.id}
+                className={`${marketingPrimaryButtonClass} mt-7 w-full`}
+              />
               {detail.public_contact_enabled && (
                 <LodgingInquiryDialog
                   lodgingSlug={detail.slug}
                   lodgingTitle={detail.title}
                   analyticsCitySlug={citySlug}
                   analyticsLodgingId={detail.id}
-                  className={`${marketingPrimaryButtonClass} mt-7 w-full`}
+                  className={detail.external_booking_url
+                    ? 'mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-slate-300 bg-white px-5 text-xs font-bold text-slate-800 transition-colors hover:border-pink-600 hover:text-pink-600'
+                    : `${marketingPrimaryButtonClass} mt-7 w-full`}
                 />
               )}
             </aside>

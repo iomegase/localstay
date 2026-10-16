@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 
 jest.mock('@/shared/components/MarkdownText', () => ({
@@ -324,7 +324,9 @@ describe('lodging showcase public pages', () => {
     }
     expect(screen.getByRole('button', { name: 'Confier mon logement' })).toBeInTheDocument()
 
-    for (const bookingLink of screen.getAllByRole('link', { name: 'Reserver sur Airbnb' })) {
+    // 028 AC-02-23 : la réservation est aussi dans la carte « Votre séjour ».
+    expect(within(screen.getByTestId('lodging-stay-card')).getByRole('link', { name: 'Réserver sur Airbnb' })).toHaveAttribute('target', '_blank')
+    for (const bookingLink of screen.getAllByRole('link', { name: 'Réserver sur Airbnb' })) {
       expect(bookingLink).toHaveAttribute('data-analytics-event', 'lodging_external_booking_click')
       expect(bookingLink).toHaveAttribute('data-analytics-city-slug', 'annecy')
       expect(bookingLink).toHaveAttribute('data-analytics-lodging-id', 'profile-1')
@@ -430,7 +432,7 @@ describe('lodging showcase public pages', () => {
     })
     render(jsx)
 
-    expect(screen.queryByText('Reserver sur Airbnb')).not.toBeInTheDocument()
+    expect(screen.queryByText('Réserver sur Airbnb')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Contacter' })).not.toBeInTheDocument()
     // Le formulaire propriétaire ne dépend pas du contact logement.
     expect(screen.getByRole('button', { name: 'Confier mon logement' })).toBeInTheDocument()
