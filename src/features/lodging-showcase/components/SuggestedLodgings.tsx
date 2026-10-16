@@ -7,9 +7,10 @@ export function SuggestedLodgings({ lodgings }: { lodgings: SuggestedLodging[] }
 
   return (
     <section aria-labelledby="suggested-lodgings-heading" className="min-w-0">
-      <div className="mb-[34px] max-w-[760px] sm:mb-12">
+      <div className="mb-[34px] max-w-[760px] sm:mb-12 lg:max-w-none">
         <MarketingEyebrow>À découvrir aussi</MarketingEyebrow>
-        <h2 id="suggested-lodgings-heading" className="m-0 max-w-[720px] text-[clamp(34px,4vw,40px)] font-bold leading-[1.02] tracking-[-0.05em] text-slate-800">
+        {/* Spec 028 AC-02-24 : titre sur une ligne dès 1024 px. */}
+        <h2 id="suggested-lodgings-heading" className="m-0 max-w-[720px] text-[clamp(34px,4vw,40px)] font-bold leading-[1.02] tracking-[-0.05em] text-slate-800 lg:max-w-none lg:whitespace-nowrap">
           D’autres adresses pour votre prochain séjour.
         </h2>
         <p className="mt-5 max-w-[660px] text-sm leading-[1.72] text-slate-500">

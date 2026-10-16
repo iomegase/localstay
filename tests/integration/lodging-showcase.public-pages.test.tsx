@@ -222,6 +222,8 @@ describe('lodging showcase public pages', () => {
     render(await LodgingDetailPage({ params: Promise.resolve({ 'lodging-slug': 'chalet-hygge' }) }))
     expect(listSuggestedLodgings).toHaveBeenCalledWith(detailResult.id, detailResult.city_slug)
     expect(screen.getByRole('region', { name: 'D’autres adresses pour votre prochain séjour.' })).toBeInTheDocument()
+    // 028 AC-02-24 : titre sur une ligne dès lg.
+    expect(screen.getByRole('heading', { name: 'D’autres adresses pour votre prochain séjour.' })).toHaveClass('lg:max-w-none', 'lg:whitespace-nowrap')
     expect(screen.getByRole('link', { name: 'Découvrir Chalet des Cimes' })).toHaveAttribute('href', '/logements/chalet-des-cimes')
     // Audit C-13 : la photo passe par l'optimiseur d'images Next.
     expect(screen.getByRole('img', { name: 'Chalet des Cimes' })).toHaveAttribute(

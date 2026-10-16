@@ -1246,3 +1246,6 @@ Constat PO : « enlever cette catégorie idiote ».
   principal, avec « Contacter » en bouton secondaire en dessous ; le bloc « Réserver ce
   logement » de bas de page est conservé. Libellés accentués : « Réserver sur Airbnb »,
   « Réserver sur Booking », « Ouvrir la réservation ».
+- **AC-02-24** (PO 2026-10-16) : sur la fiche logement, le titre « D'autres adresses pour
+  votre prochain séjour. » (bloc « À découvrir aussi ») tient sur une ligne dès 1024 px
+  (taille 40 px inchangée, largeur du bloc libérée) ; retour à la ligne normal en dessous.
