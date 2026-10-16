@@ -1269,3 +1269,8 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-29** (PO 2026-10-16) : dans le bandeau des caractéristiques, un équipement présent
   (Piscine, Hammam, Jacuzzi, Cinéma) s'affiche par son icône et son nom, sans valeur « Oui »
   (`dt` « Équipement » réservé aux lecteurs d'écran).
+- **AC-02-30** (PO 2026-10-16) : la grille des pièces n'affiche d'abord que 2 rangées
+  (4 vignettes sur mobile, 6 dès `sm`, 10 dès `lg`), puis un bouton « Voir toutes les
+  pièces (n) » qui déplie la grille (« Réduire » pour replier, `aria-expanded`). Le bouton
+  n'apparaît qu'aux largeurs où des vignettes sont masquées ; changer de filtre replie la
+  grille. Mode compact (aperçu démo) inchangé.

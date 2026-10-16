@@ -26,6 +26,7 @@ export function LodgingRoomsGrid({
   compact?: boolean
 }) {
   const [filter, setFilter] = useState<RoomCategoryId | 'all'>('all')
+  const [expanded, setExpanded] = useState(false)
   const groups = categorizeRoomGroups(photos)
   if (groups.length === 0) return null
 
@@ -60,7 +61,7 @@ export function LodgingRoomsGrid({
                 key={category.id}
                 type="button"
                 aria-pressed={active}
-                onClick={() => setFilter(category.id)}
+                onClick={() => { setFilter(category.id); setExpanded(false) }}
                 className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium transition-colors ${
                   active
                     ? 'border-slate-300 bg-slate-100 text-slate-800'
@@ -73,13 +74,47 @@ export function LodgingRoomsGrid({
           })}
         </div>
       )}
-      <div className={compact ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
-        {visible.map(group => (
-          <RoomGroupCard key={group.label} group={group} compact={compact} lodgingTitle={lodgingTitle} />
+      <div id="lodging-rooms-cards" data-testid="lodging-rooms-cards" className={compact ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'}>
+        {visible.map((group, index) => (
+          <div key={group.label} className={compact || expanded ? undefined : collapsedVisibility(index)}>
+            <RoomGroupCard group={group} compact={compact} lodgingTitle={lodgingTitle} />
+          </div>
         ))}
       </div>
+      {!compact && overflowButtonVisibility(visible.length) !== null && (
+        <div className={`flex justify-center ${expanded ? '' : overflowButtonVisibility(visible.length)}`}>
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls="lodging-rooms-cards"
+            onClick={() => setExpanded(value => !value)}
+            className="mt-2 inline-flex min-h-11 items-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-800 transition-colors hover:border-pink-600 hover:text-pink-600"
+          >
+            {expanded ? 'Réduire' : `Voir toutes les pièces (${visible.length})`}
+          </button>
+        </div>
+      )}
     </section>
   )
+}
+
+/**
+ * Spec 028 AC-02-30 : 2 rangées visibles avant « Voir toutes les pièces » — 4 cartes
+ * (2 colonnes), 6 dès sm (3 colonnes), 10 dès lg (5 colonnes).
+ */
+function collapsedVisibility(index: number): string | undefined {
+  if (index < 4) return undefined
+  if (index < 6) return 'hidden sm:block'
+  if (index < 10) return 'hidden lg:block'
+  return 'hidden'
+}
+
+/** Le bouton n'apparaît qu'aux largeurs où des cartes sont masquées (null : jamais). */
+function overflowButtonVisibility(count: number): string | null {
+  if (count > 10) return ''
+  if (count > 6) return 'lg:hidden'
+  if (count > 4) return 'sm:hidden'
+  return null
 }
 
 const MAX_DOTS = 5

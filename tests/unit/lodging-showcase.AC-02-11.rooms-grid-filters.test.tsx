@@ -151,3 +151,27 @@ describe('028 AC-02-27 — tri numérique des cartes dans une catégorie', () =>
     expect(cardLabels()).toEqual(['Chambre 1', 'Chambre 2', 'Chambre 3', 'Chambre 9', 'Chambre 10'])
   })
 })
+
+describe('028 AC-02-30 — 2 rangées puis « Voir toutes les pièces »', () => {
+  const many = Array.from({ length: 12 }, (_, index) => photo(`r${index}`, 'bedroom', `Chambre ${index + 1}`, index))
+  const wrappers = () => Array.from(screen.getByTestId('lodging-rooms-cards').children) as HTMLElement[]
+
+  it('hides cards beyond two rows per breakpoint and expands on click', () => {
+    render(<LodgingRoomsGrid lodgingTitle="Chalet" photos={many} />)
+    const items = wrappers()
+    expect(items[3].className).toBe('')
+    expect(items[4]).toHaveClass('hidden', 'sm:block')
+    expect(items[6]).toHaveClass('hidden', 'lg:block')
+    expect(items[10]).toHaveClass('hidden')
+    const toggle = screen.getByRole('button', { name: 'Voir toutes les pièces (12)' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    expect(wrappers().every(item => !item.className.includes('hidden'))).toBe(true)
+    expect(screen.getByRole('button', { name: 'Réduire' })).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('shows no button when everything fits in two rows', () => {
+    render(<LodgingRoomsGrid lodgingTitle="Chalet" photos={many.slice(0, 4)} />)
+    expect(screen.queryByRole('button', { name: /Voir toutes les pièces/ })).not.toBeInTheDocument()
+  })
+})
