@@ -1234,3 +1234,9 @@ Constat PO : « enlever cette catégorie idiote ».
   d'élément sombre : la pastille des points de défilement et du nombre de photos
   passe en blanc translucide (`bg-white/60`, comme l'étiquette du nom de la pièce),
   points et chiffre foncés (remplace « pill sombre translucide » de AC-02-11).
+- **AC-02-21** (PO 2026-10-16) : « Petit-déjeuner » est aussi proposé dans « Compris dans le
+  séjour » (code `breakfast_included`, distinct du service sur demande `breakfast`), pour
+  l'Owner comme pour l'Admin.
+- **AC-02-22** (PO 2026-10-16) : nouvelle catégorie de photo « Vue » (`room_type = exterior`,
+  `room_label = Vue`) pour les images qui donnent sur l'extérieur ; carte « Vue » rangée
+  sous le filtre « Extérieur » de la grille publique. Owner et Admin (formulaire partagé).

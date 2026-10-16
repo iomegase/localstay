@@ -24,6 +24,8 @@ export const AMENITY_CATALOG: AmenityCatalogItem[] = [
   { code: 'ev_charger', label: 'Borne de recharge VE', availability: 'included' },
   { code: 'pets_allowed', label: 'Animaux acceptés', availability: 'included' },
   { code: 'baby_equipment', label: 'Équipement bébé', availability: 'included' },
+  // Spec 028 AC-02-21 (PO 2026-10-16) : petit-déjeuner compris dans le séjour (distinct du service sur demande).
+  { code: 'breakfast_included', label: 'Petit-déjeuner', availability: 'included' },
   // Services (sur demande)
   { code: 'chef', label: 'Chef privé', availability: 'on_request' },
   { code: 'breakfast', label: 'Petit-déjeuner', availability: 'on_request' },

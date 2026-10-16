@@ -125,3 +125,13 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
     expect(within(card).getByTestId('lodging-room-label')).toHaveClass('rounded-full', 'bg-white/60', 'font-medium', 'text-slate-900')
   })
 })
+
+describe('028 AC-02-22 — photos « Vue » rangées dans Extérieur', () => {
+  it('shows a « Vue » card under the « Extérieur » filter', async () => {
+    const { categorizeRoomGroups } = await import('@/features/lodging-showcase/lib/room-categories')
+    const groups = categorizeRoomGroups([
+      { id: 'v1', url: 'https://cdn.test/v1.jpg', alt: 'Vue', room_type: 'exterior', room_label: 'Vue', sort_order: 0, is_cover: false },
+    ])
+    expect(groups).toEqual([expect.objectContaining({ label: 'Vue', category: 'exterior' })])
+  })
+})

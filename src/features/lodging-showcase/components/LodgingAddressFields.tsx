@@ -21,11 +21,12 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error'
  * de la fiche publique : l'adresse n'est jamais publiée ni soumise à validation.
  */
 export function LodgingAddressFields({
-  lodgingId,
+  endpoint,
   initial,
   defaultCity,
 }: {
-  lodgingId: string
+  /** `/api/dashboard/lodgings/{id}/address` (Owner) ou `/api/admin/lodgings/{id}/address` (Admin). */
+  endpoint: string
   initial: LodgingAddressValue
   defaultCity: string
 }) {
@@ -40,7 +41,7 @@ export function LodgingAddressFields({
   async function save() {
     setState('saving')
     setMessage(null)
-    const response = await fetch(`/api/dashboard/lodgings/${lodgingId}/address`, {
+    const response = await fetch(endpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

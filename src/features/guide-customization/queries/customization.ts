@@ -479,7 +479,27 @@ export async function saveLodgingAddress(
   lodgingId: string,
   parts: LodgingAddressParts,
 ): Promise<LodgingAddressParts & { lodging_address: string | null }> {
-  const lodging = await getOwnedLodgingOrThrow(ownerId, lodgingId)
+  return writeLodgingAddress(await getOwnedLodgingOrThrow(ownerId, lodgingId), parts)
+}
+
+/** Spec 080 AC-03-03 : même enregistrement par l'admin, pour n'importe quel logement. */
+export async function saveLodgingAddressAsAdmin(
+  lodgingId: string,
+  parts: LodgingAddressParts,
+): Promise<LodgingAddressParts & { lodging_address: string | null }> {
+  const lodging = await prisma.lodging.findFirst({
+    where: { id: lodgingId, deleted_at: null },
+    select: { id: true, owner_id: true, city_id: true, city: { select: { latitude: true, longitude: true } } },
+  })
+  if (!lodging) raise('NOT_FOUND', 'Logement introuvable')
+  return writeLodgingAddress(lodging, parts)
+}
+
+async function writeLodgingAddress(
+  lodging: CustomizableLodging,
+  parts: LodgingAddressParts,
+): Promise<LodgingAddressParts & { lodging_address: string | null }> {
+  const lodgingId = lodging.id
   const clean = (value: string | null) => value?.trim() || null
   const saved = {
     address_number: clean(parts.address_number),

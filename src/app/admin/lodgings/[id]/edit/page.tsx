@@ -5,6 +5,7 @@ import { getPageAdmin } from '@/features/merchant/lib/get-page-admin'
 import { LodgingShowcaseForm } from '@/features/lodging-showcase/components/LodgingShowcaseForm'
 import { getAdminLodgingShowcasePageData } from '@/features/lodging-showcase/queries/owner-public-profile'
 import { AdminKeyBoxCodeCard } from '@/features/guide-customization/components/AdminKeyBoxCodeCard'
+import { getLodgingAddressParts } from '@/features/guide-customization/queries/customization'
 import { prisma } from '@/shared/lib/prisma'
 
 interface Props { params: Promise<{ id: string }> }
@@ -32,7 +33,8 @@ export default async function AdminLodgingEditPage({ params }: Props) {
         <p className="mt-2 text-sm text-gray-500">{data.lodging.city.name} — édition de la fiche publique. Les modifications enregistrées restent dans le statut de publication actuel.</p>
       </header>
       <AdminKeyBoxCodeCard lodgingId={data.lodging.id} initialCode={customization?.key_box_code ?? null} />
-      <LodgingShowcaseForm lodgingId={data.lodging.id} initialProfile={data.profile} mode="admin" cityName={data.lodging.city.name} />
+      {/* Spec 080 AC-03-03 : l'admin saisit aussi l'adresse privée (section Caractéristiques). */}
+      <LodgingShowcaseForm lodgingId={data.lodging.id} initialProfile={data.profile} mode="admin" cityName={data.lodging.city.name} privateAddress={await getLodgingAddressParts(data.lodging.id)} />
     </div>
   )
 }

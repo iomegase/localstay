@@ -21,7 +21,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { getLodgingCustomization, saveLodgingAddress, saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
+import { getLodgingCustomization, saveLodgingAddress, saveLodgingAddressAsAdmin, saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
 
 // Spec 080 — recomposition et reprise de l'adresse.
 describe('080 — adresse structurée (requêtes)', () => {
@@ -52,6 +52,18 @@ describe('080 — adresse structurée (requêtes)', () => {
       address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains',
     })
     expect(result.lodging_address).toBe('12 rue des Alpages, 74170 Saint-Gervais-les-Bains')
+  })
+
+  it('AC-03-03 : l’admin enregistre l’adresse sans être propriétaire', async () => {
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue({ id: 'lodging-1', owner_id: 'someone-else', city_id: 'city-1', city: { latitude: 45.89, longitude: 6.71 } } as never)
+    const result = await saveLodgingAddressAsAdmin('lodging-1', { address_number: '3', address_street: 'route du Bettex', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains' })
+    expect(result.lodging_address).toBe('3 route du Bettex, 74170 Saint-Gervais-les-Bains')
+    expect(prisma.lodgingCustomization.upsert).toHaveBeenCalled()
+  })
+
+  it('AC-03-03 : logement introuvable pour l’admin', async () => {
+    jest.mocked(prisma.lodging.findFirst).mockResolvedValue(null)
+    await expect(saveLodgingAddressAsAdmin('lodging-x', { address_number: null, address_street: null, address_postal_code: null, address_city: null })).rejects.toMatchObject({ code: 'NOT_FOUND' })
   })
 
   it('AC-03-01 : l’enregistrement du Guide ignore l’adresse envoyée', async () => {

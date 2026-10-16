@@ -107,3 +107,7 @@ géocodage inchangés (`LodgingCustomization`, BR-02).
   (`^\d{5}$` ou vide, sinon 400 « Le code postal doit contenir 5 chiffres. »),
   `address_city` (≤ 120) ; recompose `lodging_address`, géocode et renvoie les 4 parties
   et l'adresse complète. Confirmation « Adresse enregistrée, le Guide est à jour. ».
+- **AC-03-03** (PO 2026-10-16) : l'admin saisit aussi l'adresse, dans la section
+  Caractéristiques de la page Logement admin (`/admin/lodgings/{id}/edit`), avec les mêmes
+  4 champs et règles. `PUT /api/admin/lodgings/{id}/address` (session admin, tout logement
+  non supprimé ; 404 sinon).

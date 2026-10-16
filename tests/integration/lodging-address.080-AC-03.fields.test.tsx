@@ -13,7 +13,7 @@ describe('080 AC-03-02 — saisie de l’adresse dans Caractéristiques', () => 
 
   it('pre-fills the city, saves the four parts and confirms', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) })
-    render(<LodgingAddressFields lodgingId="lodging-1" initial={empty} defaultCity="Saint-Gervais-les-Bains" />)
+    render(<LodgingAddressFields endpoint="/api/dashboard/lodgings/lodging-1/address" initial={empty} defaultCity="Saint-Gervais-les-Bains" />)
     expect(screen.getByLabelText('Ville')).toHaveValue('Saint-Gervais-les-Bains')
     fireEvent.change(screen.getByLabelText('Numéro'), { target: { value: '12' } })
     fireEvent.change(screen.getByLabelText('Rue'), { target: { value: 'rue des Alpages' } })
@@ -29,8 +29,18 @@ describe('080 AC-03-02 — saisie de l’adresse dans Caractéristiques', () => 
 
   it('shows the API validation message', async () => {
     fetchMock.mockResolvedValue({ ok: false, json: async () => ({ error: { code: 'INVALID_BODY', details: { issues: [{ message: 'Le code postal doit contenir 5 chiffres.' }] } } }) })
-    render(<LodgingAddressFields lodgingId="lodging-1" initial={{ ...empty, address_postal_code: '7417' }} defaultCity="Saint-Gervais-les-Bains" />)
+    render(<LodgingAddressFields endpoint="/api/dashboard/lodgings/lodging-1/address" initial={{ ...empty, address_postal_code: '7417' }} defaultCity="Saint-Gervais-les-Bains" />)
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer l’adresse' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Le code postal doit contenir 5 chiffres.')
+  })
+})
+
+describe('080 AC-03-03 — saisie par l’admin', () => {
+  it('posts to the admin endpoint it receives', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) })
+    global.fetch = fetchMock as unknown as typeof fetch
+    render(<LodgingAddressFields endpoint="/api/admin/lodgings/lodging-1/address" initial={{ address_number: null, address_street: 'rue des Alpages', address_postal_code: null, address_city: null }} defaultCity="Saint-Gervais-les-Bains" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer l’adresse' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/admin/lodgings/lodging-1/address', expect.objectContaining({ method: 'PUT' })))
   })
 })

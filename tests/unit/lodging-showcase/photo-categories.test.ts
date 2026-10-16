@@ -71,3 +71,9 @@ describe('AC-05-15: room choices', () => {
     expect(new Set(options.map(option => option.value)).size).toBe(options.length)
   })
 })
+
+describe('028 AC-02-22 — catégorie « Vue »', () => {
+  it('offers « Vue » as an exterior photo category', () => {
+    expect(buildPhotoCategoryOptions(1, 1).find(option => option.label === 'Vue')).toEqual({ value: 'exterior::Vue', label: 'Vue', roomType: 'exterior', roomLabel: 'Vue' })
+  })
+})

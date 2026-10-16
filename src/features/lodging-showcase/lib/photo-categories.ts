@@ -34,6 +34,8 @@ export function buildPhotoCategoryOptions(bedroomCount: number | null, bathroomC
   const namedCategories: Array<{ label: string; roomType: LodgingPhotoRoomType }> = [
     { label: 'Salon', roomType: 'common_area' },
     { label: 'Terrasse', roomType: 'exterior' },
+    // Spec 028 AC-02-22 (PO 2026-10-16) : photos d'une vue vers l'extérieur.
+    { label: 'Vue', roomType: 'exterior' },
     { label: 'Piscine', roomType: 'common_area' },
     { label: 'Hammam', roomType: 'common_area' },
     { label: 'Jacuzzi', roomType: 'common_area' },

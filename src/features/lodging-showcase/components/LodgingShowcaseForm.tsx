@@ -738,7 +738,7 @@ export function LodgingShowcaseForm(props: {
               </div>
               {props.privateAddress ? (
                 // Spec 080 AC-03-02 : l'adresse se saisit ici puis est reprise par le Guide.
-                <LodgingAddressFields lodgingId={props.lodgingId} initial={props.privateAddress} defaultCity={props.cityName ?? ""} />
+                <LodgingAddressFields endpoint={`${apiBase}/address`} initial={props.privateAddress} defaultCity={props.cityName ?? ""} />
               ) : null}
               <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
                 <Label htmlFor="public-area-label">Quartier affiché (facultatif)</Label>

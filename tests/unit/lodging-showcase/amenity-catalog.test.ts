@@ -21,3 +21,10 @@ describe('AMENITY_CATALOG', () => {
     expect(AMENITY_CATALOG_CODES.size).toBe(AMENITY_CATALOG.length)
   })
 })
+
+describe('028 AC-02-21 — petit-déjeuner compris dans le séjour', () => {
+  it('offers breakfast both as an included amenity and as an on-request service', () => {
+    expect(AMENITY_CATALOG).toContainEqual({ code: 'breakfast_included', label: 'Petit-déjeuner', availability: 'included' })
+    expect(AMENITY_CATALOG).toContainEqual({ code: 'breakfast', label: 'Petit-déjeuner', availability: 'on_request' })
+  })
+})
