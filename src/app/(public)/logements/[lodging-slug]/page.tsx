@@ -14,6 +14,7 @@ import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { getPublishedLodgingDetailBySlug, listSuggestedLodgings } from '@/features/lodging-showcase/queries/public-lodgings'
 import { SuggestedLodgings } from '@/features/lodging-showcase/components/SuggestedLodgings'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { LodgingDescription } from '@/features/lodging-showcase/components/LodgingDescription'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { LodgingMarketingGallery } from '@/features/lodging-showcase/components/LodgingMarketingGallery'
 import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
@@ -167,12 +168,8 @@ export default async function LodgingDetailPage({ params }: Props) {
                 breaks
                 className="mt-4 break-words text-[16px] font-semibold leading-[1.7] tracking-[-0.01em] text-slate-800 [&_p]:text-[16px] [&_p]:leading-[1.7]"
               />
-              <MarkdownText
-                headingLevel={3}
-                source={detail.description}
-                breaks
-                className="mt-7 break-words text-[13px] leading-[1.85] text-slate-500 [&_p]:mb-5 [&_p]:text-[13px] [&_p]:leading-[1.85]"
-              />
+              {/* Spec 028 AC-02-19 : description longue repliée, « Lire la suite ». */}
+              <LodgingDescription source={detail.description} />
             </div>
 
             <aside

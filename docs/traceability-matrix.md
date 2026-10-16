@@ -2113,6 +2113,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
+| AC-02-19 | Description longue de la fiche logement repliée (« Lire la suite »), intertitres plus marqués — PO 2026-10-16 | `src/features/lodging-showcase/components/LodgingDescription.tsx`<br>`src/app/(public)/logements/[lodging-slug]/page.tsx` | `tests/unit/lodging-showcase.AC-02-19.description-collapse.test.tsx` | ✅ done |
 | AC-02-18 | Filtres `/logements` : « Hammam » distinct de « Sauna », mots-clés au mot près (filtres et bandeau) — PO 2026-10-16 | `src/features/lodging-showcase/lib/lodging-filters.ts`<br>`src/features/lodging-showcase/components/LodgingEssentials.tsx` | `tests/unit/lodging-filters.test.ts`<br>`tests/unit/lodging-showcase.AC-02-14.essentials-band.test.tsx` | ✅ done |
 | AC-02-17 | Filtre actif de la grille des pièces en slate (plus de rose) — PO 2026-10-15 | `src/features/lodging-showcase/components/LodgingRoomsGrid.tsx` | `tests/unit/lodging-showcase.AC-02-15.section-eyebrows.test.tsx` | ✅ done |
 | AC-02-16 | Réponses de FAQ de la fiche logement pleine largeur et justifiées (césure) — PO 2026-10-15 | `src/features/lodging-showcase/components/LodgingFaq.tsx` | `tests/unit/lodging-showcase.AC-02-15.section-eyebrows.test.tsx` | ✅ done |

@@ -1225,3 +1225,8 @@ Constat PO : « enlever cette catégorie idiote ».
   filtres et du bandeau des caractéristiques sont comparés au mot près (« spa » ne
   correspond plus à « espace »). Cas réel : « Appartement- Vue Mont Blanc - 6 p »
   (sauna, sans hammam) apparaissait sous « Hammam ».
+- **AC-02-19** (PO 2026-10-16, « le texte semble perdu sur la page ») : sur la fiche
+  logement, une description de plus de 150 mots est repliée (hauteur ≈ 22rem, fondu
+  blanc) avec un bouton « Lire la suite » / « Réduire » (`aria-expanded`). Le texte
+  complet reste dans le HTML. Les intertitres de la description sont foncés et
+  semi-gras, avec un espacement plus marqué.
