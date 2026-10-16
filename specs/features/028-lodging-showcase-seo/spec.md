@@ -1274,3 +1274,6 @@ Constat PO : « enlever cette catégorie idiote ».
   pièces (n) » qui déplie la grille (« Réduire » pour replier, `aria-expanded`). Le bouton
   n'apparaît qu'aux largeurs où des vignettes sont masquées ; changer de filtre replie la
   grille. Mode compact (aperçu démo) inchangé.
+- **AC-02-31** (PO 2026-10-16) : les boutons « Voir toutes les pièces (n) » (grille des
+  pièces) et « Lire la suite » (description) reprennent le style des pills de filtre
+  (bordure fine, 11 px, `px-3 py-1`) et sont alignés à droite avec un retrait `pr-4`.

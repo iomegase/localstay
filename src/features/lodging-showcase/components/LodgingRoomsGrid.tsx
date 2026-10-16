@@ -82,13 +82,14 @@ export function LodgingRoomsGrid({
         ))}
       </div>
       {!compact && overflowButtonVisibility(visible.length) !== null && (
-        <div className={`flex justify-center ${expanded ? '' : overflowButtonVisibility(visible.length)}`}>
+        // Spec 028 AC-02-31 : bouton en pill, aligné à droite avec un léger retrait.
+        <div className={`flex justify-end pr-4 ${expanded ? '' : overflowButtonVisibility(visible.length)}`}>
           <button
             type="button"
             aria-expanded={expanded}
             aria-controls="lodging-rooms-cards"
             onClick={() => setExpanded(value => !value)}
-            className="mt-2 inline-flex min-h-11 items-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-800 transition-colors hover:border-pink-600 hover:text-pink-600"
+            className="mt-1 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-medium text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
           >
             {expanded ? 'Réduire' : `Voir toutes les pièces (${visible.length})`}
           </button>

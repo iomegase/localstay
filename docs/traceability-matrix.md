@@ -2114,6 +2114,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
+| AC-02-31 | Boutons « Voir toutes les pièces » et « Lire la suite » en pill, alignés à droite (pr-4) — PO 2026-10-16 | `src/features/lodging-showcase/components/LodgingRoomsGrid.tsx`<br>`src/features/lodging-showcase/components/LodgingDescription.tsx` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx`<br>`tests/unit/lodging-showcase.AC-02-19.description-collapse.test.tsx` | ✅ done |
 | AC-02-30 | Grille des pièces : 2 rangées puis « Voir toutes les pièces (n) » — PO 2026-10-16 | `src/features/lodging-showcase/components/LodgingRoomsGrid.tsx` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |
 | AC-02-29 | Bandeau : équipements (Jacuzzi, Cinéma…) par leur nom, sans « Oui » — PO 2026-10-16 | `src/features/lodging-showcase/components/LodgingEssentials.tsx` | `tests/unit/lodging-showcase.AC-02-14.essentials-band.test.tsx` | ✅ done |
 | AC-02-28 | Grille des pièces sous « Tout » : chambres, salles de bain, puis le reste par ordre alphabétique ; pills Chambres et SdBs en tête — PO 2026-10-16 | `src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |

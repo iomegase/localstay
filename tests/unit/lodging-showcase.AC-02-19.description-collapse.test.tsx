@@ -24,3 +24,12 @@ describe('028 AC-02-19 — description longue repliée', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
+
+describe('028 AC-02-31 — « Lire la suite » en pill', () => {
+  it('styles the toggle like a filter pill, right-aligned', () => {
+    render(<LodgingDescription source={words(200)} />)
+    const button = screen.getByRole('button', { name: 'Lire la suite' })
+    expect(button).toHaveClass('rounded-full', 'px-3', 'py-1', 'text-[11px]')
+    expect(button.parentElement).toHaveClass('justify-end', 'pr-4')
+  })
+})

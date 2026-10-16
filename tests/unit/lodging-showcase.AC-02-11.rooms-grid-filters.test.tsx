@@ -175,3 +175,13 @@ describe('028 AC-02-30 — 2 rangées puis « Voir toutes les pièces »', () =>
     expect(screen.queryByRole('button', { name: /Voir toutes les pièces/ })).not.toBeInTheDocument()
   })
 })
+
+describe('028 AC-02-31 — boutons en pill, alignés à droite', () => {
+  it('styles « Voir toutes les pièces » like the filter pills, right-aligned', () => {
+    const many = Array.from({ length: 12 }, (_, index) => photo(`q${index}`, 'bedroom', `Chambre ${index + 1}`, index))
+    render(<LodgingRoomsGrid lodgingTitle="Chalet" photos={many} />)
+    const button = screen.getByRole('button', { name: /Voir toutes les pièces/ })
+    expect(button).toHaveClass('rounded-full', 'px-3', 'py-1', 'text-[11px]')
+    expect(button.parentElement).toHaveClass('justify-end', 'pr-4')
+  })
+})

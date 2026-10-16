@@ -35,15 +35,18 @@ export function LodgingDescription({ source }: { source: string }) {
         )}
       </div>
       {collapsible && (
-        <button
-          type="button"
-          aria-expanded={expanded}
-          aria-controls="lodging-description"
-          onClick={() => setExpanded(value => !value)}
-          className="mt-4 inline-flex min-h-10 items-center rounded-full border border-slate-300 px-5 text-xs font-bold text-slate-800 transition-colors hover:border-pink-600 hover:text-pink-600"
-        >
-          {expanded ? 'Réduire' : 'Lire la suite'}
-        </button>
+        // Spec 028 AC-02-31 : même pill que les filtres, alignée à droite avec un léger retrait.
+        <div className="mt-3 flex justify-end pr-4">
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls="lodging-description"
+            onClick={() => setExpanded(value => !value)}
+            className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-medium text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+          >
+            {expanded ? 'Réduire' : 'Lire la suite'}
+          </button>
+        </div>
       )}
     </div>
   )
