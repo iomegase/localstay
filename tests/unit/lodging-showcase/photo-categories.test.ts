@@ -87,3 +87,14 @@ describe('028 AC-02-25 — catégories Balcon et Salle de réunion', () => {
     expect(options.find(option => option.label === 'Bar')).toEqual({ value: 'common_area::Bar', label: 'Bar', roomType: 'common_area', roomLabel: 'Bar' })
   })
 })
+
+describe('028 AC-02-26 — ordre des catégories', () => {
+  it('lists bedrooms, bathrooms, then the rest alphabetically, « Autre » last', () => {
+    const labels = buildPhotoCategoryOptions(2, 2).map(option => option.label)
+    expect(labels.slice(0, 4)).toEqual(['Chambre 1', 'Chambre 2', 'Salle de bains 1', 'Salle de bains 2'])
+    const rest = labels.slice(4, -1)
+    expect(rest).toEqual([...rest].sort((a, b) => a.localeCompare(b, 'fr')))
+    expect(rest[0]).toBe('Balcon')
+    expect(labels.at(-1)).toBe('Autre')
+  })
+})

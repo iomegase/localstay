@@ -57,7 +57,15 @@ export function buildPhotoCategoryOptions(bedroomCount: number | null, bathroomC
   for (const { label, roomType } of namedCategories) {
     options.push({ value: `${roomType}::${label}`, label, roomType, roomLabel: label })
   }
+  // Spec 028 AC-02-26 (PO 2026-10-16) : chambres, salles de bains, puis le reste par ordre
+  // alphabétique ; « Autre » reste en dernier.
+  const rank = (option: PhotoCategoryOption) =>
+    option.roomType === 'bedroom' ? 0 : option.roomType === 'bathroom' ? 1 : option.roomType === 'other' ? 3 : 2
   return options
+    .map((option, index) => ({ option, index }))
+    .sort((a, b) => rank(a.option) - rank(b.option)
+      || (rank(a.option) === 2 ? a.option.label.localeCompare(b.option.label, 'fr') : a.index - b.index))
+    .map(({ option }) => option)
 }
 
 export function parsePhotoCategoryValue(value: string): { roomType: string; roomLabel: string | null } {

@@ -1255,3 +1255,6 @@ Constat PO : « enlever cette catégorie idiote ».
   « Balcon » est rangé sous « Extérieur » ; « Salle de réunion » sous une nouvelle pill
   « Réunion » (après « Loisirs »), affichée seulement si le logement en a. « Bar »
   (`common_area`) est rangé sous « Loisirs » (ajout PO du 2026-10-16).
+- **AC-02-26** (PO 2026-10-16) : le sélecteur de catégorie des photos liste les chambres,
+  puis les salles de bains, puis toutes les autres catégories par ordre alphabétique ;
+  « Autre » reste en dernier. Owner et Admin.
