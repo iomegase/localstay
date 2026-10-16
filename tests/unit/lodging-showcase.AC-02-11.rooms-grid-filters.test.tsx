@@ -98,7 +98,10 @@ describe('028 AC-02-11 — rooms grid category pills', () => {
     const salon = screen.getAllByTestId('lodging-room-card')[0]
     expect(within(salon).getByTestId('lodging-room-label')).toHaveClass('top-2', 'right-2')
     const dots = within(salon).getByTestId('lodging-room-dots')
-    expect(dots).toHaveClass('bottom-2', 'right-2', 'rounded-full', 'bg-black/30')
+    // AC-02-20 : pastille claire, plus d'overlay sombre.
+    expect(dots).toHaveClass('bottom-2', 'right-2', 'rounded-full', 'bg-white/60')
+    expect(dots).not.toHaveClass('bg-black/30')
+    expect(within(dots).getByTestId('lodging-room-count')).toHaveClass('text-slate-900')
     expect(within(dots).getAllByRole('button')).toHaveLength(2)
     expect(within(dots).getByTestId('lodging-room-count')).toHaveTextContent('2')
   })

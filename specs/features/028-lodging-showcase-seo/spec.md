@@ -1230,3 +1230,7 @@ Constat PO : « enlever cette catégorie idiote ».
   blanc) avec un bouton « Lire la suite » / « Réduire » (`aria-expanded`). Le texte
   complet reste dans le HTML. Les intertitres de la description sont foncés et
   semi-gras, avec un espacement plus marqué.
+- **AC-02-20** (PO 2026-10-16) : sur les miniatures de la grille des pièces, plus
+  d'élément sombre : la pastille des points de défilement et du nombre de photos
+  passe en blanc translucide (`bg-white/60`, comme l'étiquette du nom de la pièce),
+  points et chiffre foncés (remplace « pill sombre translucide » de AC-02-11).

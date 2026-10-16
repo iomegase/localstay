@@ -147,7 +147,8 @@ function RoomGroupCard({ group, compact, lodgingTitle }: { group: RoomPhotoGroup
       {multiple && (
         <div
           data-testid="lodging-room-dots"
-          className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/30 py-1.5 pl-2 pr-2.5 backdrop-blur-sm"
+          // Spec 028 AC-02-20 : pastille claire, plus d'overlay sombre sur les miniatures.
+          className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-white/60 py-1.5 pl-2 pr-2.5 backdrop-blur-sm"
         >
           {dotWindow(group.photos.length, active).map(index => (
             <button
@@ -158,11 +159,11 @@ function RoomGroupCard({ group, compact, lodgingTitle }: { group: RoomPhotoGroup
               className="h-1.5 rounded-full transition-all duration-300"
               style={{
                 width: active === index ? 14 : 6,
-                background: active === index ? '#fff' : 'rgba(255,255,255,0.65)',
+                background: active === index ? '#0f172a' : 'rgba(15,23,42,0.3)',
               }}
             />
           ))}
-          <span data-testid="lodging-room-count" className="ml-1 text-[11px] font-medium leading-none text-white">
+          <span data-testid="lodging-room-count" className="ml-1 text-[11px] font-medium leading-none text-slate-900">
             {group.photos.length}
           </span>
         </div>
