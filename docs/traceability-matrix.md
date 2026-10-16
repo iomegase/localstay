@@ -2114,6 +2114,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
+| AC-02-29 | Bandeau : équipements (Jacuzzi, Cinéma…) par leur nom, sans « Oui » — PO 2026-10-16 | `src/features/lodging-showcase/components/LodgingEssentials.tsx` | `tests/unit/lodging-showcase.AC-02-14.essentials-band.test.tsx` | ✅ done |
 | AC-02-28 | Grille des pièces sous « Tout » : chambres, salles de bain, puis le reste par ordre alphabétique ; pills Chambres et SdBs en tête — PO 2026-10-16 | `src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |
 | AC-02-27 | Grille des pièces : cartes triées par nom (numérique) dans chaque catégorie — PO 2026-10-16 | `src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |
 | AC-02-26 | Catégories de photos : chambres, salles de bains, puis ordre alphabétique (« Autre » en dernier) — PO 2026-10-16 | `src/features/lodging-showcase/lib/photo-categories.ts` | `tests/unit/lodging-showcase/photo-categories.test.ts` | ✅ done |

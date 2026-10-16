@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
 
 const list = () => screen.getByLabelText(/^Caractéristiques principales de /)
@@ -36,5 +36,16 @@ describe('028 AC-02-18 — équipements du bandeau au mot près', () => {
     const dl = list()
     expect(dl).not.toHaveTextContent('Hammam')
     expect(dl).not.toHaveTextContent('Jacuzzi')
+  })
+})
+
+describe('028 AC-02-29 — équipements sans « Oui »', () => {
+  it('shows Jacuzzi and Cinéma by name, without a « Oui » value', () => {
+    render(<LodgingEssentials title="Chalet" maxGuests={10} bedroomCount={5} bathroomCount={4} surfaceM2={200} amenities={['Jacuzzi', 'Salle de cinéma']} />)
+    const dl = list()
+    expect(dl).not.toHaveTextContent('Oui')
+    expect(within(dl).getByText('Jacuzzi').tagName).toBe('DD')
+    expect(within(dl).getByText('Cinéma').tagName).toBe('DD')
+    expect(within(dl).getAllByText('Équipement')).toHaveLength(2)
   })
 })

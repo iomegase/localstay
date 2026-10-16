@@ -1266,3 +1266,6 @@ Constat PO : « enlever cette catégorie idiote ».
   classées : chambres (tri numérique), puis salles de bain (tri numérique), puis tout le
   reste par ordre alphabétique. Les pills commencent par « Chambres » et « SdBs » après
   « Tout ». Remplace l'ordre par catégorie de AC-02-11 sous « Tout ».
+- **AC-02-29** (PO 2026-10-16) : dans le bandeau des caractéristiques, un équipement présent
+  (Piscine, Hammam, Jacuzzi, Cinéma) s'affiche par son icône et son nom, sans valeur « Oui »
+  (`dt` « Équipement » réservé aux lecteurs d'écran).
