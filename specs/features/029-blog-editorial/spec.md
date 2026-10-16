@@ -828,3 +828,7 @@ Aucune question ouverte pour cet amendement.
   6 articles de plus via `?page=N` (lien crawlable, filtres conservés, sans remonter
   en haut de page). Le bouton disparaît quand tout est affiché ; une valeur `page`
   invalide vaut 1. Canonical inchangé (`/journal`).
+- **AC-02-17** (PO 2026-10-16) : le contenu Markdown d'un article peut atteindre
+  30 000 caractères (au lieu de 20 000), à l'enregistrement admin comme pour les
+  brouillons générés. Au-delà : « Le contenu dépasse 30 000 caractères. ». Aucun
+  changement de schéma (colonne texte sans limite).

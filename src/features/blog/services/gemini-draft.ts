@@ -7,13 +7,14 @@ import {
 import { z } from 'zod'
 import { assertBlogGeminiScope } from '../lib/gemini-scope'
 import { normalizeBlogMarkdown } from '../lib/markdown'
+import { BLOG_ARTICLE_MAX_CHARS } from '../types'
 
 const TITLE_MIN_LENGTH = 5
 const TITLE_MAX_LENGTH = 90
 const EXCERPT_MIN_LENGTH = 40
 const EXCERPT_MAX_LENGTH = 220
 const MARKDOWN_MIN_LENGTH = 300
-const MARKDOWN_MAX_LENGTH = 20000
+const MARKDOWN_MAX_LENGTH = BLOG_ARTICLE_MAX_CHARS
 const SEO_TITLE_MIN_LENGTH = 30
 const SEO_TITLE_MAX_LENGTH = 70
 const SEO_DESCRIPTION_MIN_LENGTH = 80
@@ -22,7 +23,7 @@ const SEO_DESCRIPTION_MAX_LENGTH = 180
 const BlogGenerationResultSchema = z.object({
   title: z.string().min(TITLE_MIN_LENGTH, 'Le titre doit contenir entre 5 et 90 caractères.').max(TITLE_MAX_LENGTH, 'Le titre doit contenir entre 5 et 90 caractères.'),
   excerpt: z.string().min(EXCERPT_MIN_LENGTH, 'L’extrait doit contenir entre 40 et 220 caractères.').max(EXCERPT_MAX_LENGTH, 'L’extrait doit contenir entre 40 et 220 caractères.'),
-  content_markdown: z.string().min(MARKDOWN_MIN_LENGTH, 'Le contenu Markdown doit contenir entre 300 et 20000 caractères.').max(MARKDOWN_MAX_LENGTH, 'Le contenu Markdown doit contenir entre 300 et 20000 caractères.'),
+  content_markdown: z.string().min(MARKDOWN_MIN_LENGTH, `Le contenu Markdown doit contenir entre 300 et ${BLOG_ARTICLE_MAX_CHARS} caractères.`).max(MARKDOWN_MAX_LENGTH, `Le contenu Markdown doit contenir entre 300 et ${BLOG_ARTICLE_MAX_CHARS} caractères.`),
   seo_title: z.string().min(SEO_TITLE_MIN_LENGTH, 'Le SEO title doit contenir entre 30 et 70 caractères.').max(SEO_TITLE_MAX_LENGTH, 'Le SEO title doit contenir entre 30 et 70 caractères.'),
   seo_description: z.string().min(SEO_DESCRIPTION_MIN_LENGTH, 'La meta description doit contenir entre 80 et 180 caractères.').max(SEO_DESCRIPTION_MAX_LENGTH, 'La meta description doit contenir entre 80 et 180 caractères.'),
 })

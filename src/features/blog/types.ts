@@ -9,6 +9,10 @@ export const BLOG_ARTICLE_CATEGORIES = [
   'taxation',
 ] as const
 
+/** Spec 029 AC-02-17 (PO 2026-10-16) : longueur maximale du contenu Markdown d'un article. */
+export const BLOG_ARTICLE_MAX_CHARS = 30_000
+export const BLOG_ARTICLE_TOO_LONG = `Le contenu dépasse ${BLOG_ARTICLE_MAX_CHARS.toLocaleString('fr-FR')} caractères.`
+
 export const BLOG_ARTICLE_STATUSES = ['draft', 'review', 'published', 'archived'] as const
 
 export type BlogArticleCategory = (typeof BLOG_ARTICLE_CATEGORIES)[number]
