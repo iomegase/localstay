@@ -90,7 +90,7 @@ describe('031 AC-01-10 — home audit corrections', () => {
     expect(screen.getByRole('link', { name: 'Mentions légales' })).toHaveAttribute('href', '/mentions-legales')
     expect(screen.getByRole('link', { name: 'Confidentialité' })).toHaveAttribute('href', '/confidentialite')
     expect(screen.getByRole('link', { name: 'CGU' })).toHaveAttribute('href', '/cgu')
-    expect(screen.getByRole('link', { name: 'Nos logements' })).toHaveClass('min-h-8')
+    expect(screen.getByRole('link', { name: 'Les Logements' })).toHaveClass('min-h-8')
     expect(screen.getByTestId('marketing-footer-columns')).toHaveClass('grid-cols-2')
   })
 })

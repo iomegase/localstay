@@ -803,3 +803,7 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
 - **AC-01-26** (PO 2026-10-15) : l'accès « Connexion » de l'en-tête (icône desktop
   et entrée du menu mobile) est en `pink-600` ; survol inchangé (desktop : fond rose,
   icône blanche).
+- **AC-01-27** (PO 2026-10-16) : l'entrée de menu « Nos logements » devient
+  « Les Logements » (menu desktop, menu mobile et colonne « Explorer » du footer).
+  Destination inchangée (`/logements`, ou la landing locations de la commune sur les
+  landings locales).

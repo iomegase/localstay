@@ -7,7 +7,7 @@ export type LocalMarketingNavigation = {
 
 export const marketingNavigation: readonly MarketingNavigationItem[] = [
   { href: '/', label: 'Accueil' },
-  { href: '/logements', label: 'Nos logements' },
+  { href: '/logements', label: 'Les Logements' },
   { href: '/seminaires', label: 'Séminaires' },
   { href: '/journal', label: 'Journal' },
 ]

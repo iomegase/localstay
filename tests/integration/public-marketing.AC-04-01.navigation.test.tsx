@@ -33,7 +33,7 @@ describe('031-public-marketing-site navigation', () => {
     const mobileNavigation = screen.getByRole('navigation', { name: 'Navigation mobile' })
     expect(within(mobileNavigation).getAllByRole('link').map(link => link.textContent)).toEqual([
       'Accueil',
-      'Nos logements',
+      'Les Logements',
       'Séminaires',
       'Journal',
       'Connexion',
@@ -69,7 +69,7 @@ describe('031-public-marketing-site navigation', () => {
       '/decouvrir',
     )
     expect(screen.queryByRole('link', { name: 'Découvrir nos destinations', exact: true })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Nos logements' })).toHaveAttribute('href', '/logements')
+    expect(screen.getByRole('link', { name: 'Les Logements' })).toHaveAttribute('href', '/logements')
     expect(screen.getByRole('link', { name: 'Séminaires' })).toHaveAttribute('href', '/seminaires')
     expect(screen.queryByRole('link', { name: 'Notre approche' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Journal' })).toHaveAttribute('href', '/journal')

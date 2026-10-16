@@ -23,7 +23,7 @@ export function MarketingFooter({ brandLinked = true }: { brandLinked?: boolean 
         <div data-testid="marketing-footer-columns" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">
           <FooterColumn title="Explorer">
             <Link className={footerLinkClass} href="/">Accueil</Link>
-            <Link className={footerLinkClass} href="/logements">Nos logements</Link>
+            <Link className={footerLinkClass} href="/logements">Les Logements</Link>
             <Link className={footerLinkClass} href="/seminaires">Séminaires</Link>
             <Link className={footerLinkClass} href="/decouvrir">Découvrir</Link>
             <Link className={footerLinkClass} href="/journal">Journal</Link>
