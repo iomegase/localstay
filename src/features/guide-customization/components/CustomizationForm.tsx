@@ -248,7 +248,6 @@ export function CustomizationForm({
   pois,
   initialCustomization,
   initialOtherCityPois = [],
-  cityName,
   equipmentLibrary = [],
 }: Props) {
   const otherCityIds = new Set(initialOtherCityPois.map(poi => poi.poi_id))
@@ -533,46 +532,17 @@ export function CustomizationForm({
               )}
             </div>
           </Card>
-          {/* Spec 080 AC-01-01 : adresse structurée, recomposée côté serveur pour le géocodage. */}
+          {/* Spec 080 AC-03-01 : l'adresse se saisit dans la page Logement (Caractéristiques) ; lecture seule ici. */}
           <Card title="Adresse du logement" description="Sert à l’itinéraire et à la carte du guide. Jamais affichée publiquement.">
-            <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
-              <TextField
-                id="practical-address_number"
-                error={fieldErrors.address_number}
-                label="Numéro"
-                value={practicalInfo.address_number ?? ''}
-                maxLength={10}
-                placeholder="12"
-                onChange={value => setPracticalField('address_number', value)}
-              />
-              <TextField
-                id="practical-address_street"
-                error={fieldErrors.address_street}
-                label="Rue"
-                value={practicalInfo.address_street ?? ''}
-                maxLength={200}
-                placeholder="rue des Alpages"
-                onChange={value => setPracticalField('address_street', value)}
-              />
-              <TextField
-                id="practical-address_postal_code"
-                error={fieldErrors.address_postal_code}
-                label="Code postal"
-                value={practicalInfo.address_postal_code ?? ''}
-                maxLength={5}
-                placeholder="74170"
-                onChange={value => setPracticalField('address_postal_code', value.replace(/\D/g, ''))}
-              />
-              <TextField
-                id="practical-address_city"
-                error={fieldErrors.address_city}
-                label="Ville"
-                value={practicalInfo.address_city ?? ''}
-                maxLength={120}
-                placeholder={cityName ?? 'Saint-Gervais-les-Bains'}
-                onChange={value => setPracticalField('address_city', value)}
-              />
-            </div>
+            <p data-testid="guide-lodging-address" className="text-sm text-neutral-900">
+              {practicalInfo.lodging_address ?? 'Pas encore renseignée.'}
+            </p>
+            <a
+              href={`/dashboard/lodgings/${lodgingId}/showcase#caracteristiques`}
+              className="mt-2 inline-flex text-[13px] font-semibold text-[#0B1437] hover:underline"
+            >
+              {practicalInfo.lodging_address ? 'Modifier dans Caractéristiques' : 'Renseigner l’adresse dans Caractéristiques'}
+            </a>
           </Card>
         </GuideSection>
 

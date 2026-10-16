@@ -10,7 +10,7 @@ jest.mock('@/features/geocoding/services/mapbox-client', () => ({ geocodeAddress
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     lodging: { findFirst: jest.fn() },
-    lodgingCustomization: { findFirst: jest.fn() },
+    lodgingCustomization: { findFirst: jest.fn(), upsert: jest.fn() },
     category: { findMany: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
@@ -21,7 +21,7 @@ jest.mock('@/shared/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { getLodgingCustomization, saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
+import { getLodgingCustomization, saveLodgingAddress, saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
 
 // Spec 080 — recomposition et reprise de l'adresse.
 describe('080 — adresse structurée (requêtes)', () => {
@@ -41,19 +41,29 @@ describe('080 — adresse structurée (requêtes)', () => {
     mockGeocode.mockResolvedValue(null)
   })
 
-  it('AC-01-02 : les parties sont enregistrées et l’adresse complète recomposée', async () => {
-    const result = await saveLodgingCustomization('owner-1', 'lodging-1', {
-      category_order: [], featured_pois: [],
-      lodging_address: 'ancienne valeur ignorée',
+  it('AC-01-02 / AC-03-02 : saveLodgingAddress enregistre les parties et recompose l’adresse complète', async () => {
+    const result = await saveLodgingAddress('owner-1', 'lodging-1', {
       address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains',
     })
 
-    const create = jest.mocked(tx.lodgingCustomization.upsert).mock.calls[0][0].create
+    const create = jest.mocked(prisma.lodgingCustomization.upsert).mock.calls[0][0].create
     expect(create).toMatchObject({
       lodging_address: '12 rue des Alpages, 74170 Saint-Gervais-les-Bains',
       address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains',
     })
     expect(result.lodging_address).toBe('12 rue des Alpages, 74170 Saint-Gervais-les-Bains')
+  })
+
+  it('AC-03-01 : l’enregistrement du Guide ignore l’adresse envoyée', async () => {
+    await saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [], featured_pois: [],
+      lodging_address: 'valeur envoyée par un ancien client',
+      address_number: '99', address_street: 'rue Fausse', address_postal_code: '74170', address_city: 'Ailleurs',
+    })
+    const call = jest.mocked(tx.lodgingCustomization.upsert).mock.calls[0][0]
+    expect(call.create).not.toHaveProperty('lodging_address')
+    expect(call.update).not.toHaveProperty('address_street')
+    expect(mockGeocode).not.toHaveBeenCalled()
   })
 
   it('AC-01-03 : une ancienne adresse libre est découpée à la lecture', async () => {

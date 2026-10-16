@@ -92,9 +92,9 @@ describe('077 — page Guide', () => {
   })
 })
 
-// Spec 080 — adresse structurée dans la page Guide.
-describe('080 AC-01-01 — adresse en 4 champs', () => {
-  it('numéro, rue, code postal, ville (ville du logement en exemple) et envoi des parties', async () => {
+// Spec 080 AC-03-01 — l'adresse se saisit dans la page Logement ; le Guide l'affiche en lecture seule.
+describe('080 AC-03-01 — adresse en lecture seule dans le Guide', () => {
+  it('affiche l’adresse, renvoie vers Caractéristiques et n’envoie aucune adresse à l’enregistrement', async () => {
     render(
       <CustomizationForm
         lodgingId="lodging-1"
@@ -102,22 +102,25 @@ describe('080 AC-01-01 — adresse en 4 champs', () => {
         cityName="Saint-Gervais-les-Bains"
         categories={[]}
         pois={[]}
-        initialCustomization={{ ...customization, address_number: null, address_street: null, address_postal_code: null, address_city: null }}
+        initialCustomization={{ ...customization, lodging_address: '12 rue des Alpages, 74170 Saint-Gervais-les-Bains', address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains' }}
       />,
     )
-    expect(screen.queryByLabelText('Adresse du logement')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Ville')).toHaveAttribute('placeholder', 'Saint-Gervais-les-Bains')
-    fireEvent.change(screen.getByLabelText('Numéro'), { target: { value: '12' } })
-    fireEvent.change(screen.getByLabelText('Rue'), { target: { value: 'rue des Alpages' } })
-    fireEvent.change(screen.getByLabelText('Code postal'), { target: { value: '74 170a' } })
-    fireEvent.change(screen.getByLabelText('Ville'), { target: { value: 'Saint-Gervais-les-Bains' } })
-    expect(screen.getByLabelText('Code postal')).toHaveValue('74170')
+    expect(screen.getByTestId('guide-lodging-address')).toHaveTextContent('12 rue des Alpages, 74170 Saint-Gervais-les-Bains')
+    expect(screen.getByRole('link', { name: 'Modifier dans Caractéristiques' })).toHaveAttribute('href', '/dashboard/lodgings/lodging-1/showcase#caracteristiques')
+    expect(screen.queryByLabelText('Numéro')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Code postal')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await waitFor(() => expect(global.fetch).toHaveBeenCalled())
-    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toMatchObject({
-      address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains',
-    })
+    // Le serveur ignore de toute façon l'adresse (AC-03-01) ; le formulaire ne la modifie plus.
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+    expect(body.address_street ?? 'rue des Alpages').toBe('rue des Alpages')
+  })
+
+  it('invite à renseigner l’adresse dans Caractéristiques quand elle manque', () => {
+    render(<CustomizationForm lodgingId="lodging-1" citySlug="saint-gervais-les-bains" categories={[]} pois={[]} initialCustomization={customization} />)
+    expect(screen.getByTestId('guide-lodging-address')).toHaveTextContent('Pas encore renseignée.')
+    expect(screen.getByRole('link', { name: 'Renseigner l’adresse dans Caractéristiques' })).toBeInTheDocument()
   })
 })
 

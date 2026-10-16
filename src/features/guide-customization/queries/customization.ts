@@ -455,7 +455,72 @@ function withAddressParts(info: PracticalInfoFields): PracticalInfoFields {
   return { ...info, address_number: parts.number, address_street: parts.street, address_postal_code: parts.postal_code, address_city: parts.city }
 }
 
-const ADDRESS_PART_KEYS = ['address_number', 'address_street', 'address_postal_code', 'address_city'] as const
+const ADDRESS_KEYS = ['lodging_address', 'address_number', 'address_street', 'address_postal_code', 'address_city'] as const
+
+function withoutAddress(info: PracticalInfoFields): Omit<PracticalInfoFields, (typeof ADDRESS_KEYS)[number]> {
+  const rest: Partial<PracticalInfoFields> = { ...info }
+  for (const key of ADDRESS_KEYS) delete rest[key]
+  return rest as Omit<PracticalInfoFields, (typeof ADDRESS_KEYS)[number]>
+}
+
+export type LodgingAddressParts = {
+  address_number: string | null
+  address_street: string | null
+  address_postal_code: string | null
+  address_city: string | null
+}
+
+/**
+ * Spec 080 AC-03-02 : adresse privée du logement, saisie dans la section Caractéristiques
+ * de la page Logement puis reprise par le Guide. Recomposition et géocodage inchangés.
+ */
+export async function saveLodgingAddress(
+  ownerId: string,
+  lodgingId: string,
+  parts: LodgingAddressParts,
+): Promise<LodgingAddressParts & { lodging_address: string | null }> {
+  const lodging = await getOwnedLodgingOrThrow(ownerId, lodgingId)
+  const clean = (value: string | null) => value?.trim() || null
+  const saved = {
+    address_number: clean(parts.address_number),
+    address_street: clean(parts.address_street),
+    address_postal_code: clean(parts.address_postal_code),
+    address_city: clean(parts.address_city),
+  }
+  const lodging_address = composeLodgingAddress({
+    number: saved.address_number,
+    street: saved.address_street,
+    postal_code: saved.address_postal_code,
+    city: saved.address_city,
+  })
+  const existing = await prisma.lodgingCustomization.findFirst({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    select: { lodging_address: true, lodging_latitude: true, lodging_longitude: true },
+  })
+  const coordinates = await resolveLodgingAddressCoordinates(lodging_address, existing, lodging.city)
+  await prisma.lodgingCustomization.upsert({
+    where: { lodging_id: lodgingId },
+    update: { ...saved, lodging_address, ...coordinates, deleted_at: null },
+    create: { lodging_id: lodgingId, category_order: [], ...saved, lodging_address, ...coordinates },
+  })
+  return { ...saved, lodging_address }
+}
+
+/** Spec 080 AC-03-02 : parties de l'adresse pour la page Logement (ancienne adresse libre découpée). */
+export async function getLodgingAddressParts(lodgingId: string): Promise<LodgingAddressParts & { lodging_address: string | null }> {
+  const customization = await prisma.lodgingCustomization.findFirst({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    select: { lodging_address: true, address_number: true, address_street: true, address_postal_code: true, address_city: true },
+  })
+  const info = withAddressParts({ ...EMPTY_PRACTICAL_INFO, ...customization })
+  return {
+    address_number: info.address_number,
+    address_street: info.address_street,
+    address_postal_code: info.address_postal_code,
+    address_city: info.address_city,
+    lodging_address: info.lodging_address?.trim() || null,
+  }
+}
 
 export async function saveLodgingCustomization(
   ownerId: string,
@@ -464,7 +529,7 @@ export async function saveLodgingCustomization(
 ): Promise<LodgingCustomizationResponse> {
   const lodging = await getOwnedLodgingOrThrow(ownerId, lodgingId)
 
-  const [validCategories, existingCustomization] = await Promise.all([
+  const [validCategories] = await Promise.all([
     prisma.category.findMany({
       where: { deleted_at: null, is_active: true },
       orderBy: { sort_order: 'asc' },
@@ -483,14 +548,6 @@ export async function saveLodgingCustomization(
         },
       },
     }),
-    prisma.lodgingCustomization.findFirst({
-      where: { lodging_id: lodgingId, deleted_at: null },
-      select: {
-        lodging_address: true,
-        lodging_latitude: true,
-        lodging_longitude: true,
-      },
-    }),
   ])
 
   const validCategorySlugs = new Set(
@@ -500,23 +557,11 @@ export async function saveLodgingCustomization(
   )
   const categoryOrderResult = filterValidCategoryOrder(input.category_order, validCategorySlugs)
   const featuredPois = await validateFeaturedPois(lodging, input.featured_pois)
-  const practicalInfo = pickPracticalInfo(input)
+  // Spec 080 AC-03-01 : l'adresse ne se saisit plus dans le Guide (page Logement, section
+  // Caractéristiques). Le Guide n'écrit donc ni l'adresse ni ses coordonnées.
+  const practicalInfo = withoutAddress(pickPracticalInfo(input))
   // Spec 096 : numéros utiles enregistrés au format international.
   practicalInfo.useful_services = normalizeUsefulNumbersText(practicalInfo.useful_services)
-  // Spec 080 AC-01-02 : l'adresse saisie en parties est recomposée (source du géocodage).
-  if (ADDRESS_PART_KEYS.some(key => input[key] !== undefined)) {
-    practicalInfo.lodging_address = composeLodgingAddress({
-      number: practicalInfo.address_number,
-      street: practicalInfo.address_street,
-      postal_code: practicalInfo.address_postal_code,
-      city: practicalInfo.address_city,
-    })
-  }
-  const lodgingAddressCoordinates = await resolveLodgingAddressCoordinates(
-    practicalInfo.lodging_address,
-    existingCustomization,
-    lodging.city,
-  )
   const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
   const arrivalInstructions = normalizeArrivalInstructions(input.arrival_instructions)
 
@@ -527,13 +572,11 @@ export async function saveLodgingCustomization(
         category_order: categoryOrderResult.category_order,
         deleted_at: null,
         ...practicalInfo,
-        ...lodgingAddressCoordinates,
       },
       create: {
         lodging_id: lodgingId,
         category_order: categoryOrderResult.category_order,
         ...practicalInfo,
-        ...lodgingAddressCoordinates,
       },
     })
 
@@ -584,6 +627,8 @@ export async function saveLodgingCustomization(
     practical_blocks: savedBlocks,
     arrival_instructions: savedInstructions.map(toArrivalInstructionResponse),
     ...practicalInfo,
+    // Adresse en lecture seule côté Guide (spec 080 AC-03-01) : relue telle qu'enregistrée.
+    ...(await getLodgingAddressParts(lodgingId)),
   }
 }
 
@@ -666,16 +711,4 @@ export async function validateFeaturedPois(
   return validated
     .map(({ city_id: _city_id, ...rest }) => rest)
     .sort((a, b) => a.sort_order - b.sort_order)
-}
-
-/**
- * Spec 080 AC-02-01 : adresse privée du logement, affichée en lecture seule sur la page
- * Logement (l'appelant a déjà vérifié la propriété du logement).
- */
-export async function getLodgingPrivateAddress(lodgingId: string): Promise<string | null> {
-  const customization = await prisma.lodgingCustomization.findFirst({
-    where: { lodging_id: lodgingId, deleted_at: null },
-    select: { lodging_address: true },
-  })
-  return customization?.lodging_address?.trim() || null
 }

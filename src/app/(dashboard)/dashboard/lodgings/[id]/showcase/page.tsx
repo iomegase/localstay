@@ -5,7 +5,7 @@ import { getPageOwner } from '@/features/dashboard-owner/lib/get-page-owner'
 import { LodgingShowcaseForm } from '@/features/lodging-showcase/components/LodgingShowcaseForm'
 import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { getOwnedLodgingShowcasePageData } from '@/features/lodging-showcase/queries/owner-public-profile'
-import { getLodgingPrivateAddress } from '@/features/guide-customization/queries/customization'
+import { getLodgingAddressParts } from '@/features/guide-customization/queries/customization'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -22,7 +22,7 @@ export default async function LodgingShowcasePage({ params }: Props) {
     return null
   }
 
-  const privateAddress = await getLodgingPrivateAddress(data.lodging.id)
+  const privateAddress = await getLodgingAddressParts(data.lodging.id)
   const publicPath = data.profile.publication_status === 'published' && data.profile.slug
     ? publicLodgingPath(data.profile.slug)
     : null
@@ -70,7 +70,7 @@ export default async function LodgingShowcasePage({ params }: Props) {
         lodgingId={data.lodging.id}
         initialProfile={data.profile}
         cityName={data.lodging.city.name}
-        privateAddress={{ value: privateAddress, editHref: `/dashboard/lodgings/${data.lodging.id}/customize#logement` }}
+        privateAddress={privateAddress}
       />
     </div>
   )

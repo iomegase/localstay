@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-06
-updated_at: 2026-10-06
+updated_at: 2026-10-16
 depends_on:
   - 055-lodging-address-geocoding
   - 077-owner-lodgings-guide-ui
@@ -85,3 +85,25 @@ s'ils sont présents, `lodging_address` est recomposée. Réponse : les 4 champs
 ## Open Questions
 
 Aucune.
+
+## Amendement approuvé — L'adresse se saisit dans la page Logement (PO 2026-10-16)
+
+Demande PO : « l'adresse du logement doit être renseignée dans la section Caractéristiques
+du logement puis injectée dans le guide, pas l'inverse ». Remplace AC-01-01 (saisie dans le
+Guide) et AC-02-01 (lecture seule sur la page Logement). Stockage, recomposition et
+géocodage inchangés (`LodgingCustomization`, BR-02).
+
+- **AC-03-01** : dans la page Guide, l'adresse s'affiche en lecture seule (« Pas encore
+  renseignée. » sinon) avec un lien « Modifier dans Caractéristiques » /
+  « Renseigner l'adresse dans Caractéristiques » vers
+  `/dashboard/lodgings/{id}/showcase#caracteristiques`. `PUT …/customization` n'écrit
+  plus jamais l'adresse ni ses coordonnées (champs reçus ignorés : un enregistrement du
+  Guide ne peut ni modifier ni effacer l'adresse) ; sa réponse renvoie l'adresse enregistrée.
+- **AC-03-02** : dans la page Logement, section Caractéristiques, l'adresse se saisit en
+  4 champs (Numéro, Rue, Code postal, Ville pré-remplie avec la ville du logement) avec un
+  bouton « Enregistrer l'adresse » indépendant de la fiche publique (l'adresse n'est ni
+  publiée ni soumise à validation). `PUT /api/dashboard/lodgings/{id}/address` (Owner du
+  logement) : `address_number` (≤ 10), `address_street` (≤ 200), `address_postal_code`
+  (`^\d{5}$` ou vide, sinon 400 « Le code postal doit contenir 5 chiffres. »),
+  `address_city` (≤ 120) ; recompose `lodging_address`, géocode et renvoie les 4 parties
+  et l'adresse complète. Confirmation « Adresse enregistrée, le Guide est à jour. ».

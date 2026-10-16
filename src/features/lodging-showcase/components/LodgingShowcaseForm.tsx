@@ -34,6 +34,7 @@ import type { OwnerLodgingPublicProfileDto } from '../types'
 import { fillFaqTemplate, missingLibraryItems, needsAdaptation } from '../lib/faq-library'
 import { ACCEPTED_IMAGE_INPUT } from '@/shared/lib/image-upload'
 import { valueAtPath, visibleServerErrors } from '@/features/guide-customization/lib/form-errors'
+import { LodgingAddressFields, type LodgingAddressValue } from './LodgingAddressFields'
 
 const photoCollisionDetection: CollisionDetection = args => {
   const point = args.pointerCoordinates
@@ -142,7 +143,7 @@ export function LodgingShowcaseForm(props: {
   initialProfile: OwnerLodgingPublicProfileDto
   mode?: 'owner' | 'admin'
   /** Spec 080 AC-02-01 : adresse saisie dans le Guide, rappelée en lecture seule. */
-  privateAddress?: { value: string | null; editHref: string }
+  privateAddress?: LodgingAddressValue
   /** Spec 082 : ville du logement, pour remplir les FAQ de la bibliothèque. */
   cityName?: string
 }) {
@@ -736,13 +737,8 @@ export function LodgingShowcaseForm(props: {
                 <FieldError message={visibleErrors.bed_count} />
               </div>
               {props.privateAddress ? (
-                <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 sm:col-span-2 lg:col-span-3">
-                  <p className="text-[13px] font-semibold text-gray-700">Adresse du logement <span className="font-normal text-gray-400">· privée, jamais affichée</span></p>
-                  <p data-testid="private-address" className="mt-1 text-sm text-neutral-900">{props.privateAddress.value ?? 'Pas encore renseignée.'}</p>
-                  <a href={props.privateAddress.editHref} className="mt-2 inline-flex text-[13px] font-semibold text-[#0B1437] hover:underline">
-                    {props.privateAddress.value ? 'Modifier dans le Guide' : 'Renseigner l’adresse dans le Guide'}
-                  </a>
-                </div>
+                // Spec 080 AC-03-02 : l'adresse se saisit ici puis est reprise par le Guide.
+                <LodgingAddressFields lodgingId={props.lodgingId} initial={props.privateAddress} defaultCity={props.cityName ?? ""} />
               ) : null}
               <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
                 <Label htmlFor="public-area-label">Quartier affiché (facultatif)</Label>

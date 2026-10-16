@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 jest.mock('next/navigation', () => ({
@@ -13,7 +13,7 @@ jest.mock('@/features/dashboard-owner/lib/get-page-owner', () => ({
 }))
 
 jest.mock('@/features/guide-customization/queries/customization', () => ({
-  getLodgingPrivateAddress: jest.fn(async () => '12 rue des Alpages, 74170 Saint-Gervais-les-Bains'),
+  getLodgingAddressParts: jest.fn(async () => ({ address_number: '12', address_street: 'rue des Alpages', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains', lodging_address: '12 rue des Alpages, 74170 Saint-Gervais-les-Bains' })),
 }))
 
 jest.mock('@/features/lodging-showcase/queries/owner-public-profile', () => ({
@@ -63,8 +63,14 @@ describe('028 lodging showcase owner page', () => {
     expect(screen.getByRole('button', { name: /Sauvegarder le brouillon/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Demander la publication/i })).toBeInTheDocument()
     // Spec 080 AC-02-01 / AC-02-02 : adresse du Guide en lecture seule, quartier public.
-    expect(screen.getByTestId('private-address')).toHaveTextContent('12 rue des Alpages, 74170 Saint-Gervais-les-Bains')
-    expect(screen.getByRole('link', { name: 'Modifier dans le Guide' })).toHaveAttribute('href', '/dashboard/lodgings/lodging-1/customize#logement')
+    // Spec 080 AC-03-02 : l'adresse se saisit dans Caractéristiques (4 champs) puis est reprise par le Guide.
+    const address = screen.getByTestId('lodging-address-fields')
+    expect(within(address).getByLabelText('Numéro')).toHaveValue('12')
+    expect(within(address).getByLabelText('Rue')).toHaveValue('rue des Alpages')
+    expect(within(address).getByLabelText('Code postal')).toHaveValue('74170')
+    expect(within(address).getByLabelText('Ville')).toHaveValue('Saint-Gervais-les-Bains')
+    expect(within(address).getByRole('button', { name: 'Enregistrer l’adresse' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /dans le Guide/ })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Quartier affiché (facultatif)')).toBeInTheDocument()
   })
 })

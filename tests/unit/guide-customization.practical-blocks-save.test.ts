@@ -11,7 +11,7 @@ const mockGeocodeAddress = jest.fn()
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     lodging: { findFirst: jest.fn() },
-    lodgingCustomization: { findFirst: jest.fn() },
+    lodgingCustomization: { findFirst: jest.fn(), upsert: jest.fn() },
     category: { findMany: jest.fn() },
     pointOfInterest: { findMany: jest.fn() },
     lodgingFeaturedPoi: { findMany: jest.fn() },
@@ -26,7 +26,7 @@ jest.mock('@/features/geocoding/services/mapbox-client', () => ({
 }))
 
 import { prisma } from '@/shared/lib/prisma'
-import { saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
+import { saveLodgingAddress, saveLodgingCustomization } from '@/features/guide-customization/queries/customization'
 import { GuideCustomizationError } from '@/features/guide-customization/types'
 
 describe('saveLodgingCustomization — practical blocks', () => {
@@ -182,7 +182,23 @@ describe('saveLodgingCustomization — practical blocks', () => {
     }])
   })
 
-  it('AC-04-03: geocodes the lodging address via Mapbox and stores coordinates on customization', async () => {
+  it('080 AC-03-01: the Guide save never writes the address nor its coordinates', async () => {
+    await saveLodgingCustomization('owner-1', 'lodging-1', {
+      category_order: [],
+      featured_pois: [],
+      lodging_address: ' 22 Rue de la Comtesse ',
+      address_street: 'Rue de la Comtesse',
+    })
+
+    expect(mockGeocodeAddress).not.toHaveBeenCalled()
+    const call = tx.lodgingCustomization.upsert.mock.calls[0][0]
+    for (const key of ['lodging_address', 'address_number', 'address_street', 'address_postal_code', 'address_city', 'lodging_latitude', 'lodging_longitude']) {
+      expect(call.update).not.toHaveProperty(key)
+      expect(call.create).not.toHaveProperty(key)
+    }
+  })
+
+  it('080 AC-03-02 (ex AC-04-03): saveLodgingAddress recomposes, geocodes via Mapbox and stores coordinates', async () => {
     mockGeocodeAddress.mockResolvedValue({
       latitude: 45.001,
       longitude: 6.002,
@@ -190,24 +206,20 @@ describe('saveLodgingCustomization — practical blocks', () => {
       place_name: '22 Rue de la Comtesse, 74170 Saint-Gervais-les-Bains',
     })
 
-    await saveLodgingCustomization('owner-1', 'lodging-1', {
-      category_order: [],
-      featured_pois: [],
-      lodging_address: ' 22 Rue de la Comtesse ',
+    const result = await saveLodgingAddress('owner-1', 'lodging-1', {
+      address_number: ' 22 ',
+      address_street: 'Rue de la Comtesse',
+      address_postal_code: '74170',
+      address_city: 'Saint-Gervais-les-Bains',
     })
 
-    expect(mockGeocodeAddress).toHaveBeenCalledWith('22 Rue de la Comtesse', {
-      latitude: 45,
-      longitude: 6,
-    })
-    expect(tx.lodgingCustomization.upsert).toHaveBeenCalledWith(expect.objectContaining({
+    expect(result.lodging_address).toBe('22 Rue de la Comtesse, 74170 Saint-Gervais-les-Bains')
+    expect(mockGeocodeAddress).toHaveBeenCalledWith('22 Rue de la Comtesse, 74170 Saint-Gervais-les-Bains', { latitude: 45, longitude: 6 })
+    expect(prisma.lodgingCustomization.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { lodging_id: 'lodging-1' },
       update: expect.objectContaining({
-        lodging_address: '22 Rue de la Comtesse',
-        lodging_latitude: 45.001,
-        lodging_longitude: 6.002,
-      }),
-      create: expect.objectContaining({
-        lodging_address: '22 Rue de la Comtesse',
+        address_number: '22',
+        lodging_address: '22 Rue de la Comtesse, 74170 Saint-Gervais-les-Bains',
         lodging_latitude: 45.001,
         lodging_longitude: 6.002,
       }),
