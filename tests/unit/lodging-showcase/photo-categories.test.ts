@@ -77,3 +77,12 @@ describe('028 AC-02-22 — catégorie « Vue »', () => {
     expect(buildPhotoCategoryOptions(1, 1).find(option => option.label === 'Vue')).toEqual({ value: 'exterior::Vue', label: 'Vue', roomType: 'exterior', roomLabel: 'Vue' })
   })
 })
+
+describe('028 AC-02-25 — catégories Balcon et Salle de réunion', () => {
+  it('offers Balcon (exterior) and Salle de réunion (common area), keeping Terrasse and Vue', () => {
+    const options = buildPhotoCategoryOptions(1, 1)
+    expect(options.find(option => option.label === 'Balcon')).toEqual({ value: 'exterior::Balcon', label: 'Balcon', roomType: 'exterior', roomLabel: 'Balcon' })
+    expect(options.find(option => option.label === 'Salle de réunion')).toEqual({ value: 'common_area::Salle de réunion', label: 'Salle de réunion', roomType: 'common_area', roomLabel: 'Salle de réunion' })
+    expect(options.map(option => option.label)).toEqual(expect.arrayContaining(['Terrasse', 'Vue']))
+  })
+})

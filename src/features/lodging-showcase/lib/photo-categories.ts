@@ -36,6 +36,9 @@ export function buildPhotoCategoryOptions(bedroomCount: number | null, bathroomC
     { label: 'Terrasse', roomType: 'exterior' },
     // Spec 028 AC-02-22 (PO 2026-10-16) : photos d'une vue vers l'extérieur.
     { label: 'Vue', roomType: 'exterior' },
+    // Spec 028 AC-02-25 (PO 2026-10-16) : balcon (extérieur) et salle de réunion (séminaires).
+    { label: 'Balcon', roomType: 'exterior' },
+    { label: 'Salle de réunion', roomType: 'common_area' },
     { label: 'Piscine', roomType: 'common_area' },
     { label: 'Hammam', roomType: 'common_area' },
     { label: 'Jacuzzi', roomType: 'common_area' },

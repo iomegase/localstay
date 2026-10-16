@@ -1249,3 +1249,8 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-24** (PO 2026-10-16) : sur la fiche logement, le titre « D'autres adresses pour
   votre prochain séjour. » (bloc « À découvrir aussi ») tient sur une ligne dès 1024 px
   (taille 40 px inchangée, largeur du bloc libérée) ; retour à la ligne normal en dessous.
+- **AC-02-25** (PO 2026-10-16) : nouvelles catégories de photos « Balcon »
+  (`room_type = exterior`) et « Salle de réunion » (`room_type = common_area`), en plus de
+  « Terrasse » et « Vue » déjà présentes ; Owner et Admin. Dans la grille publique,
+  « Balcon » est rangé sous « Extérieur » ; « Salle de réunion » sous une nouvelle pill
+  « Réunion » (après « Loisirs »), affichée seulement si le logement en a.

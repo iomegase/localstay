@@ -10,6 +10,8 @@ export const ROOM_CATEGORIES = [
   { id: 'bathrooms', label: 'SdBs' },
   { id: 'wellness', label: 'Bien-être' },
   { id: 'leisure', label: 'Loisirs' },
+  // Spec 028 AC-02-25 : pill affichée seulement si le logement a une salle de réunion.
+  { id: 'meeting', label: 'Réunion' },
   { id: 'entry', label: 'Entrée' },
   { id: 'exterior', label: 'Extérieur' },
 ] as const
@@ -28,6 +30,7 @@ const COMMON_AREA_CATEGORY_BY_LABEL: Record<string, RoomCategoryId> = {
   'Cinéma': 'leisure',
   Bowling: 'leisure',
   'Bibliothèque': 'leisure',
+  'Salle de réunion': 'meeting',
   'Entrée': 'entry',
   Skiroom: 'entry',
   Garage: 'entry',

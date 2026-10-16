@@ -2114,6 +2114,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
+| AC-02-25 | Catégories de photos « Balcon » (Extérieur) et « Salle de réunion » (pill « Réunion ») — PO 2026-10-16 | `src/features/lodging-showcase/lib/photo-categories.ts`<br>`src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase/photo-categories.test.ts`<br>`tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx` | ✅ done |
 | AC-02-24 | Fiche : titre « D’autres adresses pour votre prochain séjour. » sur une ligne dès 1024 px — PO 2026-10-16 | `src/features/lodging-showcase/components/SuggestedLodgings.tsx` | `tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |
 | AC-02-23 | Fiche : « Réserver sur Airbnb » dans la carte « Votre séjour », libellés accentués — PO 2026-10-16 | `src/app/(public)/logements/[lodging-slug]/page.tsx`<br>`src/features/lodging-showcase/components/ExternalBookingCta.tsx` | `tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |
 | AC-02-21 | Petit-déjeuner compris dans le séjour (`breakfast_included`) — PO 2026-10-16 | `src/features/lodging-showcase/lib/amenity-catalog.ts` | `tests/unit/lodging-showcase/amenity-catalog.test.ts` | ✅ done |
