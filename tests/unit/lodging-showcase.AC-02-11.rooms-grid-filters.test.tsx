@@ -35,30 +35,25 @@ const cardLabels = () =>
   screen.getAllByTestId('lodging-room-card').map(card => within(card).getByTestId('lodging-room-label').textContent)
 
 describe('028 AC-02-11 — rooms grid category pills', () => {
-  it('shows discreet pills Tout · Salon · Cuisine · Chambres · SdBs · Bien-être · Loisirs · Entrée · Extérieur, Tout active by default', () => {
+  it('shows discreet pills Tout · Chambres · SdBs · Salon · Cuisine · Bien-être · Loisirs · Entrée · Extérieur, Tout active by default (AC-02-28)', () => {
     render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     const menu = screen.getByRole('group', { name: 'Filtrer les photos par pièce' })
     const pills = within(menu).getAllByRole('button')
     expect(pills.map(pill => pill.textContent)).toEqual([
-      'Tout', 'Salon', 'Cuisine', 'Chambres', 'SdBs', 'Bien-être', 'Loisirs', 'Entrée', 'Extérieur',
+      'Tout', 'Chambres', 'SdBs', 'Salon', 'Cuisine', 'Bien-être', 'Loisirs', 'Entrée', 'Extérieur',
     ])
     expect(within(menu).getByRole('button', { name: 'Tout' })).toHaveAttribute('aria-pressed', 'true')
     pills.forEach(pill => expect(pill).toHaveClass('rounded-full'))
   })
 
-  it('orders every card by category under Tout, by name inside a category (AC-02-27)', () => {
+  it('orders cards under Tout: bedrooms, bathrooms, then the rest alphabetically (AC-02-28)', () => {
     render(<LodgingRoomsGrid lodgingTitle="Chalet Hygge" photos={photos} />)
 
     expect(cardLabels()).toEqual([
-      'Salle à manger', 'Salon',
-      'Cuisine',
       'Chambre 1', 'Chambre 2',
       'Salle de bain 1',
-      'Jacuzzi', 'Sauna',
-      'Cinéma',
-      'Entrée', 'Skiroom',
-      'Extérieur', 'Terrasse',
+      'Cinéma', 'Cuisine', 'Entrée', 'Extérieur', 'Jacuzzi', 'Salle à manger', 'Salon', 'Sauna', 'Skiroom', 'Terrasse',
     ])
   })
 
@@ -144,7 +139,7 @@ describe('028 AC-02-25 — Balcon dans Extérieur, Salle de réunion dans « Ré
       { id: 'm1', url: 'https://cdn.test/m1.jpg', alt: 'Réunion', room_type: 'common_area', room_label: 'Salle de réunion', sort_order: 1, is_cover: false },
       { id: 'r1', url: 'https://cdn.test/r1.jpg', alt: 'Bar', room_type: 'common_area', room_label: 'Bar', sort_order: 2, is_cover: false },
     ])
-    expect(groups.map(group => [group.label, group.category])).toEqual([['Bar', 'leisure'], ['Salle de réunion', 'meeting'], ['Balcon', 'exterior']])
+    expect(groups.map(group => [group.label, group.category])).toEqual([['Balcon', 'exterior'], ['Bar', 'leisure'], ['Salle de réunion', 'meeting']])
   })
 })
 

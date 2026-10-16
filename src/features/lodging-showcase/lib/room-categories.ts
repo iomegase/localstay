@@ -2,12 +2,15 @@ import { ROOM_TYPE_LABELS, groupRoomPhotos, isRenderableRoomPhoto, type RoomPhot
 
 type Photo = Parameters<typeof groupRoomPhotos>[0][number]
 
-/** Catégories des pills de la grille « L'espace de vie » (spec 028 AC-02-11), dans l'ordre d'affichage. */
+/**
+ * Catégories des pills de la grille « L'espace de vie » (spec 028 AC-02-11), dans l'ordre
+ * d'affichage : Chambres et SdBs en tête (AC-02-28).
+ */
 export const ROOM_CATEGORIES = [
-  { id: 'living', label: 'Salon' },
-  { id: 'kitchen', label: 'Cuisine' },
   { id: 'bedrooms', label: 'Chambres' },
   { id: 'bathrooms', label: 'SdBs' },
+  { id: 'living', label: 'Salon' },
+  { id: 'kitchen', label: 'Cuisine' },
   { id: 'wellness', label: 'Bien-être' },
   { id: 'leisure', label: 'Loisirs' },
   // Spec 028 AC-02-25 : pill affichée seulement si le logement a une salle de réunion.
@@ -52,7 +55,7 @@ function categoryOf(roomType: string, label: string): RoomCategoryId | null {
 
 /**
  * Regroupe les photos par pièce (comme `groupRoomPhotos`) puis range les cartes
- * par catégorie ; à l'intérieur d'une catégorie, tri par nom (numérique, AC-02-27).
+ * chambres, salles de bain, puis le reste par nom (tri numérique, AC-02-27 / AC-02-28).
  */
 export function categorizeRoomGroups(photos: Photo[]): CategorizedRoomGroup[] {
   const typeByLabel = new Map<string, string>()
@@ -70,5 +73,8 @@ export function categorizeRoomGroups(photos: Photo[]): CategorizedRoomGroup[] {
   // tri numérique (Chambre 1, 2… 10), au lieu de l'ordre des photos.
   const byName = (a: CategorizedRoomGroup, b: CategorizedRoomGroup) =>
     a.label.localeCompare(b.label, 'fr', { numeric: true, sensitivity: 'base' })
-  return ROOM_CATEGORIES.flatMap(category => groups.filter(group => group.category === category.id).sort(byName))
+  // AC-02-28 : sous « Tout », chambres, puis salles de bain, puis tout le reste par ordre
+  // alphabétique (comme le sélecteur de catégories de l'admin, AC-02-26).
+  const rank = (group: CategorizedRoomGroup) => group.category === 'bedrooms' ? 0 : group.category === 'bathrooms' ? 1 : 2
+  return [...groups].sort((a, b) => rank(a) - rank(b) || byName(a, b))
 }

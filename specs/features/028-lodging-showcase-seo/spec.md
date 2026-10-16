@@ -1262,3 +1262,7 @@ Constat PO : « enlever cette catégorie idiote ».
   catégorie sont triées par nom, avec tri numérique (Chambre 1, 2… 10 ; Salle de bain 1, 2…),
   au lieu de l'ordre des photos ; l'ordre des catégories (pills) est inchangé. Remplace
   « l'ordre des premières photos (AC-05-16) est conservé » de AC-02-11.
+- **AC-02-28** (PO 2026-10-16) : sous « Tout », les vignettes de la grille des pièces sont
+  classées : chambres (tri numérique), puis salles de bain (tri numérique), puis tout le
+  reste par ordre alphabétique. Les pills commencent par « Chambres » et « SdBs » après
+  « Tout ». Remplace l'ordre par catégorie de AC-02-11 sous « Tout ».
