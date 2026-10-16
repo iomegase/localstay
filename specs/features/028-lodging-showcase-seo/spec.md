@@ -1253,4 +1253,5 @@ Constat PO : « enlever cette catégorie idiote ».
   (`room_type = exterior`) et « Salle de réunion » (`room_type = common_area`), en plus de
   « Terrasse » et « Vue » déjà présentes ; Owner et Admin. Dans la grille publique,
   « Balcon » est rangé sous « Extérieur » ; « Salle de réunion » sous une nouvelle pill
-  « Réunion » (après « Loisirs »), affichée seulement si le logement en a.
+  « Réunion » (après « Loisirs »), affichée seulement si le logement en a. « Bar »
+  (`common_area`) est rangé sous « Loisirs » (ajout PO du 2026-10-16).

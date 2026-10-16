@@ -39,6 +39,7 @@ export function buildPhotoCategoryOptions(bedroomCount: number | null, bathroomC
     // Spec 028 AC-02-25 (PO 2026-10-16) : balcon (extérieur) et salle de réunion (séminaires).
     { label: 'Balcon', roomType: 'exterior' },
     { label: 'Salle de réunion', roomType: 'common_area' },
+    { label: 'Bar', roomType: 'common_area' },
     { label: 'Piscine', roomType: 'common_area' },
     { label: 'Hammam', roomType: 'common_area' },
     { label: 'Jacuzzi', roomType: 'common_area' },

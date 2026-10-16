@@ -31,6 +31,7 @@ const COMMON_AREA_CATEGORY_BY_LABEL: Record<string, RoomCategoryId> = {
   Bowling: 'leisure',
   'Bibliothèque': 'leisure',
   'Salle de réunion': 'meeting',
+  Bar: 'leisure',
   'Entrée': 'entry',
   Skiroom: 'entry',
   Garage: 'entry',

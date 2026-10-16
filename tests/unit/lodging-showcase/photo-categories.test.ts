@@ -84,5 +84,6 @@ describe('028 AC-02-25 — catégories Balcon et Salle de réunion', () => {
     expect(options.find(option => option.label === 'Balcon')).toEqual({ value: 'exterior::Balcon', label: 'Balcon', roomType: 'exterior', roomLabel: 'Balcon' })
     expect(options.find(option => option.label === 'Salle de réunion')).toEqual({ value: 'common_area::Salle de réunion', label: 'Salle de réunion', roomType: 'common_area', roomLabel: 'Salle de réunion' })
     expect(options.map(option => option.label)).toEqual(expect.arrayContaining(['Terrasse', 'Vue']))
+    expect(options.find(option => option.label === 'Bar')).toEqual({ value: 'common_area::Bar', label: 'Bar', roomType: 'common_area', roomLabel: 'Bar' })
   })
 })
