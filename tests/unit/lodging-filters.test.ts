@@ -31,6 +31,14 @@ describe('lodging-filters', () => {
     expect(lodgingMatchesAmenity(['Cheminée'], 'piscine')).toBe(false)
   })
 
+  it('028 AC-02-18 : a sauna is not a hammam, and keywords match whole words only', () => {
+    expect(lodgingMatchesAmenity(['Sauna'], 'hammam')).toBe(false)
+    expect(lodgingMatchesAmenity(['Sauna'], 'sauna')).toBe(true)
+    expect(lodgingMatchesAmenity(['Hammam privatif'], 'sauna')).toBe(false)
+    expect(lodgingMatchesAmenity(['Espace de travail'], 'jacuzzi')).toBe(false)
+    expect(lodgingMatchesAmenity(['Spa privatif'], 'jacuzzi')).toBe(true)
+  })
+
   it('filters by city', () => {
     const result = filterLodgings(lodgings, state({ city: 'Chamonix' }))
     expect(result).toHaveLength(2)
@@ -64,6 +72,8 @@ describe('lodging-filters', () => {
     expect(only).toHaveLength(0)
     const some = deriveAmenityOptions(lodgings).map(a => a.id)
     expect(some).toEqual(['jacuzzi', 'piscine', 'hammam'])
+    const withSauna = deriveAmenityOptions([{ city_name: 'X', max_guests: 6, amenities: ['Sauna'] }]).map(a => a.id)
+    expect(withSauna).toEqual(['sauna'])
   })
 
   it('reports active state', () => {

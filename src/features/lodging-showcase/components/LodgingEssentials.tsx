@@ -9,20 +9,17 @@ import {
   Waves,
 } from 'lucide-react'
 
+import { containsWords, normalizeText } from '../lib/lodging-filters'
+
 type Essential = {
   label: string
   value: string
   icon: typeof Maximize2
 }
 
+// Spec 028 AC-02-18 : comparaison au mot près (« spa » ne trouve pas « espace »).
 function hasAmenity(amenities: string[], keywords: string[]) {
-  return amenities.some(amenity => {
-    const normalized = amenity
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase()
-    return keywords.some(keyword => normalized.includes(keyword))
-  })
+  return amenities.some(amenity => keywords.some(keyword => containsWords(normalizeText(amenity), keyword)))
 }
 
 const DESKTOP_COLUMNS: Record<number, string> = {

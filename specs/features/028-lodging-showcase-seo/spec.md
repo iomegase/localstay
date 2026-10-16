@@ -1219,3 +1219,9 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-17** (PO 2026-10-15) : dans la grille des pièces, la pastille de filtre
   active (« Tout », « Salon »…) est en slate (`border-slate-300 bg-slate-100
   text-slate-800`), plus en rose.
+- **AC-02-18** (PO 2026-10-16, correction) : sur `/logements`, le filtre « Hammam »
+  ne retient que les logements équipés d'un hammam ; un sauna a son propre filtre
+  « Sauna » (affiché seulement s'il existe dans la sélection). Les mots-clés des
+  filtres et du bandeau des caractéristiques sont comparés au mot près (« spa » ne
+  correspond plus à « espace »). Cas réel : « Appartement- Vue Mont Blanc - 6 p »
+  (sauna, sans hammam) apparaissait sous « Hammam ».

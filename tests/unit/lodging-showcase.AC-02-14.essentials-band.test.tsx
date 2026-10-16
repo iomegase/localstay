@@ -29,3 +29,12 @@ describe('028 AC-02-14 — bandeau des caractéristiques', () => {
     expect(list().querySelectorAll(':scope > div')).toHaveLength(5)
   })
 })
+
+describe('028 AC-02-18 — équipements du bandeau au mot près', () => {
+  it('does not show Hammam for a sauna nor Jacuzzi for « Espace de travail »', () => {
+    render(<LodgingEssentials title="Appartement" maxGuests={6} bedroomCount={2} bathroomCount={1} surfaceM2={70} amenities={['Sauna', 'Espace de travail']} />)
+    const dl = list()
+    expect(dl).not.toHaveTextContent('Hammam')
+    expect(dl).not.toHaveTextContent('Jacuzzi')
+  })
+})

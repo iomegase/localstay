@@ -6,7 +6,7 @@
  * mots-clés que l'on compare aux labels normalisés (sans accent ni casse).
  */
 
-export type AmenityFilterId = 'jacuzzi' | 'piscine' | 'hammam'
+export type AmenityFilterId = 'jacuzzi' | 'piscine' | 'hammam' | 'sauna'
 
 export type AmenityFilter = {
   id: AmenityFilterId
@@ -17,7 +17,9 @@ export type AmenityFilter = {
 export const AMENITY_FILTERS: AmenityFilter[] = [
   { id: 'jacuzzi', label: 'Jacuzzi', keywords: ['jacuzzi', 'spa', 'bain a remous', 'bain nordique'] },
   { id: 'piscine', label: 'Piscine', keywords: ['piscine', 'pool'] },
-  { id: 'hammam', label: 'Hammam', keywords: ['hammam', 'sauna'] },
+  // Spec 028 AC-02-18 (PO 2026-10-16) : un sauna n'est pas un hammam, chacun a son filtre.
+  { id: 'hammam', label: 'Hammam', keywords: ['hammam'] },
+  { id: 'sauna', label: 'Sauna', keywords: ['sauna'] },
 ]
 
 export const GUEST_OPTIONS = [2, 4, 6, 8] as const
@@ -56,7 +58,14 @@ export function lodgingMatchesAmenity(amenities: string[], id: AmenityFilterId):
   const filter = AMENITY_FILTERS.find(item => item.id === id)
   if (!filter) return false
   const normalized = amenities.map(normalizeText)
-  return normalized.some(label => filter.keywords.some(keyword => label.includes(keyword)))
+  // AC-02-18 : mot-clé comparé au mot près (« spa » ne doit pas trouver « espace »).
+  return normalized.some(label => filter.keywords.some(keyword => containsWords(label, keyword)))
+}
+
+/** AC-02-18 : vrai si `keyword` apparaît comme mot(s) entier(s) dans `label` (déjà normalisé). */
+export function containsWords(label: string, keyword: string): boolean {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`).test(label)
 }
 
 export function filterLodgings<T extends LodgingFilterInput>(
