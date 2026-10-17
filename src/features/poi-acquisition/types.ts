@@ -83,6 +83,8 @@ export type AcquisitionRunDetail = {
   /** Spec 071 AC-04-01 : lieux écartés par la mémoire de revue, candidats exclus masqués. */
   skipped_rejected: number
   skipped_excluded: number
+  /** Spec 100 AC-01-02 : lieux à plus de 20 min en voiture du centre. */
+  skipped_too_far_by_road: number
   excluded_candidates: number
   /** Spec 072 : lieux restant à traiter (run partiel) et lieux déjà traités. */
   pending_count: number

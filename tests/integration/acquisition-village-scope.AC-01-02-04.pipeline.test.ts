@@ -9,6 +9,12 @@ const mockPoiFindMany = jest.fn()
 const mockCallGemini = jest.fn()
 const mockGeocodeForAcquisition = jest.fn()
 
+// Spec 100 : temps de trajet Mapbox simulés (aucun appel réseau).
+const mockDrivingSeconds = jest.fn(async (): Promise<Record<string, number | null>> => ({}))
+jest.mock('@/features/transport/travel-times', () => ({
+  computeDrivingSeconds: () => mockDrivingSeconds(),
+}))
+
 jest.mock('@/shared/lib/prisma', () => ({
   prisma: {
     city: {

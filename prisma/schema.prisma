@@ -635,6 +635,8 @@ model PoiAcquisitionRun {
   // Spec 071 : lieux déjà rejetés pour cette catégorie ou exclus de la ville.
   skipped_rejected           Int     @default(0)
   skipped_excluded           Int     @default(0)
+  // Spec 100 AC-01-02 : lieux à plus de 20 min en voiture du centre.
+  skipped_too_far_by_road    Int     @default(0)
   // Spec 072 : traitement par lots reprenables.
   source_url                 String?
   pending_places             Json    @default("[]")

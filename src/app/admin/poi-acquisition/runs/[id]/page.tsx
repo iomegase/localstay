@@ -83,7 +83,7 @@ export default async function AdminPoiAcquisitionRunPage({
                 <AdminResumeRunButton runId={run.id} />
               </div>
             )}
-            {(run.skipped_other_village > 0 || run.skipped_closed_permanently > 0
+            {(run.skipped_other_village > 0 || run.skipped_closed_permanently > 0 || run.skipped_too_far_by_road > 0
               || run.skipped_rejected > 0 || run.skipped_excluded > 0 || run.excluded_candidates > 0) && (
               <ul className="mt-3 space-y-1 text-[12px] font-medium text-gray-500">
                 {/* Spec 071 AC-04-01 : lieux écartés par la mémoire de revue. */}
@@ -98,6 +98,10 @@ export default async function AdminPoiAcquisitionRunPage({
                 )}
                 {run.skipped_other_village > 0 && (
                   <li>{skippedLabel(run.skipped_other_village, 'plus proches d’un autre village')}</li>
+                )}
+                {/* Spec 100 AC-01-02. */}
+                {run.skipped_too_far_by_road > 0 && (
+                  <li>{skippedLabel(run.skipped_too_far_by_road, 'à plus de 20 min en voiture')}</li>
                 )}
                 {run.skipped_closed_permanently > 0 && (
                   <li>{skippedLabel(run.skipped_closed_permanently, 'fermés définitivement')}</li>

@@ -2193,3 +2193,13 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | BR-02 | Photos des cartes = références actives du nettoyage du stockage | `src/features/storage-cleanup/queries/references.ts` | `tests/unit/storage-cleanup.AC-03.delete-on-save.test.ts` | ✅ done |
 | BR-03 | Suppression douce (`deleted_at`) ; purge admin d'un logement | `src/features/guide-customization/queries/customization.ts`<br>`src/features/admin/lib/hard-delete.ts` | `tests/unit/guide-things-to-know.AC-01-04.save-sync.test.ts`<br>`tests/unit/admin-hard-delete.lodging.test.ts` | ✅ done |
 | BR-04 | Pas de section dans la démo publique (`thingsToKnow` absent) | `src/features/guide-app/types.ts` | `tests/integration/guide-things-to-know.AC-02-01-03.house-guide.test.tsx` | ✅ done |
+
+## 100 — Acquisition : lieux à plus de 20 min en voiture écartés (PO 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-01-01 | Temps de trajet voiture (Mapbox Matrix) depuis le centre de la ville ; > 20 min → écarté avant traitement payant | `src/features/poi-acquisition/lib/driving-range.ts`<br>`src/features/poi-acquisition/queries/runs.ts`<br>`src/features/transport/travel-times.ts` | `tests/unit/acquisition-driving-time.AC-01-01-04.filter.test.ts`<br>`tests/integration/acquisition-driving-time.AC-01-01-02.pipeline.test.ts` | ✅ done |
+| AC-01-02 | Compteur `skipped_too_far_by_road` sur le run, ligne « N lieux ignorés car à plus de 20 min en voiture » | `prisma/schema.prisma`<br>`prisma/migrations/20261017200000_acquisition_skipped_too_far_by_road/migration.sql`<br>`src/features/poi-acquisition/types.ts`<br>`src/app/admin/poi-acquisition/runs/[id]/page.tsx` | `tests/integration/acquisition-driving-time.AC-01-01-02.pipeline.test.ts` (compteur ; ligne d'interface non testée) | ✅ done |
+| AC-01-03 | Lieu sans itinéraire routier ou sans position conservé | `src/features/poi-acquisition/lib/driving-range.ts` | `tests/unit/acquisition-driving-time.AC-01-01-04.filter.test.ts` | ✅ done |
+| AC-01-04 | Mapbox indisponible → lieux conservés, avertissement d'une ligne | `src/features/poi-acquisition/lib/driving-range.ts` | `tests/unit/acquisition-driving-time.AC-01-01-04.filter.test.ts`<br>`tests/integration/acquisition-driving-time.AC-01-01-02.pipeline.test.ts` | ✅ done |
+| BR-01 – BR-04 | Seuil 20 min ; Mapbox seul, lots de 24 ; recherche par nom non filtrée ; zones par distance inchangées | `src/features/poi-acquisition/lib/driving-range.ts`<br>`src/features/transport/travel-times.ts`<br>`src/features/poi-acquisition/queries/runs.ts` | `tests/unit/acquisition-driving-time.AC-01-01-04.filter.test.ts`<br>`tests/integration/acquisition-village-scope.AC-01-02-04.pipeline.test.ts` | ✅ done |

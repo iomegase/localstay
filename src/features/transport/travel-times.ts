@@ -54,6 +54,20 @@ export async function computeTravelTimes(origin: Point, destinations: Destinatio
   return result
 }
 
+/** Spec 100 BR-02 : temps de trajet en voiture seul (secondes, null sans itinéraire), par lots de 24. */
+export async function computeDrivingSeconds(origin: Point, destinations: Destination[]): Promise<Record<string, number | null>> {
+  const result: Record<string, number | null> = {}
+  for (let start = 0; start < destinations.length; start += MAX_DESTINATIONS_PER_REQUEST) {
+    const batch = destinations.slice(start, start + MAX_DESTINATIONS_PER_REQUEST)
+    const driving = await fetchDurations('driving', origin, batch)
+    batch.forEach((destination, index) => {
+      const value = driving[index]
+      result[destination.id] = typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.round(value) : null
+    })
+  }
+  return result
+}
+
 /** Résultat partagé entre instances (cache de données Next), 7 jours par jeu de coordonnées (BR-02). */
 export function getCachedTravelTimes(origin: Point, destinations: Destination[]): Promise<TravelTimes> {
   const key = [coordinate(origin), ...destinations.map(destination => `${destination.id}@${coordinate(destination)}`)].join('|')

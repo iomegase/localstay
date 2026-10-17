@@ -9,6 +9,8 @@ import {
 import { classifyTypeMatch, planTypeQueries } from '../lib/google-types'
 import { filterCandidatesForVillage } from '../lib/village'
 import { filterByReviewMemory } from '../lib/review-memory'
+import { filterByDrivingTime } from '../lib/driving-range'
+import { computeDrivingSeconds } from '@/features/transport/travel-times'
 import { loadCityReviewMemories } from './review-memory'
 import { deserializePendingPlaces, serializePendingPlaces } from '../lib/pending-places'
 import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
@@ -117,6 +119,7 @@ export async function createAcquisitionRun(
     let skippedClosedPermanently = 0
     let skippedRejected = 0
     let skippedExcluded = 0
+    let skippedTooFarByRoad = 0
     if (input.google_place_id) {
       // Spec 066 BR-05 : le choix explicite de l'admin n'est pas filtré.
       const chosen = await getGooglePlaceCandidate(input.google_place_id)
@@ -143,9 +146,12 @@ export async function createAcquisitionRun(
       skippedClosedPermanently = filtered.skippedClosedPermanently
       // Spec 071 BR-03 : lieux déjà rejetés pour cette catégorie ou exclus de la ville.
       const remembered = filterByReviewMemory(filtered.kept, await loadCityReviewMemories(city.id), category.id)
-      googleCandidates = remembered.kept
       skippedRejected = remembered.skippedRejected
       skippedExcluded = remembered.skippedExcluded
+      // Spec 100 : lieu proche à vol d'oiseau mais à plus de 20 min en voiture (col, autre vallée).
+      const reachable = await filterByDrivingTime(remembered.kept, city, computeDrivingSeconds)
+      googleCandidates = reachable.kept
+      skippedTooFarByRoad = reachable.skippedTooFarByRoad
     }
     // Spec 072 AC-01-01 : la liste retenue est enregistrée avant tout traitement payant.
     await prisma.poiAcquisitionRun.update({
@@ -156,6 +162,7 @@ export async function createAcquisitionRun(
         skipped_closed_permanently: skippedClosedPermanently,
         skipped_rejected: skippedRejected,
         skipped_excluded: skippedExcluded,
+        skipped_too_far_by_road: skippedTooFarByRoad,
       },
     })
     await processPendingCandidates(run.id, { deadline: Date.now() + RUN_TIME_BUDGET_MS })
@@ -445,6 +452,7 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
       skipped_closed_permanently: true,
       skipped_rejected: true,
       skipped_excluded: true,
+      skipped_too_far_by_road: true,
       city: { select: { name: true } },
       category: { select: { name: true } },
       candidates: {
@@ -488,6 +496,7 @@ export async function getAcquisitionRun(id: string): Promise<AcquisitionRunDetai
     skipped_closed_permanently: run.skipped_closed_permanently ?? 0,
     skipped_rejected: run.skipped_rejected ?? 0,
     skipped_excluded: run.skipped_excluded ?? 0,
+    skipped_too_far_by_road: run.skipped_too_far_by_road ?? 0,
     // Spec 072 AC-02-03 : lieux restant à traiter.
     pending_count: deserializePendingPlaces(run.pending_places).length,
     processed_count: run.processed_count ?? 0,
