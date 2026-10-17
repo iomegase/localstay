@@ -26,6 +26,7 @@ import type { GuideLocale } from '@/features/guide-i18n/lib/locale'
 import { applyEnglishTranslations, prismaTranslationStore, type LocalizableField } from '@/features/content-translation/queries/store'
 import { translateSources } from '@/features/content-translation/services/translate-sources'
 import { deeplConfigFromEnv } from '@/shared/lib/deepl'
+import { atPlace } from '@/shared/lib/french-place'
 
 export async function getPrivateGuideData(
   lodgingId: string,
@@ -194,7 +195,7 @@ export async function getPrivateGuideData(
       name: lodging.name,
       city: lodging.city.name,
       // Spec 077 AC-02-03 : le message d'accueil n'est plus utilisé.
-      tagline: `Bienvenue à ${lodging.city.name}`,
+      tagline: `Bienvenue ${atPlace(lodging.city.name)}`,
       coverImage: coverImage || '/marketing/hero-chalet-v2.png',
       gallery: coverImage ? [coverImage] : [],
       latitude: customization?.lodging_latitude ?? lodging.city.latitude,

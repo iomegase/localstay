@@ -18,6 +18,7 @@ import { publicDiscoveryCityPath } from '@/features/public-discovery/lib/public-
 import type { PublicLocalLandingDto } from '../types/landing-pages'
 import type { GuestReview } from '../content/guest-reviews'
 import { GuestReviews } from './GuestReviews'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type LocalConciergeLandingProps = {
   landing: PublicLocalLandingDto
@@ -149,7 +150,7 @@ export function LocalConciergeLanding({
               Moins de questions, plus de bons avis.
             </h2>
             <p className="mt-6 text-[13px] text-justify leading-7 text-slate-500">
-              Chaque logement a son guide personnalisé : vos voyageurs y trouvent l’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour de {city.name}. Ils sont autonomes, et votre logement est mieux respecté.
+              Chaque logement a son guide personnalisé : vos voyageurs y trouvent l’arrivée, le Wi-Fi, les équipements, les consignes et nos recommandations autour {ofPlace(city.name)}. Ils sont autonomes, et votre logement est mieux respecté.
             </p>
             <ul className="mt-7 flex flex-wrap gap-2">
               {['Arrivée plus fluide', 'Informations toujours accessibles'].map(benefit => (

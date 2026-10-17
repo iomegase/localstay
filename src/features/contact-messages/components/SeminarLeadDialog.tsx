@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { marketingPrimaryButtonClass } from '@/features/marketing/components/marketing-styles'
 import { ContactDialogFrame } from './ContactDialogFrame'
+import { atPlace } from '@/shared/lib/french-place'
 
 type FormState = 'idle' | 'submitting' | 'sent' | 'error'
 
@@ -17,7 +18,7 @@ const SERVICES = ['Salle de réunion', 'Repas', 'Transferts', 'Activités'] as c
  * ContactMessage existant avec la source `seminar_lead`.
  */
 export function SeminarLeadDialog({ label, cityName, triggerClassName = marketingPrimaryButtonClass }: { label: string; cityName?: string; triggerClassName?: string }) {
-  const placePhrase = cityName ? `à ${cityName}` : 'dans le Pays du Mont-Blanc'
+  const placePhrase = cityName ? `${atPlace(cityName)}` : 'dans le Pays du Mont-Blanc'
   const [open, setOpen] = useState(false)
 
   return (

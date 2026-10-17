@@ -20,6 +20,7 @@ import { vacationFacts } from '../lib/vacation-facts'
 import type { PublicLocalLandingDto } from '../types/landing-pages'
 import { CityTitle } from '../lib/city-title'
 import { LocalRentalCard } from './LocalRentalCard'
+import { atPlace } from '@/shared/lib/french-place'
 
 const lightOutlineButtonClass = 'inline-flex min-h-11 items-center justify-center rounded-full border border-white/40 px-5 text-xs font-bold text-white transition-colors hover:border-pink-300 hover:text-pink-300'
 
@@ -39,7 +40,7 @@ export function LocalVacationRentalLanding({
   const lodgingOptions = lodgings.map(lodging => lodging.title)
   const listingTitle = content.section_title !== content.h1
     ? content.section_title
-    : `Nos logements à ${landing.city.name}`
+    : `Nos logements ${atPlace(landing.city.name)}`
 
   return (
     <MarketingShell localNavigation={{ city: landing.city, publication: landing.publication }}>
@@ -171,7 +172,7 @@ export function LocalVacationRentalLanding({
           <section className={`${marketingContainerClass} pt-16 sm:pt-24 ${content.faq.length > 0 ? '' : 'pb-16 sm:pb-24'}`}>
             <MarketingEyebrow>Pourquoi MyStay</MarketingEyebrow>
             <h2 className="max-w-[720px] text-[30px] font-bold leading-tight tracking-[-0.04em] text-slate-900 sm:text-[40px]">
-              Séjourner avec MyStay à {landing.city.name}
+              Séjourner avec MyStay {atPlace(landing.city.name)}
             </h2>
             <MarketingHighlightCards items={content.highlights} className="mt-8" />
           </section>

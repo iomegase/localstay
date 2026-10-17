@@ -14,6 +14,8 @@ import {
 
 import { SITE } from './site'
 import { markdownToPlainText } from '@/shared/lib/markdown-plain-text'
+import { atPlace } from '@/shared/lib/french-place'
+import { ofPlace } from '@/shared/lib/french-place'
 
 const MAX_DESCRIPTION = 160
 
@@ -126,7 +128,7 @@ export function poiMetadata(input: {
   photo: string | null
 }): Metadata {
   const cityPart = input.cityName
-    ? ` à ${input.cityName}`
+    ? ` ${atPlace(input.cityName)}`
     : ''
 
   const title =
@@ -190,7 +192,7 @@ export function cityMetadata(input: {
     `${input.name}${regionPart} — Guide local`
 
   const description = truncate(
-    `Découvrez le guide local MyStay de ${input.name}${
+    `Découvrez le guide local MyStay ${ofPlace(input.name)}${
       input.region
         ? `, ${input.region}`
         : ''
@@ -231,10 +233,10 @@ export function categoryMetadata(input: {
   categorySlug: string
 }): Metadata {
   const title =
-    `${input.categoryName} à ${input.cityName}`
+    `${input.categoryName} ${atPlace(input.cityName)}`
 
   const description = truncate(
-    `Découvrez les meilleures adresses « ${input.categoryName} » à ${input.cityName}, sélectionnées par MyStay pour accompagner votre séjour.`,
+    `Découvrez les meilleures adresses « ${input.categoryName} » ${atPlace(input.cityName)}, sélectionnées par MyStay pour accompagner votre séjour.`,
   )
 
   const path =
@@ -348,7 +350,7 @@ export function discoveryCityMetadata(
       : ''
 
   const description = truncate(
-    `Découvrez la sélection locale MyStay à ${city.name}${locationPart} : bonnes adresses, restaurants, commerces et lieux recommandés pour votre séjour.`,
+    `Découvrez la sélection locale MyStay ${atPlace(city.name)}${locationPart} : bonnes adresses, restaurants, commerces et lieux recommandés pour votre séjour.`,
   )
 
   const path =
@@ -395,10 +397,10 @@ export function discoveryCategoryMetadata(
   category: DiscoveryCategory,
 ): Metadata {
   const title =
-    `${category.name} à ${category.city.name}`
+    `${category.name} ${atPlace(category.city.name)}`
 
   const description = truncate(
-    `Découvrez les adresses « ${category.name} » sélectionnées par MyStay à ${category.city.name} pour préparer et profiter de votre séjour.`,
+    `Découvrez les adresses « ${category.name} » sélectionnées par MyStay ${atPlace(category.city.name)} pour préparer et profiter de votre séjour.`,
   )
 
   const path =
@@ -443,7 +445,7 @@ export function discoveryPoiMetadata(
   poi: DiscoveryPoiDetail,
 ): Metadata {
   const title =
-    `${poi.name} à ${poi.city.name}`
+    `${poi.name} ${atPlace(poi.city.name)}`
 
   const description =
     truncate(markdownToPlainText(poi.description))

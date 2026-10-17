@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 
 import { containsWords, normalizeText } from '../lib/lodging-filters'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type Essential = {
   label: string
@@ -88,7 +89,7 @@ export function LodgingEssentials({
         </div> */}
 
         <dl
-          aria-label={`Caractéristiques principales de ${title}`}
+          aria-label={`Caractéristiques principales ${ofPlace(title)}`}
           className={compact
             ? 'grid grid-cols-2 overflow-hidden rounded-[20px] bg-white shadow-md'
             : `grid grid-cols-2 overflow-hidden rounded-[20px] bg-white shadow-md ${desktopColumns} md:divide-x md:divide-slate-100`}

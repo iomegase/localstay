@@ -13,6 +13,7 @@ import {
 import { callLandingAdminApi } from '../lib/landing-admin-api'
 import type { AdminLandingDestinationDto, EligibleLandingCityDto } from '../types/landing-pages'
 import { adminLandingCityHref, AdminLandingDestinationTable } from './AdminLandingDestinationTable'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type Props = { initialDestinations: AdminLandingDestinationDto[]; eligibleCities: EligibleLandingCityDto[] }
 
@@ -110,7 +111,7 @@ export function AdminLandingPages({ initialDestinations, eligibleCities }: Props
     <AdminLandingDestinationTable destinations={destinations} pendingId={pendingId} onPublication={publish} onDelete={destination => { setError(null); setDeleting(destination) }} />
 
     <AlertDialog open={Boolean(deleting)} onOpenChange={open => { if (!open && !busy) setDeleting(null) }}>
-      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer les landings de {deleting?.city.name} ?</AlertDialogTitle><AlertDialogDescription>Les trois pages et leurs avis seront supprimés. Les logements, POI, articles, guides et la ville sont conservés.</AlertDialogDescription></AlertDialogHeader>
+      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer les landings {ofPlace(deleting?.city.name ?? "")} ?</AlertDialogTitle><AlertDialogDescription>Les trois pages et leurs avis seront supprimés. Les logements, POI, articles, guides et la ville sont conservés.</AlertDialogDescription></AlertDialogHeader>
         {error ? <p role="alert" aria-live="assertive" className="break-words text-sm text-red-700">{error.join(' ')}</p> : null}
         <AlertDialogFooter><AlertDialogCancel disabled={busy}>Annuler</AlertDialogCancel><AlertDialogAction disabled={busy} onClick={event => { event.preventDefault(); void remove() }}>Supprimer les landings</AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>

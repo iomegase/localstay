@@ -8,6 +8,7 @@ import { Hero } from './Hero'
 import { BentoSection } from './BentoSection'
 import { orderGroupsByCategoryOrder } from './order-groups'
 import type { RecRow } from './variants'
+import { atPlace, capitalizeFirst } from '@/shared/lib/french-place'
 
 export async function RecommendationsView({
   lodgingContext,
@@ -166,7 +167,7 @@ function formatOtherCityTitle(cityName: string) {
     return `Aux ${trimmedCityName.slice(4)}`
   }
 
-  return `À ${trimmedCityName}`
+  return `${capitalizeFirst(atPlace(trimmedCityName))}`
 }
 
 function EmptyState({ citySlug }: { citySlug: string }) {

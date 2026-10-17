@@ -13,6 +13,7 @@ import {
   type PoiSchemaInput,
 } from '@/features/seo/lib/structured-data'
 import { getDiscoveryPoi } from '@/features/public-discovery/queries/public-discovery'
+import { atPlace } from '@/shared/lib/french-place'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string; 'poi-slug': string }>
@@ -24,14 +25,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const publicPoi = await getDiscoveryPoi(citySlug, categorySlug, poiSlug)
     return publicPoi
-      ? privatePageMetadata(`${publicPoi.name} à ${publicPoi.city.name}`)
+      ? privatePageMetadata(`${publicPoi.name} ${atPlace(publicPoi.city.name)}`)
       : privatePageMetadata('Adresse introuvable')
   }
 
   const poi = await getPoiDetail(citySlug, categorySlug, poiSlug)
   if (!poi) return privatePageMetadata('Adresse introuvable')
 
-  return privatePageMetadata(`${poi.name} — ${poi.category.name} à ${poi.city.name}`)
+  return privatePageMetadata(`${poi.name} — ${poi.category.name} ${atPlace(poi.city.name)}`)
 }
 
 export default async function PoiDetailPage({ params }: Props) {

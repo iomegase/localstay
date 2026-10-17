@@ -14,6 +14,7 @@ import { getCategoryForSeo } from '@/features/seo/queries/page-data'
 import { JsonLd } from '@/shared/components/JsonLd'
 import { breadcrumbSchema } from '@/features/seo/lib/structured-data'
 import { getDiscoveryCategory } from '@/features/public-discovery/queries/public-discovery'
+import { atPlace } from '@/shared/lib/french-place'
 
 interface Props {
   params: Promise<{ 'city-slug': string; 'category-slug': string }>
@@ -26,13 +27,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lodgingContext) {
     const category = await getDiscoveryCategory(citySlug, categorySlug)
     return category
-      ? privatePageMetadata(`${category.name} à ${category.city.name} — Adresses`)
+      ? privatePageMetadata(`${category.name} ${atPlace(category.city.name)} — Adresses`)
       : privatePageMetadata('Catégorie introuvable')
   }
 
   const seo = await getCategoryForSeo(citySlug, categorySlug)
   if (!seo) return privatePageMetadata('Catégorie introuvable')
-  return privatePageMetadata(`${seo.categoryName} à ${seo.cityName} — Guide local`)
+  return privatePageMetadata(`${seo.categoryName} ${atPlace(seo.cityName)} — Guide local`)
 }
 
 async function triggerGeminiFetchIfNeeded(cityId: string, categoryId: string): Promise<void> {

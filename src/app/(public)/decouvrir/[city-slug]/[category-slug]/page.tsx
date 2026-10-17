@@ -5,6 +5,7 @@ import { getDiscoveryCategory } from '@/features/public-discovery/queries/public
 import { discoveryCategoryMetadata } from '@/features/seo/lib/metadata'
 import { breadcrumbSchema, discoveryItemListSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
+import { atPlace } from '@/shared/lib/french-place'
 
 type PageProps = {
   params: Promise<{ 'city-slug': string; 'category-slug': string }>
@@ -39,7 +40,7 @@ export default async function DiscoveryCategoryPage({ params }: PageProps) {
           { name: category.name, path: categoryPath },
         ]),
         discoveryItemListSchema({
-          name: `${category.name} à ${category.city.name}`,
+          name: `${category.name} ${atPlace(category.city.name)}`,
           items: category.pois.map(poi => ({
             name: poi.name,
             path: `${categoryPath}/${poi.slug}`,

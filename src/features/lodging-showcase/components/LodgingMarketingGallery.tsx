@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { selectLodgingGalleryPhotos } from '../lib/detail-view'
 import { LodgingPhotoLightbox } from './LodgingPhotoLightbox'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type GalleryPhoto = {
   id: string
@@ -26,7 +27,7 @@ export function LodgingMarketingGallery({
   if (visiblePhotos.length === 0) {
     return (
       <section
-        aria-label={`Photos de ${title}`}
+        aria-label={`Photos ${ofPlace(title)}`}
         data-testid="lodging-marketing-gallery"
         className="mx-auto flex min-h-[280px] w-full max-w-[944px] items-center justify-center bg-slate-100 text-sm text-slate-500 md:min-h-[420px] md:rounded-[26px]"
       >
@@ -42,7 +43,7 @@ export function LodgingMarketingGallery({
   return (
     <>
     <section
-      aria-label={`Photos de ${title}`}
+      aria-label={`Photos ${ofPlace(title)}`}
       data-testid="lodging-marketing-gallery"
       className={compact
         ? 'mx-auto grid h-[440px] w-full max-w-[944px] grid-cols-2 grid-rows-[2fr_1fr] gap-1.5 overflow-hidden'

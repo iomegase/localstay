@@ -1,4 +1,5 @@
 // Spec 082 : bibliothèque de FAQ génériques, issue des questions rédigées par le PO (« Le 305 »).
+import { atPlace, ofPlace } from '@/shared/lib/french-place'
 // Jetons remplis par logement : {ville}, {voyageurs}, {chambres}.
 // Les passages entre crochets sont à adapter par le propriétaire (badge « À adapter »).
 
@@ -80,8 +81,12 @@ function plural(count: number, singular: string, pluralForm: string) {
 
 /** Spec 082 AC-01-02 : remplace les jetons par les informations du logement. */
 export function fillFaqTemplate(item: FaqLibraryItem, context: FaqLodgingContext): { question: string; answer: string } {
+  const city = context.cityName?.trim()
   const fill = (text: string) => text
-    .replaceAll('{ville}', context.cityName?.trim() || 'la station')
+    // Spec 031 AC-01-28 : « de / à » contractés devant la commune (des Contamines, au Fayet).
+    .replaceAll('de {ville}', city ? ofPlace(city) : 'de la station')
+    .replaceAll('à {ville}', city ? atPlace(city) : 'à la station')
+    .replaceAll('{ville}', city || 'la station')
     .replaceAll('{voyageurs}', context.maxGuests && context.maxGuests > 0 ? `jusqu’à ${plural(context.maxGuests, 'personne', 'personnes')}` : '[X] personnes')
     .replaceAll('{chambres}', context.bedroomCount && context.bedroomCount > 0 ? plural(context.bedroomCount, 'chambre', 'chambres') : '[X chambres]')
   return { question: fill(item.question), answer: fill(item.answer) }

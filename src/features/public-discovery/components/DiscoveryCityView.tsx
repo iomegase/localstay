@@ -11,6 +11,7 @@ import {
 import { cn } from '@/shared/lib/utils'
 import type { DiscoveryCity, DiscoverySubcategorySummary } from '../types'
 import { DiscoveryPoiCard } from './DiscoveryPoiCard'
+import { atPlace } from '@/shared/lib/french-place'
 
 // Spec 065 AC-01-02 / AC-01-03.
 const MAX_LISTED_SUBCATEGORIES = 3
@@ -91,7 +92,7 @@ export function DiscoveryCityView({ city }: { city: DiscoveryCity }) {
         <section className={`${marketingContainerClass} py-16 sm:py-20`} aria-labelledby="discovery-city-pois-title">
           <MarketingEyebrow>La sélection MyStay</MarketingEyebrow>
           <h2 id="discovery-city-pois-title" className="text-3xl font-semibold tracking-[-0.045em] text-slate-900 sm:text-4xl">
-            Nos adresses à {city.name}.
+            Nos adresses {atPlace(city.name)}.
           </h2>
           <div className="mt-10 space-y-12">
             {city.categories.map(category => (

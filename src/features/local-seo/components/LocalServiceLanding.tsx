@@ -22,6 +22,7 @@ import { SeminarLeadDialog } from '@/features/contact-messages/components/Semina
 import { SeminarFormats } from '@/features/marketing/components/SeminarFormats'
 import { MarketingHighlightCards } from '@/features/marketing/components/MarketingHighlightCards'
 import { CityTitle } from '../lib/city-title'
+import { atPlace } from '@/shared/lib/french-place'
 
 function PrimaryCta({
   content,
@@ -352,7 +353,7 @@ export function LocalServiceLanding({
                 `}
               >
                 {isConcierge
-                  ? `Parlons de votre logement à ${landing.city.name}.`
+                  ? `Parlons de votre logement ${atPlace(landing.city.name)}.`
                   : 'Parlons de votre prochain séminaire.'}
               </h2>
 

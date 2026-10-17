@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { SITE } from '@/features/seo/lib/site'
 import { singleBrandTitle, truncate } from '@/features/seo/lib/metadata'
 import { buildBlogArticlePath } from './slug'
+import { atPlace } from '@/shared/lib/french-place'
 
 function openGraph(input: {
   title: string
@@ -28,7 +29,7 @@ export function blogListMetadata(input: {
     ? `Journal ${input.city.name} — Guides locaux`
     : 'Journal — Guides locaux et conseils de séjour'
   const description = input.city
-    ? truncate(`Découvrez nos articles, conseils et guides locaux pour préparer un séjour à ${input.city.name} avec MyStay.`)
+    ? truncate(`Découvrez nos articles, conseils et guides locaux pour préparer un séjour ${atPlace(input.city.name)} avec MyStay.`)
     : truncate('Découvrez le journal MyStay : guides locaux, conseils de séjour et inspirations éditoriales pour voyager plus simplement.')
 
   return {

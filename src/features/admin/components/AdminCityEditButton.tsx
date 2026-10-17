@@ -10,6 +10,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/shared/components/ui/dialog'
 import { CityUpdateSchema } from '@/features/admin/schemas/city'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type City = { slug: string; name: string; postal_code: string; tourism_site_url?: string | null }
 
@@ -76,7 +77,7 @@ export function AdminCityEditButton({ city }: { city: City }) {
         <DialogHeader>
           <DialogTitle>Modifier la ville</DialogTitle>
           <DialogDescription>
-            Corrigez les informations de {city.name}. Les liens et QR codes existants sont conservés.
+            Corrigez les informations {ofPlace(city.name)}. Les liens et QR codes existants sont conservés.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-5" aria-busy={busy}>

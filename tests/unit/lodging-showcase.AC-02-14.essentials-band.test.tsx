@@ -2,7 +2,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { LodgingEssentials } from '@/features/lodging-showcase/components/LodgingEssentials'
 
-const list = () => screen.getByLabelText(/^Caractéristiques principales de /)
+const list = () => screen.getByLabelText(/^Caractéristiques principales /)
 
 describe('028 AC-02-14 — bandeau des caractéristiques', () => {
   it('uses a shadow without border and 4 columns for 4 facts', () => {

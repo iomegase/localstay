@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ofPlace } from '@/shared/lib/french-place'
 
 export type LightboxPhoto = { id: string; url: string; alt: string }
 
@@ -68,7 +69,7 @@ export function LodgingPhotoLightbox({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Photos de ${title}`}
+      aria-label={`Photos ${ofPlace(title)}`}
       onClick={event => { if (event.target === event.currentTarget) onClose() }}
       className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 text-white backdrop-blur-sm"
     >

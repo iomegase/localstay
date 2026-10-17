@@ -6,6 +6,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Switch } from '@/shared/components/ui/switch'
 import { issueCountByIntent, LANDING_TABS, tabForIntent } from '../lib/landing-editor'
 import type { AdminLandingDestinationDto, LocalLandingIntent } from '../types/landing-pages'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type Props = {
   destinations: AdminLandingDestinationDto[]
@@ -72,7 +73,7 @@ export function AdminLandingDestinationTable({ destinations, pendingId, onPublic
               <Button asChild variant="ghost" size="icon">
                 <Link href={adminLandingCityHref(destination.city.slug)} aria-label={`Modifier ${destination.city.name}`}><Pencil aria-hidden="true" /></Link>
               </Button>
-              <Button type="button" variant="ghost" size="icon" disabled={Boolean(pendingId)} aria-label={`Supprimer les landings de ${destination.city.name}`} onClick={() => onDelete(destination)}>
+              <Button type="button" variant="ghost" size="icon" disabled={Boolean(pendingId)} aria-label={`Supprimer les landings ${ofPlace(destination.city.name)}`} onClick={() => onDelete(destination)}>
                 <Trash2 aria-hidden="true" />
               </Button>
             </div>

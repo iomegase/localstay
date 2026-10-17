@@ -1,4 +1,5 @@
 
+import { ofPlace } from '@/shared/lib/french-place'
 type Props = {
     ownerName: string | null
   lodgingName: string
@@ -24,8 +25,8 @@ export function Hero({ ownerName, lodgingName, cityName, stats }: Props) {
   const displayOwner = ownerName ? capitalize(ownerName) : null
   const title = displayOwner ? `Les recommandations de ${displayOwner}` : 'Les recommandations de votre hôte'
   const intro = displayOwner
-    ? `Une sélection personnelle de votre hôte pour profiter de ${cityName}.`
-    : `Une sélection personnelle de votre hôte pour profiter de ${cityName}.`
+    ? `Une sélection personnelle de votre hôte pour profiter ${ofPlace(cityName)}.`
+    : `Une sélection personnelle de votre hôte pour profiter ${ofPlace(cityName)}.`
 
   return (
     <section className="mb-8 overflow-hidden rounded-[2rem] bg-charcoal p-5 text-white shadow-soft">

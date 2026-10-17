@@ -33,6 +33,7 @@ import {
   // marketingDarkButtonClass,
   marketingPrimaryButtonClass,
 } from '@/features/marketing/components/marketing-styles'
+import { atPlace } from '@/shared/lib/french-place'
 
 interface Props {
   params: Promise<{ 'lodging-slug': string }>
@@ -129,7 +130,7 @@ export default async function LodgingDetailPage({ params }: Props) {
                 </h1>
                 <div className="mt-4 flex items-center text-[14px] font-medium text-slate-500">
                   <MapPin className="mr-2 h-4 w-4 shrink-0 text-pink-600" strokeWidth={2} />
-                  {detail.property_type} à {detail.city_name}
+                  {detail.property_type} {atPlace(detail.city_name)}
                 </div>
               </div>
 

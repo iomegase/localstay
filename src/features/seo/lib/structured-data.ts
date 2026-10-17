@@ -7,6 +7,7 @@ import { publicLodgingPath } from '@/features/lodging-showcase/lib/public-paths'
 import { selectVisibleLodgingPhotos } from '@/features/lodging-showcase/lib/detail-view'
 import type { DiscoveryPoiDetail } from '@/features/public-discovery/types'
 import { markdownToPlainText } from '@/shared/lib/markdown-plain-text'
+import { atPlace } from '@/shared/lib/french-place'
 
 const SCHEMA = 'https://schema.org'
 
@@ -915,7 +916,7 @@ export function lodgingItemListSchema(
       'ItemList',
 
     name:
-      `Logements à ${input.cityName}`,
+      `Logements ${atPlace(input.cityName)}`,
 
     itemListElement:
       input.items.map(

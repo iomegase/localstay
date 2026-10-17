@@ -13,6 +13,7 @@ import type { DiscoveryPoiDetail } from '../types'
 import { buildDiscoveryDirectionsHref } from '../lib/directions'
 import { RemotePoiImage } from './RemotePoiImage'
 import { phoneHref } from '@/shared/lib/phone'
+import { atPlace } from '@/shared/lib/french-place'
 
 const DAY_NAMES = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as const
 const decimalFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 })
@@ -44,7 +45,7 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
               src={poi.hero_photo_url}
               alt={poi.photo_is_fallback
                 ? `Illustration : ${poi.subcategory?.name ?? poi.category.name}`
-                : `${poi.name} à ${poi.city.name}`}
+                : `${poi.name} ${atPlace(poi.city.name)}`}
               width={1200}
               height={900}
               loading="eager"

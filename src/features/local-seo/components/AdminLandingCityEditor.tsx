@@ -19,6 +19,7 @@ import {
 import type { AdminLandingDestinationDto, LocalLandingPageInput } from '../types/landing-pages'
 import { AdminLandingReviews } from './AdminLandingReviews'
 import { LandingPageEditor } from './LandingPageEditor'
+import { ofPlace } from '@/shared/lib/french-place'
 
 // Domaine canonique affiché dans l'aperçu Google.
 const PUBLIC_SITE_ORIGIN = 'https://www.mystay.city'
@@ -125,7 +126,7 @@ export function AdminLandingCityEditor({ destination: initialDestination, initia
       </header>
 
       {/* Spec 076 AC-02-01 : un onglet par page + avis. */}
-      <div role="tablist" aria-label={`Pages de ${destination.city.name}`} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+      <div role="tablist" aria-label={`Pages ${ofPlace(destination.city.name)}`} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
         {LANDING_TABS.map(candidate => {
           const count = candidate.intent ? issueCounts[candidate.intent] : destination.reviewCount
           const selected = candidate.key === tab

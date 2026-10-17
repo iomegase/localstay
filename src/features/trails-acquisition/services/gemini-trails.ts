@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { rejectGeminiGeoMetrics } from '../lib/source-policy'
 import { DESCRIPTION_LENGTH_INSTRUCTION, DESCRIPTION_MAX_CHARS, limitToWords } from '@/shared/lib/description-length'
 import { sanitizeDescriptionSources, type DescriptionSource } from '@/shared/lib/description-sources'
+import { ofPlace } from '@/shared/lib/french-place'
 
 export type GeminiTrailDiscovery = {
   title: string
@@ -63,7 +64,7 @@ type DiscoveredTrail = {
 }
 
 export async function discoverTrailsWithGemini(city: CityRef): Promise<DiscoveredTrail[]> {
-  const prompt = `Utilise Google Search pour trouver les 10 randonnées pédestres les plus emblématiques et accessibles autour de ${city.name} (Haute-Savoie, France, ~${city.latitude.toFixed(4)},${city.longitude.toFixed(4)}).
+  const prompt = `Utilise Google Search pour trouver les 10 randonnées pédestres les plus emblématiques et accessibles autour ${ofPlace(city.name)} (Haute-Savoie, France, ~${city.latitude.toFixed(4)},${city.longitude.toFixed(4)}).
 
 Cherche sur les sites de référence : office de tourisme local, visorando.com, altituderando.com, camptocamp.org, Wikipedia. Inclus les classiques connus localement (sommets, lacs, alpages, refuges) accessibles à pied sans matériel d'alpinisme.
 
@@ -101,7 +102,7 @@ type DescriptionResult = {
 }
 
 export async function generateTrailDescription(title: string, city: CityRef): Promise<DescriptionResult> {
-  const prompt = `Utilise Google Search pour trouver des informations factuelles sur la randonnée "${title}" située autour de ${city.name} (Haute-Savoie, France).
+  const prompt = `Utilise Google Search pour trouver des informations factuelles sur la randonnée "${title}" située autour ${ofPlace(city.name)} (Haute-Savoie, France).
 
 Cherche sur visorando.com, altituderando.com, camptocamp.org, l'office de tourisme local, Wikipedia. Combine plusieurs sources pour une synthèse fiable.
 

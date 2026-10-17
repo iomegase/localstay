@@ -5,6 +5,7 @@ import { getDiscoveryCity } from '@/features/public-discovery/queries/public-dis
 import { discoveryCityMetadata } from '@/features/seo/lib/metadata'
 import { breadcrumbSchema, discoveryItemListSchema } from '@/features/seo/lib/structured-data'
 import { JsonLd } from '@/shared/components/JsonLd'
+import { atPlace } from '@/shared/lib/french-place'
 
 type PageProps = { params: Promise<{ 'city-slug': string }> }
 
@@ -36,7 +37,7 @@ export default async function DiscoveryCityPage({ params }: PageProps) {
           { name: `Découvrir ${city.name}`, path },
         ]),
         discoveryItemListSchema({
-          name: `Sélection locale à ${city.name}`,
+          name: `Sélection locale ${atPlace(city.name)}`,
           items: visiblePois.map(poi => ({
             name: poi.name,
             path: `${path}/${poi.category.slug}/${poi.slug}`,

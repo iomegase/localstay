@@ -807,3 +807,11 @@ des étapes ; contrôle ESLint. Aucune question ouverte.
   « Les Logements » (menu desktop, menu mobile et colonne « Explorer » du footer).
   Destination inchangée (`/logements`, ou la landing locations de la commune sur les
   landings locales).
+- **AC-01-28** (PO 2026-10-17, « corriger cette erreur de syntaxe à chaque fois ») : partout où
+  le site place « à » ou « de » devant un nom de commune ou de lieu, la préposition suit la
+  règle française : « Le » et « Les » se contractent (au Fayet, aux Contamines-Montjoie, du
+  Fayet, des Contamines-Montjoie), « La » / « L' » gardent leur majuscule (à La Clusaz),
+  « de » s'élide devant une voyelle (d'Annecy). Fonctions partagées `atPlace`, `ofPlace`
+  (`src/shared/lib/french-place.ts`), appliquées aux fiches logement, `/decouvrir`, landings,
+  metadata SEO, JSON-LD, guide privé, FAQ (jeton `{ville}`), admin et prompts Gemini. Cas
+  réel : « appartement à Les Contamines-Montjoie » → « appartement aux Contamines-Montjoie ».

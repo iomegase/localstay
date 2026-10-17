@@ -1,3 +1,5 @@
+import { ofPlace } from '@/shared/lib/french-place'
+
 export interface PromptParams {
   cityName: string
   postalCode: string
@@ -7,7 +9,7 @@ export interface PromptParams {
 
 export function buildGeminiPrompt(params: PromptParams): string {
   const { cityName, postalCode, categoryName, radiusKm } = params
-  return `Tu es un expert local de la ville de ${cityName} (${postalCode}), France.
+  return `Tu es un expert local de la ville ${ofPlace(cityName)} (${postalCode}), France.
 
 Ta mission est de DEUX types :
 1. Lister TOUS les établissements existants de la catégorie "${categoryName}" dans cette ville et ses alentours (${radiusKm} km).
@@ -17,7 +19,7 @@ Ta mission est de DEUX types :
 
 Critères de liste :
 - Établissements réellement existants et actifs
-- Dans un rayon de ${radiusKm} km du centre de ${cityName}
+- Dans un rayon de ${radiusKm} km du centre ${ofPlace(cityName)}
 - Sans doublons
 - Sans établissements définitivement fermés
 - Maximum 20 établissements

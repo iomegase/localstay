@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import type { AcquisitionNameSearchResult } from '../types'
+import { ofPlace } from '@/shared/lib/french-place'
 
 type Option = {
   id: string
@@ -162,7 +163,7 @@ export function AdminPlaceByNameSearch({ cities, categories }: { cities: Option[
                     {result.is_other_village && result.nearest_city && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700">
                         <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" />
-                        Plus proche de {result.nearest_city.name}
+                        Plus proche {ofPlace(result.nearest_city.name)}
                       </span>
                     )}
                   </div>
