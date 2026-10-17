@@ -10,9 +10,9 @@ const mockCallGemini = jest.fn()
 const mockGeocodeForAcquisition = jest.fn()
 
 // Spec 100 : temps de trajet Mapbox simulés (aucun appel réseau).
-const mockDrivingSeconds = jest.fn(async (): Promise<Record<string, number | null>> => ({}))
+const mockDrivingSeconds = jest.fn(async (): Promise<Record<string, { seconds: number | null; roadDistanceMeters: number | null }>> => ({}))
 jest.mock('@/features/transport/travel-times', () => ({
-  computeDrivingSeconds: () => mockDrivingSeconds(),
+  computeDrivingAccess: () => mockDrivingSeconds(),
 }))
 
 jest.mock('@/shared/lib/prisma', () => ({
@@ -105,7 +105,10 @@ describe('100 — pipeline : temps de trajet en voiture', () => {
     global.fetch = jest.fn(async () => Response.json({
       places: [place('cafe-du-village'), place('cafe-autre-vallee', { location: { latitude: 45.76, longitude: 6.75 } })],
     }))
-    mockDrivingSeconds.mockResolvedValue({ 'cafe-du-village': 300, 'cafe-autre-vallee': 7200 })
+    mockDrivingSeconds.mockResolvedValue({
+      'cafe-du-village': { seconds: 300, roadDistanceMeters: 5 },
+      'cafe-autre-vallee': { seconds: 7200, roadDistanceMeters: 5 },
+    })
   })
 
   it('n’enregistre pas le lieu à 2 h de route et compte l’écart sur le run', async () => {

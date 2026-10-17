@@ -40,6 +40,9 @@ Run d'acquisition ; Candidat ; City ; Zone principale / Aux alentours (AGENTS §
   position Google est conservé.
 - **AC-01-04**: Si Mapbox est indisponible (erreur, délai dépassé, jeton absent), les lieux sont
   conservés et le run continue (avertissement d'une ligne dans les logs).
+- **AC-01-05** (PO 2026-10-17, option A) : un **refuge ou restaurant d'altitude** n'est jamais écarté au
+  temps de trajet (Refuge du Mont-Joly : 39 min jusqu'à la route la plus proche) ; il reste soumis à la
+  limite des 30 km.
 
 ## Business Rules
 - **BR-01**: Seuil : 20 min (1 200 s) de trajet en voiture, centre de la ville → lieu.
@@ -47,6 +50,10 @@ Run d'acquisition ; Candidat ; City ; Zone principale / Aux alentours (AGENTS §
   par 24 lieux (limite Matrix API).
 - **BR-03**: Le choix explicite d'un lieu par son nom (spec 066 BR-05) n'est pas filtré.
 - **BR-04**: Les zones par distance (≤ 15 km, 15–30 km, > 30 km) restent inchangées.
+- **BR-05**: Refuge / restaurant d'altitude (AC-01-05) = nom contenant « refuge », « alpage », « buvette »
+  ou « cabane » (mot entier, sans casse), **ou** lieu à plus de 150 m de la route la plus proche selon
+  Mapbox (`destinations[].distance` de la Matrix API). Google n'a pas de type « refuge » : ces lieux sont
+  typés `french_restaurant` ou `lodging`.
 
 ## Data Model
 
@@ -65,10 +72,12 @@ Page `/admin/poi-acquisition/runs/{id}` : ligne « N lieux à plus de 20 min en 
 des lieux écartés.
 
 ## Acceptance Criteria
-AC-01-01 à AC-01-04, BR-01 à BR-04.
+AC-01-01 à AC-01-05, BR-01 à BR-05.
 
 ## Out of Scope
-Recalcul des candidats et POI existants ; seuil configurable ; recherche par nom (spec 066).
+Recalcul des candidats et POI existants (audit du 2026-10-17 : 7 POI actifs à > 20 min, conservés —
+5 randonnées dont le départ est hors du centre, le Refuge du Mont-Joly, et Unlimited Sports
+dont la position est erronée) ; seuil configurable ; recherche par nom (spec 066).
 
 ## Open Questions
 Aucune.

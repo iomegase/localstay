@@ -10,7 +10,7 @@ import { classifyTypeMatch, planTypeQueries } from '../lib/google-types'
 import { filterCandidatesForVillage } from '../lib/village'
 import { filterByReviewMemory } from '../lib/review-memory'
 import { filterByDrivingTime } from '../lib/driving-range'
-import { computeDrivingSeconds } from '@/features/transport/travel-times'
+import { computeDrivingAccess } from '@/features/transport/travel-times'
 import { loadCityReviewMemories } from './review-memory'
 import { deserializePendingPlaces, serializePendingPlaces } from '../lib/pending-places'
 import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
@@ -149,7 +149,7 @@ export async function createAcquisitionRun(
       skippedRejected = remembered.skippedRejected
       skippedExcluded = remembered.skippedExcluded
       // Spec 100 : lieu proche à vol d'oiseau mais à plus de 20 min en voiture (col, autre vallée).
-      const reachable = await filterByDrivingTime(remembered.kept, city, computeDrivingSeconds)
+      const reachable = await filterByDrivingTime(remembered.kept, city, computeDrivingAccess)
       googleCandidates = reachable.kept
       skippedTooFarByRoad = reachable.skippedTooFarByRoad
     }

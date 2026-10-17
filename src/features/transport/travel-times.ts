@@ -54,15 +54,39 @@ export async function computeTravelTimes(origin: Point, destinations: Destinatio
   return result
 }
 
-/** Spec 100 BR-02 : temps de trajet en voiture seul (secondes, null sans itinéraire), par lots de 24. */
-export async function computeDrivingSeconds(origin: Point, destinations: Destination[]): Promise<Record<string, number | null>> {
-  const result: Record<string, number | null> = {}
+export type DrivingAccess = {
+  /** Durée du trajet en voiture (s), null sans itinéraire. */
+  seconds: number | null
+  /** Distance (m) entre le lieu et la route la plus proche où Mapbox l'a rattaché. */
+  roadDistanceMeters: number | null
+}
+
+const drivingAccessSchema = matrixSchema.extend({
+  destinations: z.array(z.object({ distance: z.number().nullable().optional() })).optional(),
+})
+
+/** Spec 100 BR-02 : accès en voiture depuis une origine (durée + écart à la route), par lots de 24. */
+export async function computeDrivingAccess(origin: Point, destinations: Destination[]): Promise<Record<string, DrivingAccess>> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+  if (!token) throw new Error('MAPBOX_TOKEN_MISSING')
+  const valid = (value: number | null | undefined) =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.round(value) : null
+  const result: Record<string, DrivingAccess> = {}
   for (let start = 0; start < destinations.length; start += MAX_DESTINATIONS_PER_REQUEST) {
     const batch = destinations.slice(start, start + MAX_DESTINATIONS_PER_REQUEST)
-    const driving = await fetchDurations('driving', origin, batch)
+    const coordinates = [origin, ...batch].map(coordinate).join(';')
+    const url =
+      `https://api.mapbox.com/directions-matrix/v1/mapbox/driving/${coordinates}` +
+      `?sources=0&annotations=duration&access_token=${token}`
+    const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), cache: 'no-store' })
+    if (!response.ok) throw new Error(`MAPBOX_MATRIX_HTTP_${response.status}`)
+    const parsed = drivingAccessSchema.safeParse(await response.json())
+    if (!parsed.success) throw new Error('MAPBOX_MATRIX_INVALID')
     batch.forEach((destination, index) => {
-      const value = driving[index]
-      result[destination.id] = typeof value === 'number' && Number.isFinite(value) && value >= 0 ? Math.round(value) : null
+      result[destination.id] = {
+        seconds: valid(parsed.data.durations[0][index + 1]),
+        roadDistanceMeters: valid(parsed.data.destinations?.[index + 1]?.distance),
+      }
     })
   }
   return result
