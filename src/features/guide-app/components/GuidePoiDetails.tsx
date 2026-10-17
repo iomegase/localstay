@@ -269,6 +269,8 @@ export function GuidePoiDetails({
             latitude={poi.latitude}
             longitude={poi.longitude}
             address={poi.address}
+            // Randonnée : Google mène au point de départ (coordonnées), jamais au centre de la ville.
+            preferCoordinates={Boolean(poi.trail)}
             variant="guide"
             onShowOnMap={() => onShowOnMap(poi)}
             startAction={poi.trail && canStartTrail(mode, poi.trail) && onStartTrail

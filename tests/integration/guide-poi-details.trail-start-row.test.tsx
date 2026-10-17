@@ -57,3 +57,30 @@ it('2026-10-17 : la fiche affiche la durée de la randonnée, au format de l’�
   )
   expect(screen.queryByText('5 h 53')).not.toBeInTheDocument()
 })
+
+it('2026-10-18 : « Google Maps » d’une randonnée mène au point de départ (coordonnées), pas à la ville', () => {
+  render(
+    <GuidePoiDetails
+      mode="private"
+      poi={buildStayPoi({
+        name: 'Tête Noire : Sentiers des Gardes',
+        address: 'Les Contamines-Montjoie',
+        latitude: 45.911236,
+        longitude: 6.723461,
+        trail: { difficulty: 'medium', estimatedDurationMinutes: 267, distanceKm: 12.7, elevationGainM: 1150, startLabel: null, trackingEnabled: true },
+      })}
+      lodging={buildStayLodging()}
+      onBack={jest.fn()}
+      onShowOnMap={jest.fn()}
+    />,
+  )
+  expect(screen.getByTestId('btn-directions')).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=45.911236%2C6.723461')
+})
+
+it('un lieu qui n’est pas une randonnée garde son adresse pour Google Maps', () => {
+  render(
+    <GuidePoiDetails mode="private" poi={buildStayPoi({ name: 'La Vieille Auberge', address: '140 Rte de Notre Dame de la Gorge, Les Contamines', trail: undefined })}
+      lodging={buildStayLodging()} onBack={jest.fn()} onShowOnMap={jest.fn()} />,
+  )
+  expect(screen.getByTestId('btn-directions').getAttribute('href')).toContain('140%20Rte%20de%20Notre%20Dame')
+})

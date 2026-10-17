@@ -52,11 +52,16 @@ interface Props {
   onShowOnMap?: (() => void) | null
   /** Guide variant only: « Démarrer » la randonnée, en tête de la ligne d'actions (spec 021). */
   startAction?: { label: string; ariaLabel: string; onClick: () => void } | null
+  /**
+   * 2026-10-18 : itinéraire vers les coordonnées plutôt que vers l'adresse. Une randonnée n'a souvent
+   * pour « adresse » que le nom de la ville (Tête Noire → Les Contamines au lieu des Plagnes).
+   */
+  preferCoordinates?: boolean
 }
 
-export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default', onShowOnMap, startAction }: Props) {
+export function ActionButtons({ phone, website, latitude, longitude, address, variant = 'default', onShowOnMap, startAction, preferCoordinates = false }: Props) {
   const m = useGuideMessages()
-  const destination = address.trim() || `${latitude},${longitude}`
+  const destination = (!preferCoordinates && address.trim()) || `${latitude},${longitude}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeMapsDestination(destination)}`
   // Spec 096 : appel au format international, numéro lu « +33 4 50 47 78 95 ».
   const phoneLabel = formatPhone(phone) || null

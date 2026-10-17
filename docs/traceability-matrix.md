@@ -2311,3 +2311,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-02-32 | Photos « Autre » affichées : carte « Autre » en dernier dans la grille des pièces, pill « Autre » en dernier (si présente), galerie et données structurées | `src/features/lodging-showcase/lib/detail-view.ts`<br>`src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx`<br>`tests/unit/lodging-showcase/detail-view.test.ts`<br>`tests/unit/lodging-showcase.structured-data.test.ts`<br>`tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |
+
+## 021 — Itinéraire Google Maps d'une randonnée (correction PO 2026-10-18)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Fiche POI randonnée — itinéraire | « Google Maps » mène au point de départ (coordonnées) et non à l'« adresse » (souvent le nom de la ville : Tête Noire → Les Contamines au lieu des Plagnes) ; les autres lieux gardent leur adresse | `src/features/categories/components/ActionButtons.tsx`<br>`src/features/guide-app/components/GuidePoiDetails.tsx` | `tests/integration/guide-poi-details.trail-start-row.test.tsx` | ✅ done |
