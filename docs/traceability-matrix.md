@@ -2305,3 +2305,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 |---|---|---|---|---|
 | AC-02-08 | « Landing pages actives » = pages distinctes avec au moins une impression Google sur la période (plus la somme des comptes journaliers : 30 affiché pour 7 pages) | `src/features/admin-analytics/queries/dashboard.ts` | `tests/unit/admin-analytics.dashboard-queries.test.ts` | ✅ done |
 | Crons `vercel.json` | Les crons Vercel (GET) déclenchent la synchronisation analytics et le géocodage nocturne (routes en POST seul → 405, données figées au 2026-10-05) | `src/app/api/internal/analytics/sync/route.ts`<br>`src/app/api/internal/geocode-pois/route.ts` | `tests/contract/internal-crons.vercel-get.test.ts` | ✅ done |
+
+## 028 — Catégorie « Autre » affichée (PO 2026-10-18)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-02-32 | Photos « Autre » affichées : carte « Autre » en dernier dans la grille des pièces, pill « Autre » en dernier (si présente), galerie et données structurées | `src/features/lodging-showcase/lib/detail-view.ts`<br>`src/features/lodging-showcase/lib/room-categories.ts` | `tests/unit/lodging-showcase.AC-02-11.rooms-grid-filters.test.tsx`<br>`tests/unit/lodging-showcase/detail-view.test.ts`<br>`tests/unit/lodging-showcase.structured-data.test.ts`<br>`tests/integration/lodging-showcase.public-pages.test.tsx` | ✅ done |

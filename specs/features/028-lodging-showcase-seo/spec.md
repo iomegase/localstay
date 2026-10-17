@@ -1285,3 +1285,9 @@ Constat PO : « enlever cette catégorie idiote ».
   supprimés (remplace AC-06-03). Constat PO : la note était codée en dur, jamais visible du
   propriétaire, et le clic dépubliait la fiche en silence. Pour retirer une fiche du site :
   « Archiver ». La colonne `admin_review_note` est conservée (aucune migration).
+
+- **AC-02-32** (PO 2026-10-18 : « "Autre" est une catégorie à part entière, afficher la catégorie
+  Autre ») : sur la fiche publique, les photos de la catégorie « Autre » (`other`) sont affichées.
+  Elles forment une carte « Autre » (ou au nom saisi) dans la grille des pièces, toujours placée en
+  dernier sous « Tout », et une pill « Autre », dernière, affichée seulement si le logement en a.
+  Elles suivent les mêmes règles que les autres photos (galerie, données structurées).

@@ -289,6 +289,8 @@ describe('lodging showcase public pages', () => {
         'https://img.test/cover.webp',
         'https://img.test/bedroom.webp',
         'https://img.test/exterior.webp',
+        // Spec 028 AC-02-32 : la photo « Autre » est visible, donc dans les données structurées.
+        'https://img.test/hidden-other.webp',
         'https://img.test/kitchen.webp',
       ],
       address: {
@@ -300,9 +302,10 @@ describe('lodging showcase public pages', () => {
       expect(screen.getAllByRole('img', { name: photo.alt }).length).toBeGreaterThan(0)
     }
     expect(screen.queryByRole('img', { name: 'Photo sans pièce' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('img', { name: 'Photo autre' })).not.toBeInTheDocument()
+    // Spec 028 AC-02-32 : « Autre » est une catégorie affichée.
+    expect(screen.getAllByRole('img', { name: 'Photo autre' }).length).toBeGreaterThan(0)
     expect(JSON.stringify(lodgingSchema)).not.toContain('hidden-null.webp')
-    expect(JSON.stringify(lodgingSchema)).not.toContain('hidden-other.webp')
+    expect(JSON.stringify(lodgingSchema)).toContain('hidden-other.webp')
     for (const amenity of detailResult.amenities) {
       expect(screen.getAllByText(amenity).length).toBeGreaterThan(0)
     }

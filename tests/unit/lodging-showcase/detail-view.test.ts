@@ -25,11 +25,12 @@ describe('public lodging photo visibility', () => {
     ])
   })
 
-  it('adds only later photos rendered by the room grid to the visible subset', () => {
+  it('adds only later photos rendered by the room grid to the visible subset (« Autre » compris, spec 028 AC-02-32)', () => {
     expect(selectVisibleLodgingPhotos(photos).map(photo => photo.url)).toEqual([
       'first',
       'second',
       'third',
+      'hidden-other',
       'visible-room',
     ])
   })
@@ -49,8 +50,9 @@ describe('selectRoomPhotos', () => {
     expect(result[1]).toMatchObject({ url: 'c', label: 'Cuisine' })
   })
 
-  it('ignores the "other" room type', () => {
-    expect(selectRoomPhotos([{ id: '4', url: 'd', alt: 'D', room_type: 'other', sort_order: 0, is_cover: false }])).toHaveLength(0)
+  it('spec 028 AC-02-32 : la catégorie « Autre » est affichée', () => {
+    expect(selectRoomPhotos([{ id: '4', url: 'd', alt: 'D', room_type: 'other', sort_order: 0, is_cover: false }]))
+      .toEqual([{ id: '4', url: 'd', alt: 'D', label: 'Autre' }])
   })
 
   it('uses the specific room_label when present', () => {

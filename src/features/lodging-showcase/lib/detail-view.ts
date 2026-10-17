@@ -26,10 +26,9 @@ export function selectLodgingGalleryPhotos<T>(photos: readonly T[]): T[] {
   return photos.slice(0, LODGING_GALLERY_PHOTO_LIMIT)
 }
 
+/** Spec 028 AC-02-32 (PO 2026-10-18) : « Autre » est une catégorie à part entière, affichée. */
 export function isRenderableRoomPhoto(photo: { room_type: string | null }): boolean {
-  return photo.room_type != null
-    && photo.room_type !== 'other'
-    && ROOM_TYPE_LABELS[photo.room_type] != null
+  return photo.room_type != null && ROOM_TYPE_LABELS[photo.room_type] != null
 }
 
 export function selectVisibleLodgingPhotos<T extends { room_type: string | null }>(

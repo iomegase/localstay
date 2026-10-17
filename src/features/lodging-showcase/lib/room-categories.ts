@@ -17,6 +17,8 @@ export const ROOM_CATEGORIES = [
   { id: 'meeting', label: 'Réunion' },
   { id: 'entry', label: 'Entrée' },
   { id: 'exterior', label: 'Extérieur' },
+  // Spec 028 AC-02-32 (PO 2026-10-18) : catégorie à part entière, toujours en dernier.
+  { id: 'other', label: 'Autre' },
 ] as const
 
 export type RoomCategoryId = (typeof ROOM_CATEGORIES)[number]['id']
@@ -46,6 +48,7 @@ const CATEGORY_BY_ROOM_TYPE: Record<string, RoomCategoryId> = {
   bedroom: 'bedrooms',
   bathroom: 'bathrooms',
   exterior: 'exterior',
+  other: 'other',
 }
 
 function categoryOf(roomType: string, label: string): RoomCategoryId | null {
@@ -75,6 +78,7 @@ export function categorizeRoomGroups(photos: Photo[]): CategorizedRoomGroup[] {
     a.label.localeCompare(b.label, 'fr', { numeric: true, sensitivity: 'base' })
   // AC-02-28 : sous « Tout », chambres, puis salles de bain, puis tout le reste par ordre
   // alphabétique (comme le sélecteur de catégories de l'admin, AC-02-26).
-  const rank = (group: CategorizedRoomGroup) => group.category === 'bedrooms' ? 0 : group.category === 'bathrooms' ? 1 : 2
+  // AC-02-32 : « Autre » toujours en dernier.
+  const rank = (group: CategorizedRoomGroup) => group.category === 'bedrooms' ? 0 : group.category === 'bathrooms' ? 1 : group.category === 'other' ? 3 : 2
   return [...groups].sort((a, b) => rank(a) - rank(b) || byName(a, b))
 }

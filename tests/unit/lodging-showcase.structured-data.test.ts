@@ -95,7 +95,8 @@ describe('lodging showcase structured data', () => {
     expect(lodgingPlaceSchema(partiallyVisibleInput)).toMatchObject({
       '@type': 'LodgingBusiness',
       image: photos
-        .filter(photo => !['hidden-null.webp', 'hidden-other.webp'].some(name => photo.url.endsWith(name)))
+        // Spec 028 AC-02-32 : une photo « Autre » est visible, donc décrite.
+        .filter(photo => !photo.url.endsWith('hidden-null.webp'))
         .map(photo => photo.url),
     })
   })

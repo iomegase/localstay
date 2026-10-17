@@ -185,3 +185,30 @@ describe('028 AC-02-31 — boutons en pill, alignés à droite', () => {
     expect(button.parentElement).toHaveClass('justify-end', 'pr-4')
   })
 })
+
+describe('028 AC-02-32 — « Autre » est une catégorie à part entière', () => {
+  it('forme une carte « Autre », toujours en dernier sous « Tout »', async () => {
+    const { categorizeRoomGroups } = await import('@/features/lodging-showcase/lib/room-categories')
+    const groups = categorizeRoomGroups([
+      photo('o1', 'other', null, 0),
+      photo('o2', 'other', null, 1),
+      photo('e1', 'exterior', 'Terrasse', 2),
+      photo('b1', 'bedroom', 'Chambre 1', 3),
+    ])
+    expect(groups.map(group => [group.label, group.category, group.photos.length])).toEqual([
+      ['Chambre 1', 'bedrooms', 1],
+      ['Terrasse', 'exterior', 1],
+      ['Autre', 'other', 2],
+    ])
+  })
+
+  it('a sa pill « Autre », en dernier, seulement si le logement en a', () => {
+    const { unmount } = render(<LodgingRoomsGrid lodgingTitle="Chalet" photos={[photo('o1', 'other', null, 0), photo('k', 'kitchen', null, 1)]} />)
+    const pills = screen.getAllByRole('button').map(button => button.textContent?.trim()).filter(text => ['Tout', 'Cuisine', 'Autre'].includes(text ?? ''))
+    expect(pills).toEqual(['Tout', 'Cuisine', 'Autre'])
+    unmount()
+
+    render(<LodgingRoomsGrid lodgingTitle="Chalet" photos={[photo('k', 'kitchen', null, 0), photo('e', 'exterior', null, 1)]} />)
+    expect(screen.queryByRole('button', { name: 'Autre' })).not.toBeInTheDocument()
+  })
+})
