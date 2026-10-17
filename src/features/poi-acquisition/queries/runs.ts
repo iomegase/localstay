@@ -22,6 +22,7 @@ import { fetchOfficialWebsiteSourceContext, type OfficialWebsiteSourceContext } 
 import type { AcquisitionCandidateDto, AcquisitionRunDetail, AcquisitionRunListItem } from '../types'
 import { DESCRIPTION_LENGTH_INSTRUCTION, limitToWords } from '@/shared/lib/description-length'
 import { sanitizeDescriptionSources } from '@/shared/lib/description-sources'
+import { isSocialProfileUrl } from '@/shared/lib/social-profile'
 
 type RunCreateInput = {
   city_id: string
@@ -198,7 +199,8 @@ type ProcessContext = {
 }
 
 async function processCandidate(candidate: GooglePlaceCandidate, context: ProcessContext): Promise<void> {
-  const candidateOfficialSourceContext = candidate.website
+  // Spec 098 BR-08 : un profil de réseau social n'est pas un site officiel.
+  const candidateOfficialSourceContext = candidate.website && !isSocialProfileUrl(candidate.website)
     ? await getCachedOfficialWebsiteSourceContext(candidate.website, context.websiteContextCache)
     : null
   const description = await generateVerifiedDescription({

@@ -6,6 +6,7 @@ import {
 } from '../lib/contracts'
 import { readOfficialDescriptionSource } from './official-source'
 import { DESCRIPTION_LENGTH_INSTRUCTION, DESCRIPTION_MAX_CHARS, limitToWords } from '@/shared/lib/description-length'
+import { isSocialProfileUrl } from '@/shared/lib/social-profile'
 
 const GeneratedSchema = z.object({
   matches_poi: z.boolean(),
@@ -39,7 +40,8 @@ export async function generatePoiDescription(input: DescriptionIdentity): Promis
   const identity = DescriptionIdentitySchema.parse(input)
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new DescriptionAssistanceError('DESCRIPTION_SERVICE_UNAVAILABLE')
-  const official = identity.website ? await readOfficialDescriptionSource(identity.website) : null
+  // Spec 098 BR-08 : un profil Instagram, Facebook… n'est pas lu — recherche web seule.
+  const official = identity.website && !isSocialProfileUrl(identity.website) ? await readOfficialDescriptionSource(identity.website) : null
   if (!official) return requestSuggestion(apiKey, identity, null, true, 40_000)
   if ((official.text ?? '').length >= THIN_OFFICIAL_SOURCE_CHARS) return requestSuggestion(apiKey, identity, official, false, 40_000)
 

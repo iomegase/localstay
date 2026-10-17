@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-15
-updated_at: 2026-10-15
+updated_at: 2026-10-17
 depends_on:
   - 049-poi-description-assistance
   - 093-longer-descriptions
@@ -91,6 +91,12 @@ POI, Description, Sources (spec 094), Assistant de description (spec 049).
   images…), le générateur complète avec une recherche web (offices de tourisme, guides,
   presse locale) en plus de la page officielle ; les sources s'additionnent (site
   officiel en premier). Cas réel : Pizzeria delizio (≈ 460 caractères visibles).
+- **BR-08 — Profil de réseau social** (PO 2026-10-17 : « il faut tout récupérer », Brasserie les
+  Rhodos) : un « site » Instagram, Facebook, TikTok, X, Linktree, LinkedIn, Pinterest, YouTube ou
+  Threads n'est pas un site officiel. Il n'est pas lu (la page ne livre qu'une coquille : « 868
+  Followers, 118 Posts… », 5 200 caractères qui passaient le seuil de BR-07) : la description vient
+  de la recherche web seule (`source_mode = web_search`), en création comme en acquisition, et
+  aucune « photo du site officiel » n'en est tirée.
 - **BR-08** : le texte ne cite ni horaires ou jours d'ouverture, ni prix, ni téléphone,
   ni e-mail (la fiche les affiche déjà ; ils changent souvent). Si la recherche web ne
   cite aucune page, le texte combiné est écarté et la description est régénérée depuis
@@ -137,6 +143,7 @@ GET /api/admin/pois/enrichment:
 | AC-02-01 | unit |
 | AC-02-02 | unit |
 | BR-07 | unit |
+| BR-08 | unit |
 
 ## Out of Scope
 

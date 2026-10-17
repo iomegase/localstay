@@ -1,3 +1,4 @@
+import { isSocialProfileUrl } from '@/shared/lib/social-profile'
 const MAX_OFFICIAL_PHOTOS = 12
 
 export type OfficialWebsitePhotoEnrichment = {
@@ -40,7 +41,8 @@ const BROWSER_USER_AGENT =
 export async function fetchOfficialWebsitePhotoEnrichmentDetailed(
   website: string | null,
 ): Promise<OfficialWebsitePhotoFetchResult> {
-  if (!website || website.trim() === '') return { status: 'no_website' }
+  // Spec 098 BR-08 : pas de « photo du site officiel » tirée d'un réseau social (photo de profil).
+  if (!website || website.trim() === '' || isSocialProfileUrl(website)) return { status: 'no_website' }
 
   const canonicalUrl = normalizeCanonicalUrl(website)
   const controller = new AbortController()

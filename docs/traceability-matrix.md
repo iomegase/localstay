@@ -2236,3 +2236,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | AC-01-09 | Aller plus long que la distance annoncée → tracé écarté ; durée Naismith aller-retour | `src/features/trails-acquisition/services/complete-candidates.ts` | `tests/unit/trail-completion.AC-01-03-09.complete.test.ts` | ✅ done |
 | AC-02-01 | Script dry-run / `--apply` par ville | `scripts/complete-trail-candidates.ts` | — (script, vérifié en dry-run puis appliqué aux Contamines le 2026-10-17) | ✅ done |
 | BR-01 – BR-03 | Sources géographiques Camptocamp / IGN / ORS-OSM ; source de chaque ajout ; seulement les randonnées à revoir | `src/features/trails-acquisition/services/complete-candidates.ts`<br>`scripts/complete-trail-candidates.ts` | `tests/unit/trail-completion.AC-01-03-09.complete.test.ts` | ✅ done |
+
+## 098 — Profil de réseau social ≠ site officiel (PO 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| BR-08 | Instagram, Facebook, TikTok, X, Linktree… : jamais lus comme site officiel ; description par recherche web seule (création et acquisition) ; aucune photo « du site officiel » | `src/shared/lib/social-profile.ts`<br>`src/features/poi-description-assistance/services/generate-description.ts`<br>`src/features/poi-acquisition/queries/runs.ts`<br>`src/features/poi-acquisition/services/official-website-photos.ts` | `tests/unit/poi-description-enrichment.BR-08.social-profile.test.ts`<br>`tests/unit/poi-description-assistance.AC-01-04.generation.test.ts` | ✅ done |

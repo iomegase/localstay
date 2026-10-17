@@ -140,3 +140,13 @@ it.each([429, 503])('AC-04: maps provider unavailability %s to a retryable servi
   mockGenerate.mockRejectedValue(new GoogleGenerativeAIFetchError('Provider error', status, 'Unavailable'))
   await expect(generatePoiDescription(identity)).rejects.toMatchObject({ code: 'DESCRIPTION_SERVICE_UNAVAILABLE', status: 503 })
 })
+
+it('098 BR-08: an Instagram profile is never read — web search only', async () => {
+  const web = { uri: 'https://www.lescontamines.com/rhodos', title: 'Office de tourisme des Contamines' }
+  mockGenerate.mockResolvedValue(generated({}, { groundingChunks: [{ web }] }))
+  const result = await generatePoiDescription({ ...identity, website: 'https://www.instagram.com/les_rhodos74?igsh=abc&utm_source=qr' })
+
+  expect(mockReadSource).not.toHaveBeenCalled()
+  expect(mockModel).toHaveBeenCalledWith(expect.objectContaining({ tools: [{ googleSearch: {} }] }))
+  expect(result).toMatchObject({ source_mode: 'web_search', sources: [{ title: web.title, url: web.uri }] })
+})
