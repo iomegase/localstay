@@ -53,6 +53,9 @@ Le PO veut une copie locale quotidienne, sans dépendre de Supabase.
   pendant un réveil de maintenance sans réseau ; la sauvegarde attend donc que la base et Supabase
   soient joignables (vérification toutes les 30 s, jusqu'à 60 min, `MYSTAY_BACKUP_NETWORK_WAIT_MIN`) avant
   de commencer, puis échoue avec notification si le réseau ne revient pas.
+  Révision 2026-10-18 (échecs du 17 octobre à 10 h 42 et 21 h 50, Mac en veille sur batterie) :
+  les 60 min se comptent en vérifications effectuées (120 × 30 s), pas en temps d'horloge — une veille
+  ne consomme plus le délai, et un réveil de maintenance sans réseau ne fait plus échouer la sauvegarde.
 - **BR-07** (PO 2026-10-08 : « le Mac est toujours en veille à 3 h ») : une sauvegarde toutes les heures
   de 9 h à 22 h (launchd) ; en dehors du créneau 9 h – 23 h (rattrapage au réveil) la tâche s'arrête sans
   rien faire. `backup.sh --force` sauvegarde immédiatement. Rétention inchangée (30 jours).

@@ -2317,3 +2317,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | Fiche POI randonnée — itinéraire | « Google Maps » mène au point de départ (coordonnées) et non à l'« adresse » (souvent le nom de la ville : Tête Noire → Les Contamines au lieu des Plagnes) ; les autres lieux gardent leur adresse | `src/features/categories/components/ActionButtons.tsx`<br>`src/features/guide-app/components/GuidePoiDetails.tsx` | `tests/integration/guide-poi-details.trail-start-row.test.tsx` | ✅ done |
+
+## 081 — Attente du réseau comptée en vérifications (révision 2026-10-18)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| BR-06 (révision) | L'attente du réseau (60 min) se compte en vérifications (120 × 30 s), pas en temps d'horloge : une veille du Mac ne fait plus échouer la sauvegarde au réveil de maintenance | `scripts/backup/lib.ts` | `tests/unit/local-daily-backup.AC-01.lib.test.ts` | ✅ done |

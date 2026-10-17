@@ -62,6 +62,17 @@ describe('081 BR-06 — attente du réseau', () => {
     expect(check).toHaveBeenCalledTimes(4)
   })
 
+  it('révision 2026-10-18 : une longue veille du Mac ne consomme pas le délai (vérifications comptées)', async () => {
+    // Le Mac dort 2 h entre deux vérifications : l'horloge avance, mais il reste des essais.
+    let time = 0
+    const sleep = async (ms: number) => { time += ms + 2 * 3_600_000 }
+    const results = [false, false, true]
+    const check = jest.fn(async () => results.shift() ?? true)
+    await expect(waitForNetwork(check, { intervalMs: 30_000, maxWaitMs: 3_600_000, sleep })).resolves.toBe(true)
+    expect(check).toHaveBeenCalledTimes(3)
+    expect(time).toBeGreaterThan(3_600_000)
+  })
+
   it('réseau disponible tout de suite : aucune attente', async () => {
     const onWait = jest.fn()
     await expect(waitForNetwork(async () => true, { intervalMs: 30_000, maxWaitMs: 90_000, onWait, ...clock() })).resolves.toBe(true)
