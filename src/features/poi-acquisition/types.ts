@@ -16,7 +16,8 @@ export type GooglePolicyResult = {
 }
 
 export type AcquisitionGeocode =
-  | { status: 'success'; latitude: number; longitude: number; confidence: number }
+  /** Spec 101 : `provider` vaut « openstreetmap » quand la position vient d'OSM (Mapbox sinon). */
+  | { status: 'success'; latitude: number; longitude: number; confidence: number; provider?: 'mapbox' | 'openstreetmap' }
   | { status: 'pending_review'; latitude: number; longitude: number; confidence: number; reason: string }
   | { status: 'failed'; reason: string }
   | { status: 'rejected'; reason: string }

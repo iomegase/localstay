@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { geocodeForAcquisition } from '../lib/geocode'
+import { geocodeProvider } from '../lib/geocode-provider'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
 import { PoiAcquisitionError } from '../lib/errors'
 import { createPoiSlug } from '../lib/slug'
@@ -68,7 +69,7 @@ export async function createManualPoi(input: ManualPoiInput, adminId: string) {
   const geocode = await geocodeForAcquisition(input.address, {
     latitude: city.latitude,
     longitude: city.longitude,
-  })
+  }, { name: input.name })
   if (geocode.status === 'failed' || geocode.status === 'rejected') {
     throw new PoiAcquisitionError('MAPBOX_GEOCODE_FAILED', 409, { reason: geocode.reason })
   }
@@ -131,7 +132,7 @@ export async function createManualPoi(input: ManualPoiInput, adminId: string) {
         tags: [],
         geocode_status: geocode.status,
         geocoded_at: new Date(),
-        geocode_provider: 'mapbox',
+        geocode_provider: geocodeProvider(geocode),
         review_source: 'MANUAL',
         is_active: true,
         city_id: city.id,

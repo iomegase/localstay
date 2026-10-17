@@ -26,6 +26,7 @@ import type {
   DiscoveryTaxonomy,
 } from '../types'
 import { trailPhotoCredits } from '@/features/trails-acquisition/lib/photo-credits'
+import { groupOpenPhotoCredits } from '@/shared/lib/open-photo-credits'
 
 const frenchNameCollator = new Intl.Collator('fr', { sensitivity: 'base' })
 
@@ -97,6 +98,8 @@ const discoveryPoiDetailSelect = {
   // PO 2026-10-08 : crédits des photos de randonnée (sources de la fiche sentier).
   trail_detail: { select: { deleted_at: true, source_refs: true } },
   description_sources: true,
+  // Spec 101 : crédits des photos Wikimedia Commons.
+  photo_credits: true,
 } satisfies Prisma.PointOfInterestSelect
 
 type DiscoveryPoiRow = Prisma.PointOfInterestGetPayload<{
@@ -470,6 +473,7 @@ export const getDiscoveryPoi: (
       hero_photo_url: detailCard.photo_is_fallback
         ? heroPhotoUrl
         : resolvePoiPhotoUrl(heroPhotoUrl, mirrorMap),
+      open_photo_credits: groupOpenPhotoCredits(rows[0]?.photo_credits ?? null, mapped.photos),
       trail_photo_credits: rows[0]?.trail_detail && !rows[0].trail_detail.deleted_at ? trailPhotoCredits(rows[0].trail_detail.source_refs) : [],
       photo_credit: mapped.photos.some(isThirdPartyPhotoUrl)
         ? { name: detailCard.name, website }

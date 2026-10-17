@@ -241,6 +241,7 @@ export const fr = {
     ownerNote: 'Le mot de votre hôte',
     reviews: (count: number) => `${count} avis`,
     photosCredit: (host: string) => `Photos : ${host}`,
+    photosLabel: 'Photos :',
     trail: {
       demoNoGps: 'Suivi GPS indisponible dans le guide de démonstration.',
       difficulty: {

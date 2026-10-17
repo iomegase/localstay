@@ -3,6 +3,7 @@ import { prisma } from '@/shared/lib/prisma'
 import { PoiAcquisitionError } from '../lib/errors'
 import { createPoiSlug } from '../lib/slug'
 import { geocodeForAcquisition } from '../lib/geocode'
+import { geocodeProvider } from '../lib/geocode-provider'
 import {
   extractHoursFromReviewPayload,
   extractRatingFromReviewPayload,
@@ -12,6 +13,7 @@ import {
   fetchOfficialWebsitePhotoEnrichment,
   mergeOfficialWebsitePhotos,
 } from '../services/official-website-photos'
+import { findCommonsPhotos } from '@/features/poi-photos/services/wikimedia-commons'
 
 export async function publishCandidate(
   candidateId: string,
@@ -58,6 +60,9 @@ export async function publishCandidate(
   const latitude = candidate.latitude
   const longitude = candidate.longitude
   const officialPhotos = await fetchOfficialWebsitePhotoEnrichment(candidate.website)
+  const photos = mergeOfficialWebsitePhotos([], officialPhotos?.photos ?? [])
+  // Spec 101 AC-02-01 : sans photo du site officiel, photos sous licence libre de Wikimedia Commons.
+  const commonsPhotos = photos.length === 0 ? await findCommonsPhotos({ name: candidate.name, latitude, longitude, city: candidate.run.city.name }) : []
   const hours = extractHoursFromReviewPayload(candidate.google_review_payload)
   const googleRating = extractRatingFromReviewPayload(candidate.google_review_payload)
   const googleRatingCount = extractRatingCountFromReviewPayload(candidate.google_review_payload)
@@ -75,7 +80,8 @@ export async function publishCandidate(
         longitude,
         phone: candidate.phone,
         website: candidate.website,
-        photos: mergeOfficialWebsitePhotos([], officialPhotos?.photos ?? []),
+        photos: photos.length > 0 ? photos : commonsPhotos.map(photo => photo.photo_url),
+        photo_credits: commonsPhotos.length > 0 ? commonsPhotos : Prisma.JsonNull,
         tags: [],
         hours: hours ?? Prisma.JsonNull,
         ...(googleRating !== null ? { rating: googleRating } : {}),
@@ -301,12 +307,12 @@ export async function updateCandidate(candidateId: string, input: CandidateUpdat
 
   if (input.address !== undefined && input.address !== candidate.address) {
     data.address = input.address
-    const geocode = await geocodeForAcquisition(input.address, candidate.run.city)
+    const geocode = await geocodeForAcquisition(input.address, candidate.run.city, { name: input.name ?? candidate.name })
     const located = geocode.status === 'success' || geocode.status === 'pending_review'
     data.latitude = located ? geocode.latitude : null
     data.longitude = located ? geocode.longitude : null
     data.geocode_status = geocode.status
-    data.geocode_provider = located ? 'mapbox' : null
+    data.geocode_provider = geocodeProvider(geocode)
     data.geocode_confidence = located ? geocode.confidence : null
   }
 

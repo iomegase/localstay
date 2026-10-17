@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { OpenPhotoCredits } from '@/shared/components/OpenPhotoCredits'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { ArrowLeft, ChevronRight, Clock3, ExternalLink, MapPin, Navigation, Phone, Star } from 'lucide-react'
 import { MiniMap } from '@/features/categories/components/MiniMap'
@@ -79,8 +80,16 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
                 ))}
               </p>
             ) : null}
-            {/* PO 2026-10-08 : randonnée → un crédit par auteur, lien vers la page source. */}
-            {poi.trail_photo_credits?.length ? (
+            {/* Spec 101 AC-02-05 : photos Wikimedia Commons, auteur + licence (prioritaires). */}
+            {poi.open_photo_credits?.length ? (
+              <OpenPhotoCredits
+                credits={poi.open_photo_credits}
+                label="Photos :"
+                className="mt-3 text-xs leading-6 text-slate-500"
+                linkClassName="underline decoration-slate-300 underline-offset-2 hover:text-pink-600"
+              />
+            ) : poi.trail_photo_credits?.length ? (
+              /* PO 2026-10-08 : randonnée → un crédit par auteur, lien vers la page source. */
               <p data-testid="poi-trail-photo-credits" className="mt-3 text-xs leading-6 text-slate-500">
                 Crédits photos :{' '}
                 {poi.trail_photo_credits.map((credit, index) => (

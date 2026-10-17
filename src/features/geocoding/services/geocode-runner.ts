@@ -1,6 +1,7 @@
 import { prisma } from '@/shared/lib/prisma'
 import { geocodeAddress } from './mapbox-client'
 import { validateGeocode } from './geo-validator'
+import { findOsmPlaceByName } from './osm-name-geocoder'
 import type { BatchResult, GeocodeResult } from '../types'
 import { runPoiMutationWithDiscoveryReconciliation } from '@/features/public-discovery/queries/mutation-reconciliation'
 import { safelyRevalidateDiscoveryPaths } from '@/features/public-discovery/lib/revalidation'
@@ -21,6 +22,7 @@ export async function runGeocodeBatch(params: {
     take: limit,
     select: {
       id: true,
+      name: true,
       address: true,
       city: { select: { latitude: true, longitude: true } },
     },
@@ -36,10 +38,14 @@ export async function runGeocodeBatch(params: {
   try {
     for (const poi of pois) {
       try {
-        const geocoded = await geocodeAddress(poi.address, {
+        const mapbox = await geocodeAddress(poi.address, {
           longitude: poi.city.longitude,
           latitude: poi.city.latitude,
         })
+        // Spec 101 AC-01-01 : Mapbox muet ou limité au code postal / à la commune → nom cherché dans OSM.
+        const geocoded = mapbox && PRECISE_PLACE_TYPES.has(mapbox.place_type ?? 'address')
+          ? mapbox
+          : (await openStreetMapResult(poi.name, poi.city)) ?? mapbox
 
         if (!geocoded) {
           collectDiscoveryPaths(await markFailed(poi.id, 'No results from Mapbox'))
@@ -87,6 +93,16 @@ export async function runGeocodeBatch(params: {
   }
 }
 
+/** Résultats Mapbox assez précis pour placer un lieu (pas un centre de commune ni un code postal). */
+const PRECISE_PLACE_TYPES = new Set(['address', 'poi', 'poi.landmark'])
+
+async function openStreetMapResult(name: string, center: { latitude: number; longitude: number }): Promise<GeocodeResult | null> {
+  const place = await findOsmPlaceByName(name, center)
+  return place
+    ? { latitude: place.latitude, longitude: place.longitude, relevance: 1, place_name: name, place_type: 'poi', provider: 'openstreetmap' }
+    : null
+}
+
 /** Prisma P2025 : la fiche a disparu entre la sélection du lot et sa mise à jour. */
 function isRecordNotFound(error: unknown): boolean {
   return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'P2025'
@@ -104,7 +120,7 @@ async function markSuccess(id: string, result: GeocodeResult): Promise<string[]>
         longitude: result.longitude,
         geocode_status: 'success',
         geocoded_at: new Date(),
-        geocode_provider: 'mapbox',
+        geocode_provider: result.provider ?? 'mapbox',
         geocode_error: null,
         geocode_attempts: { increment: 1 },
       },

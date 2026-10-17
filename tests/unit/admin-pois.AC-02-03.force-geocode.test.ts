@@ -106,7 +106,7 @@ describe('022 admin POI forced geocoding', () => {
     expect(mockGeocodeForAcquisition).toHaveBeenCalledWith(address, {
       latitude: 45.8921,
       longitude: 6.7085,
-    })
+    }, { name: expect.any(String) })
     expect(mockPoiUpdate).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'poi-1' },
       data: expect.objectContaining({

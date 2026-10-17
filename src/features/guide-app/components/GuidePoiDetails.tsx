@@ -15,6 +15,7 @@ import { formatTravelDuration, type TravelTimeValues } from './stay/poi-search'
 import { usePoiSheetGestures } from '../hooks/usePoiSheetGestures'
 import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { OpenPhotoCredits } from '@/shared/components/OpenPhotoCredits'
 
 export function GuidePoiDetails({
   mode,
@@ -155,8 +156,17 @@ export function GuidePoiDetails({
           </div>
         )}
 
-        {/* Photo attribution */}
-        {hasRealPhotos && poi.website && attributionHost && (
+        {/* Photo attribution — spec 101 : crédits Wikimedia Commons (auteur + licence) prioritaires. */}
+        {hasRealPhotos && poi.openPhotoCredits?.length ? (
+          <div className="px-6">
+            <OpenPhotoCredits
+              credits={poi.openPhotoCredits}
+              label={m.poi.photosLabel}
+              className="text-[11px] leading-5 text-charcoal/45"
+              linkClassName="underline underline-offset-2"
+            />
+          </div>
+        ) : hasRealPhotos && poi.website && attributionHost && (
           <div className="px-6">
             <a
               href={poi.website}

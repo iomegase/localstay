@@ -1,12 +1,29 @@
 import { geocodeAddress } from '@/features/geocoding/services/mapbox-client'
 import { validateGeocode } from '@/features/geocoding/services/geo-validator'
+import { findOsmPlaceByName } from '@/features/geocoding/services/osm-name-geocoder'
 import type { AcquisitionGeocode } from '../types'
 
 const ACQUISITION_RANGE_KM = 30
 /** Résultats Mapbox assez précis pour placer un lieu (pas un centre de commune). */
 const PRECISE_PLACE_TYPES = new Set(['address', 'poi', 'poi.landmark'])
 
+/**
+ * Spec 101 AC-01-01/03 : quand Mapbox ne situe pas précisément le lieu (aucun résultat, code postal,
+ * commune, résultat douteux ou lointain), son nom est cherché dans OpenStreetMap à 30 km du centre.
+ */
 export async function geocodeForAcquisition(
+  address: string,
+  cityCenter: { latitude: number; longitude: number },
+  options: { name?: string | null } = {},
+): Promise<AcquisitionGeocode> {
+  const mapbox = await geocodeWithMapbox(address, cityCenter)
+  if (mapbox.status === 'success' || !options.name?.trim()) return mapbox
+  const osm = await findOsmPlaceByName(options.name, cityCenter)
+  if (!osm) return mapbox
+  return { status: 'success', latitude: osm.latitude, longitude: osm.longitude, confidence: 1, provider: 'openstreetmap' }
+}
+
+async function geocodeWithMapbox(
   address: string,
   cityCenter: { latitude: number; longitude: number },
 ): Promise<AcquisitionGeocode> {
@@ -53,9 +70,11 @@ export async function geocodeForAcquisition(
       latitude: result.latitude,
       longitude: result.longitude,
       confidence: result.relevance,
+      provider: 'mapbox',
     }
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
     return { status: 'failed', reason }
   }
 }
+

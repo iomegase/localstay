@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { runSerializableTransaction } from '@/shared/lib/serializable-transaction'
 import { geocodeForAcquisition } from '@/features/poi-acquisition/lib/geocode'
+import { geocodeProvider } from '@/features/poi-acquisition/lib/geocode-provider'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
 import { getPoiDiscoveryEligibility } from '@/features/public-discovery/lib/eligibility'
 import {
@@ -350,7 +351,7 @@ export async function updateAdminPoi(
     const geocode = await geocodeForAcquisition(addressForGeocode, {
       latitude: targetCity.latitude,
       longitude: targetCity.longitude,
-    })
+    }, { name: input.name ?? before.name })
 
     if (geocode.status === 'failed' || geocode.status === 'rejected') {
       throw new PoiAcquisitionError('MAPBOX_GEOCODE_FAILED', 409, { reason: geocode.reason })
@@ -369,7 +370,7 @@ export async function updateAdminPoi(
     data.longitude = geocode.longitude
     data.geocode_status = geocode.status
     data.geocoded_at = new Date()
-    data.geocode_provider = 'mapbox'
+    data.geocode_provider = geocodeProvider(geocode)
     data.geocode_error = null
     data.geocode_attempts = { increment: 1 }
   }

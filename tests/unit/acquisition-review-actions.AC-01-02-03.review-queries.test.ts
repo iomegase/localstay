@@ -104,7 +104,7 @@ describe('071 — actions de revue', () => {
 
     await updateCandidate('cand-1', { address: '72 Av. du Mont d’Arbois' }, 'admin-1')
 
-    expect(mockGeocode).toHaveBeenCalledWith('72 Av. du Mont d’Arbois', { latitude: 45.89, longitude: 6.71 })
+    expect(mockGeocode).toHaveBeenCalledWith('72 Av. du Mont d’Arbois', { latitude: 45.89, longitude: 6.71 }, { name: expect.any(String) })
     expect(mockCandidateUpdate).toHaveBeenCalledWith({
       where: { id: 'cand-1' },
       data: {

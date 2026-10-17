@@ -238,6 +238,7 @@ export const en: GuideMessages = {
     ownerNote: 'A word from your host',
     reviews: (count: number) => `${count} review${count > 1 ? 's' : ''}`,
     photosCredit: (host: string) => `Photos: ${host}`,
+    photosLabel: 'Photos:',
     trail: {
       demoNoGps: 'GPS tracking is not available in the demo guide.',
       difficulty: {

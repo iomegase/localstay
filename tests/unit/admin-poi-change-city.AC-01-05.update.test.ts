@@ -105,7 +105,7 @@ describe('spec 092 — changer la ville d’un POI', () => {
     await move()
 
     expect(mockCityFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'city-passy', is_active: true, deleted_at: null } }))
-    expect(mockGeocodeForAcquisition).toHaveBeenCalledWith(address, { latitude: passy.latitude, longitude: passy.longitude })
+    expect(mockGeocodeForAcquisition).toHaveBeenCalledWith(address, { latitude: passy.latitude, longitude: passy.longitude }, { name: expect.any(String) })
     expect(mockPoiUpdate).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ city: { connect: { id: 'city-passy' } }, latitude: 45.9105, longitude: 6.7195 }),
     }))

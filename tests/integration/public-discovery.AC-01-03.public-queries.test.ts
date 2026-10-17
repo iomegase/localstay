@@ -130,7 +130,7 @@ function expectExactPrismaContract(call: unknown, detail: boolean) {
   expect(args.select.trail_detail).toEqual({ select: detail ? { deleted_at: true, source_refs: true } : { deleted_at: true } })
   expect(Object.keys(args.select).sort()).toEqual([
     ...listSelectKeys,
-    ...(detail ? ['hours', 'description_sources'] : []), // spec 094 : sources de la description
+    ...(detail ? ['hours', 'description_sources', 'photo_credits'] : []), // spec 094 : sources de la description ; spec 101 : crédits photos
   ].sort())
   expect(Object.keys((args.select.city as { select: object }).select).sort()).toEqual([
     'deleted_at', 'department', 'id', 'is_active', 'latitude', 'longitude',
@@ -181,7 +181,7 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
     'city', 'groups', 'icon', 'name', 'nearby_pois', 'pois', 'slug', 'sort_order', 'subcategories',
   ]
   const detailKeys = [
-    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url', 'trail_photo_credits',
+    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url', 'trail_photo_credits', 'open_photo_credits',
     'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photo_is_fallback', 'photos',
     'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
   ]

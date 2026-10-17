@@ -22,6 +22,8 @@ jest.mock('@/shared/lib/prisma', () => ({
 jest.mock('@/features/geocoding/services/mapbox-client', () => ({
   geocodeAddress: (...args: unknown[]) => mockGeocodeAddress(...args),
 }))
+// Spec 101 : aucune recherche OpenStreetMap réelle.
+jest.mock('@/features/geocoding/services/osm-name-geocoder', () => ({ findOsmPlaceByName: async () => null }))
 jest.mock('@/features/geocoding/services/geo-validator', () => ({
   validateGeocode: (...args: unknown[]) => mockValidateGeocode(...args),
 }))

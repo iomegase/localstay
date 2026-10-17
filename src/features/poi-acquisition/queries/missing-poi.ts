@@ -52,7 +52,7 @@ export async function createMissingPoiRequest(merchantId: string, input: Missing
     geocodeForAcquisition(input.address, {
       latitude: city.latitude,
       longitude: city.longitude,
-    }),
+    }, { name: input.name }),
   ])
 
   return prisma.missingPoiRequest.create({

@@ -243,6 +243,8 @@ model PointOfInterest {
   is_open_now         Boolean?
   hours               Json?
   photos              String[]
+  // Spec 101 : crédits des photos sous licence libre — [{ photo_url, author, license, license_url, source_url }]
+  photo_credits       Json?
   tags                String[]
 
   discovery_status       PoiDiscoveryStatus @default(DRAFT)

@@ -15,6 +15,7 @@ import { loadCityReviewMemories } from './review-memory'
 import { deserializePendingPlaces, serializePendingPlaces } from '../lib/pending-places'
 import { mergeHoursIntoReviewPayload } from '../lib/google-hours'
 import { geocodeForAcquisition } from '../lib/geocode'
+import { geocodeProvider } from '../lib/geocode-provider'
 import { findProbableDuplicates } from '../lib/duplicate-detection'
 import { PoiAcquisitionError } from '../lib/errors'
 import { fetchOfficialWebsiteSourceContext, type OfficialWebsiteSourceContext } from '../services/official-website-source'
@@ -210,7 +211,7 @@ async function processCandidate(candidate: GooglePlaceCandidate, context: Proces
   const geocode = await geocodeForAcquisition(candidate.address, {
     latitude: context.city.latitude,
     longitude: context.city.longitude,
-  })
+  }, { name: candidate.name })
   const located = geocode.status === 'success' || geocode.status === 'pending_review'
   const duplicates = await findDuplicates({
     name: candidate.name,
@@ -242,7 +243,7 @@ async function processCandidate(candidate: GooglePlaceCandidate, context: Proces
     latitude: located ? geocode.latitude : null,
     longitude: located ? geocode.longitude : null,
     geocode_status: geocode.status,
-    geocode_provider: located ? 'mapbox' : null,
+    geocode_provider: geocodeProvider(geocode),
     geocode_confidence: located ? geocode.confidence : null,
     duplicate_poi_ids: duplicates,
     match_status: duplicates.length > 0 ? 'duplicate_candidate' : 'matched',

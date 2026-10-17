@@ -21,6 +21,12 @@ jest.mock('@/features/poi-acquisition/services/official-website-photos', () => (
   mergeOfficialWebsitePhotos: jest.fn(() => []),
 }))
 
+// Spec 101 : aucune recherche Wikimedia Commons réelle.
+const mockFindCommonsPhotos = jest.fn(async (): Promise<unknown[]> => [])
+jest.mock('@/features/poi-photos/services/wikimedia-commons', () => ({
+  findCommonsPhotos: (...a: unknown[]) => mockFindCommonsPhotos(...(a as [])),
+}))
+
 import { publishCandidate } from '@/features/poi-acquisition/queries/review'
 
 const candidate = (sources: unknown) => ({
@@ -29,7 +35,7 @@ const candidate = (sources: unknown) => ({
   phone: null, website: 'https://cani-smile.fr/', google_place_id: 'gp-1', google_review_payload: null,
   latitude: 45.91, longitude: 6.72, geocode_status: 'success', geocode_provider: 'mapbox',
   duplicate_poi_ids: [], review_status: 'needs_review', category_id: 'cat-1', subcategory_id: null, subcategory: null,
-  run: { city_id: 'city-1', city: { is_active: true, deleted_at: null }, category: { is_active: true, deleted_at: null } },
+  run: { city_id: 'city-1', city: { name: 'Passy', is_active: true, deleted_at: null }, category: { is_active: true, deleted_at: null } },
 })
 
 describe('spec 094 AC-02 — publication d’un candidat', () => {
@@ -50,5 +56,25 @@ describe('spec 094 AC-02 — publication d’un candidat', () => {
     mockCandidateFindFirst.mockResolvedValue(candidate(null))
     await publishCandidate('cand-1', 'admin-1', { confirm_duplicate: false })
     expect(mockPoiCreate.mock.calls[0][0].data.description_sources).toBe(Prisma.JsonNull)
+  })
+
+  it('spec 101 AC-02-01 / AC-02-04 : sans photo du site officiel → photos Commons et leurs crédits', async () => {
+    const commons = [{ photo_url: 'https://upload.wikimedia.org/a.jpg', author: 'Rémih', license: 'CC BY-SA 4.0', license_url: null, source_url: 'https://commons.wikimedia.org/wiki/File:A.jpg' }]
+    mockFindCommonsPhotos.mockResolvedValueOnce(commons)
+    mockCandidateFindFirst.mockResolvedValue(candidate(null))
+    await publishCandidate('cand-1', 'admin-1', { confirm_duplicate: false })
+
+    expect(mockFindCommonsPhotos).toHaveBeenCalledWith({ name: 'Cani Smile', latitude: 45.91, longitude: 6.72, city: 'Passy' })
+    expect(mockPoiCreate.mock.calls[0][0].data).toMatchObject({ photos: ['https://upload.wikimedia.org/a.jpg'], photo_credits: commons })
+  })
+
+  it('spec 101 BR-02 : avec des photos du site officiel, Commons n’est pas consulté', async () => {
+    const photos = jest.requireMock('@/features/poi-acquisition/services/official-website-photos') as { mergeOfficialWebsitePhotos: jest.Mock }
+    photos.mergeOfficialWebsitePhotos.mockReturnValueOnce(['https://cani-smile.fr/photo.jpg'])
+    mockCandidateFindFirst.mockResolvedValue(candidate(null))
+    await publishCandidate('cand-1', 'admin-1', { confirm_duplicate: false })
+
+    expect(mockFindCommonsPhotos).not.toHaveBeenCalled()
+    expect(mockPoiCreate.mock.calls[0][0].data).toMatchObject({ photos: ['https://cani-smile.fr/photo.jpg'], photo_credits: Prisma.JsonNull })
   })
 })
