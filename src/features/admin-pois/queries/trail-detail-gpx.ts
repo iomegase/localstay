@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/shared/lib/prisma'
 import { PoiAcquisitionError } from '@/features/poi-acquisition/lib/errors'
 import { computeLineDistanceKm, parseGpx } from '@/features/trails-acquisition/lib/gpx-parser'
+import { classifyTrailQuality } from '@/features/trails-acquisition/lib/geometry-quality'
 
 type SourceRef = { type: string; attribution: string; used_for: string[] }
 
@@ -55,6 +56,9 @@ export async function updateTrailDetailFromGpx(
           start_longitude: parsed.startLongitude,
           distance_km: poi.trail_detail!.distance_km ?? distanceKm,
           source_refs: nextRefs as Prisma.InputJsonValue,
+          // 2026-10-17 : la qualité suit le nouveau tracé (un tracé « indicative » remplacé par un
+          // GPX propre devient « complete » et retrouve le suivi GPS).
+          data_quality_status: classifyTrailQuality({ geometry, sourceRefs: nextRefs }),
         },
         select: { id: true, distance_km: true, start_latitude: true, start_longitude: true },
       })

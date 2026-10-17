@@ -2285,3 +2285,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | Fiche POI admin — tracé | La carte d'aperçu du tracé n'est plus un lien vers `/guide/…/start` (page réservée au séjour : 410 « Cette page n'existe plus » hors séjour, spec 064) | `src/features/admin-pois/components/AdminPoiEditForm.tsx` | `tests/integration/admin-pois.trail-stats.test.tsx` | ✅ done |
+
+## 022 — Import GPX : qualité du tracé recalculée (correction 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Import GPX (randonnée existante) | Le GPX importé sur une fiche sentier existante recalcule `data_quality_status` (complete / indicative) : un tracé propre retrouve le suivi GPS (« Démarrer ») | `src/features/admin-pois/queries/trail-detail-gpx.ts` | `tests/unit/admin-pois.trail-gpx-quality.test.ts` | ✅ done |
