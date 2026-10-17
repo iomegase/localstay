@@ -40,3 +40,20 @@ it('spec 021 (PO 2026-10-05): a trackable trail shows Démarrer, Sur le plan and
   fireEvent.click(start)
   expect(onStartTrail).toHaveBeenCalledWith(poi)
 })
+
+it('2026-10-17 : la fiche affiche la durée de la randonnée, au format de l’écran Démarrer', () => {
+  const trail = { difficulty: 'medium' as const, distanceKm: 19.8, elevationGainM: 1154, startLabel: 'Notre-Dame de la Gorge', trackingEnabled: true }
+  const { rerender } = render(
+    <GuidePoiDetails mode="private" poi={buildStayPoi({ name: 'Col du Bonhomme', trail: { ...trail, estimatedDurationMinutes: 353 } })}
+      lodging={buildStayLodging()} onBack={jest.fn()} onShowOnMap={jest.fn()} />,
+  )
+  expect(screen.getByText('5 h 53')).toBeInTheDocument()
+  expect(screen.getByText('19,8 km')).toBeInTheDocument()
+  expect(screen.getByText('1154 m')).toBeInTheDocument()
+
+  rerender(
+    <GuidePoiDetails mode="private" poi={buildStayPoi({ name: 'Col du Bonhomme', trail: { ...trail, estimatedDurationMinutes: null } })}
+      lodging={buildStayLodging()} onBack={jest.fn()} onShowOnMap={jest.fn()} />,
+  )
+  expect(screen.queryByText('5 h 53')).not.toBeInTheDocument()
+})

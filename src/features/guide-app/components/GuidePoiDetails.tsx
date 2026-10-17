@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Car, Footprints, MapPin, Navigation, Mountain, Play, Route, Star, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Car, Footprints, MapPin, Navigation, Mountain, Play, Route, Star, Timer, TrendingUp } from 'lucide-react'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HoursBlock } from '@/features/categories/components/HoursBlock'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
@@ -213,7 +213,8 @@ export function GuidePoiDetails({
                 value={poi.trail.elevationGainM === null ? '—' : `${poi.trail.elevationGainM} m`}
                 label={m.poi.trail.elevation}
               />
-              <Metric icon={Mountain} value={poi.durationLabel ?? '—'} label={m.poi.trail.duration} />
+              {/* 2026-10-17 : durée de la fiche sentier (la démo garde son libellé), comme l'écran Démarrer. */}
+              <Metric icon={Timer} value={poi.durationLabel ?? formatTrailDuration(poi.trail.estimatedDurationMinutes)} label={m.poi.trail.duration} />
             </div>
             {mode === 'demo' && poi.trail.geometry != null && (
               <div className="mt-4 overflow-hidden rounded-[18px]">
@@ -304,4 +305,13 @@ function Metric({
       <span className="mt-1 block text-[8px] text-slate-400">{label}</span>
     </div>
   )
+}
+
+/** « 5 h 53 », « 2 h », « 45 min » — même format que l'écran de navigation ; « — » sans durée. */
+function formatTrailDuration(minutes: number | null | undefined): string {
+  if (!minutes) return '—'
+  const hours = Math.floor(minutes / 60)
+  const remaining = minutes % 60
+  if (hours === 0) return `${remaining} min`
+  return remaining === 0 ? `${hours} h` : `${hours} h ${String(remaining).padStart(2, '0')}`
 }

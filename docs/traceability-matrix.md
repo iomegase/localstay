@@ -2267,3 +2267,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | BR-08–10 (validation des POI mis en avant) | La page Guide ne recharge plus un coup de cœur dont le POI est supprimé ou inactif ; l'enregistrement ne renvoie plus 400 `INVALID_FEATURED_POI` et archive le lien | `src/features/guide-customization/queries/customization.ts` | `tests/unit/lodging-structured-address.AC-01-02.save.test.ts` | ✅ done |
+
+## 021 — Durée de la randonnée sur la fiche du guide (correction 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Fiche POI randonnée | La carte « Les informations du parcours » affiche la durée de la fiche sentier (`estimated_duration_min`, « 5 h 53 »), comme l'écran Démarrer ; la démo garde son libellé | `src/features/guide-app/components/GuidePoiDetails.tsx` | `tests/integration/guide-poi-details.trail-start-row.test.tsx` | ✅ done |
