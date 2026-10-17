@@ -92,6 +92,7 @@ Le dashboard `/admin` actuel reste régi par `016-dashboard-superadmin` et n'est
 #### Acceptance Criteria
 
 - **AC-02-01**: Given des snapshots journaliers disponibles, When l'Admin charge `/admin/analytics`, Then il voit un bloc KPI acquisition avec `impressions SEO`, `clics SEO`, `CTR SEO`, `position moyenne` et `landing pages actives`.
+- **AC-02-08** (correction PO 2026-10-18 : « pourquoi avons-nous 30 landing pages actives ») : `landing pages actives` = nombre de **pages distinctes** ayant reçu au moins une impression Google Search Console sur la période choisie. La somme des comptes journaliers (une même page comptée chaque jour où elle apparaît) n'est plus affichée.
 - **AC-02-02**: Given des snapshots journaliers disponibles, When l'Admin charge `/admin/analytics`, Then il voit un bloc KPI engagement/conversion avec `sessions`, `users`, `page_views`, `engagement_rate`, `contact_leads`, `lodging_contact_clicks`, `external_booking_clicks` et `qr_scans`.
 - **AC-02-03**: Given des métriques récentes Vercel sont disponibles, When l'overview s'affiche, Then un bloc `live` séparé affiche le trafic récent sans fusionner ces chiffres avec les KPI consolidés journaliers.
 - **AC-02-04**: Given une source a échoué lors de la dernière synchro mais qu'un snapshot valide plus ancien existe, When l'overview s'affiche, Then le cockpit affiche le dernier snapshot valide avec un indicateur `stale` au lieu de masquer tout le dashboard.

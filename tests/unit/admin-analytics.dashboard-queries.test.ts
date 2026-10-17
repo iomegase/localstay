@@ -174,6 +174,17 @@ describe('030 admin analytics dashboard queries', () => {
     ])
   })
 
+  it('AC-02-08 : landing pages actives = pages distinctes avec impressions sur la période, pas la somme des jours', async () => {
+    mockFindPageSnapshots.mockResolvedValueOnce([{ page_path: '/' }, { page_path: '/seminaires' }, { page_path: '/decouvrir' }])
+    const overview = await getAdminAnalyticsOverview()
+
+    expect(overview.acquisition_kpis.active_landing_pages).toBe(3)
+    expect(mockFindPageSnapshots).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ deleted_at: null, seo_impressions: { gt: 0 } }),
+      distinct: ['page_path'],
+    }))
+  })
+
   it('AC-02-06/03-01/03-02/03-03/03-05: returns normalized tables, a degraded GA4 today block and a graceful live block', async () => {
     const [pages, queries, cities, performance, ga4Today, live] = await Promise.all([
       listAdminAnalyticsPages({ city_id: 'city-1', limit: 10 }),

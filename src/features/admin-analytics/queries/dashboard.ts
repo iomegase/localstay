@@ -243,7 +243,7 @@ export async function getAdminAnalyticsOverview(
   filters: AnalyticsDateRangeInput = {},
 ): Promise<AdminAnalyticsOverview> {
   const range = resolveDateRange(filters)
-  const [aggregate, freshness] = await Promise.all([
+  const [aggregate, freshness, activeLandingPages] = await Promise.all([
     prisma.analyticsDailySnapshot.aggregate({
       where: {
         deleted_at: null,
@@ -271,6 +271,17 @@ export async function getAdminAnalyticsOverview(
       },
     }),
     getAdminAnalyticsSourceStatuses(),
+    // Spec 030 AC-02-08 : pages distinctes ayant reçu au moins une impression Google sur la période
+    // (la somme des comptes journaliers comptait une même page une fois par jour).
+    prisma.analyticsPageDailySnapshot.findMany({
+      where: {
+        deleted_at: null,
+        seo_impressions: { gt: 0 },
+        snapshot_date: { gte: range.start, lt: range.endExclusive },
+      },
+      distinct: ['page_path'],
+      select: { page_path: true },
+    }),
   ])
 
   return {
@@ -283,7 +294,7 @@ export async function getAdminAnalyticsOverview(
       seo_clicks: numberOrZero(aggregate._sum.seo_clicks),
       seo_ctr: numberOrNull(aggregate._avg.seo_ctr),
       seo_avg_position: numberOrNull(aggregate._avg.seo_avg_position),
-      active_landing_pages: numberOrZero(aggregate._sum.active_landing_pages),
+      active_landing_pages: activeLandingPages.length,
     },
     engagement_kpis: {
       sessions: numberOrZero(aggregate._sum.sessions),

@@ -31,3 +31,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const result = await runAdminAnalyticsSync(parsed.data)
   return NextResponse.json(result)
 }
+
+/**
+ * 2026-10-18 : les crons Vercel appellent en GET — la tâche de 5 h 30 (vercel.json) recevait un 405
+ * et les données s'arrêtaient au dernier lancement manuel. Synchronisation par défaut (sans corps).
+ */
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  if (!isAuthorized(request)) {
+    return apiError('UNAUTHORIZED', 'Unauthorized', 401)
+  }
+  const parsed = analyticsSyncRequestSchema.safeParse({})
+  if (!parsed.success) {
+    return validationError(parsed.error.flatten())
+  }
+  return NextResponse.json(await runAdminAnalyticsSync(parsed.data))
+}

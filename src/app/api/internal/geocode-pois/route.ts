@@ -38,3 +38,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({ data: result })
 }
+
+/** 2026-10-18 : cron Vercel (GET, 4 h — vercel.json) ; lot par défaut de 10 POI en attente. */
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const result = await runGeocodeBatch({ limit: BodySchema.parse({}).limit })
+  return NextResponse.json({ data: result })
+}
