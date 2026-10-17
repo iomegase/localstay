@@ -167,6 +167,14 @@ export type GuideArrivalInstruction = {
   facts: ArrivalFact[]
 }
 
+/** Spec 099 — carte « Choses à savoir » saisie par l'Owner. */
+export type GuideThingToKnow = {
+  id: string
+  title: string
+  description: string
+  photos: string[]
+}
+
 /** Spec 054 AC-01-02 — stats affichées sous le hero quand elles sont connues. */
 export type GuideLodgingStats = {
   guests: number | null
@@ -195,6 +203,8 @@ export type GuideLodging = {
   departureInstructions: string[]
   houseRules: string[]
   practicalCards: GuidePracticalCard[]
+  /** Spec 099 — absent dans la démo publique (BR-04). */
+  thingsToKnow?: GuideThingToKnow[]
   usefulNumbers: GuideUsefulNumber[]
   /** Localisation du point de tri (spec 077 : les bacs ne sont plus proposés). */
   trashLocation: string | null

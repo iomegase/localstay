@@ -5,7 +5,7 @@ import { prisma } from '@/shared/lib/prisma'
  * spec 063 ne compte que si sa photo d'origine est encore sur une fiche active.
  */
 export async function loadReferencedStorageUrls(): Promise<Set<string>> {
-  const [pois, mirrors, lodgingPhotos, customizations, blocks, instructions, equipment, seminarActivities] = await Promise.all([
+  const [pois, mirrors, lodgingPhotos, customizations, blocks, instructions, equipment, seminarActivities, thingsToKnow] = await Promise.all([
     prisma.pointOfInterest.findMany({ where: { deleted_at: null }, select: { photos: true } }),
     prisma.poiPhotoMirror.findMany({ where: { deleted_at: null }, select: { source_url: true, storage_url: true } }),
     prisma.lodgingPhoto.findMany({ where: { deleted_at: null }, select: { url: true } }),
@@ -16,6 +16,8 @@ export async function loadReferencedStorageUrls(): Promise<Set<string>> {
     prisma.equipmentTemplate.findMany({ where: { deleted_at: null, photo_url: { not: null } }, select: { photo_url: true } }),
     // Spec 097 BR-07 : images du menu d'activités séminaire.
     prisma.seminarActivity.findMany({ where: { deleted_at: null, image_url: { not: null } }, select: { image_url: true } }),
+    // Spec 099 BR-02 : photos des « Choses à savoir ».
+    prisma.lodgingThingToKnow.findMany({ where: { deleted_at: null }, select: { photos: true } }),
   ])
 
   const referenced = new Set<string>()
@@ -29,12 +31,13 @@ export async function loadReferencedStorageUrls(): Promise<Set<string>> {
   instructions.forEach(instruction => instruction.photos.forEach(url => referenced.add(url)))
   equipment.forEach(template => template.photo_url && referenced.add(template.photo_url))
   seminarActivities.forEach(activity => activity.image_url && referenced.add(activity.image_url))
+  thingsToKnow.forEach(item => item.photos.forEach(url => referenced.add(url)))
   return referenced
 }
 
 /**
  * Spec 070 AC-03-02 : photos du guide d'un logement (couverture, blocs pratiques,
- * arrivée). Lecture de nettoyage uniquement : une erreur renvoie une liste vide.
+ * arrivée, « Choses à savoir » — spec 099 BR-02). Lecture de nettoyage uniquement : une erreur renvoie une liste vide.
  */
 export async function lodgingGuidePhotoUrls(lodgingId: string): Promise<string[]> {
   try {
@@ -46,15 +49,17 @@ export async function lodgingGuidePhotoUrls(lodgingId: string): Promise<string[]
 }
 
 async function readLodgingGuidePhotoUrls(lodgingId: string): Promise<string[]> {
-  const [customization, blocks, instructions] = await Promise.all([
+  const [customization, blocks, instructions, thingsToKnow] = await Promise.all([
     prisma.lodgingCustomization.findUnique({ where: { lodging_id: lodgingId }, select: { cover_photo_url: true } }),
     prisma.lodgingPracticalBlock.findMany({ where: { lodging_id: lodgingId, deleted_at: null }, select: { photo_url: true } }),
     prisma.lodgingArrivalInstruction.findMany({ where: { lodging_id: lodgingId, deleted_at: null }, select: { photos: true } }),
+    prisma.lodgingThingToKnow.findMany({ where: { lodging_id: lodgingId, deleted_at: null }, select: { photos: true } }),
   ])
   return [
     ...(customization?.cover_photo_url ? [customization.cover_photo_url] : []),
     ...blocks.flatMap(block => (block.photo_url ? [block.photo_url] : [])),
     ...instructions.flatMap(instruction => instruction.photos),
+    ...thingsToKnow.flatMap(item => item.photos),
   ]
 }
 

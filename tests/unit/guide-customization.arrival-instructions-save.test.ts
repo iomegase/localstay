@@ -3,6 +3,7 @@ const tx = {
   lodgingFeaturedPoi: { updateMany: jest.fn(), upsert: jest.fn() },
   lodgingPracticalBlock: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
   lodgingArrivalInstruction: { findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
+  lodgingThingToKnow: { findMany: async () => [], update: jest.fn(), updateMany: jest.fn(), create: jest.fn() },
 }
 
 const mockGeocodeAddress = jest.fn()
@@ -16,6 +17,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodgingFeaturedPoi: { findMany: jest.fn() },
     lodgingPracticalBlock: { findMany: jest.fn() },
     lodgingArrivalInstruction: { findMany: jest.fn() },
+    lodgingThingToKnow: { findMany: async () => [] },
     $transaction: jest.fn(async (cb: (t: typeof tx) => unknown) => cb(tx)),
   },
 }))

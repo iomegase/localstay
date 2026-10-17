@@ -12,6 +12,8 @@ import {
   EMPTY_ARRIVAL_STEP_MESSAGE,
   normalizeOwnerNote,
   OWNER_NOTE_MAX_WORDS,
+  THING_TO_KNOW_MAX_PHOTOS,
+  THING_TO_KNOW_TITLE_REQUIRED,
 } from '@/features/guide-customization/lib/validation'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 import {
@@ -132,6 +134,28 @@ const arrivalInstructionSchema = z.object({
   },
 )
 
+// Spec 099 : carte « Choses à savoir » (titre obligatoire, 5 photos max).
+const thingToKnowSchema = z.object({
+  id: z.string().optional(), // UUID persistant ou identifiant UI préfixé tmp-
+  title: z
+    .string()
+    .trim()
+    .min(1, THING_TO_KNOW_TITLE_REQUIRED)
+    .max(120, 'Le titre doit faire 120 caractères maximum.'),
+  body: z
+    .string()
+    .trim()
+    .max(2000, 'La description doit faire 2000 caractères maximum.')
+    .nullable()
+    .optional()
+    .transform(value => (value && value.length > 0 ? value : null)),
+  photos: z
+    .array(z.string().trim().url())
+    .max(THING_TO_KNOW_MAX_PHOTOS, `${THING_TO_KNOW_MAX_PHOTOS} photos maximum par carte.`)
+    .default([]),
+  sort_order: z.number().int().min(0),
+})
+
 // Spec 077 : message d'accueil, bacs et texte « déchets » retirés (ignorés s'ils sont envoyés).
 const customizationSchema = z.object({
   category_order: z.array(z.string().min(1)).default([]),
@@ -162,6 +186,7 @@ const customizationSchema = z.object({
   useful_services: practicalText(4000),
   practical_blocks: z.array(practicalBlockSchema).default([]),
   arrival_instructions: z.array(arrivalInstructionSchema).default([]),
+  things_to_know: z.array(thingToKnowSchema).max(30).default([]),
 })
 
 function errorResponse(code: string, message: string, status: number, details?: unknown) {

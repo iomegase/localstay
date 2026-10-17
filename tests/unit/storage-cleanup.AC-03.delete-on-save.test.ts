@@ -6,6 +6,7 @@ const mockLodgingPhotoFindMany = jest.fn()
 const mockCustomizationFindMany = jest.fn()
 const mockBlockFindMany = jest.fn()
 const mockInstructionFindMany = jest.fn()
+const mockThingToKnowFindMany = jest.fn()
 const mockEquipmentFindMany = jest.fn()
 const mockSeminarActivityFindMany = jest.fn()
 
@@ -23,6 +24,7 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodgingCustomization: { findMany: (...args: unknown[]) => mockCustomizationFindMany(...args) },
     lodgingPracticalBlock: { findMany: (...args: unknown[]) => mockBlockFindMany(...args) },
     lodgingArrivalInstruction: { findMany: (...args: unknown[]) => mockInstructionFindMany(...args) },
+    lodgingThingToKnow: { findMany: (...args: unknown[]) => mockThingToKnowFindMany(...args) },
     equipmentTemplate: { findMany: (...args: unknown[]) => mockEquipmentFindMany(...args) },
     seminarActivity: { findMany: (...args: unknown[]) => mockSeminarActivityFindMany(...args) },
   },
@@ -42,6 +44,7 @@ function noReferences() {
   mockCustomizationFindMany.mockResolvedValue([])
   mockBlockFindMany.mockResolvedValue([])
   mockInstructionFindMany.mockResolvedValue([])
+  mockThingToKnowFindMany.mockResolvedValue([])
   mockEquipmentFindMany.mockResolvedValue([])
   mockSeminarActivityFindMany.mockResolvedValue([])
 }
@@ -78,11 +81,14 @@ describe('070 BR-04 — références actives', () => {
     mockEquipmentFindMany.mockResolvedValue([{ photo_url: `${BASE}lodgings/l/equipement.webp` }])
     // Spec 097 BR-07 : image d'une activité séminaire.
     mockSeminarActivityFindMany.mockResolvedValue([{ image_url: `${BASE}seminar-activities/a/1.webp` }])
+    // Spec 099 BR-02 : photos des « Choses à savoir ».
+    mockThingToKnowFindMany.mockResolvedValue([{ photos: [`${BASE}lodgings/l/a-savoir.webp`] }])
 
     const urls = await loadReferencedStorageUrls()
 
     expect([...urls].sort()).toEqual([
       'https://origine/a.jpg',
+      `${BASE}lodgings/l/a-savoir.webp`,
       `${BASE}lodgings/l/arrivee.webp`,
       `${BASE}lodgings/l/block.webp`,
       `${BASE}lodgings/l/cover.webp`,

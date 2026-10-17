@@ -1,4 +1,4 @@
-import type { ArrivalInstructionInput, PracticalBlockInput } from '../types'
+import type { ArrivalInstructionInput, PracticalBlockInput, ThingToKnowInput } from '../types'
 import {
   parseArrivalFacts,
   parseArrivalSubsteps,
@@ -183,6 +183,38 @@ export function normalizeArrivalInstructions(
         tip: clean(instruction.tip),
         substeps: parseArrivalSubsteps(instruction.substeps),
         facts: parseArrivalFacts(instruction.facts),
+      }
+    })
+}
+
+/** Spec 099 BR-01 : 5 photos maximum par carte « Choses à savoir ». */
+export const THING_TO_KNOW_MAX_PHOTOS = 5
+export const THING_TO_KNOW_TITLE_REQUIRED = 'Le titre est requis.'
+
+export interface NormalizedThingToKnow {
+  id?: string
+  title: string
+  body: string | null
+  photos: string[]
+  sort_order: number
+}
+
+/** Spec 099 AC-01-04 : cartes sans titre retirées, textes nettoyés, ordre client conservé. */
+export function normalizeThingsToKnow(items: ThingToKnowInput[] | undefined): NormalizedThingToKnow[] {
+  if (!items || items.length === 0) return []
+  const clean = (value: string | null | undefined): string | null =>
+    typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+
+  return items
+    .filter(item => clean(item.title) !== null)
+    .map((item, index) => {
+      const id = clean(item.id)
+      return {
+        ...(id && !id.startsWith('tmp-') ? { id } : {}),
+        title: clean(item.title) as string,
+        body: clean(item.body),
+        photos: (item.photos ?? []).map(photo => photo.trim()).filter(Boolean).slice(0, THING_TO_KNOW_MAX_PHOTOS),
+        sort_order: index,
       }
     })
 }

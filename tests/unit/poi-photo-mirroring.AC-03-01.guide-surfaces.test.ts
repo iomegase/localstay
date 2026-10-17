@@ -73,7 +73,7 @@ describe('063 AC-03-01 — le guide sert les copies', () => {
   it('guide privé : photos des recommandations résolues', async () => {
     jest.mocked(prisma.lodging.findFirst).mockResolvedValue({
       id: 'lodging-1', name: 'Chalet', city: { name: 'Saint-Gervais-les-Bains', latitude: 45.891, longitude: 6.713 },
-      customization: null, practical_blocks: [], arrival_instructions: [],
+      customization: null, practical_blocks: [], arrival_instructions: [], things_to_know: [],
     } as never)
     jest.mocked(prisma.lodgingFeaturedPoi.findMany).mockResolvedValue([{ owner_note: null, poi: poiRow() }] as never)
     const data = await getPrivateGuideData('lodging-1')

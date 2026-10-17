@@ -30,6 +30,7 @@ describe('054 AC-02-01/AC-05-02 — private guide data', () => {
       ...baseLodging,
       customization: { key_box_code: ' 4810 ', lodging_address: '305 route du Bettex' },
       public_profile: { max_guests: 6, bedroom_count: 3, surface_m2: 82, deleted_at: null },
+      things_to_know: [],
       arrival_instructions: [{
         title: 'Garage', text: 'Deux places couvertes.', video_url: null, photos: [],
         kind: 'garage', tip: 'Hauteur 1,90 m',
@@ -60,6 +61,7 @@ describe('054 AC-02-01/AC-05-02 — private guide data', () => {
       },
       customization: { lodging_latitude: 45.8915, lodging_longitude: 6.7085 },
       public_profile: null,
+      things_to_know: [],
       arrival_instructions: [],
     })
 
@@ -79,6 +81,7 @@ describe('054 AC-02-01/AC-05-02 — private guide data', () => {
       city: { ...baseLodging.city, slug: 'les-contamines-montjoie', transport_cards: [] },
       customization: { lodging_latitude: null, lodging_longitude: null },
       public_profile: null,
+      things_to_know: [],
       arrival_instructions: [],
     })
 
@@ -92,6 +95,7 @@ describe('054 AC-02-01/AC-05-02 — private guide data', () => {
       ...baseLodging,
       customization: null,
       public_profile: null,
+      things_to_know: [],
       arrival_instructions: [],
     })
 

@@ -30,7 +30,8 @@ import { GUIDE_SECTIONS, guideFormSnapshot, type GuideSectionId } from '../lib/g
 import { errorsUnder, issuesToErrors, validateGuideForm, valueAtPath, visibleServerErrors, type FieldErrors } from '../lib/form-errors'
 import { PracticalBlocksEditor } from '@/features/guide-customization/components/PracticalBlocksEditor'
 import { ArrivalInstructionsEditor } from '@/features/guide-customization/components/ArrivalInstructionsEditor'
-import type { ArrivalInstructionInput } from '@/features/guide-customization/types'
+import type { ArrivalInstructionInput, ThingToKnowInput } from '@/features/guide-customization/types'
+import { ThingsToKnowEditor } from '@/features/guide-customization/components/ThingsToKnowEditor'
 import { YouTubeUrlField } from '@/features/guide-customization/components/YouTubeUrlField'
 import { UsefulNumbersEditor } from '@/features/guide-customization/components/UsefulNumbersEditor'
 import { OtherCityRecommendations } from '@/features/guide-customization/components/OtherCityRecommendations'
@@ -277,6 +278,7 @@ export function CustomizationForm({
   const [arrivalInstructions, setArrivalInstructions] = useState<ArrivalInstructionInput[]>(
     initialCustomization.arrival_instructions ?? [],
   )
+  const [thingsToKnow, setThingsToKnow] = useState<ThingToKnowInput[]>(initialCustomization.things_to_know ?? [])
   const [otherCityPois, setOtherCityPois] = useState<OtherCityPoiSelection[]>(initialOtherCityPois)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
@@ -284,7 +286,7 @@ export function CustomizationForm({
   const [serverErrors, setServerErrors] = useState<{ errors: FieldErrors; snapshot: Record<string, string> }>({ errors: {}, snapshot: {} })
 
   // Spec 077 AC-04-02 : modifications non enregistrées.
-  const snapshot = guideFormSnapshot({ categoryOrder, featuredPois, practicalInfo, practicalBlocks, arrivalInstructions, otherCityPois })
+  const snapshot = guideFormSnapshot({ categoryOrder, featuredPois, practicalInfo, practicalBlocks, arrivalInstructions, thingsToKnow, otherCityPois })
   const [savedSnapshot, setSavedSnapshot] = useState(snapshot)
   const dirty = snapshot !== savedSnapshot
 
@@ -315,7 +317,7 @@ export function CustomizationForm({
     featuredPoi => countWords(featuredPoi.owner_note ?? '') > OWNER_NOTE_MAX_WORDS,
   )
   // Spec 083 : erreurs affichées sous les champs, revérifiées pendant la saisie après une tentative.
-  const formState = { ...practicalInfo, arrival_instructions: arrivalInstructions, practical_blocks: practicalBlocks }
+  const formState = { ...practicalInfo, arrival_instructions: arrivalInstructions, practical_blocks: practicalBlocks, things_to_know: thingsToKnow }
   const clientErrors = validateGuideForm(formState)
   const fieldErrors: FieldErrors = showErrors
     ? { ...visibleServerErrors(serverErrors.errors, serverErrors.snapshot, formState), ...clientErrors }
@@ -403,6 +405,7 @@ export function CustomizationForm({
           ...instruction,
           sort_order: index,
         })),
+        things_to_know: thingsToKnow.map((item, index) => ({ ...item, sort_order: index })),
         ...practicalPayload,
       }),
     })
@@ -443,6 +446,7 @@ export function CustomizationForm({
     const nextPracticalInfo = practicalInfoFrom(payload)
     const nextPracticalBlocks = payload.practical_blocks ?? []
     const nextArrivalInstructions = payload.arrival_instructions ?? []
+    const nextThingsToKnow = payload.things_to_know ?? []
 
     setCategoryOrder(nextCategoryOrder)
     setFeaturedPois(nextFeaturedPois)
@@ -450,12 +454,14 @@ export function CustomizationForm({
     setPracticalInfo(nextPracticalInfo)
     setPracticalBlocks(nextPracticalBlocks)
     setArrivalInstructions(nextArrivalInstructions)
+    setThingsToKnow(nextThingsToKnow)
     setSavedSnapshot(guideFormSnapshot({
       categoryOrder: nextCategoryOrder,
       featuredPois: nextFeaturedPois,
       practicalInfo: nextPracticalInfo,
       practicalBlocks: nextPracticalBlocks,
       arrivalInstructions: nextArrivalInstructions,
+      thingsToKnow: nextThingsToKnow,
       otherCityPois: nextOtherCityPois,
     }))
     setShowErrors(false)
@@ -608,6 +614,11 @@ export function CustomizationForm({
           <Card>
             <MarkdownHint className="mb-4" />
             <PracticalBlocksEditor value={practicalBlocks} onChange={setPracticalBlocks} errors={errorsUnder(fieldErrors, 'practical_blocks')} library={equipmentLibrary} />
+          </Card>
+          {/* Spec 099 US-01 : « Choses à savoir » du guide logement. */}
+          <Card>
+            <MarkdownHint className="mb-4" />
+            <ThingsToKnowEditor value={thingsToKnow} onChange={setThingsToKnow} lodgingId={lodgingId} errors={errorsUnder(fieldErrors, 'things_to_know')} />
           </Card>
         </GuideSection>
 

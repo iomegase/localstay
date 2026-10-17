@@ -145,6 +145,7 @@ export const en: GuideMessages = {
     findRecycling: 'Find the recycling point',
     recycling: 'Recycling point',
     rules: 'House rules',
+    thingsToKnow: 'Good to know',
     title: 'House guide',
   },
   install: {

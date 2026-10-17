@@ -28,6 +28,7 @@ beforeEach(() => {
       { id: 'block-tv', title: 'Télévision', body: 'Netflix sur la Smart TV.', icon: 'tv', photo_url: null, video_url: null },
       { id: 'block-dryer', title: 'Sèche cheveux', body: 'Dans le tiroir.', icon: 'hair', photo_url: null, video_url: null },
     ],
+    things_to_know: [],
     arrival_instructions: [
       { id: 'arrival-1', title: 'Accès', text: 'Prenez l’ascenseur.', tip: null, video_url: null, photos: [], kind: 'access', substeps: [{ title: 'Digicode', detail: 'À droite de la porte — code 225536' }, { title: 'Ascenseur', detail: '' }], facts: [{ label: 'Étage', value: '2e' }] },
     ],

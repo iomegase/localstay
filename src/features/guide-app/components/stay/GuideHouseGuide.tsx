@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { Eye, Phone, Recycle } from 'lucide-react'
 import { translateFixedRule } from '@/features/guide-app/lib/fixed-lodging-content'
 import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
-import type { GuideLodging, GuidePracticalCard } from '@/features/guide-app/types'
+import type { GuideLodging, GuidePracticalCard, GuideThingToKnow } from '@/features/guide-app/types'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
+import { MediaLightbox, type LightboxContent } from '../MediaLightbox'
 import { GuideStayScreen } from './GuideStayScreen'
 import { STAY_CARD } from './stay-styles'
 import { recyclingMapsHref } from '@/features/guide-app/lib/recycling-maps'
@@ -15,7 +16,7 @@ import { formatPhone, phoneHref } from '@/shared/lib/phone'
 
 const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
-/** Guide logement : équipements + règles en accordéon (spec 054 AC-04-01). */
+/** Guide logement : équipements + règles en accordéon (spec 054 AC-04-01) + « Choses à savoir » (spec 099). */
 export function GuideHouseGuide({
   lodging,
   onBack,
@@ -29,6 +30,7 @@ export function GuideHouseGuide({
   const [openRule, setOpenRule] = useState<number | null>(null)
   const equipment = lodging.practicalCards.filter(card => card.icon !== 'recycle')
   const recycling = lodging.practicalCards.filter(card => card.icon === 'recycle')
+  const thingsToKnow = lodging.thingsToKnow ?? []
 
   return (
     <GuideStayScreen title={m.houseGuide.title} onBack={onBack}>
@@ -73,6 +75,16 @@ export function GuideHouseGuide({
                 </div>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {/* Spec 099 AC-02-01 : entre « Règlement » et « Point de tri », absente sans carte. */}
+      {thingsToKnow.length > 0 && (
+        <section className="mt-[26px]">
+          <h2 className={SECTION_PILL}>{m.houseGuide.thingsToKnow}</h2>
+          <div className="mt-3 grid gap-2.5">
+            {thingsToKnow.map(item => <ThingToKnowCard key={item.id} item={item} />)}
           </div>
         </section>
       )}
@@ -133,6 +145,79 @@ function EquipmentCard({ card }: { card: GuidePracticalCard }) {
           </a>
         ) : null}
       </div>
+    </article>
+  )
+}
+
+/**
+ * Spec 099 AC-02-02/03 : carte accordéon — vignette (zoom au toucher) + titre ;
+ * dépliée, la description puis les autres photos.
+ */
+function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
+  const m = useGuideMessages()
+  const [open, setOpen] = useState(false)
+  const [lightbox, setLightbox] = useState<LightboxContent | null>(null)
+  const panelId = `guide-thing-${item.id}`
+  const openPhoto = (index: number) => setLightbox({ kind: 'photos', photos: item.photos, startIndex: index })
+  const otherPhotos = item.photos.slice(1)
+  const hasPanel = item.description.trim().length > 0 || otherPhotos.length > 0
+
+  return (
+    <article data-testid="guide-thing-to-know" className={STAY_CARD}>
+      <div className="flex items-center gap-3 p-1.5 pr-4">
+        {item.photos[0] ? (
+          <button
+            type="button"
+            aria-label={m.media.photoOf(item.title, 1)}
+            onClick={() => openPhoto(0)}
+            className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl bg-[#E8E6E2]"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={item.photos[0]} alt="" className="h-full w-full object-cover" />
+          </button>
+        ) : null}
+        <button
+          type="button"
+          aria-expanded={hasPanel ? open : undefined}
+          aria-controls={hasPanel ? panelId : undefined}
+          disabled={!hasPanel}
+          onClick={() => setOpen(current => !current)}
+          className={`flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 text-left text-[15px] font-semibold text-[#111111] ${item.photos[0] ? '' : 'pl-2.5'}`}
+        >
+          <span className="min-w-0">{item.title}</span>
+          {hasPanel ? (
+            <span aria-hidden="true" className="text-[20px] font-medium leading-none text-[#DB2777]">
+              {open ? '−' : '+'}
+            </span>
+          ) : null}
+        </button>
+      </div>
+      {open && hasPanel ? (
+        <div id={panelId} className="grid gap-3 px-4 pb-4">
+          {item.description.trim() ? (
+            <div className="text-[13px] leading-[1.5] text-[#374151]">
+              <GuideDarkMarkdown source={item.description} />
+            </div>
+          ) : null}
+          {otherPhotos.length > 0 ? (
+            <div className="grid grid-cols-4 gap-1.5">
+              {otherPhotos.map((photo, index) => (
+                <button
+                  key={`${photo}-${index}`}
+                  type="button"
+                  aria-label={m.media.photoOf(item.title, index + 2)}
+                  onClick={() => openPhoto(index + 1)}
+                  className="aspect-square overflow-hidden rounded-[14px] bg-[#E8E6E2]"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {lightbox && <MediaLightbox title={item.title} content={lightbox} onClose={() => setLightbox(null)} />}
     </article>
   )
 }

@@ -45,6 +45,7 @@ describe('034-private-guide-app private data adapter', () => {
         useful_services: null,
       },
       practical_blocks: [],
+      things_to_know: [],
       arrival_instructions: [],
     })
     featuredFindMany.mockResolvedValue([
@@ -120,6 +121,7 @@ describe('034-private-guide-app private data adapter', () => {
         useful_services: 'Office de tourisme: 04 50 47 76 08\nPharmacie: 04 50 78 12 34',
       },
       practical_blocks: [],
+      things_to_know: [],
       arrival_instructions: [],
     })
     featuredFindMany.mockResolvedValue([])
@@ -164,6 +166,7 @@ describe('034-private-guide-app private data adapter', () => {
           video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         },
       ],
+      things_to_know: [],
       arrival_instructions: [],
     })
     featuredFindMany.mockResolvedValue([])
@@ -197,6 +200,7 @@ describe('034-private-guide-app private data adapter', () => {
         presentation_video_url: '  https://youtu.be/dQw4w9WgXcQ  ',
       },
       practical_blocks: [],
+      things_to_know: [],
       arrival_instructions: [],
     })
     featuredFindMany.mockResolvedValue([])
@@ -236,6 +240,7 @@ describe('034-private-guide-app private data adapter', () => {
         useful_services: null,
       },
       practical_blocks: [],
+      things_to_know: [],
       arrival_instructions: [
         {
           title: null,
@@ -288,6 +293,7 @@ describe('034-private-guide-app private data adapter', () => {
         trash_location: '  https://maps.app.goo.gl/abc  ',
       },
       practical_blocks: [],
+      things_to_know: [],
       arrival_instructions: [],
     })
     featuredFindMany.mockResolvedValue([])
@@ -310,6 +316,7 @@ describe('034-private-guide-app private data adapter', () => {
         photos: [{ url: 'https://cdn.test/salon.webp', is_cover: false }, { url: 'https://cdn.test/cover.webp', is_cover: true }],
       },
       practical_blocks: [],
+      things_to_know: [],
       arrival_instructions: [],
     })
     featuredFindMany.mockResolvedValue([])

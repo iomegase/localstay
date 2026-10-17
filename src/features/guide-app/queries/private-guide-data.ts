@@ -88,6 +88,12 @@ export async function getPrivateGuideData(
           equipment_template: EQUIPMENT_TEMPLATE_MEDIA_SELECT,
         },
       },
+      // Spec 099 : « Choses à savoir ».
+      things_to_know: {
+        where: { deleted_at: null },
+        orderBy: { sort_order: 'asc' },
+        select: { id: true, title: true, body: true, photos: true },
+      },
       arrival_instructions: {
         where: { deleted_at: null },
         orderBy: { sort_order: 'asc' },
@@ -227,6 +233,12 @@ export async function getPrivateGuideData(
         photoUrl: block.photo_url ?? undefined,
         videoUrl: block.video_url ?? undefined,
       })),
+      thingsToKnow: lodging.things_to_know.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.body ?? '',
+        photos: item.photos,
+      })),
       usefulNumbers: mapUsefulNumbers(customization?.useful_services),
       trashLocation: customization?.trash_location?.trim() || null,
       keyBoxCode: customization?.key_box_code?.trim() || null,
@@ -297,6 +309,11 @@ async function localizeToEnglish(
   lodging.practicalCards.forEach(card => {
     field('LodgingPracticalBlock', card.id, 'title', card.title, value => { card.title = value })
     field('LodgingPracticalBlock', card.id, 'body', card.description, value => { card.description = value })
+  })
+  // Spec 099 AC-02-04.
+  lodging.thingsToKnow?.forEach(item => {
+    field('LodgingThingToKnow', item.id, 'title', item.title, value => { item.title = value })
+    field('LodgingThingToKnow', item.id, 'body', item.description, value => { item.description = value })
   })
   lodging.transportCards.forEach(card => {
     field('CityTransportCard', card.id, 'title', card.title, value => { card.title = value })

@@ -148,6 +148,7 @@ export const fr = {
     findRecycling: 'Trouver le point de recyclage',
     recycling: 'Point de tri',
     rules: 'Règlement',
+    thingsToKnow: 'Choses à savoir',
     title: 'Guide logement',
   },
   install: {

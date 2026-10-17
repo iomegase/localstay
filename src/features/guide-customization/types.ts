@@ -72,6 +72,23 @@ export interface ArrivalInstructionResponse {
   facts: ArrivalFact[]
 }
 
+/** Spec 099 : carte « Choses à savoir » du guide logement. */
+export interface ThingToKnowInput {
+  id?: string
+  title: string
+  body: string | null
+  photos: string[]
+  sort_order: number
+}
+
+export interface ThingToKnowResponse {
+  id: string
+  title: string
+  body: string | null
+  photos: string[]
+  sort_order: number
+}
+
 export interface PracticalInfoFields {
   cover_photo_url: string | null
   presentation_video_url: string | null
@@ -116,6 +133,7 @@ export interface LodgingCustomizationInput extends PracticalInfoInput {
   featured_pois: FeaturedPoiInput[]
   practical_blocks?: PracticalBlockInput[]
   arrival_instructions?: ArrivalInstructionInput[]
+  things_to_know?: ThingToKnowInput[]
 }
 
 export interface LodgingCustomizationResponse extends PracticalInfoFields {
@@ -125,6 +143,7 @@ export interface LodgingCustomizationResponse extends PracticalInfoFields {
   ignored_category_slugs: string[]
   practical_blocks: PracticalBlockResponse[]
   arrival_instructions: ArrivalInstructionResponse[]
+  things_to_know: ThingToKnowResponse[]
 }
 
 export type GuideCustomizationErrorCode =

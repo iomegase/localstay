@@ -11,11 +11,13 @@ import {
   normalizeArrivalInstructions,
   normalizeOwnerNote,
   normalizePracticalBlocks,
+  normalizeThingsToKnow,
   OWNER_NOTE_MAX_WORDS,
 } from '../lib/validation'
 import type {
   NormalizedArrivalInstruction,
   NormalizedPracticalBlock,
+  NormalizedThingToKnow,
 } from '../lib/validation'
 import { parseArrivalFacts, parseArrivalSubsteps } from '@/features/guide-app/lib/arrival-steps'
 import type {
@@ -70,6 +72,15 @@ const ARRIVAL_INSTRUCTION_SELECT = {
   substeps: true,
   facts: true,
 } satisfies Prisma.LodgingArrivalInstructionSelect
+
+// Spec 099 : cartes « Choses à savoir ».
+const THING_TO_KNOW_SELECT = {
+  id: true,
+  title: true,
+  body: true,
+  photos: true,
+  sort_order: true,
+} satisfies Prisma.LodgingThingToKnowSelect
 
 type ArrivalInstructionRow = Prisma.LodgingArrivalInstructionGetPayload<{ select: typeof ARRIVAL_INSTRUCTION_SELECT }>
 
@@ -237,6 +248,37 @@ async function syncArrivalInstructions(
         deleted_at: null,
         id: { in: removedIds },
       },
+      data: { deleted_at: new Date() },
+    })
+  }
+}
+
+async function syncThingsToKnow(
+  tx: Prisma.TransactionClient,
+  lodgingId: string,
+  items: NormalizedThingToKnow[],
+): Promise<void> {
+  const existing = await tx.lodgingThingToKnow.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    select: { id: true },
+  })
+  const existingIds = new Set(existing.map(item => item.id))
+  const requestedIds = items.flatMap(item => (item.id ? [item.id] : []))
+  validateChildItemIds(requestedIds, existingIds)
+
+  for (const { id, ...data } of items) {
+    if (id) {
+      await tx.lodgingThingToKnow.update({ where: { id }, data })
+    } else {
+      await tx.lodgingThingToKnow.create({ data: { lodging_id: lodgingId, ...data } })
+    }
+  }
+
+  // Spec 099 BR-03 : suppression douce.
+  const removedIds = existing.map(item => item.id).filter(id => !requestedIds.includes(id))
+  if (removedIds.length > 0) {
+    await tx.lodgingThingToKnow.updateMany({
+      where: { lodging_id: lodgingId, deleted_at: null, id: { in: removedIds } },
       data: { deleted_at: new Date() },
     })
   }
@@ -432,6 +474,12 @@ export async function getLodgingCustomization(
     select: ARRIVAL_INSTRUCTION_SELECT,
   })
 
+  const thingsToKnow = await prisma.lodgingThingToKnow.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: THING_TO_KNOW_SELECT,
+  })
+
   return {
     lodging_id: lodgingId,
     category_order: customization?.category_order ?? [],
@@ -444,6 +492,7 @@ export async function getLodgingCustomization(
     ignored_category_slugs: [],
     practical_blocks: practicalBlocks,
     arrival_instructions: arrivalInstructions.map(toArrivalInstructionResponse),
+    things_to_know: thingsToKnow,
     ...withAddressParts(pickPracticalInfo(customization)),
   }
 }
@@ -584,6 +633,7 @@ export async function saveLodgingCustomization(
   practicalInfo.useful_services = normalizeUsefulNumbersText(practicalInfo.useful_services)
   const practicalBlocks = normalizePracticalBlocks(input.practical_blocks)
   const arrivalInstructions = normalizeArrivalInstructions(input.arrival_instructions)
+  const thingsToKnow = normalizeThingsToKnow(input.things_to_know)
 
   await prisma.$transaction(async tx => {
     await tx.lodgingCustomization.upsert({
@@ -624,6 +674,7 @@ export async function saveLodgingCustomization(
 
     await syncPracticalBlocks(tx, lodgingId, practicalBlocks)
     await syncArrivalInstructions(tx, lodgingId, arrivalInstructions)
+    await syncThingsToKnow(tx, lodgingId, thingsToKnow)
   }, { timeout: SAVE_CUSTOMIZATION_TRANSACTION_TIMEOUT_MS })
 
   // Spec 096 AC-03-03 : les enregistrements de l'Owner n'alimentent plus la bibliothèque.
@@ -639,6 +690,12 @@ export async function saveLodgingCustomization(
     select: ARRIVAL_INSTRUCTION_SELECT,
   })
 
+  const savedThingsToKnow = await prisma.lodgingThingToKnow.findMany({
+    where: { lodging_id: lodgingId, deleted_at: null },
+    orderBy: { sort_order: 'asc' },
+    select: THING_TO_KNOW_SELECT,
+  })
+
   return {
     lodging_id: lodgingId,
     category_order: categoryOrderResult.category_order,
@@ -646,6 +703,7 @@ export async function saveLodgingCustomization(
     ignored_category_slugs: categoryOrderResult.ignored_category_slugs,
     practical_blocks: savedBlocks,
     arrival_instructions: savedInstructions.map(toArrivalInstructionResponse),
+    things_to_know: savedThingsToKnow,
     ...practicalInfo,
     // Adresse en lecture seule côté Guide (spec 080 AC-03-01) : relue telle qu'enregistrée.
     ...(await getLodgingAddressParts(lodgingId)),

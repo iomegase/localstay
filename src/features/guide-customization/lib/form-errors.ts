@@ -1,5 +1,5 @@
 import { extractYouTubeId } from '@/shared/lib/youtube'
-import { arrivalStepHasContent, EMPTY_ARRIVAL_STEP_MESSAGE } from './validation'
+import { arrivalStepHasContent, EMPTY_ARRIVAL_STEP_MESSAGE, THING_TO_KNOW_TITLE_REQUIRED } from './validation'
 
 // Spec 083 : erreurs de la page Guide, indexées par chemin (« arrival_instructions.0.text »).
 
@@ -8,6 +8,7 @@ export type FieldErrors = Record<string, string>
 type GuideFormState = {
   arrival_instructions: Array<Parameters<typeof arrivalStepHasContent>[0]>
   practical_blocks: Array<{ title?: string | null; video_url?: string | null }>
+  things_to_know?: Array<{ title?: string | null }>
   address_postal_code?: string | null
   presentation_video_url?: string | null
 }
@@ -24,6 +25,10 @@ export function validateGuideForm(state: GuideFormState): FieldErrors {
   state.practical_blocks.forEach((block, index) => {
     if (!block.title?.trim()) errors[`practical_blocks.${index}.title`] = 'Le nom de l’équipement est requis.'
     if (invalidYouTube(block.video_url)) errors[`practical_blocks.${index}.video_url`] = 'Lien YouTube invalide.'
+  })
+  // Spec 099 AC-01-03 : titre obligatoire.
+  state.things_to_know?.forEach((item, index) => {
+    if (!item.title?.trim()) errors[`things_to_know.${index}.title`] = THING_TO_KNOW_TITLE_REQUIRED
   })
   const postalCode = state.address_postal_code?.trim()
   if (postalCode && !/^\d{5}$/.test(postalCode)) errors.address_postal_code = 'Le code postal doit contenir 5 chiffres.'
