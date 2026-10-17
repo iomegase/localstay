@@ -92,4 +92,13 @@ describe('080 — adresse structurée (requêtes)', () => {
       address_number: '5', address_street: 'chemin du Bettex', address_postal_code: '74170', address_city: 'Saint-Gervais-les-Bains',
     })
   })
+
+  it('2026-10-17 : un coup de cœur dont le POI est supprimé ou inactif n’est plus renvoyé au formulaire', async () => {
+    jest.mocked(prisma.lodgingCustomization.findFirst).mockResolvedValue({ category_order: [] } as never)
+    await getLodgingCustomization('owner-1', 'lodging-1')
+
+    expect(prisma.lodgingFeaturedPoi.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { lodging_id: 'lodging-1', deleted_at: null, poi: { deleted_at: null, is_active: true } },
+    }))
+  })
 })

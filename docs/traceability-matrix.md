@@ -2261,3 +2261,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-07-06 | 404 du guide privé : ancien en-tête / menu / barre masqués (écran immersif), style du guide du séjour, « Retour au guide » recharge entièrement `/sejour` | `src/app/(public)/guide/[city-slug]/not-found.tsx`<br>`src/shared/components/ImmersiveScreen.tsx`<br>`src/app/globals.css` | `tests/integration/guide-not-found.single-boundary.test.tsx` | ✅ done |
+
+## 013 — Coup de cœur d'un POI supprimé (correction 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| BR-08–10 (validation des POI mis en avant) | La page Guide ne recharge plus un coup de cœur dont le POI est supprimé ou inactif ; l'enregistrement ne renvoie plus 400 `INVALID_FEATURED_POI` et archive le lien | `src/features/guide-customization/queries/customization.ts` | `tests/unit/lodging-structured-address.AC-01-02.save.test.ts` | ✅ done |

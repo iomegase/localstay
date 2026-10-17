@@ -451,8 +451,11 @@ export async function getLodgingCustomization(
     },
   })
 
+  // 2026-10-17 : un coup de cœur dont le POI a été supprimé ou désactivé n'est plus renvoyé au
+  // formulaire — sinon chaque enregistrement le renvoyait et échouait (400 INVALID_FEATURED_POI).
+  // Le lien est archivé au prochain enregistrement.
   const featuredPois = await prisma.lodgingFeaturedPoi.findMany({
-    where: { lodging_id: lodgingId, deleted_at: null },
+    where: { lodging_id: lodgingId, deleted_at: null, poi: { deleted_at: null, is_active: true } },
     orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     select: {
       poi_id: true,
