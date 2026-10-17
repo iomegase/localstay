@@ -13,6 +13,7 @@ import { TrailDetailBlock } from '@/features/trails-acquisition/components/Trail
 import { TrailPoiDetailBody } from '@/features/trail-navigation/components/TrailPoiDetailBody'
 import { FavoriteToggleButton } from '@/features/public-menu/components/FavoriteToggleButton'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { DescriptionSources } from '@/shared/components/DescriptionSources'
 import type { PoiDetail } from '../types'
 import { resolvePoiFallbackImage } from '../lib/poi-fallback-image'
 
@@ -144,6 +145,8 @@ export function PoiDetailBody({
             className="px-6 text-sm text-charcoal/70 leading-relaxed"
           />
         )}
+        {/* Spec 094 AC-06 : sources de la description. */}
+        <DescriptionSources sources={poi.description_sources} className="px-6 text-xs leading-6 text-charcoal/45" />
 
         <OwnerRecommendationNote note={ownerRecommendationNote ?? null} />
 

@@ -1,3 +1,4 @@
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 // src/features/categories/types.ts
 import type { DistanceSource } from './lib/distance-label'
 
@@ -134,6 +135,8 @@ export interface PoiDetail {
   name: string
   slug: string
   description: string | null
+  /** Spec 094 AC-06 : pages ayant servi à rédiger la description. */
+  description_sources?: DescriptionSource[]
   address: string
   latitude: number
   longitude: number

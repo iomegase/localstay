@@ -239,6 +239,7 @@ export const en: GuideMessages = {
     reviews: (count: number) => `${count} review${count > 1 ? 's' : ''}`,
     photosCredit: (host: string) => `Photos: ${host}`,
     photosLabel: 'Photos:',
+    sourcesLabel: 'Sources:',
     trail: {
       demoNoGps: 'GPS tracking is not available in the demo guide.',
       difficulty: {

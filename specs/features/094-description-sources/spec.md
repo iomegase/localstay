@@ -35,6 +35,10 @@ public ne sait pas d'où viennent les informations.
 - **AC-04**: Given une fiche /decouvrir dont la description a des sources, When elle s'affiche, Then une
   ligne discrète « Sources : » suit la description, avec un lien par source (nouvel onglet,
   `rel="nofollow noopener noreferrer"`). Sans source, rien n'est affiché.
+- **AC-06** (PO 2026-10-17 : « il faut afficher les sources en bas des descriptions des POIs ») : la
+  même ligne « Sources : » suit la description sur les autres fiches POI — fiche du guide privé
+  (séjour, en français et en anglais : « Sources: »), fiche randonnée et fiche
+  `/guide/[ville]/[catégorie]/[poi]`. Sans source, rien n'est affiché.
 - **AC-05**: Given l'édition admin d'un POI, When l'admin consulte la description, Then la liste des
   sources est affichée sous le champ, chacune retirable ; elles sont enregistrées avec la fiche.
 

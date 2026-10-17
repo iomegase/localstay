@@ -1,5 +1,6 @@
 import { EQUIPMENT_TEMPLATE_MEDIA_SELECT, resolveEquipmentMedia } from '@/features/equipment-library/lib/resolve'
 import { groupOpenPhotoCredits } from '@/shared/lib/open-photo-credits'
+import { sanitizeDescriptionSources } from '@/shared/lib/description-sources'
 import { isEligibleForGooglePhotos } from '@/features/google-places-photos/lib/eligibility'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoList, type PoiPhotoMirrorMap } from '@/features/poi-photos/queries/photo-mirror-map'
 import type { Prisma } from '@prisma/client'
@@ -145,6 +146,8 @@ export async function getPrivateGuideData(
           // Spec 101 : crédits des photos Wikimedia Commons.
           photo_credits: true,
           google_place_id: true,
+          // Spec 094 AC-06 : sources de la description.
+          description_sources: true,
           // Spec 070 : image de remplacement attribuée.
           fallback_image: { select: { url: true, deleted_at: true } },
           city: { select: { slug: true } },
@@ -179,7 +182,7 @@ export async function getPrivateGuideData(
         select: {
           id: true, name: true, slug: true, description: true, address: true,
           latitude: true, longitude: true, phone: true, website: true,
-          rating: true, rating_count: true, is_open_now: true, hours: true, photos: true, photo_credits: true, google_place_id: true,
+          rating: true, rating_count: true, is_open_now: true, hours: true, photos: true, photo_credits: true, google_place_id: true, description_sources: true,
           fallback_image: { select: { url: true, deleted_at: true } },
           city: { select: { slug: true } },
           category: { select: { id: true, slug: true, name: true, icon: true } },
@@ -366,6 +369,7 @@ type PrivateGuidePoiRow = {
     photos: string[]
     photo_credits?: Prisma.JsonValue | null
     google_place_id?: string | null
+    description_sources?: Prisma.JsonValue | null
     fallback_image: { url: string; deleted_at: Date | null } | null
     city: { slug: string }
     category: { slug: string; name: string; icon: string }
@@ -423,6 +427,7 @@ function mapPrivateGuidePoi(row: PrivateGuidePoiRow, mirrorMap: PoiPhotoMirrorMa
     ownerNote: row.owner_note?.trim() || undefined,
     trail: mapTrail(poi.trail_detail),
     openPhotoCredits: groupOpenPhotoCredits(poi.photo_credits ?? null, poi.photos),
+    descriptionSources: sanitizeDescriptionSources(poi.description_sources ?? null),
     // Spec 103 : photos Google Maps en direct pour un lieu sans photo MyStay.
     googlePhotosRef: isEligibleForGooglePhotos({ photos: poi.photos, google_place_id: poi.google_place_id ?? null }) ? poi.id : undefined,
   }

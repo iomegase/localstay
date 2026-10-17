@@ -16,6 +16,7 @@ import { usePoiSheetGestures } from '../hooks/usePoiSheetGestures'
 import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { OpenPhotoCredits } from '@/shared/components/OpenPhotoCredits'
+import { DescriptionSources } from '@/shared/components/DescriptionSources'
 import { GooglePlacePhotos } from '@/features/google-places-photos/components/GooglePlacePhotos'
 
 export function GuidePoiDetails({
@@ -146,6 +147,13 @@ export function GuidePoiDetails({
             className="px-6 text-[12px] leading-[1.9] text-charcoal/70 [&_p]:text-[12px] [&_p]:leading-[1.9] [&_p]:text-charcoal/70"
           />
         )}
+        {/* Spec 094 AC-06 : sources de la description. */}
+        <DescriptionSources
+          sources={poi.descriptionSources}
+          label={m.poi.sourcesLabel}
+          className="px-6 text-[11px] leading-5 text-charcoal/45"
+          linkClassName="underline underline-offset-2"
+        />
 
         {/* Le mot de votre hôte */}
         <OwnerRecommendationNote note={poi.ownerNote ?? null} title={m.poi.ownerNote} />

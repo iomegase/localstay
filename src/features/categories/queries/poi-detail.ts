@@ -1,4 +1,5 @@
 import { activeFallbackImageUrl } from '@/features/categories/lib/poi-fallback-image'
+import { sanitizeDescriptionSources } from '@/shared/lib/description-sources'
 import { cache } from 'react'
 import { prisma } from '@/shared/lib/prisma'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoList } from '@/features/poi-photos/queries/photo-mirror-map'
@@ -43,6 +44,8 @@ async function getPoiDetailUncached(
     },
     select: {
       id: true, name: true, slug: true, description: true,
+      // Spec 094 AC-06 : sources de la description.
+      description_sources: true,
       address: true, latitude: true, longitude: true,
       phone: true, website: true, rating: true, rating_count: true,
       is_open_now: true, hours: true, photos: true,
@@ -139,6 +142,7 @@ async function getPoiDetailUncached(
     name: row.name,
     slug: row.slug,
     description: row.description,
+    description_sources: sanitizeDescriptionSources(row.description_sources),
     address: row.address,
     latitude: row.latitude,
     longitude: row.longitude,

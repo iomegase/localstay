@@ -56,6 +56,8 @@ describe('034-private-guide-app private data adapter', () => {
           name: 'Rond de Carotte',
           slug: 'rond-de-carotte',
           description: 'Cuisine locale',
+          // Spec 094 AC-06 : sources nettoyées puis transmises à la fiche.
+          description_sources: [{ url: 'https://example.com/', title: 'example.com' }, { url: 'javascript:alert(1)', title: 'x' }],
           address: 'Saint-Gervais',
           latitude: 45.89,
           longitude: 6.71,
@@ -90,6 +92,7 @@ describe('034-private-guide-app private data adapter', () => {
       ownerNote: 'Notre table préférée',
       recommended: true,
       citySlug: 'les-contamines-montjoie',
+      descriptionSources: [{ url: 'https://example.com/', title: 'example.com' }],
     })
     expect(featuredFindMany).toHaveBeenCalledWith(
       expect.objectContaining({

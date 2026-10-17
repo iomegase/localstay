@@ -7,6 +7,7 @@ import { TrailPreviewMap } from './TrailPreviewMap'
 import { isValidTrailGeometry } from '../lib/geo'
 import { reliabilityFromQualityStatus } from '@/features/trails-acquisition/lib/geometry-quality'
 import { MarkdownText } from '@/shared/components/MarkdownText'
+import { DescriptionSources } from '@/shared/components/DescriptionSources'
 import { PoiDetailHeroCarousel } from '@/features/categories/components/PoiDetailHeroCarousel'
 import { HeroShareButton } from '@/features/categories/components/HeroShareButton'
 import { OwnerRecommendationNote } from '@/features/categories/components/OwnerRecommendationNote'
@@ -131,6 +132,8 @@ export function TrailPoiDetailBody({
               className="mt-6 px-6 text-sm leading-relaxed text-charcoal/70"
             />
           )}
+          {/* Spec 094 AC-06 : sources de la description. */}
+          <DescriptionSources sources={poi.description_sources} className="mt-3 px-6 text-xs leading-6 text-charcoal/45" />
         </section>
 
         <OwnerRecommendationNote note={ownerRecommendationNote ?? null} />

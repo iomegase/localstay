@@ -1,3 +1,4 @@
+import type { DescriptionSource } from '@/shared/lib/description-sources'
 import type { OpenPhotoCreditGroup } from '@/shared/lib/open-photo-credits'
 import type { PoiHours } from '@/features/categories/types'
 import type { ArrivalFact, ArrivalStepKind, ArrivalSubstep } from '@/features/guide-app/lib/arrival-steps'
@@ -107,6 +108,8 @@ export type GuideTrailSummary = {
 export type GuidePoi = {
   /** Spec 101 AC-02-05 : crédits des photos Wikimedia Commons affichées. */
   openPhotoCredits?: OpenPhotoCreditGroup[]
+  /** Spec 094 AC-06 : pages ayant servi à rédiger la description. */
+  descriptionSources?: DescriptionSource[]
   /** Spec 103 : identifiant pour `/api/places/photos` (lieu sans photo MyStay, rattaché à Google). */
   googlePhotosRef?: string
   id: string

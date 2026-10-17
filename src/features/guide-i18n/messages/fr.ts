@@ -242,6 +242,7 @@ export const fr = {
     reviews: (count: number) => `${count} avis`,
     photosCredit: (host: string) => `Photos : ${host}`,
     photosLabel: 'Photos :',
+    sourcesLabel: 'Sources :',
     trail: {
       demoNoGps: 'Suivi GPS indisponible dans le guide de démonstration.',
       difficulty: {
