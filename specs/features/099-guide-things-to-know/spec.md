@@ -50,6 +50,9 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
 - **AC-02-03**: Toucher une photo l'ouvre en plein écran (carrousel des photos de la carte, spec 054
   `MediaLightbox`).
 - **AC-02-04**: En anglais, titre et description sont traduits (spec 061).
+- **AC-02-05** (PO 2026-10-17 : « adapter la photo à l'écran ») : en plein écran, chaque photo est
+  centrée et réduite pour tenir dans l'écran (80 % de la hauteur au plus), sans bande noire, quel que
+  soit son format ; s'applique à toutes les photos du guide affichées par `MediaLightbox`.
 
 ## Business Rules
 - **BR-01**: 5 photos maximum par carte ; titre obligatoire.
@@ -93,7 +96,7 @@ model LodgingThingToKnow {
   autres photos (cliquables).
 
 ## Acceptance Criteria
-AC-01-01 à AC-02-04, BR-01 à BR-04.
+AC-01-01 à AC-02-05, BR-01 à BR-04.
 
 ## Out of Scope
 Vidéo dans une carte ; bibliothèque partagée de « Choses à savoir » ; affichage sur la page publique

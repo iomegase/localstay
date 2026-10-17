@@ -109,8 +109,12 @@ export function MediaLightbox({
       <div
         data-testid="media-modal-frame"
         onClick={event => event.stopPropagation()}
-        className={`relative w-full overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)] ${
-          content.kind === 'video' ? 'max-w-[340px]' : 'max-w-[420px]'
+        // Spec 099 AC-02-05 : en mode photos, pas de cadre noir — chaque photo est centrée et
+        // réduite pour tenir dans l'écran, quel que soit son format.
+        className={`relative w-full ${
+          content.kind === 'video'
+            ? 'max-w-[340px] overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)]'
+            : 'max-w-[420px]'
         }`}
       >
         <button
@@ -139,13 +143,13 @@ export function MediaLightbox({
               } ${dragging ? 'cursor-grabbing select-none' : 'snap-x snap-mandatory'}`}
             >
               {content.photos.map((src, i) => (
-                <div key={i} className="w-full shrink-0 snap-center">
+                <div key={i} className="flex w-full shrink-0 snap-center items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={src}
                     alt={m.media.photoOf(title, i + 1)}
                     draggable={false}
-                    className="max-h-[70vh] w-full object-contain"
+                    className="max-h-[80vh] max-w-full rounded-[20px] object-contain shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
                   />
                 </div>
               ))}
