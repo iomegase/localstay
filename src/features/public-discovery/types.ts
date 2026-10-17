@@ -103,6 +103,8 @@ export type DiscoveryPoiDetail = Omit<DiscoveryPoiCard, 'photo_url'> & {
   photo_credit: { name: string; website: string | null } | null
   /** Randonnée : auteurs des photos tierces (Camptocamp, Geotrek…), publiés sur la page. */
   trail_photo_credits: TrailPhotoCredit[]
+  /** Spec 103 : identifiant à passer à `/api/places/photos` quand le lieu peut montrer ses photos Google. */
+  google_photos_ref: string | null
   /** Spec 101 AC-02-05 : photos Wikimedia Commons (auteur, licence, pages des fichiers). */
   open_photo_credits: OpenPhotoCreditGroup[]
   city: DiscoveryCitySummary

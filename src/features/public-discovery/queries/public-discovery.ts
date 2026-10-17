@@ -27,6 +27,7 @@ import type {
 } from '../types'
 import { trailPhotoCredits } from '@/features/trails-acquisition/lib/photo-credits'
 import { groupOpenPhotoCredits } from '@/shared/lib/open-photo-credits'
+import { googlePlacesPhotosEnabled } from '@/features/google-places-photos/lib/eligibility'
 
 const frenchNameCollator = new Intl.Collator('fr', { sensitivity: 'base' })
 
@@ -474,6 +475,8 @@ export const getDiscoveryPoi: (
         ? heroPhotoUrl
         : resolvePoiPhotoUrl(heroPhotoUrl, mirrorMap),
       open_photo_credits: groupOpenPhotoCredits(rows[0]?.photo_credits ?? null, mapped.photos),
+      // Spec 103 : l'identifiant Google n'est jamais lu ici (spec 041) ; la route le vérifie.
+      google_photos_ref: rows[0] && googlePlacesPhotosEnabled() && mapped.photos.length === 0 ? rows[0].id : null,
       trail_photo_credits: rows[0]?.trail_detail && !rows[0].trail_detail.deleted_at ? trailPhotoCredits(rows[0].trail_detail.source_refs) : [],
       photo_credit: mapped.photos.some(isThirdPartyPhotoUrl)
         ? { name: detailCard.name, website }

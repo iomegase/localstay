@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { OpenPhotoCredits } from '@/shared/components/OpenPhotoCredits'
+import { GooglePlacePhotos } from '@/features/google-places-photos/components/GooglePlacePhotos'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { ArrowLeft, ChevronRight, Clock3, ExternalLink, MapPin, Navigation, Phone, Star } from 'lucide-react'
 import { MiniMap } from '@/features/categories/components/MiniMap'
@@ -54,6 +55,10 @@ export function DiscoveryPoiView({ poi }: { poi: DiscoveryPoiDetail }) {
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
+          {/* Spec 103 : lieu sans photo MyStay → photos Google Maps en direct, créditées. */}
+          {poi.google_photos_ref ? (
+            <GooglePlacePhotos poiRef={poi.google_photos_ref} name={poi.name} label="Photos :" className="mt-4" />
+          ) : null}
         </div>
 
         <div className={`${marketingContainerClass} grid gap-12 py-14 sm:py-16 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)] lg:gap-16`}>

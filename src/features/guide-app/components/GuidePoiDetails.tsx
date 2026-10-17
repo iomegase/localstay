@@ -16,6 +16,7 @@ import { usePoiSheetGestures } from '../hooks/usePoiSheetGestures'
 import { useGuideI18n } from '@/features/guide-i18n/components/GuideI18nContext'
 import { MarkdownText } from '@/shared/components/MarkdownText'
 import { OpenPhotoCredits } from '@/shared/components/OpenPhotoCredits'
+import { GooglePlacePhotos } from '@/features/google-places-photos/components/GooglePlacePhotos'
 
 export function GuidePoiDetails({
   mode,
@@ -155,6 +156,13 @@ export function GuidePoiDetails({
             <HoursBlock is_open_now={poi.isOpenNow ?? null} hours={poi.hours} showOpenBadge={false} labels={{ ...m.hours, days: (['0', '1', '2', '3', '4', '5', '6'] as const).map(day => m.hours.days[day]) }} />
           </div>
         )}
+
+        {/* Spec 103 : lieu sans photo MyStay → photos Google Maps en direct, créditées. */}
+        {!hasRealPhotos && poi.googlePhotosRef ? (
+          <div className="px-6">
+            <GooglePlacePhotos poiRef={poi.googlePhotosRef} name={poi.name} label={m.poi.photosLabel} />
+          </div>
+        ) : null}
 
         {/* Photo attribution — spec 101 : crédits Wikimedia Commons (auteur + licence) prioritaires. */}
         {hasRealPhotos && poi.openPhotoCredits?.length ? (

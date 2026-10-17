@@ -1,5 +1,6 @@
 import { EQUIPMENT_TEMPLATE_MEDIA_SELECT, resolveEquipmentMedia } from '@/features/equipment-library/lib/resolve'
 import { groupOpenPhotoCredits } from '@/shared/lib/open-photo-credits'
+import { isEligibleForGooglePhotos } from '@/features/google-places-photos/lib/eligibility'
 import { getPoiPhotoMirrorMap, resolvePoiPhotoList, type PoiPhotoMirrorMap } from '@/features/poi-photos/queries/photo-mirror-map'
 import type { Prisma } from '@prisma/client'
 import { computeIsOpenNow } from '@/features/categories/lib/is-open-now'
@@ -143,6 +144,7 @@ export async function getPrivateGuideData(
           photos: true,
           // Spec 101 : crédits des photos Wikimedia Commons.
           photo_credits: true,
+          google_place_id: true,
           // Spec 070 : image de remplacement attribuée.
           fallback_image: { select: { url: true, deleted_at: true } },
           city: { select: { slug: true } },
@@ -177,7 +179,7 @@ export async function getPrivateGuideData(
         select: {
           id: true, name: true, slug: true, description: true, address: true,
           latitude: true, longitude: true, phone: true, website: true,
-          rating: true, rating_count: true, is_open_now: true, hours: true, photos: true, photo_credits: true,
+          rating: true, rating_count: true, is_open_now: true, hours: true, photos: true, photo_credits: true, google_place_id: true,
           fallback_image: { select: { url: true, deleted_at: true } },
           city: { select: { slug: true } },
           category: { select: { id: true, slug: true, name: true, icon: true } },
@@ -363,6 +365,7 @@ type PrivateGuidePoiRow = {
     hours: Prisma.JsonValue | null
     photos: string[]
     photo_credits?: Prisma.JsonValue | null
+    google_place_id?: string | null
     fallback_image: { url: string; deleted_at: Date | null } | null
     city: { slug: string }
     category: { slug: string; name: string; icon: string }
@@ -420,6 +423,8 @@ function mapPrivateGuidePoi(row: PrivateGuidePoiRow, mirrorMap: PoiPhotoMirrorMa
     ownerNote: row.owner_note?.trim() || undefined,
     trail: mapTrail(poi.trail_detail),
     openPhotoCredits: groupOpenPhotoCredits(poi.photo_credits ?? null, poi.photos),
+    // Spec 103 : photos Google Maps en direct pour un lieu sans photo MyStay.
+    googlePhotosRef: isEligibleForGooglePhotos({ photos: poi.photos, google_place_id: poi.google_place_id ?? null }) ? poi.id : undefined,
   }
 }
 

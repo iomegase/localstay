@@ -181,7 +181,7 @@ function expectExactPublicDto(value: unknown, kind: 'city' | 'category' | 'detai
     'city', 'groups', 'icon', 'name', 'nearby_pois', 'pois', 'slug', 'sort_order', 'subcategories',
   ]
   const detailKeys = [
-    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url', 'trail_photo_credits', 'open_photo_credits',
+    'address', 'category', 'city', 'description', 'description_sources', 'distance_km', 'hero_photo_url', 'trail_photo_credits', 'open_photo_credits', 'google_photos_ref',
     'hours', 'is_open_now', 'latitude', 'longitude', 'name', 'phone', 'photo_credit', 'photo_is_fallback', 'photos',
     'rating', 'rating_count', 'slug', 'subcategory', 'website', 'zone',
   ]

@@ -107,6 +107,8 @@ export type GuideTrailSummary = {
 export type GuidePoi = {
   /** Spec 101 AC-02-05 : crédits des photos Wikimedia Commons affichées. */
   openPhotoCredits?: OpenPhotoCreditGroup[]
+  /** Spec 103 : identifiant pour `/api/places/photos` (lieu sans photo MyStay, rattaché à Google). */
+  googlePhotosRef?: string
   id: string
   name: string
   slug: string
