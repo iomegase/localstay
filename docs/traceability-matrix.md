@@ -2255,3 +2255,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | AC-02-02 | Fiches détaillées seulement, côté navigateur, 3 photos max | `src/features/google-places-photos/components/GooglePlacePhotos.tsx`<br>`src/features/google-places-photos/services/place-photos.ts` | `tests/unit/google-places-photos.AC-01-01-04.service.test.ts` | ✅ done |
 | AC-02-03 | `GET /api/places/photos?poi=<uuid>` : Zod, 404 si inéligible (sans appel Google) | `src/app/api/places/photos/route.ts` | `tests/contract/google-places-photos.AC-02-03.api.test.ts` | ✅ done |
 | BR-01 – BR-03 | Seul `google_place_id` conservé ; attribution ; photos MyStay prioritaires ; lecture publique sans `google_place_id` (spec 041) | `src/features/google-places-photos/lib/eligibility.ts`<br>`src/features/public-discovery/queries/public-discovery.ts` | `tests/unit/google-places-photos.AC-01-01-04.service.test.ts`<br>`tests/integration/public-discovery.AC-01-03.public-queries.test.ts` | ✅ done |
+
+## 054 — 404 du guide privé au nouveau gabarit (PO 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-07-06 | 404 du guide privé : ancien en-tête / menu / barre masqués (écran immersif), style du guide du séjour, « Retour au guide » recharge entièrement `/sejour` | `src/app/(public)/guide/[city-slug]/not-found.tsx`<br>`src/shared/components/ImmersiveScreen.tsx`<br>`src/app/globals.css` | `tests/integration/guide-not-found.single-boundary.test.tsx` | ✅ done |

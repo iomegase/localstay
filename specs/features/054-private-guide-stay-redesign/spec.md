@@ -623,3 +623,18 @@ paragraphes sont justifiés. Le contenu des sections Markdown « Sources » ou
 « Références » utilise 12 px jusqu’au prochain titre de niveau égal ou
 supérieur ; leurs titres conservent la hiérarchie existante. Le lecteur public
 reste inchangé. Demande explicite du PO ; aucune question ouverte.
+
+
+### Correction approuvée — 404 du guide privé au nouveau gabarit (PO 2026-10-17)
+
+AC-07-06 : à la demande du PO (« le lien Retour au guide de la page 404 du guide
+privé me renvoie vers l'ancien template ; la page 404 comporte l'ancien template
+et son menu aussi »), la 404 unique du guide privé (`/guide/[city-slug]/…`) :
+- masque l'en-tête, le menu et la barre de navigation de l'ancien gabarit, comme
+  la navigation en randonnée (mode écran immersif) ;
+- reprend le style du guide du séjour (fond clair, carte blanche, titre 28 px
+  semi-gras, bouton principal sombre « Retour au guide ») ;
+- « Retour au guide » recharge entièrement `/sejour` (lien HTML, pas de navigation
+  client) : la mise en page de l'ancien gabarit n'est jamais conservée autour du
+  nouveau guide.
+Le texte du message est inchangé.

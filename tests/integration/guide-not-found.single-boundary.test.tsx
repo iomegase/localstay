@@ -16,6 +16,17 @@ describe('guide privé — 404 unique', () => {
     expect(screen.getByRole('link', { name: 'Retour au guide' })).toHaveAttribute('href', '/sejour')
   })
 
+  it('spec 054 AC-07-06 : masque l’ancien gabarit, et le retour recharge entièrement /sejour', () => {
+    const { unmount } = render(<GuideNotFound />)
+
+    expect(document.body).toHaveClass('immersive-screen')
+    const link = screen.getByRole('link', { name: 'Retour au guide' })
+    expect(link.tagName).toBe('A')
+    expect(link).not.toHaveAttribute('data-next-link')
+    unmount()
+    expect(document.body).not.toHaveClass('immersive-screen')
+  })
+
   it('ne conserve plus de 404 dédiée aux catégories', () => {
     const categoryNotFound = join(process.cwd(), 'src/app/(public)/guide/[city-slug]/[category-slug]/not-found.tsx')
     expect(existsSync(categoryNotFound)).toBe(false)

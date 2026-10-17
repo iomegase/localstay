@@ -83,3 +83,7 @@
 body.immersive-map .immersive-hide { display: none !important; }
 body.immersive-map .immersive-main { padding: 0 !important; }
 body.immersive-map .immersive-container { border: 0 !important; box-shadow: none !important; }
+/* Spec 054 AC-07-06 : écran plein (404 du guide privé) sans l'ancien gabarit. */
+body.immersive-screen .immersive-hide { display: none !important; }
+body.immersive-screen .immersive-main { padding: 0 !important; }
+body.immersive-screen .immersive-container { border: 0 !important; box-shadow: none !important; }
