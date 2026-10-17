@@ -662,7 +662,9 @@ export function AdminPoiEditForm({ poi, categories, cities = [] }: Props) {
               geometry={trail.geometry_geojson}
               startLatitude={trail.start_latitude}
               startLongitude={trail.start_longitude}
-              startHref={`/guide/${poi.city.slug}/${poi.category.slug}/${poi.slug}/start`}
+              // 2026-10-17 : pas de lien vers /guide/…/start — page réservée au séjour (cookie logement) ;
+              // hors séjour, le proxy répond 410 « Cette page n'existe plus » (spec 064).
+              startHref={null}
               reliability={reliabilityFromQualityStatus(trail.data_quality_status)}
             />
           </div>

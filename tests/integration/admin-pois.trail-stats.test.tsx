@@ -112,3 +112,20 @@ describe('AdminPoiEditForm — trail stats (distance / difficulté / durée / d�
     expect(body.trail_metrics).toEqual({ distance_km: 8.4, elevation_gain_m: 950 })
   })
 })
+
+describe('AdminPoiEditForm — aperçu du tracé (2026-10-17)', () => {
+  it('la carte n’envoie pas vers /guide/…/start, page réservée au séjour (410 hors séjour)', () => {
+    const trail = {
+      ...fullTrail,
+      data_quality_status: 'indicative',
+      start_latitude: 45.78,
+      start_longitude: 6.72,
+      geometry_geojson: { type: 'LineString', coordinates: [[6.72, 45.78], [6.73, 45.79], [6.74, 45.8]] },
+    }
+    render(<AdminPoiEditForm poi={buildTrailPoi(trail as never)} categories={categories} />)
+
+    const map = screen.getByTestId('trail-preview-map')
+    expect(map.closest('a')).toBeNull()
+    expect(document.querySelector('a[href$="/start"]')).toBeNull()
+  })
+})

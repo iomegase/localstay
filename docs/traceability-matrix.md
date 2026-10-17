@@ -2279,3 +2279,9 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | AC-06 | « Sources : » sous la description : fiche du guide privé (FR / EN), fiche randonnée, fiche `/guide/[ville]/[catégorie]/[poi]` ; rien sans source | `src/shared/components/DescriptionSources.tsx`<br>`src/features/guide-app/components/GuidePoiDetails.tsx`<br>`src/features/guide-app/queries/private-guide-data.ts`<br>`src/features/guide-app/types.ts`<br>`src/features/guide-i18n/messages/fr.ts`<br>`src/features/guide-i18n/messages/en.ts`<br>`src/features/trail-navigation/components/TrailPoiDetailBody.tsx`<br>`src/features/categories/components/PoiDetailBody.tsx`<br>`src/features/categories/queries/poi-detail.ts`<br>`src/features/categories/types.ts` | `tests/integration/description-sources.AC-06.poi-sheets.test.tsx`<br>`tests/unit/private-guide-app.AC-01-05.data.test.ts` | ✅ done |
+
+## 022 — Aperçu du tracé dans l'admin (correction 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| Fiche POI admin — tracé | La carte d'aperçu du tracé n'est plus un lien vers `/guide/…/start` (page réservée au séjour : 410 « Cette page n'existe plus » hors séjour, spec 064) | `src/features/admin-pois/components/AdminPoiEditForm.tsx` | `tests/integration/admin-pois.trail-stats.test.tsx` | ✅ done |
