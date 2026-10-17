@@ -37,6 +37,9 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
   Description (facultative, 2000 caractères max, Markdown simple) et Photos (facultatives, 5 max,
   téléversement multiple).
 - **AC-01-02**: L'Owner réordonne les cartes (glisser-déposer), retire une photo, supprime une carte.
+- **AC-01-05** (PO 2026-10-17 : « pouvoir sélectionner le hero de la card ») : la première photo est
+  l'**image principale** (vignette de la carte, AC-02-02), signalée « Image principale » ; « ★ » sur
+  une autre photo la place en tête (les autres gardent leur ordre).
 - **AC-01-03**: Une carte sans titre bloque l'enregistrement avec « Le titre est requis. » sous le
   champ (mêmes règles côté client et API, spec 083).
 - **AC-01-04**: L'enregistrement de la page Guide crée, met à jour et supprime (suppression douce) les
@@ -96,7 +99,7 @@ model LodgingThingToKnow {
   autres photos (cliquables).
 
 ## Acceptance Criteria
-AC-01-01 à AC-02-05, BR-01 à BR-04.
+AC-01-01 à AC-02-05 (dont AC-01-05), BR-01 à BR-04.
 
 ## Out of Scope
 Vidéo dans une carte ; bibliothèque partagée de « Choses à savoir » ; affichage sur la page publique

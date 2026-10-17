@@ -42,6 +42,15 @@ describe('099 US-01 — ThingsToKnowEditor', () => {
     expect(state()).toEqual([])
   })
 
+  it('AC-01-05 : ★ place la photo choisie en image principale', () => {
+    render(<Harness initialValue={[{ id: 'k1', title: 'Volets', body: null, photos: ['/a.jpg', '/b.jpg', '/c.jpg'], sort_order: 0 }]} />)
+
+    expect(screen.getByText('Image principale')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Définir la photo 1 comme image principale' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Définir la photo 3 comme image principale' }))
+    expect(state()[0].photos).toEqual(['/c.jpg', '/a.jpg', '/b.jpg'])
+  })
+
   it('BR-01 : à 5 photos, le téléversement est remplacé par la limite', () => {
     render(<Harness initialValue={[{ id: 'k1', title: 'Volets', body: null, photos: ['1', '2', '3', '4', '5'], sort_order: 0 }]} />)
     expect(screen.getByText('Limite atteinte : 5 photos.')).toBeInTheDocument()
