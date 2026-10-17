@@ -41,10 +41,11 @@ describe('046 AC-04-06 — footer « Nos destinations »', () => {
   })
 
   it('returns no links when the data cannot be read, without throwing', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {})
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
     mockListSummaries.mockRejectedValue(new Error('db down'))
 
     await expect(getFooterLocalLandingLinks()).resolves.toEqual({ vacationRental: [], concierge: [], seminar: [] })
+    expect(warn).toHaveBeenCalledWith('[footer] local landing links unavailable:', 'db down')
   })
 
   it('renders three columns whose titles link to the hubs, hiding empty columns', () => {

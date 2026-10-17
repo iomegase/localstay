@@ -24,7 +24,8 @@ export const getFooterLocalLandingLinks = cache(async (): Promise<FooterLocalLan
       seminar: summaries.filter(item => item.publication.seminar).map(link('seminar')),
     }
   } catch (error) {
-    console.error('[footer] local landing links unavailable:', error)
+    // Repli non bloquant (bloc « Nos destinations » vide) : avertissement d'une ligne.
+    console.warn('[footer] local landing links unavailable:', error instanceof Error ? error.message.trim().split('\n').at(-1) : String(error))
     return EMPTY
   }
 })

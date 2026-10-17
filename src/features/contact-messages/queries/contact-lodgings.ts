@@ -21,7 +21,8 @@ export const listContactLodgingOptions = cache(async (): Promise<string[]> => {
     })
     return [...new Set(rows.map(row => `${row.title.trim()} · ${row.city.name.trim()}`))]
   } catch (error) {
-    console.error('[contact] lodging options unavailable:', error)
+    // Repli non bloquant (champ en texte libre) : avertissement d'une ligne, sans l'erreur complète.
+    console.warn('[contact] lodging options unavailable:', error instanceof Error ? error.message.trim().split('\n').at(-1) : String(error))
     return []
   }
 })

@@ -27,8 +27,10 @@ describe('053 AC-02-06 — listContactLodgingOptions', () => {
   })
 
   it('returns an empty list when the read fails', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {})
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
     mockFindMany.mockRejectedValue(new Error('db down'))
     await expect(listContactLodgingOptions()).resolves.toEqual([])
+    // Coupure base : simple avertissement d'une ligne (pas de console.error → pas d'écran d'erreur Next).
+    expect(warn).toHaveBeenCalledWith('[contact] lodging options unavailable:', 'db down')
   })
 })

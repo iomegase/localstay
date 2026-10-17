@@ -151,7 +151,10 @@ réutilise sa source existante. Remplace AC-01-02 (le menu « Vous êtes » disp
   actifs, non supprimés), libellés « Titre · Commune », triés par commune puis
   titre, précédés de « Pas encore choisi » (facultatif). La liste est chargée côté
   serveur par le layout des routes marketing ; si la lecture échoue ou qu'aucun
-  logement n'est publié, le champ redevient un texte libre. Aucun changement d'API
+  logement n'est publié, le champ redevient un texte libre. Un échec de lecture (base
+  injoignable) est journalisé en avertissement d'une ligne (`console.warn`), sans bloquer
+  la page ni déclencher l'écran d'erreur de Next en développement (de même pour le bloc
+  « Nos destinations » du footer, spec 046 AC-04-06 ; ajustement du 2026-10-17). Aucun changement d'API
   ni de modèle.
 - **AC-02-07** (PO 2026-10-15) : la description du formulaire Voyageur tient sur
   deux lignes : « Une question sur un logement, vos dates ou votre séjour ? » puis
