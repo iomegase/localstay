@@ -2291,3 +2291,10 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 | Spec ID | Acceptance Criterion | Source File | Test File | Statut |
 |---|---|---|---|---|
 | Import GPX (randonnée existante) | Le GPX importé sur une fiche sentier existante recalcule `data_quality_status` (complete / indicative) : un tracé propre retrouve le suivi GPS (« Démarrer ») | `src/features/admin-pois/queries/trail-detail-gpx.ts` | `tests/unit/admin-pois.trail-gpx-quality.test.ts` | ✅ done |
+
+## 019 — Texte Camptocamp complet (correction PO 2026-10-17)
+
+| Spec ID | Acceptance Criterion | Source File | Test File | Statut |
+|---|---|---|---|---|
+| AC-COR-01 | Description Camptocamp gardée entière jusqu'à 5 000 caractères, coupée sinon à la fin d'un paragraphe ou d'une phrase (plus de coupure à 1 500 en plein mot) | `src/features/trails-acquisition/services/camptocamp.ts` | `tests/unit/trails-acquisition.camptocamp-description.test.ts` | ✅ done |
+| AC-COR-02 | Reprise des descriptions coupées (candidats et POI publiés), seulement si non modifiées par l'admin — 6 complétées le 2026-10-17 | `scripts/repair-truncated-trail-descriptions.ts` | — (script, vérifié en dry-run puis appliqué) | ✅ done |

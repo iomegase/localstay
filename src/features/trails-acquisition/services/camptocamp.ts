@@ -1,3 +1,4 @@
+import { ADMIN_DESCRIPTION_MAX_CHARS } from '@/shared/lib/description-length'
 import { extractTrailPhotos } from '../lib/photos'
 import type { Prisma } from '@prisma/client'
 import { bboxAroundPoint, bboxToMercator, mercatorXToLng, mercatorYToLat } from '../lib/projection'
@@ -120,7 +121,7 @@ function normalize(detail: RouteDetail): CamptocampTrailCandidate | null {
   const geometry = parseGeometry(detail.geometry?.geom_detail ?? detail.geometry?.geom)
   const startPoint = extractStartPoint(geometry)
 
-  const description = cleanCamptocampMarkup(htmlToPlainText(frenchLocale?.description ?? frenchLocale?.summary ?? null))
+  const description = camptocampDescription(frenchLocale?.description ?? frenchLocale?.summary ?? null)
   // Camptocamp `durations` est un enum de plage (1=<1h, 2=2-3h, 3=4-6h, etc.),
   // pas une valeur en heures. On laisse Naismith calculer depuis distance + gain
   // dans l'étape ORS/Naismith en aval.
@@ -275,7 +276,25 @@ function htmlToPlainText(html: string | null): string | null {
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
-  return text.length > 0 ? text.slice(0, 1500) : null
+  return text.length > 0 ? text : null
+}
+
+/**
+ * 2026-10-17 : texte Camptocamp complet jusqu'à 5 000 caractères (limite d'une description admin) ;
+ * au-delà, coupe à la fin d'un paragraphe ou d'une phrase — jamais au milieu d'un mot (« Du s »).
+ */
+export function camptocampDescription(html: string | null): string | null {
+  return limitAtBoundary(cleanCamptocampMarkup(htmlToPlainText(html)), ADMIN_DESCRIPTION_MAX_CHARS)
+}
+
+export function limitAtBoundary(text: string | null, max: number): string | null {
+  if (!text || text.length <= max) return text
+  const head = text.slice(0, max)
+  const paragraph = head.lastIndexOf('\n\n')
+  if (paragraph > max * 0.6) return head.slice(0, paragraph).trim()
+  const sentence = Math.max(head.lastIndexOf('. '), head.lastIndexOf('.\n'), head.lastIndexOf('! '), head.lastIndexOf('? '))
+  if (sentence > max * 0.6) return head.slice(0, sentence + 1).trim()
+  return head.slice(0, head.lastIndexOf(' ') > 0 ? head.lastIndexOf(' ') : max).trim()
 }
 
 async function mapWithConcurrency<T, R>(items: T[], concurrency: number, fn: (item: T) => Promise<R>): Promise<R[]> {

@@ -843,3 +843,17 @@ components:
 | OQ-02 | Overpass + IGN + saisie admin manuelle sont-ils inclus dans le premier périmètre de `019` ? | Product Owner | 2026-05-25 | Résolu : oui. |
 | OQ-03 | Gemini peut-il fournir distance, dénivelé, coordonnées ou tracé ? | Architecture | 2026-05-25 | Résolu : non, interdit par ADR-006. |
 | OQ-04 | Une randonnée doit-elle rester affichable comme POI public ? | Architecture | 2026-05-25 | Résolu : oui, via `PointOfInterest` + extension `TrailDetail`. |
+
+---
+
+## Correction approuvée — Texte Camptocamp complet (PO 2026-10-17)
+
+- **AC-COR-01** : à la demande du PO (« pourquoi la description n'est pas complète pour Traversée
+  refuge Robert Blanc → La Visaille »), la description importée de Camptocamp n'est plus coupée à
+  1 500 caractères (coupure en plein mot : « Du s »). Elle est gardée entière jusqu'à 5 000
+  caractères (limite d'une description admin) ; au-delà, elle s'arrête à la fin d'un paragraphe ou
+  d'une phrase.
+- **AC-COR-02** : reprise `scripts/repair-truncated-trail-descriptions.ts` (dry-run par défaut,
+  `--apply`) : les descriptions coupées à 1 500 caractères (randonnées à revoir et POI publiés) sont
+  remplacées par le texte Camptocamp complet, seulement si l'admin ne les a pas modifiées depuis
+  (texte identique au début coupé).
