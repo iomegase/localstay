@@ -184,3 +184,36 @@ function appendOrsRef(existing: unknown): unknown {
   if (!Array.isArray(existing)) return [ref]
   return [...existing, ref]
 }
+
+/**
+ * Spec 102 AC-01-03 : tracé de randonnée départ → destination (profil foot-hiking, réseau de sentiers
+ * OSM), rattachement jusqu'à 1 km (un lac ou un sommet est rarement sur le sentier). null si ORS ne
+ * trouve pas d'itinéraire ou si la clé est absente.
+ */
+export async function fetchOrsHikingRoute(
+  from: [number, number],
+  to: [number, number],
+  signal?: AbortSignal,
+): Promise<{ coordinates: Array<[number, number]>; distanceKm: number } | null> {
+  const apiKey = process.env.ORS_API_KEY
+  if (!apiKey) return null
+  const response = await fetch('https://api.openrouteservice.org/v2/directions/foot-hiking/geojson', {
+    method: 'POST',
+    signal: signal ?? AbortSignal.timeout(20_000),
+    headers: { Authorization: apiKey, 'Content-Type': 'application/json', Accept: 'application/geo+json, application/json' },
+    body: JSON.stringify({ coordinates: [from, to], radiuses: [1000, 1000] }),
+  })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`ORS HTTP ${response.status}`)
+  const payload = await response.json() as {
+    features?: Array<{ geometry?: { coordinates?: unknown }; properties?: { summary?: { distance?: number } } }>
+  }
+  const feature = payload.features?.[0]
+  const coordinates = Array.isArray(feature?.geometry?.coordinates)
+    ? (feature!.geometry!.coordinates as unknown[]).filter((point): point is [number, number] =>
+      Array.isArray(point) && typeof point[0] === 'number' && typeof point[1] === 'number').map(point => [point[0], point[1]] as [number, number])
+    : []
+  const distance = feature?.properties?.summary?.distance
+  if (coordinates.length < 2 || typeof distance !== 'number') return null
+  return { coordinates, distanceKm: Math.round(distance / 100) / 10 }
+}
