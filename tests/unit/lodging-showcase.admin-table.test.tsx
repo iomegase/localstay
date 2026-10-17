@@ -102,7 +102,7 @@ describe('028 lodging showcase admin table', () => {
 
     render(<AdminLodgingProfilesTable rows={[row]} />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Corrections' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publier' }))
 
     await waitFor(() => expect(screen.getByText('Fiche logement introuvable')).toBeInTheDocument())
     expect(mockRefresh).not.toHaveBeenCalled()
@@ -126,4 +126,13 @@ it('051 AC-03: identifies the public lodging title and retains a different inter
   expect(screen.getByText('T2 cosy - Le Mont Joly')).toBeVisible()
   expect(screen.getByText('Les Hauts de Saint Gervais')).toBeVisible()
   expect(screen.getByRole('button', { name: 'Ajouter à la page Séminaires' })).toBeVisible()
+})
+
+describe('028 AC-06-03 (retiré) — plus de bouton « Corrections »', () => {
+  it('offers no « Corrections » action on a published profile', async () => {
+    const { AdminLodgingProfilesTable: Table } = await import('@/features/lodging-showcase/components/AdminLodgingProfilesTable')
+    render(<Table rows={[row]} />)
+    expect(screen.queryByRole('button', { name: 'Corrections' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier' })).toBeInTheDocument()
+  })
 })

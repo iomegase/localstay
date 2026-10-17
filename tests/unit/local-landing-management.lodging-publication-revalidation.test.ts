@@ -1,6 +1,6 @@
 import { prisma } from '@/shared/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { publishLodgingProfile, archiveLodgingProfile, requestChangesLodgingProfile } from '@/features/lodging-showcase/queries/admin-public-profiles'
+import { publishLodgingProfile, archiveLodgingProfile } from '@/features/lodging-showcase/queries/admin-public-profiles'
 
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 jest.mock('@/shared/lib/prisma', () => ({
@@ -13,7 +13,6 @@ describe('048 vacation eligibility after lodging moderation', () => {
   it.each([
     ['publishes the first lodging', publishLodgingProfile, 'review', 'published'],
     ['archives the last lodging', archiveLodgingProfile, 'published', 'archived'],
-    ['returns the last lodging to draft', (id: string) => requestChangesLodgingProfile(id, 'Contenu à compléter'), 'published', 'draft'],
   ] as const)('%s and invalidates its city landing after the successful write', async (_label, mutate, before, after) => {
     jest.mocked(prisma.lodgingPublicProfile.findFirst).mockResolvedValue({
       id: 'profile-1', publication_status: before, published_at: null, city: { slug: 'megeve' },

@@ -234,26 +234,6 @@ export async function publishLodgingProfile(profileId: string) {
   }
 }
 
-export async function requestChangesLodgingProfile(profileId: string, adminReviewNote: string) {
-  const profile = await getExistingProfile(profileId)
-  if (!profile) return null
-
-  const updated = await prisma.lodgingPublicProfile.update({
-    where: { id: profileId },
-    data: {
-      publication_status: 'draft',
-      admin_review_note: adminReviewNote,
-    },
-    select: {
-      id: true,
-      publication_status: true,
-      admin_review_note: true,
-    },
-  })
-  revalidatePublicLodgingPaths([profile.city.slug])
-  return updated
-}
-
 export async function archiveLodgingProfile(profileId: string) {
   const profile = await getExistingProfile(profileId)
   if (!profile) return null

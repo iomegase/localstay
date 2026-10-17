@@ -146,20 +146,6 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                               disabled={isBusy}
                               onClick={() => void postAction(
                                 row.id,
-                                `/api/admin/lodgings/public-profiles/${profileId}/request-changes`,
-                                'Demande de correction impossible.',
-                                { admin_review_note: 'Ajouter des photos avec alt.' },
-                              )}
-                            >
-                              Corrections
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              disabled={isBusy}
-                              onClick={() => void postAction(
-                                row.id,
                                 `/api/admin/lodgings/public-profiles/${profileId}/archive`,
                                 'Archivage impossible.',
                               )}

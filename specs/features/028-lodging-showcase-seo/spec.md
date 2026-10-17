@@ -178,7 +178,7 @@ Décision explicite du Product Owner en conversation : supprimer les limites de 
 
 - **AC-06-01**: Given un Admin authentifié, When il ouvre `/admin/lodgings`, Then il voit les fiches filtrables par City, Owner et `publication_status`.
 - **AC-06-02**: Given une fiche en `review`, When l'Admin l'approuve, Then `publication_status = published`, `published_at` est renseigné et la page devient indexable.
-- **AC-06-03**: Given une fiche en `review`, When l'Admin demande correction, Then `publication_status = draft`, une note admin est enregistrée et la fiche n'est pas indexable.
+- **AC-06-03** *(retiré par le PO le 2026-10-17, voir AC-06-05)* : ~~Given une fiche en `review`, When l'Admin demande correction, Then `publication_status = draft`, une note admin est enregistrée et la fiche n'est pas indexable.~~
 - **AC-06-04**: Given une fiche publiée, When l'Admin l'archive, Then `publication_status = archived`, la page publique retourne 404 et la fiche est retirée du sitemap.
 
 ### US-07 — Renforcer le SEO/GEO logement
@@ -1109,7 +1109,7 @@ Toutes les erreurs utilisent le format standard :
 | AC-05-15 | Catégories des pièces et espaces, salles de bains et chambres numérotées | unit + integration |
 | AC-06-01 | Admin liste et filtre les fiches | integration |
 | AC-06-02 | Admin publie une fiche | contract |
-| AC-06-03 | Admin demande correction | contract |
+| AC-06-03 | Admin demande correction — retiré 2026-10-17 (AC-06-05) | — |
 | AC-06-04 | Admin archive et retire du public/sitemap | contract |
 | AC-07-01 | Metadata fiche publique canonical/OG/robots | unit |
 | AC-07-02 | Metadata liste City orientée recherche locale | unit |
@@ -1277,3 +1277,11 @@ Constat PO : « enlever cette catégorie idiote ».
 - **AC-02-31** (PO 2026-10-16) : les boutons « Voir toutes les pièces (n) » (grille des
   pièces) et « Lire la suite » (description) reprennent le style des pills de filtre
   (bordure fine, 11 px, `px-3 py-1`) et sont alignés à droite avec un retrait `pr-4`.
+
+## Décision PO — Retrait du bouton « Corrections » (2026-10-17)
+
+- **AC-06-05** : la modération admin des logements n'offre plus l'action « Corrections ».
+  Le bouton et `POST /api/admin/lodgings/public-profiles/{profileId}/request-changes` sont
+  supprimés (remplace AC-06-03). Constat PO : la note était codée en dur, jamais visible du
+  propriétaire, et le clic dépubliait la fiche en silence. Pour retirer une fiche du site :
+  « Archiver ». La colonne `admin_review_note` est conservée (aucune migration).
