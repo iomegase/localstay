@@ -654,6 +654,6 @@ de « Équipements ».
 
 ## Amendement approuvé — Couleur des pastilles de section (2026-10-18)
 
-- **AC-07-01** : toutes les pastilles de titre de section du guide privé (Guide logement, Aide)
+- **AC-08-01** : toutes les pastilles de titre de section du guide privé (Guide logement, Aide)
   sont rose `pink-600` (`#DB2777`) avec texte blanc, au lieu de gris `slate-200` / texte
   `slate-900`. Style unique `STAY_SECTION_PILL` dans `stay-styles.ts`.
