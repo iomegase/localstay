@@ -648,3 +648,6 @@ de « Équipements ».
   Règlement → Point de tri → Choses à savoir (spec 099, si présente) →
   Équipements. Le contenu de chaque section est inchangé. (« Point de tri » et
   « Choses à savoir » intervertis à la demande du PO le même jour.)
+- **AC-04-03** (PO 2026-10-18) : la carte « Trouver le point de recyclage » est entièrement
+  cliquable et ouvre la destination Maps d'AC-04-01 ; son nom accessible est son texte visible ;
+  l'icône œil est retirée. En démo, la carte n'est pas un lien.

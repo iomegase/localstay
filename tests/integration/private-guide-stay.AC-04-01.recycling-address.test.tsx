@@ -16,16 +16,18 @@ it.each([
   expect(screen.queryByRole('heading', { name: 'Infos pratiques' })).not.toBeInTheDocument()
   expect(screen.queryByText('Conciergerie')).not.toBeInTheDocument()
   const recycling = screen.getByRole('heading', { name: 'Point de tri' }).parentElement!
-  expect(within(recycling).getByRole('link', { name: 'Ouvrir dans Maps' })).toHaveAttribute('href', href)
-  expect(within(recycling).queryByText('Ouvrir dans Maps')).not.toBeInTheDocument()
-  expect(within(recycling).getByRole('link', { name: 'Ouvrir dans Maps' }).querySelector('.lucide-eye')).not.toBeNull()
+  // Toute la carte est le lien (PO 2026-10-18) : nom accessible = texte visible, sans œil.
+  const card = within(recycling).getByRole('link', { name: 'Trouver le point de recyclage' })
+  expect(card).toHaveAttribute('href', href)
+  expect(card.querySelector('.lucide-recycle')).not.toBeNull()
+  expect(card.querySelector('.lucide-eye')).toBeNull()
   expect(screen.queryByTestId('arrival-address')).not.toBeInTheDocument()
-  expect(screen.getAllByRole('link', { name: 'Ouvrir dans Maps' })).toHaveLength(1)
+  expect(within(recycling).getAllByRole('link')).toHaveLength(1)
 })
 
 it('AC-04-01: demo recycling and address keep external Maps links hidden', () => {
   render(<GuideHouseGuide lodging={buildStayLodging()} onBack={jest.fn()} demo />)
   expect(screen.getByText('Trouver le point de recyclage')).toBeInTheDocument()
   expect(screen.queryByTestId('arrival-address')).not.toBeInTheDocument()
-  expect(screen.queryByRole('link', { name: 'Ouvrir dans Maps' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /Ouvrir dans Maps|Trouver le point de recyclage/ })).not.toBeInTheDocument()
 })
