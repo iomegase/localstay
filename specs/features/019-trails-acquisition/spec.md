@@ -862,3 +862,6 @@ components:
   `--apply`) : les descriptions coupées à 1 500 caractères (randonnées à revoir et POI publiés) sont
   remplacées par le texte Camptocamp complet, seulement si l'admin ne les a pas modifiées depuis
   (texte identique au début coupé).
+  **2026-10-18** : le nettoyage du balisage Camptocamp, appliqué après la coupure, pouvait porter le
+  texte à quelques caractères de plus (« Tour du vallon de la Lex Blanche » : 1 503) ; la reprise
+  tolère désormais jusqu'à 1 550 caractères. Appliquée : 3 descriptions complétées.

@@ -12,7 +12,9 @@ const squash = (value: string) => value.replace(/\s+/g, ' ').trim()
 
 /** Le texte actuel, coupé par l'ancien import, est-il le début du texte complet ? */
 function isUntouchedTruncation(current: string | null, full: string | null): full is string {
-  if (!current || !full || full.length <= current.length || current.length < 1400 || current.length > 1500) return false
+  // Coupure à 1 500 caractères *avant* nettoyage du balisage Camptocamp, qui peut ajouter quelques
+  // caractères (ex. « Tour du vallon de la Lex Blanche » : 1 503) → tolérance jusqu'à 1 550.
+  if (!current || !full || full.length <= current.length || current.length < 1400 || current.length > 1550) return false
   return squash(full).startsWith(squash(current).slice(0, -20))
 }
 
