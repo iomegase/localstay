@@ -1,7 +1,7 @@
 'use client'
 
 import { useId } from 'react'
-import { GripVertical, Plus, Star, Trash2, X } from 'lucide-react'
+import { GripVertical, Plus, Trash2, X } from 'lucide-react'
 import {
   closestCenter,
   DndContext,
@@ -186,9 +186,6 @@ function SortableThingRow({
           <Label className={smallLabelClass}>Photos (optionnelles)</Label>
           <span className="text-[11px] text-gray-500">{item.photos.length} / {THING_TO_KNOW_MAX_PHOTOS} photos</span>
         </div>
-        <p className="text-[11px] text-gray-500">
-          L&apos;image principale est la vignette de la carte ; ★ pour en choisir une autre.
-        </p>
         {room > 0 ? (
           <ImageUpload
             endpoint={`/api/dashboard/lodgings/${lodgingId}/cover-photo`}
@@ -208,24 +205,8 @@ function SortableThingRow({
                 <img
                   src={photo}
                   alt=""
-                  className={`h-16 w-20 rounded-lg object-cover ${photoIndex === 0 ? 'ring-2 ring-pink-600 ring-offset-1' : ''}`}
+                  className="h-16 w-20 rounded-lg object-cover"
                 />
-                {/* Spec 099 AC-01-05 : l'image principale (vignette) est la première photo. */}
-                {photoIndex === 0 ? (
-                  <span className="absolute inset-x-0 bottom-0 rounded-b-lg bg-pink-600/90 px-1 text-center text-[9px] font-bold text-white">
-                    Image principale
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => onUpdate(index, { photos: [photo, ...item.photos.filter((_, i) => i !== photoIndex)] })}
-                    aria-label={`Définir la photo ${photoIndex + 1} comme image principale`}
-                    title="Définir comme image principale"
-                    className="absolute -left-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-white text-pink-600 shadow"
-                  >
-                    <Star className="h-3 w-3" />
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={() => onUpdate(index, { photos: item.photos.filter((_, i) => i !== photoIndex) })}

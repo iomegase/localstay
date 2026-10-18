@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, Phone, Recycle } from 'lucide-react'
+import { Eye, Lightbulb, Phone, Recycle } from 'lucide-react'
 import { translateFixedRule } from '@/features/guide-app/lib/fixed-lodging-content'
 import { inlineMarkdown } from '@/features/guide-app/lib/inline-markdown'
 import type { GuideLodging, GuidePracticalCard, GuideThingToKnow } from '@/features/guide-app/types'
@@ -150,8 +150,8 @@ function EquipmentCard({ card }: { card: GuidePracticalCard }) {
 }
 
 /**
- * Spec 099 AC-02-02/03 : carte accordéon — vignette (zoom au toucher) + titre ;
- * dépliée, la description puis les autres photos.
+ * Spec 099 AC-02-02/03 : carte accordéon — icône ampoule + titre ;
+ * dépliée, la description puis toutes les photos (zoom au toucher).
  */
 function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
   const m = useGuideMessages()
@@ -159,30 +159,21 @@ function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
   const [lightbox, setLightbox] = useState<LightboxContent | null>(null)
   const panelId = `guide-thing-${item.id}`
   const openPhoto = (index: number) => setLightbox({ kind: 'photos', photos: item.photos, startIndex: index })
-  const otherPhotos = item.photos.slice(1)
-  const hasPanel = item.description.trim().length > 0 || otherPhotos.length > 0
+  const hasPanel = item.description.trim().length > 0 || item.photos.length > 0
 
   return (
     <article data-testid="guide-thing-to-know" className={STAY_CARD}>
-      <div className="flex items-center gap-3 p-3 pr-4">
-        {item.photos[0] ? (
-          <button
-            type="button"
-            aria-label={m.media.photoOf(item.title, 1)}
-            onClick={() => openPhoto(0)}
-            className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl bg-[#E8E6E2]"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.photos[0]} alt="" className="h-full w-full object-cover" />
-          </button>
-        ) : null}
+      <div className="flex min-h-[76px] items-center gap-2.5 p-3 pr-4">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-slate-100 text-black">
+          <Lightbulb className="h-7 w-7 stroke-1" strokeWidth={1} aria-hidden="true" />
+        </span>
         <button
           type="button"
           aria-expanded={hasPanel ? open : undefined}
           aria-controls={hasPanel ? panelId : undefined}
           disabled={!hasPanel}
           onClick={() => setOpen(current => !current)}
-          className={`flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 text-left text-[15px] font-semibold text-[#111111] ${item.photos[0] ? '' : 'pl-2.5'}`}
+          className="flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 text-left text-[15px] font-semibold text-[#111111]"
         >
           <span className="min-w-0">{item.title}</span>
           {hasPanel ? (
@@ -199,14 +190,14 @@ function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
               <GuideDarkMarkdown source={item.description} />
             </div>
           ) : null}
-          {otherPhotos.length > 0 ? (
+          {item.photos.length > 0 ? (
             <div className="grid grid-cols-4 gap-1.5">
-              {otherPhotos.map((photo, index) => (
+              {item.photos.map((photo, index) => (
                 <button
                   key={`${photo}-${index}`}
                   type="button"
-                  aria-label={m.media.photoOf(item.title, index + 2)}
-                  onClick={() => openPhoto(index + 1)}
+                  aria-label={m.media.photoOf(item.title, index + 1)}
+                  onClick={() => openPhoto(index)}
                   className="aspect-square overflow-hidden rounded-[14px] bg-[#E8E6E2]"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}

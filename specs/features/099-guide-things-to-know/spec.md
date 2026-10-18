@@ -37,9 +37,9 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
   Description (facultative, 2000 caractères max, Markdown simple) et Photos (facultatives, 5 max,
   téléversement multiple).
 - **AC-01-02**: L'Owner réordonne les cartes (glisser-déposer), retire une photo, supprime une carte.
-- **AC-01-05** (PO 2026-10-17 : « pouvoir sélectionner le hero de la card ») : la première photo est
-  l'**image principale** (vignette de la carte, AC-02-02), signalée « Image principale » ; « ★ » sur
-  une autre photo la place en tête (les autres gardent leur ordre).
+- ~~**AC-01-05**~~ (PO 2026-10-17, **retiré par le PO le 2026-10-18**) : plus d'« image principale »
+  ni de « ★ » ; la carte voyageur n'affiche plus de vignette photo (AC-02-02). Le réordonnancement
+  des cartes (AC-01-02) est inchangé.
 - **AC-01-03**: Une carte sans titre bloque l'enregistrement avec « Le titre est requis. » sous le
   champ (mêmes règles côté client et API, spec 083).
 - **AC-01-04**: L'enregistrement de la page Guide crée, met à jour et supprime (suppression douce) les
@@ -48,8 +48,9 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
 ### US-02 — Le voyageur consulte la section
 - **AC-02-01**: Given le guide logement d'un logement avec au moins une carte, Then la section
   « Choses à savoir » s'affiche entre « Point de tri » et « Équipements » (amendement PO du 2026-10-18, voir spec 054 AC-04-02). Sans carte, elle est absente.
-- **AC-02-02**: Chaque carte est un accordéon fermé : vignette (première photo, si présente) + titre
-  + « + ». Toucher le titre déplie la description (et les autres photos) ; « − » la replie.
+- **AC-02-02** (amendé PO 2026-10-18) : Chaque carte est un accordéon fermé : icône ampoule
+  (Lucide `Lightbulb`, pastille 44 px `bg-slate-100` comme le point de tri) + titre + « + ». Toucher
+  le titre déplie la description puis **toutes** les photos ; « − » la replie.
 - **AC-02-03**: Toucher une photo l'ouvre en plein écran (carrousel des photos de la carte, spec 054
   `MediaLightbox`).
 - **AC-02-04**: En anglais, titre et description sont traduits (spec 061).
@@ -94,12 +95,12 @@ model LodgingThingToKnow {
 ## UI Behaviour
 - Owner : carte « Choses à savoir » sous les équipements (section « Sur place ») ; chaque ligne :
   poignée, Titre, Description, Photos (n / 5), Supprimer.
-- Voyageur : pastille « Choses à savoir » ; liste de cartes accordéon (style `STAY_CARD`) ; vignette
-  76 px cliquable (zoom) ; titre + « + » / « − » ; contenu déplié : description, puis miniatures des
-  autres photos (cliquables).
+- Voyageur : pastille « Choses à savoir » ; liste de cartes accordéon (style `STAY_CARD`) ; icône
+  ampoule ; titre + « + » / « − » ; contenu déplié : description, puis miniatures de toutes les
+  photos (cliquables, zoom).
 
 ## Acceptance Criteria
-AC-01-01 à AC-02-05 (dont AC-01-05), BR-01 à BR-04.
+AC-01-01 à AC-02-05 (AC-01-05 retiré le 2026-10-18), BR-01 à BR-04.
 
 ## Out of Scope
 Vidéo dans une carte ; bibliothèque partagée de « Choses à savoir » ; affichage sur la page publique
