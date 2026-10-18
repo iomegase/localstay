@@ -40,7 +40,7 @@ export function GuideHelpView({
 
       <section aria-label={m.help.settings} className="mt-6 grid gap-3">
         <div className={`${GUIDE_CARD} flex items-center gap-3`}>
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-800">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-slate-800">
             <LocateFixed className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
@@ -96,7 +96,7 @@ function InformationalInstallCard() {
     <Dialog.Root open={installOpen} onOpenChange={setInstallOpen}>
       <Dialog.Trigger asChild>
         <button type="button" className={`${GUIDE_CARD} flex min-h-[76px] w-full items-center gap-3 text-left transition-shadow hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500`}>
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-800">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-slate-800">
             <Download className="h-6 w-6" strokeWidth={1} aria-hidden="true" />
           </span>
           <span className="text-[15px] font-semibold tracking-[-0.025em]">{m.install.title}</span>

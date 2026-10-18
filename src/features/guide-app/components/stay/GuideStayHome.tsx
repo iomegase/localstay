@@ -284,7 +284,7 @@ function StayTile({
     >
       <span
         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] ${
-          dark ? "bg-white/15" : "bg-[#EEF1F4]"
+          dark ? "bg-white/15" : ""
         }`}
       >
         <Icon

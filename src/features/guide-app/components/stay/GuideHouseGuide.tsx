@@ -118,7 +118,7 @@ export function GuideHouseGuide({
 function RecyclingCardContent({ label }: { label: string }) {
   return (
     <>
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-slate-100 text-black">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] text-black">
         <Recycle className="h-7 w-7 stroke-1" strokeWidth={1} aria-hidden="true" />
       </span>
       <p className="min-w-0 flex-1 text-[15px] font-semibold text-[#111111]">{label}</p>
@@ -173,7 +173,7 @@ function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
   return (
     <article data-testid="guide-thing-to-know" className={STAY_CARD}>
       <div className="flex min-h-[76px] items-center gap-2.5 p-3 pr-4">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-slate-100 text-black">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] text-black">
           <Lightbulb className="h-7 w-7 stroke-1" strokeWidth={1} aria-hidden="true" />
         </span>
         <button

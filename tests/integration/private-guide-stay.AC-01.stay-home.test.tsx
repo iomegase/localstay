@@ -119,7 +119,9 @@ describe('054 US-01 — stay home, navigation, Wi-Fi and help', () => {
       expect(icon?.parentElement).toHaveClass('h-11', 'w-11', 'shrink-0')
       expect(icon?.parentElement?.parentElement).toHaveClass('gap-2.5')
     }
-    expect(screen.getByRole('button', { name: /vidéo du logement/i }).querySelector('svg')?.parentElement).toHaveClass('rounded-[16px]', 'bg-[#EEF1F4]')
+    // Spec 054 AC-08-02 : plus de fond gris sous les icônes des cartes claires.
+    expect(screen.getByRole('button', { name: /vidéo du logement/i }).querySelector('svg')?.parentElement).toHaveClass('rounded-[16px]')
+    expect(screen.getByRole('button', { name: /vidéo du logement/i }).querySelector('svg')?.parentElement).not.toHaveClass('bg-[#EEF1F4]')
     for (const name of [/se déplacer/i, /vidéo du logement/i]) {
       const icons = screen.getByRole('button', { name }).querySelectorAll('svg')
       expect(icons[1]).toHaveClass('h-5', 'w-5')

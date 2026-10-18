@@ -44,7 +44,7 @@ export function GuideLodgingVideoButton({
         className="flex w-full items-center justify-between rounded-[22px] bg-white shadow-md transition-[transform,box-shadow] duration-200 hover:shadow-sm p-3 text-left tracking-[-0.025em] text-black"
       >
         <span className="flex items-center gap-2.5">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[16px] bg-[#EEF1F4]">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[16px]">
             <Video className="h-7 w-7 stroke-1 text-black" strokeWidth={1} aria-hidden="true" />
           </span>
           <span>

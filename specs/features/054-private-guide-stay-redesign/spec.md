@@ -657,3 +657,7 @@ de « Équipements ».
 - **AC-08-01** : toutes les pastilles de titre de section du guide privé (Guide logement, Aide)
   sont rose `pink-600` (`#DB2777`) avec texte blanc, au lieu de gris `slate-200` / texte
   `slate-900`. Style unique `STAY_SECTION_PILL` dans `stay-styles.ts`.
+- **AC-08-02** (PO 2026-10-18) : les icônes des cartes claires du guide privé (tuiles de
+  l'accueil, vidéo du logement, Point de tri, Choses à savoir, réglages et installation dans Aide)
+  n'ont plus de pastille de fond grise (`bg-slate-100` / `#EEF1F4`) ; l'emplacement 44 px est
+  conservé pour l'alignement. Les tuiles sombres gardent `bg-white/15`.
