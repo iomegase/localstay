@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 
-type StoredProgress = { checked: number[]; arrived: boolean; departed: boolean }
+type StoredProgress = { checked: number[]; departed: boolean }
 
-const EMPTY: StoredProgress = { checked: [], arrived: false, departed: false }
+const EMPTY: StoredProgress = { checked: [], departed: false }
 
 function storageKey(lodgingId: string): string {
   return `mystay:stay:${lodgingId}`
@@ -17,7 +17,6 @@ function read(lodgingId: string): StoredProgress {
     const parsed = JSON.parse(raw) as Partial<StoredProgress>
     return {
       checked: Array.isArray(parsed.checked) ? parsed.checked.filter(Number.isInteger) : [],
-      arrived: parsed.arrived === true,
       departed: parsed.departed === true,
     }
   } catch {
@@ -26,7 +25,7 @@ function read(lodgingId: string): StoredProgress {
 }
 
 /**
- * Progression du séjour propre à cet appareil (checklist, arrivée, départ) :
+ * Progression du séjour propre à cet appareil (checklist, départ) :
  * survit aux changements de route du guide, sans aucune donnée personnelle.
  */
 export function useStayProgress(lodgingId: string, { persist = true }: { persist?: boolean } = {}) {
@@ -51,7 +50,6 @@ export function useStayProgress(lodgingId: string, { persist = true }: { persist
 
   return {
     checked: new Set(progress.checked),
-    arrived: progress.arrived,
     departed: progress.departed,
     toggle(index: number) {
       update(current => ({
@@ -60,9 +58,6 @@ export function useStayProgress(lodgingId: string, { persist = true }: { persist
           ? current.checked.filter(item => item !== index)
           : [...current.checked, index],
       }))
-    },
-    markArrived() {
-      update(current => ({ ...current, arrived: true }))
     },
     markDeparted() {
       update(current => ({ ...current, departed: true }))

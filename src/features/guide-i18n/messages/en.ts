@@ -17,8 +17,6 @@ export const en: GuideMessages = {
     openMaps: 'Open in Maps',
   },
   arrival: {
-    conciergeNotified: 'The concierge has been told you have arrived.',
-    imArrived: 'I\'ve arrived!',
     keyBoxCode: 'Key box code',
     kinds: {
       access: 'Access',
@@ -32,7 +30,6 @@ export const en: GuideMessages = {
     steps: 'Arrival steps',
     tip: 'Info',
     title: 'Arrival',
-    welcomeLine: (name: string) => `Welcome to ${name}!`,
   },
   blog: {
     title: 'Journal',

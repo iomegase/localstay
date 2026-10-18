@@ -1,4 +1,4 @@
-import { formatFrenchPlaceReference, formatFrenchWelcomeLine } from '@/shared/lib/french-place'
+import { formatFrenchPlaceReference } from '@/shared/lib/french-place'
 
 /**
  * Spec 061 : libellés d'interface du guide privé — français (source).
@@ -20,8 +20,6 @@ export const fr = {
     openMaps: 'Ouvrir dans Maps',
   },
   arrival: {
-    conciergeNotified: 'La conciergerie a été prévenue de votre arrivée.',
-    imArrived: 'Je suis arrivé·e !',
     keyBoxCode: 'Code de la boîte à clés',
     kinds: {
       access: 'Accès',
@@ -35,7 +33,6 @@ export const fr = {
     steps: 'Étapes d\'arrivée',
     tip: 'Infos',
     title: 'Arrivée',
-    welcomeLine: (name: string) => `${formatFrenchWelcomeLine(name)} !`,
   },
   blog: {
     title: 'Journal',

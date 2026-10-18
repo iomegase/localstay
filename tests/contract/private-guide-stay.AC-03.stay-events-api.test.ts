@@ -47,36 +47,38 @@ afterEach(() => {
 })
 
 describe('054 POST /api/guide/stay-events', () => {
-  it('AC-03-01: records an anonymous arrival for the session lodging and notifies MyStay', async () => {
-    const response = await POST(request({ type: 'arrived', lodging_id: 'other-lodging' }))
+  it('AC-03-01 retiré (PO 2026-10-18) : un signal « arrived » est refusé', async () => {
+    const response = await POST(request({ type: 'arrived' }))
+
+    expect(response.status).toBe(400)
+    expect((await response.json()).error.code).toBe('VALIDATION_ERROR')
+    expect(mockCreate).not.toHaveBeenCalled()
+    expect(mockSend).not.toHaveBeenCalled()
+  })
+
+  it('AC-03-02: records an anonymous departure for the session lodging and notifies MyStay', async () => {
+    const response = await POST(request({ type: 'departed', lodging_id: 'other-lodging' }))
 
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toEqual({ status: 'recorded' })
     expect(mockCreate).toHaveBeenCalledWith({
-      data: { lodging_id: 'lodging-1', type: 'arrived' },
+      data: { lodging_id: 'lodging-1', type: 'departed' },
       select: { id: true },
     })
     expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({
-      from: 'MyStay <bonjour@mystay.city>', to: 'bonjour@mystay.city', subject: 'Arrivée voyageur — Le 305',
+      from: 'MyStay <bonjour@mystay.city>', to: 'bonjour@mystay.city', subject: 'Départ voyageur — Le 305',
     }), { idempotencyKey: 'stay-event-event-1' })
-  })
-
-  it('AC-03-02: records a departure with its own subject', async () => {
-    const response = await POST(request({ type: 'departed' }))
-
-    expect(response.status).toBe(201)
-    expect(mockSend.mock.calls[0][0].subject).toBe('Départ voyageur — Le 305')
   })
 
   it('AC-03-03: deduplicates the same signal within 10 minutes', async () => {
     mockFindFirst.mockResolvedValue({ id: 'event-0' })
 
-    const response = await POST(request({ type: 'arrived' }))
+    const response = await POST(request({ type: 'departed' }))
 
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toEqual({ status: 'recorded' })
     const where = mockFindFirst.mock.calls[0][0].where
-    expect(where).toMatchObject({ lodging_id: 'lodging-1', type: 'arrived', deleted_at: null })
+    expect(where).toMatchObject({ lodging_id: 'lodging-1', type: 'departed', deleted_at: null })
     const since = where.created_at.gte as Date
     expect(Date.now() - since.getTime()).toBeGreaterThanOrEqual(10 * 60 * 1000 - 1000)
     expect(Date.now() - since.getTime()).toBeLessThanOrEqual(10 * 60 * 1000 + 1000)
@@ -87,7 +89,7 @@ describe('054 POST /api/guide/stay-events', () => {
   it('AC-03-04: rejects calls without a lodging session', async () => {
     mockContext.mockResolvedValue(null)
 
-    const response = await POST(request({ type: 'arrived' }))
+    const response = await POST(request({ type: 'departed' }))
 
     expect(response.status).toBe(401)
     await expect(response.json()).resolves.toEqual({
@@ -107,7 +109,7 @@ describe('054 POST /api/guide/stay-events', () => {
   it('AC-03-05: logs an email failure without blocking the response', async () => {
     mockSend.mockRejectedValue(new Error('down'))
 
-    const response = await POST(request({ type: 'arrived' }))
+    const response = await POST(request({ type: 'departed' }))
 
     expect(response.status).toBe(201)
     expect(errorLog).toHaveBeenCalled()

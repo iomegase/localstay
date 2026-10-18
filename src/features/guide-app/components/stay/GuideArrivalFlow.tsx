@@ -1,17 +1,13 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Check, Play } from 'lucide-react'
 import type { GuideArrivalInstruction, GuideLodging } from '@/features/guide-app/types'
 import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
 import { MediaLightbox, type LightboxContent } from '../MediaLightbox'
 import { GuideStayScreen } from './GuideStayScreen'
-import {
-  formatGuideHour,
-  lodgingMapsHref,
-  STAY_PRIMARY_BUTTON,
-} from './stay-styles'
+import { formatGuideHour, lodgingMapsHref } from './stay-styles'
 import { GuideAddressBlock } from './GuideAddressBlock'
 import { useGuideI18n, useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
@@ -34,14 +30,10 @@ function stepLabel(step: GuideArrivalInstruction, kinds: Record<GuideArrivalInst
 /** Parcours d'arrivée étape par étape (spec 054 US-02). */
 export function GuideArrivalFlow({
   lodging,
-  arrived,
-  onArrived,
   onBack,
   demo = false,
 }: {
   lodging: GuideLodging
-  arrived: boolean
-  onArrived: () => Promise<void>
   onBack: () => void
   /** Démo (spec 045) : pas de lien externe vers Maps. */
   demo?: boolean
@@ -50,25 +42,11 @@ export function GuideArrivalFlow({
   const steps = lodging.arrivalInstructions.length > 0 ? lodging.arrivalInstructions : [FALLBACK_STEP]
   const [current, setCurrent] = useState(0)
   const [visited, setVisited] = useState<Set<number>>(() => new Set())
-  const [sending, setSending] = useState(false)
-  const [failed, setFailed] = useState(false)
   const step = steps[current]
 
   function goTo(index: number) {
     setVisited(previous => new Set(previous).add(current))
     setCurrent(index)
-  }
-
-  async function signalArrival() {
-    setSending(true)
-    setFailed(false)
-    try {
-      await onArrived()
-    } catch {
-      setFailed(true)
-    } finally {
-      setSending(false)
-    }
   }
 
   return (
@@ -81,7 +59,7 @@ export function GuideArrivalFlow({
       >
         {steps.map((item, index) => {
           const active = index === current
-          const done = !active && (visited.has(index) || (arrived && item.kind === 'access'))
+          const done = !active && visited.has(index)
           return (
             <button
               key={index}
@@ -156,19 +134,7 @@ export function GuideArrivalFlow({
 
           {/* PO 2026-10-06 : le code de la boîte à clés vient sous les sous-étapes. */}
           {step.kind === 'access' && lodging.keyBoxCode && (
-            <KeyBoxCode
-              code={lodging.keyBoxCode}
-              action={!arrived ? (
-                <button
-                  type="button"
-                  disabled={sending}
-                  onClick={signalArrival}
-                  className="flex h-11 shrink-0 items-center rounded-full bg-[#DB2777] px-4 text-[14px] font-semibold text-white disabled:opacity-60"
-                >
-                  {m.arrival.imArrived}
-                </button>
-              ) : null}
-            />
+            <KeyBoxCode code={lodging.keyBoxCode} />
           )}
 
           {step.tip ? (
@@ -179,28 +145,9 @@ export function GuideArrivalFlow({
               </div>
             </aside>
           ) : null}
-
-          {step.kind === 'access' && arrived && (
-            <div className="mt-5 rounded-[22px] bg-[#111111] p-5 text-white" role="status">
-              <p className="text-[20px] font-semibold">{m.arrival.welcomeLine(lodging.name)}</p>
-              <p className="mt-1 text-[14px] text-[#FBCFE8]">{m.arrival.conciergeNotified}</p>
-            </div>
-          )}
         </div>
       </article>
 
-      {/* Avec un code de boîte à clés, le bouton est dans la carte du code (amendement 054 AC-02-03). */}
-      {step.kind === 'access' && !arrived && !lodging.keyBoxCode && (
-        <button
-          type="button"
-          disabled={sending}
-          onClick={signalArrival}
-          className={`${STAY_PRIMARY_BUTTON} mt-4 w-full bg-[#DB2777] disabled:opacity-60`}
-        >
-          {m.arrival.imArrived}
-        </button>
-      )}
-      {failed && <SignalError />}
     </GuideStayScreen>
   )
 }
@@ -307,19 +254,16 @@ function VideoTile({
 }
 
 
-// Spec 054 AC-02-03 (amendé PO 2026-10-06) : code toujours affiché ; « Je suis arrivé·e ! » à côté.
-function KeyBoxCode({ code, action }: { code: string; action: ReactNode }) {
+// Spec 054 AC-02-03 : code toujours affiché (bouton « Je suis arrivé·e ! » retiré, PO 2026-10-18).
+function KeyBoxCode({ code }: { code: string }) {
   const m = useGuideMessages()
 
   return (
     <div data-testid="guide-key-box-card" className="mt-4 rounded-[22px] bg-white shadow-md p-5 text-slate-900">
       <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-pink-600">{m.arrival.keyBoxCode}</p>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <span data-testid="guide-key-box-code" className="font-mono text-[22px] font-semibold tracking-[0.3em]">
-          {code}
-        </span>
-        {action}
-      </div>
+      <span data-testid="guide-key-box-code" className="mt-2 block font-mono text-[22px] font-semibold tracking-[0.3em]">
+        {code}
+      </span>
     </div>
   )
 }

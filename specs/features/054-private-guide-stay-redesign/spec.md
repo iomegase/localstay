@@ -123,10 +123,12 @@ est accessible depuis le Guide logement (amendement PO du 2026-10-03) ; la vidé
   **Amendé par le PO le 2026-10-06** : le code est toujours affiché en clair, sans bouton
   « Afficher ». Quand un code existe, le bouton « Je suis arrivé·e ! » prend sa place dans
   la carte du code (plus de bouton séparé en bas de l'étape).
+  **Amendé par le PO le 2026-10-18** : le bouton « Je suis arrivé·e ! » est retiré ; la
+  carte affiche seulement le libellé et le code.
 - **AC-02-04**: Given la navigation entre étapes, When on avance, Then « Retour »
   (blanc bordé) et l'action principale (`#111111`) sont affichés ; sur l'étape
   `access` l'action principale devient « Je suis arrivé·e ! » (rose) ; à la
-  dernière étape seul « Retour » reste.
+  dernière étape seul « Retour » reste. (Bouton d'arrivée retiré le 2026-10-18.)
 
 ### US-03 — Prévenir la conciergerie
 
@@ -136,7 +138,9 @@ est accessible depuis le Guide logement (amendement PO du 2026-10-03) ; la vidé
 
 #### Acceptance Criteria
 
-- **AC-03-01**: Given un voyageur dans le guide, When il touche « Je suis
+- ~~**AC-03-01**~~ (**retiré par le PO le 2026-10-18** : « c'est nul ») : plus de bouton
+  ni de signal d'arrivée ; l'API refuse `type: arrived` (400 `VALIDATION_ERROR`). Texte
+  d'origine : Given un voyageur dans le guide, When il touche « Je suis
   arrivé·e ! », Then `POST /api/guide/stay-events` enregistre un événement
   `arrived` pour le logement de la session, un e-mail « Arrivée voyageur —
   [logement] » part à `bonjour@mystay.city`, et l'écran affiche « Bienvenue au
@@ -256,7 +260,7 @@ model LodgingStayEvent {
 ```yaml
 /api/guide/stay-events:
   post:
-    summary: Signal anonyme d'arrivée ou de départ depuis le guide privé
+    summary: Signal anonyme de départ depuis le guide privé (arrivée retirée le 2026-10-18)
     requestBody:
       content:
         application/json:
@@ -264,7 +268,7 @@ model LodgingStayEvent {
             type: object
             required: [type]
             properties:
-              type: { type: string, enum: [arrived, departed] }
+              type: { type: string, enum: [departed] }
     responses:
       '201':
         content:

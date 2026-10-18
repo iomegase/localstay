@@ -11,8 +11,6 @@ jest.mock('@/features/guide-app/components/GuideDarkMarkdown', () => ({
 function renderFlow(overrides: Partial<Parameters<typeof GuideArrivalFlow>[0]> = {}) {
   const props = {
     lodging: buildStayLodging(),
-    arrived: false,
-    onArrived: jest.fn().mockResolvedValue(undefined),
     onBack: jest.fn(),
     ...overrides,
   }
@@ -73,16 +71,14 @@ describe('054 US-02 — guided arrival', () => {
     jest.useRealTimers()
   })
 
-  it('AC-02-03 (amendé 2026-10-06) : code toujours affiché, « Je suis arrivé·e ! » dans la carte du code', () => {
+  it('AC-02-03 : code toujours affiché, sans bouton « Je suis arrivé·e ! » (retiré PO 2026-10-18)', () => {
     renderFlow()
     fireEvent.click(screen.getAllByRole('tab')[1])
 
     expect(screen.getByText('Code de la boîte à clés')).toBeInTheDocument()
     expect(screen.getByTestId('guide-key-box-code')).toHaveTextContent('4810')
     expect(screen.queryByRole('button', { name: 'Afficher le code' })).not.toBeInTheDocument()
-    const arrivedButtons = screen.getAllByRole('button', { name: 'Je suis arrivé·e !' })
-    expect(arrivedButtons).toHaveLength(1)
-    expect(screen.getByTestId('guide-key-box-card')).toContainElement(arrivedButtons[0]!)
+    expect(screen.queryByRole('button', { name: 'Je suis arrivé·e !' })).not.toBeInTheDocument()
   })
 
   it('PO 2026-10-06 : le code passe sous les sous-étapes, texte centré verticalement sur le chiffre', () => {
@@ -119,10 +115,10 @@ describe('054 US-02 — guided arrival', () => {
     expect(fact).toHaveTextContent('−2')
   })
 
-  it('sans code, le bouton « Je suis arrivé·e ! » reste sous l’étape', () => {
+  it('sans code, aucun bouton « Je suis arrivé·e ! » sous l’étape (retiré PO 2026-10-18)', () => {
     renderFlow({ lodging: buildStayLodging({ keyBoxCode: null }) })
     fireEvent.click(screen.getAllByRole('tab')[1])
-    expect(screen.getAllByRole('button', { name: 'Je suis arrivé·e !' })).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Je suis arrivé·e !' })).not.toBeInTheDocument()
     expect(screen.queryByTestId('guide-key-box-card')).not.toBeInTheDocument()
   })
 
@@ -132,24 +128,10 @@ describe('054 US-02 — guided arrival', () => {
     expect(screen.queryByText('Code de la boîte à clés')).not.toBeInTheDocument()
   })
 
-  it('AC-02-04 / AC-03-01: step tabs and the arrival signal', async () => {
-    const props = renderFlow()
-
+  it('AC-02-04: step tabs without step counter', () => {
+    renderFlow()
     fireEvent.click(screen.getAllByRole('tab')[1])
     expect(screen.queryByText(/Étape \d+ sur \d+/)).not.toBeInTheDocument()
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Je suis arrivé·e !' }))
-    })
-    expect(props.onArrived).toHaveBeenCalledTimes(1)
-  })
-
-  it('AC-03-01: shows the welcome confirmation once arrived', () => {
-    renderFlow({ arrived: true })
-    fireEvent.click(screen.getAllByRole('tab')[1])
-    expect(screen.getByText('Bienvenue au 305 !')).toBeInTheDocument()
-    expect(screen.getByText('La conciergerie a été prévenue de votre arrivée.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Je suis arrivé·e !' })).not.toBeInTheDocument()
   })
 
   it('AC-02-04: the last step has no redundant navigation buttons', () => {

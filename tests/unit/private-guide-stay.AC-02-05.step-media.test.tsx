@@ -14,8 +14,6 @@ function renderStep(photos: string[], videoUrl: string | null = null) {
   render(
     <GuideArrivalFlow
       lodging={buildStayLodging({ arrivalInstructions: [step(photos, videoUrl)] })}
-      arrived={false}
-      onArrived={jest.fn()}
       onBack={jest.fn()}
     />,
   )

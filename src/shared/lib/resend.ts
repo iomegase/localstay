@@ -115,23 +115,20 @@ async function sendContactEmail(
 
 interface StayEventNotificationParams {
   id: string
-  type: 'arrived' | 'departed'
+  type: 'departed'
   lodgingName: string
   cityName: string
 }
 
-/** Signal anonyme d'arrivée / de départ depuis le guide privé (spec 054 AC-03-01/02). */
+/** Signal anonyme de départ depuis le guide privé (spec 054 AC-03-02 ; arrivée retirée le 2026-10-18). */
 export async function sendStayEventNotificationEmail(input: StayEventNotificationParams): Promise<boolean> {
-  const arrived = input.type === 'arrived'
   const lodgingName = input.lodgingName.replace(/[\r\n]+/g, ' ')
   return sendContactEmail({
     from: 'MyStay <bonjour@mystay.city>',
     to: 'bonjour@mystay.city',
-    subject: `${arrived ? 'Arrivée' : 'Départ'} voyageur — ${lodgingName}`,
+    subject: `Départ voyageur — ${lodgingName}`,
     text: [
-      arrived
-        ? `Un voyageur vient de signaler son arrivée au logement ${lodgingName} (${input.cityName}).`
-        : `Un voyageur vient de signaler son départ du logement ${lodgingName} (${input.cityName}).`,
+      `Un voyageur vient de signaler son départ du logement ${lodgingName} (${input.cityName}).`,
       `Heure : ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
       '',
       `Référence : ${input.id}`,

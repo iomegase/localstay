@@ -148,7 +148,7 @@ function GuideAppShell({
   const fullScreen = ['poi', 'arrival', 'departure', 'rules', 'transport'].includes(activeView)
 
   // Spec 054 US-03 : la démo n'émet aucun événement (AC-06-01).
-  async function sendStayEvent(type: 'arrived' | 'departed') {
+  async function sendStayEvent(type: 'departed') {
     if (mode === 'private') {
       const response = await fetch('/api/guide/stay-events', {
         method: 'POST',
@@ -157,8 +157,7 @@ function GuideAppShell({
       })
       if (!response.ok) throw new Error('stay_event_failed')
     }
-    if (type === 'arrived') stay.markArrived()
-    else stay.markDeparted()
+    stay.markDeparted()
   }
   const [selectedPoiId, setSelectedPoiId] = useState<string | null>(null)
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(
@@ -297,8 +296,6 @@ function GuideAppShell({
         {activeView === 'arrival' && (
           <GuideArrivalFlow
             lodging={lodging}
-            arrived={stay.arrived}
-            onArrived={() => sendStayEvent('arrived')}
             onBack={() => navigate('home')}
           />
         )}

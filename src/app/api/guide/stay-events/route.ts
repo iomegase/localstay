@@ -9,11 +9,12 @@ import { sendStayEventNotificationEmail } from '@/shared/lib/resend'
 const DEDUPE_WINDOW_MS = 10 * 60 * 1000
 
 const stayEventSchema = z.object({
-  type: z.enum(['arrived', 'departed']),
+  // PO 2026-10-18 : le signal « arrivé » est retiré ; seul « parti » reste.
+  type: z.literal('departed'),
 })
 
 /**
- * Signal anonyme « arrivé / parti » depuis le guide privé (spec 054 US-03).
+ * Signal anonyme « parti » depuis le guide privé (spec 054 US-03).
  * Le logement vient toujours de la session du guide, jamais du corps (BR-02).
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
