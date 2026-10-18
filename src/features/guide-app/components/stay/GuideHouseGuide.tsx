@@ -164,7 +164,7 @@ function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
 
   return (
     <article data-testid="guide-thing-to-know" className={STAY_CARD}>
-      <div className="flex items-center gap-3 p-1.5 pr-4">
+      <div className="flex items-center gap-3 p-3 pr-4">
         {item.photos[0] ? (
           <button
             type="button"
