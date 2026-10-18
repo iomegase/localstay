@@ -46,6 +46,15 @@ type TrailCandidateRow = {
   review_status: string
   published_poi_id?: string | null
   trail_detail_id?: string | null
+  /** Fiche publiée : ses valeurs, modifiées par l'admin, priment dans la liste (PO 2026-10-18). */
+  trail_detail?: {
+    deleted_at: Date | null
+    difficulty: string
+    distance_km: number | null
+    elevation_gain_m: number | null
+    estimated_duration_min: number | null
+    geometry_geojson: Prisma.JsonValue | null
+  } | null
 }
 
 export async function createTrailImportRun(
@@ -261,6 +270,16 @@ export async function getTrailImportRun(id: string): Promise<TrailImportRunDetai
           review_status: true,
           published_poi_id: true,
           trail_detail_id: true,
+          trail_detail: {
+            select: {
+              deleted_at: true,
+              difficulty: true,
+              distance_km: true,
+              elevation_gain_m: true,
+              estimated_duration_min: true,
+              geometry_geojson: true,
+            },
+          },
         },
       },
     },
@@ -281,6 +300,12 @@ export async function getTrailImportRun(id: string): Promise<TrailImportRunDetai
 }
 
 export function mapTrailCandidate(candidate: TrailCandidateRow): TrailCandidateDto {
+  // Randonnée publiée : la liste montre les valeurs actuelles de la fiche (distance, durée, tracé…
+  // complétés ou importés depuis « Gérer la fiche »), le candidat gardant celles de l'import.
+  const detail = candidate.review_status === 'published' && candidate.trail_detail && !candidate.trail_detail.deleted_at
+    ? candidate.trail_detail
+    : null
+  const detailHasGeometry = detail?.geometry_geojson != null && typeof detail.geometry_geojson === 'object'
   return {
     id: candidate.id,
     photos: extractTrailPhotos(candidate.raw_payload),
@@ -288,15 +313,16 @@ export function mapTrailCandidate(candidate: TrailCandidateRow): TrailCandidateD
     description: candidate.description,
     primary_source_type: candidate.primary_source_type as TrailSourceType,
     source_refs: toSourceRefs(candidate.source_refs),
-    difficulty: candidate.difficulty as TrailDifficulty | null,
-    distance_km: candidate.distance_km,
-    elevation_gain_m: candidate.elevation_gain_m,
-    estimated_duration_min: candidate.estimated_duration_min,
+    difficulty: (detail && detail.difficulty !== 'unknown' ? detail.difficulty : candidate.difficulty) as TrailDifficulty | null,
+    distance_km: detail?.distance_km ?? candidate.distance_km,
+    elevation_gain_m: detail?.elevation_gain_m ?? candidate.elevation_gain_m,
+    estimated_duration_min: detail?.estimated_duration_min ?? candidate.estimated_duration_min,
     data_quality_status: candidate.data_quality_status as TrailDataQualityStatus,
     start_label: candidate.start_label,
     start_latitude: candidate.start_latitude,
     start_longitude: candidate.start_longitude,
-    geometry_status: candidate.geometry_status as TrailGeometryStatus,
+    // Tracé ajouté sur la fiche (ex. import GPX) alors que l'import n'en avait pas.
+    geometry_status: (candidate.geometry_status === 'missing' && detailHasGeometry ? 'valid' : candidate.geometry_status) as TrailGeometryStatus,
     elevation_status: candidate.elevation_status as TrailElevationStatus,
     duplicate_poi_ids: candidate.duplicate_poi_ids,
     review_status: candidate.review_status as TrailReviewStatus,

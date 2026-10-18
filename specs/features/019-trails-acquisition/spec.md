@@ -865,3 +865,8 @@ components:
   **2026-10-18** : le nettoyage du balisage Camptocamp, appliqué après la coupure, pouvait porter le
   texte à quelques caractères de plus (« Tour du vallon de la Lex Blanche » : 1 503) ; la reprise
   tolère désormais jusqu'à 1 550 caractères. Appliquée : 3 descriptions complétées.
+- **AC-COR-03** (PO 2026-10-18) : dans la liste des candidats d'un import, une randonnée publiée
+  affiche les valeurs actuelles de sa fiche (`TrailDetail` non supprimé) : distance, dénivelé,
+  durée, difficulté connue ; « Géom. » passe à `valid` si la fiche a un tracé alors que l'import
+  n'en avait pas (ex. GPX importé depuis « Gérer la fiche »). Un tracé calculé `needs_review`
+  reste signalé. Les valeurs d'import du candidat ne sont pas modifiées.

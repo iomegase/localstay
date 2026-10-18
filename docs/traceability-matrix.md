@@ -2307,6 +2307,7 @@ Ajustements techniques documentés dans la spec : attribution locale par `LocalL
 |---|---|---|---|---|
 | AC-COR-01 | Description Camptocamp gardée entière jusqu'à 5 000 caractères, coupée sinon à la fin d'un paragraphe ou d'une phrase (plus de coupure à 1 500 en plein mot) | `src/features/trails-acquisition/services/camptocamp.ts` | `tests/unit/trails-acquisition.camptocamp-description.test.ts` | ✅ done |
 | AC-COR-02 | Reprise des descriptions coupées (candidats et POI publiés), seulement si non modifiées par l'admin — 6 complétées le 2026-10-17, 3 de plus le 2026-10-18 (tolérance 1 550 car. : nettoyage du balisage après coupure) | `scripts/repair-truncated-trail-descriptions.ts` | — (script, vérifié en dry-run puis appliqué) | ✅ done |
+| AC-COR-03 | Liste des candidats : une randonnée publiée affiche les valeurs actuelles de sa fiche (distance, dénivelé, durée, difficulté, tracé) — PO 2026-10-18 | `src/features/trails-acquisition/queries/runs.ts` | `tests/unit/trails-acquisition.published-candidate-values.test.ts` | ✅ done |
 
 ## 030 — Landing pages actives et crons Vercel (corrections PO 2026-10-18)
 
