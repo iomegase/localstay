@@ -28,6 +28,8 @@ export function GuideHouseGuide({
 }) {
   const m = useGuideMessages()
   const [openRule, setOpenRule] = useState<number | null>(null)
+  // Spec 099 AC-02-02 (PO 2026-10-18) : une seule carte « Choses à savoir » ouverte à la fois.
+  const [openThing, setOpenThing] = useState<string | null>(null)
   const equipment = lodging.practicalCards.filter(card => card.icon !== 'recycle')
   const recycling = lodging.practicalCards.filter(card => card.icon === 'recycle')
   const thingsToKnow = lodging.thingsToKnow ?? []
@@ -96,7 +98,14 @@ export function GuideHouseGuide({
         <section className="mt-[26px]">
           <h2 className={STAY_SECTION_PILL}>{m.houseGuide.thingsToKnow}</h2>
           <div className="mt-3 grid gap-2.5">
-            {thingsToKnow.map(item => <ThingToKnowCard key={item.id} item={item} />)}
+            {thingsToKnow.map(item => (
+              <ThingToKnowCard
+                key={item.id}
+                item={item}
+                open={openThing === item.id}
+                onToggle={() => setOpenThing(current => (current === item.id ? null : item.id))}
+              />
+            ))}
           </div>
         </section>
       )}
@@ -162,9 +171,16 @@ function EquipmentCard({ card }: { card: GuidePracticalCard }) {
  * Spec 099 AC-02-02/03 : carte accordéon — icône ampoule + titre ;
  * dépliée, la description puis toutes les photos (zoom au toucher).
  */
-function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
+function ThingToKnowCard({
+  item,
+  open,
+  onToggle,
+}: {
+  item: GuideThingToKnow
+  open: boolean
+  onToggle: () => void
+}) {
   const m = useGuideMessages()
-  const [open, setOpen] = useState(false)
   const [lightbox, setLightbox] = useState<LightboxContent | null>(null)
   const panelId = `guide-thing-${item.id}`
   const openPhoto = (index: number) => setLightbox({ kind: 'photos', photos: item.photos, startIndex: index })
@@ -181,7 +197,7 @@ function ThingToKnowCard({ item }: { item: GuideThingToKnow }) {
           aria-expanded={hasPanel ? open : undefined}
           aria-controls={hasPanel ? panelId : undefined}
           disabled={!hasPanel}
-          onClick={() => setOpen(current => !current)}
+          onClick={onToggle}
           className="flex min-h-14 min-w-0 flex-1 items-center justify-between gap-3 text-left text-[15px] font-semibold text-[#111111]"
         >
           <span className="min-w-0">{item.title}</span>

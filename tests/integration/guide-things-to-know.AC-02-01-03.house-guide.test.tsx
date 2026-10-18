@@ -45,6 +45,22 @@ describe('099 US-02 — Choses à savoir', () => {
     expect(within(card).queryByText('La télécommande est sur la cheminée.')).not.toBeInTheDocument()
   })
 
+  it('AC-02-02 (PO 2026-10-18) : ouvrir une carte referme celle qui était ouverte', () => {
+    const other = { id: 'k2', title: 'Vélux', description: 'Une télécommande par Vélux.', photos: [] }
+    render(<GuideHouseGuide lodging={buildStayLodging({ thingsToKnow: [thing, other] })} onBack={jest.fn()} />)
+    const first = screen.getByRole('button', { name: 'Volets roulants' })
+    const second = screen.getByRole('button', { name: 'Vélux' })
+
+    fireEvent.click(first)
+    expect(first).toHaveAttribute('aria-expanded', 'true')
+
+    fireEvent.click(second)
+    expect(second).toHaveAttribute('aria-expanded', 'true')
+    expect(first).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('La télécommande est sur la cheminée.')).not.toBeInTheDocument()
+    expect(screen.getByText('Une télécommande par Vélux.')).toBeInTheDocument()
+  })
+
   it('AC-02-03 : toucher une photo l’ouvre en plein écran', () => {
     render(<GuideHouseGuide lodging={buildStayLodging({ thingsToKnow: [thing] })} onBack={jest.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: 'Volets roulants' }))

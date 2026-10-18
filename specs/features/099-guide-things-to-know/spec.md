@@ -54,6 +54,7 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
 - **AC-02-02** (amendé PO 2026-10-18) : Chaque carte est un accordéon fermé : icône ampoule
   (Lucide `Lightbulb`, pastille 44 px `bg-slate-100` comme le point de tri) + titre + « + ». Toucher
   le titre déplie la description puis **toutes** les photos ; « − » la replie.
+  Une seule carte ouverte à la fois : en ouvrir une referme la précédente (PO 2026-10-18).
 - **AC-02-03**: Toucher une photo l'ouvre en plein écran (carrousel des photos de la carte, spec 054
   `MediaLightbox`).
 - **AC-02-04**: En anglais, titre et description sont traduits (spec 061).
