@@ -68,7 +68,7 @@ lecteur concurrent.
   portrait après activation du lecteur.
 - **AC-01-07**: Given une vidéo filmée en paysage (16:9), When la fenêtre vidéo
   s'ouvre, Then le lecteur et sa miniature sont affichés dans un cadre 16:9
-  limité à la largeur et à la hauteur du viewport, sans bandes noires autour de
+  limité à la largeur mobile du guide (390 px), sans bandes noires autour de
   la miniature ; une vidéo portrait (Short) garde le cadre 9:16 d'AC-01-06. Si
   le format ne peut pas être déterminé, le cadre portrait est conservé.
 
@@ -166,7 +166,8 @@ un Server Component privé et utilise la query existante
   rognée et entourée de bandes noires.
 - Le cadre suit désormais le format réel de la vidéo (BR-09) : 9:16 pour un
   Short / une vidéo verticale, 16:9 pour une vidéo paysage.
-- Paysage : largeur `min(100vw − 40px, 960px, (100dvh − 40px) × 16/9)`, même
+- Paysage : largeur `min(390px, 100vw − 40px)` — même largeur que le cadre
+  portrait, le dialogue reste dans la colonne mobile du guide sur desktop ; même
   arrondi, même croix superposée, même fond sombre.
 
 ### États

@@ -9,7 +9,7 @@ import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nCont
 // Spec 044 AC-01-06 / AC-01-07 : cadre 9:16 pour un Short, 16:9 pour une vidéo paysage.
 const DIALOG_WIDTH = {
   portrait: 'w-[min(390px,calc((100dvh-40px)*9/16))]',
-  landscape: 'w-[min(calc(100vw-40px),960px,calc((100dvh-40px)*16/9))]',
+  landscape: 'w-[min(390px,calc(100vw-40px))]',
 } as const
 
 export function GuideLodgingVideoButton({
