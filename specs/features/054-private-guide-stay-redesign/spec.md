@@ -651,3 +651,9 @@ de « Équipements ».
 - **AC-04-03** (PO 2026-10-18) : la carte « Trouver le point de recyclage » est entièrement
   cliquable et ouvre la destination Maps d'AC-04-01 ; son nom accessible est son texte visible ;
   l'icône œil est retirée. En démo, la carte n'est pas un lien.
+
+## Amendement approuvé — Couleur des pastilles de section (2026-10-18)
+
+- **AC-07-01** : toutes les pastilles de titre de section du guide privé (Guide logement, Aide)
+  sont rose `pink-600` (`#DB2777`) avec texte blanc, au lieu de gris `slate-200` / texte
+  `slate-900`. Style unique `STAY_SECTION_PILL` dans `stay-styles.ts`.

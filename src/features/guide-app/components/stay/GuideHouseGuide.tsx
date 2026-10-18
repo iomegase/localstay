@@ -9,14 +9,12 @@ import { extractYouTubeId, youTubeThumbnailUrl } from '@/shared/lib/youtube'
 import { GuideDarkMarkdown } from '../GuideDarkMarkdown'
 import { MediaLightbox, type LightboxContent } from '../MediaLightbox'
 import { GuideStayScreen } from './GuideStayScreen'
-import { STAY_CARD } from './stay-styles'
+import { STAY_CARD, STAY_SECTION_PILL } from './stay-styles'
 import { recyclingMapsHref } from '@/features/guide-app/lib/recycling-maps'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 import { formatPhone, phoneHref } from '@/shared/lib/phone'
 
 const RECYCLING_CARD = 'flex min-h-[76px] w-full items-center gap-2.5 rounded-[20px] bg-white p-3 pr-4 text-left tracking-[-0.025em] shadow-md transition-[transform,box-shadow] duration-200 hover:shadow-sm'
-
-const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
 /** Guide logement : règles en accordéon, point de tri, « Choses à savoir » (spec 099) puis équipements (spec 054 AC-04-01) + « Choses à savoir » (spec 099). */
 export function GuideHouseGuide({
@@ -39,7 +37,7 @@ export function GuideHouseGuide({
       {/* Spec 054 amendement 2026-10-18 : Règlement → Point de tri → Choses à savoir → Équipements. */}
       {lodging.houseRules.length > 0 && (
         <section>
-          <h2 className={SECTION_PILL}>{m.houseGuide.rules}</h2>
+          <h2 className={STAY_SECTION_PILL}>{m.houseGuide.rules}</h2>
           <div className={`${STAY_CARD} mt-3 divide-y divide-[rgba(17,17,17,0.08)]`}>
             {lodging.houseRules.map((rule, index) => {
               const open = openRule === index
@@ -72,7 +70,7 @@ export function GuideHouseGuide({
       )}
 
       <section className="mt-[26px]">
-        <h2 className={SECTION_PILL}>{m.houseGuide.recycling}</h2>
+        <h2 className={STAY_SECTION_PILL}>{m.houseGuide.recycling}</h2>
         <div className="mt-3 grid gap-2.5">
           {recycling.map(card => <EquipmentCard key={card.id} card={card} />)}
           {/* Toute la carte est le lien Maps, sans icône œil (PO 2026-10-18). */}
@@ -96,7 +94,7 @@ export function GuideHouseGuide({
       {/* Spec 099 AC-02-01 : entre « Point de tri » et « Équipements » (amendement 2026-10-18), absente sans carte. */}
       {thingsToKnow.length > 0 && (
         <section className="mt-[26px]">
-          <h2 className={SECTION_PILL}>{m.houseGuide.thingsToKnow}</h2>
+          <h2 className={STAY_SECTION_PILL}>{m.houseGuide.thingsToKnow}</h2>
           <div className="mt-3 grid gap-2.5">
             {thingsToKnow.map(item => <ThingToKnowCard key={item.id} item={item} />)}
           </div>
@@ -105,7 +103,7 @@ export function GuideHouseGuide({
 
       {equipment.length > 0 && (
         <section className="mt-[26px]">
-          <h2 className={SECTION_PILL}>{m.houseGuide.equipment}</h2>
+          <h2 className={STAY_SECTION_PILL}>{m.houseGuide.equipment}</h2>
           <div className="mt-3 grid gap-2.5">
             {equipment.map(card => (
               <EquipmentCard key={card.id} card={card} />

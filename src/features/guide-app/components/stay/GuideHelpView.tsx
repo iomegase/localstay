@@ -10,6 +10,7 @@ import { GUIDE_CARD, GuideInfoCard } from '../GuideCard'
 import { Switch } from '@/shared/components/ui/switch'
 import { useUserLocation } from '@/features/geolocation/hooks/useUserLocation'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
+import { STAY_SECTION_PILL } from './stay-styles'
 
 /**
  * Onglet Aide (spec 054 AC-01-05) : conciergerie et urgences (BR-05).
@@ -61,7 +62,7 @@ export function GuideHelpView({
       </section>
 
       <section className="mt-6">
-        <h2 className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900">{m.help.practical}</h2>
+        <h2 className={STAY_SECTION_PILL}>{m.help.practical}</h2>
         <div id="guide-practical-panel" className="mt-3 grid gap-2.5">
           <GuideInfoCard
             testId="guide-practical-emergency"

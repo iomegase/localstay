@@ -2,6 +2,9 @@
 export const STAY_PINK = 'bg-[#DB2777]'
 export const STAY_CARD = 'rounded-[20px] bg-white shadow-md'
 export const STAY_EYEBROW = 'text-[12px] font-semibold uppercase tracking-[0.08em] text-[#DB2777]'
+/** Pastille de titre de section du guide (PO 2026-10-18 : rose `pink-600`, texte blanc). */
+export const STAY_SECTION_PILL =
+  'inline-flex w-fit rounded-full bg-pink-600 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-white'
 export const STAY_SECTION_TITLE = 'text-[19px] font-semibold tracking-[-0.01em] text-[#111111]'
 export const STAY_PRIMARY_BUTTON =
   'flex h-[52px] items-center justify-center rounded-2xl bg-[#111111] px-4 text-[15px] font-semibold text-white transition-transform active:scale-[0.99]'
