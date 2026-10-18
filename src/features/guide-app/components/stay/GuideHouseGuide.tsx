@@ -16,7 +16,7 @@ import { formatPhone, phoneHref } from '@/shared/lib/phone'
 
 const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
-/** Guide logement : équipements + règles en accordéon (spec 054 AC-04-01) + « Choses à savoir » (spec 099). */
+/** Guide logement : règles en accordéon, point de tri puis équipements (spec 054 AC-04-01) + « Choses à savoir » (spec 099). */
 export function GuideHouseGuide({
   lodging,
   onBack,
@@ -34,19 +34,9 @@ export function GuideHouseGuide({
 
   return (
     <GuideStayScreen title={m.houseGuide.title} onBack={onBack}>
-      {equipment.length > 0 && (
-        <section>
-          <h2 className={SECTION_PILL}>{m.houseGuide.equipment}</h2>
-          <div className="mt-3 grid gap-2.5">
-            {equipment.map(card => (
-              <EquipmentCard key={card.id} card={card} />
-            ))}
-          </div>
-        </section>
-      )}
-
+      {/* Spec 054 amendement 2026-10-18 : Règlement et Point de tri avant Équipements. */}
       {lodging.houseRules.length > 0 && (
-        <section className="mt-[26px]">
+        <section>
           <h2 className={SECTION_PILL}>{m.houseGuide.rules}</h2>
           <div className={`${STAY_CARD} mt-3 divide-y divide-[rgba(17,17,17,0.08)]`}>
             {lodging.houseRules.map((rule, index) => {
@@ -113,6 +103,16 @@ export function GuideHouseGuide({
         </div>
       </section>
 
+      {equipment.length > 0 && (
+        <section className="mt-[26px]">
+          <h2 className={SECTION_PILL}>{m.houseGuide.equipment}</h2>
+          <div className="mt-3 grid gap-2.5">
+            {equipment.map(card => (
+              <EquipmentCard key={card.id} card={card} />
+            ))}
+          </div>
+        </section>
+      )}
     </GuideStayScreen>
   )
 }

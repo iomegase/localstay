@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-02
-updated_at: 2026-10-03
+updated_at: 2026-10-18
 depends_on:
   - 012-guide-customization
   - 024-contact-messages
@@ -638,3 +638,12 @@ et son menu aussi »), la 404 unique du guide privé (`/guide/[city-slug]/…`) 
   client) : la mise en page de l'ancien gabarit n'est jamais conservée autour du
   nouveau guide.
 Le texte du message est inchangé.
+
+## Amendement approuvé — Ordre du guide logement (2026-10-18)
+
+Demande du Product Owner : « Point de tri » et « Règlement » passent au-dessus
+de « Équipements ».
+
+- **AC-04-02** : l'écran Guide logement affiche ses sections dans l'ordre
+  Règlement → Choses à savoir (spec 099, si présente) → Point de tri →
+  Équipements. Le contenu de chaque section est inchangé.

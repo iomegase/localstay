@@ -57,6 +57,7 @@ describe('BR-23 — Markdown des blocs pratiques privés', () => {
 
     expect(
       screen.getAllByTestId('guide-dark-markdown').map(node => node.textContent),
-    ).toEqual(descriptions)
+      // Spec 054 AC-04-02 : le point de tri (recycle) précède les équipements.
+    ).toEqual([descriptions[3], ...descriptions.slice(0, 3)])
   })
 })
