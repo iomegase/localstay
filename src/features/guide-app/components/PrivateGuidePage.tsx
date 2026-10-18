@@ -52,7 +52,8 @@ export async function PrivateGuidePage({
   // l'accès à son guide via le confinement du proxy).
   const [lodgingsData, blogData] = await Promise.all([
     listPublishedLodgings(),
-    getPublishedBlogArticles(lodgingContext.citySlug, 'local_guide'),
+    // Spec 054 AC-01-21 (PO 2026-10-18) : tous les articles « Guide local », sans filtre de ville.
+    getPublishedBlogArticles(undefined, 'local_guide'),
   ])
 
   const frenchLodgings: GuideLodgingCard[] = lodgingsData.map(item => ({

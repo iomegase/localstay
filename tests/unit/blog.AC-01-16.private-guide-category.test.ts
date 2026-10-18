@@ -35,4 +35,12 @@ describe('054 AC-01-16 private guide Journal category', () => {
     expect(where).not.toHaveProperty('category')
     expect(where.city_id).toBe('city-1')
   })
+
+  it('AC-01-21 : sans ville, renvoie les guides locaux de toutes les villes', async () => {
+    const result = await getPublishedBlogArticles(undefined, 'local_guide')
+    expect(mockCity).not.toHaveBeenCalled()
+    const { where } = mockFindMany.mock.calls[0][0]
+    expect(where).toEqual({ status: 'published', deleted_at: null, NOT: { published_at: null }, category: 'local_guide' })
+    expect(result?.city).toBeNull()
+  })
 })

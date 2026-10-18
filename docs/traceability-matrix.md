@@ -1575,6 +1575,7 @@ Validation 051 : TypeScript, ESLint ciblé et Prisma validate réussis. Suite é
 
 | `054-private-guide-stay-redesign` / `055-facilibus-transport` | US-01 | AC-01-13 | Titres Arrivée, Départ, Guide logement et Se déplacer à droite du retour, sous-titre sous le titre — décision PO du 2026-10-04. | `src/features/guide-app/components/stay/GuideStayScreen.tsx` | `tests/integration/private-guide-stay.AC-01-13.screen-headers.test.tsx` | Implemented |
 | `054-private-guide-stay-redesign` | US-04 | AC-04-02 | Guide logement (PO 2026-10-18) : Règlement → Point de tri → Choses à savoir → Équipements. | `src/features/guide-app/components/stay/GuideHouseGuide.tsx` | `tests/integration/private-guide-stay.AC-04-02.house-guide-order.test.tsx`<br>`tests/integration/guide-things-to-know.AC-02-01-03.house-guide.test.tsx`<br>`tests/unit/guide-app.practical-card-markdown.test.tsx` | Implemented |
+| `054-private-guide-stay-redesign` | — | AC-01-21 | Journal du guide privé : tous les articles « Guide local » publiés, sans filtre de ville (PO 2026-10-18). | `src/features/guide-app/components/PrivateGuidePage.tsx` | `tests/integration/private-guide-app.AC-01-01-04.home.test.tsx`<br>`tests/unit/blog.AC-01-16.private-guide-category.test.ts` | Implemented |
 
 Précision de traçabilité 055 AC-03-01 (PO 2026-10-04) : sous-titre Se déplacer en `text-xs` dans `src/features/transport/components/GuideTransportView.tsx`. Vérification ESLint ciblée.
 

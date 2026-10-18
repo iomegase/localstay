@@ -116,7 +116,8 @@ describe('034-private-guide-app /sejour home', () => {
     expect(guide).toHaveAttribute('data-lodging-route', '/sejour/logement')
     expect(guide).not.toHaveAttribute('data-map-route')
     expect(mockRecordQrScanIfPresent).toHaveBeenCalledWith('lodging-1')
-    expect(getPublishedBlogArticles).toHaveBeenCalledWith('saint-gervais-les-bains', 'local_guide')
+    // Spec 054 AC-01-21 : tous les guides locaux, quelle que soit la ville du séjour.
+    expect(getPublishedBlogArticles).toHaveBeenCalledWith(undefined, 'local_guide')
   })
 
   it('does not load private guide data without an active stay', async () => {

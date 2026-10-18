@@ -665,3 +665,11 @@ de « Équipements ».
   l'accueil, vidéo du logement, Point de tri, Choses à savoir, réglages et installation dans Aide)
   n'ont plus de pastille de fond grise (`bg-slate-100` / `#EEF1F4`) ; l'emplacement 44 px est
   conservé pour l'alignement. Les tuiles sombres gardent `bg-white/15`.
+
+## Amendement approuvé — Journal : tous les guides locaux (PO 2026-10-18)
+
+Constat : le Journal d'un séjour aux Contamines-Montjoie était vide, aucun article
+« Guide local » n'étant rattaché à cette ville. AC-01-21 : le Journal du guide privé
+affiche **tous** les articles `local_guide` publiés, quelle que soit leur ville (le filtre
+sur la ville du séjour d'AC-01-16 est retiré) ; statut, non-suppression et tri inchangés.
+La liste « Les logements » du menu est inchangée.
