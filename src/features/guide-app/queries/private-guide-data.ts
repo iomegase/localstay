@@ -30,6 +30,8 @@ import { applyEnglishTranslations, prismaTranslationStore, type LocalizableField
 import { translateSources } from '@/features/content-translation/services/translate-sources'
 import { deeplConfigFromEnv } from '@/shared/lib/deepl'
 import { atPlace } from '@/shared/lib/french-place'
+import { extractYouTubeId } from '@/shared/lib/youtube'
+import { fetchYouTubeOrientation } from '@/shared/lib/youtube-orientation'
 
 export async function getPrivateGuideData(
   lodgingId: string,
@@ -202,6 +204,12 @@ export async function getPrivateGuideData(
   const customization = lodging.customization
   const profile = lodging.public_profile?.deleted_at ? null : lodging.public_profile
   const coverImage = guideCoverImage(customization?.cover_photo_url, profile?.photos ?? [])
+  const presentationVideoUrl = customization?.presentation_video_url?.trim() || undefined
+  // Spec 044 BR-09 : le cadre du lecteur suit le format réel de la vidéo.
+  const presentationVideoId = presentationVideoUrl ? extractYouTubeId(presentationVideoUrl) : null
+  const presentationVideoOrientation = presentationVideoId
+    ? await fetchYouTubeOrientation(presentationVideoId)
+    : undefined
 
   const data: PrivateGuideData = {
     lodging: {
@@ -219,8 +227,8 @@ export async function getPrivateGuideData(
       checkOut: '10:00',
       wifiName: customization?.wifi_ssid ?? '',
       wifiPassword: customization?.wifi_password ?? '',
-      presentationVideoUrl:
-        customization?.presentation_video_url?.trim() || undefined,
+      presentationVideoUrl,
+      presentationVideoOrientation,
       arrivalInstructions: lodging.arrival_instructions.map(instruction => ({
         title: instruction.title,
         text: instruction.text,

@@ -101,4 +101,23 @@ describe('044-private-guide-lodging-video home module', () => {
       ).toBeNull()
     },
   )
+
+  it('AC-01-07 frames a landscape video in 16:9, before and during playback', async () => {
+    const user = userEvent.setup()
+    render(
+      <GuideStayHome lodging={{ ...lodging, presentationVideoOrientation: 'landscape' }} pois={[]} departureDone={0} onNavigate={jest.fn()} onOpenWifi={jest.fn()} onOpenPoi={jest.fn()} />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /^Vidéo du logement/i }))
+    const dialog = screen.getByRole('dialog', { name: 'Vidéo du logement' })
+    expect(dialog).toHaveClass('w-[min(calc(100vw-40px),960px,calc((100dvh-40px)*16/9))]')
+    expect(dialog).not.toHaveClass('w-[min(390px,calc((100dvh-40px)*9/16))]')
+    const player = screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' }).parentElement
+    expect(player).toHaveClass('aspect-video')
+    expect(player).not.toHaveClass('aspect-[9/16]')
+    expect(screen.getByRole('button', { name: 'Fermer' })).toHaveClass('absolute', 'right-3', 'top-3')
+
+    await user.click(screen.getByRole('button', { name: 'Lire la vidéo : Vidéo du logement' }))
+    expect(document.querySelector('iframe')?.parentElement).toHaveClass('aspect-video')
+  })
 })

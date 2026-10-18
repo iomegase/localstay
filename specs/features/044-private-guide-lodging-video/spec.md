@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-08-31
-updated_at: 2026-10-04
+updated_at: 2026-10-18
 depends_on:
   - 012-guide-customization
   - 034-private-guide-app
@@ -66,6 +66,11 @@ lecteur concurrent.
   sont affichés dans un cadre portrait 9:16 adapté à la hauteur du viewport,
   sans bandeau blanc et avec le bouton Fermer superposé. Le format reste
   portrait après activation du lecteur.
+- **AC-01-07**: Given une vidéo filmée en paysage (16:9), When la fenêtre vidéo
+  s'ouvre, Then le lecteur et sa miniature sont affichés dans un cadre 16:9
+  limité à la largeur et à la hauteur du viewport, sans bandes noires autour de
+  la miniature ; une vidéo portrait (Short) garde le cadre 9:16 d'AC-01-06. Si
+  le format ne peut pas être déterminé, le cadre portrait est conservé.
 
 ## Business Rules
 
@@ -87,6 +92,12 @@ lecteur concurrent.
   possède un bouton « Fermer » et restaure l'interface sans navigation.
 - **BR-08**: La fonctionnalité reste strictement privée et soumise au contrôle
   de séjour existant de `/sejour`.
+- **BR-09**: Le format (portrait / paysage) est déterminé côté serveur dans
+  `getPrivateGuideData` via l'oEmbed public YouTube interrogé avec la forme
+  `/shorts/<id>` (seule forme qui renvoie les dimensions réelles : 113×200 pour
+  un Short, 200×113 pour une vidéo paysage). Réponse mise en cache 24 h, délai
+  maximal 3 s ; toute erreur ou réponse invalide (Zod) → `portrait`. Aucun
+  cookie, aucune clé API, aucune donnée stockée.
 
 ## Data Model
 
@@ -105,6 +116,8 @@ TypeScript partagé :
 ```typescript
 type GuideLodging = {
   presentationVideoUrl?: string
+  /** BR-09 — absent ⇒ portrait. */
+  presentationVideoOrientation?: 'portrait' | 'landscape'
 }
 ```
 
@@ -147,6 +160,15 @@ un Server Component privé et utilise la query existante
   `Fermer`. Le titre `Vidéo du logement` reste accessible au lecteur d’écran.
 - Le composant partagé conserve le format 16:9 par défaut pour ses autres usages.
 
+### Format adapté à la vidéo — demande Product Owner du 2026-10-18
+
+- Constat : une vidéo filmée en paysage, forcée en 9:16, donne une miniature
+  rognée et entourée de bandes noires.
+- Le cadre suit désormais le format réel de la vidéo (BR-09) : 9:16 pour un
+  Short / une vidéo verticale, 16:9 pour une vidéo paysage.
+- Paysage : largeur `min(100vw − 40px, 960px, (100dvh − 40px) × 16/9)`, même
+  arrondi, même croix superposée, même fond sombre.
+
 ### États
 
 - URL valide : bouton visible, fenêtre fermée par défaut.
@@ -160,6 +182,7 @@ un Server Component privé et utilise la query existante
 | AC-01-01 | unit + integration |
 | AC-01-02 | integration |
 | AC-01-06 | integration |
+| AC-01-07 | unit + integration |
 | AC-01-03 | integration |
 | AC-01-04 | unit + integration |
 | AC-01-05 | integration |

@@ -194,7 +194,10 @@ export function GuideStayHome<P extends StayPoiCard>({
       {/* Vidéo de présentation saisie par l'Owner (spec 044), conservée sous les tuiles. */}
       {lodging.presentationVideoUrl ? (
         <div className="mx-5 mt-2.5">
-          <GuideLodgingVideoButton url={lodging.presentationVideoUrl} />
+          <GuideLodgingVideoButton
+            url={lodging.presentationVideoUrl}
+            orientation={lodging.presentationVideoOrientation}
+          />
         </div>
       ) : null}
 

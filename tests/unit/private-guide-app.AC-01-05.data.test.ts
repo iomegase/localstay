@@ -6,6 +6,9 @@ jest.mock('@/shared/lib/prisma', () => ({
     lodgingFeaturedPoi: { findMany: jest.fn() },
   },
 }))
+jest.mock('@/shared/lib/youtube-orientation', () => ({
+  fetchYouTubeOrientation: jest.fn().mockResolvedValue('landscape'),
+}))
 
 import { getPrivateGuideData } from '@/features/guide-app/queries/private-guide-data'
 import {
@@ -213,6 +216,8 @@ describe('034-private-guide-app private data adapter', () => {
     expect(result?.lodging.presentationVideoUrl).toBe(
       'https://youtu.be/dQw4w9WgXcQ',
     )
+    // Spec 044 BR-09 : format réel de la vidéo transmis à la home privée.
+    expect(result?.lodging.presentationVideoOrientation).toBe('landscape')
     expect(lodgingFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         select: expect.objectContaining({

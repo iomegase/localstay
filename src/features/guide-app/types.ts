@@ -207,6 +207,8 @@ export type GuideLodging = {
   wifiPassword: string
   /** Vidéo YouTube de présentation configurée par l'Owner. */
   presentationVideoUrl?: string
+  /** Spec 044 BR-09 — format réel de la vidéo ; absent ⇒ portrait. */
+  presentationVideoOrientation?: 'portrait' | 'landscape'
   arrivalInstructions: GuideArrivalInstruction[]
   departureInstructions: string[]
   houseRules: string[]

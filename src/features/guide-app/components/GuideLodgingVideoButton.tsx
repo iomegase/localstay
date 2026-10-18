@@ -6,7 +6,19 @@ import { YouTubeEmbed } from '@/shared/components/YouTubeEmbed'
 import { extractYouTubeId } from '@/shared/lib/youtube'
 import { useGuideMessages } from '@/features/guide-i18n/components/GuideI18nContext'
 
-export function GuideLodgingVideoButton({ url }: { url?: string }) {
+// Spec 044 AC-01-06 / AC-01-07 : cadre 9:16 pour un Short, 16:9 pour une vidéo paysage.
+const DIALOG_WIDTH = {
+  portrait: 'w-[min(390px,calc((100dvh-40px)*9/16))]',
+  landscape: 'w-[min(calc(100vw-40px),960px,calc((100dvh-40px)*16/9))]',
+} as const
+
+export function GuideLodgingVideoButton({
+  url,
+  orientation = 'portrait',
+}: {
+  url?: string
+  orientation?: 'portrait' | 'landscape'
+}) {
   const m = useGuideMessages()
   const [open, setOpen] = useState(false)
   const videoId = url ? extractYouTubeId(url) : null
@@ -58,7 +70,7 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
             aria-modal="true"
             aria-label={m.video.title}
             onClick={event => event.stopPropagation()}
-            className="relative w-[min(390px,calc((100dvh-40px)*9/16))] overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+            className={`relative ${DIALOG_WIDTH[orientation]} overflow-hidden rounded-[24px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.5)]`}
           >
             <h2 className="sr-only">{m.video.title}</h2>
             <button
@@ -72,7 +84,7 @@ export function GuideLodgingVideoButton({ url }: { url?: string }) {
             <YouTubeEmbed
               url={url}
               title={m.video.title}
-              aspectRatio="portrait"
+              aspectRatio={orientation}
             />
           </section>
         </div>
