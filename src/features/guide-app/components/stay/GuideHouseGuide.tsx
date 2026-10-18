@@ -16,7 +16,7 @@ import { formatPhone, phoneHref } from '@/shared/lib/phone'
 
 const SECTION_PILL = 'inline-flex w-fit rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.08em] text-slate-900'
 
-/** Guide logement : règles en accordéon, point de tri puis équipements (spec 054 AC-04-01) + « Choses à savoir » (spec 099). */
+/** Guide logement : règles en accordéon, point de tri, « Choses à savoir » (spec 099) puis équipements (spec 054 AC-04-01) + « Choses à savoir » (spec 099). */
 export function GuideHouseGuide({
   lodging,
   onBack,
@@ -34,7 +34,7 @@ export function GuideHouseGuide({
 
   return (
     <GuideStayScreen title={m.houseGuide.title} onBack={onBack}>
-      {/* Spec 054 amendement 2026-10-18 : Règlement et Point de tri avant Équipements. */}
+      {/* Spec 054 amendement 2026-10-18 : Règlement → Point de tri → Choses à savoir → Équipements. */}
       {lodging.houseRules.length > 0 && (
         <section>
           <h2 className={SECTION_PILL}>{m.houseGuide.rules}</h2>
@@ -69,16 +69,6 @@ export function GuideHouseGuide({
         </section>
       )}
 
-      {/* Spec 099 AC-02-01 : entre « Règlement » et « Point de tri », absente sans carte. */}
-      {thingsToKnow.length > 0 && (
-        <section className="mt-[26px]">
-          <h2 className={SECTION_PILL}>{m.houseGuide.thingsToKnow}</h2>
-          <div className="mt-3 grid gap-2.5">
-            {thingsToKnow.map(item => <ThingToKnowCard key={item.id} item={item} />)}
-          </div>
-        </section>
-      )}
-
       <section className="mt-[26px]">
         <h2 className={SECTION_PILL}>{m.houseGuide.recycling}</h2>
         <div className="mt-3 grid gap-2.5">
@@ -102,6 +92,16 @@ export function GuideHouseGuide({
           </div>
         </div>
       </section>
+
+      {/* Spec 099 AC-02-01 : entre « Point de tri » et « Équipements » (amendement 2026-10-18), absente sans carte. */}
+      {thingsToKnow.length > 0 && (
+        <section className="mt-[26px]">
+          <h2 className={SECTION_PILL}>{m.houseGuide.thingsToKnow}</h2>
+          <div className="mt-3 grid gap-2.5">
+            {thingsToKnow.map(item => <ThingToKnowCard key={item.id} item={item} />)}
+          </div>
+        </section>
+      )}
 
       {equipment.length > 0 && (
         <section className="mt-[26px]">

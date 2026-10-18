@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-10-17
-updated_at: 2026-10-17
+updated_at: 2026-10-18
 depends_on:
   - 054-private-guide-stay-redesign
   - 077-owner-lodgings-guide-ui
@@ -47,7 +47,7 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
 
 ### US-02 — Le voyageur consulte la section
 - **AC-02-01**: Given le guide logement d'un logement avec au moins une carte, Then la section
-  « Choses à savoir » s'affiche entre « Règlement » et « Point de tri ». Sans carte, elle est absente.
+  « Choses à savoir » s'affiche entre « Point de tri » et « Équipements » (amendement PO du 2026-10-18, voir spec 054 AC-04-02). Sans carte, elle est absente.
 - **AC-02-02**: Chaque carte est un accordéon fermé : vignette (première photo, si présente) + titre
   + « + ». Toucher le titre déplie la description (et les autres photos) ; « − » la replie.
 - **AC-02-03**: Toucher une photo l'ouvre en plein écran (carrousel des photos de la carte, spec 054

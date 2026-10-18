@@ -13,11 +13,11 @@ const thing = {
 
 // Spec 099 US-02 — section « Choses à savoir » du guide logement.
 describe('099 US-02 — Choses à savoir', () => {
-  it('AC-02-01 : affichée entre « Règlement » et « Point de tri »', () => {
+  it('AC-02-01 : affichée entre « Point de tri » et « Équipements »', () => {
     render(<GuideHouseGuide lodging={buildStayLodging({ thingsToKnow: [thing] })} onBack={jest.fn()} />)
 
     const headings = screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent)
-    expect(headings).toEqual(['Règlement', 'Choses à savoir', 'Point de tri', 'Équipements'])
+    expect(headings).toEqual(['Règlement', 'Point de tri', 'Choses à savoir', 'Équipements'])
   })
 
   it('AC-02-01 : absente sans carte', () => {

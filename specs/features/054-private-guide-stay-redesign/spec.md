@@ -645,5 +645,6 @@ Demande du Product Owner : « Point de tri » et « Règlement » passent au-des
 de « Équipements ».
 
 - **AC-04-02** : l'écran Guide logement affiche ses sections dans l'ordre
-  Règlement → Choses à savoir (spec 099, si présente) → Point de tri →
-  Équipements. Le contenu de chaque section est inchangé.
+  Règlement → Point de tri → Choses à savoir (spec 099, si présente) →
+  Équipements. Le contenu de chaque section est inchangé. (« Point de tri » et
+  « Choses à savoir » intervertis à la demande du PO le même jour.)
