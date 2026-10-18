@@ -5,6 +5,7 @@ import { createTrailSlug } from '../lib/slug'
 import { mapTrailCandidate } from './runs'
 import { extractTrailPhotos } from '../lib/photos'
 import { classifyTrailQuality } from '../lib/geometry-quality'
+import { trailDifficultySubcategorySlug } from '../lib/difficulty'
 
 type PublishOptions = {
   confirm_duplicate: boolean
@@ -47,7 +48,10 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
 
   const randoCategory = await prisma.category.findFirst({
     where: { slug: 'rando', is_active: true, deleted_at: null },
-    select: { id: true },
+    select: {
+      id: true,
+      subcategories: { where: { is_active: true, deleted_at: null }, select: { id: true, slug: true } },
+    },
   })
   if (!randoCategory) throw new TrailsAcquisitionError('INVALID_RANDO_CATEGORY', 400)
 
@@ -58,6 +62,9 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
     sourceRefs: candidate.source_refs,
   })
   const difficulty = candidate.difficulty ?? 'unknown'
+  // Spec 019 BR-12 / BR-22 : sous-catégorie Facile / Moyen / Difficile remplie si elle existe.
+  const subcategorySlug = trailDifficultySubcategorySlug(difficulty)
+  const subcategoryId = randoCategory.subcategories?.find(sub => sub.slug === subcategorySlug)?.id ?? null
   const startLatitude = candidate.start_latitude
   const startLongitude = candidate.start_longitude
 
@@ -80,6 +87,7 @@ export async function publishTrailCandidate(candidateId: string, adminId: string
         is_active: true,
         city_id: candidate.city_id,
         category_id: randoCategory.id,
+        subcategory_id: subcategoryId,
       },
     })
 

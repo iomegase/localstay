@@ -134,4 +134,32 @@ describe('publishTrailCandidate — data_quality_status comes from the geometry 
     await publishTrailCandidate('cand-1', 'admin-1', { confirm_duplicate: false, confirm_incomplete_geometry: true })
     expect(mockPoiCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ description_sources: sources }) }))
   })
+
+  it.each([
+    ['easy', 'sub-facile'],
+    ['medium', 'sub-moyen'],
+    ['hard', 'sub-difficile'],
+    ['expert', 'sub-difficile'],
+    ['unknown', null],
+  ])('spec 019 BR-22 : difficulté %s → sous-catégorie %s', async (difficulty, subcategoryId) => {
+    mockCategoryFindFirst.mockResolvedValue({
+      id: 'rando-cat',
+      subcategories: [
+        { id: 'sub-toutes', slug: 'toutes' },
+        { id: 'sub-facile', slug: 'facile' },
+        { id: 'sub-moyen', slug: 'moyen' },
+        { id: 'sub-difficile', slug: 'difficile' },
+      ],
+    })
+    mockCandidateFindFirst.mockResolvedValue({ ...baseCandidate({ type: 'LineString', coordinates: [[6.7, 45.8], [6.71, 45.81]] }), difficulty })
+    await publishTrailCandidate('cand-1', 'admin-1', { confirm_duplicate: false, confirm_incomplete_geometry: true })
+    expect(mockPoiCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ subcategory_id: subcategoryId }) }))
+  })
+
+  it('spec 019 BR-22 : sans sous-catégorie active correspondante, la sous-catégorie reste vide', async () => {
+    mockCategoryFindFirst.mockResolvedValue({ id: 'rando-cat', subcategories: [{ id: 'sub-toutes', slug: 'toutes' }] })
+    mockCandidateFindFirst.mockResolvedValue({ ...baseCandidate({ type: 'LineString', coordinates: [[6.7, 45.8], [6.71, 45.81]] }), difficulty: 'easy' })
+    await publishTrailCandidate('cand-1', 'admin-1', { confirm_duplicate: false, confirm_incomplete_geometry: true })
+    expect(mockPoiCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ subcategory_id: null }) }))
+  })
 })

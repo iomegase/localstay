@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-25
-updated_at: 2026-09-30
+updated_at: 2026-10-18
 depends_on: [003-poi-list, 004-poi-detail, 005-map, 007-gemini-fetch, 017-admin-taxonomy, 018-poi-acquisition-pipeline]
 bounded_context: trails
 ```
@@ -185,6 +185,11 @@ Références de cadrage :
 - **BR-20**: Les zones géographiques globales StayLocal s'appliquent depuis le point de départ : primary zone ≤ 15 km, nearby zone 15-30 km, out of range > 30 km rejeté ou non publié.
 - **BR-21**: Overpass ne crée un candidat publiable que pour une relation `route=hiking` ou un chemin nommé avec signaux randonnée forts. Les chemins bruts, parkings, refuges, sommets et points d'eau servent d'enrichissement.
 - **BR-22**: Les difficultés canoniques sont `easy`, `medium`, `hard`, `expert`, `unknown`. Le mapping public vers `Facile`, `Moyen`, `Difficile` est géré par la SubCategory active correspondante quand elle existe.
+  **Précisé PO 2026-10-18** : à la publication, la sous-catégorie du POI est remplie
+  automatiquement — `easy` → `facile`, `medium` → `moyen`, `hard` et `expert` → `difficile`,
+  `unknown` → aucune ; seulement si la SubCategory active existe. Reprise des randonnées déjà
+  publiées sans sous-catégorie : `scripts/backfill-trail-subcategories.ts` (dry-run par défaut,
+  ne remplace jamais une sous-catégorie choisie par l'admin).
 - **BR-24**: Correctif technique approuvé en conversation le 2026-09-30 : découverte des sources en parallèle, budget global 210 s pour les appels externes, maximum 65 s par source de découverte et 35 s par phase d'enrichissement. Route d'import configurée à 300 s pour laisser le temps de sauvegarder. Aucun nouvel appel n'est lancé après expiration ; une réponse tardive ne modifie pas les résultats persistés. Les imports restent synchrones ; aucune dépendance à une tâche détachée non durable.
 - **BR-25**: Les checkpoints utilisent les modèles existants, sans migration. Seuls les candidats encore non revus et inchangés depuis le précédent checkpoint peuvent être mis à jour. Aucune publication automatique. La récupération des imports anciens ne supprime ni candidat ni historique.
 - **BR-23**: Les sources doivent être suffisamment explicites pour permettre une vérification manuelle ultérieure par le Super-admin.
