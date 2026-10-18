@@ -42,6 +42,18 @@ describe('099 US-01 — ThingsToKnowEditor', () => {
     expect(state()).toEqual([])
   })
 
+  it('AC-01-02 : chaque photo est une poignée de glisser-déposer, la croix reste séparée', () => {
+    render(<Harness initialValue={[{ id: 'k1', title: 'Volets', body: null, photos: ['/a.jpg', '/b.jpg', '/c.jpg'], sort_order: 0 }]} />)
+
+    const photos = screen.getAllByTestId('thing-to-know-photo')
+    expect(photos).toHaveLength(3)
+    expect(screen.getByRole('button', { name: 'Déplacer la photo 1' })).toHaveAttribute('aria-roledescription', 'sortable')
+    expect(screen.getByRole('button', { name: 'Déplacer la photo 3' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retirer la photo 2' }))
+    expect(state()[0].photos).toEqual(['/a.jpg', '/c.jpg'])
+  })
+
   it('AC-01-05 retiré : plus d’image principale ni de ★', () => {
     render(<Harness initialValue={[{ id: 'k1', title: 'Volets', body: null, photos: ['/a.jpg', '/b.jpg'], sort_order: 0 }]} />)
 

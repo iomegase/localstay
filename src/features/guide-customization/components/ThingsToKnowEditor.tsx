@@ -12,6 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import {
+  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -22,7 +23,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ImageUpload } from '@/shared/components/ImageUpload'
-import { reorderById, THING_TO_KNOW_MAX_PHOTOS } from '@/features/guide-customization/lib/validation'
+import { movePhoto, reorderById, THING_TO_KNOW_MAX_PHOTOS } from '@/features/guide-customization/lib/validation'
 import type { ThingToKnowInput } from '@/features/guide-customization/types'
 
 interface Props {
@@ -198,28 +199,73 @@ function SortableThingRow({
           <p className="text-[11px] font-semibold text-gray-500">Limite atteinte : {THING_TO_KNOW_MAX_PHOTOS} photos.</p>
         )}
         {item.photos.length > 0 && (
-          <div className="flex flex-wrap gap-3">
-            {item.photos.map((photo, photoIndex) => (
-              <div key={`${photo}-${photoIndex}`} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo}
-                  alt=""
-                  className="h-16 w-20 rounded-lg object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => onUpdate(index, { photos: item.photos.filter((_, i) => i !== photoIndex) })}
-                  aria-label={`Retirer la photo ${photoIndex + 1}`}
-                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-charcoal text-white"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
+          <SortablePhotos
+            photos={item.photos}
+            onChange={photos => onUpdate(index, { photos })}
+          />
         )}
       </div>
+    </div>
+  )
+}
+
+/** Spec 099 AC-01-02 (PO 2026-10-18) : photos d'une carte réordonnées par glisser-déposer. */
+function SortablePhotos({ photos, onChange }: { photos: string[]; onChange: (photos: string[]) => void }) {
+  const dndId = useId()
+  // Un léger déplacement est requis avant le glisser : la croix « Retirer » reste cliquable.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over) return
+    onChange(movePhoto(photos, String(active.id), String(over.id)))
+  }
+
+  return (
+    <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <SortableContext items={photos} strategy={rectSortingStrategy}>
+        <div className="flex flex-wrap gap-3">
+          {photos.map((photo, photoIndex) => (
+            <SortablePhoto
+              key={photo}
+              photo={photo}
+              position={photoIndex + 1}
+              onRemove={() => onChange(photos.filter((_, i) => i !== photoIndex))}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  )
+}
+
+function SortablePhoto({ photo, position, onRemove }: { photo: string; position: number; onRemove: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo })
+  const style = { transform: CSS.Transform.toString(transform), transition }
+
+  return (
+    <div ref={setNodeRef} style={style} data-testid="thing-to-know-photo" className={`relative ${isDragging ? 'z-10 opacity-80' : ''}`}>
+      <button
+        type="button"
+        aria-label={`Déplacer la photo ${position}`}
+        className="block cursor-grab touch-none rounded-lg active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo} alt="" draggable={false} className="h-16 w-20 rounded-lg object-cover" />
+      </button>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Retirer la photo ${position}`}
+        className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-charcoal text-white"
+      >
+        <X className="h-3 w-3" />
+      </button>
     </div>
   )
 }

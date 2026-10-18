@@ -37,6 +37,9 @@ Owner ; Guide logement (écran « Guide logement » du guide privé) ; Page Guid
   Description (facultative, 2000 caractères max, Markdown simple) et Photos (facultatives, 5 max,
   téléversement multiple).
 - **AC-01-02**: L'Owner réordonne les cartes (glisser-déposer), retire une photo, supprime une carte.
+  **Amendé PO 2026-10-18** : il réordonne aussi les photos d'une carte par glisser-déposer (la
+  vignette entière est la poignée ; clavier : Espace puis flèches) ; l'ordre enregistré est celui
+  d'affichage dans la carte dépliée.
 - ~~**AC-01-05**~~ (PO 2026-10-17, **retiré par le PO le 2026-10-18**) : plus d'« image principale »
   ni de « ★ » ; la carte voyageur n'affiche plus de vignette photo (AC-02-02). Le réordonnancement
   des cartes (AC-01-02) est inchangé.

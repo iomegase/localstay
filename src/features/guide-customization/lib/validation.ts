@@ -237,6 +237,17 @@ export function arrivalStepHasContent(step: {
 }
 
 /** Déplace l'élément `activeId` à la position de `overId` (immutable, identité préservée si no-op). */
+/** Spec 099 AC-01-02 : déplace la photo `activeId` à la place de `overId` (les URL servent d'identifiants). */
+export function movePhoto(photos: string[], activeId: string, overId: string): string[] {
+  const from = photos.indexOf(activeId)
+  const to = photos.indexOf(overId)
+  if (from === -1 || to === -1 || from === to) return photos
+  const next = photos.slice()
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
+}
+
 export function reorderById<T extends { id?: string }>(
   items: T[],
   activeId: string,
