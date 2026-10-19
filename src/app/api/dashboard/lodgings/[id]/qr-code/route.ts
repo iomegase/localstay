@@ -8,6 +8,7 @@ import {
 } from '@/features/dashboard-owner/queries/qr-code'
 import { generateQrPng } from '@/features/qr-code/services/generate-qr'
 import { uploadQrToStorage } from '@/features/qr-code/services/upload-qr'
+import { lodgingQrUrl } from '@/features/qr-code/lib/lodging-qr-url'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -74,11 +75,8 @@ export async function POST(_req: NextRequest, { params }: Params): Promise<NextR
     )
   }
 
-  // Même base d'URL que partout (QR ville incluse) : NEXT_PUBLIC_BASE_URL.
-  // En dev = http://localhost:3000 ; en prod, doit pointer vers le domaine déployé.
-  // On retire un éventuel slash final pour éviter un double slash (…app//guide).
-  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
-  const guideUrl = `${baseUrl}/guide/${lodging.city.slug}?lodging=${id}`
+  // En dev, NEXT_PUBLIC_BASE_URL = http://localhost:3000 ; en prod, le domaine déployé.
+  const guideUrl = lodgingQrUrl(lodging.city.slug, id)
 
   // AC-01-04 : toute erreur (PNG, Storage, base) renvoie une erreur JSON lisible,
   // jamais une page 500 HTML que le dashboard ne sait pas afficher.

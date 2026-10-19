@@ -209,6 +209,8 @@
 | AC-02-01 | qr_scan enregistré dans Analytics via page guide | `src/features/analytics/lib/record-qr-scan.ts` | `tests/contract/guide.AC-02-01.analytics-scan.test.ts` | ✅ done |
 | BR-01 | 1 QR actif max par logement | `src/features/dashboard-owner/queries/qr-code.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
 | BR-05 | Owner ne génère que ses propres QR codes | `src/app/api/dashboard/lodgings/[id]/qr-code/route.ts` | `tests/contract/dashboard.AC-qr-code.test.ts` | ✅ done |
+| AC-03-01 | Onglet Logements de l'admin : bouton « QR code » → fenêtre QR du logement (aperçu, URL, PNG) — PO 2026-10-19 | `src/features/lodging-showcase/components/AdminLodgingProfilesTable.tsx`<br>`src/features/admin/components/QrCodeModalButton.tsx` | `tests/unit/lodging-showcase.admin-table.test.tsx`<br>`tests/integration/admin.city-qr-modal.test.tsx` | ✅ done |
+| AC-03-02 / AC-03-03 | `GET|POST /api/admin/lodgings/{id}/qr-code` : génération selon le contrat Owner, réservé au super-admin | `src/app/api/admin/lodgings/[id]/qr-code/route.ts`<br>`src/features/qr-code/lib/lodging-qr-url.ts` | `tests/contract/qr-code-owner.AC-03.admin-lodging-qr-api.test.ts` | ✅ done |
 
 ## 012 — Guide Customization
 

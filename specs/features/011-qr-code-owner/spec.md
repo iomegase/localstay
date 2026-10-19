@@ -9,7 +9,7 @@ status: approved
 mvp: 2
 owner: "Product Owner"
 created_at: 2026-05-22
-updated_at: 2026-09-29
+updated_at: 2026-10-19
 depends_on: [006-qr-code, 010-dashboard-owner]
 ```
 
@@ -56,6 +56,23 @@ En MVP 1, un seul QR code est généré par ville par l'admin. En MVP 2, chaque 
 - **AC-02-02**: Given le dashboard stats, When l'Owner consulte les stats par logement, Then le nombre de scans par logement est affiché (déjà couvert par spec 010 AC-02-01)
 
 ---
+
+### US-03 — Consulter le QR d'un logement depuis l'admin (PO 2026-10-19)
+
+**As a** super-admin  
+**I want to** voir, télécharger et (re)générer le QR code de n'importe quel logement depuis
+l'onglet Logements de l'admin  
+**So that** je n'ai pas à passer par le dashboard de chaque Owner
+
+#### Acceptance Criteria
+
+- **AC-03-01**: Given `/admin/lodgings`, When le super-admin touche « QR code » sur la ligne d'un
+  logement, Then une fenêtre (même modèle que le QR ville) affiche le QR actif : image, URL encodée,
+  date de génération, lien « Télécharger PNG » ; sans QR, « Aucun QR code généré pour ce logement. ».
+- **AC-03-02**: « Générer le QR code » / « Régénérer » produit le QR selon le contrat Owner
+  (AC-01-01, AC-01-03, AC-01-04, BR-01), quel que soit le propriétaire du logement.
+- **AC-03-03**: Les routes `GET|POST /api/admin/lodgings/{id}/qr-code` sont réservées au
+  super-admin (session admin) ; un identifiant non UUID ou un logement supprimé → 404.
 
 ## Business Rules
 
@@ -213,6 +230,34 @@ components:
 
 ---
 
+### Admin (US-03)
+
+```yaml
+/api/admin/lodgings/{id}/qr-code:
+  get:
+    summary: QR actif d'un logement (super-admin)
+    responses:
+      '200': { content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/AdminLodgingQr' } } } } } }
+      '403': { description: Session non admin }
+      '404': { description: Logement introuvable ou aucun QR actif (NOT_FOUND) }
+  post:
+    summary: Génère ou régénère le QR d'un logement (super-admin)
+    responses:
+      '201': { content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/AdminLodgingQr' } } } } } }
+      '403': { description: Session non admin }
+      '404': { description: Logement introuvable (NOT_FOUND) }
+      '500': { description: QR_GENERATION_FAILED }
+components:
+  schemas:
+    AdminLodgingQr:
+      type: object
+      required: [url, storage_url, created_at]
+      properties:
+        url: { type: string }
+        storage_url: { type: string }
+        created_at: { type: string, format: date-time }
+```
+
 ## UI Behaviour
 
 ### Page `/dashboard/lodgings/[id]/qr-code`
@@ -236,6 +281,9 @@ components:
 | AC-01-04 | Échec de génération → 500 JSON `QR_GENERATION_FAILED` avec cause | contract |
 | AC-02-01 | Scan enregistré dans Analytics via page guide côté serveur | contract |
 | AC-02-02 | Stats scans par logement — couvert par spec 010 | — |
+| AC-03-01 | Bouton « QR code » et fenêtre dans l'onglet Logements de l'admin | unit |
+| AC-03-02 | Génération / régénération admin selon le contrat Owner | contract |
+| AC-03-03 | Routes admin réservées au super-admin, 404 sur id invalide | contract |
 
 ---
 

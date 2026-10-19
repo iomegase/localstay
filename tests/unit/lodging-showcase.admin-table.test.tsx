@@ -136,3 +136,30 @@ describe('028 AC-06-03 (retiré) — plus de bouton « Corrections »', () => {
     expect(screen.getByRole('button', { name: 'Publier' })).toBeInTheDocument()
   })
 })
+
+describe('011 AC-03-01 — QR code du logement dans l’onglet Logements', () => {
+  it('ouvre la fenêtre QR du logement depuis sa ligne', async () => {
+    const fetchMock = global.fetch as jest.Mock
+    fetchMock.mockReset()
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          url: 'https://www.mystay.city/guide/annecy?lodging=lodging-1',
+          storage_url: 'https://cdn.example/qr-codes/lodgings/lodging-1.png',
+          created_at: '2026-10-19T08:00:00.000Z',
+        },
+      }),
+    })
+    render(<AdminLodgingProfilesTable rows={[row]} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'QR code' }))
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/admin/lodgings/lodging-1/qr-code')
+    expect(await screen.findByRole('dialog', { name: 'QR code — Chalet Hygge' })).toBeInTheDocument()
+    expect(await screen.findByAltText('QR Code')).toBeInTheDocument()
+    expect(screen.getByText('https://www.mystay.city/guide/annecy?lodging=lodging-1')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Télécharger PNG/ })).toHaveAttribute('download', 'qr-lodging-1.png')
+  })
+})

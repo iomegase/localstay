@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/shared/components/ui/button'
 import { DeleteLodgingButton } from '@/features/admin/components/DeleteLodgingButton'
+import { QrCodeModalButton } from '@/features/admin/components/QrCodeModalButton'
 import type { AdminLodgingProfileRow } from '../queries/admin-public-profiles'
 
 const seoWarningLabels: Record<string, string> = {
@@ -154,6 +155,13 @@ export function AdminLodgingProfilesTable(props: { rows: AdminLodgingProfileRow[
                             </Button>
                           </>
                         )}
+                        {/* Spec 011 US-03 : QR du logement consulté / généré depuis l'admin. */}
+                        <QrCodeModalButton
+                          endpoint={`/api/admin/lodgings/${row.lodging.id}/qr-code`}
+                          title={`QR code — ${row.lodging.name}`}
+                          emptyLabel="Aucun QR code généré pour ce logement."
+                          downloadName={`qr-${row.lodging.id}.png`}
+                        />
                         <SeminarSelectionButton lodgingId={row.lodging.id} selected={row.seminar_selected} />
                         <DeleteLodgingButton lodgingId={row.lodging.id} name={row.lodging.name} />
                       </div>
